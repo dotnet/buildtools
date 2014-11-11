@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <UsingTask AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll" TaskName="GetPackageVersion" />
+
+  <ItemGroup>
+    <PackagesNuSpecFiles Include="$(SourceDir)nuget\*.nuspec" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <_PackagesOutDir>$(OutDir)Packages\</_PackagesOutDir>
+  </PropertyGroup>
+
+  <Target
+    Name="BuildPackages"
+    DependsOnTargets="GetNuGetPackageVersions">
+    <!-- Create package output directory -->
+    <MakeDir Directories="$(_PackagesOutDir)" />
+
+    <!-- Make package -->
+    <!-- We ignore warnings because NuGet will warn when libraries are not placed
+         in framework specific subfolders.  Our build tools do this because the
+         libraries are used during build, and do not depend on the framework being
+         targeted by the build -->
+    <!-- We also add a space after all of the properties which could end with a
+         backslash, to prevent it from escaping the closing quote -->
+    <Exec
+      Condition="'@(PackagesNuSpecFiles)'!=''"
+      IgnoreStandardErrorWarningFormat="true"
+      StandardOutputImportance="Low"
+      Command="&quot;$(NuGetToolPath)&quot; pack &quot;%(PackagesNuSpecFiles.FullPath)&quot; -BasePath &quot;$(OutDir) &quot; -OutputDirectory &quot;$(_PackagesOutDir) &quot; -Version %(PackagesNuSpecFiles.PackageVersion)" />
+    <Message
+      Condition="'@(PackagesNuSpecFiles)'!=''"
+      Importance="High"
+      Text="%(PackagesNuSpecFiles.Filename) NuGet Package -> $(_PackagesOutDir)%(PackagesNuSpecFiles.Filename).%(PackagesNuSpecFiles.PackageVersion).nupkg" />
+  </Target>
+
+  <Target
+    Name="GetNuGetPackageVersions"
+    Condition="'@(PackagesNuSpecFiles)'!=''"
+    Outputs="%(PackagesNuSpecFiles.Identity)">
+
+    <GetPackageVersion
+      RepositoryRoot="$(ProjectDir)"
+      PackageName="%(PackagesNuSpecFiles.Filename)"
+      RequireExplicitVersions="false">
+      <Output PropertyName="_TempPackageVersion" TaskParameter="PackageVersion" />
+    </GetPackageVersion>
+    
+    <ItemGroup>
+      <PackagesNuSpecFiles Condition="'%(PackagesNuSpecFiles.Identity)' == '%(Identity)'">
+        <PackageVersion>$(_TempPackageVersion)</PackageVersion>
+      </PackagesNuSpecFiles>
+    </ItemGroup>
+    
+    <PropertyGroup>
+      <_TempPackageVersion />
+    </PropertyGroup>
+  </Target>
+
+</Project>

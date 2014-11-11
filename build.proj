@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  
+  <PropertyGroup>
+    <ProjectDir>$(MSBuildThisFileDirectory)</ProjectDir>
+    <SourceDir>$(ProjectDir)src\</SourceDir>
+    <BinDir>$(ProjectDir)bin\</BinDir>
+    <ToolsDir>$(BinDir)tools\</ToolsDir>
+    
+    <NuGetToolPath>$(ToolsDir)NuGet.exe</NuGetToolPath>
+
+    <NuGetConfigFile>$(SourceDir)nuget\NuGet.Config</NuGetConfigFile>
+    <NuGetConfigCommandLine
+      Condition="Exists($(NuGetConfigFile))">-ConfigFile &quot;$(NuGetConfigFile)&quot;</NuGetConfigCommandLine>
+    <PackagesDir>$(SourceDir)packages\</PackagesDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <BuildToolFiles Include="$(SourceDir)Microsoft.DotNet.Build.Tasks\Targets\*" />
+    <PackageConfigs Include="$(SourceDir)*\packages.config" />
+  </ItemGroup>
+  
+  <UsingTask TaskName="DownloadFile" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+    <ParameterGroup>
+      <Address ParameterType="System.String" Required="true"/>
+      <FileName ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Reference Include="System" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+           var directory = System.IO.Path.GetDirectoryName(FileName);
+           System.IO.Directory.CreateDirectory(directory);
+           new System.Net.WebClient().DownloadFile(Address, FileName);
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+  
+  <Target Name="Clean">
+    <!-- Execute build tools -->
+    <MSBuild
+      Projects="$(ToolsDir)fxbuild.proj"
+      SkipNonexistentProjects="true"
+      Targets="Clean" />
+      
+    <!-- Remove build tools -->
+    <Delete
+      Files="@(BuildToolFiles->'$(ToolsDir)Targets\%(Filename)%(Extension)')" />
+  </Target>
+
+  <Target Name="Build">
+    <!-- Download latest nuget.exe -->
+    <DownloadFile
+      Condition="!Exists($(NuGetToolPath))"
+      Address="http://nuget.org/nuget.exe"
+      FileName="$(NuGetToolPath)" />
+  
+    <!-- Restore packages -->
+    <Exec
+      Condition="'@(PackageConfigs)'!=''"
+      StandardOutputImportance="Low"
+      Command="&quot;$(NuGetToolPath)&quot; restore &quot;%(PackageConfigs.FullPath)&quot; -PackagesDirectory &quot;$(PackagesDir) &quot; $(NuGetConfigCommandLine)" />
+
+    <!-- Pre-build tasks and targets -->
+    <MSBuild
+      Projects="$(SourceDir)BuildTools.sln"
+      Properties="OutDir=$(ToolsDir);BaseIntermediateOutputPath=$(ToolsDir)obj\" />
+
+    <!-- Execute build tools -->
+    <MSBuild
+      Projects="$(ToolsDir)fxbuild.proj"
+      Properties="$(FxBuildProjectProperties)"
+      Targets="Build" />
+  </Target>
+  
+  <Target Name="Rebuild" DependsOnTargets="Clean;Build" />
+
+</Project>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <ProjectDir>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), build.cmd))\</ProjectDir>
+    <SourceDir>$(ProjectDir)src\</SourceDir>
+    <BinDir>$(ProjectDir)bin\</BinDir>
+    <ToolsDir>$(BinDir)tools\</ToolsDir>
+    <PackagesDir>$(SourceDir)packages\</PackagesDir>
+    
+    <NuGetToolPath>$(ToolsDir)NuGet.exe</NuGetToolPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)'==''">Release</Configuration>
+    <Platform Condition="'$(Platform)'==''">Any CPU</Platform>
+
+    <BaseOutputPath>$(ProjectDir)</BaseOutputPath>
+    <BaseIntermediateOutputPath>$(ProjectDir)bin\obj\</BaseIntermediateOutputPath>
+    <OutDir Condition="'$(OutDir)'==''">$(BaseOutputPath)\bin\$(Configuration)\</OutDir>
+  </PropertyGroup>
+
+  <Import Project="fxbuild.targets" />
+  
+</Project>

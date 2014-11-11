@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <Target
+    Name="EnsureDependencies">
+    <ItemGroup>
+      <PackageConfigs Include="$(SourceDir)**\packages.config" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <NuGetConfigFile>$(MSBuildProjectDirectory)\src\nuget\NuGet.Config</NuGetConfigFile>
+      <NuGetConfigCommandLine
+      Condition="Exists($(NuGetConfigFile))">-ConfigFile &quot;$(NuGetConfigFile)&quot;</NuGetConfigCommandLine>
+    </PropertyGroup>
+
+    <!-- Restore Packages -->
+    <Exec
+      Condition="'@(PackageConfigs)'!=''"
+      StandardOutputImportance="Low"
+      Command="&quot;$(NuGetToolPath)&quot; restore &quot;%(PackageConfigs.FullPath)&quot; -PackagesDirectory &quot;$(PackagesDir) &quot; $(NuGetConfigCommandLine)" />
+  </Target>
+
+</Project>

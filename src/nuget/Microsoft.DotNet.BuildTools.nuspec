@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<package>
+  <metadata minClientVersion="2.8.1">
+    <id>Microsoft.DotNet.BuildTools</id>
+    <!-- Passed in via command line -->
+    <version>0.0.0</version>
+    <title>Microsoft DotNet BuildTools</title>
+    <authors>Microsoft</authors>
+    <owners>Microsoft</owners>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <licenseUrl>http://go.microsoft.com/fwlink/?LinkId=329770</licenseUrl>
+    <projectUrl>http://go.microsoft.com/fwlink/?LinkId=518631</projectUrl>
+    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
+    <summary>.NET Core Framework Build Tools</summary>
+    <description>This package provides build-time support for the .NET Core Framework libraries.  You should not need to reference this package from your project.</description>
+    <copyright>Copyright © Microsoft Corporation</copyright>
+    <tags></tags>
+    <dependencies>
+      <dependency id="xunit.runners" version="2.0.0-beta4-build2738" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="PriConfig.xml" target="lib" />
+    <file src="beforecommon.targets" target="lib" />
+    <file src="binaries.targets" target="lib" />
+    <file src="depending.targets" target="lib" />
+    <file src="fxbuild.proj" target="lib" />
+    <file src="fxbuild.targets" target="lib" />
+    <file src="gitpush.targets" target="lib" />
+    <file src="packages.targets" target="lib" />
+    <file src="resources.targets" target="lib" />
+    <file src="sign.targets" target="lib" />
+    <file src="tests.targets" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks.dll" target="lib" />
+    <file src="ResourceGenerator.exe" target="lib" />
+    <file src="JSon2Txt.exe" target="lib" />
+    <file src="ResourceGenerator.exe.config" target="lib" />
+    <file src="LibGit2Sharp.dll" target="lib" />
+    <file src="System.Collections.Immutable.dll" target="lib" />
+    <file src="System.Reflection.Metadata.dll" target="lib" />
+    <file src="NativeBinaries\amd64\git2-69db893.dll" target="lib\NativeBinaries\amd64" />
+    <file src="NativeBinaries\x86\git2-69db893.dll" target="lib\NativeBinaries\x86" />
+  </files>
+  
+</package>

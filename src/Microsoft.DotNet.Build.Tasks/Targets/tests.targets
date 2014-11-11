@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <UsingTask AssemblyFile="$(PackagesDir)xunit.runners.2.0.0-beta4-build2738\tools\xunit.runner.msbuild.dll" TaskName="Xunit.Runner.MSBuild.xunit" />
+  
+  <Target Name="RunTests"
+    Condition="'$(SkipTests)' != 'True'">
+    
+    <ItemGroup>
+      <_TestsAssemblies Include="$(OutDir)**\*test*.dll" />
+    </ItemGroup>
+    
+    <xunit Condition="'@(_TestsAssemblies)'!=''" Assemblies="@(_TestsAssemblies)" />
+  </Target>
+
+</Project>
