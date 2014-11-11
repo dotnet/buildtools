@@ -10,7 +10,7 @@
       <_TestsAssemblies Include="$(OutDir)**\*test*.dll" />
     </ItemGroup>
     
-    <xunit Condition="'@(_TestsAssemblies)'!=''" Assemblies="@(_TestsAssemblies)" />
+    <xunit Condition="'@(_TestsAssemblies)'!=''" Assemblies="@(_TestsAssemblies)" ShadowCopy="false" />
   </Target>
 
 </Project>
