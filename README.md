@@ -1,7 +1,7 @@
 # .NET Core Build Tools
 
 This repository contains supporting build tools that are necessary for building
-the [.NET Core][dotnet-corefx] projects. These projects consume the build tools
+the [.NET Core][corefx] projects. These projects consume the build tools
 via the corresponding [Microsoft.DotNet.BuildTools][Microsoft.DotNet.BuildTools]
 NuGet package.
 
