@@ -111,10 +111,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="Targets\binaries.targets" />
-    <None Include="Targets\dependent.proj" />
-    <None Include="Targets\dependent.targets" />
     <None Include="Targets\depending.targets" />
-    <None Include="Targets\formatting.targets" />
     <None Include="Targets\fxbuild.proj" />
     <None Include="Targets\fxbuild.targets" />
     <None Include="Targets\gitpush.targets" />
