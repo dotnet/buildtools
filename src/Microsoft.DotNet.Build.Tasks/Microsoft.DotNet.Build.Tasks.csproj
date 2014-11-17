@@ -73,6 +73,10 @@
       <Link>beforecommon.targets</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Targets\beforecsharp.targets">
+      <Link>beforecsharp.targets</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Targets\binaries.targets">
       <Link>binaries.targets</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
