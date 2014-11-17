@@ -15,6 +15,7 @@
       ToolsDir=$(ToolsDir);
 
       CoreResGenDependsOn=$(CoreResGenDependsOn);GenerateResourcesSource;GenerateStringResources;
+      CustomBeforeMicrosoftCSharpTargets=$(ToolsDir)beforecsharp.targets;
       CustomBeforeMicrosoftCommonTargets=$(ToolsDir)beforecommon.targets;
     </_BinariesProjectProperties>
   </PropertyGroup>

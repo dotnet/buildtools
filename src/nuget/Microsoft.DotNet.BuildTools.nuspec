@@ -23,6 +23,7 @@
     <file src="MSFT.snk" target="lib" />
     <file src="PriConfig.xml" target="lib" />
     <file src="beforecommon.targets" target="lib" />
+    <file src="beforecsharp.targets" target="lib" />
     <file src="binaries.targets" target="lib" />
     <file src="depending.targets" target="lib" />
     <file src="fxbuild.proj" target="lib" />
