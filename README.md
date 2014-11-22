@@ -14,6 +14,6 @@ performing [strong name signing][sn-sign].
 **Note:** Please note that these tools are currently not meant for consumption
 outside of the .NET Core projects.
 
-[dotnet-corefx]: https://github.com/Microsoft/dotnet-corefx
+[dotnet-corefx]: https://github.com/dotnet/corefx
 [Microsoft.DotNet.BuildTools]: http://nuget.org/packages/Microsoft.DotNet.BuildTools
 [sn-sign]: https://github.com/dotnet/corefx/wiki/Strong%20Naming
