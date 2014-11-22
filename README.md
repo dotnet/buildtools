@@ -16,4 +16,4 @@ outside of the .NET Core projects.
 
 [dotnet-corefx]: https://github.com/Microsoft/dotnet-corefx
 [Microsoft.DotNet.BuildTools]: http://nuget.org/packages/Microsoft.DotNet.BuildTools
-[sn-sign]: https://github.com/Microsoft/dotnet-corefx/blob/master/docs/Developers.md#strong-name-signing
+[sn-sign]: https://github.com/dotnet/corefx/wiki/Strong%20Naming
