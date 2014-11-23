@@ -48,7 +48,7 @@ namespace JSon2Txt
             Converter converter = new Converter();
             if (!ParseArgs(args, converter))
             {
-                Console.WriteLine(String.Format("Usage: {0} <json file list> /out <output file>", Process.GetCurrentProcess().ProcessName));
+                Console.WriteLine("Usage: {0} <json file list> /out <output file>", Process.GetCurrentProcess().ProcessName);
                 return 1;
             }
 
