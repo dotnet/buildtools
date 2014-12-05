@@ -16,7 +16,7 @@
     <copyright>Copyright © Microsoft Corporation</copyright>
     <tags></tags>
     <dependencies>
-      <dependency id="xunit.runners" version="2.0.0-beta4-build2738" />
+      <dependency id="xunit.runners" version="2.0.0-beta5-build2785" />
     </dependencies>
   </metadata>
   <files>
