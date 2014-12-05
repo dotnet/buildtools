@@ -9,7 +9,11 @@
     <ItemGroup>
       <_TestsAssemblies Include="$(OutDir)**\*test*.dll" />
     </ItemGroup>
-    
+
+    <PropertyGroup>
+      <ExcludeTraits Condition="'@(ExcludeTraits)'==''">category=outerloop;category=failing</ExcludeTraits>
+    </PropertyGroup>
+
     <xunit Condition="'@(_TestsAssemblies)'!=''" Assemblies="@(_TestsAssemblies)" ShadowCopy="false" IncludeTraits="$(IncludeTraits)" ExcludeTraits="$(ExcludeTraits)" />
   </Target>
 
