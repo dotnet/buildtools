@@ -46,7 +46,7 @@
   <Target Name="DeployTestHost">
     <!-- Copy test host to test working directory -->
     <ItemGroup>
-      <_TestHostSourceFiles Include="$(PackagesDir)Microsoft.DotNet.TestHost.1.0.0-prerelease\lib\testhost\*.*" />
+      <_TestHostSourceFiles Include="$(PackagesDir)Microsoft.DotNet.TestHost.1.0.1-prerelease\lib\testhost\*.*" />
     </ItemGroup>
     <Copy
       SourceFiles="@(_TestHostSourceFiles)"
@@ -90,7 +90,7 @@
   <Target Name="DeployTestRunner">
     <!-- Copy test runner to test working directory -->
     <ItemGroup>
-      <_TestRunnerSourceFiles Include="$(PackagesDir)Microsoft.DotNet.TestHost.1.0.0-prerelease\lib\testhost-xunit\*.*" />
+      <_TestRunnerSourceFiles Include="$(PackagesDir)Microsoft.DotNet.TestHost.1.0.1-prerelease\lib\testhost-xunit\*.*" />
     </ItemGroup>
     <Copy
       SourceFiles="@(_TestRunnerSourceFiles)"
