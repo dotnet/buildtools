@@ -17,6 +17,7 @@
     <tags></tags>
     <dependencies>
       <dependency id="xunit.runners" version="2.0.0-beta5-build2785" />
+      <dependency id="Microsoft.DotNet.TestHost" version="1.0.1-prerelease" />
     </dependencies>
   </metadata>
   <files>

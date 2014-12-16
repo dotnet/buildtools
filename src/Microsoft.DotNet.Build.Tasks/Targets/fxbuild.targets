@@ -19,7 +19,8 @@
   <Target
     Name="Clean"
     DependsOnTargets="
-      CleanBinaries" />
+      CleanBinaries;
+      CleanTests" />
 
   <Target
     Name="Rebuild"
