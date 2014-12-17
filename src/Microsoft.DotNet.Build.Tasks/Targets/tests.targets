@@ -45,6 +45,8 @@
       
   <Target Name="DeployTestHost">
     <!-- Copy test host to test working directory -->
+    <!-- This currently includes a snap of the entire framework.  GitHub issue buildtools/30 tracks switching to
+         using framework assemblies from our framework packages -->
     <ItemGroup>
       <_TestHostSourceFiles Include="$(PackagesDir)Microsoft.DotNet.TestHost.1.0.1-prerelease\lib\testhost\*.*" />
     </ItemGroup>
@@ -99,10 +101,7 @@
   </Target>
 
   <Target Name="CleanTests">
-    <ItemGroup>
-      <_CleanTestsFiles Include="$(TestWorkingDir)*" Condition="'$(TestWorkingDir)'!=''" />
-    </ItemGroup>
-    <Delete Files="@(_CleanTestsFiles)" />
+    <RemoveDir Directories="$(TestWorkingDir)" Condition="'$(TestWorkingDir)'!=''" />
   </Target>
 
 </Project>
