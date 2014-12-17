@@ -3,18 +3,105 @@
 
   <UsingTask AssemblyFile="$(PackagesDir)xunit.runners.2.0.0-beta5-build2785\tools\xunit.runner.msbuild.dll" TaskName="Xunit.Runner.MSBuild.xunit" />
   
+  <ItemGroup>
+    <_SkipTestAssemblies Include="$(SkipTestAssemblies)" />
+  </ItemGroup>
+  
   <Target Name="RunTests"
+    DependsOnTargets="DeployTests"
     Condition="'$(SkipTests)' != 'True'">
     
     <ItemGroup>
-      <_TestsAssemblies Include="$(OutDir)**\*test*.dll" />
+      <_TestsAssemblies Include="$(TestWorkingDir)*test*.dll" Exclude="@(_SkipTestAssemblies->'$(TestWorkingDir)%(Identity).dll')" />
     </ItemGroup>
 
     <PropertyGroup>
-      <ExcludeTraits Condition="'@(ExcludeTraits)'==''">category=outerloop;category=failing</ExcludeTraits>
+      <ExcludeTraits Condition="'$(ExcludeTraits)'==''">category=outerloop;category=failing</ExcludeTraits>
+    </PropertyGroup>
+    <ItemGroup>
+      <IncludeTraitsItems Include="$(IncludeTraits)" />
+      <ExcludeTraitsItems Include="$(ExcludeTraits)" />
+    </ItemGroup>
+    
+    <PropertyGroup>
+      <XunitCommandLine>$(TestWorkingDir)corerun.exe xunit.console.netcore.exe</XunitCommandLine>
+      
+      <XunitOptions Condition="'@(IncludeTraitsItems)'!=''">$(XunitOptions)-trait "%(IncludeTraitsItems.Identity)" </XunitOptions>
+      <XunitOptions Condition="'@(ExcludeTraitsItems)'!=''">$(XunitOptions)-notrait "%(ExcludeTraitsItems.Identity)" </XunitOptions>
+    </PropertyGroup>
+    
+    <Message Importance="High" Text="Skipping test assembly %(_SkipTestAssemblies.Identity)" Condition="'@(_SkipTestAssemblies)'!=''" />
+    <Exec
+      Condition="'@(_TestsAssemblies)'!=''"
+      Command="$(XunitCommandLine) @(_TestsAssemblies, ' ') $(XunitOptions)"
+      WorkingDirectory="$(TestWorkingDir)" />
+  </Target>
+
+  <Target Name="DeployTests"
+    DependsOnTargets="
+      DeployTestHost;
+      DeployTestAssets;
+      DeployTestRunner" />
+      
+  <Target Name="DeployTestHost">
+    <!-- Copy test host to test working directory -->
+    <!-- This currently includes a snap of the entire framework.  GitHub issue buildtools/30 tracks switching to
+         using framework assemblies from our framework packages -->
+    <ItemGroup>
+      <_TestHostSourceFiles Include="$(PackagesDir)Microsoft.DotNet.TestHost.1.0.1-prerelease\lib\testhost\*.*" />
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(_TestHostSourceFiles)"
+      DestinationFolder="$(TestWorkingDir)"
+      SkipUnchangedFiles="True" />
+  </Target>    
+  
+  <Target Name="DeployTestAssets">
+    <!-- Copy test assemblies to test working directory -->
+    
+    <!-- Inject and run the GetTargetPath target in the context of each of our test projects -->
+    <ItemGroup>
+      <TestProject Include="$(SourceDir)**\*test*.csproj" Exclude="@(_SkipTestAssemblies->'$(SourceDir)**\%(Identity).csproj')" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <_DeployTestProjectProperties>
+        Configuration=$(Configuration);
+        Platform=$(Platform);
+        BaseOutputPath=$(BaseOutputPath);
+      </_DeployTestProjectProperties>
     </PropertyGroup>
 
-    <xunit Condition="'@(_TestsAssemblies)'!=''" Assemblies="@(_TestsAssemblies)" ShadowCopy="false" IncludeTraits="$(IncludeTraits)" ExcludeTraits="$(ExcludeTraits)" />
+    <MSBuild
+      Projects="@(TestProject)"
+      Targets="GetTargetPath"
+      Properties="$(_DeployTestProjectProperties)">
+      <Output TaskParameter="TargetOutputs" ItemName="_TestTargetPath" />
+    </MSBuild>
+    
+    <ItemGroup>
+      <_TestAssets Include="%(_TestTargetPath.RootDir)%(_TestTargetPath.Directory)*.*" />
+    </ItemGroup>
+    
+    <Copy
+      SourceFiles="@(_TestAssets)"
+      DestinationFolder="$(TestWorkingDir)"
+      SkipUnchangedFiles="True" />
+  </Target>
+  
+  <Target Name="DeployTestRunner">
+    <!-- Copy test runner to test working directory -->
+    <ItemGroup>
+      <_TestRunnerSourceFiles Include="$(PackagesDir)Microsoft.DotNet.TestHost.1.0.1-prerelease\lib\testhost-xunit\*.*" />
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(_TestRunnerSourceFiles)"
+      DestinationFolder="$(TestWorkingDir)"
+      SkipUnchangedFiles="True" />
+  </Target>
+
+  <Target Name="CleanTests">
+    <RemoveDir Directories="$(TestWorkingDir)" Condition="'$(TestWorkingDir)'!=''" />
   </Target>
 
 </Project>
