@@ -8,7 +8,7 @@
     </ItemGroup>
 
     <PropertyGroup>
-      <NuGetConfigFile>$(SourceDir)nuget\NuGet.Config</NuGetConfigFile>
+      <NuGetConfigFile>$(SourceDir)NuGet.Config</NuGetConfigFile>
       <NuGetConfigCommandLine
       Condition="Exists($(NuGetConfigFile))">-ConfigFile &quot;$(NuGetConfigFile)&quot;</NuGetConfigCommandLine>
     </PropertyGroup>
