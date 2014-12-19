@@ -2,7 +2,7 @@
 <package>
   <metadata minClientVersion="2.8.1">
     <id>Microsoft.DotNet.BuildTools</id>
-    <version>1.0.16-prerelease</version>
+    <version>1.0.17-prerelease</version>
     <title>Microsoft DotNet BuildTools</title>
     <authors>Microsoft</authors>
     <owners>Microsoft</owners>
@@ -25,10 +25,14 @@
     <file src="Microsoft.DotNet.Build.Tasks\depending.targets" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\gitpush.targets" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\packages.targets" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks\packageresolve.targets" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\resources.targets" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\sign.targets" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\tests.targets" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\Microsoft.DotNet.Build.Tasks.dll" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks\NuGet.Core.dll" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks\NuGet.NuManifest.dll" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks\NuGet.NuManifest.DotNet.dll" target="lib" />
     <file src="ResourceGenerator\ResourceGenerator.exe" target="lib" />
     <file src="ResourceGenerator\ResourceGenerator.exe.config" target="lib" />
     <file src="Json2Txt\JSon2Txt.exe" target="lib" />
