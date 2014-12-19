@@ -1,0 +1,31 @@
+<Project ToolsVersion="4.0" DefaultTargets="Build" InitialTargets="VerifyBuildTools" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="dir.props" />
+
+  <Target Name="VerifyBuildTools" 
+    Inputs="$(BuildToolsTargetInputs)"
+    Outputs="$(BuildToolsTargetOutputs)"
+    >
+    <Error Condition="!Exists('$(BuildToolsInstallSempahore)')" 
+      Text="The build tools have not been installed. Please run build.cmd from the root of the repo at least once to get the tools installed." />
+
+    <!-- If we enter this target at all then the inputs are newer then the outputs so give a warning. -->
+    <Warning Text="Looks like there may be an update to the build tools. Please run build.cmd from the root of the repo to refresh the build tools." /> 
+  </Target>
+  
+  <PropertyGroup>
+    <TargetsPath>$(SourceDir)Microsoft.DotNet.Build.Tasks\targets\</TargetsPath>
+  </PropertyGroup>
+
+  <Import Project="$(TargetsPath)depending.targets" />
+  <Target Name="RestoreAllPackages" BeforeTargets="Build" DependsOnTargets="EnsureDependencies" />
+
+  <ItemGroup>
+    <Project Include="*\*.csproj" />
+  </ItemGroup>
+
+  <Import Project="..\dir.traversal.targets" />
+
+  <Import Project="$(TargetsPath)packages.targets" />
+  <Target Name="BuidDirPackages" AfterTargets="Build" DependsOnTargets="BuildPackages" />
+
+</Project>
