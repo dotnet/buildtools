@@ -1,0 +1,39 @@
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\dir.props" />
+
+  <!-- Set default Configuration and Platform -->
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)' ==''">Debug</Configuration>
+    <Platform Condition="'$(Platform)'==''">AnyCPU</Platform>
+  </PropertyGroup>
+  
+  <!-- Setup Default symbol and optimization for Configuration -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <DebugSymbols Condition="'$(DebugSymbols)' == ''">true</DebugSymbols>
+    <Optimize Condition="'$(Optimize)' == ''">false</Optimize>
+    <DebugType Condition="'$(DebugType)' == ''">full</DebugType>
+    <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugSymbols Condition="'$(DebugSymbols)' == ''">true</DebugSymbols>
+    <Optimize Condition="'$(Optimize)' == ''">true</Optimize>
+    <DebugType Condition="'$(DebugType)' == ''">pdbonly</DebugType>
+    <DefineConstants>$(DefineConstants);TRACE</DefineConstants>
+  </PropertyGroup>
+
+  <!-- Setup the default output and intermediate paths -->
+  <PropertyGroup>
+    <BaseOutputPath>$(ProjectDir)bin\</BaseOutputPath>
+    <BaseOutputPathWithConfig>$(BaseOutputPath)$(Configuration)\</BaseOutputPathWithConfig>
+    <BaseOutputPathWithConfig Condition="'$(Platform)' != 'AnyCPU'">$(BaseOutputPath)$(Platform)\$(Configuration)\</BaseOutputPathWithConfig>
+    <OutputPath>$(BaseOutputPathWithConfig)$(MSBuildProjectName)\</OutputPath>
+
+    <BaseIntermediateOutputPath>$(BaseOutputPath)obj\</BaseIntermediateOutputPath>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(MSBuildProjectName)\$(Configuration)\</IntermediateOutputPath>
+    <IntermediateOutputPath Condition="'$(Platform)' != 'AnyCPU'">$(BaseIntermediateOutputPath)$(MSBuildProjectName)\$(Configuration)\$(Platform)\</IntermediateOutputPath>
+
+    <PackagesBasePath>$(BaseOutputPathWithConfig)</PackagesBasePath>
+    <PackagesOutDir>$(PackagesBasePath)Packages</PackagesOutDir>
+  </PropertyGroup>
+
+</Project>
