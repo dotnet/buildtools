@@ -1,19 +1,11 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="ResolveNuGetPackages.cs" company="Microsoft">
-//     Copyright (c) Microsoft Corporation.  All rights reserved.
-// </copyright>
-// <summary>Resolves the assets contained within NuGet packages</summary>
-//-----------------------------------------------------------------------
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Versioning;
-using System.Security;
-using System.Text.RegularExpressions;
-using System.Xml;
 using System.Xml.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
