@@ -31,6 +31,7 @@
     <file src="Microsoft.DotNet.Build.Tasks\tests.targets" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\Microsoft.DotNet.Build.Tasks.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\NuGet.Core.dll" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks\Microsoft.Web.XmlTransform.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\NuGet.NuManifest.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\NuGet.NuManifest.DotNet.dll" target="lib" />
     <file src="ResourceGenerator\ResourceGenerator.exe" target="lib" />
