@@ -227,6 +227,14 @@ namespace Microsoft.Build.Tasks
 
                             case WellKnownAssetType.ReferenceOnly:
                                 {
+                                    if (Path.GetFileName(asset.Value) == "xunit.runner.tdnet.dll")
+                                    {
+                                        // skip this assembly, it isn't strong name signed and causes a compile error when it is
+                                        // referenced from a signed assembly (such as those built in corefx) with the Mono mcs compiler.
+                                        // csc.exe seems to ignore this as the reference isn't actually used anywhere.
+                                        continue;
+                                    }
+
                                     var taskItem = new TaskItem(asset.Value);
 
                                     taskItem.SetMetadata("NuGetPackageId", packageReference.Id);
