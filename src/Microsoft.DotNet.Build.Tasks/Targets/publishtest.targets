@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <UsingTask TaskName="ResolveNuGetPackages" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="Debug" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+    <ParameterGroup />
+    <Task>
+      <Reference Include="System.Diagnostics.Debug"/>
+      <Using Namespace="System.Diagnostics"/>
+      <Code Type="Fragment" Language="cs">
+        Debugger.Launch();
+      </Code>
+    </Task>
+  </UsingTask>
+
+  <PropertyGroup>
+    <PrepareForRunDependsOn>
+      $(PrepareForRunDependsOn);
+      CopyTestToTestDirectory;
+    </PrepareForRunDependsOn>
+    
+    <CopyTest Condition="'$(CopyTest)'=='' And $([System.String]::new('$(MSBuildProjectName)').EndsWith('.Tests'))">True</CopyTest>
+    <CopyTest Condition="'$(CopyTest)'=='' And !$([System.String]::new('$(MSBuildProjectName)').EndsWith('.Tests'))">False</CopyTest>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <TestTargetFramework Include="ASP.NetCore, version=v5.0">
+      <Folder>aspnetcore50</Folder>
+    </TestTargetFramework>
+  </ItemGroup>
+
+  <Target Name="CopyTestToTestDirectory"
+    Outputs="$(TestPath)%(TestTargetFramework.Folder)\*.*"
+    Condition="'$(CopyTest)'=='True'">
+    
+    <ItemGroup>
+      <PackagesConfigs Include="$(PackagesConfigFile)"/>
+      <PackagesConfigs Include="$(BaseIntermediateOutputPath)test-runtime\packages.config" Condition="Exists('$(BaseIntermediateOutputPath)test-runtime\packages.config')"/>
+    </ItemGroup>
+    
+    <ResolveNuGetPackages PackagesConfigs="@(PackagesConfigs)"
+                          PackageRoot="$(PackagesDir)"
+                          Platform="$(PlatformTarget)"
+                          Configuration="$(NuGetConfiguration)"
+                          Language="$(Language)"
+                          TargetFramework="%(TestTargetFramework.Identity)"
+                          TargetPlatformMoniker="$(TargetPlatformMoniker)">
+
+      <Output TaskParameter="ResolvedAnalyzers" ItemName="None" />
+      <Output TaskParameter="ResolvedReferences" ItemName="None" />
+      <Output TaskParameter="ResolvedCopyLocal" ItemName="TestCopyLocal" />
+    </ResolveNuGetPackages>
+    
+    <ItemGroup>
+      <TestCopyLocal Include="@(ReferenceCopyLocalPaths)" />
+      <TestCopyLocal Include="@(Content)" />
+      <TestCopyLocal Include="@(IntermediateAssembly)" />
+      <TestCopyLocal Include="@(_DebugSymbolsIntermediatePath)" />
+    </ItemGroup>
+    
+    <Copy
+      SourceFiles="@(TestCopyLocal)"
+      DestinationFolder="$(TestPath)%(TestTargetFramework.Folder)"
+      SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
+      OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
+      Retries="$(CopyRetryCount)"
+      RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
+      UseHardlinksIfPossible="$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)">
+      
+      <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
+    </Copy>
+      
+  </Target>
+
+</Project>

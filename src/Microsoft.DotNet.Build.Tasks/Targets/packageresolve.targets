@@ -22,7 +22,8 @@
   </PropertyGroup>
 
   <Target Name="ResolveNuGetPackages" Condition="'$(ResolveNuGetPackages)' == 'true'">
-    <ResolveNuGetPackages PackagesConfig="$(PackagesConfigFile)"
+    <ResolveNuGetPackages PackagesConfigs="$(PackagesConfigFile)"
+                          PackageRoot="$(PackagesDir)"
                           Platform="$(PlatformTarget)"
                           Configuration="$(NuGetConfiguration)"
                           Language="$(Language)"

@@ -12,11 +12,12 @@
     <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
     <summary>.NET Core Framework Build Tools</summary>
     <description>This package provides build-time support for the .NET Core Framework libraries.  You should not need to reference this package from your project.</description>
-    <copyright>Copyright Â© Microsoft Corporation</copyright>
+    <copyright>Copyright © Microsoft Corporation</copyright>
     <tags></tags>
     <dependencies>
-      <dependency id="xunit.runners" version="2.0.0-beta5-build2785" />
-      <dependency id="Microsoft.DotNet.TestHost" version="1.0.1-prerelease" />
+      <dependency id="xunit.console.netcore" version="1.0.0-prerelease" />
+      <dependency id="xunit.runner.dependencies.netcore" version="1.0.0-prerelease" />
+      <dependency id="Microsoft.DotNet.TestHost" version="1.0.2-prerelease" />
     </dependencies>
   </metadata>
   <files>
@@ -26,9 +27,11 @@
     <file src="Microsoft.DotNet.Build.Tasks\gitpush.targets" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\packages.targets" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\packageresolve.targets" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks\publishtest.targets" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\resources.targets" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\sign.targets" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\tests.targets" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks\test-runtime-packages.config" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\Microsoft.DotNet.Build.Tasks.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\NuGet.Core.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\Microsoft.Web.XmlTransform.dll" target="lib" />

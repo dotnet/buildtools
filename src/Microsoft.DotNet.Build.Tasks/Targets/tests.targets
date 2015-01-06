@@ -1,32 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <UsingTask AssemblyFile="$(PackagesDir)xunit.runners.2.0.0-beta5-build2785\tools\xunit.runner.msbuild.dll" TaskName="Xunit.Runner.MSBuild.xunit" />
-  
-  <ItemGroup>
-    <_SkipTestAssemblies Include="$(SkipTestAssemblies)" />
-  </ItemGroup>
-
-  <Target Name="FindTestDirectories">
+  <Target Name="DiscoverTests">
     <ItemGroup>
-      <AllTestAssemblies Include="$(BaseOutputPathWithConfig)*Tests\*Tests.dll" />
-      <AllTestAssembliesWithParent Include="@(AllTestAssemblies)">
-        <ParentDir>$([System.IO.Path]::GetDirectoryName(%(AllTestAssemblies.Identity)))</ParentDir>
-      </AllTestAssembliesWithParent>
-      <TestDirectories Include="@(AllTestAssembliesWithParent -> '%(ParentDir)')" Exclude="@(_SkipTestAssemblies -> '$(BaseOutputPathWithConfig)%(Identity)')" />
+      <TestAssemblies Include="$(TestWorkingDir)*.Tests\**\*.Tests.dll" Exclude="$(SkipTestAssemblies)" />
+      <TestDirectories Include="@(TestAssemblies -> '%(RootDir)%(Directory)')" KeepDuplicates="false" />
     </ItemGroup>
   </Target>
 
   <Target Name="RunTests"
-          DependsOnTargets="FindTestDirectories"
-          Inputs="%(TestDirectories.Identity)"
-          Outputs="$(TestWorkingDir)%(TestDirectories.Filename)\*.*"
+          DependsOnTargets="DiscoverTests"
+          Inputs="@(TestDirectories)"
+          Outputs="%(Identity)*.*"
           Condition="'$(SkipTests)' != 'True'">
 
-    <PropertyGroup>
-      <ThisTestWorkingDir>$(TestWorkingDir)%(TestDirectories.Filename)%(TestDirectories.Extension)\</ThisTestWorkingDir>
-    </PropertyGroup>
+    <ItemGroup>
+      <!-- Batch directories, so we can run every directory in its own process.
+           Run all test assemblies in the same directory in the same process. -->
+      <ThisDirectoryAssemblies Include="%(TestDirectories.Identity)*.Tests.dll" />
+    </ItemGroup>
 
+    <!-- xUnit Traits -->
     <PropertyGroup>
       <ExcludeTraits Condition="'$(ExcludeTraits)'==''">category=outerloop;category=failing</ExcludeTraits>
     </PropertyGroup>
@@ -35,38 +29,18 @@
       <ExcludeTraitsItems Include="$(ExcludeTraits)" />
     </ItemGroup>
     
+    <!-- Construct and invoke xunit console runner via corerun.exe -->
     <PropertyGroup>
-      <XunitCommandLine>$(ThisTestWorkingDir)corerun.exe xunit.console.netcore.exe</XunitCommandLine>
+      <XunitCommandLine>corerun.exe xunit.console.netcore.exe</XunitCommandLine>
       
+      <XunitOptions Condition="'@(ThisDirectoryAssemblies)'!=''">$(XunitOptions) "%(ThisDirectoryAssemblies.Identity)" </XunitOptions>
       <XunitOptions Condition="'@(IncludeTraitsItems)'!=''">$(XunitOptions)-trait "%(IncludeTraitsItems.Identity)" </XunitOptions>
       <XunitOptions Condition="'@(ExcludeTraitsItems)'!=''">$(XunitOptions)-notrait "%(ExcludeTraitsItems.Identity)" </XunitOptions>
     </PropertyGroup>
 
-    <ItemGroup>
-      <_TestFiles Include="%(TestDirectories.Identity)\*.*" Exclude="%(TestDirectories.Identity)\xunit.runner.utility.dll" />
-      <_TestHostSourceFiles Include="$(PackagesDir)Microsoft.DotNet.TestHost.1.0.1-prerelease\lib\testhost\*.*" />
-      <_TestRunnerSourceFiles Include="$(PackagesDir)Microsoft.DotNet.TestHost.1.0.1-prerelease\lib\testhost-xunit\*.*" />
-    </ItemGroup>
-
-    <Copy
-      SourceFiles="@(_TestHostSourceFiles)"
-      DestinationFolder="$(ThisTestWorkingDir)"
-      SkipUnchangedFiles="True" />
-
-    <Copy
-      SourceFiles="@(_TestFiles)"
-      DestinationFolder="$(ThisTestWorkingDir)"
-      SkipUnchangedFiles="True" 
-      />
-      
-    <Copy
-      SourceFiles="@(_TestRunnerSourceFiles)"
-      DestinationFolder="$(ThisTestWorkingDir)"
-      SkipUnchangedFiles="True" />
-
     <Exec
-      Command="$(XunitCommandLine) &quot;$(ThisTestWorkingDir)%(TestDirectories.Filename)%(TestDirectories.Extension).dll&quot; $(XunitOptions)"
-      WorkingDirectory="$(ThisTestWorkingDir)"
+      Command="$(XunitCommandLine) $(XunitOptions)"
+      WorkingDirectory="%(TestDirectories.Identity)"
       ContinueOnError="ErrorAndContinue" />
   </Target>
 

@@ -31,10 +31,20 @@ namespace Microsoft.Build.Tasks
         }
 
         /// <summary>
-        /// The path to the packages.config to resolve packages from.
+        /// The path to the 'packages.config's to resolve packages from.
         /// </summary>
         [Required]
-        public string PackagesConfig
+        public ITaskItem[] PackagesConfigs
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// The path to the downloaded nuget package dependencies.
+        /// </summary>
+        [Required]
+        public string PackageRoot
         {
             get;
             set;
@@ -123,15 +133,21 @@ namespace Microsoft.Build.Tasks
             var references = new List<ITaskItem>();
             var copyLocals = new List<ITaskItem>();
 
-            if (string.IsNullOrWhiteSpace(PackagesConfig))
+            if (PackagesConfigs == null || PackagesConfigs.Length == 0)
             {
-                Log.LogError("PackagesConfig property not specified.");
+                Log.LogError("PackagesConfigs property not specified.");
                 return false;
             }
 
-            if (!File.Exists(PackagesConfig))
+            if (PackagesConfigs.Any(pc => string.IsNullOrWhiteSpace(pc.ItemSpec)))
             {
-                Log.LogError("File '{0}' not found.", PackagesConfig);
+                Log.LogError("A PackagesConfigs element was not specified.");
+            }
+
+            ITaskItem packagesConfigNotFound = PackagesConfigs.FirstOrDefault(pc => !File.Exists(pc.ItemSpec));
+            if (packagesConfigNotFound != default(ITaskItem))
+            {
+                Log.LogError("File '{0}' not found.", packagesConfigNotFound.ItemSpec);
                 return false;
             }
 
@@ -187,13 +203,12 @@ namespace Microsoft.Build.Tasks
             }
 
             var resolver = new AssetResolver(context);
-            var packagesConfig = new PackageReferenceFile(Path.GetFullPath(PackagesConfig));
-
+            var packagesConfigs = (from packageConfig in PackagesConfigs select new PackageReferenceFile(Path.GetFullPath(packageConfig.ItemSpec))).ToArray();
             var succeeded = true;
 
-            foreach (var packageReference in packagesConfig.GetPackageReferences())
+            foreach (var packageReference in GetPackageReferences(packagesConfigs))
             {
-                var nupkgPath = TryLocatePackage(new DirectoryInfo(Path.GetDirectoryName(packagesConfig.FullPath)), packageReference);
+                var nupkgPath = TryLocatePackage(new DirectoryInfo(PackageRoot), packageReference);
 
                 if (nupkgPath == null)
                 {
@@ -207,7 +222,10 @@ namespace Microsoft.Build.Tasks
 
                 // If there are no assets we cannot 
                 if (!manifest.Groups.Any())
+                {
+                    Log.LogMessage("no assets from " + nupkgPath);
                     continue;
+                }
 
                 try
                 {
@@ -264,30 +282,30 @@ namespace Microsoft.Build.Tasks
             return succeeded;
         }
 
-        private static string TryLocatePackage(DirectoryInfo projectDirectory, PackageReference packageReference)
+        private IEnumerable<PackageReference> GetPackageReferences(PackageReferenceFile[] packagesConfigs)
         {
-            var parentDirectory = projectDirectory;
+            // Return the highest version of each package found in every packages.config
+
+            return
+                from packagesConfig in packagesConfigs
+                from packageReferences in packagesConfig.GetPackageReferences()
+                group packageReferences by packageReferences.Id into packageReferencesGroup
+                select packageReferencesGroup.OrderByDescending(pr => pr.Version).First();
+        }
+
+        private static string TryLocatePackage(DirectoryInfo packageRootDirectory, PackageReference packageReference)
+        {
             var packageName = packageReference.Id + "." + packageReference.Version.ToString();
+            string nupkgPath = Path.Combine(packageRootDirectory.FullName, packageName, packageName + ".nupkg");
 
-            do
+            if (File.Exists(nupkgPath))
             {
-                var packagesDirectory = parentDirectory.GetDirectories("packages").FirstOrDefault();
-
-                if (packagesDirectory != null)
-                {
-                    var nupkgPath = Path.Combine(packagesDirectory.FullName, packageName, packageName + ".nupkg");
-
-                    if (File.Exists(nupkgPath))
-                    {
-                        return nupkgPath;
-                    }
-                }
-
-                parentDirectory = parentDirectory.Parent;
+                return nupkgPath;
             }
-            while (parentDirectory != null);
-
-            return null;
+            else
+            {
+                return null;
+            }
         }
 
         private sealed class LanguagePropertyDefinition : PropertyDefinition<string>
