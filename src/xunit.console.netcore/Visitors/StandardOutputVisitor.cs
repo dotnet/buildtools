@@ -167,8 +167,10 @@ namespace Xunit.ConsoleClient
             Console.Error.WriteLine("      Stack Trace:");
 
             Console.ForegroundColor = ConsoleColor.Gray;
-            Array.ForEach(stackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.None),
-                          stackFrame => Console.Error.WriteLine("         {0}", StackFrameTransformer.TransformFrame(stackFrame, defaultDirectory)));
+            foreach (var stackFrame in stackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.None))
+            {
+                Console.Error.WriteLine("         {0}", StackFrameTransformer.TransformFrame(stackFrame, defaultDirectory));
+            }
         }
     }
 }

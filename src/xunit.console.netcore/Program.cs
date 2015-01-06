@@ -23,7 +23,12 @@ namespace Xunit.ConsoleClient
             try
             {
                 Console.ForegroundColor = ConsoleColor.White;
-                Console.WriteLine("xUnit.net console test runner ({0}-bit .NET {1})", IntPtr.Size * 8, Environment.Version);
+#if !NETCORE
+                var netVersion = Environment.Version;
+#else
+                var netVersion = "Core";
+#endif
+                Console.WriteLine("xUnit.net console test runner ({0}-bit .NET {1})", IntPtr.Size * 8, netVersion);
                 Console.WriteLine("Copyright (C) 2014 Outercurve Foundation.");
                 Console.WriteLine();
                 Console.ForegroundColor = ConsoleColor.Gray;
@@ -34,6 +39,7 @@ namespace Xunit.ConsoleClient
                     return 1;
                 }
 
+#if !NETCORE
                 AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
                 Console.CancelKeyPress += (sender, e) =>
                 {
@@ -44,6 +50,9 @@ namespace Xunit.ConsoleClient
                         e.Cancel = true;
                     }
                 };
+#else
+                cancel = false;
+#endif
 
                 var defaultDirectory = Directory.GetCurrentDirectory();
                 if (!defaultDirectory.EndsWith(new String(new[] { Path.DirectorySeparatorChar })))
@@ -55,6 +64,7 @@ namespace Xunit.ConsoleClient
                                            commandLine.ParallelizeAssemblies, commandLine.ParallelizeTestCollections,
                                            commandLine.MaxParallelThreads);
 
+#if !NETCORE
                 if (commandLine.Wait)
                 {
                     Console.WriteLine();
@@ -62,6 +72,7 @@ namespace Xunit.ConsoleClient
                     Console.ReadKey();
                     Console.WriteLine();
                 }
+#endif
 
                 return failCount;
             }
@@ -81,6 +92,7 @@ namespace Xunit.ConsoleClient
             }
         }
 
+#if !NETCORE
         static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             var ex = e.ExceptionObject as Exception;
@@ -92,10 +104,15 @@ namespace Xunit.ConsoleClient
 
             Environment.Exit(1);
         }
+#endif
 
         static void PrintUsage()
         {
+#if !NETCORE
             var executableName = Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly().GetLocalCodeBase());
+#else
+            var executableName = "xunit.console.netcore";
+#endif
 
             Console.WriteLine("usage: {0} <assemblyFile> [configFile] [assemblyFile [configFile]...] [options]", executableName);
             Console.WriteLine();
@@ -111,8 +128,10 @@ namespace Xunit.ConsoleClient
             Console.WriteLine("                         :   0 - run with unbounded thread count");
             Console.WriteLine("                         :   >0 - limit task thread pool size to 'count'");
             Console.WriteLine("  -noshadow              : do not shadow copy assemblies");
+#if !NETCORE
             Console.WriteLine("  -teamcity              : forces TeamCity mode (normally auto-detected)");
             Console.WriteLine("  -appveyor              : forces AppVeyor CI mode (normally auto-detected)");
+#endif
             Console.WriteLine("  -wait                  : wait for input after completion");
             Console.WriteLine("  -trait \"name=value\"    : only run tests with matching name/value traits");
             Console.WriteLine("                         : if specified more than once, acts as an OR operation");
@@ -227,10 +246,12 @@ namespace Xunit.ConsoleClient
 
         static XmlTestExecutionVisitor CreateVisitor(object consoleLock, string defaultDirectory, XElement assemblyElement, bool teamCity, bool appVeyor)
         {
+#if !NETCORE
             if (teamCity)
                 return new TeamCityVisitor(assemblyElement, () => cancel);
             else if (appVeyor)
                 return new AppVeyorVisitor(consoleLock, defaultDirectory, assemblyElement, () => cancel, completionMessages);
+#endif
 
             return new StandardOutputVisitor(consoleLock, defaultDirectory, assemblyElement, () => cancel, completionMessages);
         }

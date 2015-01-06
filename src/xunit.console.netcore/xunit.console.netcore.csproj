@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="12.0">
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.props))\dir.props" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{83FC1994-BCE0-427a-803B-02F20233A2D1}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Xunit.ConsoleClient</RootNamespace>
+    <AssemblyName>xunit.console.netcore</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
+
+    <NoStdLib>true</NoStdLib>
+    <NoExplicitReferenceToStdLib>true</NoExplicitReferenceToStdLib>
+    <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <ImplicitlyExpandTargetFramework>false</ImplicitlyExpandTargetFramework>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    
+    <DefineConstants>$(DefineConstants);NETCORE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\xunit.runner.dependencies.netcore.2.0.0-beta5-build2785\tools\xunit.abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="xunit.runner.utility, Version=2.0.0.2785, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\xunit.runner.dependencies.netcore.2.0.0-beta5-build2785\tools\xunit.runner.utility.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Collections">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\System.Collections.4.0.10-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Collections.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Collections.Concurrent">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\System.Collections.Concurrent.4.0.10-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Collections.Concurrent.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Console">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\System.Console.4.0.0-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Console.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IO">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\System.IO.4.0.10-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.IO.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IO.FileSystem">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\System.IO.FileSystem.4.0.0-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.IO.FileSystem.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IO.FileSystem.Primitives">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\System.IO.FileSystem.Primitives.4.0.0-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.IO.FileSystem.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Linq">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\System.Linq.4.0.0-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Linq.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reflection">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\System.Runtime.4.0.10-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Reflection.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\System.Runtime.4.0.20-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.Extensions">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\System.Runtime.Extensions.4.0.10-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Runtime.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.Handles">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\System.Runtime.Handles.4.0.0-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Runtime.Handles.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Text.RegularExpressions">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\System.Text.RegularExpressions.4.0.10-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Text.RegularExpressions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\System.Threading.4.0.0-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Threading.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\System.Threading.Tasks.4.0.10-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Threading.Tasks.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Diagnostics.Tools">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\System.Diagnostics.Tools.4.0.0-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Diagnostics.Tools.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.ReaderWriter">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\System.Xml.ReaderWriter.4.0.10-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Xml.ReaderWriter.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.XDocument">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\System.Xml.XDocument.4.0.0-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Xml.XDocument.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\common\AssemblyExtensions.cs">
+      <Link>Common\AssemblyExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\common\DictionaryExtensions.cs">
+      <Link>Common\DictionaryExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\common\GlobalAssemblyInfo.cs">
+      <Link>Properties\GlobalAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\common\Guard.cs">
+      <Link>Common\Guard.cs</Link>
+    </Compile>
+    <Compile Include="..\common\TestDiscoveryVisitor.cs">
+      <Link>Common\TestDiscoveryVisitor.cs</Link>
+    </Compile>
+    <Compile Include="..\common\XmlTestExecutionVisitor.cs">
+      <Link>Common\XmlTestExecutionVisitor.cs</Link>
+    </Compile>
+    <Compile Include="CommandLine.cs" />
+    <Compile Include="ParallelismOption.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RunnerCallbacks\RunnerCallback.cs" />
+    <Compile Include="RunnerCallbacks\StandardRunnerCallback.cs" />
+    <Compile Include="RunnerCallbacks\TeamCityRunnerCallback.cs" />
+    <Compile Include="Utility\StackFrameTransformer.cs" />
+    <Compile Include="Utility\Transform.cs" />
+    <Compile Include="Utility\TransformFactory.cs" />
+    <Compile Include="Visitors\StandardOutputVisitor.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="xUnit1.xslt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="HTML.xslt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

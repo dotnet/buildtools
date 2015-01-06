@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<package>
+  <metadata minClientVersion="2.8.1">
+    <id>xunit.console.netcore</id>
+    <version>1.0.0</version>
+    <title>xUnit.net [Runners - .NET Core]</title>
+    <authors>James Newkirk, Brad Wilson (.NET Core package by Matt Cohn)</authors>
+    <owners>Microsoft</owners>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <licenseUrl>http://go.microsoft.com/fwlink/?LinkId=329770</licenseUrl>
+    <projectUrl>http://go.microsoft.com/fwlink/?LinkId=518631</projectUrl>
+    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
+    <summary>.NET Core Framework Test Host</summary>
+    <description>
+      Console runner for the xUnit.net framework.
+      Supported platforms: .NET Core.
+      Based on xunit.runners - https://github.com/xunit/xunit
+    </description>
+    <copyright>Copyright © Microsoft Corporation</copyright>
+    <dependencies>
+      <dependency id="System.Collections" version="4.0.10-beta-22412" />
+      <dependency id="System.Collections.Concurrent" version="4.0.10-beta-22412" />
+      <dependency id="System.Console" version="4.0.0-beta-22412" />
+      <dependency id="System.Diagnostics.Tools" version="4.0.0-beta-22412" />
+      <dependency id="System.IO" version="4.0.10-beta-22412" />
+      <dependency id="System.IO.FileSystem" version="4.0.0-beta-22412" />
+      <dependency id="System.IO.FileSystem.Primitives" version="4.0.0-beta-22412" />
+      <dependency id="System.Linq" version="4.0.0-beta-22412" />
+      <dependency id="System.Reflection" version="4.0.10-beta-22412" />
+      <dependency id="System.Runtime" version="4.0.20-beta-22412" />
+      <dependency id="System.Runtime.Extensions" version="4.0.10-beta-22412" />
+      <dependency id="System.Runtime.Handles" version="4.0.0-beta-22412" />
+      <dependency id="System.Text.RegularExpressions" version="4.0.10-beta-22412" />
+      <dependency id="System.Threading" version="4.0.0-beta-22412" />
+      <dependency id="System.Threading.Tasks" version="4.0.10-beta-22412" />
+      <dependency id="System.Xml.ReaderWriter" version="4.0.10-beta-22412" />
+      <dependency id="System.Xml.XDocument" version="4.0.0-beta-22412" />
+    </dependencies>
+  </metadata>
+  <files>
+    <!-- xunit runner for .NET Core -->
+    <file src="xunit.console.netcore\xunit.console.netcore.exe" target="lib\aspnetcore50" />
+  </files>
+  
+</package>

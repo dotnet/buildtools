@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml;
 using System.Xml.Linq;
+
+#if !NETCORE
+using System.Configuration;
 using System.Xml.Xsl;
+#endif
 
 namespace Xunit.ConsoleClient
 {
@@ -18,6 +21,7 @@ namespace Xunit.ConsoleClient
 
         protected TransformFactory()
         {
+#if !NETCORE
             var executablePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().GetLocalCodeBase());
             var exeConfiguration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
             var configSection = (XunitConsoleConfigurationSection)exeConfiguration.GetSection("xunit") ?? new XunitConsoleConfigurationSection();
@@ -38,6 +42,7 @@ namespace Xunit.ConsoleClient
                                             OutputHandler = (xml, outputFileName) => Handler_XslTransform(xslFileName, xml, outputFileName)
                                         });
             });
+#endif
         }
 
         public static List<Transform> AvailableTransforms
@@ -52,9 +57,13 @@ namespace Xunit.ConsoleClient
 
         static void Handler_DirectWrite(XElement xml, string outputFileName)
         {
-            xml.Save(outputFileName);
+            using (var fileStream = new FileStream(outputFileName, FileMode.Create))
+            {
+                xml.Save(fileStream);
+            }
         }
 
+#if !NETCORE
         static void Handler_XslTransform(string xslPath, XElement xml, string outputFileName)
         {
             var xmlTransform = new XslCompiledTransform();
@@ -68,5 +77,6 @@ namespace Xunit.ConsoleClient
                 xmlTransform.Transform(xmlReader, writer);
             }
         }
+#endif
     }
 }
