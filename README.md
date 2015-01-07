@@ -1,6 +1,6 @@
 # .NET Core Build Tools
 
-[![Build status](https://ci.appveyor.com/api/projects/status/nhjt02ydylhe43ad/branch/master?svg=true)](https://ci.appveyor.com/project/dotnet-bot/buildtools/branch/master)
+[![Build status](http://corefx-ci.cloudapp.net/jenkins/job/BuildTools_Build/badge/icon)](http://corefx-ci.cloudapp.net/jenkins/job/BuildTools_Build/)
 
 This repository contains supporting build tools that are necessary for building
 the [.NET Core][dotnet-corefx] projects. These projects consume the build tools
