@@ -9,7 +9,8 @@
 
   <Target Name="FindTestDirectories">
     <ItemGroup>
-      <AllTestAssemblies Include="$(BaseOutputPathWithConfig)*Tests\*Tests.dll" />
+      <AllTestAssemblies Condition="'$(SingleTestAssembly)' == ''" Include="$(BaseOutputPathWithConfig)*Tests\*Tests.dll" />
+	  <AllTestAssemblies Condition="'$(SingleTestAssembly)' != ''" Include="$(BaseOutputPathWithConfig)*$(SingleTestAssembly).Tests\*Tests.dll" />
       <AllTestAssembliesWithParent Include="@(AllTestAssemblies)">
         <ParentDir>$([System.IO.Path]::GetDirectoryName(%(AllTestAssemblies.Identity)))</ParentDir>
       </AllTestAssembliesWithParent>
