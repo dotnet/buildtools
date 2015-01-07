@@ -2,16 +2,6 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <UsingTask TaskName="ResolveNuGetPackages" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
-  <UsingTask TaskName="Debug" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
-    <ParameterGroup />
-    <Task>
-      <Reference Include="System.Diagnostics.Debug"/>
-      <Using Namespace="System.Diagnostics"/>
-      <Code Type="Fragment" Language="cs">
-        Debugger.Launch();
-      </Code>
-    </Task>
-  </UsingTask>
 
   <PropertyGroup>
     <PrepareForRunDependsOn>
