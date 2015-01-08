@@ -3,7 +3,7 @@
 
   <Target Name="DiscoverTests">
     <ItemGroup>
-      <TestAssemblies Include="$(TestWorkingDir)*.Tests\**\*.Tests.dll" Exclude="$(SkipTestAssemblies)" />
+      <TestAssemblies Include="$(TestWorkingDir)*.Tests\**\*.Tests.dll" Exclude="@(SkipTestAssemblies)" />
       <TestDirectories Include="@(TestAssemblies -> '%(RootDir)%(Directory)')" KeepDuplicates="false" />
     </ItemGroup>
   </Target>
