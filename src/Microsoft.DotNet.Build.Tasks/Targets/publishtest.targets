@@ -36,8 +36,6 @@
                           TargetFramework="%(TestTargetFramework.Identity)"
                           TargetPlatformMoniker="$(TargetPlatformMoniker)">
 
-      <Output TaskParameter="ResolvedAnalyzers" ItemName="None" />
-      <Output TaskParameter="ResolvedReferences" ItemName="None" />
       <Output TaskParameter="ResolvedCopyLocal" ItemName="TestCopyLocal" />
     </ResolveNuGetPackages>
     
