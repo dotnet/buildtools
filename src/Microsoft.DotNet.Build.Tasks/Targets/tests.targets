@@ -9,11 +9,11 @@
 
   <Target Name="FindTestDirectories">
     <ItemGroup>
-      <AllTestAssemblies Include="$(BaseOutputPathWithConfig)*Tests\*Tests.dll" />
+      <AllTestAssemblies Include="$(OutDir)*Tests\*Tests.dll" />
       <AllTestAssembliesWithParent Include="@(AllTestAssemblies)">
         <ParentDir>$([System.IO.Path]::GetDirectoryName(%(AllTestAssemblies.Identity)))</ParentDir>
       </AllTestAssembliesWithParent>
-      <TestDirectories Include="@(AllTestAssembliesWithParent -> '%(ParentDir)')" Exclude="@(_SkipTestAssemblies -> '$(BaseOutputPathWithConfig)%(Identity)')" />
+      <TestDirectories Include="@(AllTestAssembliesWithParent -> '%(ParentDir)')" Exclude="@(_SkipTestAssemblies -> '$(OutDir)%(Identity)')" />
     </ItemGroup>
   </Target>
 
