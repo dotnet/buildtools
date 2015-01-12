@@ -2,15 +2,16 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <UsingTask AssemblyFile="$(PackagesDir)xunit.runners.2.0.0-beta5-build2785\tools\xunit.runner.msbuild.dll" TaskName="Xunit.Runner.MSBuild.xunit" />
-  
+
   <ItemGroup>
     <_SkipTestAssemblies Include="$(SkipTestAssemblies)" />
+    <_IncludeTestAssemblies Include="$(IncludeTestAssemblies)"/>
   </ItemGroup>
 
   <Target Name="FindTestDirectories">
     <ItemGroup>
-      <AllTestAssemblies Condition="'$(SingleTestAssembly)' == ''" Include="$(BaseOutputPathWithConfig)*Tests\*Tests.dll" />
-	  <AllTestAssemblies Condition="'$(SingleTestAssembly)' != ''" Include="$(BaseOutputPathWithConfig)*$(SingleTestAssembly).Tests\*Tests.dll" />
+      <AllTestAssemblies Condition="'@(_IncludeTestAssemblies)' == ''" Include="$(BaseOutputPathWithConfig)*Tests\*Tests.dll" />
+      <AllTestAssemblies Condition="'@(_IncludeTestAssemblies)' != ''" Include="@(_IncludeTestAssemblies -> '$(BaseOutputPathWithConfig)*Tests\%(Identity)')" />
       <AllTestAssembliesWithParent Include="@(AllTestAssemblies)">
         <ParentDir>$([System.IO.Path]::GetDirectoryName(%(AllTestAssemblies.Identity)))</ParentDir>
       </AllTestAssembliesWithParent>
@@ -35,10 +36,10 @@
       <IncludeTraitsItems Include="$(IncludeTraits)" />
       <ExcludeTraitsItems Include="$(ExcludeTraits)" />
     </ItemGroup>
-    
+
     <PropertyGroup>
       <XunitCommandLine>$(ThisTestWorkingDir)corerun.exe xunit.console.netcore.exe</XunitCommandLine>
-      
+
       <XunitOptions Condition="'@(IncludeTraitsItems)'!=''">$(XunitOptions)-trait "%(IncludeTraitsItems.Identity)" </XunitOptions>
       <XunitOptions Condition="'@(ExcludeTraitsItems)'!=''">$(XunitOptions)-notrait "%(ExcludeTraitsItems.Identity)" </XunitOptions>
     </PropertyGroup>
@@ -57,9 +58,9 @@
     <Copy
       SourceFiles="@(_TestFiles)"
       DestinationFolder="$(ThisTestWorkingDir)"
-      SkipUnchangedFiles="True" 
+      SkipUnchangedFiles="True"
       />
-      
+
     <Copy
       SourceFiles="@(_TestRunnerSourceFiles)"
       DestinationFolder="$(ThisTestWorkingDir)"
