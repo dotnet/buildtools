@@ -31,13 +31,13 @@
          in framework specific subfolders.  Our build tools do this because the
          libraries are used during build, and do not depend on the framework being
          targeted by the build -->
-    <!-- We also add a space after all of the properties which could end with a
-         backslash, to prevent it from escaping the closing quote -->
+    <!-- We trim the last backslash from properties which could end with one,
+         to prevent it from escaping the closing quote -->
     <Exec
       Condition="'@(PackagesNuSpecFiles)'!=''"
       IgnoreStandardErrorWarningFormat="true"
       StandardOutputImportance="Low"
-      Command="&quot;$(NuGetToolPath)&quot; pack &quot;%(PackagesNuSpecFiles.FullPath)&quot; -BasePath &quot;$(PackagesBasePath) &quot; -OutputDirectory &quot;$(PackagesOutDir) &quot; $(VersionCmdLine)" />
+      Command="&quot;$(NuGetToolPath)&quot; pack &quot;%(PackagesNuSpecFiles.FullPath)&quot; -BasePath &quot;$(PackagesBasePath.TrimEnd('\'))&quot; -OutputDirectory &quot;$(PackagesOutDir.TrimEnd('\'))&quot; $(VersionCmdLine)" />
 
     <Message
       Condition="'@(PackagesNuSpecFiles)'!=''"

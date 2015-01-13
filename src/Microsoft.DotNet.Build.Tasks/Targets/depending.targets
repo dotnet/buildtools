@@ -10,7 +10,7 @@
     <Exec
       Condition="'@(PackageConfigs)'!=''"
       StandardOutputImportance="Low"
-      Command="&quot;$(NuGetToolPath)&quot; restore &quot;%(PackageConfigs.FullPath)&quot; -PackagesDirectory &quot;$(PackagesDir) &quot; $(NuGetConfigCommandLine)" 
+      Command="&quot;$(NuGetToolPath)&quot; restore &quot;%(PackageConfigs.FullPath)&quot; -PackagesDirectory &quot;$(PackagesDir.TrimEnd('\'))&quot; $(NuGetConfigCommandLine)" 
       />
 
   </Target>
