@@ -30,11 +30,11 @@
   <ItemGroup>
     <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\xunit.runner.dependencies.netcore.2.0.0-beta5-build2785\tools\xunit.abstractions.dll</HintPath>
+      <HintPath>..\packages\xunit.runner.dependencies.netcore.1.0.0-prerelease\lib\portable-wpa80+win8+net45+aspnetcore50\xunit.abstractions.dll</HintPath>
     </Reference>
     <Reference Include="xunit.runner.utility, Version=2.0.0.2785, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\xunit.runner.dependencies.netcore.2.0.0-beta5-build2785\tools\xunit.runner.utility.dll</HintPath>
+      <HintPath>..\packages\xunit.runner.dependencies.netcore.1.0.0-prerelease\lib\portable-wpa80+win8+net45+aspnetcore50\xunit.runner.utility.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
