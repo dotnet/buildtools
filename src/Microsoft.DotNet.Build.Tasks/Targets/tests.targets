@@ -34,8 +34,8 @@
       <XunitCommandLine>corerun.exe xunit.console.netcore.exe</XunitCommandLine>
       
       <XunitOptions Condition="'@(ThisDirectoryAssemblies)'!=''">$(XunitOptions) "%(ThisDirectoryAssemblies.Identity)" </XunitOptions>
-      <XunitOptions Condition="'@(IncludeTraitsItems)'!=''">$(XunitOptions)-trait "%(IncludeTraitsItems.Identity)" </XunitOptions>
-      <XunitOptions Condition="'@(ExcludeTraitsItems)'!=''">$(XunitOptions)-notrait "%(ExcludeTraitsItems.Identity)" </XunitOptions>
+      <XunitOptions Condition="'@(IncludeTraitsItems)'!=''">$(XunitOptions)-trait @(IncludeTraitsItems, ' -trait ') </XunitOptions>
+      <XunitOptions Condition="'@(ExcludeTraitsItems)'!=''">$(XunitOptions)-notrait @(ExcludeTraitsItems, ' -notrait ') </XunitOptions>
     </PropertyGroup>
 
     <Exec
