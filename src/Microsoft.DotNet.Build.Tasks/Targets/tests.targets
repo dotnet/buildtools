@@ -2,9 +2,10 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <UsingTask AssemblyFile="$(PackagesDir)xunit.runners.2.0.0-beta5-build2785\tools\xunit.runner.msbuild.dll" TaskName="Xunit.Runner.MSBuild.xunit" />
-  
+
   <ItemGroup>
     <_SkipTestAssemblies Include="$(SkipTestAssemblies)" />
+    <_IncludeTestAssemblies Include="$(IncludeTestAssemblies)"/>
   </ItemGroup>
 
   <Target Name="FindTestDirectories">
@@ -13,7 +14,8 @@
       <AllTestAssembliesWithParent Include="@(AllTestAssemblies)">
         <ParentDir>$([System.IO.Path]::GetDirectoryName(%(AllTestAssemblies.Identity)))</ParentDir>
       </AllTestAssembliesWithParent>
-      <TestDirectories Include="@(AllTestAssembliesWithParent -> '%(ParentDir)')" Exclude="@(_SkipTestAssemblies -> '$(BaseOutputPathWithConfig)%(Identity)')" />
+      <TestDirectories Condition="'@(_IncludeTestAssemblies)' == ''" Include="@(AllTestAssembliesWithParent -> '%(ParentDir)')" Exclude="@(_SkipTestAssemblies -> '$(BaseOutputPathWithConfig)%(Identity)')" />
+      <TestDirectories Condition="'@(_IncludeTestAssemblies)' != ''" Include="@(_IncludeTestAssemblies -> '$(BaseOutputPathWithConfig)%(Identity)')" Exclude="@(_SkipTestAssemblies -> '$(BaseOutputPathWithConfig)%(Identity)')" />
     </ItemGroup>
   </Target>
 
@@ -34,10 +36,10 @@
       <IncludeTraitsItems Include="$(IncludeTraits)" />
       <ExcludeTraitsItems Include="$(ExcludeTraits)" />
     </ItemGroup>
-    
+
     <PropertyGroup>
       <XunitCommandLine>$(ThisTestWorkingDir)corerun.exe xunit.console.netcore.exe</XunitCommandLine>
-      
+
       <XunitOptions Condition="'@(IncludeTraitsItems)'!=''">$(XunitOptions)-trait "%(IncludeTraitsItems.Identity)" </XunitOptions>
       <XunitOptions Condition="'@(ExcludeTraitsItems)'!=''">$(XunitOptions)-notrait "%(ExcludeTraitsItems.Identity)" </XunitOptions>
     </PropertyGroup>
@@ -56,9 +58,9 @@
     <Copy
       SourceFiles="@(_TestFiles)"
       DestinationFolder="$(ThisTestWorkingDir)"
-      SkipUnchangedFiles="True" 
+      SkipUnchangedFiles="True"
       />
-      
+
     <Copy
       SourceFiles="@(_TestRunnerSourceFiles)"
       DestinationFolder="$(ThisTestWorkingDir)"
@@ -68,9 +70,9 @@
       Command="$(XunitCommandLine) &quot;$(ThisTestWorkingDir)%(TestDirectories.Filename)%(TestDirectories.Extension).dll&quot; $(XunitOptions)"
       WorkingDirectory="$(ThisTestWorkingDir)"
       ContinueOnError="ErrorAndContinue">
-       <!-- Store the exit codes in the XUnitExitCodes item.  The caller of the target will
+      <!-- Store the exit codes in the XUnitExitCodes item.  The caller of the target will
             check the item group for any non-zero codes if they like -->
-       <Output ItemName="XUnitExitCodes" TaskParameter="ExitCode"/>
+      <Output ItemName="XUnitExitCodes" TaskParameter="ExitCode"/>
     </Exec>
   </Target>
 
