@@ -5,7 +5,7 @@
 
   <ItemGroup>
     <_SkipTestAssemblies Include="$(SkipTestAssemblies)" />
-    <_IncludeTestAssemblies Include="$(IncludeTestAssemblies)"/>
+    <_TestsToRun Include="$(TestsToRun)"/>
   </ItemGroup>
 
   <Target Name="FindTestDirectories">
@@ -14,8 +14,8 @@
       <AllTestAssembliesWithParent Include="@(AllTestAssemblies)">
         <ParentDir>$([System.IO.Path]::GetDirectoryName(%(AllTestAssemblies.Identity)))</ParentDir>
       </AllTestAssembliesWithParent>
-      <TestDirectories Condition="'@(_IncludeTestAssemblies)' == ''" Include="@(AllTestAssembliesWithParent -> '%(ParentDir)')" Exclude="@(_SkipTestAssemblies -> '$(BaseOutputPathWithConfig)%(Identity)')" />
-      <TestDirectories Condition="'@(_IncludeTestAssemblies)' != ''" Include="@(_IncludeTestAssemblies -> '$(BaseOutputPathWithConfig)%(Identity)')" Exclude="@(_SkipTestAssemblies -> '$(BaseOutputPathWithConfig)%(Identity)')" />
+      <TestDirectories Condition="'@(_TestsToRun)' == ''" Include="@(AllTestAssembliesWithParent -> '%(ParentDir)')" Exclude="@(_SkipTestAssemblies -> '$(BaseOutputPathWithConfig)%(Identity)')" />
+      <TestDirectories Condition="'@(_TestsToRun)' != ''" Include="@(_TestsToRun -> '$(BaseOutputPathWithConfig)%(Identity)')" Exclude="@(_SkipTestAssemblies -> '$(BaseOutputPathWithConfig)%(Identity)')" />
     </ItemGroup>
   </Target>
 
