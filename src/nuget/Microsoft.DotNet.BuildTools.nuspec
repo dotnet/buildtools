@@ -2,7 +2,7 @@
 <package>
   <metadata minClientVersion="2.8.1">
     <id>Microsoft.DotNet.BuildTools</id>
-    <version>1.0.20-prerelease</version>
+    <version>1.0.21-prerelease</version>
     <title>Microsoft DotNet BuildTools</title>
     <authors>Microsoft</authors>
     <owners>Microsoft</owners>
