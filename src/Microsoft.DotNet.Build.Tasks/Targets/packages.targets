@@ -15,7 +15,8 @@
   </PropertyGroup>
 
   <Target Name="BuildPackages"
-    DependsOnTargets="GetNuGetPackageVersions">
+    DependsOnTargets="GetNuGetPackageVersions"
+    Condition="'$(SkipBuildPackages)' != 'true'">
     
     <!-- Create package output directory -->
     <MakeDir Directories="$(PackagesOutDir)" />

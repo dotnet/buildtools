@@ -41,7 +41,11 @@
     <Exec
       Command="$(XunitCommandLine) $(XunitOptions)"
       WorkingDirectory="%(TestDirectories.Identity)"
-      ContinueOnError="ErrorAndContinue" />
+      ContinueOnError="ErrorAndContinue">
+       <!-- Store the exit codes in the XUnitExitCodes item.  The caller of the target will
+            check the item group for any non-zero codes if they like -->
+       <Output ItemName="XUnitExitCodes" TaskParameter="ExitCode"/>
+    </Exec>
   </Target>
 
 </Project>
