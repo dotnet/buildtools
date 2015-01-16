@@ -3,7 +3,10 @@
 
   <Target Name="DiscoverTests">
     <ItemGroup>
-      <TestAssemblies Include="$(TestWorkingDir)*.Tests\**\*.Tests.dll" Exclude="@(SkipTestAssemblies)" />
+      <TestsToRun Include="$(TestsToRun)" />
+      <_TestsToRun Include="@(TestsToRun->'$(TestWorkingDir)*.Tests\**\%(Identity).dll')" />
+      <TestAssemblies Condition="'%(_TestsToRun.Identity)' == ''" Include="$(TestWorkingDir)*.Tests\**\*.Tests.dll" Exclude="@(SkipTestAssemblies)" />
+      <TestAssemblies Condition="'%(_TestsToRun.Identity)' != ''" Include="%(_TestsToRun.Identity)" Exclude="@(SkipTestAssemblies)" />
       <TestDirectories Include="@(TestAssemblies -> '%(RootDir)%(Directory)')" KeepDuplicates="false" />
     </ItemGroup>
   </Target>
@@ -28,11 +31,11 @@
       <IncludeTraitsItems Include="$(IncludeTraits)" />
       <ExcludeTraitsItems Include="$(ExcludeTraits)" />
     </ItemGroup>
-    
+
     <!-- Construct and invoke xunit console runner via corerun.exe -->
     <PropertyGroup>
       <XunitCommandLine>corerun.exe xunit.console.netcore.exe</XunitCommandLine>
-      
+
       <XunitOptions Condition="'@(ThisDirectoryAssemblies)'!=''">$(XunitOptions) "%(ThisDirectoryAssemblies.Identity)" </XunitOptions>
       <XunitOptions Condition="'@(IncludeTraitsItems)'!=''">$(XunitOptions)-trait @(IncludeTraitsItems, ' -trait ') </XunitOptions>
       <XunitOptions Condition="'@(ExcludeTraitsItems)'!=''">$(XunitOptions)-notrait @(ExcludeTraitsItems, ' -notrait ') </XunitOptions>
@@ -42,9 +45,9 @@
       Command="$(XunitCommandLine) $(XunitOptions)"
       WorkingDirectory="%(TestDirectories.Identity)"
       ContinueOnError="ErrorAndContinue">
-       <!-- Store the exit codes in the XUnitExitCodes item.  The caller of the target will
+      <!-- Store the exit codes in the XUnitExitCodes item.  The caller of the target will
             check the item group for any non-zero codes if they like -->
-       <Output ItemName="XUnitExitCodes" TaskParameter="ExitCode"/>
+      <Output ItemName="XUnitExitCodes" TaskParameter="ExitCode"/>
     </Exec>
   </Target>
 
