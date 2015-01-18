@@ -161,7 +161,7 @@ namespace Microsoft.Build.Tasks
 
                 if (Directory.Exists(folder))
                 {
-                    foreach (var framework in Directory.EnumerateFiles(folder))
+                    foreach (var framework in Directory.EnumerateFiles(folder, "*.xml"))
                     {
                         var xml = XDocument.Load(framework).Root;
                         targetFrameworks.Add(new FrameworkName(xml.Attribute("Identifier").Value, Version.Parse(xml.Attribute("MinimumVersion").Value)));
