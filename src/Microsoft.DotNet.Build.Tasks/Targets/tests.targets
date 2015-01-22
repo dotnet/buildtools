@@ -11,6 +11,12 @@
     </ItemGroup>
   </Target>
 
+  <PropertyGroup>
+    <CoverageReportDir Condition="'$(CoverageReportDir)' == ''">$(TestWorkingDir)coverage\</CoverageReportDir>
+    <_CoverageEnabled>false</_CoverageEnabled>
+    <_CoverageEnabled Condition="'$(SkipTests)' != 'true' and '$(OS)' == 'Windows_NT' and '$(Coverage)' == 'true'">true</_CoverageEnabled>
+  </PropertyGroup>
+  
   <Target Name="RunTests"
           DependsOnTargets="DiscoverTests"
           Inputs="@(TestDirectories)"
@@ -32,14 +38,27 @@
       <ExcludeTraitsItems Include="$(ExcludeTraits)" />
     </ItemGroup>
 
+    <!-- Coverage options -->
+    <PropertyGroup>
+      <ThisAssemblyName>@(ThisDirectoryAssemblies->'%(filename)')</ThisAssemblyName>
+      <CoverageVersion>4.5.3522</CoverageVersion>
+      <CoverageCommand>$(PackagesDir)OpenCover.$(CoverageVersion)\OpenCover.Console.exe</CoverageCommand>
+      <CoverageOptions>-filter:"+[*]* -[*.Tests]*" -register:user -nodefaultfilters -target:corerun.exe -output:$(CoverageReportDir)$(ThisAssemblyName).coverage.xml</CoverageOptions>
+    </PropertyGroup>
+    
     <!-- Construct and invoke xunit console runner via corerun.exe -->
     <PropertyGroup>
-      <XunitCommandLine>corerun.exe xunit.console.netcore.exe</XunitCommandLine>
-
+      <XunitCommandLine Condition="!$(_CoverageEnabled)">corerun.exe xunit.console.netcore.exe</XunitCommandLine>
+      <XunitCommandLine Condition="$(_CoverageEnabled)">$(CoverageCommand)</XunitCommandLine>
+      
       <XunitOptions Condition="'@(ThisDirectoryAssemblies)'!=''">$(XunitOptions) "%(ThisDirectoryAssemblies.Identity)" </XunitOptions>
       <XunitOptions Condition="'@(IncludeTraitsItems)'!=''">$(XunitOptions)-trait @(IncludeTraitsItems, ' -trait ') </XunitOptions>
       <XunitOptions Condition="'@(ExcludeTraitsItems)'!=''">$(XunitOptions)-notrait @(ExcludeTraitsItems, ' -notrait ') </XunitOptions>
+      
+      <XunitOptions Condition="$(_CoverageEnabled)">$(CoverageOptions) -targetargs:"xunit.console.netcore.exe $(XunitOptions)"</XunitOptions>
     </PropertyGroup>
+    
+    <MakeDir Condition="$(_CoverageEnabled)" Directories="$(CoverageReportDir)" />
 
     <Exec
       Command="$(XunitCommandLine) $(XunitOptions)"
@@ -51,4 +70,22 @@
     </Exec>
   </Target>
 
+  <Target Name="GenerateCoverageReport"
+    AfterTargets="RunTests"
+    Inputs="$(CoverageReportDir)\*.coverage.xml"
+    Outputs="$(CoverageReportDir)*.*"
+    Condition="$(_CoverageEnabled)">
+    
+    <PropertyGroup>
+      <ReportGeneratorVersion>2.0.4.0</ReportGeneratorVersion>
+      <ReportGeneratorCommandLine>$(PackagesDir)ReportGenerator.$(ReportGeneratorVersion)\ReportGenerator.exe</ReportGeneratorCommandLine>
+      <ReportGeneratorOptions>-reports:$(CoverageReportDir)\*.coverage.xml -targetdir:$(CoverageReportDir) -reporttypes:Html</ReportGeneratorOptions>
+    </PropertyGroup>
+    
+    <Exec
+      Command="$(ReportGeneratorCommandLine) $(ReportGeneratorOptions)"
+      ContinueOnError="ErrorAndContinue" />
+    
+  </Target>
+  
 </Project>
