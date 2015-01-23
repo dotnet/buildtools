@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30324.0
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.DotNet.Build.Tasks", "Microsoft.DotNet.Build.Tasks\Microsoft.DotNet.Build.Tasks.csproj", "{17C66BCE-EB35-44CA-893C-8AAFB67708E9}"
 EndProject
@@ -8,7 +8,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResourceGenerator", "Resour
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JSon2Txt", "JSon2Txt\JSon2Txt.csproj", "{7BB5B857-6585-4A65-85A6-865286DC2CD7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.console", "xunit.console.netcore\xunit.console.netcore.csproj", "{83FC1994-BCE0-427a-803B-02F20233A2D1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.console.netcore", "xunit.console.netcore\xunit.console.netcore.csproj", "{83FC1994-BCE0-427A-803B-02F20233A2D1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -44,14 +44,14 @@ Global
 		{7BB5B857-6585-4A65-85A6-865286DC2CD7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7BB5B857-6585-4A65-85A6-865286DC2CD7}.Release|ARM.ActiveCfg = Release|Any CPU
 		{7BB5B857-6585-4A65-85A6-865286DC2CD7}.Release|x86.ActiveCfg = Release|Any CPU
-		{83FC1994-BCE0-427a-803B-02F20233A2D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{83FC1994-BCE0-427a-803B-02F20233A2D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{83FC1994-BCE0-427a-803B-02F20233A2D1}.Debug|ARM.ActiveCfg = Debug|Any CPU
-		{83FC1994-BCE0-427a-803B-02F20233A2D1}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{83FC1994-BCE0-427a-803B-02F20233A2D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{83FC1994-BCE0-427a-803B-02F20233A2D1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{83FC1994-BCE0-427a-803B-02F20233A2D1}.Release|ARM.ActiveCfg = Release|Any CPU
-		{83FC1994-BCE0-427a-803B-02F20233A2D1}.Release|x86.ActiveCfg = Release|Any CPU
+		{83FC1994-BCE0-427A-803B-02F20233A2D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83FC1994-BCE0-427A-803B-02F20233A2D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83FC1994-BCE0-427A-803B-02F20233A2D1}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{83FC1994-BCE0-427A-803B-02F20233A2D1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{83FC1994-BCE0-427A-803B-02F20233A2D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83FC1994-BCE0-427A-803B-02F20233A2D1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83FC1994-BCE0-427A-803B-02F20233A2D1}.Release|ARM.ActiveCfg = Release|Any CPU
+		{83FC1994-BCE0-427A-803B-02F20233A2D1}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
