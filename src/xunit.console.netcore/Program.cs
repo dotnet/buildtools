@@ -64,15 +64,13 @@ namespace Xunit.ConsoleClient
                                            commandLine.ParallelizeAssemblies, commandLine.ParallelizeTestCollections,
                                            commandLine.MaxParallelThreads);
 
-#if !NETCORE
                 if (commandLine.Wait)
                 {
                     Console.WriteLine();
-                    Console.Write("Press any key to continue...");
-                    Console.ReadKey();
+                    Console.Write("Press enter key to continue...");
+                    Console.ReadLine();
                     Console.WriteLine();
                 }
-#endif
 
                 return failCount;
             }
