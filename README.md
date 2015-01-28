@@ -1,6 +1,6 @@
 # .NET Core Build Tools
 
-[![Build status](http://corefx-ci.cloudapp.net/jenkins/job/dotnet_buildtools/badge/icon)](http://corefx-ci.cloudapp.net/jenkins/job/dotnet_buildtools/)
+[![Build status](http://dotnet-ci.cloudapp.net/job/dotnet_buildtools/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_buildtools/)
 
 This repository contains supporting build tools that are necessary for building
 the [.NET Core][dotnet-corefx] projects. These projects consume the build tools
