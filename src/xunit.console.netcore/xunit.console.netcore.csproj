@@ -40,71 +40,71 @@
   <ItemGroup>
     <Reference Include="System.Collections">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\System.Collections.4.0.10-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Collections.dll</HintPath>
+      <HintPath>..\packages\System.Collections.4.0.10-beta-22512\lib\portable-wpa80+win80+net45+aspnetcore50\System.Collections.dll</HintPath>
     </Reference>
     <Reference Include="System.Collections.Concurrent">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\System.Collections.Concurrent.4.0.10-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Collections.Concurrent.dll</HintPath>
+      <HintPath>..\packages\System.Collections.Concurrent.4.0.10-beta-22512\lib\portable-wpa80+win80+net45+aspnetcore50\System.Collections.Concurrent.dll</HintPath>
     </Reference>
     <Reference Include="System.Console">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\System.Console.4.0.0-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Console.dll</HintPath>
+      <HintPath>..\packages\System.Console.4.0.0-beta-22512\lib\portable-wpa80+win80+net45+aspnetcore50\System.Console.dll</HintPath>
     </Reference>
     <Reference Include="System.IO">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\System.IO.4.0.10-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.IO.dll</HintPath>
+      <HintPath>..\packages\System.IO.4.0.10-beta-22512\lib\portable-wpa80+win80+net45+aspnetcore50\System.IO.dll</HintPath>
     </Reference>
     <Reference Include="System.IO.FileSystem">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\System.IO.FileSystem.4.0.0-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.IO.FileSystem.dll</HintPath>
+      <HintPath>..\packages\System.IO.FileSystem.4.0.0-beta-22512\lib\portable-wpa80+win80+net45+aspnetcore50\System.IO.FileSystem.dll</HintPath>
     </Reference>
     <Reference Include="System.IO.FileSystem.Primitives">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\System.IO.FileSystem.Primitives.4.0.0-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.IO.FileSystem.Primitives.dll</HintPath>
+      <HintPath>..\packages\System.IO.FileSystem.Primitives.4.0.0-beta-22512\lib\portable-wpa80+win80+net45+aspnetcore50\System.IO.FileSystem.Primitives.dll</HintPath>
     </Reference>
     <Reference Include="System.Linq">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\System.Linq.4.0.0-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Linq.dll</HintPath>
+      <HintPath>..\packages\System.Linq.4.0.0-beta-22512\lib\portable-wpa80+win80+net45+aspnetcore50\System.Linq.dll</HintPath>
     </Reference>
     <Reference Include="System.Reflection">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\System.Runtime.4.0.10-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Reflection.dll</HintPath>
+      <HintPath>..\packages\System.Runtime.4.0.10-beta-22512\lib\portable-wpa80+win80+net45+aspnetcore50\System.Reflection.dll</HintPath>
     </Reference>
     <Reference Include="System.Runtime">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\System.Runtime.4.0.20-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Runtime.dll</HintPath>
+      <HintPath>..\packages\System.Runtime.4.0.20-beta-22512\lib\portable-wpa80+win80+net45+aspnetcore50\System.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="System.Runtime.Extensions">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\System.Runtime.Extensions.4.0.10-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Runtime.Extensions.dll</HintPath>
+      <HintPath>..\packages\System.Runtime.Extensions.4.0.10-beta-22512\lib\portable-wpa80+win80+net45+aspnetcore50\System.Runtime.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="System.Runtime.Handles">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\System.Runtime.Handles.4.0.0-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Runtime.Handles.dll</HintPath>
+      <HintPath>..\packages\System.Runtime.Handles.4.0.0-beta-22512\lib\portable-wpa80+win80+net45+aspnetcore50\System.Runtime.Handles.dll</HintPath>
     </Reference>
     <Reference Include="System.Text.RegularExpressions">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\System.Text.RegularExpressions.4.0.10-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Text.RegularExpressions.dll</HintPath>
+      <HintPath>..\packages\System.Text.RegularExpressions.4.0.10-beta-22512\lib\portable-wpa80+win80+net45+aspnetcore50\System.Text.RegularExpressions.dll</HintPath>
     </Reference>
     <Reference Include="System.Threading">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\System.Threading.4.0.0-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Threading.dll</HintPath>
+      <HintPath>..\packages\System.Threading.4.0.0-beta-22512\lib\portable-wpa80+win80+net45+aspnetcore50\System.Threading.dll</HintPath>
     </Reference>
     <Reference Include="System.Threading.Tasks">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\System.Threading.Tasks.4.0.10-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Threading.Tasks.dll</HintPath>
+      <HintPath>..\packages\System.Threading.Tasks.4.0.10-beta-22512\lib\portable-wpa80+win80+net45+aspnetcore50\System.Threading.Tasks.dll</HintPath>
     </Reference>
     <Reference Include="System.Diagnostics.Tools">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\System.Diagnostics.Tools.4.0.0-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Diagnostics.Tools.dll</HintPath>
+      <HintPath>..\packages\System.Diagnostics.Tools.4.0.0-beta-22512\lib\portable-wpa80+win80+net45+aspnetcore50\System.Diagnostics.Tools.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml.ReaderWriter">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\System.Xml.ReaderWriter.4.0.10-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Xml.ReaderWriter.dll</HintPath>
+      <HintPath>..\packages\System.Xml.ReaderWriter.4.0.10-beta-22512\lib\portable-wpa80+win80+net45+aspnetcore50\System.Xml.ReaderWriter.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml.XDocument">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\System.Xml.XDocument.4.0.0-beta-22412\lib\portable-wpa80+win80+net45+aspnetcore50\System.Xml.XDocument.dll</HintPath>
+      <HintPath>..\packages\System.Xml.XDocument.4.0.0-beta-22512\lib\portable-wpa80+win80+net45+aspnetcore50\System.Xml.XDocument.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
