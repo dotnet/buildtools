@@ -1,0 +1,41 @@
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <UsingTask TaskName="GetNextDailyBuildNumber" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll" />
+
+  <Target Name="GetNextDailyBuildNumber"
+    BeforeTargets="Build"
+    Condition="'$(UpdateDailyBuildNumber)' == 'true'"
+    >
+    <GetNextDailyBuildNumber
+      VersionPropsFile="$(SourceDir)BuildNumber.props">
+      <Output PropertyName="DailyBuildNumber" TaskParameter="DailyBuildNumber" />
+    </GetNextDailyBuildNumber>
+  </Target>
+
+  <Target Name="CommitDailyBuildNumber"
+    AfterTargets="BuildPackages"
+    Condition="'$(UpdateDailyBuildNumber)' == 'true'"
+    >
+    <!-- configure the commit to show up as the dotnet bot -->
+    <Exec
+      WorkingDirectory="$(SourceDir)"
+      StandardOutputImportance="Low"
+      Command="git config user.name &quot;dotnet-bot&quot;" />
+
+    <Exec
+      WorkingDirectory="$(SourceDir)"
+      StandardOutputImportance="Low"
+      Command="git config user.email &quot;dotnet-bot@microsoft.com&quot;" />
+
+    <!-- commit and push to origin -->
+    <Exec
+      WorkingDirectory="$(SourceDir)"
+      StandardOutputImportance="Low"
+      Command="git commit -m &quot;Automated commit of daily build number value $(DailyBuildNumber).&quot; $(SourceDir)BuildNumber.props" />
+
+    <Exec
+      WorkingDirectory="$(SourceDir)"
+      StandardOutputImportance="Low"
+      Command="git push origin" />
+
+  </Target>
+</Project>

@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <UsingTask TaskName="GetPackageVersion" 
-    AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"
-    Condition="Exists('$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll')" />
+  <UsingTask TaskName="GetPackageVersion" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll" />
 
   <ItemGroup>
     <PackagesNuSpecFiles Include="$(SourceDir)nuget\*.nuspec" />
@@ -14,17 +12,18 @@
     <PackagesBasePath Condition="'$(PackagesBasePath)' == ''">$(OutDir)</PackagesBasePath>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <NuGetExe>&quot;$(NuGetToolPath)&quot;</NuGetExe>
+    <NuGetBasePath>&quot;$(PackagesBasePath.TrimEnd('\'))&quot;</NuGetBasePath>
+    <NuGetOutputDirectory>&quot;$(PackagesOutDir.TrimEnd('\'))&quot;</NuGetOutputDirectory>
+  </PropertyGroup>
+
   <Target Name="BuildPackages"
     DependsOnTargets="GetNuGetPackageVersions"
     Condition="'$(SkipBuildPackages)' != 'true'">
     
     <!-- Create package output directory -->
     <MakeDir Directories="$(PackagesOutDir)" />
-    
-    <PropertyGroup>
-      <VersionCmdLine></VersionCmdLine>
-      <VersionCmdLine Condition="'%(PackagesNuSpecFiles.PackageVersion)' != ''">-Version %(PackagesNuSpecFiles.PackageVersion)</VersionCmdLine>
-    </PropertyGroup>
 
     <!-- Make package -->
     <!-- We ignore warnings because NuGet will warn when libraries are not placed
@@ -37,12 +36,22 @@
       Condition="'@(PackagesNuSpecFiles)'!=''"
       IgnoreStandardErrorWarningFormat="true"
       StandardOutputImportance="Low"
-      Command="&quot;$(NuGetToolPath)&quot; pack &quot;%(PackagesNuSpecFiles.FullPath)&quot; -BasePath &quot;$(PackagesBasePath.TrimEnd('\'))&quot; -OutputDirectory &quot;$(PackagesOutDir.TrimEnd('\'))&quot; $(VersionCmdLine)" />
+      Command="$(NuGetExe) pack &quot;%(PackagesNuSpecFiles.FullPath)&quot; -BasePath $(NuGetBasePath) -OutputDirectory $(NuGetOutputDirectory) -Version %(PackagesNuSpecFiles.PackageVersion)" />
 
     <Message
       Condition="'@(PackagesNuSpecFiles)'!=''"
       Importance="High"
       Text="%(PackagesNuSpecFiles.Filename) NuGet Package -> $(PackagesOutDir)%(PackagesNuSpecFiles.Filename).%(PackagesNuSpecFiles.PackageVersion).nupkg" />
+
+    <ItemGroup>
+      <PackagesForPublishing Include="$(PackagesOutDir)\*.nupkg" />
+    </ItemGroup>
+
+    <!-- push all packages to a server if one has been specified -->
+    <Exec
+      Condition="'@(PackagesForPublishing)' != '' and '$(PublishPackageSource)' != ''"
+      Command="$(NuGetExe) push &quot;%(PackagesForPublishing.Identity)&quot; -s $(PublishPackageSource)" />
+
   </Target>
 
   <Target
@@ -52,9 +61,8 @@
 
     <GetPackageVersion
       Condition="Exists('$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll')"
-      RepositoryRoot="$(ProjectDir)"
-      PackageName="%(PackagesNuSpecFiles.Filename)"
-      RequireExplicitVersions="false">
+      DailyBuildNumber="$(DailyBuildNumber)"
+      NuSpecFile="%(PackagesNuSpecFiles.Identity)">
       <Output PropertyName="_TempPackageVersion" TaskParameter="PackageVersion" />
     </GetPackageVersion>
     
@@ -63,10 +71,9 @@
         <PackageVersion>$(_TempPackageVersion)</PackageVersion>
       </PackagesNuSpecFiles>
     </ItemGroup>
-    
+
     <PropertyGroup>
       <_TempPackageVersion />
     </PropertyGroup>
   </Target>
-
 </Project>
