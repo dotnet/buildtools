@@ -21,12 +21,12 @@ namespace Xunit.ConsoleClient
 
         protected TransformFactory()
         {
+            availableTransforms.Add("xml", new Transform { CommandLine = "xml", Description = "output results to xUnit.net v2 style XML file", OutputHandler = Handler_DirectWrite });
 #if !NETCORE
             var executablePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().GetLocalCodeBase());
             var exeConfiguration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
             var configSection = (XunitConsoleConfigurationSection)exeConfiguration.GetSection("xunit") ?? new XunitConsoleConfigurationSection();
 
-            availableTransforms.Add("xml", new Transform { CommandLine = "xml", Description = "output results to xUnit.net v2 style XML file", OutputHandler = Handler_DirectWrite });
 
             configSection.Transforms.Cast<TransformConfigurationElement>().ToList().ForEach(configElement =>
             {
