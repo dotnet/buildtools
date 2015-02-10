@@ -8,3 +8,10 @@ packages
 *.sln.ide
 *.metaproj
 *.metaproj.tmp
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+*~
+
