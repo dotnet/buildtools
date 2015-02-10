@@ -57,7 +57,7 @@ namespace Xunit.ConsoleClient
 
         static void Handler_DirectWrite(XElement xml, string outputFileName)
         {
-            using (var fileStream = new FileStream(outputFileName, FileMode.Create))
+            using (var fileStream = new FileStream(outputFileName, FileMode.Create, FileAccess.Write, FileShare.Read, 4096, false))
             {
                 xml.Save(fileStream);
             }
