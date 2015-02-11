@@ -5,20 +5,19 @@ using LibGit2Sharp;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System;
+using System.Diagnostics;
 using System.Linq;
+using System.Xml.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
     public class GetPackageVersion : Task
     {
         [Required]
-        public string RepositoryRoot { get; set; }
+        public string DailyBuildNumber { get; set; }
 
         [Required]
-        public string PackageName { get; set; }
-
-        [Required]
-        public bool RequireExplicitVersions { get; set; }
+        public string NuSpecFile { get; set; }
 
         [Output]
         public string PackageVersion { get; set; }
@@ -27,42 +26,19 @@ namespace Microsoft.DotNet.Build.Tasks
         {
             Log.LogMessage("Starting GetPackageVersion");
 
-            using (var repository = new Repository(RepositoryRoot))
-            {
-                string tipSha = repository.Head.Tip.Sha;
-                string prefix = PackageName + "-";
+            XDocument nuspecFile = XDocument.Load(NuSpecFile);
+            var ns = nuspecFile.Root.GetDefaultNamespace();
 
-                // Get tags that begin with the package name, on the tip
-                string[] matchingTags = repository.Tags.Where(t =>
-                        t.Target.Sha == tipSha &&
-                        t.Name.StartsWith(prefix)).Select(t => t.Name).ToArray();
+            var embeddedVerNode =
+                (from el in nuspecFile.Descendants(ns + "version")
+                select el).FirstOrDefault();
 
-                // Verify we didn't have multiple matching tags
-                Action<string> throwTagException = (message) => { throw new InvalidOperationException(string.Format(message, tipSha, prefix)); };
-                if (matchingTags.Count() > 1)
-                    throwTagException("Multiple tags found on commit {0} beginning with {1} (expected one)");
-
-                if (matchingTags.Count() == 1)
-                {
-                    PackageVersion = matchingTags[0].Substring(prefix.Length);
-                }
-                else
-                {
-                    if (RequireExplicitVersions == true)
-                        throwTagException("No tag found on commit {0} beginning with {1} (expected one)");
-
-                    PackageVersion = GetImplicitVersion(repository.Head.Tip.Sha);
-                }
-            }
+            Debug.Assert(embeddedVerNode != null, "embeddedVerNode shouldn't be null");
+            PackageVersion = string.Format("{0}-{1}", embeddedVerNode.Value, DailyBuildNumber);
 
             Log.LogMessage(string.Format("GetPackageVersion completed successfully - chose version {0}", PackageVersion));
 
             return true;
-        }
-
-        private string GetImplicitVersion(string sha)
-        {
-            return string.Format("999.999.999-sha{0}", sha.Substring(0, 10));
         }
     }
 }

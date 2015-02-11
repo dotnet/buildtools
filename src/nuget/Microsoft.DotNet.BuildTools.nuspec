@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <package>
   <metadata minClientVersion="2.8.1">
     <id>Microsoft.DotNet.BuildTools</id>
@@ -12,7 +12,7 @@
     <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
     <summary>.NET Core Framework Build Tools</summary>
     <description>This package provides build-time support for the .NET Core Framework libraries.  You should not need to reference this package from your project.</description>
-    <copyright>Copyright � Microsoft Corporation</copyright>
+    <copyright>Copyright © Microsoft Corporation</copyright>
     <tags></tags>
     <dependencies>
       <dependency id="xunit.console.netcore" version="1.0.2-prerelease" />

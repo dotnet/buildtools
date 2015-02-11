@@ -6,7 +6,6 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{7BB5B857-6585-4A65-85A6-865286DC2CD7}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <OutputPath Condition="'$(OutputPath)'==''">$(BaseOutputPath)\bin\$(Configuration)\</OutputPath>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>JSon2Txt</RootNamespace>
     <AssemblyName>JSon2Txt</AssemblyName>

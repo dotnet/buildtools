@@ -35,7 +35,10 @@
       Address="http://nuget.org/nuget.exe"
       FileName="$(NuGetToolPath)" />
 
-    <!-- No tools package is required for this repo -->
+    <!-- Restore build tools -->
+    <Exec
+      StandardOutputImportance="Low"
+      Command="&quot;$(NuGetToolPath)&quot; install &quot; $(SourceDir).nuget\packages.config &quot;  -o &quot; $(PackagesDir) &quot; $(NuGetConfigCommandLine)" />
 
     <Touch Files="$(BuildToolsInstallSempahore)" AlwaysCreate="true" />
   </Target>
