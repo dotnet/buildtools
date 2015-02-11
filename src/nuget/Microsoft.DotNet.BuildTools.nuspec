@@ -2,7 +2,7 @@
 <package>
   <metadata minClientVersion="2.8.1">
     <id>Microsoft.DotNet.BuildTools</id>
-    <version>1.0.23-prerelease</version>
+    <version>1.0.24-prerelease</version>
     <title>Microsoft DotNet BuildTools</title>
     <authors>Microsoft</authors>
     <owners>Microsoft</owners>
@@ -15,7 +15,7 @@
     <copyright>Copyright © Microsoft Corporation</copyright>
     <tags></tags>
     <dependencies>
-      <dependency id="xunit.console.netcore" version="1.0.1-prerelease" />
+      <dependency id="xunit.console.netcore" version="1.0.2-prerelease" />
       <dependency id="xunit.runner.dependencies.netcore" version="1.0.1-prerelease" />
       <dependency id="Microsoft.DotNet.TestHost" version="1.0.2-prerelease" />
     </dependencies>
