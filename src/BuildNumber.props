@@ -2,6 +2,6 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <!-- the value of DailyBuildNumber must be numeric -->
-    <DailyBuildNumber>1</DailyBuildNumber>
+    <DailyBuildNumber>2</DailyBuildNumber>
   </PropertyGroup>
 </Project>
