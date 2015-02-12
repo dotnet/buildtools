@@ -1,6 +1,10 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <UsingTask TaskName="GetNextDailyBuildNumber" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll" />
 
+  <PropertyGroup>
+    <GitWorkingBranch Condition="'$(GitWorkingBranch)' == ''">master</GitWorkingBranch>
+  </PropertyGroup>
+
   <Target Name="GetNextDailyBuildNumber"
     BeforeTargets="Build"
     Condition="'$(UpdateDailyBuildNumber)' == 'true'"
@@ -35,7 +39,7 @@
     <Exec
       WorkingDirectory="$(SourceDir)"
       StandardOutputImportance="Low"
-      Command="git push origin" />
+      Command="git push origin $(GitWorkingBranch)" />
 
   </Target>
 </Project>
