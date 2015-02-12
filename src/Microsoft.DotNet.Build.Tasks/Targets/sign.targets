@@ -12,7 +12,7 @@
   
   <Target Name="OpenSourceSign" 
           AfterTargets="Compile"
-          Condition="'$(DelaySign)' == 'true' and '@(IntermediateAssembly)' != ''"
+          Condition="'$(DelaySign)' == 'true' and '@(IntermediateAssembly)' != '' and '$(SkipSigning)' != 'true'"
           Inputs="@(IntermediateAssembly)"
           Outputs="%(IntermediateAssembly.Identity).oss_signed"
           >
