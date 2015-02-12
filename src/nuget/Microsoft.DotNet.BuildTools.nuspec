@@ -37,6 +37,8 @@
     <file src="Microsoft.DotNet.Build.Tasks\Microsoft.Web.XmlTransform.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\NuGet.NuManifest.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\NuGet.NuManifest.DotNet.dll" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks\NativeVersion.rc" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks\versioning.targets" target="lib" />
     <file src="ResourceGenerator\ResourceGenerator.exe" target="lib" />
     <file src="ResourceGenerator\ResourceGenerator.exe.config" target="lib" />
     <file src="Json2Txt\JSon2Txt.exe" target="lib" />
