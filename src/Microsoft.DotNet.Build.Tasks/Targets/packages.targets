@@ -49,8 +49,8 @@
 
     <!-- push all packages to a server if one has been specified -->
     <Exec
-      Condition="'@(PackagesForPublishing)' != '' and '$(SourceAPIKey)' != '' and '$(PublishPackageSource)' != ''"
-      Command="$(NuGetExe) push &quot;%(PackagesForPublishing.Identity)&quot; $(SourceAPIKey) -s $(PublishPackageSource)" />
+      Condition="'@(PackagesForPublishing)' != '' and '$(PublishPackageSource)' != ''"
+      Command="$(NuGetExe) push &quot;%(PackagesForPublishing.Identity)&quot; -s $(PublishPackageSource)" />
 
   </Target>
 
