@@ -50,6 +50,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\System.Console.4.0.0-beta-22512\lib\portable-wpa80+win80+net45+aspnetcore50\System.Console.dll</HintPath>
     </Reference>
+    <Reference Include="System.Globalization">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\System.Globalization.4.0.10-beta-22512\lib\portable-wpa80+win80+net45+aspnetcore50\System.Globalization.dll</HintPath>
+    </Reference>
     <Reference Include="System.IO">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\System.IO.4.0.10-beta-22512\lib\portable-wpa80+win80+net45+aspnetcore50\System.IO.dll</HintPath>
