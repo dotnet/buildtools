@@ -1,9 +1,4 @@
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- metadata used for Authenticode signing in official VSO builds -->
-  <ItemGroup>
-    <FilesToSign Include="$(TargetPath)">
-      <Authenticode>Microsoft</Authenticode>
-    </FilesToSign>
-  </ItemGroup>
+  <Import Project="$(ToolsDir)sign.targets" Condition="Exists('$(ToolsDir)sign.targets')" />
 </Project>

@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <!-- metadata used for Authenticode and strong-name signing in official VSO builds -->
+  <ItemGroup>
+    <FilesToSign Include="$(TargetPath)">
+      <Authenticode>Microsoft</Authenticode>
+      <StrongName Condition="'$(SkipSigning)' != 'true'">StrongName</StrongName>
+    </FilesToSign>
+  </ItemGroup>
+
   <UsingTask AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll" TaskName="OpenSourceSign" />
   
   <PropertyGroup Condition="'$(SkipSigning)'!='true'">
@@ -8,11 +16,12 @@
     <AssemblyOriginatorKeyFile>$(ToolsDir)MSFT.snk</AssemblyOriginatorKeyFile>
     <DelaySign>true</DelaySign>
     <DefineConstants>$(DefineConstants);SIGNED</DefineConstants>
+    <UseOpenSourceSign Condition="'$(UseOpenSourceSign)' == ''">true</UseOpenSourceSign>
   </PropertyGroup>
   
   <Target Name="OpenSourceSign" 
           AfterTargets="Compile"
-          Condition="'$(DelaySign)' == 'true' and '@(IntermediateAssembly)' != '' and '$(SkipSigning)' != 'true'"
+          Condition="'$(DelaySign)' == 'true' and '@(IntermediateAssembly)' != '' and '$(SkipSigning)' != 'true' and '$(UseOpenSourceSign)' == 'true'"
           Inputs="@(IntermediateAssembly)"
           Outputs="%(IntermediateAssembly.Identity).oss_signed"
           >
