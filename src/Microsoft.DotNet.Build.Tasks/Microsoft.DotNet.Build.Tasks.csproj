@@ -25,7 +25,7 @@
     <Compile Include="GetPackageVersion.cs" />
     <Compile Include="GetPackageDependencies.cs" />
     <Compile Include="GitPush.cs" />
-    <Compile Include="GetNextDailyBuildNumber.cs" />
+    <Compile Include="GetNextBuildNumber.cs" />
     <Compile Include="NormalizePaths.cs" />
     <Compile Include="GetDoItemsIntersect.cs" />
     <Compile Include="OpenSourceSign.cs" />
