@@ -14,7 +14,7 @@ namespace Microsoft.DotNet.Build.Tasks
     public class GetPackageVersion : Task
     {
         [Required]
-        public string DailyBuildNumber { get; set; }
+        public string BuildNumber { get; set; }
 
         [Required]
         public string NuSpecFile { get; set; }
@@ -34,7 +34,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 select el).FirstOrDefault();
 
             Debug.Assert(embeddedVerNode != null, "embeddedVerNode shouldn't be null");
-            PackageVersion = string.Format("{0}-{1}", embeddedVerNode.Value, DailyBuildNumber);
+            PackageVersion = string.Format("{0}-{1}", embeddedVerNode.Value, BuildNumber);
 
             Log.LogMessage(string.Format("GetPackageVersion completed successfully - chose version {0}", PackageVersion));
 

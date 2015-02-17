@@ -61,7 +61,7 @@
 
     <GetPackageVersion
       Condition="Exists('$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll')"
-      DailyBuildNumber="$(DailyBuildNumber)"
+      BuildNumber="$(BuildNumber)"
       NuSpecFile="%(PackagesNuSpecFiles.Identity)">
       <Output PropertyName="_TempPackageVersion" TaskParameter="PackageVersion" />
     </GetPackageVersion>

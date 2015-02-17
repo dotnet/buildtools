@@ -1,23 +1,23 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <UsingTask TaskName="GetNextDailyBuildNumber" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="GetNextBuildNumber" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll" />
 
   <PropertyGroup>
     <GitWorkingBranch Condition="'$(GitWorkingBranch)' == ''">master</GitWorkingBranch>
   </PropertyGroup>
 
-  <Target Name="GetNextDailyBuildNumber"
+  <Target Name="GetNextBuildNumber"
     BeforeTargets="Build"
-    Condition="'$(UpdateDailyBuildNumber)' == 'true'"
+    Condition="'$(UpdateBuildNumber)' == 'true'"
     >
-    <GetNextDailyBuildNumber
+    <GetNextBuildNumber
       VersionPropsFile="$(SourceDir)BuildNumber.props">
-      <Output PropertyName="DailyBuildNumber" TaskParameter="DailyBuildNumber" />
-    </GetNextDailyBuildNumber>
+      <Output PropertyName="BuildNumber" TaskParameter="BuildNumber" />
+    </GetNextBuildNumber>
   </Target>
 
-  <Target Name="CommitDailyBuildNumber"
+  <Target Name="CommitBuildNumber"
     AfterTargets="BuildPackages"
-    Condition="'$(UpdateDailyBuildNumber)' == 'true'"
+    Condition="'$(UpdateBuildNumber)' == 'true'"
     >
     <!-- configure the commit to show up as the dotnet bot -->
     <Exec
@@ -34,7 +34,7 @@
     <Exec
       WorkingDirectory="$(SourceDir)"
       StandardOutputImportance="Low"
-      Command="git commit -m &quot;Automated commit of daily build number value $(DailyBuildNumber).&quot; $(SourceDir)BuildNumber.props" />
+      Command="git commit -m &quot;Automated commit of build number value $(BuildNumber).&quot; $(SourceDir)BuildNumber.props" />
 
     <Exec
       WorkingDirectory="$(SourceDir)"
