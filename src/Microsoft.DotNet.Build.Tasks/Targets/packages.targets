@@ -18,6 +18,10 @@
     <NuGetOutputDirectory>&quot;$(PackagesOutDir.TrimEnd('\'))&quot;</NuGetOutputDirectory>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <LocalPublishPropsFile Condition="'$(LocalPublishPropsFile)'==''">$(PackagesDir)\localpublish.props</LocalPublishPropsFile>
+  </PropertyGroup>
+
   <Target Name="BuildPackages"
     DependsOnTargets="GetNuGetPackageVersions"
     Condition="'$(SkipBuildPackages)' != 'true'">
@@ -75,5 +79,45 @@
     <PropertyGroup>
       <_TempPackageVersion />
     </PropertyGroup>
+  </Target>
+
+  <Import Condition="Exists('$(LocalPublishPropsFile)')"  Project="$(LocalPublishPropsFile)"/>
+  
+  <!-- Publish the packages locally -->
+  <Target Name="LocalPackagePublish" Condition="'@(LocalPackages)'!=''"
+          Inputs="%(LocalPackages.Identity)\%(LocalPackages.PackageName).%(LocalPackages.PackageVersion).nupkg;%(LocalPackages.InstallLocation)\%(LocalPackages.PackageName).%(LocalPackages.PackageVersion)" 
+          Outputs="%(LocalPackages.InstallLocation)\%(LocalPackages.PackageName).%(LocalPackages.PackageVersion)\MODIFIED.txt" >
+    
+    <!-- Generate the packages.config -->
+    <ItemGroup>
+      <LocalPackageConfigLine Include="&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;" />
+      <LocalPackageConfigLine Include="&lt;packages&gt;" />
+      <LocalPackageConfigLine Include="&lt;package id=&quot;%(LocalPackages.PackageName)&quot; version=&quot;%(LocalPackages.PackageVersion)&quot; /&gt;"/>
+      <LocalPackageConfigLine Include="&lt;/packages&gt;" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <RestoreConfig>%(LocalPackages.InstallLocation)\packages.%(LocalPackages.PackageName).config</RestoreConfig>
+    </PropertyGroup>
+    
+    <WriteLinesToFile File="$(RestoreConfig)" Lines="@(LocalPackageConfigLine)" Overwrite="true" />
+    <Message Text="Generated $(RestoreConfig) for '%(LocalPackages.PackageName).%(LocalPackages.PackageVersion).nupkg'" />
+    
+    <PropertyGroup>
+      <LocalPackagesSources>@(LocalPackages, ';')</LocalPackagesSources>
+    </PropertyGroup>
+    <Message Text="Generated to package source to be '$(LocalPackages)'"/>
+
+    <!-- Remove existing directories -->
+    <RemoveDir Directories="%(LocalPackages.InstallLocation)\%(LocalPackages.PackageName).%(LocalPackages.PackageVersion)" />
+
+    <!-- Restoring the packages -->
+    <Exec Command="$(NuGetExe) install $(RestoreConfig) -Source $(LocalPackagesSources) -NoCache -Prerelease -OutputDirectory %(LocalPackages.InstallLocation)" />
+
+    <!-- Write a file in the packages folder to let the user know this is not the original package -->
+    <ItemGroup>
+      <NotOriginalPackages Include="The package was restored from $(LocalPackagesSources)" />
+    </ItemGroup>
+    <WriteLinesToFile File="%(LocalPackages.InstallLocation)\%(LocalPackages.PackageName).%(LocalPackages.PackageVersion)\MODIFIED.txt" Lines="@(NotOriginalPackages)" Overwrite="true" />
   </Target>
 </Project>
