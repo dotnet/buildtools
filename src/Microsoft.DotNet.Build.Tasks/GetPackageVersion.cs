@@ -7,6 +7,7 @@ using Microsoft.Build.Utilities;
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks
@@ -34,7 +35,13 @@ namespace Microsoft.DotNet.Build.Tasks
                 select el).FirstOrDefault();
 
             Debug.Assert(embeddedVerNode != null, "embeddedVerNode shouldn't be null");
-            PackageVersion = string.Format("{0}-{1}", embeddedVerNode.Value, BuildNumber);
+
+            // if this is a prerelease version then append the build number to the end
+            Regex preReleaseMatch = new Regex("-[0-9A-Za-z]+$");
+            if (preReleaseMatch.Match(embeddedVerNode.Value).Success)
+                PackageVersion = string.Format("{0}-{1}", embeddedVerNode.Value, BuildNumber);
+            else
+                PackageVersion = embeddedVerNode.Value;
 
             Log.LogMessage(string.Format("GetPackageVersion completed successfully - chose version {0}", PackageVersion));
 
