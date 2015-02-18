@@ -36,7 +36,7 @@
       Condition="'@(PackagesNuSpecFiles)'!=''"
       IgnoreStandardErrorWarningFormat="true"
       StandardOutputImportance="Low"
-      Command="$(NuGetExe) pack &quot;%(PackagesNuSpecFiles.FullPath)&quot; -BasePath $(NuGetBasePath) -OutputDirectory $(NuGetOutputDirectory) -Version %(PackagesNuSpecFiles.PackageVersion)" />
+      Command="$(NuGetExe) pack &quot;%(PackagesNuSpecFiles.FullPath)&quot; -BasePath $(NuGetBasePath) -OutputDirectory $(NuGetOutputDirectory) %(PackagesNuSpecFiles.PackageVersion)" />
 
     <Message
       Condition="'@(PackagesNuSpecFiles)'!=''"
@@ -56,7 +56,7 @@
 
   <Target
     Name="GetNuGetPackageVersions"
-    Condition="'@(PackagesNuSpecFiles)'!=''"
+    Condition="'@(PackagesNuSpecFiles)'!='' and '$(BuildNumber)' != ''"
     Outputs="%(PackagesNuSpecFiles.Identity)">
 
     <GetPackageVersion
@@ -68,7 +68,7 @@
     
     <ItemGroup>
       <PackagesNuSpecFiles Condition="'%(PackagesNuSpecFiles.Identity)' == '%(Identity)'">
-        <PackageVersion>$(_TempPackageVersion)</PackageVersion>
+        <PackageVersion>-Version $(_TempPackageVersion)</PackageVersion>
       </PackagesNuSpecFiles>
     </ItemGroup>
 
