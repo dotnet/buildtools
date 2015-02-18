@@ -86,7 +86,8 @@
   <!-- Publish the packages locally -->
   <Target Name="LocalPackagePublish" Condition="'@(LocalPackages)'!=''"
           Inputs="%(LocalPackages.Identity)\%(LocalPackages.PackageName).%(LocalPackages.PackageVersion).nupkg;%(LocalPackages.InstallLocation)\%(LocalPackages.PackageName).%(LocalPackages.PackageVersion)" 
-          Outputs="%(LocalPackages.InstallLocation)\%(LocalPackages.PackageName).%(LocalPackages.PackageVersion)\MODIFIED.txt" >
+          Outputs="%(LocalPackages.InstallLocation)\%(LocalPackages.PackageName).%(LocalPackages.PackageVersion)\MODIFIED.txt"
+          AfterTargets="$(NugetPackageBuildTargets)">
     
     <!-- Generate the packages.config -->
     <ItemGroup>
@@ -106,7 +107,7 @@
     <PropertyGroup>
       <LocalPackagesSources>@(LocalPackages, ';')</LocalPackagesSources>
     </PropertyGroup>
-    <Message Text="Generated to package source to be '$(LocalPackages)'"/>
+    <Message Text="Generated package install sources: '$(LocalPackages)'"/>
 
     <!-- Remove existing directories -->
     <RemoveDir Directories="%(LocalPackages.InstallLocation)\%(LocalPackages.PackageName).%(LocalPackages.PackageVersion)" />
