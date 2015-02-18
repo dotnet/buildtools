@@ -1,54 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <Target Name="DiscoverTests">
-    <ItemGroup>
-      <TestsToRun Include="$(TestsToRun)" />
-      <_TestsToRun Include="@(TestsToRun->'$(TestWorkingDir)*.Tests\**\%(Identity).dll')" />
-      <TestAssemblies Condition="'%(_TestsToRun.Identity)' == ''" Include="$(TestWorkingDir)*.Tests\**\*.Tests.dll" Exclude="@(SkipTestAssemblies)" />
-      <TestAssemblies Condition="'%(_TestsToRun.Identity)' != ''" Include="%(_TestsToRun.Identity)" Exclude="@(SkipTestAssemblies)" />
-      <TestDirectories Include="@(TestAssemblies -> '%(RootDir)%(Directory)')" KeepDuplicates="false" />
-    </ItemGroup>
-  </Target>
+  <PropertyGroup>
+    <RunTestsForProject Condition="'$(RunTestsForProject)'=='' and '$(IsTestProject)'=='true'">true</RunTestsForProject>
+    <RunTestsForProject Condition="'$(SkipTests)'=='true'">false</RunTestsForProject>
+  </PropertyGroup>
 
-  <Target Name="RunTests"
-          DependsOnTargets="DiscoverTests"
-          Inputs="@(TestDirectories)"
-          Outputs="%(Identity)*.*"
-          Condition="'$(SkipTests)' != 'True'">
+  <!-- This is the target that copies the test assets to the test output -->
+  <Import Project="$(MSBuildThisFileDirectory)publishtest.targets" />
+  
+  <!-- General xunit options -->
+  <PropertyGroup>
+    <XunitCommandLine>xunit.console.netcore.exe $(TargetFileName)</XunitCommandLine>
+    <RunOuterLoop Condition="'$(RunOuterLoop)' == ''">false</RunOuterLoop>
+    <XunitOptions Condition="'$(RunOuterLoop)'!='true'">$(XunitOptions) -notrait category=outerloop</XunitOptions>
+    <XunitOptions>$(XunitOptions) -xml .\testResults.xml</XunitOptions>
+    <XunitOptions>$(XunitOptions) -notrait category=failing</XunitOptions>
+  </PropertyGroup>
+  
+  <!-- xUnit command line without coverage enabled -->
+  <PropertyGroup>
+    <XunitHost>corerun.exe</XunitHost>
+    <TestHost>$(XunitHost)</TestHost>
+    <TestCommandLine>$(XunitCommandLine) $(XunitOptions)</TestCommandLine>
+  </PropertyGroup>
 
-    <ItemGroup>
-      <!-- Batch directories, so we can run every directory in its own process.
-           Run all test assemblies in the same directory in the same process. -->
-      <ThisDirectoryAssemblies Include="%(TestDirectories.Identity)*.Tests.dll" />
-    </ItemGroup>
+  <!-- The Code Coverage targets will override TestHost and TestCommandLine if coverage is enabled -->
+  <Import Project="$(MSBuildThisFileDirectory)CodeCoverage.targets" />
 
-    <!-- xUnit Traits -->
-    <PropertyGroup>
-      <ExcludeTraits Condition="'$(ExcludeTraits)'==''">category=outerloop;category=failing</ExcludeTraits>
-    </PropertyGroup>
-    <ItemGroup>
-      <IncludeTraitsItems Include="$(IncludeTraits)" />
-      <ExcludeTraitsItems Include="$(ExcludeTraits)" />
-    </ItemGroup>
+  <!-- In VS (2015 Preview or later currently required): Debug to run unit tests on CoreCLR. -->
+  <PropertyGroup Condition="'$(IsTestProject)'=='true'">
+    <DebugTestFrameworkFolder>aspnetcore50</DebugTestFrameworkFolder>
+    <StartWorkingDirectory Condition="'$(StartWorkingDirectory)' == ''">$(TestPath)$(DebugTestFrameworkFolder)</StartWorkingDirectory>
+    <StartAction Condition="'$(StartAction)' == ''">Program</StartAction>
+    <StartProgram Condition="'$(StartProgram)' == ''">$(StartWorkingDirectory)\$(TestHost)</StartProgram>
+    <StartArguments Condition="'$(StartArguments)' == ''">$(TestCommandLine) -wait</StartArguments>
+    <DebugEngines>{2E36F1D4-B23C-435D-AB41-18E608940038}</DebugEngines>
+  </PropertyGroup>
 
-    <!-- Construct and invoke xunit console runner via corerun.exe -->
-    <PropertyGroup>
-      <XunitCommandLine>corerun.exe xunit.console.netcore.exe</XunitCommandLine>
+  <!-- On command line run unit tests on CoreCLR after the Test target -->
+  <Target Name="RunTestsForProject"
+          AfterTargets="Test"
+          Condition="'$(RunTestsForProject)'=='true'">
 
-      <XunitOptions Condition="'@(ThisDirectoryAssemblies)'!=''">$(XunitOptions) "%(ThisDirectoryAssemblies.Identity)" </XunitOptions>
-      <XunitOptions Condition="'@(IncludeTraitsItems)'!=''">$(XunitOptions)-trait @(IncludeTraitsItems, ' -trait ') </XunitOptions>
-      <XunitOptions Condition="'@(ExcludeTraitsItems)'!=''">$(XunitOptions)-notrait @(ExcludeTraitsItems, ' -notrait ') </XunitOptions>
-    </PropertyGroup>
+    <MakeDir Condition="'$(CoverageEnabledForProject)'=='true'" Directories="$(CoverageReportDir)" />
 
-    <Exec
-      Command="$(XunitCommandLine) $(XunitOptions)"
-      WorkingDirectory="%(TestDirectories.Identity)"
-      ContinueOnError="ErrorAndContinue">
-      <!-- Store the exit codes in the XUnitExitCodes item.  The caller of the target will
-            check the item group for any non-zero codes if they like -->
-      <Output ItemName="XUnitExitCodes" TaskParameter="ExitCode"/>
+    <Exec Command="$(TestHost) $(TestCommandLine)"
+          WorkingDirectory="$(TestPath)%(TestTargetFramework.Folder)"
+          ContinueOnError="true">
+      <Output PropertyName="TestRunExitCode" TaskParameter="ExitCode" />
     </Exec>
-  </Target>
 
+    <Error Condition="'$(TestRunExitCode)' != '0'" Text="One or more tests failed while running tests from '$(MSBuildProjectName)' please check log for details!" />
+  </Target>
+  
 </Project>

@@ -2,15 +2,31 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <UsingTask TaskName="ResolveNuGetPackages" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  
+  <PropertyGroup>
+    <TestRuntimePackageConfig>$(MSBuildThisFileDirectory)test-runtime\packages.config</TestRuntimePackageConfig>
+    <TestRuntimePackageSemaphore>$(PackagesDir)test-runtime-packages.config</TestRuntimePackageSemaphore>
+  </PropertyGroup>
+
+  <Target Name="RestoreTestRuntimePackage"
+          BeforeTargets="ResolveNuGetPackages"
+          Inputs="$(TestRuntimePackageConfig)"
+          Outputs="$(TestRuntimePackageSemaphore)"
+          Condition="'$(IsTestProject)' == 'true'">
+
+    <Exec Command="$(NugetRestoreCommand) &quot;$(TestRuntimePackageConfig)&quot;" StandardOutputImportance="Low" />
+
+    <Copy SourceFiles="$(TestRuntimePackageConfig)" DestinationFiles="$(TestRuntimePackageSemaphore)" ContinueOnError="true" SkipUnchangedFiles="true" />
+    
+  </Target>
 
   <PropertyGroup>
     <PrepareForRunDependsOn>
       $(PrepareForRunDependsOn);
       CopyTestToTestDirectory;
     </PrepareForRunDependsOn>
-    
-    <CopyTest Condition="'$(CopyTest)'=='' And $([System.String]::new('$(MSBuildProjectName)').EndsWith('.Tests'))">True</CopyTest>
-    <CopyTest Condition="'$(CopyTest)'=='' And !$([System.String]::new('$(MSBuildProjectName)').EndsWith('.Tests'))">False</CopyTest>
+
+    <CopyTestToTestDirectory Condition="'$(CopyTestToTestDirectory)'==''">$(IsTestProject)</CopyTestToTestDirectory>
   </PropertyGroup>
   
   <ItemGroup>
@@ -20,13 +36,13 @@
   </ItemGroup>
 
   <Target Name="CopyTestToTestDirectory"
-    Inputs="@(PackagesConfig);$(ToolsDir)test-runtime\packages.config;@(ReferenceCopyLocalPaths);@(Content);@(IntermediateAssembly);@(_DebugSymbolsIntermediatePath)"
+    Inputs="@(PackagesConfig);$(TestRuntimePackageConfig);@(ReferenceCopyLocalPaths);@(Content);@(IntermediateAssembly);@(_DebugSymbolsIntermediatePath)"
     Outputs="$(TestPath)%(TestTargetFramework.Folder)\*.*"
-    Condition="'$(CopyTest)'=='True'">
+    Condition="'$(CopyTestToTestDirectory)'=='true'">
     
     <ItemGroup>
-      <PackagesConfigs Include="$(PackagesConfig)"/>
-      <PackagesConfigs Include="$(ToolsDir)test-runtime\packages.config" Condition="Exists('$(ToolsDir)test-runtime\packages.config')"/>
+      <PackagesConfigs Include="$(ProjectPackagesConfigFile)" />
+      <PackagesConfigs Include="$(TestRuntimePackageConfig)" />
     </ItemGroup>
     
     <ResolveNuGetPackages PackagesConfigs="@(PackagesConfigs)"

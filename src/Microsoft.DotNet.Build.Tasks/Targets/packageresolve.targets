@@ -4,13 +4,29 @@
   <UsingTask TaskName="ResolveNuGetPackages" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
   <PropertyGroup>
-    <NuGetConfiguration Condition="'$(NuGetConfiguration)' == '' and '$(Optimize)' == 'true'">Release</NuGetConfiguration>
-    <NuGetConfiguration Condition="'$(NuGetConfiguration)' == ''">Debug</NuGetConfiguration>
-    <ResolveNuGetPackages Condition="'$(ResolveNuGetPackages)' != 'false' and Exists('$(PackagesConfig)')">true</ResolveNuGetPackages>
+    <ProjectPackagesConfigFile Condition="'$(ProjectPackagesConfigFile)'=='' and Exists('$(MSBuildProjectDirectory)\packages.config')">$(MSBuildProjectDirectory)\packages.config</ProjectPackagesConfigFile>
+
+    <RestorePackages Condition="'$(RestorePackages)'!='false' and Exists('$(ProjectPackagesConfigFile)')">true</RestorePackages>
+    <ResolveNuGetPackages Condition="'$(ResolveNuGetPackages)'!='false' and Exists('$(ProjectPackagesConfigFile)')">true</ResolveNuGetPackages>
+
+    <RestorePackagesSemaphore>$(PackagesDir)$(MSBuildProjectFile)-packages.config</RestorePackagesSemaphore>
   </PropertyGroup>
 
+  <Target Name="RestorePackages" 
+          BeforeTargets="ResolveNuGetPackages"
+          Inputs="$(ProjectPackagesConfigFile)"
+          Outputs="$(RestorePackagesSemaphore)"
+          Condition="'$(RestorePackages)'=='true'">
+
+    <Error Condition="'$(NugetRestoreCommand)'==''" Text="RestorePackages target needs a predefined NugetRestoreCommand property set in order to restore $(ProjectPackagesConfigFile)" /> 
+
+    <Exec Command="$(NugetRestoreCommand) &quot;$(ProjectPackagesConfigFile)&quot;" StandardOutputImportance="Low" />
+
+    <Copy SourceFiles="$(ProjectPackagesConfigFile)" DestinationFiles="$(RestorePackagesSemaphore)" ContinueOnError="true" SkipUnchangedFiles="true" />
+  </Target>
+
   <ItemGroup>
-    <CustomAdditionalCompileInputs Include="$(PackagesConfig)" Condition="'$(ResolveNuGetPackages)' == 'true'" />
+    <CustomAdditionalCompileInputs Include="$(ProjectPackagesConfigFile)" Condition="'$(ResolvePackages)'=='true' or '$(ResolveNuGetPackages)'=='true'" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -20,11 +36,13 @@
     </ResolveAssemblyReferencesDependsOn>
   </PropertyGroup>
 
-  <Target Name="ResolveNuGetPackages" Condition="'$(ResolveNuGetPackages)' == 'true'">
-    <ResolveNuGetPackages PackagesConfigs="$(PackagesConfig)"
+  <Target Name="ResolveNuGetPackages" 
+          Condition="'$(ResolveNuGetPackages)'=='true'">
+
+    <ResolveNuGetPackages PackagesConfigs="$(ProjectPackagesConfigFile)"
                           PackageRoot="$(PackagesDir)"
                           Platform="$(PlatformTarget)"
-                          Configuration="$(NuGetConfiguration)"
+                          Configuration="$(Configuration)"
                           Language="$(Language)"
                           TargetFramework="$(TargetFrameworkMoniker)"
                           TargetPlatformMoniker="$(TargetPlatformMoniker)">

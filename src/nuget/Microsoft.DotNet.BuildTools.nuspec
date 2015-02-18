@@ -24,16 +24,7 @@
   <files>
     <file src="Microsoft.DotNet.Build.Tasks\MSFT.snk" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\PriConfig.xml" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks\UpdateBuildValues.targets" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks\depending.targets" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks\gitpush.targets" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks\packages.targets" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks\packageresolve.targets" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks\publishtest.targets" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks\resources.targets" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks\ResourcesIncludes.targets" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks\sign.targets" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks\tests.targets" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks\*.targets" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\test-runtime-packages.config" target="lib\test-runtime\packages.config" />
     <file src="Microsoft.DotNet.Build.Tasks\Microsoft.DotNet.Build.Tasks.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\NuGet.Core.dll" target="lib" />
@@ -41,7 +32,6 @@
     <file src="Microsoft.DotNet.Build.Tasks\NuGet.NuManifest.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\NuGet.NuManifest.DotNet.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\NativeVersion.rc" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks\versioning.targets" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\LibGit2Sharp.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\System.Collections.Immutable.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\System.Reflection.Metadata.dll" target="lib" />
