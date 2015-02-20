@@ -6,12 +6,11 @@
   <PropertyGroup>
     <NuGetConfiguration Condition="'$(NuGetConfiguration)' == '' and '$(Optimize)' == 'true'">Release</NuGetConfiguration>
     <NuGetConfiguration Condition="'$(NuGetConfiguration)' == ''">Debug</NuGetConfiguration>
-    <PackagesConfigFile Condition="'$(PackageConfigFile)' == ''">$(MSBuildThisProjectFileDirectory)packages.config</PackagesConfigFile>
-    <ResolveNuGetPackages Condition="'$(ResolveNuGetPackages)' != 'false' and Exists('$(PackagesConfigFile)')">true</ResolveNuGetPackages>
+    <ResolveNuGetPackages Condition="'$(ResolveNuGetPackages)' != 'false' and Exists('$(PackagesConfig)')">true</ResolveNuGetPackages>
   </PropertyGroup>
 
   <ItemGroup>
-    <CustomAdditionalCompileInputs Include="$(PackagesConfigFile)" Condition="'$(ResolveNuGetPackages)' == 'true'" />
+    <CustomAdditionalCompileInputs Include="$(PackagesConfig)" Condition="'$(ResolveNuGetPackages)' == 'true'" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -22,7 +21,7 @@
   </PropertyGroup>
 
   <Target Name="ResolveNuGetPackages" Condition="'$(ResolveNuGetPackages)' == 'true'">
-    <ResolveNuGetPackages PackagesConfigs="$(PackagesConfigFile)"
+    <ResolveNuGetPackages PackagesConfigs="$(PackagesConfig)"
                           PackageRoot="$(PackagesDir)"
                           Platform="$(PlatformTarget)"
                           Configuration="$(NuGetConfiguration)"
