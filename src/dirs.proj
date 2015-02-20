@@ -1,6 +1,6 @@
 <Project ToolsVersion="12.0" DefaultTargets="Build" InitialTargets="RestoreAllPackages;VerifyBuildTools" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="dir.props" />
-  <Import Project="BuildNumber.props" />
+  <Import Project="BuildValues.props" />
 
   <Target Name="VerifyBuildTools" 
     Inputs="$(BuildToolsTargetInputs)"
@@ -19,7 +19,7 @@
     <CallTarget Targets="EnsureDependencies" />
   </Target>
 
-  <Import Project="$(ToolsDir)UpdateBuildNumber.targets" Condition="Exists('$(ToolsDir)UpdateBuildNumber.targets')" />
+  <Import Project="$(ToolsDir)UpdateBuildValues.targets" Condition="Exists('$(ToolsDir)UpdateBuildValues.targets')" />
 
   <ItemGroup>
     <Project Include="*\*.csproj" />

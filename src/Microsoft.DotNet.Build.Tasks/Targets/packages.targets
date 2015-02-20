@@ -60,12 +60,12 @@
 
   <Target
     Name="GetNuGetPackageVersions"
-    Condition="'@(PackagesNuSpecFiles)'!='' and '$(BuildNumber)' != ''"
+    Condition="'@(PackagesNuSpecFiles)'!='' and '$(RevisionNumber)' != ''"
     Outputs="%(PackagesNuSpecFiles.Identity)">
 
     <GetPackageVersion
       Condition="Exists('$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll')"
-      BuildNumber="$(BuildNumber)"
+      RevisionNumber="$(RevisionNumber)"
       NuSpecFile="%(PackagesNuSpecFiles.Identity)">
       <Output PropertyName="_TempPackageVersion" TaskParameter="PackageVersion" />
     </GetPackageVersion>

@@ -24,7 +24,7 @@
   <files>
     <file src="Microsoft.DotNet.Build.Tasks\MSFT.snk" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\PriConfig.xml" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks\UpdateBuildNumber.targets" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks\UpdateBuildValues.targets" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\depending.targets" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\gitpush.targets" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\packages.targets" target="lib" />

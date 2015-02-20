@@ -15,7 +15,7 @@ namespace Microsoft.DotNet.Build.Tasks
     public class GetPackageVersion : Task
     {
         [Required]
-        public string BuildNumber { get; set; }
+        public string RevisionNumber { get; set; }
 
         [Required]
         public string NuSpecFile { get; set; }
@@ -39,7 +39,7 @@ namespace Microsoft.DotNet.Build.Tasks
             // if this is a prerelease version then append the build number to the end
             Regex preReleaseMatch = new Regex("-[0-9A-Za-z]+$");
             if (preReleaseMatch.Match(embeddedVerNode.Value).Success)
-                PackageVersion = string.Format("{0}-{1}", embeddedVerNode.Value, BuildNumber);
+                PackageVersion = string.Format("{0}-{1}", embeddedVerNode.Value, RevisionNumber);
             else
                 PackageVersion = embeddedVerNode.Value;
 
