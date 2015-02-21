@@ -20,12 +20,12 @@
   </ItemGroup>
 
   <Target Name="CopyTestToTestDirectory"
-    Inputs="@(PackagesConfigFile);$(ToolsDir)test-runtime\packages.config;@(ReferenceCopyLocalPaths);@(Content);@(IntermediateAssembly);@(_DebugSymbolsIntermediatePath)"
+    Inputs="@(PackagesConfig);$(ToolsDir)test-runtime\packages.config;@(ReferenceCopyLocalPaths);@(Content);@(IntermediateAssembly);@(_DebugSymbolsIntermediatePath)"
     Outputs="$(TestPath)%(TestTargetFramework.Folder)\*.*"
     Condition="'$(CopyTest)'=='True'">
     
     <ItemGroup>
-      <PackagesConfigs Include="$(PackagesConfigFile)"/>
+      <PackagesConfigs Include="$(PackagesConfig)"/>
       <PackagesConfigs Include="$(ToolsDir)test-runtime\packages.config" Condition="Exists('$(ToolsDir)test-runtime\packages.config')"/>
     </ItemGroup>
     
