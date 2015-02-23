@@ -2,12 +2,12 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <!--
-      the value of BuildNumber must be numeric and contain enough
+      the value of RevisionNumber must be numeric and contain enough
       leading zeroes to satisfy a 16-bit integer in base-10 format.  this
       is needed because SemVer v1 performs a lexical comparison of the
       prerelease version number and without the leading zeroes foo-20 is
       smaller than foo-4.
     -->
-    <BuildNumber>00010</BuildNumber>
+    <RevisionNumber>00010</RevisionNumber>
   </PropertyGroup>
 </Project>
