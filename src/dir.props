@@ -36,7 +36,7 @@
     <TestPath Condition="'$(Platform)' != 'AnyCPU'">$(TestWorkingDir)$(MSBuildProjectName)\$(Configuration)\$(Platform)\</TestPath>
 
     <PackagesBasePath>$(BaseOutputPathWithConfig)</PackagesBasePath>
-    <PackagesOutDir>$(PackagesBasePath)Packages</PackagesOutDir>
+    <PackagesOutDir>$(PackagesBasePath)Packages\</PackagesOutDir>
   </PropertyGroup>
 
 </Project>
