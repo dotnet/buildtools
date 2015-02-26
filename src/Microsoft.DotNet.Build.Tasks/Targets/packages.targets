@@ -48,7 +48,7 @@
       Text="%(PackagesNuSpecFiles.Filename) NuGet Package -> $(PackagesOutDir)%(PackagesNuSpecFiles.Filename).%(PackagesNuSpecFiles.PackageVersion).nupkg" />
 
     <ItemGroup>
-      <PackagesForPublishing Include="$(PackagesOutDir)\*.nupkg" />
+      <PackagesForPublishing Include="$(PackagesOutDir)*.nupkg" />
     </ItemGroup>
 
     <!-- push all packages to a server if one has been specified -->
