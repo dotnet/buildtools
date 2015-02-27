@@ -8,6 +8,16 @@ setlocal
 
 :: Check prerequisites
 set _msbuildexe="%ProgramFiles(x86)%\MSBuild\12.0\Bin\MSBuild.exe"
+@echo off
+setlocal
+
+:: Note: We've disabled node reuse because it causes file locking issues.
+::       The issue is that we extend the build with our own targets which
+::       means that that rebuilding cannot successully delete the task
+::       assembly. 
+
+:: Check prerequisites
+set _msbuildexe="%ProgramFiles(x86)%\MSBuild\12.0\Bin\MSBuild.exe"
 if not exist %_msbuildexe% set _msbuildexe="%ProgramFiles%\MSBuild\12.0\Bin\MSBuild.exe"
 if not exist %_msbuildexe% set _msbuildexe="%ProgramFiles(x86)%\MSBuild\14.0\Bin\MSBuild.exe"
 if not exist %_msbuildexe% set _msbuildexe="%ProgramFiles%\MSBuild\14.0\Bin\MSBuild.exe"
