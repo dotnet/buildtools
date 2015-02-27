@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30723.0
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.DotNet.Build.Tasks", "Microsoft.DotNet.Build.Tasks\Microsoft.DotNet.Build.Tasks.csproj", "{17C66BCE-EB35-44CA-893C-8AAFB67708E9}"
 EndProject
@@ -12,7 +12,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.console.netcore", "xu
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{8B5A7D0F-2BD5-4892-9662-8FDC3589D938}"
 	ProjectSection(SolutionItems) = preProject
+		nuget\Microsoft.DotNet.BuildTools.nuspec = nuget\Microsoft.DotNet.BuildTools.nuspec
 		.nuget\packages.config = .nuget\packages.config
+		nuget\xunit.console.netcore.nuspec = nuget\xunit.console.netcore.nuspec
 	EndProjectSection
 EndProject
 Global
