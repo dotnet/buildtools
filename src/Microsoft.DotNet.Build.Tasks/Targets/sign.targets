@@ -23,7 +23,7 @@
     Compile gets hit directly by Intellisense builds in VS- while @(IntermediateAssembly) is set it won't actually exist.
     PrepareForRun is the outer target in the core build depends chain that copies the intermediate assemblies to the output folder.
   -->
-    <Target Name="OpenSourceSign"
+  <Target Name="OpenSourceSign"
           BeforeTargets="PrepareForRun"
           Condition="'$(DelaySign)' == 'true' and '@(IntermediateAssembly)' != '' and '$(SkipSigning)' != 'true' and '$(UseOpenSourceSign)' == 'true'"
           Inputs="@(IntermediateAssembly)"
