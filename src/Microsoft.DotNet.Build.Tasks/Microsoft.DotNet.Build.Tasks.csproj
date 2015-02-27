@@ -67,22 +67,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="Targets\depending.targets" />
-    <None Include="Targets\gitpush.targets" />
-    <None Include="Targets\MSFT.snk" />
-    <None Include="Targets\packageresolve.targets" />
-    <None Include="Targets\packages.targets" />
-    <None Include="Targets\publishtest.targets" />
-    <None Include="Targets\resources.targets" />
-    <None Include="Targets\sign.targets" />
-    <None Include="Targets\test-runtime-packages.config" />
-    <None Include="Targets\tests.targets" />
-    <None Include="Targets\UpdateBuildNumber.targets" />
-    <None Include="Targets\versioning.targets" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Targets\NativeVersion.rc" />
-    <None Include="Targets\PriConfig.xml" />
+    <None Include="Targets\*.*" />
   </ItemGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
   <Target Name="AfterBuild">
