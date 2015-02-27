@@ -35,5 +35,5 @@
     </ItemGroup>
   </Target>
   
-  <Import Project="ResourcesIncludes.targets" Condition="Exists('$(StringResourcesPath)') And Exists('$(ResourceSRPath)') And'$(SkipResourcesIncludesTarget)'==''"/>
+  <Import Project="ResourcesIncludes.targets" Condition="Exists('$(StringResourcesPath)') And Exists('$(ResourceSRPath)') And '$(SkipResourcesIncludesTarget)'==''"/>
 </Project>
