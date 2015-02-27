@@ -2,7 +2,7 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Compile Include="$(ResourceSRPath)">
-    <Visible>true</Visible>
+      <Visible>true</Visible>
       <Link>Resources\SR.cs</Link>
     </Compile>
     <Compile Include="$(CommonPath)\System\SR.cs">
