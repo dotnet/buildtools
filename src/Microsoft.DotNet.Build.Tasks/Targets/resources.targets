@@ -1,59 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <UsingTask TaskName="GenerateResourcesCode" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll" />
 
-  <!-- #################################### -->
-  <!-- Generate Resources code -->
-  <!-- #################################### -->
   <PropertyGroup>
-    <_ResPath>$(ToolsDir)ResourceGenerator.exe</_ResPath>
-    <_JSon2TxtPath>$(ToolsDir)JSon2Txt.exe</_JSon2TxtPath>
-    <_ResInputFileFullPath>$(ResInputPath)\resources.resjson</_ResInputFileFullPath>
-    <_ResOutputFileFullPath Condition="'$(MSBuildProjectExtension)' == '.csproj'">$(BaseIntermediateOutputPath)$(Configuration)\$(AssemblyName).SR.cs</_ResOutputFileFullPath>
-    <_ResOutputFileFullPath Condition="'$(MSBuildProjectExtension)' == '.vbproj'">$(BaseIntermediateOutputPath)$(Configuration)\$(AssemblyName).SR.vb</_ResOutputFileFullPath>
-    <_ResTxtFullPath>$(BaseIntermediateOutputPath)$(Configuration)\$(AssemblyName).restext</_ResTxtFullPath>
-    <_ResIntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)\Res\</_ResIntermediateOutputPath>
-    <_ResPriIntermediateOutputFilePath>$(_ResIntermediateOutputPath)$(AssemblyName).pri</_ResPriIntermediateOutputFilePath>
-    <_ResJsonIntermediateOutputFilePath>$(_ResIntermediateOutputPath)$(AssemblyName).resources.resjson</_ResJsonIntermediateOutputFilePath>
+    <ResourcesSourceOutputDirectory Condition="'$(ResourcesSourceOutputDirectory)' == ''">$(MSBuildProjectDirectory)\Resources</ResourcesSourceOutputDirectory>
+    <StringResourcesPath Condition="'$(StringResourcesPath)'=='' And Exists('$(ResourcesSourceOutputDirectory)\Strings.resx')">$(ResourcesSourceOutputDirectory)\Strings.resx</StringResourcesPath>
+    <ResourceSRPath Condition="'$(ResourceSRPath)'==''">$(ResourcesSourceOutputDirectory)\SR.cs</ResourceSRPath>
+    <IntermediateResOutputFileFullPath Condition="'$(MSBuildProjectExtension)' == '.csproj'">$(IntermediateOutputPath)SR.cs</IntermediateResOutputFileFullPath>
+    <IntermediateResOutputFileFullPath Condition="'$(MSBuildProjectExtension)' == '.vbproj'">$(IntermediateOutputPath)SR.vb</IntermediateResOutputFileFullPath>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(StringResourcesPath)'!=''">
+      <CompileDependsOn>
+          GenerateResourcesSource;
+          $(CompileDependsOn);
+      </CompileDependsOn>
   </PropertyGroup>
 
   <Target Name="GenerateResourcesSource"
-      Condition="'$(ResInputPath)' != ''"
-      Inputs="$(_ResInputFileFullPath)"
-      Outputs="$(_ResOutputFileFullPath);$(_ResTxtFullPath)">
-
-    <PropertyGroup>
-      <ResArgs Condition="'$(Configuration)' != 'Release'">$(ResArgs) /debug</ResArgs>
-      <ResArgs Condition="'$(ResInputPath)'  != ''">$(ResArgs) &quot;$(_ResInputFileFullPath)&quot;</ResArgs>
-      <ResArgs>$(ResArgs) &quot;$(_ResOutputFileFullPath)&quot;</ResArgs>
-      <ResArgs>$(ResArgs) $(AssemblyName)</ResArgs>
-
-      <ResCmd>&quot;$(_ResPath)&quot; $(ResArgs)</ResCmd>
-    </PropertyGroup>
-
-    <PropertyGroup>
-      <ResInputs>$(ResInputs) $(_ResInputFileFullPath)</ResInputs>
-    </PropertyGroup>
-
-    <Exec Command="$(ResCmd)" StandardOutputImportance="low" />
-    <Exec Command="$(_JSon2TxtPath) $(ResInputs) /out $(_ResTxtFullPath)" StandardOutputImportance="low" />
+      Condition="'$(StringResourcesPath)'!=''"
+      Inputs="$(StringResourcesPath)"
+      Outputs="$(IntermediateResOutputFileFullPath)">
+    
+    <GenerateResourcesCode 
+        ResxFilePath="$(StringResourcesPath)" 
+        IntermediateFilePath="$(IntermediateResOutputFileFullPath)" 
+        OutputSourceFilePath="$(ResourceSRPath)" 
+        AssemblyName="$(AssemblyName)" >
+    </GenerateResourcesCode>
 
     <ItemGroup>
-      <Compile Include="$(_ResOutputFileFullPath)" />
-      <FileWrites Include="$(_ResOutputFileFullPath)"/>
-      <FileWrites Include="$(_ResTxtFullPath)"/>
+      <FileWrites Include="$(IntermediateResOutputFileFullPath)" />
     </ItemGroup>
   </Target>
-
-  <Target Name="GenerateStringResources">
-    <ItemGroup>
-      <EmbeddedResource Include="$(_ResTxtFullPath)" Condition="Exists($(_ResTxtFullPath))">
-        <!-- "Resx" indicates it should go through GenerateResource -->
-        <Type>Resx</Type>
-        <WithCulture>false</WithCulture>
-        <ManifestResourceName>%(FileName)</ManifestResourceName>
-        <LogicalName>System.SR.resources</LogicalName>
-      </EmbeddedResource>
-    </ItemGroup>
-  </Target>
-
+  
+  <Import Project="ResourcesIncludes.targets" Condition="Exists('$(StringResourcesPath)') And Exists('$(ResourceSRPath)') And'$(ExcludeResourcesTarget)'==''"/>
 </Project>
