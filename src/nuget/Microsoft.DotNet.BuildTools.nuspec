@@ -31,6 +31,7 @@
     <file src="Microsoft.DotNet.Build.Tasks\packageresolve.targets" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\publishtest.targets" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\resources.targets" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks\ResourcesIncludes.targets" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\sign.targets" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\tests.targets" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\test-runtime-packages.config" target="lib\test-runtime\packages.config" />
