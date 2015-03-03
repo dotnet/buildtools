@@ -20,11 +20,17 @@
   </PropertyGroup>
 
   <!-- 
-    Compile gets hit directly by Intellisense builds in VS- while @(IntermediateAssembly) is set it won't actually exist.
-    PrepareForRun is the outer target in the core build depends chain that copies the intermediate assemblies to the output folder.
+    NOTE: This mechanism for wiring in the OpenSourceSign target can't be changed to any of the following:
+
+        * AfterTargets=Compile -> hit by intellisense builds while @(IntermediateAssembly) doesn't exist yet.
+        * AfterTargets=PrepareForRun -> hit after @(IntermediateAssembly) has already been copied to output.
+        * BeforeTargets=CopyFilesToOutputDirectory -> does not work on Mono.
   -->
+  <PropertyGroup>
+    <PrepareForRunDependsOn>OpenSourceSign;$(PrepareForRunDependsOn)</PrepareForRunDependsOn>
+  </PropertyGroup>
+
   <Target Name="OpenSourceSign"
-          BeforeTargets="PrepareForRun"
           Condition="'$(DelaySign)' == 'true' and '@(IntermediateAssembly)' != '' and '$(SkipSigning)' != 'true' and '$(UseOpenSourceSign)' == 'true'"
           Inputs="@(IntermediateAssembly)"
           Outputs="%(IntermediateAssembly.Identity).oss_signed"
