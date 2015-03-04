@@ -18,8 +18,6 @@ namespace Xunit.ConsoleClient
         [STAThread]
         public static int Main(string[] args)
         {
-            var originalForegroundColor = Console.ForegroundColor;
-
             try
             {
                 Console.ForegroundColor = ConsoleColor.White;
@@ -86,7 +84,7 @@ namespace Xunit.ConsoleClient
             }
             finally
             {
-                Console.ForegroundColor = originalForegroundColor;
+                Console.ResetColor();
             }
         }
 
