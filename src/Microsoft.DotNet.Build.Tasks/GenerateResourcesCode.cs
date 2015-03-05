@@ -38,8 +38,6 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public override bool Execute()
         {
-            bool result = true;
-
             try
             {
                 using (_resxReader = new ResXResourceReader(ResxFilePath))
@@ -64,22 +62,21 @@ namespace Microsoft.DotNet.Build.Tasks
             }
             catch (Exception e)
             {
-                Log.LogMessage(e.Message);
+                string message = e.Message;
 
                 if (e is System.UnauthorizedAccessException)
                 {
-                    Log.LogMessage("The generated {0} file needs to be updated but the file is read-only.", OutputSourceFilePath);
+                    message = message + Environment.NewLine + string.Format("The generated {0} file needs to be updated but the file is read-only.", OutputSourceFilePath);
                 }
-                result = false; // fail the task
+
+                Log.LogError(message);
+                return false; // fail the task
             }
 
-            if (result)
-            {
-                // don't fail the task if this operation failed as we just updating intermediate file and the task already did the needed functionality of generating the code
-                try { File.Move(_intermediateFile, IntermediateFilePath); } catch { }
-            }
+            // don't fail the task if this operation failed as we just updating intermediate file and the task already did the needed functionality of generating the code
+            try { File.Move(_intermediateFile, IntermediateFilePath); } catch { }
 
-            return result;
+            return true;
         }
 
         private void WriteClassHeader()
@@ -145,24 +142,25 @@ namespace Microsoft.DotNet.Build.Tasks
                 }
                 sb.Append(rightPart[i]);
             }
+
             if (_targetLanguage == TargetLanguage.CSharp)
             {
-                _debugCode.AppendFormat("        internal static string {0} {2}\n              get {2} return SR.GetResourceString(\"{0}\", @\"{1}\"); {3}\n        {3}\n", leftPart, sb.ToString(), "{", "}");
+                _debugCode.AppendFormat("        internal static string {0} {2}{4}              get {2} return SR.GetResourceString(\"{0}\", @\"{1}\"); {3}{4}        {3}{4}", leftPart, sb.ToString(), "{", "}", Environment.NewLine);
             }
             else
             {
-                _debugCode.AppendFormat("        Friend Shared ReadOnly Property {0} As String\n            Get\n                Return SR.GetResourceString(\"{0}\", \"{1}\")\n            End Get\n        End Property\n", leftPart, sb.ToString());
+                _debugCode.AppendFormat("        Friend Shared ReadOnly Property {0} As String{2}            Get{2}                Return SR.GetResourceString(\"{0}\", \"{1}\"){2}            End Get{2}        End Property{2}", leftPart, sb.ToString(), Environment.NewLine);
             }
 
             if (!DebugOnly)
             {
                 if (_targetLanguage == TargetLanguage.CSharp)
                 {
-                    _targetStream.WriteLine("        internal static string {0} {2}\n              get {2} return SR.GetResourceString(\"{0}\", {1}); {3}\n        {3}", leftPart, "null", "{", "}");
+                    _targetStream.WriteLine("        internal static string {0} {2}{4}              get {2} return SR.GetResourceString(\"{0}\", {1}); {3}{4}        {3}", leftPart, "null", "{", "}", Environment.NewLine);
                 }
                 else
                 {
-                    _targetStream.WriteLine("        Friend Shared ReadOnly Property {0} As String\n           Get\n                 Return SR.GetResourceString(\"{0}\", {1})\n            End Get\n        End Property", leftPart, "Nothing");
+                    _targetStream.WriteLine("        Friend Shared ReadOnly Property {0} As String{2}           Get{2}                 Return SR.GetResourceString(\"{0}\", {1}){2}            End Get{2}        End Property", leftPart, "Nothing", Environment.NewLine);
                 }
             }
         }
