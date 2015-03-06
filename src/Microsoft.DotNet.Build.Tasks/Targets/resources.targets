@@ -27,12 +27,21 @@
         ResxFilePath="$(StringResourcesPath)" 
         IntermediateFilePath="$(IntermediateResOutputFileFullPath)" 
         OutputSourceFilePath="$(ResourceSRPath)" 
-        AssemblyName="$(AssemblyName)" >
+        AssemblyName="$(AssemblyName)" 
+        ContinueOnError="ErrorAndStop" >
+        
+        <Output PropertyName="GenerateResourcesCodeOutputMessage" TaskParameter="Message" />
     </GenerateResourcesCode>
 
     <ItemGroup>
       <FileWrites Include="$(IntermediateResOutputFileFullPath)" />
     </ItemGroup>
+  
+     <OnError ExecuteTargets="FailTheBuildWithResourceGenerationError" />
+  </Target>
+    
+  <Target Name="FailTheBuildWithResourceGenerationError">
+      <Error Text="$(GenerateResourcesCodeOutputMessage)" />
   </Target>
   
   <Import Project="ResourcesIncludes.targets" Condition="Exists('$(StringResourcesPath)') And Exists('$(ResourceSRPath)') And '$(SkipResourcesIncludesTarget)'==''"/>

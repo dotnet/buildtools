@@ -36,8 +36,12 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public bool DebugOnly { get; set; }
 
+        [Output]
+        public string Message { get; set; } 
+
         public override bool Execute()
         {
+            Message = "";
             try
             {
                 using (_resxReader = new ResXResourceReader(ResxFilePath))
@@ -62,19 +66,24 @@ namespace Microsoft.DotNet.Build.Tasks
             }
             catch (Exception e)
             {
-                string message = e.Message;
+                string message = "Resources code generation is failed\n" + e.Message;
 
                 if (e is System.UnauthorizedAccessException)
                 {
-                    message = message + Environment.NewLine + string.Format("The generated {0} file needs to be updated but the file is read-only.", OutputSourceFilePath);
+                    message = message + string.Format("\nThe generated {0} file needs to be updated but the file is read-only.", OutputSourceFilePath);
                 }
 
                 Log.LogError(message);
+
+                Message = message;
+
                 return false; // fail the task
             }
 
             // don't fail the task if this operation failed as we just updating intermediate file and the task already did the needed functionality of generating the code
             try { File.Move(_intermediateFile, IntermediateFilePath); } catch { }
+
+            Message = "Resources code generation is succeeded.";
 
             return true;
         }
@@ -207,11 +216,54 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 string srContent = File.ReadAllText(OutputSourceFilePath);
 
+                // try to compare ordinal to optimize for main stream scenario
                 if (intermediateContent == srContent)
                     return; // nothing need to get updated
+
+                // try comparing with ignoring while spaces and controls. 
+                // slower but we'll get here in rare cases
+                if (CompareStringsIgnorWhiteSpaceAndControls(intermediateContent, srContent))
+                    return;
             }
 
             File.WriteAllText(OutputSourceFilePath, intermediateContent);
+        }
+
+        private bool CompareStringsIgnorWhiteSpaceAndControls(string s1, string s2)
+        {
+            int i = 0;
+            int j = 0;
+
+            while (true)
+            {
+                // progress to the first un-equal characters
+                while (i < s1.Length && j < s2.Length && s1[i] == s2[j])
+                {
+                    i++;
+                    j++;
+                }
+
+                while (i < s1.Length && (Char.IsControl(s1[i]) || Char.IsWhiteSpace(s1[i])))
+                    i++;
+
+                while (j < s2.Length && (Char.IsControl(s2[j]) || Char.IsWhiteSpace(s2[j])))
+                    j++;
+
+                // reached end of both strings, then they are equal
+                if (i >= s1.Length && j >= s2.Length) 
+                    return true;
+
+                // reached end of one of the strings and not to the other, then strings not equal
+                if (i >= s1.Length || j >= s2.Length) 
+                    return false;
+                
+                // here we are not at white space nor control characters 
+                if (s1[i] != s2[j])
+                    return false;
+
+                i++;
+                j++;
+            }
         }
 
         private enum TargetLanguage
