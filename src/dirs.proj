@@ -27,6 +27,11 @@
 
   <Import Project="..\dir.traversal.targets" />
 
+  <!-- For now we need to explicitly set this property because it doesn't have a default in packages.targets -->
+  <PropertyGroup>
+    <NugetPackageBuildTargets>BuildPackages</NugetPackageBuildTargets>
+  </PropertyGroup>
+
   <Import Project="$(ToolsDir)packages.targets" />
   <Target Name="BuidDirPackages" AfterTargets="Build" DependsOnTargets="BuildPackages" />
 </Project>
