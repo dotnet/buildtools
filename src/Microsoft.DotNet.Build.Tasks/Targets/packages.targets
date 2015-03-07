@@ -18,10 +18,6 @@
     <NuGetOutputDirectory>&quot;$(PackagesOutDir.TrimEnd('\'))&quot;</NuGetOutputDirectory>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <LocalPublishPropsFile Condition="'$(LocalPublishPropsFile)'==''">$(PackagesDir)\localpublish.props</LocalPublishPropsFile>
-  </PropertyGroup>
-
   <Target Name="BuildPackages"
     DependsOnTargets="GetNuGetPackageVersions"
     Condition="'$(SkipBuildPackages)' != 'true'">
@@ -80,6 +76,11 @@
       <_TempPackageVersion />
     </PropertyGroup>
   </Target>
+
+  <PropertyGroup>
+    <LocalPublishPropsFile Condition="'$(LocalPublishPropsFile)'==''">$(PackagesDir)\localpublish.props</LocalPublishPropsFile>
+    <NugetPackageBuildTargets Condition="'$(NugetPackageBuildTargets)'==''">BuildPackages</NugetPackageBuildTargets>
+  </PropertyGroup>
 
   <Import Condition="Exists('$(LocalPublishPropsFile)')"  Project="$(LocalPublishPropsFile)"/>
   
