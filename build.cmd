@@ -6,14 +6,23 @@ setlocal
 ::       means that that rebuilding cannot successfully delete the task
 ::       assembly. 
 
-:: Check prerequisites
-if not defined VS120COMNTOOLS (
-    if not defined VS140COMNTOOLS (
-        echo Error: build.cmd should be run from a Visual Studio 2013 or 2015 Command Prompt.  
-        echo        Please see https://github.com/dotnet/corefx/wiki/Developer-Guide for build instructions.
-        exit /b 1
+if not defined VisualStudioVersion (
+    if defined VS140COMNTOOLS (
+        call "%VS140COMNTOOLS%\VsDevCmd.bat"
+        goto :EnvSet
     )
+
+    if defined VS120COMNTOOLS (
+        call "%VS120COMNTOOLS%\VsDevCmd.bat"
+        goto :EnvSet
+    )
+
+    echo Error: build.cmd requires Visual Studio 2013 or 2015.  
+    echo        Please see https://github.com/dotnet/corefx/wiki/Developer-Guide for build instructions.
+    exit /b 1
 )
+
+:EnvSet
 
 :: Log build command line
 set _buildproj=%~dp0build.proj
@@ -27,8 +36,18 @@ set _buildprefix=
 set _buildpostfix=
 call :build %*
 
-goto :eof
+goto :AfterBuild
 
 :build
 %_buildprefix% msbuild "%_buildproj%" /nologo /maxcpucount /verbosity:minimal /nodeReuse:false /fileloggerparameters:Verbosity=diag;LogFile="%_buildlog%";Append %* %_buildpostfix%
+set BUILDERRORLEVEL=%ERRORLEVEL%
 goto :eof
+
+:AfterBuild
+
+echo.
+:: Pull the build summary from the log file
+findstr /ir /c:".*Warning(s)" /c:".*Error(s)" /c:"Time Elapsed.*" "%_buildlog%"
+echo Build Exit Code = %BUILDERRORLEVEL%
+
+exit /b %BUILDERRORLEVEL%
