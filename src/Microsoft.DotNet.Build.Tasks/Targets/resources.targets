@@ -28,12 +28,13 @@
         IntermediateFilePath="$(IntermediateResOutputFileFullPath)" 
         OutputSourceFilePath="$(ResourceSRPath)" 
         AssemblyName="$(AssemblyName)" >
+        
     </GenerateResourcesCode>
 
     <ItemGroup>
       <FileWrites Include="$(IntermediateResOutputFileFullPath)" />
     </ItemGroup>
   </Target>
-  
+    
   <Import Project="ResourcesIncludes.targets" Condition="Exists('$(StringResourcesPath)') And Exists('$(ResourceSRPath)') And '$(SkipResourcesIncludesTarget)'==''"/>
 </Project>
