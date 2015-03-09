@@ -36,12 +36,8 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public bool DebugOnly { get; set; }
 
-        [Output]
-        public string Message { get; set; } 
-
         public override bool Execute()
         {
-            Message = "";
             try
             {
                 using (_resxReader = new ResXResourceReader(ResxFilePath))
@@ -75,15 +71,11 @@ namespace Microsoft.DotNet.Build.Tasks
 
                 Log.LogError(message);
 
-                Message = message;
-
                 return false; // fail the task
             }
 
             // don't fail the task if this operation failed as we just updating intermediate file and the task already did the needed functionality of generating the code
             try { File.Move(_intermediateFile, IntermediateFilePath); } catch { }
-
-            Message = "Resources code generation is succeeded.";
 
             return true;
         }
