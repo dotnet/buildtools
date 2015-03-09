@@ -16,6 +16,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nuget", "nuget", "{097CEB51
 		nuget\Microsoft.DotNet.BuildTools.nuspec = nuget\Microsoft.DotNet.BuildTools.nuspec
 		nuget\Microsoft.DotNet.PerfTools.nuspec = nuget\Microsoft.DotNet.PerfTools.nuspec
 		nuget\xunit.console.netcore.nuspec = nuget\xunit.console.netcore.nuspec
+		nuget\xunit.netcore.extensions.nuspec = nuget\xunit.netcore.extensions.nuspec
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{DEEA626C-BB80-40E0-B896-7CE24F285232}"
@@ -23,7 +24,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{DEEA
 		Scripts\set-package-build.cmd = Scripts\set-package-build.cmd
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventTracer", "EventTracer\EventTracer.csproj", "{A5F5AD4E-D20D-4CAB-A81E-B7F7448637F9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerfEventsData", "PerfEventsData\PerfEventsData.csproj", "{4214C1AE-1605-445C-A737-3FDA8528DABA}"
 EndProject
@@ -49,6 +49,22 @@ Global
 		{17C66BCE-EB35-44CA-893C-8AAFB67708E9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{17C66BCE-EB35-44CA-893C-8AAFB67708E9}.Release|ARM.ActiveCfg = Release|Any CPU
 		{17C66BCE-EB35-44CA-893C-8AAFB67708E9}.Release|x86.ActiveCfg = Release|Any CPU
+		{D1D796EC-220B-460F-9133-E9E7EEB4B0FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1D796EC-220B-460F-9133-E9E7EEB4B0FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1D796EC-220B-460F-9133-E9E7EEB4B0FE}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{D1D796EC-220B-460F-9133-E9E7EEB4B0FE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D1D796EC-220B-460F-9133-E9E7EEB4B0FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1D796EC-220B-460F-9133-E9E7EEB4B0FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1D796EC-220B-460F-9133-E9E7EEB4B0FE}.Release|ARM.ActiveCfg = Release|Any CPU
+		{D1D796EC-220B-460F-9133-E9E7EEB4B0FE}.Release|x86.ActiveCfg = Release|Any CPU
+		{7BB5B857-6585-4A65-85A6-865286DC2CD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BB5B857-6585-4A65-85A6-865286DC2CD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7BB5B857-6585-4A65-85A6-865286DC2CD7}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{7BB5B857-6585-4A65-85A6-865286DC2CD7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7BB5B857-6585-4A65-85A6-865286DC2CD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7BB5B857-6585-4A65-85A6-865286DC2CD7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7BB5B857-6585-4A65-85A6-865286DC2CD7}.Release|ARM.ActiveCfg = Release|Any CPU
+		{7BB5B857-6585-4A65-85A6-865286DC2CD7}.Release|x86.ActiveCfg = Release|Any CPU
 		{83FC1994-BCE0-427A-803B-02F20233A2D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{83FC1994-BCE0-427A-803B-02F20233A2D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{83FC1994-BCE0-427A-803B-02F20233A2D1}.Debug|ARM.ActiveCfg = Debug|Any CPU
@@ -65,14 +81,6 @@ Global
 		{A5F5AD4E-D20D-4CAB-A81E-B7F7448637F9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A5F5AD4E-D20D-4CAB-A81E-B7F7448637F9}.Release|ARM.ActiveCfg = Release|Any CPU
 		{A5F5AD4E-D20D-4CAB-A81E-B7F7448637F9}.Release|x86.ActiveCfg = Release|Any CPU
-		{4214C1AE-1605-445C-A737-3FDA8528DABA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4214C1AE-1605-445C-A737-3FDA8528DABA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4214C1AE-1605-445C-A737-3FDA8528DABA}.Debug|ARM.ActiveCfg = Debug|Any CPU
-		{4214C1AE-1605-445C-A737-3FDA8528DABA}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{4214C1AE-1605-445C-A737-3FDA8528DABA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4214C1AE-1605-445C-A737-3FDA8528DABA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4214C1AE-1605-445C-A737-3FDA8528DABA}.Release|ARM.ActiveCfg = Release|Any CPU
-		{4214C1AE-1605-445C-A737-3FDA8528DABA}.Release|x86.ActiveCfg = Release|Any CPU
 		{580DB26D-AEB5-48AE-9FC2-467FF8B91D86}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{580DB26D-AEB5-48AE-9FC2-467FF8B91D86}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{580DB26D-AEB5-48AE-9FC2-467FF8B91D86}.Debug|ARM.ActiveCfg = Debug|Any CPU

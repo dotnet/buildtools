@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata minClientVersion="2.8.1">
+    <id>xunit.netcore.extensions</id>
+    <version>1.0.0-prerelease</version>
+    <title>xUnit extensions of .NET Core test projects</title>
+    <authors>Microsoft</authors>
+    <owners>Microsoft</owners>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <licenseUrl>http://go.microsoft.com/fwlink/?LinkId=329770</licenseUrl>
+    <projectUrl>http://go.microsoft.com/fwlink/?LinkId=518631</projectUrl>
+    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
+    <summary>xUnit extensions of .NET Core test projects</summary>
+    <description>This package provides things like various traits and discovers like OuterLoop/ActiveIssue that are used by .NET Core framework test projects.</description>
+    <copyright>Copyright © Microsoft Corporation</copyright>
+    <dependencies>
+      <dependency id="System.Runtime" version="4.0.20-beta-22703" />
+      <dependency id="System.Runtime.Extensions" version="4.0.10-beta-22703" />
+      <dependency id="xunit.abstractions.netcore" version="1.0.0-prerelease" />
+      <dependency id="xunit.core.netcore" version="1.0.0-prerelease" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="xunit.netcore.extensions\xunit.netcore.extensions.dll" target="lib\portable-wpa80+win80+net45+aspnetcore50" />
+  </files>
+</package>
