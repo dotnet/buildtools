@@ -1,19 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <PropertyGroup>
-    <RunTestsForProject Condition="'$(RunTestsForProject)'=='' and '$(IsTestProject)'=='true'">true</RunTestsForProject>
-    <RunTestsForProject Condition="'$(SkipTests)'=='true'">false</RunTestsForProject>
-  </PropertyGroup>
-
   <!-- This is the target that copies the test assets to the test output -->
   <Import Project="$(MSBuildThisFileDirectory)publishtest.targets" />
-  
+
+  <!-- Which categories of tests to run by default -->
+  <PropertyGroup>
+    <RunTestsWithCategories Condition="'$(RunTestsWithCategories)' == '' And '$(RunTestsWithoutCategories)' == ''">InnerLoop</RunTestsWithCategories>
+    <TestCategories Condition="'$(TestCategories)'==''">InnerLoop</TestCategories>
+
+    <TestDisabled>false</TestDisabled>
+    <TestDisabled Condition="'$(IsTestProject)'!='true' Or '$(SkipTests)'=='true' Or '$(RunTestsForProject)'=='false'">true</TestDisabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Split semicolon separated lists -->
+    <TestCategoriesItems Include="$(TestCategories)" />
+    <RunTestsWithCategoriesItems Include="$(RunTestsWithCategories)" />
+    <RunTestsWithoutCategoriesItems Include="$(RunTestsWithoutCategories)" />
+  </ItemGroup>
+
   <!-- General xunit options -->
   <PropertyGroup>
     <XunitCommandLine>xunit.console.netcore.exe $(TargetFileName)</XunitCommandLine>
-    <RunOuterLoop Condition="'$(RunOuterLoop)' == ''">false</RunOuterLoop>
-    <XunitOptions Condition="'$(RunOuterLoop)'!='true'">$(XunitOptions) -notrait category=outerloop</XunitOptions>
     <XunitOptions>$(XunitOptions) -xml .\testResults.xml</XunitOptions>
     <XunitOptions>$(XunitOptions) -notrait category=failing</XunitOptions>
   </PropertyGroup>
@@ -40,8 +49,18 @@
 
   <!-- On command line run unit tests on CoreCLR after the Test target -->
   <Target Name="RunTestsForProject"
-          AfterTargets="Test"
-          Condition="'$(RunTestsForProject)'=='true'">
+          AfterTargets="CheckTestCategories"
+          Condition="'$(TestDisabled)'!='true'">
+
+    <PropertyGroup>
+      <XunitTraitOptions Condition="'@(RunWithTraits)'!=''">$(XunitTraitOptions) -trait category=@(RunWithTraits, ' -trait category=') </XunitTraitOptions>
+      <XunitTraitOptions Condition="'@(RunWithoutTraits)'!=''">$(XunitTraitOptions) -notrait category=@(RunWithoutTraits, ' -notrait category=') </XunitTraitOptions>
+    </PropertyGroup>
+
+    <!-- Append the xunit trait options to the end of the TestCommandLine -->
+    <PropertyGroup>
+      <TestCommandLine>$(TestCommandLine) $(XunitTraitOptions)</TestCommandLine>
+    </PropertyGroup>
 
     <MakeDir Condition="'$(CoverageEnabledForProject)'=='true'" Directories="$(CoverageReportDir)" />
 
@@ -53,5 +72,35 @@
 
     <Error Condition="'$(TestRunExitCode)' != '0'" Text="One or more tests failed while running tests from '$(MSBuildProjectName)' please check log for details!" />
   </Target>
-  
+
+  <!-- Needs to run before RunTestsForProject target as it computes categories and set TestDisabled -->
+  <Target Name="CheckTestCategories"
+          AfterTargets="Test"
+          Condition="'$(TestDisabled)'!='true'">
+
+    <Error Condition="'$(RunTestsWithCategories)' != '' And '$(RunTestsWithoutCategories)' != ''"
+           Text="Specifying both RunTestsWithCategories and RunTestsWithoutCategories is not supported please only specify one or the other." />
+
+    <!-- Intersection of TestCategoriesItems and RunTestsWithCategoriesItems -->
+    <ItemGroup Condition="'@(RunTestsWithCategoriesItems)'!=''">
+      <TestCategoriesToRun Include="@(TestCategoriesItems)" Condition="'@(RunTestsWithCategoriesItems)'=='%(Identity)'" />
+    </ItemGroup>
+
+    <!-- Run all test categories except specified -->
+    <ItemGroup Condition="'@(RunTestsWithoutCategoriesItems)'!=''">
+      <TestCategoriesToRun Include="@(TestCategoriesItems)" Exclude="@(RunTestsWithoutCategoriesItems)" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <RunWithInnerLoopItems Include="@(TestCategoriesToRun)" Condition="'%(TestCategoriesToRun.Identity)'=='InnerLoop'" />
+      <RunWithTraits Condition="'@(RunWithInnerLoopItems)'==''" Include="@(TestCategoriesToRun)" />
+      <RunWithoutTraits Condition="'@(RunWithInnerLoopItems)'!=''" Include="@(TestCategoriesItems)" Exclude="@(TestCategoriesToRun)" />
+    </ItemGroup>
+
+    <!-- If there is nothing to run then disable the test -->
+    <PropertyGroup>
+      <TestDisabled Condition="'@(TestCategoriesToRun)'==''">true</TestDisabled>
+    </PropertyGroup>
+  </Target>
+
 </Project>
