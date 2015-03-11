@@ -7,7 +7,7 @@
   <PropertyGroup>
     <OpenCoverVersion>4.5.3809-rc94</OpenCoverVersion>
     <ReportGeneratorVersion>2.0.4.0</ReportGeneratorVersion>
-    <CoverallsUploaderVersion>1.2</CoverallsUploaderVersion>
+    <CoverallsUploaderVersion>1.3</CoverallsUploaderVersion>
   </PropertyGroup>
   
   <!-- Coverage options -->
@@ -79,7 +79,7 @@
 
     <PropertyGroup>
       <CoverallsUploaderCommandLine>$(PackagesDir)coveralls.io.$(CoverallsUploaderVersion)\tools\coveralls.net.exe</CoverallsUploaderCommandLine>
-      <CoverallsUploaderOptions>--opencover $(CoverageReportDir)\*.coverage.xml -t $(CoverallsToken)</CoverallsUploaderOptions>
+      <CoverallsUploaderOptions>--opencover $(CoverageReportDir)\*.coverage.xml --repo-token $(CoverallsToken)</CoverallsUploaderOptions>
     </PropertyGroup>
 
     <Exec Command="$(CoverallsUploaderCommandLine) $(CoverallsUploaderOptions)"
