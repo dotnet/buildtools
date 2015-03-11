@@ -19,17 +19,15 @@
   </PropertyGroup>
 
   <Target Name="GenerateResourcesSource"
-      Condition="'$(StringResourcesPath)'!=''"
-      Inputs="$(StringResourcesPath)"
-      Outputs="$(IntermediateResOutputFileFullPath)">
+          Condition="'$(StringResourcesPath)'!=''"
+          Inputs="$(StringResourcesPath)"
+          Outputs="$(IntermediateResOutputFileFullPath)">
     
     <GenerateResourcesCode 
         ResxFilePath="$(StringResourcesPath)" 
         IntermediateFilePath="$(IntermediateResOutputFileFullPath)" 
         OutputSourceFilePath="$(ResourceSRPath)" 
-        AssemblyName="$(AssemblyName)" >
-        
-    </GenerateResourcesCode>
+        AssemblyName="$(AssemblyName)" />
 
     <ItemGroup>
       <FileWrites Include="$(IntermediateResOutputFileFullPath)" />
