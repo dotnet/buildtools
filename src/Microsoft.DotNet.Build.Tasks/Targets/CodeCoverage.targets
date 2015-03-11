@@ -21,8 +21,8 @@
     <CoverageEnabledForProject Condition="'$(GenerateCodeCoverageReportForAll)'=='true'">false</CoverageEnabledForProject>
     <CoverageEnabledForProject Condition="'$(CoverageEnabledForProject)'=='' and '$(IsTestProject)'=='true'">$(CodeCoverageEnabled)</CoverageEnabledForProject>
 
-    <GenerateIndividualCoverageReport Condition="'$(BuildAllProjects)'!='true' and '$(CoverageEnabledForProject)'=='true'">true"</GenerateIndividualCoverageReport>
-    <GenerateFullCoverageReport Condition="'$(GenerateCodeCoverageForAll)'!='' and $(CodeCoverageEnabled)">true</GenerateFullCoverageReport>
+    <GenerateIndividualCoverageReport Condition="'$(BuildAllProjects)'!='true' and '$(CoverageEnabledForProject)'=='true'">true</GenerateIndividualCoverageReport>
+    <GenerateFullCoverageReport Condition="'$(GenerateCodeCoverageReportForAll)'=='true' and '$(CodeCoverageEnabled)'=='true'">true</GenerateFullCoverageReport>
 
     <!-- 
       When coverage is enabled, we disallow building projects in parallel. 
@@ -54,7 +54,7 @@
 
   <!-- Generate coverage reports for individual projects. -->
   <Target Name="GenerateIndividualCoverageReport"
-          AfterTargets="$(GenerateIndividualCoverageReportAfterTargets"
+          AfterTargets="$(GenerateIndividualCoverageReportAfterTargets)"
           Inputs="$(CoverageOutputFilePath)"
           Outputs="$(CoverageReportDir)index.htm"
           Condition="'$(GenerateIndividualCoverageReport)'=='true'">
