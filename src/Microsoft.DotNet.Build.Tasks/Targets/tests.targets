@@ -25,6 +25,7 @@
     <XunitCommandLine>xunit.console.netcore.exe $(TargetFileName)</XunitCommandLine>
     <XunitOptions>$(XunitOptions) -xml .\testResults.xml</XunitOptions>
     <XunitOptions>$(XunitOptions) -notrait category=failing</XunitOptions>
+    <XunitOptions>$(XunitOptions) {XunitTraitOptions}</XunitOptions>
   </PropertyGroup>
   
   <!-- xUnit command line without coverage enabled -->
@@ -59,7 +60,7 @@
 
     <!-- Append the xunit trait options to the end of the TestCommandLine -->
     <PropertyGroup>
-      <TestCommandLine>$(TestCommandLine) $(XunitTraitOptions)</TestCommandLine>
+      <TestCommandLine>$(TestCommandLine.Replace('{XunitTraitOptions}', '$(XunitTraitOptions)'))</TestCommandLine>
     </PropertyGroup>
 
     <MakeDir Condition="'$(CoverageEnabledForProject)'=='true'" Directories="$(CoverageReportDir)" />
