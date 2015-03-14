@@ -21,11 +21,6 @@
   </Target>
 
   <PropertyGroup>
-    <PrepareForRunDependsOn>
-      $(PrepareForRunDependsOn);
-      CopyTestToTestDirectory;
-    </PrepareForRunDependsOn>
-
     <CopyTestToTestDirectory Condition="'$(CopyTestToTestDirectory)'==''">$(IsTestProject)</CopyTestToTestDirectory>
   </PropertyGroup>
   
@@ -36,8 +31,6 @@
   </ItemGroup>
 
   <Target Name="CopyTestToTestDirectory"
-    Inputs="@(PackagesConfig);$(TestRuntimePackageConfig);@(ReferenceCopyLocalPaths);@(Content);@(IntermediateAssembly);@(_DebugSymbolsIntermediatePath)"
-    Outputs="$(TestPath)%(TestTargetFramework.Folder)\*.*"
     Condition="'$(CopyTestToTestDirectory)'=='true'">
     
     <ItemGroup>

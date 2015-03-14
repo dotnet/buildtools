@@ -24,8 +24,9 @@
   <PropertyGroup>
     <XunitHost>corerun.exe</XunitHost>
     <TestHost>$(XunitHost)</TestHost>
+    <XunitResultsFileName>testResults.xml</XunitResultsFileName>
     <XunitCommandLine>xunit.console.netcore.exe $(TargetFileName)</XunitCommandLine>
-    <XunitOptions>$(XunitOptions) -xml .\testResults.xml</XunitOptions>
+    <XunitOptions>$(XunitOptions) -xml $(XunitResultsFileName)</XunitOptions>
     <XunitOptions>$(XunitOptions) -notrait category=failing</XunitOptions>
 
     <!-- We need to exclude xunit traits and add wait option for VS -->
@@ -50,10 +51,18 @@
     <DebugEngines>{2E36F1D4-B23C-435D-AB41-18E608940038}</DebugEngines>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <TestsSuccessfulSemaphore>$(MSBuildProjectFile).tests.lastsucceeded</TestsSuccessfulSemaphore>
+  </PropertyGroup>
+
   <!-- On command line run unit tests on CoreCLR after the Test target -->
   <Target Name="RunTestsForProject"
           AfterTargets="CheckTestCategories"
+          Inputs="@(PackagesConfig);$(TestRuntimePackageConfig);@(ReferenceCopyLocalPaths);@(Content);@(IntermediateAssembly);@(_DebugSymbolsIntermediatePath)"
+          Outputs="$(TestPath)%(TestTargetFramework.Folder)\$(TestsSuccessfulSemaphore);$(TestPath)%(TestTargetFramework.Folder)\$(XunitResultsFileName)"
           Condition="'$(TestDisabled)'!='true'">
+
+    <CallTarget Targets="CopyTestToTestDirectory"/>
 
     <PropertyGroup>
       <XunitTraitOptions Condition="'@(RunWithTraits)'!=''">$(XunitTraitOptions) -trait category=@(RunWithTraits, ' -trait category=') </XunitTraitOptions>
@@ -83,6 +92,7 @@
 
     <Delete Condition="'$(DeletePerfDataFile)' == 'true'" Files="$(TestPath)%(TestTargetFramework.Folder)\$(EventTracerDataFile)" />
     <Error Condition="'$(TestRunExitCode)' != '0'" Text="One or more tests failed while running tests from '$(MSBuildProjectName)' please check log for details!" />
+    <Touch Condition="'$(TestRunExitCode)' == '0'" Files="$(TestPath)%(TestTargetFramework.Folder)\$(TestsSuccessfulSemaphore)" AlwaysCreate="true" />
   </Target>
 
   <!-- Needs to run before RunTestsForProject target as it computes categories and set TestDisabled -->
