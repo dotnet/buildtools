@@ -56,7 +56,7 @@ namespace Microsoft.DotNet.Build.Tasks
             }
             catch (Exception e)
             {
-                Log.LogError("Resources code generation is failed\n" + e.Message);
+                Log.LogError("Failed to generate the resource code with error:\n" + e.Message);
                 return false; // fail the task
             }
 

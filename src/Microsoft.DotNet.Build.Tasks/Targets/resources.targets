@@ -28,10 +28,7 @@
 
     <ItemGroup>
       <!-- The following Compile element has to be included dynamically inside the Target otherwise intellisense will not work -->
-      <Compile Include="$(IntermediateResOutputFileFullPath)">
-          <Visible>true</Visible>
-          <Link>Resources\SR.cs</Link>
-      </Compile>
+      <Compile Include="$(IntermediateResOutputFileFullPath)" />
     </ItemGroup>
 
     <ItemGroup>
