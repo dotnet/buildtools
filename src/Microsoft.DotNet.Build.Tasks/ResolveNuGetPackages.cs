@@ -206,30 +206,31 @@ namespace Microsoft.Build.Tasks
             var packagesConfigs = (from packageConfig in PackagesConfigs select new PackageReferenceFile(Path.GetFullPath(packageConfig.ItemSpec))).ToArray();
             var succeeded = true;
 
+            var repository = new SharedPackageRepository(PackageRoot);
+
             foreach (var packageReference in GetPackageReferences(packagesConfigs))
             {
-                var nupkgPath = TryLocatePackage(new DirectoryInfo(PackageRoot), packageReference);
-
-                if (nupkgPath == null)
+                IPackage package;
+                if (!repository.TryFindPackage(packageReference.Id, packageReference.Version, out package))
                 {
                     Log.LogError("Unable to find nupkg for {0}.", packageReference.Id);
                     succeeded = false;
                     continue;
                 }
 
-                var package = new OptimizedZipPackage(nupkgPath);
-                var manifest = ManifestDeclaration.Parse(Path.GetDirectoryName(nupkgPath), package);
+                var packageDescription = packageReference.Id + "." + packageReference.Version.ToString();
+                var manifest = ManifestDeclaration.Parse(Path.Combine(PackageRoot, packageDescription), package);
 
                 // If there are no assets we cannot 
                 if (!manifest.Groups.Any())
                 {
-                    Log.LogMessage("no assets from " + nupkgPath);
+                    Log.LogMessage("no assets for " + packageDescription);
                     continue;
                 }
 
                 try
                 {
-                    Log.LogMessage("resolving assets from " + nupkgPath);
+                    Log.LogMessage("resolving assets for " + packageDescription);
 
                     var assets = resolver.Resolve(manifest);
 
@@ -291,21 +292,6 @@ namespace Microsoft.Build.Tasks
                 from packageReferences in packagesConfig.GetPackageReferences()
                 group packageReferences by packageReferences.Id into packageReferencesGroup
                 select packageReferencesGroup.OrderByDescending(pr => pr.Version).First();
-        }
-
-        private static string TryLocatePackage(DirectoryInfo packageRootDirectory, PackageReference packageReference)
-        {
-            var packageName = packageReference.Id + "." + packageReference.Version.ToString();
-            string nupkgPath = Path.Combine(packageRootDirectory.FullName, packageName, packageName + ".nupkg");
-
-            if (File.Exists(nupkgPath))
-            {
-                return nupkgPath;
-            }
-            else
-            {
-                return null;
-            }
         }
 
         private sealed class LanguagePropertyDefinition : PropertyDefinition<string>
