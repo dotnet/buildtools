@@ -18,15 +18,11 @@ namespace Microsoft.DotNet.Build.Tasks
         private TargetLanguage _targetLanguage = TargetLanguage.CSharp;
         private ResXResourceReader _resxReader;
         private StreamWriter _targetStream;
-        private string _intermediateFile;
         private StringBuilder _debugCode = new StringBuilder();
         private Dictionary<string, int> _keys;
 
         [Required]
         public string ResxFilePath { get; set; }
-
-        [Required]
-        public string IntermediateFilePath { get; set; }
 
         [Required]
         public string OutputSourceFilePath { get; set; }
@@ -42,8 +38,7 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 using (_resxReader = new ResXResourceReader(ResxFilePath))
                 {
-                    _intermediateFile = IntermediateFilePath + ".temp";
-                    using (_targetStream = File.CreateText(_intermediateFile))
+                    using (_targetStream = File.CreateText(OutputSourceFilePath))
                     {
 
                         if (String.Equals(Path.GetExtension(OutputSourceFilePath), ".vb", StringComparison.OrdinalIgnoreCase))
@@ -58,24 +53,12 @@ namespace Microsoft.DotNet.Build.Tasks
                         WriteClassEnd();
                     }
                 }
-                ProcessTargetFile();
             }
             catch (Exception e)
             {
-                string message = "Resources code generation is failed\n" + e.Message;
-
-                if (e is System.UnauthorizedAccessException)
-                {
-                    message = message + string.Format("\nThe generated {0} file needs to be updated but the file is read-only.", OutputSourceFilePath);
-                }
-
-                Log.LogError(message);
-
+                Log.LogError("Failed to generate the resource code with error:\n" + e.Message);
                 return false; // fail the task
             }
-
-            // don't fail the task if this operation failed as we just updating intermediate file and the task already did the needed functionality of generating the code
-            try { File.Move(_intermediateFile, IntermediateFilePath); } catch { }
 
             return true;
         }
@@ -197,64 +180,6 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 _targetStream.WriteLine("    End Class");
                 _targetStream.WriteLine("End Namespace");
-            }
-        }
-
-        private void ProcessTargetFile()
-        {
-            string intermediateContent = File.ReadAllText(_intermediateFile);
-
-            if (File.Exists(OutputSourceFilePath))
-            {
-                string srContent = File.ReadAllText(OutputSourceFilePath);
-
-                // try to compare ordinal to optimize for main stream scenario
-                if (intermediateContent == srContent)
-                    return; // nothing need to get updated
-
-                // try comparing with ignoring while spaces and controls. 
-                // slower but we'll get here in rare cases
-                if (CompareStringsIgnorWhiteSpaceAndControls(intermediateContent, srContent))
-                    return;
-            }
-
-            File.WriteAllText(OutputSourceFilePath, intermediateContent);
-        }
-
-        private bool CompareStringsIgnorWhiteSpaceAndControls(string s1, string s2)
-        {
-            int i = 0;
-            int j = 0;
-
-            while (true)
-            {
-                // progress to the first un-equal characters
-                while (i < s1.Length && j < s2.Length && s1[i] == s2[j])
-                {
-                    i++;
-                    j++;
-                }
-
-                while (i < s1.Length && (Char.IsControl(s1[i]) || Char.IsWhiteSpace(s1[i])))
-                    i++;
-
-                while (j < s2.Length && (Char.IsControl(s2[j]) || Char.IsWhiteSpace(s2[j])))
-                    j++;
-
-                // reached end of both strings, then they are equal
-                if (i >= s1.Length && j >= s2.Length) 
-                    return true;
-
-                // reached end of one of the strings and not to the other, then strings not equal
-                if (i >= s1.Length || j >= s2.Length) 
-                    return false;
-                
-                // here we are not at white space nor control characters 
-                if (s1[i] != s2[j])
-                    return false;
-
-                i++;
-                j++;
             }
         }
 

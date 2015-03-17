@@ -3,10 +3,8 @@
   <UsingTask TaskName="GenerateResourcesCode" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll" />
 
   <PropertyGroup>
-    <ResourcesSourceOutputDirectory Condition="'$(ResourcesSourceOutputDirectory)' == ''">$(MSBuildProjectDirectory)\Resources</ResourcesSourceOutputDirectory>
-    <StringResourcesPath Condition="'$(StringResourcesPath)'=='' And Exists('$(ResourcesSourceOutputDirectory)\Strings.resx')">$(ResourcesSourceOutputDirectory)\Strings.resx</StringResourcesPath>
-    <ResourceSRPath Condition="'$(ResourceSRPath)'=='' And '$(MSBuildProjectExtension)' == '.csproj'">$(ResourcesSourceOutputDirectory)\SR.cs</ResourceSRPath>
-    <ResourceSRPath Condition="'$(ResourceSRPath)'=='' And '$(MSBuildProjectExtension)' == '.vbproj'">$(ResourcesSourceOutputDirectory)\SR.vb</ResourceSRPath>
+    <ResourcesSourceOutputDirectory Condition="'$(ResourcesSourceOutputDirectory)' == ''">$(MSBuildProjectDirectory)\Resources\</ResourcesSourceOutputDirectory>
+    <StringResourcesPath Condition="'$(StringResourcesPath)'=='' And Exists('$(ResourcesSourceOutputDirectory)Strings.resx')">$(ResourcesSourceOutputDirectory)\Strings.resx</StringResourcesPath>
     <IntermediateResOutputFileFullPath Condition="'$(MSBuildProjectExtension)' == '.csproj'">$(IntermediateOutputPath)SR.cs</IntermediateResOutputFileFullPath>
     <IntermediateResOutputFileFullPath Condition="'$(MSBuildProjectExtension)' == '.vbproj'">$(IntermediateOutputPath)SR.vb</IntermediateResOutputFileFullPath>
   </PropertyGroup>
@@ -23,16 +21,32 @@
           Inputs="$(StringResourcesPath)"
           Outputs="$(IntermediateResOutputFileFullPath)">
     
-    <GenerateResourcesCode 
+    <GenerateResourcesCode
         ResxFilePath="$(StringResourcesPath)" 
-        IntermediateFilePath="$(IntermediateResOutputFileFullPath)" 
-        OutputSourceFilePath="$(ResourceSRPath)" 
+        OutputSourceFilePath="$(IntermediateResOutputFileFullPath)" 
         AssemblyName="$(AssemblyName)" />
+
+    <ItemGroup>
+      <!-- The following Compile element has to be included dynamically inside the Target otherwise intellisense will not work -->
+      <Compile Include="$(IntermediateResOutputFileFullPath)" />
+    </ItemGroup>
 
     <ItemGroup>
       <FileWrites Include="$(IntermediateResOutputFileFullPath)" />
     </ItemGroup>
   </Target>
-    
-  <Import Project="ResourcesIncludes.targets" Condition="Exists('$(StringResourcesPath)') And Exists('$(ResourceSRPath)') And '$(SkipResourcesIncludesTarget)'==''"/>
+  
+  <ItemGroup Condition="'$(StringResourcesPath)'!=''">
+    <EmbeddedResource Include="$(StringResourcesPath)">
+      <Visible>true</Visible>
+      <LogicalName>System.SR.resources</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+  
+  <ItemGroup Condition="Exists('$(StringResourcesPath)') And '$(SkipCommonResourcesIncludes)'==''">
+    <Compile Include="$(CommonPath)\System\SR.cs">
+      <Visible>true</Visible>
+      <Link>Resources\Common\SR.cs</Link>
+    </Compile>
+  </ItemGroup>
 </Project>
