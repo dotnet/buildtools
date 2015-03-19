@@ -27,17 +27,17 @@ namespace GenPerfBaseline
                 if (testName == null)
                     testName = eventData.TestName;
                 else if (string.Compare(testName, eventData.TestName, StringComparison.OrdinalIgnoreCase) != 0)
-                    throw new InvalidOperationException();
+                    throw new InvalidOperationException(string.Format("Cannot merge data from different tests '{0}' and '{1}'.", testName, eventData.TestName));
 
                 if (platform == null)
                     platform = eventData.Platform;
                 else if (platform.Value != eventData.Platform)
-                    throw new InvalidOperationException();
+                    throw new InvalidOperationException(string.Format("Cannot merge data from different architectures {0} and {1}.", platform.Value, eventData.Platform));
 
                 if (arch == null)
                     arch = eventData.Architecture;
                 else if (arch.Value != eventData.Architecture)
-                    throw new InvalidOperationException();
+                    throw new InvalidOperationException(string.Format("Cannot merge data from different architectures {0} and {1}.", arch.Value, eventData.Architecture));
             }
 
             AggregateEventsData mergedEventsData = new AggregateEventsData(testName, platform.Value, arch.Value);
@@ -79,10 +79,10 @@ namespace GenPerfBaseline
 
                 var files = Directory.GetFiles(path, pattern);
                 if (files == null)
-                    throw new FileNotFoundException();
+                    throw new FileNotFoundException(string.Format("In directory '{0}' no files were found matching pattern '{1}'.", path, pattern));
 
                 if (files.Length < 3)
-                    throw new InvalidOperationException();
+                    throw new InvalidOperationException(string.Format("Merging data requires at least three input files ({0} available).", files.Length));
 
                 var eventsDataList = new List<AggregateEventsData>(files.Length);
                 var xmls = new XmlSerializer(typeof(AggregateEventsData));
