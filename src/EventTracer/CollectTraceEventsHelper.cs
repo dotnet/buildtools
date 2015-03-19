@@ -37,6 +37,8 @@ namespace EventTracer
 
             if (options.Mode == ExecutionMode.Start)
             {
+                m_traceSession.BufferSizeMB = 512;
+
                 // starting a new session, enable providers
                 m_traceSession.EnableKernelProvider(options.KernelEvents);
                 m_traceSession.EnableProvider(ClrTraceEventParser.ProviderGuid, TraceEventLevel.Informational, (ulong)options.ClrEvents.Events);

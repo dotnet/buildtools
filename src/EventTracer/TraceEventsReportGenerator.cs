@@ -25,6 +25,7 @@ namespace EventTracer
         private ClrTraceEventParser.Keywords m_clrEvents;
         private KernelTraceEventParser.Keywords m_kernelEvents;
         private AggregateEventsData m_aed;
+        private bool m_processFound;
 
         public TraceEventsReportGenerator(CommandLineOptions commandLineOptions)
         {
@@ -44,17 +45,22 @@ namespace EventTracer
         /// <returns>A new instance of the AggregateEventsData class.</returns>
         public AggregateEventsData Generate()
         {
-            // TODO: what about other architectures?
-            m_aed = new AggregateEventsData(m_testName, Platform.Windows, Environment.Is64BitProcess ? Architecture.Amd64 : Architecture.X86);
-
             using (var eventSource = new ETWTraceEventSource(m_etlFile))
             {
+                if (eventSource.EventsLost > 0)
+                    Console.WriteLine("WARNING: {0} events were lost during capture.", eventSource.EventsLost);
+
+                m_aed = new AggregateEventsData(m_testName, Platform.Windows, eventSource.PointerSize == 8 ? Architecture.Amd64 : Architecture.X86);
+
                 ParseClrTraceEvents(eventSource);
                 ParseKernelTraceEvents(eventSource);
 
                 // process the stream of events
                 eventSource.Process();
             }
+
+            if (!m_processFound)
+                throw new ArgumentException(string.Format("No data was found for process named {0}.  Please ensure the name of the process is correct.", m_process));
 
             return m_aed;
         }
@@ -91,7 +97,8 @@ namespace EventTracer
 
                 // aggregate the high and low events if both are available (enabling both provides a more complete value)
                 if ((clrEvent & ClrTraceEventParser.Keywords.GCSampledObjectAllocationHigh) == ClrTraceEventParser.Keywords.GCSampledObjectAllocationHigh ||
-                    (clrEvent & ClrTraceEventParser.Keywords.GCSampledObjectAllocationLow) == ClrTraceEventParser.Keywords.GCSampledObjectAllocationLow)
+                    (clrEvent & ClrTraceEventParser.Keywords.GCSampledObjectAllocationLow) == ClrTraceEventParser.Keywords.GCSampledObjectAllocationLow ||
+                    (clrEvent & ClrTraceEventParser.Keywords.GCAllObjectAllocation) == ClrTraceEventParser.Keywords.GCAllObjectAllocation)
                 {
                     if (!m_aed.ClrEventsData.ContainsKey(ClrPerfEvents.GCBytesAllocated))
                         m_aed.AddData(new EventDataScalarLong<ClrPerfEvents>(ClrPerfEvents.GCBytesAllocated));
@@ -101,7 +108,10 @@ namespace EventTracer
                     clrTraceEventParser.GCSampledObjectAllocation += delegate(GCSampledObjectAllocationTraceData data)
                     {
                         if (string.Compare(data.ProcessName, m_process, true) == 0)
+                        {
                             gcBytesAllocated.Value += data.TotalSizeForTypeSample;
+                            m_processFound = true;
+                        }
                     };
                 }
                 else
@@ -154,6 +164,8 @@ namespace EventTracer
                             var modName = Path.GetFileName(data.FileName);
                             if (!modLoads.Values.Contains(modName))
                                 modLoads.Values.Add(modName);
+
+                            m_processFound = true;
                         }
                     };
 
