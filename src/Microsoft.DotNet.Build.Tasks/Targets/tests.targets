@@ -37,6 +37,9 @@
   <!-- The Code Coverage targets will override TestHost and TestCommandLine if coverage is enabled -->
   <Import Project="$(MSBuildThisFileDirectory)CodeCoverage.targets" />
 
+  <!-- import settings for perf testing -->
+  <Import Project="$(MSBuildThisFileDirectory)PerfTesting.targets" />
+
   <!-- In VS (2015 Preview or later currently required): Debug to run unit tests on CoreCLR. -->
   <PropertyGroup Condition="'$(IsTestProject)'=='true'">
     <DebugTestFrameworkFolder>aspnetcore50</DebugTestFrameworkFolder>
@@ -47,10 +50,29 @@
     <DebugEngines>{2E36F1D4-B23C-435D-AB41-18E608940038}</DebugEngines>
   </PropertyGroup>
 
+  <!--
+    combine the TestTargetFramework with IterationCount.  by batching on TestTargetFrameworkBatch
+    in the RunTestsForProject Outputs it effectively allows us to run the target multiple times,
+    once for each IterationCount.  if IterationCount isn't defined there is no effect.  right now
+    this is used for perf testing which requires us to run a test multiple iterations and aggregate
+    the results.
+  -->
+  <Target Name="InitIterationBatch"
+          BeforeTargets="RunTestsForProject">
+
+    <ItemGroup>
+      <TestTargetFrameworkBatch Include="@(TestTargetFramework)">
+        <Count>%(IterationCount.Identity)</Count>
+      </TestTargetFrameworkBatch>
+    </ItemGroup>
+
+  </Target>
+
   <!-- On command line run unit tests on CoreCLR after the Test target -->
   <Target Name="RunTestsForProject"
           AfterTargets="CheckTestCategories"
-          Condition="'$(TestDisabled)'!='true'">
+          Condition="'$(TestDisabled)'!='true'"
+          Outputs="%(TestTargetFrameworkBatch.Folder) %(TestTargetFrameworkBatch.Count)">
 
     <PropertyGroup>
       <XunitTraitOptions Condition="'@(RunWithTraits)'!=''">$(XunitTraitOptions) -trait category=@(RunWithTraits, ' -trait category=') </XunitTraitOptions>
@@ -60,16 +82,28 @@
     <!-- Append the xunit trait options to the end of the TestCommandLine -->
     <PropertyGroup>
       <TestCommandLine>$(TestCommandLine.Replace('{XunitTraitOptions}', '$(XunitTraitOptions)'))</TestCommandLine>
+      <EventTracerDataFile>$(TargetFileName)%(TestTargetFrameworkBatch.Count).etl</EventTracerDataFile>
+      <EventTracerMetrics>-c $(ClrMetrics) -k $(KernelMetrics)</EventTracerMetrics>
+      <EventTracerReport>Perf.$(MSBuildProjectName)%(TestTargetFrameworkBatch.Count).xml</EventTracerReport>
     </PropertyGroup>
 
     <MakeDir Condition="'$(CoverageEnabledForProject)'=='true'" Directories="$(CoverageReportDir)" />
 
+    <Exec Command="$(EventTracer) -m start -t $(TargetFileName) -d $(EventTracerDataFile) $(EventTracerMetrics)"
+          WorkingDirectory="$(TestPath)%(TestTargetFrameworkBatch.Folder)"
+          Condition="'$(CollectPerfEvents)' == 'true'" />
+
     <Exec Command="$(TestHost) $(TestCommandLine)"
-          WorkingDirectory="$(TestPath)%(TestTargetFramework.Folder)"
+          WorkingDirectory="$(TestPath)%(TestTargetFrameworkBatch.Folder)"
           ContinueOnError="true">
       <Output PropertyName="TestRunExitCode" TaskParameter="ExitCode" />
     </Exec>
 
+    <Exec Command="$(EventTracer) -m stop -t $(TargetFileName) -d $(EventTracerDataFile) $(EventTracerMetrics) -x $(EventTracerReport) -p CoreRun"
+          WorkingDirectory="$(TestPath)%(TestTargetFrameworkBatch.Folder)"
+          Condition="'$(CollectPerfEvents)' == 'true'" />
+
+    <Delete Condition="'$(DeletePerfDataFile)' == 'true'" Files="$(TestPath)%(TestTargetFrameworkBatch.Folder)\$(EventTracerDataFile)" />
     <Error Condition="'$(TestRunExitCode)' != '0'" Text="One or more tests failed while running tests from '$(MSBuildProjectName)' please check log for details!" />
   </Target>
 

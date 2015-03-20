@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- properties for consumptive metric testing -->
+  <PropertyGroup Condition="'$(TestConsumptiveMetrics)' == 'true'">
+    <BaselineDataFile>$(MSBuildProjectDirectory)\CBM.$(MSBuildProjectName).xml</BaselineDataFile>
+    <CollectConsumptiveMetrics>true</CollectConsumptiveMetrics>
+    <CollectPerfEvents>true</CollectPerfEvents>
+    <CompareLiveToBaseline>true</CompareLiveToBaseline>
+  </PropertyGroup>
+
+  <!-- properties for generating consumptive metrics baselines -->
+  <PropertyGroup Condition="'$(BaselineConsumptiveMetrics)' == 'true'">
+    <CollectConsumptiveMetrics>true</CollectConsumptiveMetrics>
+    <CollectPerfEvents>true</CollectPerfEvents>
+    <CreatePerfBaseline>true</CreatePerfBaseline>
+    <MultipleTestIterations>true</MultipleTestIterations>
+    <OutputBaselineFile>$(MSBuildProjectDirectory)\CBM.$(MSBuildProjectName).xml</OutputBaselineFile>
+  </PropertyGroup>
+
+  <!--
+    Perf tools package versions go here and in the test-runtime-packages.config
+  -->
+  <PropertyGroup>
+    <PerfToolsVersion>0.0.1-prerelease-00018</PerfToolsVersion>
+    <PerfToolsDir Condition="'$(PerfToolsDir)'==''">$(PackagesDir)Microsoft.DotNet.PerfTools.$(PerfToolsVersion)\tools\</PerfToolsDir>
+    <ComparePerfData>"$(PerfToolsDir)ComparePerfEventsData.exe"</ComparePerfData>
+    <EventTracer>"$(PerfToolsDir)EventTracer.exe"</EventTracer>
+    <GenPerfBaseline>"$(PerfToolsDir)GenPerfBaseline.exe"</GenPerfBaseline>
+    <!-- by default delete the trace files after consumption -->
+    <DeletePerfDataFile Condition="'$(DeletePerfDataFile)' == ''">true</DeletePerfDataFile>
+    <!-- run tests is serial when collecting perf data so they don't all bleed together -->
+    <SerializeProjects Condition="'$(CollectPerfEvents)' == 'true'">true</SerializeProjects>
+  </PropertyGroup>
+
+  <!-- perf events for consumptive metrics testing -->
+  <PropertyGroup Condition="'$(CollectConsumptiveMetrics)' == 'true'">
+    <ClrMetrics>GCSampledObjectAllocationHigh,GCSampledObjectAllocationLow</ClrMetrics>
+    <KernelMetrics>ImageLoad</KernelMetrics>
+  </PropertyGroup>
+
+  <!-- when enabled, run target RunTestsForProject five times -->
+  <ItemGroup Condition="'$(MultipleTestIterations)' == 'true'">
+    <IterationCount Include="1" />
+    <IterationCount Include="2" />
+    <IterationCount Include="3" />
+    <IterationCount Include="4" />
+    <IterationCount Include="5" />
+  </ItemGroup>
+
+  <!-- compares live perf data to a specific baseline -->
+  <Target Name="ComparePerfData"
+          AfterTargets="RunTestsForProject"
+          Condition="'$(CompareLiveToBaseline)' == 'true'">
+
+    <PropertyGroup>
+      <LiveDataFile>Perf.$(MSBuildProjectName)%(TestTargetFrameworkBatch.Count).xml</LiveDataFile>
+    </PropertyGroup>
+
+    <Exec Command="$(ComparePerfData) -b $(BaselineDataFile) -l $(LiveDataFile)"
+          WorkingDirectory="$(TestPath)%(TestTargetFrameworkBatch.Folder)" />
+
+  </Target>
+
+  <!-- generates a new perf baseline file -->
+  <Target Name="CreatePerfBaseline"
+          AfterTargets="RunTestsForProject"
+          Condition="'$(CreatePerfBaseline)' == 'true'">
+
+    <PropertyGroup>
+      <InputFilesPattern>$(TestPath)%(TestTargetFrameworkBatch.Folder)\Perf.$(MSBuildProjectName)?.xml</InputFilesPattern>
+      <LiveDataFile>$(TestPath)%(TestTargetFrameworkBatch.Folder)\Perf.$(MSBuildProjectName).xml</LiveDataFile>
+    </PropertyGroup>
+
+    <!-- if there's a live data file delete it so it doesn't get rolled into the baseline results -->
+    <Delete Condition="Exists('$(LiveDataFile)')" Files="$(LiveDataFile)" />
+    <Exec Command="$(GenPerfBaseline) -i $(InputFilesPattern) -o $(OutputBaselineFile)" />
+
+  </Target>
+
+</Project>
