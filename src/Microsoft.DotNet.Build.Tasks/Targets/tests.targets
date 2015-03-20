@@ -58,7 +58,7 @@
   <!-- On command line run unit tests on CoreCLR after the Test target -->
   <Target Name="RunTestsForProject"
           AfterTargets="CheckTestCategories"
-          Inputs="@(PackagesConfig);$(TestRuntimePackageConfig);@(ReferenceCopyLocalPaths);@(Content);@(IntermediateAssembly);@(_DebugSymbolsIntermediatePath)"
+          Inputs="@(PackagesConfig);$(TestRuntimePackageConfig);@(ReferenceCopyLocalPaths);@(Content);@(IntermediateAssembly);@(_DebugSymbolsIntermediatePath);@(AllItemsFullPathWithTargetPath)"
           Outputs="$(TestPath)%(TestTargetFramework.Folder)\$(TestsSuccessfulSemaphore);$(TestPath)%(TestTargetFramework.Folder)\$(XunitResultsFileName)"
           Condition="'$(TestDisabled)'!='true'">
 

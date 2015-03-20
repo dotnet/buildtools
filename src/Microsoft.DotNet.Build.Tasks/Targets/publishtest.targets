@@ -37,7 +37,7 @@
       <PackagesConfigs Include="$(ProjectPackagesConfigFile)" />
       <PackagesConfigs Include="$(TestRuntimePackageConfig)" />
     </ItemGroup>
-    
+
     <ResolveNuGetPackages PackagesConfigs="@(PackagesConfigs)"
                           PackageRoot="$(PackagesDir)"
                           Platform="$(PlatformTarget)"
@@ -48,14 +48,15 @@
 
       <Output TaskParameter="ResolvedCopyLocal" ItemName="TestCopyLocal" />
     </ResolveNuGetPackages>
-    
+
     <ItemGroup>
       <TestCopyLocal Include="@(ReferenceCopyLocalPaths)" />
       <TestCopyLocal Include="@(Content)" />
       <TestCopyLocal Include="@(IntermediateAssembly)" />
       <TestCopyLocal Include="@(_DebugSymbolsIntermediatePath)" />
+      <TestCopyLocal Include="@(AllItemsFullPathWithTargetPath)" />
     </ItemGroup>
-    
+
     <Copy
       SourceFiles="@(TestCopyLocal)"
       DestinationFolder="$(TestPath)%(TestTargetFramework.Folder)"
