@@ -11,6 +11,8 @@
 
     <TestDisabled>false</TestDisabled>
     <TestDisabled Condition="'$(IsTestProject)'!='true' Or '$(SkipTests)'=='true' Or '$(RunTestsForProject)'=='false'">true</TestDisabled>
+
+    <TestsSuccessfulSemaphore>$(MSBuildProjectFile).tests.lastsucceeded</TestsSuccessfulSemaphore>
   </PropertyGroup>
 
   <ItemGroup>
@@ -50,15 +52,34 @@
     <StartArguments Condition="'$(StartArguments)'==''">$(VSStartArguments)</StartArguments>
     <DebugEngines>{2E36F1D4-B23C-435D-AB41-18E608940038}</DebugEngines>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <TestTargetFramework Include="ASP.NetCore, version=v5.0">
+      <Folder>aspnetcore50</Folder>
+    </TestTargetFramework>
+  </ItemGroup>
 
-  <PropertyGroup>
-    <TestsSuccessfulSemaphore>$(MSBuildProjectFile).tests.lastsucceeded</TestsSuccessfulSemaphore>
-  </PropertyGroup>
+  <ItemGroup>
+    <PackagesConfigs Include="$(ProjectPackagesConfigFile)" />
+    <PackagesConfigs Include="$(TestRuntimePackageConfig)" />
+  </ItemGroup>
+
+  <Target Name="DiscoverTestInputs">
+    <ItemGroup>
+      <RunTestsForProjectInputs Include="@(PackagesConfigs)" />
+      <RunTestsForProjectInputs Include="@(ReferenceCopyLocalPaths)" />
+      <RunTestsForProjectInputs Include="@(Content)" />
+      <RunTestsForProjectInputs Include="@(IntermediateAssembly)" />
+      <RunTestsForProjectInputs Include="@(_DebugSymbolsIntermediatePath)" />
+      <RunTestsForProjectInputs Include="@(AllItemsFullPathWithTargetPath)" />
+    </ItemGroup>
+  </Target>
 
   <!-- On command line run unit tests on CoreCLR after the Test target -->
   <Target Name="RunTestsForProject"
+          DependsOnTargets="DiscoverTestInputs"
           AfterTargets="CheckTestCategories"
-          Inputs="@(PackagesConfig);$(TestRuntimePackageConfig);@(ReferenceCopyLocalPaths);@(Content);@(IntermediateAssembly);@(_DebugSymbolsIntermediatePath);@(AllItemsFullPathWithTargetPath)"
+          Inputs="@(RunTestsForProjectInputs)"
           Outputs="$(TestPath)%(TestTargetFramework.Folder)\$(TestsSuccessfulSemaphore);$(TestPath)%(TestTargetFramework.Folder)\$(XunitResultsFileName)"
           Condition="'$(TestDisabled)'!='true'">
 
