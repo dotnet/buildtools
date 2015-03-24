@@ -7,7 +7,7 @@
   <PropertyGroup>
     <OpenCoverVersion>4.5.3809-rc94</OpenCoverVersion>
     <ReportGeneratorVersion>2.0.4.0</ReportGeneratorVersion>
-    <CoverallsUploaderVersion>1.3</CoverallsUploaderVersion>
+    <CoverallsUploaderVersion>1.4</CoverallsUploaderVersion>
   </PropertyGroup>
   
   <!-- Coverage options -->
