@@ -11,6 +11,8 @@
 
     <TestDisabled>false</TestDisabled>
     <TestDisabled Condition="'$(IsTestProject)'!='true' Or '$(SkipTests)'=='true' Or '$(RunTestsForProject)'=='false'">true</TestDisabled>
+
+    <TestsSuccessfulSemaphore>$(MSBuildProjectFile).tests.lastsucceeded</TestsSuccessfulSemaphore>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,8 +26,9 @@
   <PropertyGroup>
     <XunitHost>corerun.exe</XunitHost>
     <TestHost>$(XunitHost)</TestHost>
+    <XunitResultsFileName>testResults.xml</XunitResultsFileName>
     <XunitCommandLine>xunit.console.netcore.exe $(TargetFileName)</XunitCommandLine>
-    <XunitOptions>$(XunitOptions) -xml .\testResults.xml</XunitOptions>
+    <XunitOptions>$(XunitOptions) -xml $(XunitResultsFileName)</XunitOptions>
     <XunitOptions>$(XunitOptions) -notrait category=failing</XunitOptions>
 
     <!-- We need to exclude xunit traits and add wait option for VS -->
@@ -49,11 +52,38 @@
     <StartArguments Condition="'$(StartArguments)'==''">$(VSStartArguments)</StartArguments>
     <DebugEngines>{2E36F1D4-B23C-435D-AB41-18E608940038}</DebugEngines>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <TestTargetFramework Include="ASP.NetCore, version=v5.0">
+      <Folder>aspnetcore50</Folder>
+    </TestTargetFramework>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackagesConfigs Include="$(ProjectPackagesConfigFile)" />
+    <PackagesConfigs Include="$(TestRuntimePackageConfig)" />
+  </ItemGroup>
+
+  <Target Name="DiscoverTestInputs">
+    <ItemGroup>
+      <RunTestsForProjectInputs Include="@(PackagesConfigs)" />
+      <RunTestsForProjectInputs Include="@(ReferenceCopyLocalPaths)" />
+      <RunTestsForProjectInputs Include="@(Content)" />
+      <RunTestsForProjectInputs Include="@(IntermediateAssembly)" />
+      <RunTestsForProjectInputs Include="@(_DebugSymbolsIntermediatePath)" />
+      <RunTestsForProjectInputs Include="@(AllItemsFullPathWithTargetPath)" />
+    </ItemGroup>
+  </Target>
 
   <!-- On command line run unit tests on CoreCLR after the Test target -->
   <Target Name="RunTestsForProject"
+          DependsOnTargets="DiscoverTestInputs"
           AfterTargets="CheckTestCategories"
+          Inputs="@(RunTestsForProjectInputs)"
+          Outputs="$(TestPath)%(TestTargetFramework.Folder)\$(TestsSuccessfulSemaphore);$(TestPath)%(TestTargetFramework.Folder)\$(XunitResultsFileName)"
           Condition="'$(TestDisabled)'!='true'">
+
+    <CallTarget Targets="CopyTestToTestDirectory"/>
 
     <PropertyGroup>
       <XunitTraitOptions Condition="'@(RunWithTraits)'!=''">$(XunitTraitOptions) -trait category=@(RunWithTraits, ' -trait category=') </XunitTraitOptions>
@@ -83,6 +113,7 @@
 
     <Delete Condition="'$(DeletePerfDataFile)' == 'true'" Files="$(TestPath)%(TestTargetFramework.Folder)\$(EventTracerDataFile)" />
     <Error Condition="'$(TestRunExitCode)' != '0'" Text="One or more tests failed while running tests from '$(MSBuildProjectName)' please check log for details!" />
+    <Touch Condition="'$(TestRunExitCode)' == '0'" Files="$(TestPath)%(TestTargetFramework.Folder)\$(TestsSuccessfulSemaphore)" AlwaysCreate="true" />
   </Target>
 
   <!-- Needs to run before RunTestsForProject target as it computes categories and set TestDisabled -->
