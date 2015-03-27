@@ -30,6 +30,7 @@
     <XunitCommandLine>xunit.console.netcore.exe $(TargetFileName)</XunitCommandLine>
     <XunitOptions>$(XunitOptions) -xml $(XunitResultsFileName)</XunitOptions>
     <XunitOptions>$(XunitOptions) -notrait category=failing</XunitOptions>
+    <XunitOptions Condition="'$(OS)'=='Windows_NT'">$(XunitOptions) -notrait category=nonwindowstests</XunitOptions>
 
     <!-- We need to exclude xunit traits and add wait option for VS -->
     <VSStartArguments>$(XunitCommandLine) $(XunitOptions) -wait</VSStartArguments>
