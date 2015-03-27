@@ -52,9 +52,35 @@
   </Target>
 
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" 
-          Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable'" />
+          Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' and '$(MSBuildProjectExtension)' == '.csproj'" />
 
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"
-          Condition="'$(TargetFrameworkIdentifier)' != '.NETPortable'" />
+          Condition="'$(TargetFrameworkIdentifier)' != '.NETPortable' and '$(MSBuildProjectExtension)' == '.csproj'" />
+
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.VisualBasic.targets"
+          Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' and '$(MSBuildProjectExtension)' == '.vbproj'" />
+
+  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets"
+          Condition="'$(TargetFrameworkIdentifier)' != '.NETPortable' and '$(MSBuildProjectExtension)' == '.vbproj'" />
+
+  <!-- We need to point $(FrameworkPathOverride) to the directory that contains explicitly referenced System.Runtime.dll, if any.
+       Otherwise, if $(FrameworkPathOverride)\System.Runtime.dll is not the same file as the one referenced explicitly, 
+       VS2013 VB compiler would load it and then it would complain about ambiguous type declarations. 
+  -->
+  <PropertyGroup Condition="'$(MSBuildProjectExtension)' == '.vbproj'">
+    <CoreCompileDependsOn>$(CoreCompileDependsOn);OverrideFrameworkPathForVisualBasic</CoreCompileDependsOn>
+  </PropertyGroup>
+
+  <Target Name="OverrideFrameworkPathForVisualBasic" AfterTargets="ResolveAssemblyReferences" Condition="'$(MSBuildProjectExtension)' == '.vbproj'">
+    <ItemGroup>
+      <FrameworkPathOverrideCandidate Include="%(ReferencePath.RootDir)%(ReferencePath.Directory)"
+            Condition="'%(ReferencePath.Filename)%(ReferencePath.Extension)' == 'System.Runtime.dll'">
+      </FrameworkPathOverrideCandidate>
+    </ItemGroup>
+
+    <PropertyGroup Condition="'@(FrameworkPathOverrideCandidate->Count())' == '1'">
+      <FrameworkPathOverride>@(FrameworkPathOverrideCandidate)</FrameworkPathOverride>
+    </PropertyGroup>
+  </Target>
 
 </Project>

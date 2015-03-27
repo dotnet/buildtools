@@ -44,9 +44,13 @@
   </ItemGroup>
   
   <ItemGroup Condition="Exists('$(StringResourcesPath)') And '$(SkipCommonResourcesIncludes)'==''">
-    <Compile Include="$(CommonPath)\System\SR.cs">
+    <Compile Condition="'$(MSBuildProjectExtension)' == '.csproj'" Include="$(CommonPath)\System\SR.cs">
       <Visible>true</Visible>
       <Link>Resources\Common\SR.cs</Link>
+    </Compile>
+    <Compile Condition="'$(MSBuildProjectExtension)' == '.vbproj'" Include="$(CommonPath)\System\SR.vb">
+      <Visible>true</Visible>
+      <Link>Resources\Common\SR.vb</Link>
     </Compile>
   </ItemGroup>
 </Project>
