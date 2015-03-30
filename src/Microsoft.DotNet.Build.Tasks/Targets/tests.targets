@@ -144,6 +144,11 @@
     <PropertyGroup>
       <TestDisabled Condition="'@(TestCategoriesToRun)'==''">true</TestDisabled>
     </PropertyGroup>
+
+    <PropertyGroup>
+      <TestsSuccessfulSemaphore Condition="'@(RunWithTraits)' != ''">$(TestsSuccessfulSemaphore).with.@(RunWithTraits, '.')</TestsSuccessfulSemaphore>
+      <TestsSuccessfulSemaphore Condition="'@(RunWithoutTraits)' != ''">$(TestsSuccessfulSemaphore).without.@(RunWithoutTraits, '.')</TestsSuccessfulSemaphore>
+    </PropertyGroup>
   </Target>
 
 </Project>
