@@ -18,7 +18,7 @@
       TargetFrameworkVersion - If not set defaults to v4.5
       TargetFrameworkProfile - If not set defaults to Profile7
     
-    This Imports portable.csharp.targets if .NETPortable is the identifier otherwise it imports csharp.targets  
+    This Imports portable.csharp/visualbasic.targets if .NETPortable is the identifier otherwise it imports csharp/visualbasic.targets  
   -->
   <Import Project="$(MSBuildThisFileDirectory)FrameworkTargeting.targets" Condition="'$(ExcludeFrameworkTargetingImport)'!='true'" />
   
@@ -34,7 +34,7 @@
         NugetRestoreCommand - Used to restore the project packages
         PackagesDir - Packages are restored to and resolved from this location
 
-      Depends on properties set by csharp.targets so needs to be imported after.
+      Depends on properties set by csharp/visualbasic.targets so needs to be imported after.
   -->
   <Import Project="$(MSBuildThisFileDirectory)packageresolve.targets" Condition="'$(ExcludePackageResolveImport)'!='true'" />
 
@@ -44,7 +44,7 @@
       Inputs:
         ResourcesSourceOutputDirectory - If not set defaults to $(MSBuildProjectDirectory)\Resources.
         StringResourcesPath - If not set defaults to $(ResourcesSourceOutputDirectory\Strings.resx if it exists. If the file exists
-          then the targets generates the strongly typed $(ResourcesSourceOutputDirectory)\SR.cs file based on resource strings.  
+          then the targets generates the strongly typed $(ResourcesSourceOutputDirectory)\SR.cs/vb file based on resource strings.  
   -->
   <Import Project="$(MSBuildThisFileDirectory)resources.targets" Condition="'$(ExcludeResourcesImport)'!='true'" />
 
