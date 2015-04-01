@@ -4,14 +4,12 @@
   <UsingTask TaskName="ResolveNuGetPackageAssets" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
   
   <PropertyGroup>
-    <TestRuntimeProjectJson Condition="'$(TestRuntimeProjectJson)' == ''">$(MSBuildThisFileDirectory)test-runtime\project.json</TestRuntimeProjectJson>
-    <TestRuntimeProjectLockJson Condition="'$(TestRuntimeProjectLockJson)' == ''">$(MSBuildThisFileDirectory)test-runtime\project.lock.json</TestRuntimeProjectLockJson>
     <SerializeProjects Condition="'$(TestWithLocalLibraries)'=='true'">true</SerializeProjects>
   </PropertyGroup>
 
   <Target Name="RestoreTestRuntimePackage"
           BeforeTargets="ResolveNuGetPackages"
-          Condition="'$(IsTestProject)' == 'true'">
+          Condition="'$(IsTestProject)' == 'true' AND '$(TestRuntimeProjectJson)' != ''">
     <Exec Command="$(DnuRestoreCommand) &quot;$(TestRuntimeProjectJson)&quot;" StandardOutputImportance="Low" CustomErrorRegularExpression="^Unable to locate .*" />
   </Target>
 
