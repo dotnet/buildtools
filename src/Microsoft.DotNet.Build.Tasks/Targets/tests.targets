@@ -65,7 +65,7 @@
     <PackagesConfigs Include="$(TestRuntimePackageConfig)" />
   </ItemGroup>
 
-  <Target Name="DiscoverTestInputs">
+  <Target Name="DiscoverTestInputs" DependsOnTargets="ResolveProjectReferences;ResolveAssemblyReferences;GetCopyToOutputDirectoryItems">
     <ItemGroup>
       <RunTestsForProjectInputs Include="@(PackagesConfigs)" />
       <RunTestsForProjectInputs Include="@(ReferenceCopyLocalPaths)" />
