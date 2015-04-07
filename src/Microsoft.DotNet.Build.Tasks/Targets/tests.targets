@@ -81,7 +81,7 @@
           DependsOnTargets="DiscoverTestInputs"
           AfterTargets="CheckTestCategories"
           Inputs="@(RunTestsForProjectInputs)"
-          Outputs="$(TestPath)%(TestTargetFramework.Folder)\$(TestsSuccessfulSemaphore);$(TestPath)%(TestTargetFramework.Folder)\$(XunitResultsFileName)"
+          Outputs="$(TestPath)%(TestTargetFramework.Folder)\$(TestsSuccessfulSemaphore);$(TestPath)%(TestTargetFramework.Folder)\$(XunitResultsFileName);$(CoverageOutputFilePath)"
           Condition="'$(TestDisabled)'!='true'">
 
     <CallTarget Targets="CopyTestToTestDirectory"/>
