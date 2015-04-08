@@ -4,7 +4,7 @@
   <UsingTask TaskName="ResolveNuGetPackages" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
   <PropertyGroup>
-    <ProjectPackagesConfigFile Condition="'$(ProjectPackagesConfigFile)'=='' and Exists('$(MSBuildProjectDirectory)\packages.config')">$(MSBuildProjectDirectory)\packages.config</ProjectPackagesConfigFile>
+    <ProjectPackagesConfigFile Condition="'$(ProjectPackagesConfigFile)'=='' and Exists('$(MSBuildProjectDirectory)/packages.config')">$(MSBuildProjectDirectory)/packages.config</ProjectPackagesConfigFile>
 
     <RestorePackages Condition="'$(RestorePackages)'!='false' and Exists('$(ProjectPackagesConfigFile)')">true</RestorePackages>
     <ResolveNuGetPackages Condition="'$(ResolveNuGetPackages)'!='false' and Exists('$(ProjectPackagesConfigFile)')">true</ResolveNuGetPackages>
