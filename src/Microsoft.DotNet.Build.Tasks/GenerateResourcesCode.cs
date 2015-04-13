@@ -20,6 +20,7 @@ namespace Microsoft.DotNet.Build.Tasks
         private StreamWriter _targetStream;
         private StringBuilder _debugCode = new StringBuilder();
         private Dictionary<string, int> _keys;
+        private String _resourcesName;
 
         [Required]
         public string ResxFilePath { get; set; }
@@ -36,6 +37,8 @@ namespace Microsoft.DotNet.Build.Tasks
         {
             try
             {
+                _resourcesName = "FxResources." + AssemblyName;
+
                 using (_resxReader = new ResXResourceReader(ResxFilePath))
                 {
                     using (_targetStream = File.CreateText(OutputSourceFilePath))
@@ -50,7 +53,9 @@ namespace Microsoft.DotNet.Build.Tasks
                         WriteClassHeader();
                         RunOnResFile();
                         WriteDebugCode();
+                        WriteGetTypeProperty();
                         WriteClassEnd();
+                        WriteResourceTypeClass();
                     }
                 }
             }
@@ -78,7 +83,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 _targetStream.WriteLine("    {");
 
                 _targetStream.WriteLine("#pragma warning disable 0414");
-                _targetStream.WriteLine("        private const string s_resourcesName = \"{0}\"; // assembly Name + .resources", AssemblyName + ".resources");
+                _targetStream.WriteLine("        private const string s_resourcesName = \"{0}\";", _resourcesName + ".SR");
                 _targetStream.WriteLine("#pragma warning restore 0414");
                 _targetStream.WriteLine("");
 
@@ -92,7 +97,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 _targetStream.WriteLine("    Friend Partial Class SR");
                 _targetStream.WriteLine("    ");
 
-                _targetStream.WriteLine("        Private Const s_resourcesName As String = \"{0}\" ' assembly Name + .resources", AssemblyName + ".resources");
+                _targetStream.WriteLine("        Private Const s_resourcesName As String = \"{0}\"", _resourcesName + ".SR");
                 _targetStream.WriteLine("");
                 if (!DebugOnly)
                     _targetStream.WriteLine("#If Not DEBUGRESOURCES Then");
@@ -169,6 +174,18 @@ namespace Microsoft.DotNet.Build.Tasks
             }
         }
 
+        private void WriteGetTypeProperty()
+        {
+            if (_targetLanguage == TargetLanguage.CSharp)
+            {
+                _targetStream.WriteLine("        internal static Type ResourceType {1}{3}              get {1} return typeof({0}); {2}{3}        {2}", _resourcesName + ".SR", "{", "}", Environment.NewLine);
+            }
+            else
+            {
+                _targetStream.WriteLine("        Friend Shared ReadOnly Property ResourceType As Type{1}           Get{1}                 Return GetType({0}){1}            End Get{1}        End Property", _resourcesName + ".SR", Environment.NewLine);
+            }
+        }
+
         private void WriteClassEnd()
         {
             if (_targetLanguage == TargetLanguage.CSharp)
@@ -183,6 +200,29 @@ namespace Microsoft.DotNet.Build.Tasks
             }
         }
 
+        private void WriteResourceTypeClass()
+        {
+            if (_targetLanguage == TargetLanguage.CSharp)
+            {
+                _targetStream.WriteLine("namespace {0}", _resourcesName);
+                _targetStream.WriteLine("{");
+                _targetStream.WriteLine("    // The type of this class is used to create the ResourceManager instance as the type name matches the name of the embedded resources file");
+                _targetStream.WriteLine("    internal static class SR");
+                _targetStream.WriteLine("    {");
+                _targetStream.WriteLine("    }");
+                _targetStream.WriteLine("}");
+            }
+            else
+            {
+                _targetStream.WriteLine("Namespace {0}", _resourcesName);
+                _targetStream.WriteLine("    ' The type of this class is used to create the ResourceManager instance as the type name matches the name of the embedded resources file");
+                _targetStream.WriteLine("    Friend Class SR");
+                _targetStream.WriteLine("    ");
+                _targetStream.WriteLine("    End Class");
+                _targetStream.WriteLine("End Namespace");
+            }
+        }
+        
         private enum TargetLanguage
         {
             CSharp, VB
