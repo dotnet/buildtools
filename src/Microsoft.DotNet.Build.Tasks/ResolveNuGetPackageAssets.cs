@@ -243,6 +243,20 @@ namespace Microsoft.NuGet.Build.Tasks
                 var itemsInLib = GetTaskItemsFromLibrary(library, patternDefinitions.ManagedAssemblies);
                 var itemsInLibArchitectureSpecific = GetTaskItemsFromLibrary(library, patternDefinitions.NativeLibraries);
                 var itemsInAot = GetTaskItemsFromLibrary(library, patternDefinitions.AheadOfTimeAssemblies);
+                
+                Log.LogMessage(MessageImportance.Low, "Library {0}", library.Identity);
+                Log.LogMessage(MessageImportance.Low, "  Ref:");
+                Log.LogMessage(MessageImportance.Low, "    " + String.Join("    \r\n", itemsInRef));
+                Log.LogMessage(MessageImportance.Low, "  Lib:");
+                Log.LogMessage(MessageImportance.Low, "    " + String.Join("    \r\n", itemsInLib));
+
+
+                // workaround due to lack of distinction between ref with placeholder and no ref
+                if (itemsInRef.Count == 0 && !library.Identity.Name.StartsWith("System.Private")  && !library.Identity.Name.StartsWith("Microsoft.NETCore"))
+                {
+                    // use lib in absence of ref.
+                    itemsInRef = itemsInLib;
+                }
 
                 ApplyCompileTimeReferenceMetadata(itemsInRef, library);
                 references.AddRange(itemsInRef);
