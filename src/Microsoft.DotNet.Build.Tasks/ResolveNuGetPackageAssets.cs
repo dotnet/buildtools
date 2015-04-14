@@ -65,7 +65,6 @@ namespace Microsoft.NuGet.Build.Tasks
         /// <summary>
         /// The name of the architecture of binaries to choose. Examples include 'AnyCPU', 'x86', etc.
         /// </summary>
-        [Required]
         public string Architecture
         {
             get; set;
@@ -74,7 +73,6 @@ namespace Microsoft.NuGet.Build.Tasks
         /// <summary>
         /// The name (Debug or Release) of the configuration to choose.
         /// </summary>
-        [Required]
         public string Configuration
         {
             get; set;
