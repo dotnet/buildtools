@@ -2,31 +2,39 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <UsingTask TaskName="ResolveNuGetPackages" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="ResolveNuGetPackageAssets" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
   <PropertyGroup>
     <ProjectPackagesConfigFile Condition="'$(ProjectPackagesConfigFile)'=='' and Exists('$(MSBuildProjectDirectory)/packages.config')">$(MSBuildProjectDirectory)/packages.config</ProjectPackagesConfigFile>
+    <ProjectJson Condition="'$(ProjectJson)'=='' and Exists('$(MSBuildProjectDirectory)/project.json')">$(MSBuildProjectDirectory)/project.json</ProjectJson>
+    <ProjectLockJson>$(MSBuildProjectDirectory)/project.lock.json</ProjectLockJson>
 
-    <RestorePackages Condition="'$(RestorePackages)'!='false' and Exists('$(ProjectPackagesConfigFile)')">true</RestorePackages>
-    <ResolveNuGetPackages Condition="'$(ResolveNuGetPackages)'!='false' and Exists('$(ProjectPackagesConfigFile)')">true</ResolveNuGetPackages>
+    <RestorePackages Condition="'$(RestorePackages)'!='false' and (Exists('$(ProjectPackagesConfigFile)') or Exists('$(ProjectJson)'))">true</RestorePackages>
+    <ResolveNuGetPackages Condition="'$(ResolveNuGetPackages)'!='false' and (Exists('$(ProjectPackagesConfigFile)') or Exists('$(ProjectJson)'))">true</ResolveNuGetPackages>
 
-    <RestorePackagesSemaphore>$(PackagesDir)$(MSBuildProjectFile)-packages.config</RestorePackagesSemaphore>
+    <RestorePackagesSemaphore Condition="Exists('$(ProjectPackagesConfigFile)')">$(PackagesDir)$(MSBuildProjectFile)-packages.config</RestorePackagesSemaphore>
+    <RestoreProjectJsonSemaphore Condition="Exists('$(ProjectJson)')">$(PackagesDir)$(MSBuildProjectFile)-project.json</RestoreProjectJsonSemaphore>
   </PropertyGroup>
 
   <Target Name="RestorePackages" 
           BeforeTargets="ResolveNuGetPackages"
-          Inputs="$(ProjectPackagesConfigFile)"
-          Outputs="$(RestorePackagesSemaphore)"
+          Inputs="$(ProjectPackagesConfigFile);$(ProjectJson)"
+          Outputs="$(RestorePackagesSemaphore);$(RestoreProjectJsonSemaphore)"
           Condition="'$(RestorePackages)'=='true'">
 
-    <Error Condition="'$(NugetRestoreCommand)'==''" Text="RestorePackages target needs a predefined NugetRestoreCommand property set in order to restore $(ProjectPackagesConfigFile)" /> 
+    <Error Condition="'$(NugetRestoreCommand)'=='' and Exists('$(ProjectPackagesConfigFile)')" Text="RestorePackages target needs a predefined NugetRestoreCommand property set in order to restore $(ProjectPackagesConfigFile)" /> 
+    <Error Condition="'$(DnuRestoreCommand)'=='' and Exists('$(ProjectJson)')" Text="RestorePackages target needs a predefined DnuRestoreCommand property set in order to restore $(ProjectJson)" /> 
+    
+    <Exec Condition="Exists('$(ProjectPackagesConfigFile)')" Command="$(NugetRestoreCommand) &quot;$(ProjectPackagesConfigFile)&quot;" StandardOutputImportance="Low" />
+    <Exec Condition="Exists('$(ProjectJson)')" Command="$(DnuRestoreCommand) &quot;$(ProjectJson)&quot;" StandardOutputImportance="Low" CustomErrorRegularExpression="^Unable to locate .*" />
 
-    <Exec Command="$(NugetRestoreCommand) &quot;$(ProjectPackagesConfigFile)&quot;" StandardOutputImportance="Low" />
-
-    <Copy SourceFiles="$(ProjectPackagesConfigFile)" DestinationFiles="$(RestorePackagesSemaphore)" ContinueOnError="true" SkipUnchangedFiles="true" />
+    <Copy Condition="Exists('$(ProjectPackagesConfigFile)')" SourceFiles="$(ProjectPackagesConfigFile)" DestinationFiles="$(RestorePackagesSemaphore)" ContinueOnError="true" SkipUnchangedFiles="true" />
+    <Copy Condition="Exists('$(ProjectJson)')" SourceFiles="$(ProjectJson)" DestinationFiles="$(RestoreProjectJsonSemaphore)" ContinueOnError="true" SkipUnchangedFiles="true" />
   </Target>
 
-  <ItemGroup>
-    <CustomAdditionalCompileInputs Include="$(ProjectPackagesConfigFile)" Condition="'$(ResolvePackages)'=='true' or '$(ResolveNuGetPackages)'=='true'" />
+  <ItemGroup Condition="'$(ResolvePackages)'=='true' or '$(ResolveNuGetPackages)'=='true'">
+    <CustomAdditionalCompileInputs Condition="Exists('$(ProjectPackagesConfigFile)')" Include="$(ProjectPackagesConfigFile)" />
+    <CustomAdditionalCompileInputs Condition="Exists('$(ProjectJson)')" Include="$(ProjectJson)" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -34,23 +42,47 @@
       $(ResolveAssemblyReferencesDependsOn);
       ResolveNuGetPackages;
     </ResolveAssemblyReferencesDependsOn>
+    <NugetTargetFrameworkMoniker Condition="'$(NugetTargetFrameworkMoniker)' == ''">$(TargetFrameworkMoniker)</NugetTargetFrameworkMoniker>
   </PropertyGroup>
 
   <Target Name="ResolveNuGetPackages" 
           Condition="'$(ResolveNuGetPackages)'=='true'">
 
-    <ResolveNuGetPackages PackagesConfigs="$(ProjectPackagesConfigFile)"
+    <!-- Use old task for packages.config -->
+    <ResolveNuGetPackages Condition="'$(ProjectPackagesConfigFile)' != ''"
+                          PackagesConfigs="$(ProjectPackagesConfigFile)"
                           PackageRoot="$(PackagesDir)"
                           Platform="$(PlatformTarget)"
                           Configuration="$(Configuration)"
                           Language="$(Language)"
-                          TargetFramework="$(TargetFrameworkMoniker)"
+                          TargetFramework="$(NugetTargetFrameworkMoniker)"
                           TargetPlatformMoniker="$(TargetPlatformMoniker)">
 
       <Output TaskParameter="ResolvedAnalyzers" ItemName="Analyzer" />
       <Output TaskParameter="ResolvedReferences" ItemName="Reference" />
       <Output TaskParameter="ResolvedCopyLocal" ItemName="None" />
     </ResolveNuGetPackages>
+
+    <PropertyGroup>
+      <!-- Temporary workaround -->
+      <NugetTargetFrameworkMoniker Condition="'$(NugetTargetFrameworkMoniker)' == '.NETPortable,Version=v4.5,Profile=Profile7'">DNXCore,Version=v5.0</NugetTargetFrameworkMoniker>
+    </PropertyGroup>
+    
+    <!-- Use new task for project.json -->
+    <ResolveNuGetPackageAssets Condition="'$(ProjectJson)' != ''"
+                               Architecture="$(PlatformTarget)"
+                               Configuration="$(Configuration)"
+                               Language="$(Language)"
+                               IngoreLockFile="$(NuGetIngoreLockFile)"
+                               PackageRoot="$(PackagesDir)"
+                               ProjectFile="$(MSBuildProjectFullPath)"
+                               TargetFrameworkMonikers="$(NugetTargetFrameworkMoniker)"
+                               TargetPlatformMonikers="$(TargetPlatformMoniker)"
+                               TransitiveProjectReferences="">
+      <Output TaskParameter="ResolvedAnalyzers" ItemName="Analyzer" />
+      <Output TaskParameter="ResolvedReferences" ItemName="Reference" />
+      <Output TaskParameter="ResolvedCopyLocalItems" ItemName="None" />
+    </ResolveNuGetPackageAssets>
   </Target>
 
 </Project>
