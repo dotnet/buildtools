@@ -147,6 +147,15 @@ namespace Microsoft.NuGet.Build.Tasks
         }
 
         /// <summary>
+        /// True to ignore the lock file even when present
+        /// </summary>
+        public bool IngoreLockFile
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Performs the NuGet package resolution.
         /// </summary>
         public override bool Execute()
@@ -161,7 +170,7 @@ namespace Microsoft.NuGet.Build.Tasks
 
             var lockFilePath = Path.Combine(Path.GetDirectoryName(ProjectFile), LockFileFormat.LockFileName);
 
-            if (File.Exists(lockFilePath))
+            if (File.Exists(lockFilePath) && !IngoreLockFile)
             {
                 var lockFile = LockFileFormat.Read(lockFilePath);
 
