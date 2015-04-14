@@ -66,6 +66,26 @@
       <Output TaskParameter="ResolvedCopyLocalItems" ItemName="TestCopyLocal" />
     </ResolveNuGetPackageAssets>
 
+    <!-- We may have an indirect package reference that we want to replace with a project reference -->
+    <ItemGroup>
+      <!-- Convert to filenames so that we can intersect -->
+      <_ProjectReferenceFilenames Include="@(_ResolvedProjectReferencePaths->'%(FileName)%(Extension)')">
+        <OriginalIdentity>%(Identity)</OriginalIdentity>
+      </_ProjectReferenceFilenames>
+
+      <_TestCopyLocalFileNames Include="@(Reference->'%(FileName)%(Extension)')">
+        <OriginalIdentity>%(Identity)</OriginalIdentity>
+      </_TestCopyLocalFileNames>
+
+      <!-- Intersect project-refs with package-refs -->
+      <_TestCopyLocalFileNamesToRemove Include="@(_ReferencesFileNames->'%(OriginalIdentity)')" Condition="'@(_ProjectReferenceFilenames)' == '@(_ReferencesFileNames)' and '%(Identity)' != ''"/>
+
+      <TestCopyLocal Remove="@(_TestCopyLocalFileNamesToRemove)" />
+    </ItemGroup>
+
+    <Message Text="Excluding @(_TestCopyLocalFileNamesToRemove) from package references since the same file is provided by a project refrence."
+             Condition="'@(_TestCopyLocalFileNamesToRemove)' != ''"/>
+
     <ItemGroup>
       <TestCopyLocal Include="@(RunTestsForProjectInputs)" Exclude="@(PackagesConfigs)" />
     </ItemGroup>

@@ -83,6 +83,32 @@
       <Output TaskParameter="ResolvedReferences" ItemName="Reference" />
       <Output TaskParameter="ResolvedCopyLocalItems" ItemName="None" />
     </ResolveNuGetPackageAssets>
+
+    <!-- We may have an indirect package reference that we want to replace with a project reference -->
+    <ItemGroup>
+      <!-- Convert to filenames so that we can intersect -->
+      <_ProjectReferenceFilenames Include="@(_ResolvedProjectReferencePaths->'%(FileName)%(Extension)')">
+        <OriginalIdentity>%(Identity)</OriginalIdentity>
+      </_ProjectReferenceFilenames>
+
+      <_ReferencesFileNames Include="@(Reference->'%(FileName)%(Extension)')">
+        <OriginalIdentity>%(Identity)</OriginalIdentity>
+      </_ReferencesFileNames>
+
+      <_NoneFileNames Include="@(None->'%(FileName)%(Extension)')">
+        <OriginalIdentity>%(Identity)</OriginalIdentity>
+      </_NoneFileNames>
+      
+      <!-- Intersect project-refs with package-refs -->
+      <_ReferenceFileNamesToRemove Include="@(_ReferencesFileNames->'%(OriginalIdentity)')" Condition="'@(_ProjectReferenceFilenames)' == '@(_ReferencesFileNames)' and '%(Identity)' != ''"/>
+      <_NoneFileNamesToRemove Include="@(_NoneFileNames->'%(OriginalIdentity)')" Condition="'@(_ProjectReferenceFilenames)' == '@(_NoneFileNames)' and '%(Identity)' != ''"/>
+
+      <Reference Remove="@(_ReferenceFileNamesToRemove)" />
+      <None Remove="@(_NoneFileNamesToRemove)"/>
+    </ItemGroup>
+    
+    <Message Text="Excluding @(_ReferenceFileNamesToRemove);@(_NoneFileNamesToRemove) from package references since the same file is provided by a project refrence."
+             Condition="'@(_ReferenceFileNamesToRemove)' != '' AND '@(_NoneFileNamesToRemove)' != ''"/>
   </Target>
 
 </Project>
