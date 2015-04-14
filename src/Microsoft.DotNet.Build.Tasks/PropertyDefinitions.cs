@@ -57,6 +57,7 @@ namespace Microsoft.NuGet.Build.Tasks
                 {
                     { "aspnet50", new NuGetFramework("ASP.NET", new Version(5, 0)) },
                     { "aspnetcore50", new NuGetFramework("ASP.NETCore", new Version(5, 0)) },
+                    { "dnxcore50", new NuGetFramework("DNXCore", new Version(5, 0)) },
                     { "any", NuGetFramework.AnyFramework },
                     { "monoandroid", new NuGetFramework("MonoAndroid",new Version()) },
                     { "monotouch", new NuGetFramework("MonoTouch",new Version()) },

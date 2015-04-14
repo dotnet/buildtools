@@ -154,6 +154,12 @@ namespace Microsoft.Build.Tasks
             var targetFrameworks = new List<FrameworkName>();
             var targetFramework = new FrameworkName(TargetFramework);
 
+            if (targetFramework.Identifier == "DNXCore")
+            {
+                // We're still using a version of nuget.core that doesn't understand DNXCore.
+                targetFramework = new FrameworkName("ASP.NetCore", targetFramework.Version);
+            }
+
             if (targetFramework.Identifier == ".NETPortable")
             {
                 // Let's convert
