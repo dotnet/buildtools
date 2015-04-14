@@ -114,6 +114,15 @@ namespace Microsoft.NuGet.Build.Tasks
             set;
         }
 
+        /// <summary>
+        /// The path to the downloaded nuget package dependencies.
+        /// </summary>
+        public string PackageRoot
+        {
+            get;
+            set;
+        }
+
         public bool UseDotNetNativeToolchain
         {
             get; set;
@@ -158,6 +167,11 @@ namespace Microsoft.NuGet.Build.Tasks
 
                 // Handle dependencies from the lock file
                 providers.Add(new LockFileDependencyProvider(lockFile));
+            }
+            else if (!String.IsNullOrEmpty(PackageRoot))
+            {
+                // use the passed in package root
+                providers.Add(new NuGetDependencyResolver(Path.GetFullPath(PackageRoot)));
             }
             else
             {
