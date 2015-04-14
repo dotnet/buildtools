@@ -18,10 +18,13 @@ namespace Microsoft.NuGet.Build.Tasks
     internal sealed class MSBuildDependencyProvider : IDependencyProvider
     {
         private readonly string _msbuildProjectFilePath;
+        private readonly string[] _additionalProjectJsonPaths;
+        
 
-        public MSBuildDependencyProvider(string projectFilePath)
+        public MSBuildDependencyProvider(string projectFilePath, IEnumerable<string> additionalProjectJsonPaths)
         {
             _msbuildProjectFilePath = projectFilePath;
+            _additionalProjectJsonPaths = additionalProjectJsonPaths == null ? new string[0] : additionalProjectJsonPaths.ToArray();
         }
 
         public Library GetDescription(LibraryRange libraryRange, NuGetFramework targetFramework)
@@ -35,15 +38,15 @@ namespace Microsoft.NuGet.Build.Tasks
 
             var projectJsonPath = Path.Combine(Path.GetDirectoryName(_msbuildProjectFilePath), "project.json");
 
-            using (var fileStream = new FileStream(projectJsonPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            if (File.Exists(projectJsonPath))
             {
-                var packageSpec = JsonPackageSpecReader.GetPackageSpec(fileStream, projectJsonPath, projectJsonPath);
+                // may be running against a project with only a packages.config
+                AddFromProjectJsonFile(dependencies, projectJsonPath, targetFramework);
+            }
 
-                // Grab dependencies from here too
-                var targetFrameworkInfo = packageSpec.GetTargetFramework(targetFramework);
-
-                dependencies.AddRange(packageSpec.Dependencies);
-                dependencies.AddRange(targetFrameworkInfo.Dependencies);
+            foreach(string additionalProjectJsonPath in _additionalProjectJsonPaths)
+            {
+                AddFromProjectJsonFile(dependencies, additionalProjectJsonPath, targetFramework);
             }
 
             var description = new Library
@@ -60,6 +63,20 @@ namespace Microsoft.NuGet.Build.Tasks
             };
 
             return description;
+        }
+
+        private void AddFromProjectJsonFile(List<LibraryDependency> dependencies, string projectJsonPath, NuGetFramework targetFramework)
+        {
+            using (var fileStream = new FileStream(projectJsonPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                var packageSpec = JsonPackageSpecReader.GetPackageSpec(fileStream, projectJsonPath, projectJsonPath);
+
+                // Grab dependencies from here too
+                var targetFrameworkInfo = packageSpec.GetTargetFramework(targetFramework);
+
+                dependencies.AddRange(packageSpec.Dependencies);
+                dependencies.AddRange(targetFrameworkInfo.Dependencies);
+            }
         }
 
         public bool SupportsType(string libraryType)

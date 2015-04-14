@@ -108,6 +108,12 @@ namespace Microsoft.NuGet.Build.Tasks
             get; set;
         }
 
+        public string[] AdditonalProjectJsonFiles
+        {
+            get;
+            set;
+        }
+
         public bool UseDotNetNativeToolchain
         {
             get; set;
@@ -159,7 +165,7 @@ namespace Microsoft.NuGet.Build.Tasks
                 providers.Add(new NuGetDependencyResolver(GetSystemWidePackagesPath()));
             }
 
-            providers.Add(new MSBuildDependencyProvider(ProjectFile));
+            providers.Add(new MSBuildDependencyProvider(ProjectFile, AdditonalProjectJsonFiles));
 
             var walker = new DependencyWalker(providers);
             var root = walker.Walk(ProjectFile, new NuGetVersion(new Version()), NuGetFramework.Parse(TargetFrameworkMonikers.First()));
