@@ -44,10 +44,14 @@
       BeforeTargets="ResolveReferences"
       DependsOnTargets="GetReferenceAssemblyPaths"
   >
+    <PropertyGroup>
+      <_resolvedMscorlib Condition="'%(ReferencePath.FileName)' == 'mscorlib'">true</_resolvedMscorlib>
+    </PropertyGroup>
+
     <ItemGroup>
       <PossibleTargetFrameworks Include="$(_TargetFrameworkDirectories)" />
       <ReferencePath Include="%(PossibleTargetFrameworks.Identity)mscorlib.dll" 
-                     Condition="'%(PossibleTargetFrameworks.Identity)' != '' and Exists('%(PossibleTargetFrameworks.Identity)mscorlib.dll')" />
+                     Condition="'$(_resolvedMscorlib)' != 'true' and '%(PossibleTargetFrameworks.Identity)' != '' and Exists('%(PossibleTargetFrameworks.Identity)mscorlib.dll')" />
     </ItemGroup>
   </Target>
 

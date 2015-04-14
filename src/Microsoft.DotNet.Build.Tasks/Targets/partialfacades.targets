@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <GenFacadesNuGetName>Microsoft.DotNet.BuildTools.ApiTools.1.0.0-prerelease</GenFacadesNuGetName>
+    <GenFacadesPath>$(PackagesDir)$(GenFacadesNuGetName)\tools\GenFacades.exe</GenFacadesPath>
+  </PropertyGroup>
+
+  <!-- Default properties for partial facade projects -->
+  <PropertyGroup Condition="'$(IsPartialFacadeAssembly)' == 'true'">
+    <PostFilterNugetReferences>true</PostFilterNugetReferences>
+    <IgnoreArchitectureMismatches>true</IgnoreArchitectureMismatches>
+    <ExcludeDesignTimeFacadeReferences>true</ExcludeDesignTimeFacadeReferences>
+  </PropertyGroup>
+
+  <!-- It seems this needs to be set here, and cannot be set in individual project files -->
+  <PropertyGroup Condition="'$(IgnoreArchitectureMismatches)' == 'true'">
+    <!-- Needed because we are using mscorlib.dll from the CoreCLR package, rather than a true reference assembly -->
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+  </PropertyGroup>
+
+  <!-- PostFilterNuGetReferences
+       Filters the set of references generated from the ResolveNugetPackages target. This is a default target for partial facade
+         assemblies, and can be optionally used in other projects as well, by setting PostFilterNugetReferences=true. The target
+         contains some logic for removing well-known assemblies from the "Microsoft.DotNet.CoreCLR" package, except for "mscorlib.dll".
+  -->
+  <Target Name="PostFilterNugetReferences"
+    Condition="'$(PostFilterNugetReferences)' == 'true'"
+    AfterTargets="ResolveNugetPackages">
+
+    <!-- Well-known default removals -->
+    <ItemGroup>
+      <!-- Only take mscorlib from Microsoft.DotNet.CoreCLR. -->
+      <ReferenceRemovals Include="@(Reference)" Condition="'%(NuGetPackageId)' == 'Microsoft.DotNet.CoreCLR' and '%(FileName)' != 'mscorlib'"/>
+      <!-- We don't want any of these from Microsoft.DotNet.CoreCLR, either. -->
+      <NoneRemovals Include="@(Reference)" Condition="'%(NuGetPackageId)' == 'Microsoft.DotNet.CoreCLR'"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Remove="@(ReferenceRemovals)" />
+      <None Remove="@(NoneRemovals)" />
+    </ItemGroup> 
+  </Target>
+
+  <!-- FilterPartialFacadeContractReference
+       Recognizes the contract assembly reference used for partial facade generation. Stores the path to this assembly, and 
+         removes it from the reference list, as we do not want to directly compile against it.
+  -->
+  <Target Name="FilterPartialFacadeContractReference"
+          Condition="'$(IsPartialFacadeAssembly)' == 'true'"
+          AfterTargets="ResolveNugetPackages">
+    <ItemGroup>
+      <!-- Grab the matching contract assembly here, before it is removed from the Reference ItemGroup. -->
+      <ResolvedMatchingContract Include="@(Reference)" Condition="'%(NuGetPackageId)' == '$(AssemblyName)'" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Remove="@(ResolvedMatchingContract)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- FillPartialFacade
+       Inputs:
+         * An "input assembly"
+         * A contract assembly
+         * Seed assemblies
+
+       Fills the "input assembly" by finding types in the contract assembly that are missing from it, and adding type-forwards
+         to those matching types in the seed assemblies. -->
+
+  <!-- Inputs and outputs of FillPartialFacade -->
+  <PropertyGroup Condition="'$(IsPartialFacadeAssembly)' == 'true'">
+    <PartialFacadeAssemblyPath>$(IntermediateOutputPath)$(TargetName)$(TargetExt)</PartialFacadeAssemblyPath>
+    <PartialFacadeSymbols>$(IntermediateOutputPath)$(TargetName).pdb</PartialFacadeSymbols>
+    <GenFacadesInputPath>$(IntermediateOutputPath)PreGenFacades\</GenFacadesInputPath>
+    <GenFacadesInputAssembly>$(GenFacadesInputPath)$(TargetName)$(TargetExt)</GenFacadesInputAssembly>
+    <GenFacadesInputSymbols>$(GenFacadesInputPath)$(TargetName).pdb</GenFacadesInputSymbols>
+    <GenFacadesOutputPath>$(IntermediateOutputPath)</GenFacadesOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PostProcessAssemblySteps Include="FillPartialFacade" />
+  </ItemGroup>
+
+  <Target Name="FillPartialFacade"
+      Condition="'$(IsPartialFacadeAssembly)' == 'true'"
+      BeforeTargets="OpenSourceSign">
+
+    <ItemGroup>
+      <GenFacadesSeeds Include="@(ReferencePath)" />
+    </ItemGroup>
+
+    <Error Text="No single matching contract found." Condition="'@(ResolvedMatchingContract->Count())' != '1'" />
+
+    <PropertyGroup>
+      <GenFacadesArgs>-partialFacadeAssemblyPath:$(GenFacadesInputAssembly)</GenFacadesArgs>
+      <GenFacadesArgs>$(GenFacadesArgs) -contracts:%(ResolvedMatchingContract.Identity)</GenFacadesArgs>
+      <GenFacadesArgs>$(GenFacadesArgs) -seeds:@(GenFacadesSeeds, ';')</GenFacadesArgs>
+      <GenFacadesArgs>$(GenFacadesArgs) -facadePath:$(GenFacadesOutputPath)</GenFacadesArgs>
+      <GenFacadesArgs Condition="'@(SeedTypePreference)' != ''">$(GenFacadesArgs) -preferSeedType:@(SeedTypePreference->'%(Identity)=%(Assembly)', ',')</GenFacadesArgs>
+    </PropertyGroup>
+
+    <!-- Move the assembly into a subdirectory for GenFacades -->
+    <Move SourceFiles="$(PartialFacadeAssemblyPath);$(PartialFacadeSymbols)"
+          DestinationFolder="$(GenFacadesInputPath)"
+    />
+
+    <Exec Command="$(GenFacadesPath) $(GenFacadesArgs)" />
+
+    <ItemGroup>
+      <FileWrites Include="$(GenFacadesInputAssembly)" />
+      <FileWrites Include="$(GenFacadesInputSymbols)" />
+    </ItemGroup>
+  </Target>
+
+</Project>
