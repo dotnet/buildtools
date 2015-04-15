@@ -3,10 +3,11 @@
   <UsingTask TaskName="GenerateResourcesCode" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll" />
 
   <PropertyGroup>
-    <ResourcesSourceOutputDirectory Condition="'$(ResourcesSourceOutputDirectory)' == ''">$(MSBuildProjectDirectory)\Resources\</ResourcesSourceOutputDirectory>
-    <StringResourcesPath Condition="'$(StringResourcesPath)'=='' And Exists('$(ResourcesSourceOutputDirectory)Strings.resx')">$(ResourcesSourceOutputDirectory)\Strings.resx</StringResourcesPath>
+    <ResourcesSourceOutputDirectory Condition="'$(ResourcesSourceOutputDirectory)' == ''">$(MSBuildProjectDirectory)/Resources/</ResourcesSourceOutputDirectory>
+    <StringResourcesPath Condition="'$(StringResourcesPath)'=='' And Exists('$(ResourcesSourceOutputDirectory)Strings.resx')">$(ResourcesSourceOutputDirectory)/Strings.resx</StringResourcesPath>
     <IntermediateResOutputFileFullPath Condition="'$(MSBuildProjectExtension)' == '.csproj'">$(IntermediateOutputPath)SR.cs</IntermediateResOutputFileFullPath>
     <IntermediateResOutputFileFullPath Condition="'$(MSBuildProjectExtension)' == '.vbproj'">$(IntermediateOutputPath)SR.vb</IntermediateResOutputFileFullPath>
+    <DefineConstants Condition="'$(ConfigurationGroup)' == 'Debug'">$(DefineConstants);DEBUGRESOURCES</DefineConstants>
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(StringResourcesPath)'!=''">
@@ -39,7 +40,7 @@
   <ItemGroup Condition="'$(StringResourcesPath)'!=''">
     <EmbeddedResource Include="$(StringResourcesPath)">
       <Visible>true</Visible>
-      <LogicalName>System.SR.resources</LogicalName>
+      <LogicalName>FxResources.$(AssemblyName).SR.resources</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
   

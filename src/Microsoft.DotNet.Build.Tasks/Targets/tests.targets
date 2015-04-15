@@ -46,7 +46,7 @@
 
   <!-- In VS (2015 Preview or later currently required): Debug to run unit tests on CoreCLR. -->
   <PropertyGroup Condition="'$(IsTestProject)'=='true'">
-    <DebugTestFrameworkFolder>aspnetcore50</DebugTestFrameworkFolder>
+    <DebugTestFrameworkFolder>dnxcore50</DebugTestFrameworkFolder>
     <StartWorkingDirectory Condition="'$(StartWorkingDirectory)'==''">$(TestPath)$(DebugTestFrameworkFolder)</StartWorkingDirectory>
     <StartAction Condition="'$(StartAction)'==''">Program</StartAction>
     <StartProgram Condition="'$(StartProgram)'==''">$(StartWorkingDirectory)\$(TestHost)</StartProgram>
@@ -55,14 +55,18 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <TestTargetFramework Include="ASP.NetCore, version=v5.0">
-      <Folder>aspnetcore50</Folder>
+    <TestTargetFramework Include="DNXCore, version=v5.0">
+      <Folder>dnxcore50</Folder>
     </TestTargetFramework>
   </ItemGroup>
 
   <ItemGroup>
     <PackagesConfigs Include="$(ProjectPackagesConfigFile)" />
     <PackagesConfigs Include="$(TestRuntimePackageConfig)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectJsons Include="$(TestRuntimeProjectJson)" />
   </ItemGroup>
 
   <Target Name="DiscoverTestInputs" DependsOnTargets="ResolveProjectReferences;ResolveAssemblyReferences;GetCopyToOutputDirectoryItems">
@@ -80,7 +84,7 @@
           DependsOnTargets="DiscoverTestInputs"
           AfterTargets="CheckTestCategories"
           Inputs="@(RunTestsForProjectInputs)"
-          Outputs="$(TestPath)%(TestTargetFramework.Folder)\$(TestsSuccessfulSemaphore);$(TestPath)%(TestTargetFramework.Folder)\$(XunitResultsFileName)"
+          Outputs="$(TestPath)%(TestTargetFramework.Folder)\$(TestsSuccessfulSemaphore);$(TestPath)%(TestTargetFramework.Folder)\$(XunitResultsFileName);$(CoverageOutputFilePath)"
           Condition="'$(TestDisabled)'!='true'">
 
     <CallTarget Targets="CopyTestToTestDirectory"/>
