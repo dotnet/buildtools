@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <UsingTask TaskName="ResolveNuGetPackageAssets" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+
   <PropertyGroup>
     <GenFacadesNuGetName>Microsoft.DotNet.BuildTools.ApiTools.1.0.0-prerelease</GenFacadesNuGetName>
     <GenFacadesPath>$(PackagesDir)$(GenFacadesNuGetName)\tools\GenFacades.exe</GenFacadesPath>
@@ -10,7 +12,6 @@
   <PropertyGroup Condition="'$(IsPartialFacadeAssembly)' == 'true'">
     <PostFilterNugetReferences>true</PostFilterNugetReferences>
     <IgnoreArchitectureMismatches>true</IgnoreArchitectureMismatches>
-    <ExcludeDesignTimeFacadeReferences>true</ExcludeDesignTimeFacadeReferences>
   </PropertyGroup>
 
   <!-- It seems this needs to be set here, and cannot be set in individual project files -->
@@ -31,9 +32,9 @@
     <!-- Well-known default removals -->
     <ItemGroup>
       <!-- Only take mscorlib from Microsoft.DotNet.CoreCLR. -->
-      <ReferenceRemovals Include="@(Reference)" Condition="'%(NuGetPackageId)' == 'Microsoft.DotNet.CoreCLR' and '%(FileName)' != 'mscorlib'"/>
+      <ReferenceRemovals Include="@(Reference)" Condition="('%(Reference.NuGetPackageName)' == 'Microsoft.DotNet.CoreCLR' or '%(Reference.NuGetPackageId)' == 'Microsoft.DotNet.CoreCLR') and '%(FileName)' != 'mscorlib'"/>
       <!-- We don't want any of these from Microsoft.DotNet.CoreCLR, either. -->
-      <NoneRemovals Include="@(Reference)" Condition="'%(NuGetPackageId)' == 'Microsoft.DotNet.CoreCLR'"/>
+      <NoneRemovals Include="@(Reference)" Condition="('%(Reference.NuGetPackageName)' == 'Microsoft.DotNet.CoreCLR' or '%(Reference.NuGetPackageId)' == 'Microsoft.DotNet.CoreCLR')"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -42,31 +43,63 @@
     </ItemGroup> 
   </Target>
 
-  <!-- FilterPartialFacadeContractReference
-       Recognizes the contract assembly reference used for partial facade generation. Stores the path to this assembly, and 
-         removes it from the reference list, as we do not want to directly compile against it.
+  <!-- Hook both partial-facade-related targets into TargetsTriggeredByCompilation. This will cause them
+          to only be invoked upon a successful compilation; they can conceptualized as an extension
+          of the assembly compilation process.
   -->
-  <Target Name="FilterPartialFacadeContractReference"
-          Condition="'$(IsPartialFacadeAssembly)' == 'true'"
-          AfterTargets="ResolveNugetPackages">
-    <ItemGroup>
-      <!-- Grab the matching contract assembly here, before it is removed from the Reference ItemGroup. -->
-      <ResolvedMatchingContract Include="@(Reference)" Condition="'%(NuGetPackageId)' == '$(AssemblyName)'" />
-    </ItemGroup>
+  <PropertyGroup>
+    <TargetsTriggeredByCompilation Condition="'$(IsPartialFacadeAssembly)' == 'true'">
+      $(TargetsTriggeredByCompilation);FindPartialFacadeContractReference;FillPartialFacade
+    </TargetsTriggeredByCompilation>
+  </PropertyGroup>
+
+  <!-- FindPartialFacadeContractReference
+         Generates a special project.json file to restore the NuGet package containing the partial facade's contract assembly.
+         Filters the list of references returned by the ResolveNuGetPackageAssets task to just the contract assembly and stores it.
+         The identity of the NuGet package is constructed from the assembly's name and version number.
+  -->
+  <Target Name="FindPartialFacadeContractReference">
+    <PropertyGroup>
+      <CustomPartialFacadeDirectory>$(IntermediateOutputPath)partial-facade-packages</CustomPartialFacadeDirectory>
+      <CustomPartialFacadeJsonFile>$(CustomPartialFacadeDirectory)/project.json</CustomPartialFacadeJsonFile>
+      <CustomPartialFacadeLockJsonFile>$(CustomPartialFacadeDirectory)/project.lock.json</CustomPartialFacadeLockJsonFile>
+      <!-- Construct the Major.Minor.Build AssemblyVersion (NuGet package version) -->
+      <_AssemblyMajor>$([System.Version]::new($(AssemblyVersion)).Major)</_AssemblyMajor>
+      <_AssemblyMinor>$([System.Version]::new($(AssemblyVersion)).Minor)</_AssemblyMinor>
+      <_AssemblyBuild>$([System.Version]::new($(AssemblyVersion)).Build)</_AssemblyBuild>
+      <AssemblyVersionString>$(_AssemblyMajor).$(_AssemblyMinor).$(_AssemblyBuild)</AssemblyVersionString>
+    </PropertyGroup>
+
+    <MakeDir Directories="$(CustomPartialFacadeDirectory)" />
+    <WriteLinesToFile File="$(CustomPartialFacadeJsonFile)" Overwrite="true"
+                      Lines="{&quot;dependencies&quot;:{&quot;$(AssemblyName)&quot;: &quot;$(AssemblyVersionString)-*&quot;}}"
+    />
+
+    <!-- Restore the special partial facade json file, which must contain the contract package to use in GenFacades -->
+    <Exec Command="$(DnuRestoreCommand) &quot;$(CustomPartialFacadeJsonFile)&quot;" StandardOutputImportance="Low" CustomErrorRegularExpression="^Unable to locate .*" />
+
+      <!-- Resolve the references using this task, store them in @(PossibleContractRefs) -->
+    <ResolveNuGetPackageAssets AdditonalProjectJsonFiles="$(CustomPartialFacadeJsonFile)"
+                               Architecture="$(PlatformTarget)"
+                               Configuration="$(Configuration)"
+                               Language="$(Language)"
+                               IngoreLockFile="$(NuGetIngoreLockFile)"
+                               PackageRoot="$(PackagesDir)"
+                               ProjectFile="$(MSBuildProjectFullPath)"
+                               TargetFrameworkMonikers="$(NugetTargetFrameworkMoniker)"
+                               TargetPlatformMonikers="$(TargetPlatformMoniker)"
+                               TransitiveProjectReferences="">
+      <Output TaskParameter="ResolvedReferences" ItemName="PossibleContractRefs" />
+    </ResolveNuGetPackageAssets>
 
     <ItemGroup>
-      <Reference Remove="@(ResolvedMatchingContract)" />
+      <!-- Match the contract by assembly name -->
+      <ResolvedMatchingContract Include="@(PossibleContractRefs)" Condition="'%(FileName)' == '$(AssemblyName)'" />
+      <FileWrites Include="$(CustomPartialFacadeJsonFile)" />
+      <FileWrites Include="$(CustomPartialFacadeLockJsonFile)" />
     </ItemGroup>
+
   </Target>
-
-  <!-- FillPartialFacade
-       Inputs:
-         * An "input assembly"
-         * A contract assembly
-         * Seed assemblies
-
-       Fills the "input assembly" by finding types in the contract assembly that are missing from it, and adding type-forwards
-         to those matching types in the seed assemblies. -->
 
   <!-- Inputs and outputs of FillPartialFacade -->
   <PropertyGroup Condition="'$(IsPartialFacadeAssembly)' == 'true'">
@@ -78,15 +111,19 @@
     <GenFacadesOutputPath>$(IntermediateOutputPath)</GenFacadesOutputPath>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PostProcessAssemblySteps Include="FillPartialFacade" />
-  </ItemGroup>
+  <!-- FillPartialFacade
+       Inputs:
+         * An "input assembly"
+         * A contract assembly
+         * Seed assemblies
 
-  <Target Name="FillPartialFacade"
-      Condition="'$(IsPartialFacadeAssembly)' == 'true'"
-      BeforeTargets="OpenSourceSign">
+       Fills the "input assembly" by finding types in the contract assembly that are missing from it, and adding type-forwards
+         to those matching types in the seed assemblies.
+  -->
+  <Target Name="FillPartialFacade">
 
     <ItemGroup>
+      <!-- References used for compilation are automatically included as seed assemblies -->
       <GenFacadesSeeds Include="@(ReferencePath)" />
     </ItemGroup>
 

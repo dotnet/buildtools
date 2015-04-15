@@ -26,14 +26,20 @@
         * AfterTargets=PrepareForRun -> hit after @(IntermediateAssembly) has already been copied to output.
         * BeforeTargets=CopyFilesToOutputDirectory -> does not work on Mono.
   -->
-
-  <ItemGroup>
-    <PostProcessAssemblySteps Include="OpenSourceSign" />
-  </ItemGroup>
+  <PropertyGroup>
+    <PrepareForRunDependsOn>OpenSourceSign;$(PrepareForRunDependsOn)</PrepareForRunDependsOn>
+  </PropertyGroup>
 
   <Target Name="OpenSourceSign"
-          Condition="'$(DelaySign)' == 'true' and '@(IntermediateAssembly)' != '' and '$(SkipSigning)' != 'true' and '$(UseOpenSourceSign)' == 'true'">
+          Condition="'$(DelaySign)' == 'true' and '@(IntermediateAssembly)' != '' and '$(SkipSigning)' != 'true' and '$(UseOpenSourceSign)' == 'true'"
+          Inputs="@(IntermediateAssembly)"
+          Outputs="%(IntermediateAssembly.Identity).oss_signed"
+          >
     <OpenSourceSign AssemblyPath="%(IntermediateAssembly.Identity)" />
+    <Touch Files="%(IntermediateAssembly.Identity).oss_signed" AlwaysCreate="true" />
+    <ItemGroup>
+       <FileWrites Include="%(IntermediateAssembly.Identity).oss_signed" />
+    </ItemGroup>
   </Target>
 
 </Project>

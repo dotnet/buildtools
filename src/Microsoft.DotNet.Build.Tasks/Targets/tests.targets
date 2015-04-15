@@ -76,6 +76,7 @@
       <RunTestsForProjectInputs Include="@(Content)" />
       <RunTestsForProjectInputs Include="@(IntermediateAssembly)" />
       <RunTestsForProjectInputs Include="@(_DebugSymbolsIntermediatePath)" />
+      <RunTestsForProjectInputs Include="@(AllItemsFullPathWithTargetPath)" />
     </ItemGroup>
   </Target>
 
