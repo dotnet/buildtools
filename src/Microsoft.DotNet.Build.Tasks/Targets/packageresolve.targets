@@ -7,7 +7,6 @@
   <PropertyGroup>
     <ProjectPackagesConfigFile Condition="'$(ProjectPackagesConfigFile)'=='' and Exists('$(MSBuildProjectDirectory)/packages.config')">$(MSBuildProjectDirectory)/packages.config</ProjectPackagesConfigFile>
     <ProjectJson Condition="'$(ProjectJson)'=='' and Exists('$(MSBuildProjectDirectory)/project.json')">$(MSBuildProjectDirectory)/project.json</ProjectJson>
-    <ProjectLockJson>$(MSBuildProjectDirectory)/project.lock.json</ProjectLockJson>
 
     <RestorePackages Condition="'$(RestorePackages)'!='false' and (Exists('$(ProjectPackagesConfigFile)') or Exists('$(ProjectJson)'))">true</RestorePackages>
     <ResolveNuGetPackages Condition="'$(ResolveNuGetPackages)'!='false' and (Exists('$(ProjectPackagesConfigFile)') or Exists('$(ProjectJson)'))">true</ResolveNuGetPackages>
@@ -108,7 +107,7 @@
     </ItemGroup>
     
     <Message Text="Excluding @(_ReferenceFileNamesToRemove);@(_NoneFileNamesToRemove) from package references since the same file is provided by a project refrence."
-             Condition="'@(_ReferenceFileNamesToRemove)' != '' AND '@(_NoneFileNamesToRemove)' != ''"/>
+             Condition="'@(_ReferenceFileNamesToRemove)' != '' or '@(_NoneFileNamesToRemove)' != ''"/>
   </Target>
 
 </Project>
