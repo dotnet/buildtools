@@ -2,22 +2,36 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <UsingTask TaskName="ResolveNuGetPackages" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="ResolveNuGetPackageAssets" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
   
   <PropertyGroup>
     <TestRuntimePackageConfig>$(MSBuildThisFileDirectory)test-runtime\packages.config</TestRuntimePackageConfig>
     <TestRuntimePackageSemaphore>$(PackagesDir)test-runtime-packages.config</TestRuntimePackageSemaphore>
+
+    <TestRuntimeProjectJson>$(MSBuildThisFileDirectory)test-runtime\project.json</TestRuntimeProjectJson>
+    <TestRuntimeProjectJsonSemaphore>$(PackagesDir)test-runtime-project.json</TestRuntimeProjectJsonSemaphore>
   </PropertyGroup>
 
   <Target Name="RestoreTestRuntimePackage"
           BeforeTargets="ResolveNuGetPackages"
-          Inputs="$(TestRuntimePackageConfig)"
-          Outputs="$(TestRuntimePackageSemaphore)"
+          Inputs="$(TestRuntimePackageConfig);$(TestRuntimeProjectJson)"
+          Outputs="$(TestRuntimePackageSemaphore);$(TestRuntimeProjectJsonSemaphore)"
           Condition="'$(IsTestProject)' == 'true'">
 
     <Exec Command="$(NugetRestoreCommand) &quot;$(TestRuntimePackageConfig)&quot;" StandardOutputImportance="Low" />
 
-    <Copy SourceFiles="$(TestRuntimePackageConfig)" DestinationFiles="$(TestRuntimePackageSemaphore)" ContinueOnError="true" SkipUnchangedFiles="true" />
-    
+    <!-- DNU will emit a project.lock.json.  When multiple tests are building for the first time they may race on 
+         running this target and generating the lock.json.  This is causing IOExceptions in dnu for writing lock.json.
+         We should really be handling these test dependencies in a different way (as a package themselves) but for now
+         just restore the project.json from intermediate to avoid the race.  -->
+    <Copy SourceFiles="$(TestRuntimeProjectJson)" DestinationFolder="$(IntermediateOutputPath)">
+      <Output TaskParameter="CopiedFiles" PropertyName="TempTestRuntimeProjectJson"/>
+    </Copy>
+    <Exec Command="$(DnuRestoreCommand) &quot;$(TempTestRuntimeProjectJson)&quot;" StandardOutputImportance="Low" CustomErrorRegularExpression="^Unable to locate .*" />
+
+    <!-- Always copy since we need to force a timestamp update for inputs/outputs-->
+    <Copy SourceFiles="$(TestRuntimePackageConfig)" DestinationFiles="$(TestRuntimePackageSemaphore)" ContinueOnError="true" SkipUnchangedFiles="false" />
+    <Copy SourceFiles="$(TestRuntimeProjectJson)" DestinationFiles="$(TestRuntimeProjectJsonSemaphore)" ContinueOnError="true" SkipUnchangedFiles="false" />
   </Target>
 
   <PropertyGroup>
@@ -37,6 +51,40 @@
 
       <Output TaskParameter="ResolvedCopyLocal" ItemName="TestCopyLocal" />
     </ResolveNuGetPackages>
+
+    <ResolveNuGetPackageAssets AdditonalProjectJsonFiles="@(ProjectJsons)"
+                               Architecture="$(PlatformTarget)"
+                               Configuration="$(NuGetConfiguration)"
+                               IngoreLockFile="$(NuGetIngoreLockFile)"
+                               Language="$(Language)"
+                               PackageRoot="$(PackagesDir)"
+                               ProjectFile="$(MSBuildProjectFullPath)"
+                               TargetFrameworkMonikers="@(TestTargetFramework)"
+                               TargetPlatformMonikers="$(TargetPlatformMoniker)"
+                               TransitiveProjectReferences="">
+
+      <Output TaskParameter="ResolvedCopyLocalItems" ItemName="TestCopyLocal" />
+    </ResolveNuGetPackageAssets>
+
+    <!-- We may have an indirect package reference that we want to replace with a project reference -->
+    <ItemGroup>
+      <!-- Convert to filenames so that we can intersect -->
+      <_ProjectReferenceFilenames Include="@(_ResolvedProjectReferencePaths->'%(FileName)%(Extension)')">
+        <OriginalIdentity>%(Identity)</OriginalIdentity>
+      </_ProjectReferenceFilenames>
+
+      <_TestCopyLocalFileNames Include="@(Reference->'%(FileName)%(Extension)')">
+        <OriginalIdentity>%(Identity)</OriginalIdentity>
+      </_TestCopyLocalFileNames>
+
+      <!-- Intersect project-refs with package-refs -->
+      <_TestCopyLocalFileNamesToRemove Include="@(_ReferencesFileNames->'%(OriginalIdentity)')" Condition="'@(_ProjectReferenceFilenames)' == '@(_ReferencesFileNames)' and '%(Identity)' != ''"/>
+
+      <TestCopyLocal Remove="@(_TestCopyLocalFileNamesToRemove)" />
+    </ItemGroup>
+
+    <Message Text="Excluding @(_TestCopyLocalFileNamesToRemove) from package references since the same file is provided by a project refrence."
+             Condition="'@(_TestCopyLocalFileNamesToRemove)' != ''"/>
 
     <ItemGroup>
       <TestCopyLocal Include="@(RunTestsForProjectInputs)" Exclude="@(PackagesConfigs)" />

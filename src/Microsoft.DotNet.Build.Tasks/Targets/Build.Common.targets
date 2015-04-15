@@ -26,12 +26,14 @@
     Import the default package restore and resolve targets 
   
       Inputs:
+        ProjectJson - If not set defaults to $(MSBuildProjectDirectory)\project.json
         ProjectPackagesConfigFile - If not set defaults to $(MSBuildProjectDirectory)\packages.config
-        RestorePackages - If not set defaults to the existence of the file $(ProjectPackagesConfigFile)
-        ResolveNuGetPackages - If not set defaults to to the existence of the file $(ProjectPackagesConfigFile)
+        RestorePackages - If not set defaults to the existence of the file $(ProjectPackagesConfigFile) or $(ProjectJson)
+        ResolveNuGetPackages - If not set defaults to to the existence of the file $(ProjectPackagesConfigFile) or $(ProjectJson)
       
       Depends on properties:
-        NugetRestoreCommand - Used to restore the project packages
+        NugetRestoreCommand - Used to restore the project packages from packages.config
+        DnuRestoreCommand - Used to restore the project packages from project.json
         PackagesDir - Packages are restored to and resolved from this location
 
       Depends on properties set by csharp/visualbasic.targets so needs to be imported after.
@@ -82,12 +84,14 @@
         RunTestsForProject - Usually set at the project level to disable the tests for a single project.
         CoverageEnabledForProject - Usually set at the project level to disable code coverage for a single project. 
         SkipTests - Usually set at the root level for builds that want to disable all the tests.
+        ProjectJson - If not set defaults to $(MSBuildProjectDirectory)\project.json
         ProjectPackagesConfigFile - Test publishing depends on this to be able to copy the dependencies to the test output
         CopyTestToTestDirectory - If not set defaults to $(IsTestProject)
 
       Depends on Properties:
         TestPath - Controls the root path from where the test assets are published and run from.
         NugetRestoreCommand - Used to restore the test runtime package
+        DnuRestoreCommand - Used to restore the project packages from project.json
         PackagesDir - Packages are restored to and resolved from this location    
    -->
   <Import Project="$(MSBuildThisFileDirectory)tests.targets" Condition="'$(IsTestProject)'=='true' and '$(ExcldueTestsImport)'!='true'"/> 

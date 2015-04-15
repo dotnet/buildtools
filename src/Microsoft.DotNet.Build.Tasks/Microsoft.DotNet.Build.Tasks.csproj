@@ -30,12 +30,17 @@
     <Compile Include="GetPackageDependencies.cs" />
     <Compile Include="GitPush.cs" />
     <Compile Include="GetNextRevisionNumber.cs" />
+    <Compile Include="MSBuildDependencyResolver.cs" />
     <Compile Include="NormalizePaths.cs" />
     <Compile Include="GetDoItemsIntersect.cs" />
     <Compile Include="OpenSourceSign.cs" />
+    <Compile Include="PatternDefinitions.cs" />
+    <Compile Include="PropertyDefinitions.cs" />
+    <Compile Include="ResolveNuGetPackageAssets.cs" />
     <Compile Include="ResolveNuGetPackages.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="mscorlib" />
     <Reference Include="LibGit2Sharp">
       <HintPath>..\..\packages\LibGit2Sharp.0.19.0.0\lib\net40\LibGit2Sharp.dll</HintPath>
@@ -46,9 +51,27 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\NuGet.NuManifest.DotNet.1.0.1-alpha\lib\net45\Microsoft.Web.XmlTransform.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\packages\Newtonsoft.Json.6.0.6\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.ContentModel">
+      <HintPath>..\..\packages\NuGet.ContentModel.3.0.0\lib\net45\NuGet.ContentModel.dll</HintPath>
+    </Reference>
     <Reference Include="NuGet.Core, Version=2.8.50926.602, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\NuGet.NuManifest.DotNet.1.0.1-alpha\lib\net45\NuGet.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.DependencyResolver">
+      <HintPath>..\..\packages\NuGet.DependencyResolver.3.0.0\lib\net45\NuGet.DependencyResolver.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.DependencyResolver.Core">
+      <HintPath>..\..\packages\NuGet.DependencyResolver.Core.3.0.0\lib\net45\NuGet.DependencyResolver.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.Frameworks">
+      <HintPath>..\..\packages\NuGet.Frameworks.3.0.0\lib\net45\NuGet.Frameworks.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.LibraryModel">
+      <HintPath>..\..\packages\NuGet.LibraryModel.3.0.0\lib\net45\NuGet.LibraryModel.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.NuManifest, Version=1.0.0.0, Culture=neutral, PublicKeyToken=fde1dfc9ddcb8e3e, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -58,12 +81,31 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\NuGet.NuManifest.DotNet.1.0.1-alpha\lib\net45\NuGet.NuManifest.DotNet.dll</HintPath>
     </Reference>
+    <Reference Include="NuGet.Packaging">
+      <HintPath>..\..\packages\NuGet.Packaging.3.0.0\lib\net45\NuGet.Packaging.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.Packaging.Core">
+      <HintPath>..\..\packages\NuGet.Packaging.Core.3.0.0\lib\net45\NuGet.Packaging.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.Packaging.Core.Types">
+      <HintPath>..\..\packages\NuGet.Packaging.Core.Types.3.0.0\lib\net45\NuGet.Packaging.Core.Types.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.ProjectModel">
+      <HintPath>..\..\packages\NuGet.ProjectModel.3.0.0\lib\net45\NuGet.ProjectModel.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.Repositories">
+      <HintPath>..\..\packages\NuGet.Repositories.3.0.0\lib\net45\NuGet.Repositories.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.Versioning">
+      <HintPath>..\..\packages\NuGet.Versioning.3.0.0-beta4-10027\lib\net45\NuGet.Versioning.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Collections.Immutable">
       <HintPath>..\..\packages\System.Collections.Immutable.1.1.32-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
       <Private>true</Private>
     </Reference>
+    <Reference Include="System.IO.Compression" />
     <Reference Include="System.Reflection.Metadata">
       <HintPath>..\..\packages\System.Reflection.Metadata.1.0.17-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
     </Reference>
