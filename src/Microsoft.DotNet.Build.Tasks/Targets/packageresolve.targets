@@ -7,6 +7,7 @@
   <PropertyGroup>
     <ProjectPackagesConfigFile Condition="'$(ProjectPackagesConfigFile)'=='' and Exists('$(MSBuildProjectDirectory)/packages.config')">$(MSBuildProjectDirectory)/packages.config</ProjectPackagesConfigFile>
     <ProjectJson Condition="'$(ProjectJson)'=='' and Exists('$(MSBuildProjectDirectory)/project.json')">$(MSBuildProjectDirectory)/project.json</ProjectJson>
+    <ResolveNugetProjectFile Condition="'$(ResolveNugetProjectFile)' == ''">$(MSBuildProjectFullPath)</ResolveNugetProjectFile>
 
     <RestorePackages Condition="'$(RestorePackages)'!='false' and (Exists('$(ProjectPackagesConfigFile)') or Exists('$(ProjectJson)'))">true</RestorePackages>
     <ResolveNuGetPackages Condition="'$(ResolveNuGetPackages)'!='false' and (Exists('$(ProjectPackagesConfigFile)') or Exists('$(ProjectJson)'))">true</ResolveNuGetPackages>
@@ -74,7 +75,7 @@
                                Language="$(Language)"
                                IngoreLockFile="$(NuGetIngoreLockFile)"
                                PackageRoot="$(PackagesDir)"
-                               ProjectFile="$(MSBuildProjectFullPath)"
+                               ProjectFile="$(ResolveNugetProjectFile)"
                                TargetFrameworkMonikers="$(NugetTargetFrameworkMoniker)"
                                TargetPlatformMonikers="$(TargetPlatformMoniker)"
                                TransitiveProjectReferences="">
