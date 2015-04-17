@@ -298,8 +298,8 @@ namespace Xunit.ConsoleClient
                     {
                         lock (consoleLock)
                         {
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            Console.WriteLine("ERROR:       {0} has no tests to run", Path.GetFileNameWithoutExtension(assembly.AssemblyFilename));
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("Warning:       {0} has no tests to run", Path.GetFileNameWithoutExtension(assembly.AssemblyFilename));
                             Console.ForegroundColor = ConsoleColor.Gray;
                         }
                     }

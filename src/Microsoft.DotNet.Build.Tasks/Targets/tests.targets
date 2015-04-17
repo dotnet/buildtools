@@ -6,20 +6,15 @@
 
   <!-- Which categories of tests to run by default -->
   <PropertyGroup>
-    <RunTestsWithCategories Condition="'$(RunTestsWithCategories)' == '' And '$(RunTestsWithoutCategories)' == ''">InnerLoop</RunTestsWithCategories>
-    <TestCategories Condition="'$(TestCategories)'==''">InnerLoop</TestCategories>
-
     <TestDisabled>false</TestDisabled>
     <TestDisabled Condition="'$(IsTestProject)'!='true' Or '$(SkipTests)'=='true' Or '$(RunTestsForProject)'=='false'">true</TestDisabled>
-
     <TestsSuccessfulSemaphore>$(MSBuildProjectFile).tests.lastsucceeded</TestsSuccessfulSemaphore>
   </PropertyGroup>
 
   <ItemGroup>
     <!-- Split semicolon separated lists -->
-    <TestCategoriesItems Include="$(TestCategories)" />
-    <RunTestsWithCategoriesItems Include="$(RunTestsWithCategories)" />
-    <RunTestsWithoutCategoriesItems Include="$(RunTestsWithoutCategories)" />
+    <WithCategoriesItems Include="$(WithCategories)" />
+    <WithoutCategoriesItems Include="$(WithoutCategories)" />
     <UnsupportedPlatformsItems Include="$(UnsupportedPlatforms)"/>
   </ItemGroup>
 
@@ -30,7 +25,6 @@
     <XunitResultsFileName>testResults.xml</XunitResultsFileName>
     <XunitCommandLine>xunit.console.netcore.exe $(TargetFileName)</XunitCommandLine>
     <XunitOptions>$(XunitOptions) -xml $(XunitResultsFileName)</XunitOptions>
-    <XunitOptions>$(XunitOptions) -notrait category=failing</XunitOptions>
     <XunitOptions Condition="'$(OS)'=='Windows_NT'">$(XunitOptions) -notrait category=nonwindowstests</XunitOptions>
 
     <!-- We need to exclude xunit traits and add wait option for VS -->
@@ -127,29 +121,18 @@
           AfterTargets="CheckTestPlatforms"
           Condition="'$(TestDisabled)'!='true'">
 
-    <Error Condition="'$(RunTestsWithCategories)' != '' And '$(RunTestsWithoutCategories)' != ''"
-           Text="Specifying both RunTestsWithCategories and RunTestsWithoutCategories is not supported please only specify one or the other." />
-
-    <!-- Intersection of TestCategoriesItems and RunTestsWithCategoriesItems -->
-    <ItemGroup Condition="'@(RunTestsWithCategoriesItems)'!=''">
-      <TestCategoriesToRun Include="@(TestCategoriesItems)" Condition="'@(RunTestsWithCategoriesItems)'=='%(Identity)'" />
-    </ItemGroup>
-
-    <!-- Run all test categories except specified -->
-    <ItemGroup Condition="'@(RunTestsWithoutCategoriesItems)'!=''">
-      <TestCategoriesToRun Include="@(TestCategoriesItems)" Exclude="@(RunTestsWithoutCategoriesItems)" />
+    <!-- Default behavior is to disable OuterLoop and failing tests if not specified in WithCategories. -->
+    <ItemGroup>
+      <DefaultNoCategories Include="OuterLoop" />
+      <DefaultNoCategories Include="failing" />
+      <WithoutCategoriesItems Include="@(DefaultNoCategories)" Exclude="@(WithCategoriesItems)" />
+      <WithoutCategoriesItemsDistinct Include="@(WithoutCategoriesItems->Distinct())" />
     </ItemGroup>
 
     <ItemGroup>
-      <RunWithInnerLoopItems Include="@(TestCategoriesToRun)" Condition="'%(TestCategoriesToRun.Identity)'=='InnerLoop'" />
-      <RunWithTraits Condition="'@(RunWithInnerLoopItems)'==''" Include="@(TestCategoriesToRun)" />
-      <RunWithoutTraits Condition="'@(RunWithInnerLoopItems)'!=''" Include="@(TestCategoriesItems)" Exclude="@(TestCategoriesToRun)" />
+      <RunWithTraits Condition="'@(WithCategoriesItems)'!=''" Include="@(WithCategoriesItems)" />
+      <RunWithoutTraits Condition="'@(WithoutCategoriesItemsDistinct)'!=''" Include="@(WithoutCategoriesItemsDistinct)" />
     </ItemGroup>
-
-    <!-- If there is nothing to run, then disable the test -->
-    <PropertyGroup>
-      <TestDisabled Condition="'@(TestCategoriesToRun)'==''">true</TestDisabled>
-    </PropertyGroup>
 
     <PropertyGroup>
       <TestsSuccessfulSemaphore Condition="'@(RunWithTraits)' != ''">$(TestsSuccessfulSemaphore).with.@(RunWithTraits, '.')</TestsSuccessfulSemaphore>
@@ -160,7 +143,7 @@
   <Target Name="CheckTestPlatforms"
   		  AfterTargets="Test"
   		  Condition="'$(TestDisabled)'!='true'">
-  	<PropertyGroup>
+    <PropertyGroup>
       <IsWindowsAssembly Condition="'$(OS)'=='Windows_NT' And '%(UnsupportedPlatformsItems.Identity)'=='Windows_NT'">false</IsWindowsAssembly>
       <TestDisabled Condition="'$(IsWindowsAssembly)'=='false'">true</TestDisabled>
     </PropertyGroup>
