@@ -19,6 +19,7 @@
       <dependency id="xunit.runner.dependencies.netcore" version="1.0.1-prerelease" />
       <dependency id="Microsoft.DotNet.TestHost" version="1.0.3-prerelease" />
       <dependency id="Microsoft.DotNet.CoreCLR" version="1.0.0-prerelease" />
+      <dependency id="Microsoft.DotNet.BuildTools.ApiTools" version="1.0.0-prerelease" />
     </dependencies>
   </metadata>
   <files>
