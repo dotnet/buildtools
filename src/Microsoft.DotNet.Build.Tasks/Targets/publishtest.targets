@@ -7,9 +7,9 @@
   <PropertyGroup>
     <TestRuntimePackageConfig>$(MSBuildThisFileDirectory)test-runtime\packages.config</TestRuntimePackageConfig>
     <TestRuntimePackageSemaphore>$(PackagesDir)test-runtime-packages.config</TestRuntimePackageSemaphore>
-
     <TestRuntimeProjectJson>$(MSBuildThisFileDirectory)test-runtime\project.json</TestRuntimeProjectJson>
     <TestRuntimeProjectJsonSemaphore>$(PackagesDir)test-runtime-project.json</TestRuntimeProjectJsonSemaphore>
+    <SerializeProjects Condition="'$(TestWithLocalLibraries)'=='true'">true</SerializeProjects>
   </PropertyGroup>
 
   <Target Name="RestoreTestRuntimePackage"
@@ -88,6 +88,26 @@
 
     <ItemGroup>
       <TestCopyLocal Include="@(RunTestsForProjectInputs)" Exclude="@(PackagesConfigs)" />
+    </ItemGroup>
+    
+    <!-- Test using locally built libraries -->
+    <ItemGroup Condition="'$(TestWithLocalLibraries)'=='true'">
+      <!-- Replace some of the resolved libraries that came from nuget by exploring the list of files that we are going to copy
+           and replacing them with local copies that were just built -->
+      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(BaseOutputPath)$(OSPlatformConfig)\%(filename)\%(filename).dll')" />
+      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(BaseOutputPath)$(OSPlatformConfig)\%(filename)\%(filename).pdb')" />
+      <_ExistingReplacementCandidate Include="@(_ReplacementCandidates)" Condition="Exists('%(_ReplacementCandidates.FullPath)')" />
+      
+      <!-- Convert to filenames so that we can intersect -->
+      <_ReplacementFilenames Include="@(_ExistingReplacementCandidate->'%(FileName)%(Extension)')">
+        <OriginalIdentity>%(Identity)</OriginalIdentity>
+      </_ReplacementFilenames>
+      
+      <_TestCopyLocalFileNamesToRemove Include="@(_ReplacementFilenames->'%(OriginalIdentity)')" Condition="'@(_ReplacementFilenames)' == '@(_TestCopyLocalFileNames)' and '%(Identity)' != ''"/>
+      
+      <TestCopyLocal Remove="@(_TestCopyLocalFileNamesToRemove)" />
+      
+      <TestCopyLocal Include="@(_ExistingReplacementCandidate)" />
     </ItemGroup>
 
     <Copy
