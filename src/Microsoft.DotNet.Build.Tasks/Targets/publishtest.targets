@@ -78,7 +78,7 @@
       </_TestCopyLocalFileNames>
 
       <!-- Intersect project-refs with package-refs -->
-      <_TestCopyLocalFileNamesToRemove Include="@(_ReferencesFileNames->'%(OriginalIdentity)')" Condition="'@(_ProjectReferenceFilenames)' == '@(_TestCopyLocalFileNames)' and '%(Identity)' != ''"/>
+      <_TestCopyLocalFileNamesToRemove Include="@(_TestCopyLocalFileNames->'%(OriginalIdentity)')" Condition="'@(_ProjectReferenceFilenames)' == '@(_TestCopyLocalFileNames)' and '%(Identity)' != ''"/>
 
       <TestCopyLocal Remove="@(_TestCopyLocalFileNamesToRemove)" />
     </ItemGroup>
