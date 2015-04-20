@@ -66,10 +66,6 @@
     <PackagesConfigs Include="$(TestRuntimePackageConfig)" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectJsons Include="$(TestRuntimeProjectJson)" />
-  </ItemGroup>
-
   <Target Name="DiscoverTestInputs" DependsOnTargets="ResolveProjectReferences;ResolveAssemblyReferences;GetCopyToOutputDirectoryItems">
     <ItemGroup>
       <RunTestsForProjectInputs Include="@(PackagesConfigs)" />

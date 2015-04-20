@@ -86,12 +86,12 @@ namespace Microsoft.NuGet.Build.Tasks
 
         private readonly ContentPropertyDefinition _assembly = new ContentPropertyDefinition
         {
-            FileExtensions = { ".dll" }
+            FileExtensions = { ".dll", "_._" }
         };
 
         private readonly ContentPropertyDefinition _dynamicLibrary = new ContentPropertyDefinition
         {
-            FileExtensions = { ".dll", ".dylib", ".so" }
+            FileExtensions = { ".dll", ".dylib", ".so", "_._" }
         };
 
         private readonly ContentPropertyDefinition _resources = new ContentPropertyDefinition

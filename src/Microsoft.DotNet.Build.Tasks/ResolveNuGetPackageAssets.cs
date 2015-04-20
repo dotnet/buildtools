@@ -7,7 +7,6 @@ using NuGet.ContentModel;
 using NuGet.DependencyResolver;
 using NuGet.Frameworks;
 using NuGet.LibraryModel;
-using NuGet.ProjectModel;
 using NuGet.Repositories;
 using NuGet.Versioning;
 using System;
@@ -97,7 +96,7 @@ namespace Microsoft.NuGet.Build.Tasks
         }
 
         [Required]
-        public ITaskItem[] TransitiveProjectReferences
+        public ITaskItem[] NuGetPackageReferences
         {
             get; set;
         }
@@ -106,12 +105,6 @@ namespace Microsoft.NuGet.Build.Tasks
         public string ProjectFile
         {
             get; set;
-        }
-
-        public string[] AdditonalProjectJsonFiles
-        {
-            get;
-            set;
         }
 
         /// <summary>
@@ -147,48 +140,39 @@ namespace Microsoft.NuGet.Build.Tasks
         }
 
         /// <summary>
-        /// True to ignore the lock file even when present
-        /// </summary>
-        public bool IngoreLockFile
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
         /// Performs the NuGet package resolution.
         /// </summary>
         public override bool Execute()
         {
-            Log.LogMessage(MessageImportance.High, "Running NuGet package resolution with TFM " + TargetFrameworkMonikers.First());
-
             var analyzers = new List<ITaskItem>();
             var copyLocalItems = new List<ITaskItem>();
             var references = new List<ITaskItem>();
 
             var providers = new List<IDependencyProvider>();
 
-            var lockFilePath = Path.Combine(Path.GetDirectoryName(ProjectFile), LockFileFormat.LockFileName);
-
-            if (File.Exists(lockFilePath) && !IngoreLockFile)
+            if (!String.IsNullOrEmpty(PackageRoot))
             {
-                var lockFile = LockFileFormat.Read(lockFilePath);
-
-                // Handle dependencies from the lock file
-                providers.Add(new LockFileDependencyProvider(lockFile));
-            }
-            else if (!String.IsNullOrEmpty(PackageRoot))
-            {
-                // use the passed in package root
-                providers.Add(new NuGetDependencyResolver(Path.GetFullPath(PackageRoot)));
+                providers.Add(new NuGetDependencyResolver(PackageRoot));
             }
             else
             {
-                // Use the global packages folder if available
-                providers.Add(new NuGetDependencyResolver(GetSystemWidePackagesPath()));
+                // Find and add all our package folders
+                var parentDirectory = new DirectoryInfo(Environment.CurrentDirectory);
+
+                while (parentDirectory != null)
+                {
+                    if (parentDirectory.GetDirectories("packages").Any())
+                    {
+                        providers.Add(new NuGetDependencyResolver(Path.Combine(parentDirectory.FullName, "packages")));
+                    }
+
+                    parentDirectory = parentDirectory.Parent;
+                }
+
+                providers.Add(new NuGetDependencyResolver(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".dnx", "packages")));
             }
 
-            providers.Add(new MSBuildDependencyProvider(ProjectFile, AdditonalProjectJsonFiles));
+            providers.Add(new MSBuildDependencyProvider(ProjectFile, NuGetPackageReferences));
 
             var walker = new DependencyWalker(providers);
             var root = walker.Walk(ProjectFile, new NuGetVersion(new Version()), NuGetFramework.Parse(TargetFrameworkMonikers.First()));
@@ -237,47 +221,52 @@ namespace Microsoft.NuGet.Build.Tasks
                     continue;
                 }
 
+                Log.LogMessage(MessageImportance.Low, "Resolved references from {0}:", library.Identity.ToString());
+
                 LoadContents(library);
 
-                var itemsInRef = GetTaskItemsFromLibrary(library, patternDefinitions.CompileTimeAssemblies);
-                var itemsInLib = GetTaskItemsFromLibrary(library, patternDefinitions.ManagedAssemblies);
-                var itemsInLibArchitectureSpecific = GetTaskItemsFromLibrary(library, patternDefinitions.NativeLibraries);
-                var itemsInAot = GetTaskItemsFromLibrary(library, patternDefinitions.AheadOfTimeAssemblies);
-                
-                Log.LogMessage(MessageImportance.Low, "Library {0}", library.Identity);
-                Log.LogMessage(MessageImportance.Low, "  Ref:");
-                Log.LogMessage(MessageImportance.Low, "    " + String.Join("    \r\n", itemsInRef));
-                Log.LogMessage(MessageImportance.Low, "  Lib:");
-                Log.LogMessage(MessageImportance.Low, "    " + String.Join("    \r\n", itemsInLib));
+                var compileTimeReferences = TryGetTaskItemsFromLibrary(library, patternDefinitions.CompileTimeAssemblies);
+                var copyLocalReferences = TryGetTaskItemsFromLibrary(library, patternDefinitions.ManagedAssemblies) ?? Enumerable.Empty<ITaskItem>(); 
+                var copyLocalNativeReferences = TryGetTaskItemsFromLibrary(library, patternDefinitions.NativeLibraries) ?? Enumerable.Empty<ITaskItem>();
+                var itemsInAot = TryGetTaskItemsFromLibrary(library, patternDefinitions.AheadOfTimeAssemblies) ?? Enumerable.Empty<ITaskItem>();
 
-
-                // workaround due to lack of distinction between ref with placeholder and no ref
-                if (itemsInRef.Count == 0 && !library.Identity.Name.StartsWith("System.Private")  && !library.Identity.Name.StartsWith("Microsoft.NETCore"))
+                if (compileTimeReferences == null)
                 {
-                    // use lib in absence of ref.
-                    itemsInRef = itemsInLib;
+                    // Then the "copy local" references are actually our compile-time references
+                    compileTimeReferences = copyLocalReferences;
                 }
 
-                ApplyCompileTimeReferenceMetadata(itemsInRef, library);
-                references.AddRange(itemsInRef);
+                if (compileTimeReferences != null)
+                {
+                    ApplyCompileTimeReferenceMetadata(compileTimeReferences, library);
+
+                    foreach (var compileTimeReference in compileTimeReferences)
+                    {
+                        Log.LogMessage(MessageImportance.Low, "    Build time reference: {0}", compileTimeReference.ItemSpec);
+                        references.Add(compileTimeReference);
+                    }
+                }
 
                 if (UseDotNetNativeToolchain)
                 {
-                    var frameworkAotItems = itemsInAot.Any() ? itemsInAot : itemsInLib;
+                    var frameworkAotItems = itemsInAot.Any() ? itemsInAot : copyLocalReferences;
                     foreach (var frameworkAotItem in frameworkAotItems)
                     {
                         File.Copy(frameworkAotItem.ItemSpec, Path.Combine(IlcTargetFrameworkFacadesPath, Path.GetFileName(frameworkAotItem.ItemSpec)), overwrite: true);
                     }
 
-                    foreach (var referenceItem in itemsInRef)
+                    foreach (var referenceItem in compileTimeReferences)
                     {
                         File.Copy(referenceItem.ItemSpec, Path.Combine(IlcTargetFrameworkPath, Path.GetFileName(referenceItem.ItemSpec)), overwrite: true);
                     }
                 }
                 else
                 {
-                    copyLocalItems.AddRange(itemsInLib);
-                    copyLocalItems.AddRange(itemsInLibArchitectureSpecific);
+                    foreach (var copyLocalReference in copyLocalReferences.Concat(copyLocalNativeReferences))
+                    {
+                        Log.LogMessage(MessageImportance.Low, "    Copy local reference: {0}", copyLocalReference.ItemSpec);
+                        copyLocalItems.Add(copyLocalReference);
+                    }
                 }
             }
 
@@ -288,7 +277,7 @@ namespace Microsoft.NuGet.Build.Tasks
             return true;
         }
 
-        private IList<ITaskItem> GetTaskItemsFromLibrary(Library library, ContentPatternDefinition definition)
+        private IEnumerable<ITaskItem> TryGetTaskItemsFromLibrary(Library library, ContentPatternDefinition definition)
         {
             var taskItems = new List<ITaskItem>();
             var contents = library.GetItem<ContentItemCollection>("contents");
@@ -302,10 +291,10 @@ namespace Microsoft.NuGet.Build.Tasks
 
             if (group == null)
             {
-                return taskItems;
+                return null;
             }
 
-            foreach (var item in group.Items)
+            foreach (var item in group.Items.Where(i => Path.GetFileName(i.Path) != "_._"))
             {
                 var taskItem = new TaskItem(Path.Combine(Path.GetDirectoryName(library.Path), item.Path.Replace('/', '\\')));
 
@@ -318,7 +307,7 @@ namespace Microsoft.NuGet.Build.Tasks
             return taskItems;
         }
 
-        private void ApplyCompileTimeReferenceMetadata(IList<ITaskItem> items, Library library)
+        private void ApplyCompileTimeReferenceMetadata(IEnumerable<ITaskItem> items, Library library)
         {
             foreach (var item in items)
             {
@@ -360,8 +349,9 @@ namespace Microsoft.NuGet.Build.Tasks
             {
                 Properties = new Dictionary<string, object>
                 {
-                    {"tpm" , NuGetFramework.Parse(TargetPlatformMonikers.First())},
-                    {"tfm" , NuGetFramework.Parse(TargetFrameworkMonikers.First())}
+                    { "tpm", NuGetFramework.Parse(TargetPlatformMonikers.First()) },
+                    { "tfm", NuGetFramework.Parse(TargetFrameworkMonikers.First()) },
+                    { "arch", Architecture }
                 }
             });
 
@@ -369,16 +359,11 @@ namespace Microsoft.NuGet.Build.Tasks
             {
                 Properties = new Dictionary<string, object>
                 {
-                    {"tfm", NuGetFramework.Parse(TargetFrameworkMonikers.First())}
+                    { "tfm", NuGetFramework.Parse(TargetFrameworkMonikers.First()) }
                 }
             });
 
             return criteria;
-        }
-
-        private string GetSystemWidePackagesPath()
-        {
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Reference Assemblies", "Packages");
         }
     }
 }

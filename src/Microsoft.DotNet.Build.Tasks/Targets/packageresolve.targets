@@ -1,25 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <UsingTask TaskName="ReadNuGetPackageReferences" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ResolveNuGetPackages" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ResolveNuGetPackageAssets" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
   <PropertyGroup>
     <ProjectPackagesConfigFile Condition="'$(ProjectPackagesConfigFile)'=='' and Exists('$(MSBuildProjectDirectory)/packages.config')">$(MSBuildProjectDirectory)/packages.config</ProjectPackagesConfigFile>
     <ProjectJson Condition="'$(ProjectJson)'=='' and Exists('$(MSBuildProjectDirectory)/project.json')">$(MSBuildProjectDirectory)/project.json</ProjectJson>
+    <ProjectLockJson Condition="Exists('$(ProjectJson)') and '$(ProjectLockJson)'==''">$(MSBuildProjectDirectory)/project.lock.json</ProjectLockJson>
     <ResolveNugetProjectFile Condition="'$(ResolveNugetProjectFile)' == ''">$(MSBuildProjectFullPath)</ResolveNugetProjectFile>
 
     <RestorePackages Condition="'$(RestorePackages)'!='false' and (Exists('$(ProjectPackagesConfigFile)') or Exists('$(ProjectJson)'))">true</RestorePackages>
     <ResolveNuGetPackages Condition="'$(ResolveNuGetPackages)'!='false' and (Exists('$(ProjectPackagesConfigFile)') or Exists('$(ProjectJson)'))">true</ResolveNuGetPackages>
 
     <RestorePackagesSemaphore Condition="Exists('$(ProjectPackagesConfigFile)')">$(PackagesDir)$(MSBuildProjectFile)-packages.config</RestorePackagesSemaphore>
-    <RestoreProjectJsonSemaphore Condition="Exists('$(ProjectJson)')">$(PackagesDir)$(MSBuildProjectFile)-project.json</RestoreProjectJsonSemaphore>
+    <RestoreProjectLockJson Condition="Exists('$(ProjectJson)')">$(PackagesDir)$(MSBuildProjectFile)-project.lock.json</RestoreProjectLockJson>
   </PropertyGroup>
 
   <Target Name="RestorePackages" 
           BeforeTargets="ResolveNuGetPackages"
           Inputs="$(ProjectPackagesConfigFile);$(ProjectJson)"
-          Outputs="$(RestorePackagesSemaphore);$(RestoreProjectJsonSemaphore)"
+          Outputs="$(RestorePackagesSemaphore);$(RestoreProjectLockJson)"
           Condition="'$(RestorePackages)'=='true'">
 
     <Error Condition="'$(NugetRestoreCommand)'=='' and Exists('$(ProjectPackagesConfigFile)')" Text="RestorePackages target needs a predefined NugetRestoreCommand property set in order to restore $(ProjectPackagesConfigFile)" /> 
@@ -29,7 +31,8 @@
     <Exec Condition="Exists('$(ProjectJson)')" Command="$(DnuRestoreCommand) &quot;$(ProjectJson)&quot;" StandardOutputImportance="Low" CustomErrorRegularExpression="^Unable to locate .*" />
 
     <Copy Condition="Exists('$(ProjectPackagesConfigFile)')" SourceFiles="$(ProjectPackagesConfigFile)" DestinationFiles="$(RestorePackagesSemaphore)" ContinueOnError="true" SkipUnchangedFiles="true" />
-    <Copy Condition="Exists('$(ProjectJson)')" SourceFiles="$(ProjectJson)" DestinationFiles="$(RestoreProjectJsonSemaphore)" ContinueOnError="true" SkipUnchangedFiles="true" />
+    <!-- Project.lock.json is created if we ran restore-->
+    <Copy Condition="Exists('$(ProjectJson)')" SourceFiles="$(ProjectLockJson)" DestinationFiles="$(RestoreProjectLockJson)" ContinueOnError="true" SkipUnchangedFiles="true" />
   </Target>
 
   <ItemGroup Condition="'$(ResolvePackages)'=='true' or '$(ResolveNuGetPackages)'=='true'">
@@ -45,7 +48,7 @@
     <NugetTargetFrameworkMoniker Condition="'$(NugetTargetFrameworkMoniker)' == ''">$(TargetFrameworkMoniker)</NugetTargetFrameworkMoniker>
   </PropertyGroup>
 
-  <Target Name="ResolveNuGetPackages" 
+  <Target Name="ResolveNuGetPackages"
           Condition="'$(ResolveNuGetPackages)'=='true'">
 
     <!-- Use old task for packages.config -->
@@ -69,16 +72,21 @@
     </PropertyGroup>
     
     <!-- Use new task for project.json -->
-    <ResolveNuGetPackageAssets Condition="'$(ProjectJson)' != ''"
+    <ReadNuGetPackageReferences ProjectLockJsonFile="$(RestoreProjectLockJson)"
+                                TargetFrameworkMonikers="$(NugetTargetFrameworkMoniker)"
+                                Condition="Exists($(RestoreProjectLockJson))">
+      <Output TaskParameter="NuGetPackageReferences" ItemName="NuGetPackageReference" />
+    </ReadNuGetPackageReferences>
+
+    <ResolveNuGetPackageAssets Condition="'@(NuGetPackageReference)' != ''"
                                Architecture="$(PlatformTarget)"
                                Configuration="$(Configuration)"
                                Language="$(Language)"
-                               IngoreLockFile="$(NuGetIngoreLockFile)"
+                               NuGetPackageReferences="@(NuGetPackageReference)"
                                PackageRoot="$(PackagesDir)"
                                ProjectFile="$(ResolveNugetProjectFile)"
                                TargetFrameworkMonikers="$(NugetTargetFrameworkMoniker)"
-                               TargetPlatformMonikers="$(TargetPlatformMoniker)"
-                               TransitiveProjectReferences="">
+                               TargetPlatformMonikers="$(TargetPlatformMoniker)">
       <Output TaskParameter="ResolvedAnalyzers" ItemName="Analyzer" />
       <Output TaskParameter="ResolvedReferences" ItemName="Reference" />
       <Output TaskParameter="ResolvedCopyLocalItems" ItemName="None" />
