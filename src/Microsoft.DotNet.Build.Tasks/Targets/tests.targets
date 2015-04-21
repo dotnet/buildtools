@@ -15,6 +15,7 @@
     <!-- Split semicolon separated lists -->
     <WithCategoriesItems Include="$(WithCategories)" />
     <WithoutCategoriesItems Include="$(WithoutCategories)" />
+    <DefaultNoCategories Include="$(DefaultNoCategories)" />
     <UnsupportedPlatformsItems Include="$(UnsupportedPlatforms)"/>
   </ItemGroup>
 
