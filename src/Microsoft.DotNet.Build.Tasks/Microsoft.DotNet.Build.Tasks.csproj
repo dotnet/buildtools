@@ -23,6 +23,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="ExecWithMutex.cs" />
     <Compile Include="GenerateResourcesCode.cs" />
     <Compile Include="GetWorkspaceBranch.cs" />
     <Compile Include="GitTag.cs" />
@@ -41,6 +42,7 @@
     <Compile Include="ResolveNuGetPackages.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Build.Tasks.v4.0" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="mscorlib" />
     <Reference Include="LibGit2Sharp">
