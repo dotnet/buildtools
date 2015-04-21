@@ -36,6 +36,7 @@
     <Compile Include="OpenSourceSign.cs" />
     <Compile Include="PatternDefinitions.cs" />
     <Compile Include="PropertyDefinitions.cs" />
+    <Compile Include="ReadNuGetPackageReferences.cs" />
     <Compile Include="ResolveNuGetPackageAssets.cs" />
     <Compile Include="ResolveNuGetPackages.cs" />
   </ItemGroup>

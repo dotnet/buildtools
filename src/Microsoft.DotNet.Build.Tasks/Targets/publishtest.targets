@@ -8,14 +8,14 @@
     <TestRuntimePackageConfig>$(MSBuildThisFileDirectory)test-runtime\packages.config</TestRuntimePackageConfig>
     <TestRuntimePackageSemaphore>$(PackagesDir)test-runtime-packages.config</TestRuntimePackageSemaphore>
     <TestRuntimeProjectJson>$(MSBuildThisFileDirectory)test-runtime\project.json</TestRuntimeProjectJson>
-    <TestRuntimeProjectJsonSemaphore>$(PackagesDir)test-runtime-project.json</TestRuntimeProjectJsonSemaphore>
+    <TestRuntimeProjectLockJson>$(PackagesDir)test-runtime-project.lock.json</TestRuntimeProjectLockJson>
     <SerializeProjects Condition="'$(TestWithLocalLibraries)'=='true'">true</SerializeProjects>
   </PropertyGroup>
 
   <Target Name="RestoreTestRuntimePackage"
           BeforeTargets="ResolveNuGetPackages"
           Inputs="$(TestRuntimePackageConfig);$(TestRuntimeProjectJson)"
-          Outputs="$(TestRuntimePackageSemaphore);$(TestRuntimeProjectJsonSemaphore)"
+          Outputs="$(TestRuntimePackageSemaphore);$(TestRuntimeProjectLockJson)"
           Condition="'$(IsTestProject)' == 'true'">
 
     <Exec Command="$(NugetRestoreCommand) &quot;$(TestRuntimePackageConfig)&quot;" StandardOutputImportance="Low" />
@@ -31,7 +31,24 @@
 
     <!-- Always copy since we need to force a timestamp update for inputs/outputs-->
     <Copy SourceFiles="$(TestRuntimePackageConfig)" DestinationFiles="$(TestRuntimePackageSemaphore)" ContinueOnError="true" SkipUnchangedFiles="false" />
-    <Copy SourceFiles="$(TestRuntimeProjectJson)" DestinationFiles="$(TestRuntimeProjectJsonSemaphore)" ContinueOnError="true" SkipUnchangedFiles="false" />
+    <Copy SourceFiles="$(IntermediateOutputPath)/project.lock.json" DestinationFiles="$(TestRuntimeProjectLockJson)" ContinueOnError="true" SkipUnchangedFiles="false" />
+  </Target>
+
+  <Target Name="GetTestNugetPackageReferences"
+          DependsOnTargets="RestorePackages;RestoreTestRuntimePackage">
+    <ReadNuGetPackageReferences ProjectLockJsonFile="$(TestRuntimeProjectLockJson)"
+                                TargetFrameworkMonikers="@(TestTargetFramework)" 
+                                Condition="Exists($(TestRuntimeProjectLockJson))">
+      <Output TaskParameter="NuGetPackageReferences" ItemName="TestNuGetPackageReference" />
+    </ReadNuGetPackageReferences>
+
+    <!-- Re-evaluate the project's package dependencies since TestTargetFramework may be 
+         different than NugetTargetFramework -->
+    <ReadNuGetPackageReferences ProjectLockJsonFile="$(RestoreProjectLockJson)"
+                                TargetFrameworkMonikers="@(TestTargetFramework)" 
+                                Condition="Exists($(RestoreProjectLockJson))">
+      <Output TaskParameter="NuGetPackageReferences" ItemName="TestNuGetPackageReference" />
+    </ReadNuGetPackageReferences>
   </Target>
 
   <PropertyGroup>
@@ -39,7 +56,8 @@
   </PropertyGroup>
 
   <Target Name="CopyTestToTestDirectory"
-    Condition="'$(CopyTestToTestDirectory)'=='true'">
+          DependsOnTargets="GetTestNugetPackageReferences"
+          Condition="'$(CopyTestToTestDirectory)'=='true'">
 
     <ResolveNuGetPackages PackagesConfigs="@(PackagesConfigs)"
                           PackageRoot="$(PackagesDir)"
@@ -52,16 +70,15 @@
       <Output TaskParameter="ResolvedCopyLocal" ItemName="TestCopyLocal" />
     </ResolveNuGetPackages>
 
-    <ResolveNuGetPackageAssets AdditonalProjectJsonFiles="@(ProjectJsons)"
+    <ResolveNuGetPackageAssets Condition="'@(TestNuGetPackageReference)' != ''"
                                Architecture="$(PlatformTarget)"
                                Configuration="$(NuGetConfiguration)"
-                               IngoreLockFile="$(NuGetIngoreLockFile)"
                                Language="$(Language)"
+                               NuGetPackageReferences="@(TestNuGetPackageReference)"
                                PackageRoot="$(PackagesDir)"
                                ProjectFile="$(MSBuildProjectFullPath)"
                                TargetFrameworkMonikers="@(TestTargetFramework)"
-                               TargetPlatformMonikers="$(TargetPlatformMoniker)"
-                               TransitiveProjectReferences="">
+                               TargetPlatformMonikers="$(TargetPlatformMoniker)">
 
       <Output TaskParameter="ResolvedCopyLocalItems" ItemName="TestCopyLocal" />
     </ResolveNuGetPackageAssets>
