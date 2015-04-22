@@ -8,6 +8,7 @@ using NuGet.LibraryModel;
 using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.NuGet.Build.Tasks
 {
@@ -33,6 +34,11 @@ namespace Microsoft.NuGet.Build.Tasks
             }
 
             _msbuildProjectFilePath = projectFilePath;
+        }
+
+        public IEnumerable<string> GetAttemptedPaths(NuGetFramework targetFramework)
+        {
+            return Enumerable.Empty<string>();
         }
 
         public Library GetDescription(LibraryRange libraryRange, NuGetFramework targetFramework)
