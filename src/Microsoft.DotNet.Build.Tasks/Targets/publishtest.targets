@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <UsingTask TaskName="ExecWithMutex" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ResolveNuGetPackages" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ResolveNuGetPackageAssets" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
   
@@ -20,18 +21,11 @@
 
     <Exec Command="$(NugetRestoreCommand) &quot;$(TestRuntimePackageConfig)&quot;" StandardOutputImportance="Low" />
 
-    <!-- DNU will emit a project.lock.json.  When multiple tests are building for the first time they may race on 
-         running this target and generating the lock.json.  This is causing IOExceptions in dnu for writing lock.json.
-         We should really be handling these test dependencies in a different way (as a package themselves) but for now
-         just restore the project.json from intermediate to avoid the race.  -->
-    <Copy SourceFiles="$(TestRuntimeProjectJson)" DestinationFolder="$(IntermediateOutputPath)">
-      <Output TaskParameter="CopiedFiles" PropertyName="TempTestRuntimeProjectJson"/>
-    </Copy>
-    <Exec Command="$(DnuRestoreCommand) &quot;$(TempTestRuntimeProjectJson)&quot;" StandardOutputImportance="Low" CustomErrorRegularExpression="^Unable to locate .*" />
+    <ExecWithMutex Command="$(DnuRestoreCommand) &quot;$(TestRuntimeProjectJson)&quot;" MutexName="$(TestRuntimeProjectJson)" StandardOutputImportance="Low" CustomErrorRegularExpression="^Unable to locate .*" />
 
     <!-- Always copy since we need to force a timestamp update for inputs/outputs-->
     <Copy SourceFiles="$(TestRuntimePackageConfig)" DestinationFiles="$(TestRuntimePackageSemaphore)" ContinueOnError="true" SkipUnchangedFiles="false" />
-    <Copy SourceFiles="$(IntermediateOutputPath)/project.lock.json" DestinationFiles="$(TestRuntimeProjectLockJson)" ContinueOnError="true" SkipUnchangedFiles="false" />
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)test-runtime\project.lock.json" DestinationFiles="$(TestRuntimeProjectLockJson)" ContinueOnError="true" SkipUnchangedFiles="false" />
   </Target>
 
   <Target Name="GetTestNugetPackageReferences"
