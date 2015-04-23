@@ -14,6 +14,7 @@
   <PropertyGroup Condition="'$(SkipSigning)'!='true'">
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>$(ToolsDir)MSFT.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile Condition="'$(UseECMAKey)' == 'true'">$(ToolsDir)ECMA.snk</AssemblyOriginatorKeyFile>
     <DelaySign>true</DelaySign>
     <DefineConstants>$(DefineConstants);SIGNED</DefineConstants>
     <UseOpenSourceSign Condition="'$(UseOpenSourceSign)' == ''">true</UseOpenSourceSign>
