@@ -96,8 +96,14 @@
   <!-- Generates VisitedMethodsReport.xml -->
   <Target Name="GenerateVisitedReport"
           AfterTargets="Test"
-          Condition="'$(GenerateVisitedMethodsReport)' == 'true'">
-    <ParseTestCoverageInfo CoverageInfoDirectory="$(CoverageReportDir)" />
+          Condition="'$(GenerateVisitedMethodsReport)' == 'true'"
+          Inputs="$(CoverageReportDir)*.coverage.xml"
+          Outputs="$(CoverageReportDir)\VisitedMethodsReport.xml">
+    <ItemGroup>
+      <Reports Include="$(CoverageReportDir)*.coverage.xml"/>
+    </ItemGroup>
+    <ParseTestCoverageInfo CoverageReports="@(Reports)"
+                           OutputReport="$(CoverageReportDir)\VisitedMethodsReport.xml"/>
   </Target>
   
 </Project>

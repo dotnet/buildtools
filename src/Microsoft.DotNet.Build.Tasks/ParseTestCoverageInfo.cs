@@ -16,53 +16,35 @@ namespace Microsoft.DotNet.Build.Tasks
     {
         // Path to the directory that contains *.coverage.xml coverage info.
         [Required]
-        public string CoverageInfoDirectory { get; set; }
+        public ITaskItem[] CoverageReports { get; set; }
+
+        // Name and path of the output XML
+        [Required]
+        public string OutputReport { get; set; }
 
         // One per xml parsed, key = test name, value list of modules visited
-        private Dictionary<string, Dictionary<string, ModuleInfo>> testCoverageInfo = null;
+        private Dictionary<string, Dictionary<string, ModuleInfo>> testCoverageInfo = new Dictionary<string,Dictionary<string,ModuleInfo>>();
 
         public override bool Execute()
         {
-            if (!Directory.Exists(CoverageInfoDirectory))
+            if (CoverageReports.Length == 0)
             {
-                Log.LogError("{0} is not a valid path", CoverageInfoDirectory);
+                Log.LogError("CoverageReports cannot be empty");
                 return false;
             }
 
-            if (!ProcessDirectory(CoverageInfoDirectory))
+            Log.LogMessage(MessageImportance.Normal, "{0} reports found.", CoverageReports.Length);
+
+            foreach (var item in CoverageReports)
             {
-                Log.LogError("There was no coverage file found.");
-                return false;
+                Log.LogMessage(MessageImportance.Normal, "Processing file: {0}", item.ItemSpec);
+                
+                ParseCoverageFile(item.ItemSpec);
             }
 
             SaveToFile();
 
             return true;
-        }
-
-        /// <summary>
-        /// Explore the input path recursively.
-        /// Parse opencoverage output.
-        /// </summary>
-        /// <param name="directory"></param>
-        /// <returns>True if at least one file that matched the pattern coverage_[name of test assembly].xml is found</returns>
-        private bool ProcessDirectory(string directory)
-        {
-            string[] results = Directory.GetFiles(directory, "*.coverage.xml", SearchOption.AllDirectories);
-
-            bool found = (results.Length > 0);
-
-            foreach (string file in results)
-            {
-                if (testCoverageInfo == null)
-                {
-                    testCoverageInfo = new Dictionary<string, Dictionary<string, ModuleInfo>>();
-                }
-
-                ParseCoverageFile(file);
-            }
-
-            return found;
         }
 
         /// <summary>
@@ -74,8 +56,6 @@ namespace Microsoft.DotNet.Build.Tasks
             coverageXml.Load(file);
 
             string testAssemblyName = file.Replace(".coverage.xml", "");
-
-            Log.LogMessage(MessageImportance.Normal, "Processing file: {0}", testAssemblyName);
 
             // get only the nodes for visited methods and do a bottom up parsing from that.
             XmlNodeList methods = coverageXml.SelectNodes("/CoverageSession/Modules/Module/Classes/Class/Methods/Method[not(contains(@visited, 'false'))]");
@@ -133,11 +113,10 @@ namespace Microsoft.DotNet.Build.Tasks
         {
             XmlWriterSettings settings = new XmlWriterSettings();
             settings.Indent = true;
-            string outputFile = Path.Combine(CoverageInfoDirectory,"VisitedMethodsReport.xml");
 
-            Log.LogMessage(MessageImportance.Normal, "Writing {0}", outputFile);
+            Log.LogMessage(MessageImportance.Normal, "Writing {0}", OutputReport);
 
-            using (XmlWriter xWriter = XmlWriter.Create(outputFile, settings))
+            using (XmlWriter xWriter = XmlWriter.Create(OutputReport, settings))
             {
                 xWriter.WriteStartDocument();
                 xWriter.WriteStartElement("Tests"); // <Tests>
