@@ -23,6 +23,7 @@
     </dependencies>
   </metadata>
   <files>
+    <file src="Microsoft.DotNet.Build.Tasks\ECMA.snk" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\MSFT.snk" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\PriConfig.xml" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\*.targets" target="lib" />
