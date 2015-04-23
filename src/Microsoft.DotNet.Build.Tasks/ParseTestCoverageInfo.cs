@@ -14,7 +14,7 @@ namespace Microsoft.DotNet.Build.Tasks
 {
     public class ParseTestCoverageInfo : Task
     {
-        // Path to the directory that contais *.coverage.xml coverage info.
+        // Path to the directory that contains *.coverage.xml coverage info.
         [Required]
         public string CoverageInfoDirectory { get; set; }
 
@@ -23,18 +23,15 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public override bool Execute()
         {
-            if (Directory.Exists(CoverageInfoDirectory))
-            {
-                Log.LogMessage(MessageImportance.Normal, "Parsing coverage files...");
-                if (!ProcessDirectory(CoverageInfoDirectory))
-                {
-                    Log.LogError("There was no coverage file found.");
-                    return false;
-                }
-            }
-            else
+            if (!Directory.Exists(CoverageInfoDirectory))
             {
                 Log.LogError("{0} is not a valid path", CoverageInfoDirectory);
+                return false;
+            }
+
+            if (!ProcessDirectory(CoverageInfoDirectory))
+            {
+                Log.LogError("There was no coverage file found.");
                 return false;
             }
 
@@ -51,8 +48,7 @@ namespace Microsoft.DotNet.Build.Tasks
         /// <returns>True if at least one file that matched the pattern coverage_[name of test assembly].xml is found</returns>
         private bool ProcessDirectory(string directory)
         {
-
-            string[] results = Directory.GetFiles(directory, "*.coverage.xml");
+            string[] results = Directory.GetFiles(directory, "*.coverage.xml", SearchOption.AllDirectories);
 
             bool found = (results.Length > 0);
 
@@ -64,11 +60,6 @@ namespace Microsoft.DotNet.Build.Tasks
                 }
 
                 ParseCoverageFile(file);
-            }
-
-            foreach (string child in Directory.GetDirectories(directory))
-            {
-                found |= ProcessDirectory(child);
             }
 
             return found;
@@ -98,7 +89,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 string moduleName = ModuleNode.SelectSingleNode("ModuleName").InnerText;
 
                 ModuleInfo module = null;
-                if (!visitedModules.ContainsKey(moduleName))
+                if (!visitedModules.TryGetValue(moduleName, out module))
                 {
                     // Initialize module
                     module = new ModuleInfo(moduleName);
@@ -113,10 +104,6 @@ namespace Microsoft.DotNet.Build.Tasks
 
                     visitedModules.Add(moduleName, module);
                 }
-                else
-                {
-                    module = visitedModules[moduleName];
-                }
 
                 string methodSignature = methodNode["Name"].InnerText;
                 // Signature format is "ReturnType Class::method(params)"
@@ -128,14 +115,10 @@ namespace Microsoft.DotNet.Build.Tasks
                 // string methodParams = chunks[3];
 
                 List<string> methodsCovered = null;
-                if (!module.CoveredMethods.ContainsKey(className))
+                if (!module.CoveredMethods.TryGetValue(className, out methodsCovered))
                 {
                     methodsCovered = new List<string>();
                     module.CoveredMethods.Add(className, methodsCovered);
-                }
-                else
-                {
-                    methodsCovered = module.CoveredMethods[className];
                 }
 
                 methodsCovered.Add(methodSignature);
