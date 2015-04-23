@@ -35,6 +35,7 @@
     <Compile Include="NormalizePaths.cs" />
     <Compile Include="GetDoItemsIntersect.cs" />
     <Compile Include="OpenSourceSign.cs" />
+    <Compile Include="ParseTestCoverageInfo.cs" />
     <Compile Include="PatternDefinitions.cs" />
     <Compile Include="PropertyDefinitions.cs" />
     <Compile Include="ReadNuGetPackageReferences.cs" />

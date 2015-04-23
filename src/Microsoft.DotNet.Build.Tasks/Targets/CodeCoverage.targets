@@ -14,7 +14,7 @@
   <PropertyGroup>
     <CodeCoverageEnabled>false</CodeCoverageEnabled>
     <CodeCoverageEnabled Condition="'$(SkipTests)' != 'true' and '$(OS)' == 'Windows_NT' and '$(Coverage)' == 'true'">true</CodeCoverageEnabled>
-    <CoverageReportDir Condition="'$(CoverageReportDir)' == ''">$(TestWorkingDir)\coverage\</CoverageReportDir>
+    <CoverageReportDir Condition="'$(CoverageReportDir)' == ''">$(TestWorkingDir)coverage\</CoverageReportDir>
 
     <!-- This targets file has two modes one for individual projects and one for all -->
     <GenerateCodeCoverageReportForAll Condition="'$(GenerateCodeCoverageReportForAll)'==''">false</GenerateCodeCoverageReportForAll>
@@ -22,7 +22,8 @@
     <CoverageEnabledForProject Condition="'$(CoverageEnabledForProject)'=='' and '$(IsTestProject)'=='true'">$(CodeCoverageEnabled)</CoverageEnabledForProject>
 
     <GenerateIndividualCoverageReport Condition="'$(BuildAllProjects)'!='true' and '$(CoverageEnabledForProject)'=='true'">true</GenerateIndividualCoverageReport>
-    <GenerateFullCoverageReport Condition="'$(GenerateCodeCoverageReportForAll)'=='true' and '$(CodeCoverageEnabled)'=='true'">true</GenerateFullCoverageReport>
+    <GenerateFullCoverageReport Condition="'$(GenerateCodeCoverageReportForAll)'=='true' and '$(CodeCoverageEnabled)'=='true' and '$(SkipFullCoverageReport)' != 'true'">true</GenerateFullCoverageReport>
+    <GenerateVisitedMethodsReport Condition="'$(GenerateCodeCoverageReportForAll)'=='true' and '$(CodeCoverageEnabled)'=='true' and '$(GenerateVisitedReport)' == 'true'">true</GenerateVisitedMethodsReport>
 
     <!-- 
       When coverage is enabled, we disallow building projects in parallel. 
@@ -88,6 +89,21 @@
           WorkingDirectory="$(ProjectDir)"
           Condition="'$(UploadCoverallsData)'=='true'" />
 
+  </Target>
+
+  <UsingTask TaskName="ParseTestCoverageInfo" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+
+  <!-- Generates VisitedMethodsReport.xml -->
+  <Target Name="GenerateVisitedReport"
+          AfterTargets="Test"
+          Condition="'$(GenerateVisitedMethodsReport)' == 'true'"
+          Inputs="$(CoverageReportDir)*.coverage.xml"
+          Outputs="$(CoverageReportDir)\VisitedMethodsReport.xml">
+    <ItemGroup>
+      <Reports Include="$(CoverageReportDir)*.coverage.xml"/>
+    </ItemGroup>
+    <ParseTestCoverageInfo CoverageReports="@(Reports)"
+                           OutputReport="$(CoverageReportDir)\VisitedMethodsReport.xml"/>
   </Target>
   
 </Project>
