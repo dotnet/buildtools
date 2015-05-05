@@ -1,5 +1,11 @@
 {
     "dependencies": {
+       "coveralls.io": "1.4",
+       "Microsoft.DotNet.TestHost": "1.0.5-prerelease",
+       "Microsoft.DotNet.CoreCLR": "1.0.3-prerelease",
+       "Microsoft.DotNet.PerfTools": "0.0.1-prerelease-00022",
+       "OpenCover": "4.5.3809-rc94",
+       "ReportGenerator": "2.0.4.0",
        "System.Collections": "4.0.10-beta-22809",
        "System.Collections.Concurrent": "4.0.10-beta-22809",
        "System.Console": "4.0.0-beta-22809",
@@ -26,6 +32,12 @@
        "System.Threading.Tasks": "4.0.10-beta-22809",
        "System.Threading.ThreadPool": "4.0.10-beta-22809",
        "System.Xml.ReaderWriter": "4.0.10-beta-22809",
-       "System.Xml.XDocument": "4.0.10-beta-22809"
+       "System.Xml.XDocument": "4.0.10-beta-22809",
+       "xunit.console.netcore": "1.0.2-prerelease-00036",
+       "xunit.runner.dependencies.netcore": "1.0.1-prerelease"
+    },
+    "frameworks": {
+       "dnxcore50": { },
+       "netcore50": { }
     }
 }

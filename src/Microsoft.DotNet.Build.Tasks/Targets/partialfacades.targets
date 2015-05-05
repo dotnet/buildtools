@@ -72,25 +72,18 @@
 
     <MakeDir Directories="$(CustomPartialFacadeDirectory)" />
     <WriteLinesToFile File="$(CustomPartialFacadeJsonFile)" Overwrite="true"
-                      Lines="{&quot;dependencies&quot;:{&quot;$(AssemblyName)&quot;: &quot;$(AssemblyVersionString)-*&quot;}}"
+                      Lines="{&quot;dependencies&quot;:{&quot;$(AssemblyName)&quot;: &quot;$(AssemblyVersionString)-*&quot;},&quot;frameworks&quot;:{&quot;$(NugetTargetFrameworkMoniker)&quot;: { }}}"
     />
 
     <!-- Restore the special partial facade json file, which must contain the contract package to use in GenFacades -->
     <Exec Command="$(DnuRestoreCommand) &quot;$(CustomPartialFacadeJsonFile)&quot;" StandardOutputImportance="Low" CustomErrorRegularExpression="^Unable to locate .*" />
-
-    <!-- Read out the restored packages -->
-    <ReadNuGetPackageReferences ProjectLockJsonFile="$(CustomPartialFacadeLockJsonFile)"
-                                TargetFrameworkMonikers="$(NugetTargetFrameworkMoniker)">
-      <Output TaskParameter="NuGetPackageReferences" ItemName="CustomPartialFacadePackageReference" />
-    </ReadNuGetPackageReferences>
     
     <!-- Resolve the references using this task, store them in @(PossibleContractRefs) -->
     <ResolveNuGetPackageAssets Architecture="$(PlatformTarget)"
                                Configuration="$(Configuration)"
                                Language="$(Language)"
-                               NugetPackageReferences="@(CustomPartialFacadePackageReference)"
                                PackageRoot="$(PackagesDir)"
-                               ProjectFile="$(MSBuildProjectFullPath)"
+                               ProjectLockFile="$(CustomPartialFacadeLockJsonFile)"
                                TargetFrameworkMonikers="$(NugetTargetFrameworkMoniker)"
                                TargetPlatformMonikers="$(TargetPlatformMoniker)">
       <Output TaskParameter="ResolvedReferences" ItemName="PossibleContractRefs" />

@@ -51,7 +51,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <TestTargetFramework Include="DNXCore, version=v5.0">
+    <TestTargetFramework Include="DNXCore,Version=v5.0">
       <Folder>dnxcore50</Folder>
     </TestTargetFramework>
   </ItemGroup>
