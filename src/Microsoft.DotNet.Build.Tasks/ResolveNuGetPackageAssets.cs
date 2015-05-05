@@ -218,6 +218,35 @@ namespace Microsoft.NuGet.Build.Tasks
                 }
             }
 
+            if (key == "runtime")
+            {
+                // workaround https://github.com/aspnet/dnx/issues/1782
+                // dnx isn't including exe's in restore calculations
+                // include any exe's next to active assets, otherwise include all EXEs
+                string exeSearchPath = dnxPackage;
+                var firstItem = items.FirstOrDefault();
+                if (firstItem != null)
+                {
+                    exeSearchPath = Path.GetDirectoryName(firstItem.ItemSpec);
+                }
+
+                foreach (string exe in Directory.GetFiles(exeSearchPath, "*.exe", SearchOption.AllDirectories))
+                {
+                    var item = new TaskItem(Path.Combine(dnxPackage, exe.Replace('/', '\\')));
+
+                    item.SetMetadata("NuGetPackageName", packageName);
+                    item.SetMetadata("NuGetPackageVersion", packageVersion);
+
+                    // The ReferenceGrouping version expects numeric-dotted versions only
+                    var referenceGroupingPackageVersion = packageVersion.Split('-').First();
+                    item.SetMetadata("ReferenceGrouping", packageName + ",Version=" + referenceGroupingPackageVersion);
+                    item.SetMetadata("ReferenceGroupingDisplayName", packageName + " (Package)");
+                    item.SetMetadata("Private", "false");
+
+                    items.Add(item);
+                }
+            }
+
             return items;
         }
     }
