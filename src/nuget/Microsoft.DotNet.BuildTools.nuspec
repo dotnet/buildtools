@@ -27,7 +27,6 @@
     <file src="Microsoft.DotNet.Build.Tasks\MSFT.snk" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\PriConfig.xml" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\*.targets" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks\test-runtime-packages.config" target="lib\test-runtime\packages.config" />
     <file src="Microsoft.DotNet.Build.Tasks\test-runtime-project.json" target="lib\test-runtime\project.json" />
     <file src="Microsoft.DotNet.Build.Tasks\Microsoft.DotNet.Build.Tasks.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\NuGet.*.dll" target="lib" />

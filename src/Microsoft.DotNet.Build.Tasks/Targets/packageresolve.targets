@@ -70,21 +70,13 @@
       <!-- Temporary workaround -->
       <NugetTargetFrameworkMoniker Condition="'$(NugetTargetFrameworkMoniker)' == '.NETPortable,Version=v4.5,Profile=Profile7'">DNXCore,Version=v5.0</NugetTargetFrameworkMoniker>
     </PropertyGroup>
-    
-    <!-- Use new task for project.json -->
-    <ReadNuGetPackageReferences ProjectLockJsonFile="$(RestoreProjectLockJson)"
-                                TargetFrameworkMonikers="$(NugetTargetFrameworkMoniker)"
-                                Condition="Exists($(RestoreProjectLockJson))">
-      <Output TaskParameter="NuGetPackageReferences" ItemName="NuGetPackageReference" />
-    </ReadNuGetPackageReferences>
 
-    <ResolveNuGetPackageAssets Condition="'@(NuGetPackageReference)' != ''"
+    <ResolveNuGetPackageAssets Condition="Exists($(RestoreProjectLockJson))"
                                Architecture="$(PlatformTarget)"
                                Configuration="$(Configuration)"
                                Language="$(Language)"
-                               NuGetPackageReferences="@(NuGetPackageReference)"
                                PackageRoot="$(PackagesDir)"
-                               ProjectFile="$(ResolveNugetProjectFile)"
+                               ProjectLockFile="$(RestoreProjectLockJson)"
                                TargetFrameworkMonikers="$(NugetTargetFrameworkMoniker)"
                                TargetPlatformMonikers="$(TargetPlatformMoniker)">
       <Output TaskParameter="ResolvedAnalyzers" ItemName="Analyzer" />
