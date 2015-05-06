@@ -55,6 +55,8 @@
       <AssemblyInfoLines Condition="'$(StringResourcesPath)' != ''" Include="[assembly:System.Resources.NeutralResourcesLanguage(&quot;en-US&quot;)]" />
       <AssemblyInfoLines Condition="'$(CLSCompliant)'=='true'" Include="[assembly:CLSCompliant(true)]" />
       <AssemblyInfoLines Condition="'$(AssemblyComVisible)'!=''" Include="[assembly:System.Runtime.InteropServices.ComVisible($(AssemblyComVisible))]" />
+      <AssemblyInfoLines Condition="'$(SkipFrameworkAssemblyMetadata)' != 'true'" 
+        Include="[assembly:System.Reflection.AssemblyMetadata(&quot;%(AssemblyMetadata.Identity)&quot;, &quot;%(AssemblyMetadata.Value)&quot;)]" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.vbproj'">
@@ -72,6 +74,8 @@
       <AssemblyInfoLines Condition="'$(StringResourcesPath)' != ''" Include="&lt;Assembly:System.Resources.NeutralResourcesLanguage(&quot;en-US&quot;)&gt;" />
       <AssemblyInfoLines Condition="'$(CLSCompliant)'=='true'" Include="&lt;Assembly:CLSCompliant(True)&gt;" />
       <AssemblyInfoLines Condition="'$(AssemblyComVisible)'!=''" Include="&lt;Assembly:System.Runtime.InteropServices.ComVisible($(AssemblyComVisible))&gt;" />
+      <AssemblyInfoLines Condition="'$(SkipFrameworkAssemblyMetadata)' != 'true'" 
+          Include="&lt;assembly:System.Reflection.AssemblyMetadata(&quot;%(AssemblyMetadata.Identity)&quot;, &quot;%(AssemblyMetadata.Value)&quot;)&gt;" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj' And '$(GenerateThisAssemblyClass)' == 'true'">
