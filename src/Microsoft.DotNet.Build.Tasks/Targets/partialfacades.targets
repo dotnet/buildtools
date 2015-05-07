@@ -127,11 +127,11 @@
     <Error Text="No single matching contract found." Condition="'@(ResolvedMatchingContract->Count())' != '1'" />
 
     <PropertyGroup>
-      <GenFacadesArgs>-partialFacadeAssemblyPath:$(GenFacadesInputAssembly)</GenFacadesArgs>
-      <GenFacadesArgs>$(GenFacadesArgs) -contracts:%(ResolvedMatchingContract.Identity)</GenFacadesArgs>
-      <GenFacadesArgs>$(GenFacadesArgs) -seeds:@(GenFacadesSeeds, ';')</GenFacadesArgs>
-      <GenFacadesArgs>$(GenFacadesArgs) -facadePath:$(GenFacadesOutputPath)</GenFacadesArgs>
-      <GenFacadesArgs Condition="'@(SeedTypePreference)' != ''">$(GenFacadesArgs) -preferSeedType:@(SeedTypePreference->'%(Identity)=%(Assembly)', ',')</GenFacadesArgs>
+      <GenFacadesArgs>-partialFacadeAssemblyPath:"$(GenFacadesInputAssembly)"</GenFacadesArgs>
+      <GenFacadesArgs>$(GenFacadesArgs) -contracts:"%(ResolvedMatchingContract.Identity)"</GenFacadesArgs>
+      <GenFacadesArgs>$(GenFacadesArgs) -seeds:"@(GenFacadesSeeds, ';')"</GenFacadesArgs>
+      <GenFacadesArgs>$(GenFacadesArgs) -facadePath:"$(GenFacadesOutputPath.TrimEnd('\'))"</GenFacadesArgs>
+      <GenFacadesArgs Condition="'@(SeedTypePreference)' != ''">$(GenFacadesArgs) -preferSeedType:"@(SeedTypePreference->'%(Identity)=%(Assembly)', ',')"</GenFacadesArgs>
     </PropertyGroup>
 
     <!-- Move the assembly into a subdirectory for GenFacades -->
@@ -139,7 +139,7 @@
           DestinationFolder="$(GenFacadesInputPath)"
     />
 
-    <Exec Command="$(GenFacadesPath) $(GenFacadesArgs)" />
+    <Exec Command="&quot;$(GenFacadesPath)&quot; $(GenFacadesArgs)" />
 
     <ItemGroup>
       <FileWrites Include="$(GenFacadesInputAssembly)" />
