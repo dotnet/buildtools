@@ -23,7 +23,7 @@ namespace Xunit.NetCore.Extensions
         public IEnumerable<KeyValuePair<string, string>> GetTraits(IAttributeInfo traitAttribute)
         {
             IEnumerable<object> ctorArgs = traitAttribute.GetConstructorArguments();
-            Debug.Assert(ctorArgs.Count() >= 2);
+            Debug.Assert(ctorArgs.Count() == 2);
 
             string issue = ctorArgs.First().ToString();
             PlatformID platforms = (PlatformID)ctorArgs.Last();
@@ -34,7 +34,6 @@ namespace Xunit.NetCore.Extensions
                 yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.Failing);
                 yield return new KeyValuePair<string, string>(XunitConstants.ActiveIssue, issue);
             }
-
         }
     }
 }

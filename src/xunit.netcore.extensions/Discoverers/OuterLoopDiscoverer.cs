@@ -1,7 +1,9 @@
-// Copyright (c) Microsoft. All rights reserved.
+﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
@@ -11,7 +13,7 @@ namespace Xunit.NetCore.Extensions
     /// This class discovers all of the tests and test classes that have
     /// applied the OuterLoop attribute
     /// </summary>
-    public class OuterLoopTestsDiscoverer : ITraitDiscoverer
+    public class OuterLoopDiscoverer : ITraitDiscoverer
     {
         /// <summary>
         /// Gets the trait values from the Category attribute.
@@ -21,6 +23,9 @@ namespace Xunit.NetCore.Extensions
         public IEnumerable<KeyValuePair<string, string>> GetTraits(IAttributeInfo traitAttribute)
         {
             yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.OuterLoop);
+            // Pass (innerloop, false) to exclude this test from innerloop.
+            yield return new KeyValuePair<string, string>(XunitConstants.InnerLoop, XunitConstants.False);
         }
     }
 }
+

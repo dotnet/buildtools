@@ -9,12 +9,12 @@ using Xunit.NetCore.Extensions;
 namespace Xunit
 {
     /// <summary>
-    /// Apply this attribute to your test method to specify a outer-loop category.
+    /// Apply this attribute to your test method to specify perf category.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-    [TraitDiscoverer("Xunit.NetCore.Extensions.OuterLoopDiscoverer", "Xunit.NetCore.Extensions")]
-    public class OuterLoopAttribute : Attribute, ITraitAttribute
+    [TraitDiscoverer("Xunit.NetCore.Extensions.PerfDiscoverer", "Xunit.NetCore.Extensions")]
+    public class PerfAttribute : Attribute, ITraitAttribute
     {
-        public OuterLoopAttribute() { }
+        public PerfAttribute() { }
     }
 }
