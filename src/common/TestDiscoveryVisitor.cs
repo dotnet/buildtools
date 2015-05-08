@@ -18,6 +18,9 @@ namespace Xunit
 
         protected override bool Visit(ITestCaseDiscoveryMessage discovery)
         {
+            if (!discovery.TestCase.Traits.ContainsKey("outerloop"))
+                discovery.TestCase.Traits.Add("category", "innerloop");
+
             TestCases.Add(discovery.TestCase);
 
             return true;

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft. All rights reserved.
+﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
@@ -11,9 +11,9 @@ namespace Xunit.NetCore.Extensions
 {
     /// <summary>
     /// This class discovers all of the tests and test classes that have
-    /// applied the ActiveIssue attribute
+    /// applied the OuterLoop attribute
     /// </summary>
-    public class ActiveIssueDiscoverer : ITraitDiscoverer
+    public class OuterLoopBaseDiscoverer : ITraitDiscoverer
     {
         /// <summary>
         /// Gets the trait values from the Category attribute.
@@ -23,17 +23,18 @@ namespace Xunit.NetCore.Extensions
         public IEnumerable<KeyValuePair<string, string>> GetTraits(IAttributeInfo traitAttribute)
         {
             IEnumerable<object> ctorArgs = traitAttribute.GetConstructorArguments();
-            Debug.Assert(ctorArgs.Count() == 2);
-
-            string issue = ctorArgs.First().ToString();
-            PlatformID platforms = (PlatformID)ctorArgs.Last();
-            if ((platforms.HasFlag(PlatformID.Windows) && Interop.IsWindows) ||
-                (platforms.HasFlag(PlatformID.Linux) && Interop.IsLinux) ||
-                (platforms.HasFlag(PlatformID.OSX) && Interop.IsOSX))
+            if (ctorArgs.Count() == 1)
             {
-                yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.Failing);
-                yield return new KeyValuePair<string, string>(XunitConstants.ActiveIssue, issue);
+                OuterLoopCategory category = (OuterLoopCategory)ctorArgs.First();
+                if (category.IsRunByDefault())
+                    yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.OuterLoop);
+                yield return new KeyValuePair<string, string>(XunitConstants.Category, category.ToString());
             }
+            else
+                yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.OuterLoop);
+            // Pass (outerloop, true) to exclude this test from innerloop.
+            yield return new KeyValuePair<string, string>(XunitConstants.OuterLoop, XunitConstants.True);
         }
     }
 }
+

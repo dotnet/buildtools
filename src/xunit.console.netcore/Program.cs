@@ -297,11 +297,7 @@ namespace Xunit.ConsoleClient
                     if (filteredTestCases.Count == 0)
                     {
                         lock (consoleLock)
-                        {
-                            Console.ForegroundColor = ConsoleColor.Yellow;
-                            Console.WriteLine("Warning:       {0} has no tests to run", Path.GetFileNameWithoutExtension(assembly.AssemblyFilename));
-                            Console.ForegroundColor = ConsoleColor.Gray;
-                        }
+                            Console.WriteLine("{0} has no tests to run", Path.GetFileNameWithoutExtension(assembly.AssemblyFilename));
                     }
                     else
                     {
