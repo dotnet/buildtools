@@ -18,12 +18,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Attributes\ActiveIssueAttribute.cs" />
+    <Compile Include="Attributes\OuterLoopAttribute.cs" />
     <Compile Include="Attributes\PlatformSpecificAttribute.cs" />
     <Compile Include="Discoverers\ActiveIssueDiscoverer.cs" />
-    <Compile Include="Attributes\OuterLoopAttribute.cs" />
-    <Compile Include="Discoverers\OuterLoopTestsDiscoverer.cs" />
+    <Compile Include="Discoverers\OuterLoopBaseDiscoverer.cs" />
     <Compile Include="Discoverers\PlatformSpecificDiscoverer.cs" />
     <Compile Include="Interop.PlatformDetection.cs" />
+    <Compile Include="OuterLoopCategory.cs" />
     <Compile Include="PlatformID.cs" />
     <Compile Include="XunitConstants.cs" />
   </ItemGroup>
