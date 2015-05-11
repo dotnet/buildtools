@@ -8,7 +8,7 @@
   <PropertyGroup>
     <TestDisabled>false</TestDisabled>
     <TestDisabled Condition="'$(IsTestProject)'!='true' Or '$(SkipTests)'=='true' Or '$(RunTestsForProject)'=='false'">true</TestDisabled>
-    <TestsSuccessfulSemaphore>$(MSBuildProjectFile).tests.lastsucceeded</TestsSuccessfulSemaphore>
+    <TestsSuccessfulSemaphore>tests.passed</TestsSuccessfulSemaphore>
   </PropertyGroup>
 
   <ItemGroup>
