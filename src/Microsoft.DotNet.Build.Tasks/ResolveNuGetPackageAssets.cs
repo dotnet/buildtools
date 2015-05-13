@@ -192,30 +192,42 @@ namespace Microsoft.NuGet.Build.Tasks
 
         private IEnumerable<ITaskItem> CreateItems(string packageName, string packageVersion, JToken packageObject, string key)
         {
-            var values = (JArray)((JObject)packageObject)[key];
+            List<string> values = new List<string>();
+
+            JToken tokenValue = packageObject[key];
+            if (tokenValue != null)
+            {
+                switch (tokenValue.Type)
+                {
+                    case JTokenType.Array:
+                        values.AddRange(((JArray)tokenValue).Values<string>());
+                        break;
+                    case JTokenType.Object:
+                        values.AddRange(((JObject)tokenValue).Properties().Select(p => p.Name));
+                        break;
+                    default:
+                        throw new InvalidOperationException(String.Format("Unexpected JToken type {0}.", tokenValue.Type));
+                }
+            }
 
             List<ITaskItem> items = new List<ITaskItem>();
             string packagesFolder = String.IsNullOrEmpty(PackageRoot) ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".dnx", "packages") : PackageRoot;
             string dnxPackage = Path.Combine(packagesFolder, packageName, packageVersion);
 
-
-            if (values != null)
+            foreach (string value in values)
             {
-                foreach (string value in values)
-                {
-                    var item = new TaskItem(Path.Combine(dnxPackage, value.Replace('/', '\\')));
+                var item = new TaskItem(Path.Combine(dnxPackage, value.Replace('/', '\\')));
 
-                    item.SetMetadata("NuGetPackageName", packageName);
-                    item.SetMetadata("NuGetPackageVersion", packageVersion);
+                item.SetMetadata("NuGetPackageName", packageName);
+                item.SetMetadata("NuGetPackageVersion", packageVersion);
 
-                    // The ReferenceGrouping version expects numeric-dotted versions only
-                    var referenceGroupingPackageVersion = packageVersion.Split('-').First();
-                    item.SetMetadata("ReferenceGrouping", packageName + ",Version=" + referenceGroupingPackageVersion);
-                    item.SetMetadata("ReferenceGroupingDisplayName", packageName + " (Package)");
-                    item.SetMetadata("Private", "false");
+                // The ReferenceGrouping version expects numeric-dotted versions only
+                var referenceGroupingPackageVersion = packageVersion.Split('-').First();
+                item.SetMetadata("ReferenceGrouping", packageName + ",Version=" + referenceGroupingPackageVersion);
+                item.SetMetadata("ReferenceGroupingDisplayName", packageName + " (Package)");
+                item.SetMetadata("Private", "false");
 
-                    items.Add(item);
-                }
+                items.Add(item);
             }
 
             if (key == "runtime")
