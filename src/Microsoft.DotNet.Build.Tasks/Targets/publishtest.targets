@@ -24,17 +24,18 @@
 
   <PropertyGroup>
     <CopyTestToTestDirectory Condition="'$(CopyTestToTestDirectory)'==''">$(IsTestProject)</CopyTestToTestDirectory>
+    <TestArchitecture Condition="'$(TestArchitecture)' == ''">x86</TestArchitecture>
   </PropertyGroup>
 
   <Target Name="CopyTestToTestDirectory"
           Condition="'$(CopyTestToTestDirectory)'=='true'">
     <ItemGroup>
-      <TestNugetProjectLockFile Include="$(TestRuntimeProjectLockJson)" Condition="Exists($(TestRuntimeProjectLockJson))"/>
       <TestNugetProjectLockFile Include="$(RestoreProjectLockJson)" Condition="Exists($(RestoreProjectLockJson))"/>
+      <TestNugetProjectLockFile Include="$(TestRuntimeProjectLockJson)" Condition="Exists($(TestRuntimeProjectLockJson))"/>
     </ItemGroup>
 
     <ResolveNuGetPackageAssets Condition="'@(TestNugetProjectLockFile)' != ''"
-                               Architecture="$(PlatformTarget)"
+                               Architecture="$(TestArchitecture)"
                                Configuration="$(NuGetConfiguration)"
                                Language="$(Language)"
                                PackageRoot="$(PackagesDir)"
