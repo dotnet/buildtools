@@ -3,13 +3,6 @@
 
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using NuGet.ContentModel;
-using NuGet.DependencyResolver;
-using NuGet.Frameworks;
-using NuGet.LibraryModel;
-using NuGet.ProjectModel;
-using NuGet.Repositories;
-using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
 using System.IO;
