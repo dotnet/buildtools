@@ -9,12 +9,12 @@ using Xunit.NetCore.Extensions;
 namespace Xunit
 {
     /// <summary>
-    /// Apply this attribute to your test method to specify a outer-loop category.
+    /// Apply this attribute to your test method to specify Stress category.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-    [TraitDiscoverer("Xunit.NetCore.Extensions.OuterLoopDiscoverer", "Xunit.NetCore.Extensions")]
-    public class OuterLoopAttribute : Attribute, ITraitAttribute
+    [TraitDiscoverer("Xunit.NetCore.Extensions.StressDiscoverer", "Xunit.NetCore.Extensions")]
+    public class StressAttribute : Attribute, ITraitAttribute
     {
-        public OuterLoopAttribute() { }
+        public StressAttribute() { }
     }
 }

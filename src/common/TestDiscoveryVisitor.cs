@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Xunit.Abstractions;
 
 #if XUNIT_CORE_DLL
@@ -18,6 +19,10 @@ namespace Xunit
 
         protected override bool Visit(ITestCaseDiscoveryMessage discovery)
         {
+            List<string> value = new List<string>();
+            if (!discovery.TestCase.Traits.TryGetValue("innerloop", out value) || !value.Contains("false"))
+                discovery.TestCase.Traits.Add("category", "innerloop");
+
             TestCases.Add(discovery.TestCase);
 
             return true;

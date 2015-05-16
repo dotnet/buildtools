@@ -18,11 +18,15 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Attributes\ActiveIssueAttribute.cs" />
-    <Compile Include="Attributes\PlatformSpecificAttribute.cs" />
-    <Compile Include="Discoverers\ActiveIssueDiscoverer.cs" />
     <Compile Include="Attributes\OuterLoopAttribute.cs" />
-    <Compile Include="Discoverers\OuterLoopTestsDiscoverer.cs" />
+    <Compile Include="Attributes\PerfAttribute.cs" />
+    <Compile Include="Attributes\PlatformSpecificAttribute.cs" />
+    <Compile Include="Attributes\StressAttribute.cs" />
+    <Compile Include="Discoverers\ActiveIssueDiscoverer.cs" />
+    <Compile Include="Discoverers\OuterLoopDiscoverer.cs" />
+    <Compile Include="Discoverers\PerfDiscoverer.cs" />
     <Compile Include="Discoverers\PlatformSpecificDiscoverer.cs" />
+    <Compile Include="Discoverers\StressDiscoverer.cs" />
     <Compile Include="Interop.PlatformDetection.cs" />
     <Compile Include="PlatformID.cs" />
     <Compile Include="XunitConstants.cs" />
