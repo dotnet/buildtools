@@ -209,7 +209,7 @@ namespace Microsoft.NuGet.Build.Tasks
 
             foreach (string value in values)
             {
-                var item = new TaskItem(Path.Combine(dnxPackage, value.Replace('/', '\\')));
+                var item = new TaskItem(Path.Combine(dnxPackage, value.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar)));
 
                 item.SetMetadata("NuGetPackageName", packageName);
                 item.SetMetadata("NuGetPackageVersion", packageVersion);
@@ -237,7 +237,7 @@ namespace Microsoft.NuGet.Build.Tasks
 
                 foreach (string exe in Directory.GetFiles(exeSearchPath, "*.exe", SearchOption.AllDirectories))
                 {
-                    var item = new TaskItem(Path.Combine(dnxPackage, exe.Replace('/', '\\')));
+                    var item = new TaskItem(Path.Combine(dnxPackage, exe.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar)));
 
                     item.SetMetadata("NuGetPackageName", packageName);
                     item.SetMetadata("NuGetPackageVersion", packageVersion);
