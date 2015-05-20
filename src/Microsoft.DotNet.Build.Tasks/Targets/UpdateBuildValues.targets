@@ -34,6 +34,11 @@
     <Exec
       WorkingDirectory="$(SourceDir)"
       StandardOutputImportance="Low"
+      Command="git checkout $(GitWorkingBranch)" />
+
+    <Exec
+      WorkingDirectory="$(SourceDir)"
+      StandardOutputImportance="Low"
       Command="git commit -m &quot;Automated commit of revision number value $(RevisionNumber).&quot; $(SourceDir)BuildValues.props" />
 
     <Exec
