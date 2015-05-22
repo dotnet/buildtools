@@ -15,8 +15,6 @@
     <copyright>Copyright © Microsoft Corporation</copyright>
     <tags></tags>
     <dependencies>
-      <dependency id="Microsoft.Diagnostics.Tracing.TraceEvent" version="1.0.25" />
-      <dependency id="PowerArgs" version="2.6.0.1" />
     </dependencies>
   </metadata>
   <files>
