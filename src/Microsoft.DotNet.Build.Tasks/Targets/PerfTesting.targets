@@ -12,7 +12,7 @@
   -->
   <PropertyGroup>
     <PerfToolsVersion>0.0.1-prerelease-00022</PerfToolsVersion>
-    <PerfToolsDir Condition="'$(PerfToolsDir)'==''">$(PackagesDir)Microsoft.DotNet.PerfTools.$(PerfToolsVersion)\tools\</PerfToolsDir>
+    <PerfToolsDir Condition="'$(PerfToolsDir)'==''">$(PackagesDir)Microsoft.DotNet.PerfTools\$(PerfToolsVersion)\tools\</PerfToolsDir>
     <EventTracer>"$(PerfToolsDir)EventTracer.exe"</EventTracer>
     <!-- by default delete the trace files after consumption -->
     <DeletePerfDataFile Condition="'$(DeletePerfDataFile)' == ''">true</DeletePerfDataFile>
