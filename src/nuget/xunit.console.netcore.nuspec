@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <package>
   <metadata minClientVersion="2.8.1">
     <id>xunit.console.netcore</id>
-    <version>1.0.3-prerelease</version>
+    <version>1.0.2-prerelease</version>
     <title>xUnit.net [Runners - .NET Core]</title>
     <authors>James Newkirk, Brad Wilson (.NET Core package by Matt Cohn)</authors>
     <owners>Microsoft</owners>

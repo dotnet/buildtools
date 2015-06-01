@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="12.0">
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.props))\dir.props" />
   <PropertyGroup>
@@ -110,15 +110,15 @@
     </Reference>
     <Reference Include="xunit.abstractions">
       <Private>True</Private>
-      <HintPath>..\..\packages\xunit.abstractions.2.0.0\lib\portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.abstractions.dll</HintPath>
+      <HintPath>..\..\packages\xunit.runner.dependencies.netcore.1.0.1-prerelease\lib\portable-wpa80+win8+net45+aspnetcore50\xunit.abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="xunit.execution.dnx">
+    <Reference Include="xunit.execution">
       <Private>True</Private>
-      <HintPath>..\..\packages\xunit.extensibility.execution.2.1.0-beta2-build2981\lib\dnxcore50\xunit.execution.dnx.dll</HintPath>
+      <HintPath>..\..\packages\xunit.runner.dependencies.netcore.1.0.1-prerelease\lib\portable-wpa80+win8+net45+aspnetcore50\xunit.execution.dll</HintPath>
     </Reference>
     <Reference Include="xunit.runner.utility">
       <Private>True</Private>
-      <HintPath>..\..\packages\xunit.runner.utility.2.1.0-beta2-build2981\lib\dnxcore50\xunit.runner.utility.dnx.dll</HintPath>
+      <HintPath>..\..\packages\xunit.runner.dependencies.netcore.1.0.1-prerelease\lib\portable-wpa80+win8+net45+aspnetcore50\xunit.runner.utility.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
