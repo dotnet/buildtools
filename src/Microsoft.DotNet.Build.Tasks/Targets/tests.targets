@@ -27,6 +27,7 @@
     <XunitCommandLine>xunit.console.netcore.exe $(TargetFileName)</XunitCommandLine>
     <XunitOptions>$(XunitOptions) -xml $(XunitResultsFileName)</XunitOptions>
     <XunitOptions Condition="'$(OS)'=='Windows_NT'">$(XunitOptions) -notrait category=nonwindowstests</XunitOptions>
+    <XunitOptions Condition="'$(XunitMaxThreads)'!=''">$(XunitOptions) -maxthreads $(XunitMaxThreads)</XunitOptions>
 
     <!-- We need to exclude xunit traits and add wait option for VS -->
     <VSStartArguments>$(XunitCommandLine) $(XunitOptions) -wait</VSStartArguments>
