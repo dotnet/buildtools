@@ -1,8 +1,8 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <package>
   <metadata minClientVersion="2.8.1">
     <id>xunit.netcore.extensions</id>
-    <version>1.0.0-prerelease</version>
+    <version>1.0.1-prerelease</version>
     <title>xUnit extensions of .NET Core test projects</title>
     <authors>Microsoft</authors>
     <owners>Microsoft</owners>
@@ -26,8 +26,8 @@
       <dependency id="System.Text.Encoding" version="4.0.10-beta-22703" />
       <dependency id="System.Threading" version="4.0.10-beta-22703" />
       <dependency id="System.Threading.Tasks" version="4.0.10-beta-22703" />
-      <dependency id="xunit.abstractions.netcore" version="1.0.0-prerelease" />
-      <dependency id="xunit.core.netcore" version="1.0.0-prerelease" />
+      <dependency id="xunit.abstractions" version="2.0.0" />
+      <dependency id="xunit.extensibility.core" version="2.1.0-beta2-build2981" />
     </dependencies>
   </metadata>
   <files>
