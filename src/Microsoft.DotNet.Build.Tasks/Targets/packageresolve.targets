@@ -13,15 +13,10 @@
 
     <RestorePackages Condition="'$(RestorePackages)'!='false' and (Exists('$(ProjectPackagesConfigFile)') or Exists('$(ProjectJson)'))">true</RestorePackages>
     <ResolveNuGetPackages Condition="'$(ResolveNuGetPackages)'!='false' and (Exists('$(ProjectPackagesConfigFile)') or Exists('$(ProjectJson)'))">true</ResolveNuGetPackages>
-
-    <RestorePackagesSemaphore Condition="Exists('$(ProjectPackagesConfigFile)')">$(PackagesDir)$(MSBuildProjectFile)-packages.config</RestorePackagesSemaphore>
-    <RestoreProjectLockJson Condition="Exists('$(ProjectJson)')">$(PackagesDir)$(MSBuildProjectFile)-project.lock.json</RestoreProjectLockJson>
   </PropertyGroup>
 
   <Target Name="RestorePackages" 
           BeforeTargets="ResolveNuGetPackages"
-          Inputs="$(ProjectPackagesConfigFile);$(ProjectJson)"
-          Outputs="$(RestorePackagesSemaphore);$(RestoreProjectLockJson)"
           Condition="'$(RestorePackages)'=='true'">
 
     <Error Condition="'$(NugetRestoreCommand)'=='' and Exists('$(ProjectPackagesConfigFile)')" Text="RestorePackages target needs a predefined NugetRestoreCommand property set in order to restore $(ProjectPackagesConfigFile)" /> 
@@ -29,10 +24,6 @@
     
     <Exec Condition="Exists('$(ProjectPackagesConfigFile)')" Command="$(NugetRestoreCommand) &quot;$(ProjectPackagesConfigFile)&quot;" StandardOutputImportance="Low" />
     <Exec Condition="Exists('$(ProjectJson)')" Command="$(DnuRestoreCommand) &quot;$(ProjectJson)&quot;" StandardOutputImportance="Low" CustomErrorRegularExpression="^Unable to locate .*" />
-
-    <Copy Condition="Exists('$(ProjectPackagesConfigFile)')" SourceFiles="$(ProjectPackagesConfigFile)" DestinationFiles="$(RestorePackagesSemaphore)" ContinueOnError="true" SkipUnchangedFiles="true" />
-    <!-- Project.lock.json is created if we ran restore-->
-    <Copy Condition="Exists('$(ProjectJson)')" SourceFiles="$(ProjectLockJson)" DestinationFiles="$(RestoreProjectLockJson)" ContinueOnError="true" SkipUnchangedFiles="true" />
   </Target>
 
   <ItemGroup Condition="'$(ResolvePackages)'=='true' or '$(ResolveNuGetPackages)'=='true'">
@@ -71,12 +62,12 @@
       <NugetTargetFrameworkMoniker Condition="'$(NugetTargetFrameworkMoniker)' == '.NETPortable,Version=v4.5,Profile=Profile7'">DNXCore,Version=v5.0</NugetTargetFrameworkMoniker>
     </PropertyGroup>
 
-    <ResolveNuGetPackageAssets Condition="Exists($(RestoreProjectLockJson))"
+    <ResolveNuGetPackageAssets Condition="Exists($(ProjectLockJson))"
                                Architecture="$(PlatformTarget)"
                                Configuration="$(Configuration)"
                                Language="$(Language)"
                                PackageRoot="$(PackagesDir)"
-                               ProjectLockFile="$(RestoreProjectLockJson)"
+                               ProjectLockFile="$(ProjectLockJson)"
                                TargetFrameworkMonikers="$(NugetTargetFrameworkMoniker)"
                                TargetPlatformMonikers="$(TargetPlatformMoniker)">
       <Output TaskParameter="ResolvedAnalyzers" ItemName="Analyzer" />
