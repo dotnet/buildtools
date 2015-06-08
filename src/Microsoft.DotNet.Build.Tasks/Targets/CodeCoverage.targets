@@ -5,8 +5,8 @@
     Code coverage package versions go here and in the test-runtime-packages.config
   -->
   <PropertyGroup>
-    <OpenCoverVersion>4.5.3809-rc94</OpenCoverVersion>
-    <ReportGeneratorVersion>2.0.4.0</ReportGeneratorVersion>
+    <OpenCoverVersion>4.5.4107-rc122</OpenCoverVersion>
+    <ReportGeneratorVersion>2.1.5.0</ReportGeneratorVersion>
     <CoverallsUploaderVersion>1.4</CoverallsUploaderVersion>
   </PropertyGroup>
   
