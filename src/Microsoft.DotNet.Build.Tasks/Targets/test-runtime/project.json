@@ -6,7 +6,7 @@
        "Microsoft.NETCore.Runtime.CoreCLR-x86": "1.0.0-beta-*",
        "Microsoft.DotNet.PerfTools": "0.0.1-prerelease-00022",
        "OpenCover": "4.5.4107-rc122",
-       "ReportGenerator": "2.1.5.0",
+       "ReportGenerator": "2.1.6.0",
        "System.Collections": "4.0.10-beta-*",
        "System.Collections.Concurrent": "4.0.10-beta-*",
        "System.Console": "4.0.0-beta-*",
