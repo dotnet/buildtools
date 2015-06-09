@@ -1,8 +1,8 @@
 {
     "dependencies": {
        "coveralls.io": "1.4",
-       "Microsoft.NETCore.Runtime.ApiSets-x86": "1.0.0-beta-*",
-       "Microsoft.NETCore.Runtime.CoreCLR.TestHost-x86": "1.0.0-beta-*",
+       "Microsoft.NETCore.Windows.ApiSets-x86": "1.0.0-beta-*",
+       "Microsoft.NETCore.TestHost-x86": "1.0.0-beta-*",
        "Microsoft.NETCore.Runtime.CoreCLR-x86": "1.0.0-beta-*",
        "Microsoft.DotNet.PerfTools": "0.0.1-prerelease-00022",
        "OpenCover": "4.5.4107-rc122",

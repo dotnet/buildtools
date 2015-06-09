@@ -1,25 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <UsingTask TaskName="ExecWithMutex" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ResolveNuGetPackageAssets" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
   
   <PropertyGroup>
-    <TestRuntimeProjectJson>$(MSBuildThisFileDirectory)test-runtime\project.json</TestRuntimeProjectJson>
-    <TestRuntimeProjectLockJson>$(PackagesDir)test-runtime-project.lock.json</TestRuntimeProjectLockJson>
+    <TestRuntimeProjectJson Condition="'$(TestRuntimeProjectJson)' == ''">$(MSBuildThisFileDirectory)test-runtime\project.json</TestRuntimeProjectJson>
+    <TestRuntimeProjectLockJson Condition="'$(TestRuntimeProjectLockJson)' == ''">$(MSBuildThisFileDirectory)test-runtime\project.lock.json</TestRuntimeProjectLockJson>
     <SerializeProjects Condition="'$(TestWithLocalLibraries)'=='true'">true</SerializeProjects>
   </PropertyGroup>
 
   <Target Name="RestoreTestRuntimePackage"
           BeforeTargets="ResolveNuGetPackages"
-          Inputs="$(TestRuntimeProjectJson)"
-          Outputs="$(TestRuntimeProjectLockJson)"
           Condition="'$(IsTestProject)' == 'true'">
-
-    <ExecWithMutex Command="$(DnuRestoreCommand) &quot;$(TestRuntimeProjectJson)&quot;" MutexName="$(TestRuntimeProjectJson)" StandardOutputImportance="Low" CustomErrorRegularExpression="^Unable to locate .*" />
-
-    <!-- Always copy since we need to force a timestamp update for inputs/outputs-->
-    <Copy SourceFiles="$(MSBuildThisFileDirectory)test-runtime\project.lock.json" DestinationFiles="$(TestRuntimeProjectLockJson)" ContinueOnError="true" SkipUnchangedFiles="false" />
+    <Exec Command="$(DnuRestoreCommand) &quot;$(TestRuntimeProjectJson)&quot;" StandardOutputImportance="Low" CustomErrorRegularExpression="^Unable to locate .*" />
   </Target>
 
   <PropertyGroup>
