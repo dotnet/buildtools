@@ -30,7 +30,7 @@
   <Target Name="CopyTestToTestDirectory"
           Condition="'$(CopyTestToTestDirectory)'=='true'">
     <ItemGroup>
-      <TestNugetProjectLockFile Include="$(RestoreProjectLockJson)" Condition="Exists($(RestoreProjectLockJson))"/>
+      <TestNugetProjectLockFile Include="$(ProjectLockJson)" Condition="Exists($(ProjectLockJson))"/>
       <TestNugetProjectLockFile Include="$(TestRuntimeProjectLockJson)" Condition="Exists($(TestRuntimeProjectLockJson))"/>
     </ItemGroup>
 
