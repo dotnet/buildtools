@@ -55,11 +55,12 @@
     <ConfigurationGroup Condition="$(Configuration.EndsWith('Release'))">Release</ConfigurationGroup>
     <ConfigurationGroup Condition="'$(ConfigurationGroup)'==''">$(Configuration)</ConfigurationGroup>
  
-    <OS Condition="$(Configuration.StartsWith('Windows'))">Windows_NT</OS>
-    <OS Condition="$(Configuration.StartsWith('Unix'))">Unix</OS>
     <!-- TODO: Determine actual settings once we have Linux vs Mac specialization -->
+    <OS Condition="$(Configuration.StartsWith('FreeBSD'))">Unix</OS>
     <OS Condition="$(Configuration.StartsWith('Linux'))">Unix</OS>
     <OS Condition="$(Configuration.StartsWith('Mac'))">Unix</OS>
+    <OS Condition="$(Configuration.StartsWith('Windows'))">Windows_NT</OS>
+    <OS Condition="$(Configuration.StartsWith('Unix'))">Unix</OS>
 
     <OSGroup Condition="'$(OSGroup)'==''">$(OS)</OSGroup>
   </PropertyGroup>

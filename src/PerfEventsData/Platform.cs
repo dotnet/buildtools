@@ -10,6 +10,7 @@ namespace PerfEventsData
     /// </summary>
     public enum Platform
     {
+        FreeBSD,
         Linux,
         Mac,
         Windows
