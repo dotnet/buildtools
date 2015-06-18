@@ -2,6 +2,7 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <UsingTask TaskName="ResolveNuGetPackageAssets" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="RemoveDuplicatesWithLastOneWinsPolicy" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
   
   <PropertyGroup>
     <TestRuntimeProjectJson Condition="'$(TestRuntimeProjectJson)' == ''">$(MSBuildThisFileDirectory)test-runtime\project.json</TestRuntimeProjectJson>
@@ -16,12 +17,12 @@
   </Target>
 
   <PropertyGroup>
-    <CopyTestToTestDirectory Condition="'$(CopyTestToTestDirectory)'==''">$(IsTestProject)</CopyTestToTestDirectory>
+    <PrepareForRunDependsOn Condition="'$(IsTestProject)'=='true'">$(PrepareForRunDependsOn);CopyTestToTestDirectory</PrepareForRunDependsOn>
     <TestArchitecture Condition="'$(TestArchitecture)' == ''">x86</TestArchitecture>
   </PropertyGroup>
 
-  <Target Name="CopyTestToTestDirectory"
-          Condition="'$(CopyTestToTestDirectory)'=='true'">
+  <Target Name="CopyTestToTestDirectory" 
+          DependsOnTargets="DiscoverTestInputs">
     <ItemGroup>
       <TestNugetProjectLockFile Include="$(ProjectLockJson)" Condition="Exists($(ProjectLockJson))"/>
       <TestNugetProjectLockFile Include="$(TestRuntimeProjectLockJson)" Condition="Exists($(TestRuntimeProjectLockJson))"/>
@@ -39,62 +40,49 @@
       <Output TaskParameter="ResolvedCopyLocalItems" ItemName="TestCopyLocal" />
     </ResolveNuGetPackageAssets>
 
-    <!-- We may have an indirect package reference that we want to replace with a project reference -->
-    <ItemGroup>
-      <!-- Convert to filenames so that we can intersect -->
-      <_ProjectReferenceFilenames Include="@(_ResolvedProjectReferencePaths->'%(FileName)%(Extension)')">
-        <OriginalIdentity>%(Identity)</OriginalIdentity>
-      </_ProjectReferenceFilenames>
-
-      <_TestCopyLocalFileNames Include="@(Reference->'%(FileName)%(Extension)')">
-        <OriginalIdentity>%(Identity)</OriginalIdentity>
-      </_TestCopyLocalFileNames>
-
-      <!-- Intersect project-refs with package-refs -->
-      <_TestCopyLocalFileNamesToRemove Include="@(_TestCopyLocalFileNames->'%(OriginalIdentity)')" Condition="'@(_ProjectReferenceFilenames)' == '@(_TestCopyLocalFileNames)' and '%(Identity)' != ''"/>
-
-      <TestCopyLocal Remove="@(_TestCopyLocalFileNamesToRemove)" />
-    </ItemGroup>
-
-    <Message Text="Excluding @(_TestCopyLocalFileNamesToRemove) from package references since the same file is provided by a project refrence."
-             Condition="'@(_TestCopyLocalFileNamesToRemove)' != ''"/>
-
+     <!-- We may have an indirect package reference that we want to replace with a project reference.
+          Those are part of RunTestsForProjectInputs. The order that we append to TestCopyLocal is
+          significant, later entries override earlier entries. -->
     <ItemGroup>
       <TestCopyLocal Include="@(RunTestsForProjectInputs)" Exclude="@(PackagesConfigs)" />
     </ItemGroup>
     
-    <!-- Test using locally built libraries -->
+    <!-- Test using locally built libraries if requested. Again, later entries override earlier
+         entries. -->
     <ItemGroup Condition="'$(TestWithLocalLibraries)'=='true'">
       <!-- Replace some of the resolved libraries that came from nuget by exploring the list of files that we are going to copy
            and replacing them with local copies that were just built -->
       <_ReplacementCandidates Include="@(TestCopyLocal -> '$(BaseOutputPath)$(OSPlatformConfig)\%(filename)\%(filename).dll')" />
       <_ReplacementCandidates Include="@(TestCopyLocal -> '$(BaseOutputPath)$(OSPlatformConfig)\%(filename)\%(filename).pdb')" />
-      <_ExistingReplacementCandidate Include="@(_ReplacementCandidates)" Condition="Exists('%(_ReplacementCandidates.FullPath)')" />
-      
-      <!-- Convert to filenames so that we can intersect -->
-      <_ReplacementFilenames Include="@(_ExistingReplacementCandidate->'%(FileName)%(Extension)')">
-        <OriginalIdentity>%(Identity)</OriginalIdentity>
-      </_ReplacementFilenames>
-      
-      <_TestCopyLocalFileNamesToRemove Include="@(_ReplacementFilenames->'%(OriginalIdentity)')" Condition="'@(_ReplacementFilenames)' == '@(_TestCopyLocalFileNames)' and '%(Identity)' != ''"/>
-      
-      <TestCopyLocal Remove="@(_TestCopyLocalFileNamesToRemove)" />
-      
+      <_ExistingReplacementCandidate Include="@(_ReplacementCandidates)" Condition="Exists('%(_ReplacementCandidates.FullPath)')" />      
       <TestCopyLocal Include="@(_ExistingReplacementCandidate)" />
     </ItemGroup>
 
+    <!-- Remove duplicates. Note that we musn't just copy in sequence and let 
+         the last one win that way because it will cause copies to occur on 
+         every incremental build. -->
+    <ItemGroup>
+      <_TestCopyLocalByFileName Include="@(TestCopyLocal->'%(FileName)%(Extension)')">
+        <SourcePath>%(Identity)</SourcePath>
+      </_TestCopyLocalByFileName>
+    </ItemGroup>      
+    <RemoveDuplicatesWithLastOneWinsPolicy Inputs="@(_TestCopyLocalByFileName)">
+      <Output TaskParameter="Filtered" ItemName="_TestCopyLocalByFileNameWithoutDuplicates" />
+    </RemoveDuplicatesWithLastOneWinsPolicy>
+
+    <!-- NOTE: UseHardLinksIfPossible is hard-coded to true because we copy tons of the 
+         same files for every single test project here. -->
     <Copy
-      SourceFiles="@(TestCopyLocal)"
+      SourceFiles="@(_TestCopyLocalByFileNameWithoutDuplicates->'%(SourcePath)')"
       DestinationFolder="$(TestPath)%(TestTargetFramework.Folder)"
       SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
       OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
       Retries="$(CopyRetryCount)"
       RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
-      UseHardlinksIfPossible="$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)">
+      UseHardlinksIfPossible="true">
       
       <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
     </Copy>
-      
   </Target>
 
 </Project>

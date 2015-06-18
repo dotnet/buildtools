@@ -35,6 +35,7 @@
     <Compile Include="GetDoItemsIntersect.cs" />
     <Compile Include="OpenSourceSign.cs" />
     <Compile Include="ParseTestCoverageInfo.cs" />
+    <Compile Include="RemoveDuplicatesWithLastOneWinsPolicy.cs" />
     <Compile Include="ResolveNuGetPackageAssets.cs" />
     <Compile Include="ResolveNuGetPackages.cs" />
   </ItemGroup>
