@@ -47,7 +47,7 @@
       "Microsoft.NETCore.Windows.ApiSets-x86/1.0.0-beta-23011": {},
       "OpenCover/4.5.4107-rc122": {},
       "PowerArgs/2.6.0.1": {},
-      "ReportGenerator/2.1.5.0": {},
+      "ReportGenerator/2.1.6.0": {},
       "System.Collections/4.0.10-beta-23011": {
         "dependencies": {
           "System.Runtime": "4.0.20-beta-23011"
@@ -731,7 +731,7 @@
       },
       "OpenCover/4.5.4107-rc122": {},
       "PowerArgs/2.6.0.1": {},
-      "ReportGenerator/2.1.5.0": {},
+      "ReportGenerator/2.1.6.0": {},
       "System.Collections/4.0.10-beta-23011": {
         "dependencies": {
           "System.Runtime": "4.0.20-beta-23011"
@@ -1546,16 +1546,16 @@
         "lib/net40/PowerArgs.XML"
       ]
     },
-    "ReportGenerator/2.1.5.0": {
-      "sha512": "afQRxdYh+HKzprA2MbInvXcfN3djGP3mAGLlGKlHv7O31TlhTEcT3awSnzWwSUkkOEz2/Y/FtkkKmrQ3PumJ7g==",
+    "ReportGenerator/2.1.6.0": {
+      "sha512": "8cr+MlgMULmllLE/EKCfVfdbx12bdDEuQVUi7tG60OtZ0Uh7VHHUsHr2A6P7oZReR0Rwwr2GoOgIfZJa15lcQw==",
       "files": [
         "ICSharpCode.NRefactory.CSharp.dll",
         "ICSharpCode.NRefactory.dll",
         "LICENSE.txt",
         "log4net.dll",
         "Readme.txt",
-        "ReportGenerator.2.1.5.0.nupkg",
-        "ReportGenerator.2.1.5.0.nupkg.sha512",
+        "ReportGenerator.2.1.6.0.nupkg",
+        "ReportGenerator.2.1.6.0.nupkg.sha512",
         "ReportGenerator.exe",
         "ReportGenerator.nuspec",
         "ReportGenerator.Reporting.dll",
@@ -2086,7 +2086,7 @@
       "Microsoft.NETCore.Runtime.CoreCLR-x86 >= 1.0.0-beta-*",
       "Microsoft.DotNet.PerfTools >= 0.0.1-prerelease-00022",
       "OpenCover >= 4.5.4107-rc122",
-      "ReportGenerator >= 2.1.5.0",
+      "ReportGenerator >= 2.1.6.0",
       "System.Collections >= 4.0.10-beta-*",
       "System.Collections.Concurrent >= 4.0.10-beta-*",
       "System.Console >= 4.0.0-beta-*",
