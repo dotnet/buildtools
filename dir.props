@@ -55,15 +55,29 @@
     <ConfigurationGroup Condition="$(Configuration.EndsWith('Release'))">Release</ConfigurationGroup>
     <ConfigurationGroup Condition="'$(ConfigurationGroup)'==''">$(Configuration)</ConfigurationGroup>
  
-    <OS Condition="$(Configuration.StartsWith('Windows'))">Windows_NT</OS>
-    <OS Condition="$(Configuration.StartsWith('Unix'))">Unix</OS>
     <!-- TODO: Determine actual settings once we have Linux vs Mac specialization -->
+    <OS Condition="$(Configuration.StartsWith('FreeBSD'))">Unix</OS>
     <OS Condition="$(Configuration.StartsWith('Linux'))">Unix</OS>
     <OS Condition="$(Configuration.StartsWith('Mac'))">Unix</OS>
+    <OS Condition="$(Configuration.StartsWith('Windows'))">Windows_NT</OS>
+    <OS Condition="$(Configuration.StartsWith('Unix'))">Unix</OS>
 
     <OSGroup Condition="'$(OSGroup)'==''">$(OS)</OSGroup>
   </PropertyGroup>
-  
+  <PropertyGroup Condition="'$(OS)'=='Unix'">
+    <!--
+      PDB support isn't implemented yet. https://github.com/dotnet/roslyn/issues/2449
+      Note that both DebugSymbols and DebugType need set or project references will assume they need to copy pdbs and fail.
+    -->
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>none</DebugType>
+    <!--
+      Delay signing with the ECMA key currently doesn't work.
+      https://github.com/dotnet/roslyn/issues/2444
+    -->
+    <UseECMAKey>false</UseECMAKey>
+  </PropertyGroup>
+
   <!-- Setup Default symbol and optimization for Configuration -->
   <PropertyGroup Condition="'$(ConfigurationGroup)' == 'Debug'">
     <DebugSymbols Condition="'$(DebugSymbols)' == ''">true</DebugSymbols>
