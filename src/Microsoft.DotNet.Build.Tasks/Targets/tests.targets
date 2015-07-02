@@ -19,20 +19,51 @@
     <UnsupportedPlatformsItems Include="$(UnsupportedPlatforms)"/>
   </ItemGroup>
 
+  <PropertyGroup>
+    <TestWithCore Condition="'$(TestWithCore)' == ''">true</TestWithCore>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TestWithCore)' == 'true'">
+    <TestRuntimeProjectJson Condition="'$(TestRuntimeProjectJson)' == ''">$(MSBuildThisFileDirectory)test-runtime\project.json</TestRuntimeProjectJson>
+    <TestRuntimeProjectLockJson Condition="'$(TestRuntimeProjectLockJson)' == ''">$(MSBuildThisFileDirectory)test-runtime\project.lock.json</TestRuntimeProjectLockJson>
+    <TestHost>corerun.exe</TestHost>
+    <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.netcore.exe</XunitExecutable>
+    <DebugTestFrameworkFolder>dnxcore50</DebugTestFrameworkFolder>
+    <DebugEngines>{2E36F1D4-B23C-435D-AB41-18E608940038}</DebugEngines>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TestWithCore)' != 'true'">
+    <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.exe</XunitExecutable>
+    <DebugTestFrameworkFolder>dnx45</DebugTestFrameworkFolder>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TestWithCore)' == 'true'">
+    <TestTargetFramework Include="DNXCore,Version=v5.0">
+      <Folder>dnxcore50</Folder>
+    </TestTargetFramework>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TestWithCore)' != 'true'">
+    <TestTargetFramework Include=".NETFramework,Version=v4.5">
+      <Folder>net45</Folder>
+    </TestTargetFramework>
+  </ItemGroup>
+
   <!-- General xunit options -->
   <PropertyGroup>
-    <XunitHost>corerun.exe</XunitHost>
-    <TestHost>$(XunitHost)</TestHost>
     <XunitResultsFileName>testResults.xml</XunitResultsFileName>
-    <XunitCommandLine>xunit.console.netcore.exe $(TargetFileName)</XunitCommandLine>
     <XunitOptions>$(XunitOptions) -xml $(XunitResultsFileName)</XunitOptions>
     <XunitOptions Condition="'$(OS)'=='Windows_NT'">$(XunitOptions) -notrait category=nonwindowstests</XunitOptions>
     <XunitOptions Condition="'$(XunitMaxThreads)'!=''">$(XunitOptions) -maxthreads $(XunitMaxThreads)</XunitOptions>
+    <XunitArguments>$(TargetFileName) $(XunitOptions)</XunitArguments>
 
-    <!-- We need to exclude xunit traits and add wait option for VS -->
-    <VSStartArguments>$(XunitCommandLine) $(XunitOptions) -wait</VSStartArguments>
-    <XunitOptions>$(XunitOptions) {XunitTraitOptions}</XunitOptions>
-    <TestCommandLine>$(XunitCommandLine) $(XunitOptions)</TestCommandLine>
+    <TestProgram Condition="'$(TestHost)'!=''">$(TestHost)</TestProgram>
+    <TestArguments Condition="'$(TestHost)'!=''">$(XunitExecutable) $(XunitArguments)</TestArguments>
+
+    <TestProgram Condition="'$(TestHost)'==''">$(XunitExecutable)</TestProgram>
+    <TestArguments Condition="'$(TestHost)'==''">$(XunitArguments)</TestArguments>
+
+    <TestCommandLine>$(TestProgram) $(TestArguments) $(XunitTraitOptions)</TestCommandLine>
   </PropertyGroup>
 
   <!-- The Code Coverage targets will override TestHost and TestCommandLine if coverage is enabled -->
@@ -43,19 +74,11 @@
 
   <!-- In VS (2015 Preview or later currently required): Debug to run unit tests on CoreCLR. -->
   <PropertyGroup Condition="'$(IsTestProject)'=='true'">
-    <DebugTestFrameworkFolder>dnxcore50</DebugTestFrameworkFolder>
     <StartWorkingDirectory Condition="'$(StartWorkingDirectory)'==''">$(TestPath)$(DebugTestFrameworkFolder)</StartWorkingDirectory>
     <StartAction Condition="'$(StartAction)'==''">Program</StartAction>
-    <StartProgram Condition="'$(StartProgram)'==''">$(StartWorkingDirectory)\$(TestHost)</StartProgram>
-    <StartArguments Condition="'$(StartArguments)'==''">$(VSStartArguments)</StartArguments>
-    <DebugEngines>{2E36F1D4-B23C-435D-AB41-18E608940038}</DebugEngines>
+    <StartProgram Condition="'$(StartProgram)'==''">$(StartWorkingDirectory)\$(TestProgram)</StartProgram>
+    <StartArguments Condition="'$(StartArguments)'==''">$(TestArguments) -wait</StartArguments>
   </PropertyGroup>
-
-  <ItemGroup>
-    <TestTargetFramework Include="DNXCore,Version=v5.0">
-      <Folder>dnxcore50</Folder>
-    </TestTargetFramework>
-  </ItemGroup>
 
   <ItemGroup>
     <PackagesConfigs Include="$(ProjectPackagesConfigFile)" />
@@ -88,7 +111,7 @@
 
     <!-- Append the xunit trait options to the end of the TestCommandLine -->
     <PropertyGroup>
-      <TestCommandLine>$(TestCommandLine.Replace('{XunitTraitOptions}', '$(XunitTraitOptions)'))</TestCommandLine>
+      <TestCommandLine>$(TestCommandLine) $(XunitTraitOptions)</TestCommandLine>
     </PropertyGroup>
 
     <MakeDir Condition="'$(CoverageEnabledForProject)'=='true'" Directories="$(CoverageReportDir)" />
@@ -97,7 +120,7 @@
           WorkingDirectory="$(TestPath)%(TestTargetFramework.Folder)"
           Condition="'$(CollectPerfEvents)' == 'true'" />
 
-    <Exec Command="$(TestHost) $(TestCommandLine)"
+    <Exec Command="$(TestCommandLine)"
           WorkingDirectory="$(TestPath)%(TestTargetFramework.Folder)"
           ContinueOnError="true">
       <Output PropertyName="TestRunExitCode" TaskParameter="ExitCode" />
