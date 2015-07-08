@@ -15,6 +15,7 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <ResolveNuGetPackages>false</ResolveNuGetPackages>
+    <SkipSigning>true</SkipSigning>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>
@@ -110,15 +111,15 @@
     </Reference>
     <Reference Include="xunit.abstractions">
       <Private>True</Private>
-      <HintPath>..\..\packages\xunit.runner.dependencies.netcore.1.0.1-prerelease\lib\portable-wpa80+win8+net45+aspnetcore50\xunit.abstractions.dll</HintPath>
+      <HintPath>..\..\packages\xunit.abstractions.2.0.0\lib\portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="xunit.execution">
+    <Reference Include="xunit.execution.dnx">
       <Private>True</Private>
-      <HintPath>..\..\packages\xunit.runner.dependencies.netcore.1.0.1-prerelease\lib\portable-wpa80+win8+net45+aspnetcore50\xunit.execution.dll</HintPath>
+      <HintPath>..\..\packages\xunit.extensibility.execution.2.1.0-beta2-build2981\lib\dnxcore50\xunit.execution.dnx.dll</HintPath>
     </Reference>
-    <Reference Include="xunit.runner.utility">
+    <Reference Include="xunit.runner.utility.dnx">
       <Private>True</Private>
-      <HintPath>..\..\packages\xunit.runner.dependencies.netcore.1.0.1-prerelease\lib\portable-wpa80+win8+net45+aspnetcore50\xunit.runner.utility.dll</HintPath>
+      <HintPath>..\..\packages\xunit.runner.utility.2.1.0-beta2-build2981\lib\dnxcore50\xunit.runner.utility.dnx.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
