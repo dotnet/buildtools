@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <UsingTask TaskName="ResolveNuGetPackageAssets" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="PrereleaseResolveNuGetPackageAssets" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
   <PropertyGroup>
     <GenFacadesNuGetName>Microsoft.DotNet.BuildTools.ApiTools.1.0.0-prerelease</GenFacadesNuGetName>
@@ -55,7 +55,7 @@
 
   <!-- FindPartialFacadeContractReference
          Generates a special project.json file to restore the NuGet package containing the partial facade's contract assembly.
-         Filters the list of references returned by the ResolveNuGetPackageAssets task to just the contract assembly and stores it.
+         Filters the list of references returned by the PrereleaseResolveNuGetPackageAssets task to just the contract assembly and stores it.
          The identity of the NuGet package is constructed from the assembly's name and version number.
   -->
   <Target Name="FindPartialFacadeContractReference">
@@ -79,7 +79,7 @@
     <Exec Command="$(DnuRestoreCommand) &quot;$(CustomPartialFacadeJsonFile)&quot;" StandardOutputImportance="Low" CustomErrorRegularExpression="^Unable to locate .*" />
     
     <!-- Resolve the references using this task, store them in @(PossibleContractRefs) -->
-    <ResolveNuGetPackageAssets Architecture="$(PlatformTarget)"
+    <PrereleaseResolveNuGetPackageAssets Architecture="$(PlatformTarget)"
                                Configuration="$(Configuration)"
                                Language="$(Language)"
                                PackageRoot="$(PackagesDir)"
@@ -87,7 +87,7 @@
                                TargetFrameworkMonikers="$(NugetTargetFrameworkMoniker)"
                                TargetPlatformMonikers="$(TargetPlatformMoniker)">
       <Output TaskParameter="ResolvedReferences" ItemName="PossibleContractRefs" />
-    </ResolveNuGetPackageAssets>
+    </PrereleaseResolveNuGetPackageAssets>
 
     <ItemGroup>
       <!-- Match the contract by assembly name -->

@@ -15,16 +15,16 @@ namespace Microsoft.NuGet.Build.Tasks
     /// <summary>
     /// Resolves the assets out of packages in the project.json.
     /// </summary>
-    public sealed class ResolveNuGetPackageAssets : Task
+    public sealed class PrereleaseResolveNuGetPackageAssets : Task
     {
         private readonly List<ITaskItem> _analyzers = new List<ITaskItem>();
         private readonly List<ITaskItem> _copyLocalItems = new List<ITaskItem>();
         private readonly List<ITaskItem> _references = new List<ITaskItem>();
 
         /// <summary>
-        /// Creates a new <see cref="ResolveNuGetPackageAssets"/>.
+        /// Creates a new <see cref="PrereleaseResolveNuGetPackageAssets"/>.
         /// </summary>
-        public ResolveNuGetPackageAssets()
+        public PrereleaseResolveNuGetPackageAssets()
         { }
 
         /// <summary>
