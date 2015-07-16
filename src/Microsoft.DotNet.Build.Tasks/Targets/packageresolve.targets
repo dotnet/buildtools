@@ -10,7 +10,6 @@
     <ProjectJson Condition="'$(ProjectJson)'=='' and Exists('$(MSBuildProjectDirectory)/project.json')">$(MSBuildProjectDirectory)/project.json</ProjectJson>
     <ProjectLockJson Condition="Exists('$(ProjectJson)') and '$(ProjectLockJson)'==''">$(MSBuildProjectDirectory)/project.lock.json</ProjectLockJson>
     <ResolveNugetProjectFile Condition="'$(ResolveNugetProjectFile)' == ''">$(MSBuildProjectFullPath)</ResolveNugetProjectFile>
-
     <RestorePackages Condition="'$(RestorePackages)'!='false' and (Exists('$(ProjectPackagesConfigFile)') or Exists('$(ProjectJson)')) and '$(DesignTimeBuild)' != 'true'">true</RestorePackages>
     <PrereleaseResolveNuGetPackages Condition="'$(PrereleaseResolveNuGetPackages)'!='false' and (Exists('$(ProjectPackagesConfigFile)') or Exists('$(ProjectJson)'))">true</PrereleaseResolveNuGetPackages>
 
@@ -23,9 +22,10 @@
     <ResolveNugetPackages>false</ResolveNugetPackages>
   </PropertyGroup>
 
-  <Target Name="RestorePackages" 
+  <!-- Restoring packages during a background (designtime) build will cause VS 2015 (v14) to get into an endless loop of resolving references. -->
+  <Target Name="RestorePackages"
           BeforeTargets="ResolveNuGetPackages"
-          Condition="'$(RestorePackages)'=='true'">
+          Condition="'$(RestorePackages)'=='true' and !('$(VSDesignTimeBuild)'=='true' and '$(VisualStudioVersion)' >= '14.0')">
 
     <Error Condition="'$(NugetRestoreCommand)'=='' and Exists('$(ProjectPackagesConfigFile)')" Text="RestorePackages target needs a predefined NugetRestoreCommand property set in order to restore $(ProjectPackagesConfigFile)" /> 
     <Error Condition="'$(DnuRestoreCommand)'=='' and Exists('$(ProjectJson)')" Text="RestorePackages target needs a predefined DnuRestoreCommand property set in order to restore $(ProjectJson)" /> 
@@ -105,9 +105,8 @@
       <Reference Remove="@(_ReferenceFileNamesToRemove)" />
       <None Remove="@(_NoneFileNamesToRemove)"/>
     </ItemGroup>
-    
+
     <Message Text="Excluding @(_ReferenceFileNamesToRemove);@(_NoneFileNamesToRemove) from package references since the same file is provided by a project refrence."
              Condition="'@(_ReferenceFileNamesToRemove)' != '' or '@(_NoneFileNamesToRemove)' != ''"/>
   </Target>
-
 </Project>
