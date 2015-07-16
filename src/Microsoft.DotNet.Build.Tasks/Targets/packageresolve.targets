@@ -3,7 +3,7 @@
 
   <UsingTask TaskName="ReadNuGetPackageReferences" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ResolveNuGetPackages" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
-  <UsingTask TaskName="ResolveNuGetPackageAssets" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="PrereleaseResolveNuGetPackageAssets" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
   <PropertyGroup>
     <ProjectPackagesConfigFile Condition="'$(ProjectPackagesConfigFile)'=='' and Exists('$(MSBuildProjectDirectory)/packages.config')">$(MSBuildProjectDirectory)/packages.config</ProjectPackagesConfigFile>
@@ -11,8 +11,16 @@
     <ProjectLockJson Condition="Exists('$(ProjectJson)') and '$(ProjectLockJson)'==''">$(MSBuildProjectDirectory)/project.lock.json</ProjectLockJson>
     <ResolveNugetProjectFile Condition="'$(ResolveNugetProjectFile)' == ''">$(MSBuildProjectFullPath)</ResolveNugetProjectFile>
 
-    <RestorePackages Condition="'$(RestorePackages)'!='false' and (Exists('$(ProjectPackagesConfigFile)') or Exists('$(ProjectJson)'))">true</RestorePackages>
-    <ResolveNuGetPackages Condition="'$(ResolveNuGetPackages)'!='false' and (Exists('$(ProjectPackagesConfigFile)') or Exists('$(ProjectJson)'))">true</ResolveNuGetPackages>
+    <RestorePackages Condition="'$(RestorePackages)'!='false' and (Exists('$(ProjectPackagesConfigFile)') or Exists('$(ProjectJson)')) and '$(DesignTimeBuild)' != 'true'">true</RestorePackages>
+    <PrereleaseResolveNuGetPackages Condition="'$(PrereleaseResolveNuGetPackages)'!='false' and (Exists('$(ProjectPackagesConfigFile)') or Exists('$(ProjectJson)'))">true</PrereleaseResolveNuGetPackages>
+
+    <!-- 
+        For now, prevent built-in task (if available) from running.
+        More changes are needed to light up on their availability
+        and use them instead of what we have here. See buildtools
+        issue #192.
+     -->
+    <ResolveNugetPackages>false</ResolveNugetPackages>
   </PropertyGroup>
 
   <Target Name="RestorePackages" 
@@ -26,7 +34,7 @@
     <Exec Condition="Exists('$(ProjectJson)')" Command="$(DnuRestoreCommand) &quot;$(ProjectJson)&quot;" StandardOutputImportance="Low" CustomErrorRegularExpression="^Unable to locate .*" />
   </Target>
 
-  <ItemGroup Condition="'$(ResolvePackages)'=='true' or '$(ResolveNuGetPackages)'=='true'">
+  <ItemGroup Condition="'$(ResolvePackages)'=='true' or '$(PrereleaseResolveNuGetPackages)'=='true'">
     <CustomAdditionalCompileInputs Condition="Exists('$(ProjectPackagesConfigFile)')" Include="$(ProjectPackagesConfigFile)" />
     <CustomAdditionalCompileInputs Condition="Exists('$(ProjectJson)')" Include="$(ProjectJson)" />
   </ItemGroup>
@@ -40,7 +48,7 @@
   </PropertyGroup>
 
   <Target Name="ResolveNuGetPackages"
-          Condition="'$(ResolveNuGetPackages)'=='true'">
+          Condition="'$(PrereleaseResolveNuGetPackages)'=='true'">
 
     <!-- Use old task for packages.config -->
     <ResolveNuGetPackages Condition="'$(ProjectPackagesConfigFile)' != ''"
@@ -62,7 +70,7 @@
       <NugetTargetFrameworkMoniker Condition="'$(NugetTargetFrameworkMoniker)' == '.NETPortable,Version=v4.5,Profile=Profile7'">DNXCore,Version=v5.0</NugetTargetFrameworkMoniker>
     </PropertyGroup>
 
-    <ResolveNuGetPackageAssets Condition="Exists($(ProjectLockJson))"
+    <PrereleaseResolveNuGetPackageAssets Condition="Exists($(ProjectLockJson))"
                                Architecture="$(PlatformTarget)"
                                Configuration="$(Configuration)"
                                Language="$(Language)"
@@ -73,7 +81,7 @@
       <Output TaskParameter="ResolvedAnalyzers" ItemName="Analyzer" />
       <Output TaskParameter="ResolvedReferences" ItemName="Reference" />
       <Output TaskParameter="ResolvedCopyLocalItems" ItemName="None" />
-    </ResolveNuGetPackageAssets>
+    </PrereleaseResolveNuGetPackageAssets>
 
     <!-- We may have an indirect package reference that we want to replace with a project reference -->
     <ItemGroup>

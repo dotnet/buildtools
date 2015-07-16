@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <UsingTask TaskName="ResolveNuGetPackageAssets" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="PrereleaseResolveNuGetPackageAssets" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="RemoveDuplicatesWithLastOneWinsPolicy" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
   
   <PropertyGroup>
@@ -26,7 +26,7 @@
       <TestNugetProjectLockFile Include="$(TestRuntimeProjectLockJson)" Condition="Exists($(TestRuntimeProjectLockJson))"/>
     </ItemGroup>
 
-    <ResolveNuGetPackageAssets Condition="'@(TestNugetProjectLockFile)' != ''"
+    <PrereleaseResolveNuGetPackageAssets Condition="'@(TestNugetProjectLockFile)' != ''"
                                Architecture="$(TestArchitecture)"
                                Configuration="$(NuGetConfiguration)"
                                Language="$(Language)"
@@ -36,7 +36,7 @@
                                TargetPlatformMonikers="$(TargetPlatformMoniker)">
 
       <Output TaskParameter="ResolvedCopyLocalItems" ItemName="TestCopyLocal" />
-    </ResolveNuGetPackageAssets>
+    </PrereleaseResolveNuGetPackageAssets>
 
      <!-- We may have an indirect package reference that we want to replace with a project reference.
           Those are part of RunTestsForProjectInputs. The order that we append to TestCopyLocal is
