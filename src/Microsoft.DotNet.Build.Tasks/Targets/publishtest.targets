@@ -44,15 +44,21 @@
     <ItemGroup>
       <TestCopyLocal Include="@(RunTestsForProjectInputs)" Exclude="@(PackagesConfigs)" />
     </ItemGroup>
-    
+
     <!-- Test using locally built libraries if requested. Again, later entries override earlier
          entries. -->
+    <PropertyGroup Condition="'$(TestWithLocalLibraries)'=='true'">
+      <BaseLocalLibrariesPath Condition="'$(BaseLocalLibrariesPath)'==''">$(BaseOutputPath)</BaseLocalLibrariesPath>
+      <LocalLibrariesPath Condition="'$(LocalLibrariesPath)'==''">$(BaseLocalLibrariesPath)$(OSPlatformConfig)</LocalLibrariesPath>
+    </PropertyGroup>
     <ItemGroup Condition="'$(TestWithLocalLibraries)'=='true'">
       <!-- Replace some of the resolved libraries that came from nuget by exploring the list of files that we are going to copy
            and replacing them with local copies that were just built -->
-      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(BaseOutputPath)$(OSPlatformConfig)\%(filename)\%(filename).dll')" />
-      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(BaseOutputPath)$(OSPlatformConfig)\%(filename)\%(filename).pdb')" />
-      <_ExistingReplacementCandidate Include="@(_ReplacementCandidates)" Condition="Exists('%(_ReplacementCandidates.FullPath)')" />      
+      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(LocalLibrariesPath)\%(filename)\%(filename).dll')" />
+      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(LocalLibrariesPath)\%(filename)\%(filename).pdb')" />
+      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(LocalLibrariesPath)\%(filename).CoreCLR\%(filename).dll')" />
+      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(LocalLibrariesPath)\%(filename).CoreCLR\%(filename).pdb')" />
+      <_ExistingReplacementCandidate Include="@(_ReplacementCandidates)" Condition="Exists('%(_ReplacementCandidates.FullPath)')" />
       <TestCopyLocal Include="@(_ExistingReplacementCandidate)" />
     </ItemGroup>
 
