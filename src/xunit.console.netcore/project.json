@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "System.Collections.Concurrent": "4.0.10-beta-*",
+    "System.Console": "4.0.0-beta-*",
+    "System.Diagnostics.Contracts": "4.0.0-beta-*",
+    "System.Diagnostics.Debug": "4.0.10-beta-*",
+    "System.Diagnostics.Tools": "4.0.0-beta-*",
+    "System.Globalization": "4.0.10-beta-*",
+    "System.IO.FileSystem": "4.0.0-beta-*",
+    "System.Linq": "4.0.0-beta-*",
+    "System.Reflection": "4.0.10-beta-*",
+    "System.Resources.ResourceManager": "4.0.0-beta-*",
+    "System.Runtime.Extensions": "4.0.10-beta-*",
+    "System.Xml.XDocument": "4.0.10-beta-*",
+    "xunit.abstractions": "2.0.0.0",
+    "xunit.extensibility.execution": "2.1.0-beta2-build2981",
+    "xunit.runner.utility": "2.1.0-beta2-build2981",
+  },
+  "frameworks": {
+    "dnxcore50": {}
+  }
+}
