@@ -5,7 +5,7 @@
     Code coverage package versions go here and in the test-runtime-packages.config
   -->
   <PropertyGroup>
-    <OpenCoverVersion>4.5.4107-rc122</OpenCoverVersion>
+    <OpenCoverVersion>4.6.166</OpenCoverVersion>
     <ReportGeneratorVersion>2.1.6.0</ReportGeneratorVersion>
     <CoverallsUploaderVersion>1.4</CoverallsUploaderVersion>
   </PropertyGroup>
@@ -34,13 +34,13 @@
 
   <!-- xUnit command line with coverage enabled -->
   <PropertyGroup Condition="'$(CoverageEnabledForProject)'=='true'">
-    <CoverageHost>$(PackagesDir)OpenCover\$(OpenCoverVersion)\OpenCover.Console.exe</CoverageHost>
+    <CoverageHost>$(PackagesDir)OpenCover\$(OpenCoverVersion)\tools\OpenCover.Console.exe</CoverageHost>
     <CoverageOutputFilePath>$(CoverageReportDir)$(MSBuildProjectName).coverage.xml</CoverageOutputFilePath>
     <CoverageOptions>-filter:"+[*]* -[*.Tests]*" -excludebyfile:"*\Common\src\System\SR.*" -nodefaultfilters -excludebyattribute:*.ExcludeFromCodeCoverage* -skipautoprops -hideskipped:All -threshold:1</CoverageOptions>
-    <CoverageCommandLine>$(CoverageOptions) -returntargetcode -register:user -target:$(XunitHost) -output:$(CoverageOutputFilePath)</CoverageCommandLine>
+    <CoverageCommandLine>$(CoverageOptions) -returntargetcode -register:user -target:$(TestProgram) -output:$(CoverageOutputFilePath)</CoverageCommandLine>
     <TestHost>$(CoverageHost)</TestHost>
     <XunitOptions>$(XunitOptions) -parallel none</XunitOptions>
-    <TestCommandLine>$(CoverageCommandLine) -targetargs:"$(XunitCommandLine) $(XunitOptions)"</TestCommandLine>
+    <TestCommandLine>$(TestHost) $(CoverageCommandLine) -targetargs:"$(TestArguments)"</TestCommandLine>
   </PropertyGroup>
 
   <!-- Report Generator Properties -->
