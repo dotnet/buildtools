@@ -58,12 +58,12 @@
     <XunitArguments>$(TargetFileName) $(XunitOptions)</XunitArguments>
 
     <TestProgram Condition="'$(TestHost)'!=''">$(TestHost)</TestProgram>
-    <TestArguments Condition="'$(TestHost)'!=''">$(XunitExecutable) $(XunitArguments) {XunitTraitOptions}</TestArguments>
+    <TestArguments Condition="'$(TestHost)'!=''">$(XunitExecutable) $(XunitArguments)</TestArguments>
 
     <TestProgram Condition="'$(TestHost)'==''">$(XunitExecutable)</TestProgram>
-    <TestArguments Condition="'$(TestHost)'==''">$(XunitArguments) {XunitTraitOptions}</TestArguments>
+    <TestArguments Condition="'$(TestHost)'==''">$(XunitArguments)</TestArguments>
 
-    <TestCommandLine>$(TestProgram) $(TestArguments)</TestCommandLine>
+    <TestCommandLine>$(TestProgram) $(TestArguments) {XunitTraitOptions}</TestCommandLine>
   </PropertyGroup>
 
   <!-- The Code Coverage targets will override TestHost and TestCommandLine if coverage is enabled -->
