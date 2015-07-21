@@ -58,12 +58,12 @@
     <XunitArguments>$(TargetFileName) $(XunitOptions)</XunitArguments>
 
     <TestProgram Condition="'$(TestHost)'!=''">$(TestHost)</TestProgram>
-    <TestArguments Condition="'$(TestHost)'!=''">$(XunitExecutable) $(XunitArguments)</TestArguments>
+    <TestArguments Condition="'$(TestHost)'!=''">$(XunitExecutable) $(XunitArguments) {XunitTraitOptions}</TestArguments>
 
     <TestProgram Condition="'$(TestHost)'==''">$(XunitExecutable)</TestProgram>
-    <TestArguments Condition="'$(TestHost)'==''">$(XunitArguments)</TestArguments>
+    <TestArguments Condition="'$(TestHost)'==''">$(XunitArguments) {XunitTraitOptions}</TestArguments>
 
-    <TestCommandLine>$(TestProgram) $(TestArguments) $(XunitTraitOptions)</TestCommandLine>
+    <TestCommandLine>$(TestProgram) $(TestArguments)</TestCommandLine>
   </PropertyGroup>
 
   <!-- The Code Coverage targets will override TestHost and TestCommandLine if coverage is enabled -->
@@ -109,9 +109,11 @@
       <XunitTraitOptions Condition="'@(RunWithoutTraits)'!=''">$(XunitTraitOptions) -notrait category=@(RunWithoutTraits, ' -notrait category=') </XunitTraitOptions>
     </PropertyGroup>
 
-    <!-- Append the xunit trait options to the end of the TestCommandLine -->
+    <!-- Replace the {XunitTraitOptions} place holder with the actual traits.  We use the place holder
+         because code coverage needs to have a bit of the test command line after the traits (it adds ending quotes
+		 to one of its options).  Simply appending the traits would break code coverage. -->
     <PropertyGroup>
-      <TestCommandLine>$(TestCommandLine) $(XunitTraitOptions)</TestCommandLine>
+      <TestCommandLine>$(TestCommandLine.Replace('{XunitTraitOptions}', '$(XunitTraitOptions)'))</TestCommandLine>
     </PropertyGroup>
 
     <MakeDir Condition="'$(CoverageEnabledForProject)'=='true'" Directories="$(CoverageReportDir)" />
