@@ -10,11 +10,6 @@
 
   <Import Project="..\dir.traversal.targets" />
 
-  <!-- For now we need to explicitly set this property because it doesn't have a default in packages.targets -->
-  <PropertyGroup>
-    <NugetPackageBuildTargets>BuildPackages</NugetPackageBuildTargets>
-  </PropertyGroup>
-
   <Import Project="$(ToolsDir)packages.targets" Condition="Exists('$(ToolsDir)packages.targets') and '$(ImportGetNuGetPackageVersions)' != 'false'" />
   <Import Project="$(ToolsDir)UpdateBuildValues.targets" Condition="Exists('$(ToolsDir)UpdateBuildValues.targets')" />
 
@@ -28,6 +23,7 @@
   <PropertyGroup>
     <GenerateCodeCoverageReportForAll>true</GenerateCodeCoverageReportForAll>
   </PropertyGroup>
-  <Import Project="$(ToolsDir)CodeCoverage.targets" Condition="Exists('$(GenerateFullCoverageReportAfterTargets)')" />
+  <Import Project="$(ToolsDir)CodeCoverage.targets" Condition="Exists('$(ToolsDir)CodeCoverage.targets')" />
+  <Import Project="$(ToolsDir)PerfTesting.targets" Condition="Exists('$(ToolsDir)PerfTesting.targets')" />
 
 </Project>
