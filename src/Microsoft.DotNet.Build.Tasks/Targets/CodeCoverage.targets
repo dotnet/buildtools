@@ -40,7 +40,7 @@
     <CoverageCommandLine>$(CoverageOptions) -returntargetcode -register:user -target:$(TestProgram) -output:$(CoverageOutputFilePath)</CoverageCommandLine>
     <TestHost>$(CoverageHost)</TestHost>
     <XunitOptions>$(XunitOptions) -parallel none</XunitOptions>
-    <TestCommandLine>$(TestHost) $(CoverageCommandLine) -targetargs:"$(TestArguments)"</TestCommandLine>
+    <TestCommandLine>$(TestHost) $(CoverageCommandLine) -targetargs:"$(TestArguments) {XunitTraitOptions}"</TestCommandLine>
   </PropertyGroup>
 
   <!-- Report Generator Properties -->
