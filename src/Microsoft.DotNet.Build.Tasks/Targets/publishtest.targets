@@ -74,8 +74,13 @@
       <Output TaskParameter="Filtered" ItemName="_TestCopyLocalByFileNameWithoutDuplicates" />
     </RemoveDuplicatesWithLastOneWinsPolicy>
 
-    <!-- NOTE: UseHardLinksIfPossible is hard-coded to true because we copy tons of the 
-         same files for every single test project here. -->
+    <!-- Ideally, we'd have UseHardLinksIfPossible on by default because we copy tons of the
+         same files for every single test project here, but it doesn't currently work x-plat.
+         so we only turn it on by default for Windows builds for now. -->
+    <PropertyGroup>
+      <CreateHardLinksForCopyTestToTestDirectoryIfPossible Condition="'$(CreateHardLinksForCopyTestToTestDirectoryIfPossible)'=='' and '$(OS)' == 'Windows_NT'">true</CreateHardLinksForCopyTestToTestDirectoryIfPossible>
+      <CreateHardLinksForCopyTestToTestDirectoryIfPossible Condition="'$(CreateHardLinksForCopyTestToTestDirectoryIfPossible)'==''">$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)</CreateHardLinksForCopyTestToTestDirectoryIfPossible>
+   </PropertyGroup>
     <Copy
       SourceFiles="@(_TestCopyLocalByFileNameWithoutDuplicates->'%(SourcePath)')"
       DestinationFolder="$(TestPath)%(TestTargetFramework.Folder)"
@@ -83,7 +88,7 @@
       OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
       Retries="$(CopyRetryCount)"
       RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
-      UseHardlinksIfPossible="true">
+      UseHardlinksIfPossible="$(CreateHardLinksForCopyTestToTestDirectoryIfPossible)">
       
       <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
     </Copy>
