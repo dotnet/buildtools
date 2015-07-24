@@ -34,12 +34,6 @@ namespace GenFacades
             bool forceZeroVersionSeeds = false;
             string partialFacadeAssemblyPath = null;
 
-#if COREFX
-            string commandLine = "GenFacades.exe " + string.Join(" ", args); // CommandLine parser assumes first arg is exe name.
-#else
-            string commandLine = Environment.CommandLine;
-#endif
-
             bool parsingSucceeded = CommandLineParser.ParseForConsoleApplication((parser) =>
             {
                 parser.DefineQualifier("facadePath", ref facadePath, "Path to output the facades.");
@@ -55,7 +49,7 @@ namespace GenFacades
                 parser.DefineOptionalQualifier("preferSeedType", ref seedTypePreferencesUnsplit, "Set which seed assembly to choose for a given type when it is defined in more than one assembly. Format: FullTypeName=PreferredSeedAssemblyName");
                 parser.DefineOptionalQualifier("forceZeroVersionSeeds", ref forceZeroVersionSeeds, "Forces all seed assembly versions to 0.0.0.0, regardless of their true version.");
                 parser.DefineOptionalQualifier("partialFacadeAssemblyPath", ref partialFacadeAssemblyPath, "Specifies the path to a single partial facade assembly, into which appropriate type forwards will be added to satisfy the given contract. If this option is specified, only a single partial assembly and a single contract may be given.");
-            }, commandLine);
+            }, args);
 
             if (!parsingSucceeded)
             {

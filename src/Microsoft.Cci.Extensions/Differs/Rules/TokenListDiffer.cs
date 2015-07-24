@@ -20,11 +20,8 @@ namespace Microsoft.Cci.Differs.Rules
     public class TokenListDiffer : DifferenceRule
     {
         [Import(AllowDefault = true)]
-#if COREFX
-        private IDiffingService _diffingService { get; set; }
-#else
-        private IDiffingService _diffingService = null;
-#endif
+        private IDiffingService DiffingService { get; set; }
+
         private CSDeclarationHelper _declHelper = null;
 
         public override DifferenceType Diff(IDifferences differences, ITypeDefinitionMember item1, ITypeDefinitionMember item2)
@@ -60,8 +57,8 @@ namespace Microsoft.Cci.Differs.Rules
         private IEnumerable<SyntaxToken> GetTokenList(IDefinition item)
         {
             // If we have a contextual based service use it otherwise fall back to the simple one
-            if (_diffingService != null)
-                return _diffingService.GetTokenList(item);
+            if (DiffingService != null)
+                return DiffingService.GetTokenList(item);
 
             if (_declHelper == null)
                 _declHelper = new CSDeclarationHelper(new PublicOnlyCciFilter());

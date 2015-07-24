@@ -302,7 +302,7 @@ class CommandLine
         /// <param name="parseBody">parseBody is the body of the parsing that this outer shell does not provide.
         /// in this delegate, you should be defining all the command line parameters using calls to Define* methods.
         ///  </param>
-        public static bool ParseForConsoleApplication(Action<CommandLineParser> parseBody, string commandLine)
+        public static bool ParseForConsoleApplication(Action<CommandLineParser> parseBody, string[] args)
         {
             return Parse(parseBody, parser =>
             {
@@ -319,13 +319,13 @@ class CommandLine
                 Console.WriteLine("Error: " + ex.Message);
                 Console.WriteLine("Use -? for help.");
             },
-            commandLine);
+            args);
         }
 
-        public static bool Parse(Action<CommandLineParser> parseBody, Action<CommandLineParser> helpHandler, Action<CommandLineParser, Exception> errorHandler, string commandLine)
+        public static bool Parse(Action<CommandLineParser> parseBody, Action<CommandLineParser> helpHandler, Action<CommandLineParser, Exception> errorHandler, string[] args)
         {
             var help = false;
-            CommandLineParser parser = new CommandLineParser(commandLine);
+            CommandLineParser parser = new CommandLineParser(args);
             parser.DefineOptionalQualifier("?", ref help, "Print this help guide.");
 
             try
@@ -685,13 +685,8 @@ class CommandLine
             StringBuilder sb = new StringBuilder();
 
             // Create the 'Usage' line;
-            // TODO: Find a better way to obtain this information.
-#if COREFX
-            string appName = "<AppName>";
+            string appName = GetEntryAssemblyName();
 
-#else
-            string appName = Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetEntryAssembly().ManifestModule.Name);
-#endif
             sb.Append("Usage: ").Append(appName);
             if (parameterSetName.Length > 0)
             {
@@ -1558,13 +1553,7 @@ class CommandLine
             StringBuilder sb = new StringBuilder();
 
 
-            string appName = String.Empty;
-            Assembly entryAssembly = null;
-#if !COREFX
-            entryAssembly = System.Reflection.Assembly.GetExecutingAssembly();
-#endif
-            if (entryAssembly != null)
-                appName = Path.GetFileNameWithoutExtension(entryAssembly.ManifestModule.Name);
+            string appName = GetEntryAssemblyName();
             string intro = "The " + appName + " application has a number of commands associated with it, " +
                 "each with its own set of parameters and qualifiers.  They are listed below.  " +
                 "Options that are common to all commands are listed at the end.";
@@ -1722,10 +1711,28 @@ class CommandLine
         private static int GetConsoleHeight()
         {
 #if COREFX
-            return 40;
+            return 40; // Can't retrieve console height in .NET Core
 #else
             return Console.WindowHeight;
 #endif
+        }
+
+        private static string GetEntryAssemblyName()
+        {
+#if COREFX
+            // Cannot use Assembly.GetEntryAssembly(). This assumes that CommandLine is compiled into your application.
+            Assembly entryAssembly = typeof(CommandLineParser).GetTypeInfo().Assembly;
+#else
+            Assembly entryAssembly = Assembly.GetEntryAssembly();
+#endif
+            if (entryAssembly != null)
+            {
+                return Path.GetFileNameWithoutExtension(entryAssembly.ManifestModule.Name);
+            }
+            else
+            {
+                return string.Empty;
+            }
         }
 
         // TODO expose the ability to change this?

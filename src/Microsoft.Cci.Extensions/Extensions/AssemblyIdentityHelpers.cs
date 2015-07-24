@@ -28,11 +28,7 @@ namespace Microsoft.Cci.Extensions
         {
             var name = new System.Reflection.AssemblyName(formattedName);
             return new AssemblyIdentity(nameTable.GetNameFor(name.Name),
-#if COREFX
                                         name.CultureName,
-#else
-                                        name.CultureInfo.Name,
-#endif
                                         name.Version,
                                         name.GetPublicKeyToken(),
 #if COREFX
