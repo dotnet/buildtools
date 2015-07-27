@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.props))\dir.props" />
+
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>GenFacades</RootNamespace>
+    <AssemblyName>GenFacades</AssemblyName>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <GenFacadesSrc>..\GenFacades</GenFacadesSrc>
+  </PropertyGroup>
+
+    <!-- Default configurations to help VS understand the configurations -->
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
+
+  <ItemGroup>
+    <Compile Include="$(GenFacadesSrc)\FacadeGenerationException.cs" />
+    <Compile Include="$(GenFacadesSrc)\Program.cs" />
+    <Compile Include="$(GenFacadesSrc)\VersionResourceSerializer.cs" />
+  </ItemGroup>
+
+  <!-- Common command-line helper sources -->
+  <ItemGroup>
+    <Compile Include="$(CommonPath)\CommandLine.cs">
+      <Link>Common\CommandLine.cs</Link>
+    </Compile>
+    <Compile Include="$(CommonPath)\CommandLineTraceHandler.cs">
+      <Link>Common\CommandLineTraceHandler.cs</Link>
+    </Compile>
+    <Compile Include="$(CommonPath)\ConsoleTraceListener.cs">
+      <Link>Common\ConsoleTraceListener.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.CCI.Extensions\Microsoft.CCI.Extensions.csproj" />
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), publishexe.targets))\publishexe.targets" />
+</Project>

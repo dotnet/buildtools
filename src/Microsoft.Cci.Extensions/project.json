@@ -1,0 +1,18 @@
+﻿{
+    "dependencies": {
+        "Microsoft.Cci": "4.0.0-beta-*",
+        "Microsoft.Composition": "1.0.30",
+        "System.Collections": "4.0.10-beta-*",
+        "System.Collections.NonGeneric": "4.0.0-beta-*",
+        "System.Console": "4.0.0-beta-*",
+        "System.Diagnostics.Contracts": "4.0.0-beta-*",
+        "System.Diagnostics.Debug": "4.0.10-beta-*",
+        "System.Diagnostics.TraceSource": "4.0.0-beta-*",
+        "System.IO.FileSystem": "4.0.0-beta-*",
+        "System.Linq": "4.0.0-beta-*",
+        "System.Reflection": "4.0.10-beta-*",
+        "System.Text.RegularExpressions": "4.0.10-beta-*",
+        "System.Threading": "4.0.10-beta-*",
+        "System.Xml.XDocument": "4.0.10-beta-*",
+    }
+}
