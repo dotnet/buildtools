@@ -4,7 +4,7 @@
        "Microsoft.NETCore.Windows.ApiSets-x86": "1.0.0-beta-*",
        "Microsoft.NETCore.TestHost-x86": "1.0.0-beta-*",
        "Microsoft.NETCore.Runtime.CoreCLR-x86": "1.0.0-beta-*",
-       "Microsoft.DotNet.PerfTools": "0.0.1-prerelease-00022",
+       "Microsoft.DotNet.PerfTools": "0.0.1-prerelease-*",
        "OpenCover": "4.6.166",
        "ReportGenerator": "2.1.6.0",
        "System.Collections": "4.0.10-beta-*",
