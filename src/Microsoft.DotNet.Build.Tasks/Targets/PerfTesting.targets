@@ -11,7 +11,7 @@
     Perf tools package versions go here and in the test-runtime-packages.config
   -->
   <PropertyGroup>
-    <PerfToolsVersion>0.0.1-prerelease-00022</PerfToolsVersion>
+    <PerfToolsVersion>0.0.1-prerelease-00064</PerfToolsVersion>
     <PerfToolsDir Condition="'$(PerfToolsDir)'==''">$(PackagesDir)Microsoft.DotNet.PerfTools\$(PerfToolsVersion)\tools\</PerfToolsDir>
     <EventTracer>"$(PerfToolsDir)EventTracer.exe"</EventTracer>
     <!-- by default delete the trace files after consumption -->
