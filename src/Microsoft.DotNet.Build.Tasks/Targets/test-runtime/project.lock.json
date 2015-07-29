@@ -4,7 +4,7 @@
   "targets": {
     "DNXCore,Version=v5.0": {
       "coveralls.io/1.4": {},
-      "Microsoft.DotNet.PerfTools/0.0.1-prerelease-00064": {},
+      "Microsoft.DotNet.PerfTools/0.0.1-prerelease-00065": {},
       "Microsoft.NETCore.Runtime.CoreCLR-x86/1.0.0-beta-23127": {
         "dependencies": {
           "System.Collections": "[4.0.10-beta-23127]",
@@ -521,7 +521,7 @@
           "lib/portable-net45+dnxcore50+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS/xunit.assert.dll": {}
         }
       },
-      "xunit.console.netcore/1.0.2-prerelease-00064": {
+      "xunit.console.netcore/1.0.2-prerelease-00065": {
         "dependencies": {
           "System.Collections": "4.0.10-beta-22703",
           "System.Collections.Concurrent": "4.0.10-beta-22703",
@@ -591,7 +591,7 @@
     },
     "DNXCore,Version=v5.0/win7-x86": {
       "coveralls.io/1.4": {},
-      "Microsoft.DotNet.PerfTools/0.0.1-prerelease-00064": {},
+      "Microsoft.DotNet.PerfTools/0.0.1-prerelease-00065": {},
       "Microsoft.NETCore.Runtime.CoreCLR-x86/1.0.0-beta-23127": {
         "dependencies": {
           "System.Collections": "[4.0.10-beta-23127]",
@@ -1246,7 +1246,7 @@
           "lib/portable-net45+dnxcore50+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS/xunit.assert.dll": {}
         }
       },
-      "xunit.console.netcore/1.0.2-prerelease-00064": {
+      "xunit.console.netcore/1.0.2-prerelease-00065": {
         "dependencies": {
           "System.Collections": "4.0.10-beta-22703",
           "System.Collections.Concurrent": "4.0.10-beta-22703",
@@ -1339,12 +1339,12 @@
         "tools/NativeBinaries/x86/git2-e0902fb.pdb"
       ]
     },
-    "Microsoft.DotNet.PerfTools/0.0.1-prerelease-00064": {
+    "Microsoft.DotNet.PerfTools/0.0.1-prerelease-00065": {
       "serviceable": true,
-      "sha512": "/jgPc72PsvPxQUt/6ImwKqtO2lpYGD9n4Lva+IKBygPpMZVFcreUE/v4FWdgjkNnvDjkIaHKF/o35/5c3F15RQ==",
+      "sha512": "5R5EZOxeG2acc81xhXFL27XUPnMfstGk8dkijEhoXVQIRns7sl00/4nYFERbISCPiW+ym36pjDftY5T0kjO7tw==",
       "files": [
-        "Microsoft.DotNet.PerfTools.0.0.1-prerelease-00064.nupkg",
-        "Microsoft.DotNet.PerfTools.0.0.1-prerelease-00064.nupkg.sha512",
+        "Microsoft.DotNet.PerfTools.0.0.1-prerelease-00065.nupkg",
+        "Microsoft.DotNet.PerfTools.0.0.1-prerelease-00065.nupkg.sha512",
         "Microsoft.DotNet.PerfTools.nuspec",
         "tools/ComparePerfEventsData.exe",
         "tools/EventTracer.exe",
@@ -2738,11 +2738,11 @@
         "lib/portable-net45+dnxcore50+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS/xunit.assert.xml"
       ]
     },
-    "xunit.console.netcore/1.0.2-prerelease-00064": {
-      "sha512": "3vXLO0sDgjZ3RP9qO90c2bI9u6aEcnw5MsVcVRHKSYI0yktiZlJ4tauAqMf4CHfwLJv3icF2vQcWOUnFgwu7vA==",
+    "xunit.console.netcore/1.0.2-prerelease-00065": {
+      "sha512": "5VTxEXGHSvzQvrhOgck0xDlbZYNCzw3d4EAuCz/hTkfgI2KO6Ir19G552gC/zkBFebuMeEUP1BZ6h3uKxIcA5A==",
       "files": [
-        "xunit.console.netcore.1.0.2-prerelease-00064.nupkg",
-        "xunit.console.netcore.1.0.2-prerelease-00064.nupkg.sha512",
+        "xunit.console.netcore.1.0.2-prerelease-00065.nupkg",
+        "xunit.console.netcore.1.0.2-prerelease-00065.nupkg.sha512",
         "xunit.console.netcore.nuspec",
         "lib/aspnetcore50/xunit.console.netcore.exe"
       ]
