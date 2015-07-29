@@ -70,7 +70,7 @@
       <NugetTargetFrameworkMoniker Condition="'$(NugetTargetFrameworkMoniker)' == '.NETPortable,Version=v4.5,Profile=Profile7'">DNXCore,Version=v5.0</NugetTargetFrameworkMoniker>
     </PropertyGroup>
 
-    <PrereleaseResolveNuGetPackageAssets Condition="Exists($(ProjectLockJson))"
+    <PrereleaseResolveNuGetPackageAssets Condition="Exists('$(ProjectLockJson)')"
                                AllowFallbackOnTargetSelection="true"
                                IncludeFrameworkReferences="false"
                                NuGetPackagesDirectory="$(PackagesDir)"
@@ -85,22 +85,9 @@
 
     <!-- We may have an indirect package reference that we want to replace with a project reference -->
     <ItemGroup>
-      <!-- Convert to filenames so that we can intersect -->
-      <_ProjectReferenceFilenames Include="@(_ResolvedProjectReferencePaths->'%(FileName)%(Extension)')">
-        <OriginalIdentity>%(Identity)</OriginalIdentity>
-      </_ProjectReferenceFilenames>
-
-      <_ReferencesFileNames Include="@(Reference->'%(FileName)%(Extension)')">
-        <OriginalIdentity>%(Identity)</OriginalIdentity>
-      </_ReferencesFileNames>
-
-      <_NoneFileNames Include="@(None->'%(FileName)%(Extension)')">
-        <OriginalIdentity>%(Identity)</OriginalIdentity>
-      </_NoneFileNames>
-      
       <!-- Intersect project-refs with package-refs -->
-      <_ReferenceFileNamesToRemove Include="@(_ReferencesFileNames->'%(OriginalIdentity)')" Condition="'@(_ProjectReferenceFilenames)' == '@(_ReferencesFileNames)' and '%(Identity)' != ''"/>
-      <_NoneFileNamesToRemove Include="@(_NoneFileNames->'%(OriginalIdentity)')" Condition="'@(_ProjectReferenceFilenames)' == '@(_NoneFileNames)' and '%(Identity)' != ''"/>
+      <_ReferenceFileNamesToRemove Include="@(Reference)" Condition="'@(_ResolvedProjectReferencePaths->'%(FileName)%(Extension)')' == '%(FileName)%(Extension)'" />
+      <_NoneFileNamesToRemove Include="@(None)" Condition="'@(_ResolvedProjectReferencePaths->'%(FileName)%(Extension)')' == '%(FileName)%(Extension)'" />
 
       <Reference Remove="@(_ReferenceFileNamesToRemove)" />
       <None Remove="@(_NoneFileNamesToRemove)"/>
