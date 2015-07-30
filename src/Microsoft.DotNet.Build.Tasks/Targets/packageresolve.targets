@@ -71,13 +71,13 @@
     </PropertyGroup>
 
     <PrereleaseResolveNuGetPackageAssets Condition="Exists($(ProjectLockJson))"
-                               Architecture="$(PlatformTarget)"
-                               Configuration="$(Configuration)"
-                               Language="$(Language)"
-                               PackageRoot="$(PackagesDir)"
+                               AllowFallbackOnTargetSelection="true"
+                               IncludeFrameworkReferences="false"
+                               NuGetPackagesDirectory="$(PackagesDir)"
+                               RuntimeIdentifier=""
+                               ProjectLanguage="$(Language)"
                                ProjectLockFile="$(ProjectLockJson)"
-                               TargetFrameworkMonikers="$(NugetTargetFrameworkMoniker)"
-                               TargetPlatformMonikers="$(TargetPlatformMoniker)">
+                               TargetMonikers="$(NugetTargetFrameworkMoniker)">
       <Output TaskParameter="ResolvedAnalyzers" ItemName="Analyzer" />
       <Output TaskParameter="ResolvedReferences" ItemName="Reference" />
       <Output TaskParameter="ResolvedCopyLocalItems" ItemName="None" />

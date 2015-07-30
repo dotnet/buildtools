@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using Microsoft.Build.Framework;
@@ -7,25 +7,68 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 
-namespace Microsoft.NuGet.Build.Tasks
+namespace Microsoft.DotNet.Build.Tasks
 {
     /// <summary>
-    /// Resolves the assets out of packages in the project.json.
+    /// Resolves the assets out of packages in the project.lock.json
     /// </summary>
     public sealed class PrereleaseResolveNuGetPackageAssets : Task
     {
+        internal const string NuGetPackageIdMetadata = "NuGetPackageId";
+        internal const string NuGetPackageVersionMetadata = "NuGetPackageVersion";
+        internal const string ReferenceImplementationMetadata = "Implementation";
+        internal const string ReferenceImageRuntimeMetadata = "ImageRuntime";
+        internal const string ReferenceWinMDFileMetadata = "WinMDFile";
+        internal const string ReferenceWinMDFileTypeMetadata = "WinMDFileType";
+        internal const string WinMDFileTypeManaged = "Managed";
+        internal const string WinMDFileTypeNative = "Native";
+        internal const string NuGetAssetTypeCompile = "compile";
+        internal const string NuGetAssetTypeNative = "native";
+        internal const string NuGetAssetTypeRuntime = "runtime";
+        internal const string NuGetAssetTypeResource = "resource";
+
+
         private readonly List<ITaskItem> _analyzers = new List<ITaskItem>();
         private readonly List<ITaskItem> _copyLocalItems = new List<ITaskItem>();
         private readonly List<ITaskItem> _references = new List<ITaskItem>();
+        private readonly List<ITaskItem> _referencedPackages = new List<ITaskItem>();
+
+        #region UnitTestSupport
+        private readonly DirectoryExists _directoryExists = new DirectoryExists(Directory.Exists);
+        private readonly FileExists _fileExists = new FileExists(File.Exists);
+        private readonly TryGetRuntimeVersion _tryGetRuntimeVersion = new TryGetRuntimeVersion(TryGetRuntimeVersion);
+
+        internal PrereleaseResolveNuGetPackageAssets(DirectoryExists directoryExists, FileExists fileExists, TryGetRuntimeVersion tryGetRuntimeVersion)
+            : this()
+        {
+            if (directoryExists != null)
+            {
+                _directoryExists = directoryExists;
+            }
+
+            if (fileExists != null)
+            {
+                _fileExists = fileExists;
+            }
+
+            if (tryGetRuntimeVersion != null)
+            {
+                _tryGetRuntimeVersion = tryGetRuntimeVersion;
+            }
+        }
+        #endregion
 
         /// <summary>
         /// Creates a new <see cref="PrereleaseResolveNuGetPackageAssets"/>.
         /// </summary>
         public PrereleaseResolveNuGetPackageAssets()
-        { }
+        {
+            Log.TaskResources = Strings.ResourceManager;
+        }
 
         /// <summary>
         /// The full paths to resolved analyzers.
@@ -55,64 +98,52 @@ namespace Microsoft.NuGet.Build.Tasks
         }
 
         /// <summary>
-        /// The name of the architecture of binaries to choose. Examples include 'AnyCPU', 'x86', etc.
+        /// The names of NuGet packages directly referenced by this project.
         /// </summary>
-        public string Architecture
+        [Output]
+        public ITaskItem[] ReferencedPackages
         {
-            get; set;
+            get { return _referencedPackages.ToArray(); }
         }
 
         /// <summary>
-        /// The name (Debug or Release) of the configuration to choose.
-        /// </summary>
-        public string Configuration
-        {
-            get; set;
-        }
-
-        /// <summary>
-        /// The target framework monikers to use when selecting assets from packages.
+        /// The target monikers to use when selecting assets from packages. The first one found in the lock file is used.
         /// </summary>
         [Required]
-        public string[] TargetFrameworkMonikers
+        public ITaskItem[] TargetMonikers
         {
             get; set;
         }
 
-        /// <summary>
-        /// The target platform monikers to use when selecting assets from packages.
-        /// </summary>
         [Required]
-        public string[] TargetPlatformMonikers
-        {
-            get; set;
-        }
-
         public string ProjectLockFile
         {
             get; set;
         }
 
-        /// <summary>
-        /// The path to the downloaded nuget package dependencies.
-        /// </summary>
-        public string PackageRoot
-        {
-            get;
-            set;
-        }
-
-        public bool UseDotNetNativeToolchain
+        public string NuGetPackagesDirectory
         {
             get; set;
         }
 
-        /// <summary>
-        /// The language of the source files in the project.
-        /// </summary>
-        public string Language
+        public string RuntimeIdentifier
         {
-            get; private set;
+            get; set;
+        }
+
+        public bool AllowFallbackOnTargetSelection
+        {
+            get; set;
+        }
+
+        public string ProjectLanguage
+        {
+            get; set;
+        }
+
+        public bool IncludeFrameworkReferences
+        {
+            get; set;
         }
 
         /// <summary>
@@ -120,38 +151,47 @@ namespace Microsoft.NuGet.Build.Tasks
         /// </summary>
         public override bool Execute()
         {
+            try
+            {
+                ExecuteCore();
+                return true;
+            }
+            catch (ExceptionFromResource e)
+            {
+                Log.LogErrorFromResources(e.ResourceName, e.MessageArgs);
+                return false;
+            }
+            catch (Exception e)
+            {
+                Log.LogErrorFromException(e);
+                return false;
+            }
+        }
+
+        private void ExecuteCore()
+        {
+            if (!_fileExists(ProjectLockFile))
+            {
+                throw new ExceptionFromResource(nameof(Strings.LockFileNotFound), ProjectLockFile);
+            }
+
             JObject lockFile;
             using (var streamReader = new StreamReader(ProjectLockFile))
             {
                 lockFile = JObject.Load(new JsonTextReader(streamReader));
             }
+            
+            GetReferences(lockFile);
+            GetCopyLocalItems(lockFile);
+            GetAnalyzers(lockFile);
+            GetReferencedPackages(lockFile);
+        }
 
-            var targets = (JObject)lockFile["targets"];
-
-            string tfm = TargetFrameworkMonikers.First().Replace(" ", "");
-            string rid = "win7";
-
-            if (!String.IsNullOrEmpty(Architecture))
-                rid += "-" + Architecture;
-
-            if (UseDotNetNativeToolchain)
-            {
-                rid += "-aot";
-            }
-
-            var target = (JObject)targets[tfm + "/" + rid];
-
-            if (target == null)
-            {
-                // we don't yet have proper portable support, so fake it for now.
-                target = (JObject)targets[tfm];
-            }
-
-            if (target == null)
-            {
-                Log.LogError("Couldn't find the required information in the lock file. Make sure you have {0} in your frameworks list and {1} in your runtimes list.", tfm, rid);
-                return false;
-            }
+        private void GetReferences(JObject lockFile)
+        {
+            var target = GetTargetOrAttemptFallback(lockFile, needsRuntimeIdentifier: false);
+            var frameworkReferences = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var fileNamesOfRegularReferences = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var package in target)
             {
@@ -159,100 +199,444 @@ namespace Microsoft.NuGet.Build.Tasks
                 var packageName = packageNameParts[0];
                 var packageVersion = packageNameParts[1];
 
-                Log.LogMessage(MessageImportance.Low, "Resolved references from {0}:", packageName);
+                Log.LogMessageFromResources(MessageImportance.Low, nameof(Strings.ResolvedReferencesFromPackage), packageName);
 
-                foreach (var referenceItem in CreateItems(packageName, packageVersion, package.Value, "compile"))
+                foreach (var referenceItem in CreateItems(packageName, packageVersion, package.Value, NuGetAssetTypeCompile))
                 {
-                    Log.LogMessage(MessageImportance.Low, "    Build time reference: {0}", referenceItem.ItemSpec);
                     _references.Add(referenceItem);
+
+                    fileNamesOfRegularReferences.Add(Path.GetFileNameWithoutExtension(referenceItem.ItemSpec));
                 }
 
-                foreach (var copyLocalItem in CreateItems(packageName, packageVersion, package.Value, "runtime"))
+                if (IncludeFrameworkReferences)
                 {
-                    Log.LogMessage(MessageImportance.Low, "    Copy local reference: {0}", copyLocalItem.ItemSpec);
-                    _copyLocalItems.Add(copyLocalItem);
-                }
-
-                foreach (var copyLocalItem in CreateItems(packageName, packageVersion, package.Value, "native"))
-                {
-                    Log.LogMessage(MessageImportance.Low, "    Copy local reference: {0}", copyLocalItem.ItemSpec);
-                    _copyLocalItems.Add(copyLocalItem);
+                    var frameworkAssembliesArray = package.Value["frameworkAssemblies"] as JArray;
+                    if (frameworkAssembliesArray != null)
+                    {
+                        foreach (var frameworkAssembly in frameworkAssembliesArray.OfType<JToken>())
+                        {
+                            frameworkReferences.Add((string)frameworkAssembly);
+                        }
+                    }
                 }
             }
 
-            return true;
+            foreach (var frameworkReference in frameworkReferences.Except(fileNamesOfRegularReferences, StringComparer.OrdinalIgnoreCase))
+            {
+                _references.Add(new TaskItem(frameworkReference));
+            }
         }
 
-        private IEnumerable<ITaskItem> CreateItems(string packageName, string packageVersion, JToken packageObject, string key)
+        private void GetCopyLocalItems(JObject lockFile)
         {
-            List<string> values = new List<string>();
-
-            JToken tokenValue = packageObject[key];
-            if (tokenValue != null)
+            // If we have no runtime identifier, we're not copying implementations
+            if (string.IsNullOrEmpty(RuntimeIdentifier))
             {
-                switch (tokenValue.Type)
+                return;
+            }
+
+            // We'll use as a fallback just the target moniker if the user didn't have the right runtime identifier in their lock file.
+            var target = GetTargetOrAttemptFallback(lockFile, needsRuntimeIdentifier: true);
+
+            HashSet<string> candidateNativeImplementations = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            List<ITaskItem> runtimeWinMDItems = new List<ITaskItem>();
+
+            foreach (var package in target)
+            {
+                var packageNameParts = package.Key.Split('/');
+                var packageName = packageNameParts[0];
+                var packageVersion = packageNameParts[1];
+
+                Log.LogMessageFromResources(MessageImportance.Low, nameof(Strings.ResolvedReferencesFromPackage), packageName);
+
+                foreach(var nativeItem in CreateItems(packageName, packageVersion, package.Value, NuGetAssetTypeNative))
                 {
-                    case JTokenType.Array:
-                        values.AddRange(((JArray)tokenValue).Values<string>());
-                        break;
-                    case JTokenType.Object:
-                        values.AddRange(((JObject)tokenValue).Properties().Select(p => p.Name));
-                        break;
-                    default:
-                        throw new InvalidOperationException(String.Format("Unexpected JToken type {0}.", tokenValue.Type));
+                    if (Path.GetExtension(nativeItem.ItemSpec).Equals(".dll", StringComparison.OrdinalIgnoreCase))
+                    {
+                        candidateNativeImplementations.Add(Path.GetFileNameWithoutExtension(nativeItem.ItemSpec));
+                    }
+
+                    _copyLocalItems.Add(nativeItem);
+                }
+
+                foreach (var runtimeItem in CreateItems(packageName, packageVersion, package.Value, NuGetAssetTypeRuntime))
+                {
+                    if (Path.GetExtension(runtimeItem.ItemSpec).Equals(".winmd", StringComparison.OrdinalIgnoreCase))
+                    {
+                        runtimeWinMDItems.Add(runtimeItem);
+                    }
+
+                    _copyLocalItems.Add(runtimeItem);
+                }
+
+                foreach (var resourceItem in CreateItems(packageName, packageVersion, package.Value, NuGetAssetTypeResource))
+                {
+                    _copyLocalItems.Add(resourceItem);
                 }
             }
 
-            List<ITaskItem> items = new List<ITaskItem>();
-            string packagesFolder = String.IsNullOrEmpty(PackageRoot) ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".dnx", "packages") : PackageRoot;
-            string dnxPackage = Path.Combine(packagesFolder, packageName, packageVersion);
+            SetWinMDMetadata(runtimeWinMDItems, candidateNativeImplementations);
+        }
 
-            foreach (string value in values)
+        private void GetAnalyzers(JObject lockFile)
+        {
+            // For analyzers, analyzers could be provided in runtime implementation packages. This might be reasonable -- imagine a gatekeeper
+            // scenario where somebody has a library but on .NET Native might have some specific restrictions that need to be enforced.
+            var target = GetTargetOrAttemptFallback(lockFile, needsRuntimeIdentifier: !string.IsNullOrEmpty(RuntimeIdentifier));
+
+            var libraries = (JObject)lockFile["libraries"];
+
+            foreach (var package in target.Children())
             {
-                var item = new TaskItem(Path.Combine(dnxPackage, value.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar)));
+                var name = (package as JProperty)?.Name;
+                var packageNameParts = name?.Split('/');
+                if (packageNameParts == null)
+                {
+                    continue;
+                }
 
-                item.SetMetadata("NuGetPackageName", packageName);
-                item.SetMetadata("NuGetPackageVersion", packageVersion);
+                var packageId = packageNameParts[0];
+                var packageVersion = packageNameParts[1];
 
-                // The ReferenceGrouping version expects numeric-dotted versions only
-                var referenceGroupingPackageVersion = packageVersion.Split('-').First();
-                item.SetMetadata("ReferenceGrouping", packageName + ",Version=" + referenceGroupingPackageVersion);
-                item.SetMetadata("ReferenceGroupingDisplayName", packageName + " (Package)");
+                var librariesPackage = libraries[name];
+
+                foreach (var file in librariesPackage["files"].Children()
+                                    .Select(x => x.ToString())
+                                    .Where(x => x.StartsWith("analyzers")))
+                {
+                    if (Path.GetExtension(file).Equals(".dll", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string path;
+                        if (TryGetFile(packageId, packageVersion, file, out path))
+                        {
+                            var analyzer = new TaskItem(path);
+
+                            analyzer.SetMetadata(NuGetPackageIdMetadata, packageId);
+                            analyzer.SetMetadata(NuGetPackageVersionMetadata, packageVersion);
+
+                            _analyzers.Add(analyzer);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void SetWinMDMetadata(IEnumerable<ITaskItem> runtimeWinMDs, ICollection<string> candidateImplementations)
+        {
+            foreach(var winMD in runtimeWinMDs.Where(w => _fileExists(w.ItemSpec)))
+            {
+                string imageRuntimeVersion = _tryGetRuntimeVersion(winMD.ItemSpec);
+
+                if (String.IsNullOrEmpty(imageRuntimeVersion))
+                    continue;
+
+                // RAR sets ImageRuntime for everything but the only dependencies we're aware of are 
+                // for WinMDs
+                winMD.SetMetadata(ReferenceImageRuntimeMetadata, imageRuntimeVersion);
+
+                bool isWinMD, isManaged;
+                TryParseRuntimeVersion(imageRuntimeVersion, out isWinMD, out isManaged);
+
+                if (isWinMD)
+                {
+                    winMD.SetMetadata(ReferenceWinMDFileMetadata, "true");
+
+                    if (isManaged)
+                    {
+                        winMD.SetMetadata(ReferenceWinMDFileTypeMetadata, WinMDFileTypeManaged);
+                    }
+                    else
+                    {
+                        winMD.SetMetadata(ReferenceWinMDFileTypeMetadata, WinMDFileTypeNative);
+
+                        // Normally RAR will expect the native DLL to be next to the WinMD, but that doesn't
+                        // work well for nuget packages since compile time assets cannot be architecture specific.
+                        // We also explicitly set all compile time assets to not copy local so we need to 
+                        // make sure that this metadata is set on the runtime asset.
+
+                        // Examine all runtime assets that are native winmds and add Implementation metadata
+                        // We intentionally permit this to cross package boundaries to support cases where
+                        // folks want to split their architecture specific implementations into runtime
+                        // specific packages.
+
+                        // Sample layout            
+                        // lib\netcore50\Contoso.Controls.winmd
+                        // lib\netcore50\Contoso.Controls.xml
+                        // runtimes\win10-arm\native\Contoso.Controls.dll
+                        // runtimes\win10-x64\native\Contoso.Controls.dll
+                        // runtimes\win10-x86\native\Contoso.Controls.dll
+
+                        string fileName = Path.GetFileNameWithoutExtension(winMD.ItemSpec);
+
+                        // determine if we have a Native WinMD that could be satisfied by this native dll.
+                        if (candidateImplementations.Contains(fileName))
+                        {
+                            winMD.SetMetadata(ReferenceImplementationMetadata, fileName + ".dll");
+                        }
+                    }
+                }
+            }
+        }
+
+        private bool TryGetFile(string packageName, string packageVersion, string file, out string path)
+        {
+            if (IsFileValid(file, "C#", "VB"))
+            {
+                path = GetPath(packageName, packageVersion, file);
+                return true;
+            }
+            else if (IsFileValid(file, "VB", "C#"))
+            {
+                path = GetPath(packageName, packageVersion, file);
+                return true;
+            }
+
+            path = null;
+            return false;
+        }
+
+        private bool IsFileValid(string file, string expectedLanguage, string unExpectedLanguage)
+        {
+            var expectedProjectLanguage = expectedLanguage;
+            expectedLanguage = expectedLanguage == "C#" ? "cs" : expectedLanguage;
+            unExpectedLanguage = unExpectedLanguage == "C#" ? "cs" : unExpectedLanguage;
+
+            return (ProjectLanguage.Equals(expectedProjectLanguage, StringComparison.OrdinalIgnoreCase)) &&
+                            (file.Split('/').Any(x => x.Equals(ProjectLanguage, StringComparison.OrdinalIgnoreCase)) ||
+                            !file.Split('/').Any(x => x.Equals(unExpectedLanguage, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        private string GetPath(string packageName, string packageVersion, string file)
+        {
+            return Path.Combine(GetNuGetPackagePath(packageName, packageVersion), file.Replace('/', '\\'));
+        }
+
+        /// <summary>
+        /// Fetches the right target from the targets section in a lock file, or attempts to find a "best match" if allowed. The "best match" logic
+        /// is there to allow a design time build for the IDE to generally work even if something isn't quite right. Throws an exception
+        /// if either the preferred isn't there and fallbacks aren't allowed, or fallbacks are allowed but nothing at all could be found.
+        /// </summary>
+        /// <param name="lockFile">The lock file JSON.</param>
+        /// <param name="needsRuntimeIdentifier">Whether we must find targets that include the runtime identifier or one without the runtime identifier.</param>
+        private JObject GetTargetOrAttemptFallback(JObject lockFile, bool needsRuntimeIdentifier)
+        {
+            var targets = (JObject)lockFile["targets"];
+
+            foreach (var preferredTargetMoniker in TargetMonikers)
+            {
+                var preferredTargetMonikerWithOptionalRuntimeIdentifier = GetTargetMonikerWithOptionalRuntimeIdentifier(preferredTargetMoniker, needsRuntimeIdentifier);
+                var target = (JObject)targets[preferredTargetMonikerWithOptionalRuntimeIdentifier];
+
+                if (target != null)
+                {
+                    return target;
+                }
+            }
+
+            var preferredForErrorMessages = GetTargetMonikerWithOptionalRuntimeIdentifier(TargetMonikers.First(), needsRuntimeIdentifier);
+            if (!AllowFallbackOnTargetSelection)
+            {
+                // If we're not falling back then abort the build
+                throw new ExceptionFromResource(nameof(Strings.MissingEntryInLockFile), preferredForErrorMessages);
+            }
+
+            // We are allowing fallback, so we'll still give a warning but allow us to continue
+            // In production ResolveNuGetPackageAssets, this call is LogWarningFromResources.
+            // In our current use in dotnet\buildtools, we rely on the fallback behavior, so we just log
+            // this as a message.
+            Log.LogMessageFromResources(nameof(Strings.MissingEntryInLockFile), preferredForErrorMessages);
+
+            foreach (var fallback in TargetMonikers)
+            {
+                var target = (JObject)targets[GetTargetMonikerWithOptionalRuntimeIdentifier(fallback, needsRuntimeIdentifier: false)];
+
+                if (target != null)
+                {
+                    return target;
+                }
+            }
+
+            // Anything goes
+            var enumerableTargets = targets.Cast<KeyValuePair<string, JToken>>();
+            var firstTarget = (JObject)enumerableTargets.FirstOrDefault().Value;
+            if (firstTarget == null)
+            {
+                throw new ExceptionFromResource(nameof(Strings.NoTargetsInLockFile));
+            }
+
+            return firstTarget;
+        }
+
+        private string GetTargetMonikerWithOptionalRuntimeIdentifier(ITaskItem preferredTargetMoniker, bool needsRuntimeIdentifier)
+        {
+            return needsRuntimeIdentifier ? preferredTargetMoniker.ItemSpec + "/" + RuntimeIdentifier : preferredTargetMoniker.ItemSpec;
+        }
+
+        private IEnumerable<ITaskItem> CreateItems(string packageId, string packageVersion, JToken packageObject, string key)
+        {
+            var values = packageObject[key] as JObject;
+            var items = new List<ITaskItem>();
+
+            if (values == null)
+            {
+                return items;
+            }
+
+            var nugetPackage = GetNuGetPackagePath(packageId, packageVersion);
+
+            foreach (string file in values.Properties().Select(p => p.Name))
+            {
+                if (Path.GetFileName(file) == "_._")
+                {
+                    continue;
+                }
+
+                var sanitizedFile = file.Replace('/', '\\');
+                var nugetPath = Path.Combine(nugetPackage, sanitizedFile);
+                var item = new TaskItem(nugetPath);
+
+                item.SetMetadata(NuGetPackageIdMetadata, packageId);
+                item.SetMetadata(NuGetPackageVersionMetadata, packageVersion);
                 item.SetMetadata("Private", "false");
+
+                string targetPath = TryGetTargetPath(sanitizedFile);
+
+                if (targetPath != null)
+                {
+                    var destinationSubDirectory = Path.GetDirectoryName(targetPath);
+
+                    if (!string.IsNullOrEmpty(destinationSubDirectory))
+                    {
+                        item.SetMetadata("DestinationSubDirectory", destinationSubDirectory + "\\");
+                    }
+
+                    item.SetMetadata("TargetPath", targetPath);
+                }
 
                 items.Add(item);
             }
 
-            if (key == "runtime")
+            return items;
+        }
+
+        private static string TryGetTargetPath(string file)
+        {
+            var foldersAndFile = file.Split('\\').ToArray();
+
+            for (int i = foldersAndFile.Length - 1; i > -1; i--)
             {
-                // workaround https://github.com/aspnet/dnx/issues/1782
-                // dnx isn't including exe's in restore calculations
-                // include any exe's next to active assets, otherwise include all EXEs
-                string exeSearchPath = dnxPackage;
-                var firstItem = items.FirstOrDefault();
-                if (firstItem != null)
+                if (CultureStringUtilities.IsValidCultureString(foldersAndFile[i]))
                 {
-                    exeSearchPath = Path.GetDirectoryName(firstItem.ItemSpec);
-                }
-
-                foreach (string exe in Directory.GetFiles(exeSearchPath, "*.exe", SearchOption.AllDirectories))
-                {
-                    var item = new TaskItem(Path.Combine(dnxPackage, exe.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar)));
-
-                    item.SetMetadata("NuGetPackageName", packageName);
-                    item.SetMetadata("NuGetPackageVersion", packageVersion);
-
-                    // The ReferenceGrouping version expects numeric-dotted versions only
-                    var referenceGroupingPackageVersion = packageVersion.Split('-').First();
-                    item.SetMetadata("ReferenceGrouping", packageName + ",Version=" + referenceGroupingPackageVersion);
-                    item.SetMetadata("ReferenceGroupingDisplayName", packageName + " (Package)");
-                    item.SetMetadata("Private", "false");
-
-                    items.Add(item);
+                    return Path.Combine(foldersAndFile.Skip(i).ToArray());
                 }
             }
 
-            return items;
+            // There is no culture-specific directory, so it'll go in the root
+            return null;
+        }
+
+        private void GetReferencedPackages(JObject lockFile)
+        {
+            var projectFileDependencyGroups = (JObject)lockFile["projectFileDependencyGroups"];
+            var projectFileDependencies = (JArray)projectFileDependencyGroups[""];
+
+            foreach (var packageDependency in projectFileDependencies.Select(v => (string)v))
+            {
+                int firstSpace = packageDependency.IndexOf(' ');
+
+                if (firstSpace > -1)
+                {
+                    _referencedPackages.Add(new TaskItem(packageDependency.Substring(0, firstSpace)));
+                }
+            }
+        }
+
+        private sealed class ExceptionFromResource : Exception
+        {
+            public string ResourceName { get; private set; }
+            public object[] MessageArgs { get; private set; }
+
+            public ExceptionFromResource(string resourceName, params object[] messageArgs)
+            {
+                ResourceName = resourceName;
+                MessageArgs = messageArgs;
+            }
+        }
+
+        private string GetNuGetPackagePath(string packageId, string packageVersion)
+        {
+            string packagesFolder = GetNuGetPackagesPath();
+            string packagePath = Path.Combine(packagesFolder, packageId, packageVersion);
+
+            if (!_directoryExists(packagePath))
+            {
+                throw new ExceptionFromResource(nameof(Strings.PackageFolderNotFound), packageId, packageVersion, packagesFolder);
+            }
+
+            return packagePath;
+        }
+
+        private string GetNuGetPackagesPath()
+        {
+            if (!string.IsNullOrEmpty(NuGetPackagesDirectory))
+            {
+                return NuGetPackagesDirectory;
+            }
+
+            string packagesFolder = Environment.GetEnvironmentVariable("NUGET_PACKAGES");
+
+            if (!string.IsNullOrEmpty(packagesFolder))
+            {
+                return packagesFolder;
+            }
+
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
+        }
+        
+        /// <summary>
+        /// Parse the imageRuntimeVersion from COR header
+        /// </summary>
+        private void TryParseRuntimeVersion(string imageRuntimeVersion, out bool isWinMD, out bool isManaged)
+        {
+            if (!String.IsNullOrEmpty(imageRuntimeVersion))
+            {
+                isWinMD = imageRuntimeVersion.IndexOf("WindowsRuntime", StringComparison.OrdinalIgnoreCase) >= 0;
+                isManaged = imageRuntimeVersion.IndexOf("CLR", StringComparison.OrdinalIgnoreCase) >= 0;
+            }
+            else
+            {
+                isWinMD = isManaged = false;
+            }
+        }
+
+        /// <summary>
+        /// Given a path get the CLR runtime version of the file
+        /// </summary>
+        /// <param name="path">path to the file</param>
+        /// <returns>The CLR runtime version or empty if the path does not exist.</returns>
+        private static string TryGetRuntimeVersion(string path)
+        {
+            StringBuilder runtimeVersion = null;
+            uint hresult = 0;
+            uint actualBufferSize = 0;
+            int bufferLength = 11; // 11 is the length of a runtime version and null terminator v2.0.50727/0
+
+            do
+            {
+                runtimeVersion = new StringBuilder(bufferLength);
+                hresult = NativeMethods.GetFileVersion(path, runtimeVersion, bufferLength, out actualBufferSize);
+                bufferLength = bufferLength * 2;
+
+            } while (hresult == NativeMethods.ERROR_INSUFFICIENT_BUFFER);
+
+            if (hresult == NativeMethods.S_OK && runtimeVersion != null)
+            {
+                return runtimeVersion.ToString();
+            }
+            else
+            {
+                return String.Empty;
+            }
         }
     }
 }

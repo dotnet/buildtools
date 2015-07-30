@@ -79,13 +79,14 @@
     <Exec Command="$(DnuRestoreCommand) &quot;$(CustomPartialFacadeJsonFile)&quot;" StandardOutputImportance="Low" CustomErrorRegularExpression="^Unable to locate .*" />
     
     <!-- Resolve the references using this task, store them in @(PossibleContractRefs) -->
-    <PrereleaseResolveNuGetPackageAssets Architecture="$(PlatformTarget)"
-                               Configuration="$(Configuration)"
-                               Language="$(Language)"
-                               PackageRoot="$(PackagesDir)"
+    <PrereleaseResolveNuGetPackageAssets
+                               AllowFallbackOnTargetSelection="true"
+                               IncludeFrameworkReferences="false"
+                               NuGetPackagesDirectory="$(PackagesDir)"
+                               RuntimeIdentifier=""
+                               ProjectLanguage="$(Language)"
                                ProjectLockFile="$(CustomPartialFacadeLockJsonFile)"
-                               TargetFrameworkMonikers="$(NugetTargetFrameworkMoniker)"
-                               TargetPlatformMonikers="$(TargetPlatformMoniker)">
+                               TargetMonikers="$(NugetTargetFrameworkMoniker)">
       <Output TaskParameter="ResolvedReferences" ItemName="PossibleContractRefs" />
     </PrereleaseResolveNuGetPackageAssets>
 
