@@ -9,7 +9,13 @@ namespace Microsoft.DotNet.Build.Tasks
     internal class CultureStringUtilities
     {
         static private Lazy<string[]> cultureInfoStringsLazy = new Lazy<string[]>(GetCultureInfoArray);
-        static private string[] cultureInfoStrings => cultureInfoStringsLazy.Value;
+        static private string[] cultureInfoStrings
+        {
+            get
+            {
+                return cultureInfoStringsLazy.Value;
+            }
+        }
 
         internal static bool IsValidCultureString(string cultureString)
         {

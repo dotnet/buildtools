@@ -172,7 +172,7 @@ namespace Microsoft.DotNet.Build.Tasks
         {
             if (!_fileExists(ProjectLockFile))
             {
-                throw new ExceptionFromResource(nameof(Strings.LockFileNotFound), ProjectLockFile);
+                throw new ExceptionFromResource("LockFileNotFound", ProjectLockFile);
             }
 
             JObject lockFile;
@@ -199,7 +199,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 var packageName = packageNameParts[0];
                 var packageVersion = packageNameParts[1];
 
-                Log.LogMessageFromResources(MessageImportance.Low, nameof(Strings.ResolvedReferencesFromPackage), packageName);
+                Log.LogMessageFromResources(MessageImportance.Low, "ResolvedReferencesFromPackage", packageName);
 
                 foreach (var referenceItem in CreateItems(packageName, packageVersion, package.Value, NuGetAssetTypeCompile))
                 {
@@ -247,7 +247,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 var packageName = packageNameParts[0];
                 var packageVersion = packageNameParts[1];
 
-                Log.LogMessageFromResources(MessageImportance.Low, nameof(Strings.ResolvedReferencesFromPackage), packageName);
+                Log.LogMessageFromResources(MessageImportance.Low, "ResolvedReferencesFromPackage", packageName);
 
                 foreach(var nativeItem in CreateItems(packageName, packageVersion, package.Value, NuGetAssetTypeNative))
                 {
@@ -288,8 +288,8 @@ namespace Microsoft.DotNet.Build.Tasks
 
             foreach (var package in target.Children())
             {
-                var name = (package as JProperty)?.Name;
-                var packageNameParts = name?.Split('/');
+                var name = (package is JProperty) ? ((JProperty)package).Name : null;
+                var packageNameParts = name != null ? name.Split('/') : null;
                 if (packageNameParts == null)
                 {
                     continue;
@@ -437,14 +437,14 @@ namespace Microsoft.DotNet.Build.Tasks
             if (!AllowFallbackOnTargetSelection)
             {
                 // If we're not falling back then abort the build
-                throw new ExceptionFromResource(nameof(Strings.MissingEntryInLockFile), preferredForErrorMessages);
+                throw new ExceptionFromResource("MissingEntryInLockFile", preferredForErrorMessages);
             }
 
             // We are allowing fallback, so we'll still give a warning but allow us to continue
             // In production ResolveNuGetPackageAssets, this call is LogWarningFromResources.
             // In our current use in dotnet\buildtools, we rely on the fallback behavior, so we just log
             // this as a message.
-            Log.LogMessageFromResources(nameof(Strings.MissingEntryInLockFile), preferredForErrorMessages);
+            Log.LogMessageFromResources("MissingEntryInLockFile", preferredForErrorMessages);
 
             foreach (var fallback in TargetMonikers)
             {
@@ -461,7 +461,7 @@ namespace Microsoft.DotNet.Build.Tasks
             var firstTarget = (JObject)enumerableTargets.FirstOrDefault().Value;
             if (firstTarget == null)
             {
-                throw new ExceptionFromResource(nameof(Strings.NoTargetsInLockFile));
+                throw new ExceptionFromResource("NoTargetsInLockFile");
             }
 
             return firstTarget;
@@ -570,7 +570,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
             if (!_directoryExists(packagePath))
             {
-                throw new ExceptionFromResource(nameof(Strings.PackageFolderNotFound), packageId, packageVersion, packagesFolder);
+                throw new ExceptionFromResource("PackageFolderNotFound", packageId, packageVersion, packagesFolder);
             }
 
             return packagePath;
