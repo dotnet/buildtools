@@ -30,6 +30,8 @@
   <PropertyGroup Condition="'$(GenerateAssemblyInfo)'=='true'">
     <AssemblyInfoFile Condition="'$(MSBuildProjectExtension)' == '.csproj'">$(IntermediateOutputPath)_AssemblyInfo.cs</AssemblyInfoFile>
     <AssemblyInfoFile Condition="'$(MSBuildProjectExtension)' == '.vbproj'">$(IntermediateOutputPath)_AssemblyInfo.vb</AssemblyInfoFile>
+    <AssemblyInfoFileLink Condition="'$(MSBuildProjectExtension)' == '.csproj'">Properties\_AssemblyInfo.cs</AssemblyInfoFileLink>
+    <AssemblyInfoFileLink Condition="'$(MSBuildProjectExtension)' == '.vbproj'">My Project\_AssemblyInfo.vb</AssemblyInfoFileLink>
     <CoreCompileDependsOn>$(CoreCompileDependsOn);GenerateAssemblyInfo</CoreCompileDependsOn>
   </PropertyGroup>
 
@@ -92,12 +94,15 @@
       File="$(AssemblyInfoFile)"
       Lines="@(AssemblyInfoUsings);@(AssemblyInfoLines)"
       Overwrite="true" />
-
-    <ItemGroup>
-      <Compile Include="$(AssemblyInfoFile)" />
-      <FileWrites Include="$(AssemblyInfoFile)" />
-    </ItemGroup>
   </Target>
+
+  <ItemGroup Condition="'$(GenerateAssemblyInfo)'=='true'">
+    <Compile Include="$(AssemblyInfoFile)">
+      <Visible>true</Visible>
+      <Link>$(AssemblyInfoFileLink)</Link>
+    </Compile>
+    <FileWrites Include="$(AssemblyInfoFile)" />
+  </ItemGroup>
 
   <PropertyGroup>
     <GenerateNativeVersionInfo Condition="'$(GenerateNativeVersionInfo)'==''">false</GenerateNativeVersionInfo>
