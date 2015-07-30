@@ -26,7 +26,12 @@
   <PropertyGroup Condition="'$(TestWithCore)' == 'true'">
     <TestRuntimeProjectJson Condition="'$(TestRuntimeProjectJson)' == ''">$(MSBuildThisFileDirectory)test-runtime\project.json</TestRuntimeProjectJson>
     <TestRuntimeProjectLockJson Condition="'$(TestRuntimeProjectLockJson)' == ''">$(MSBuildThisFileDirectory)test-runtime\project.lock.json</TestRuntimeProjectLockJson>
-    <TestHost>corerun.exe</TestHost>
+    <!-- Invoke with the correct casing of corerun per-OS.  There are some process tests
+         that check the invoked process name against known casing which fail under code coverage.
+         This is probably because the code coverage target invocation does not canonicalize the
+         process name. -->
+    <TestHost Condition="'$(OS)' == 'Windows_NT'">CoreRun.exe</TestHost>
+    <TestHost Condition="'$(OS)' != 'Windows_NT'">corerun</TestHost>
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.netcore.exe</XunitExecutable>
     <DebugTestFrameworkFolder>dnxcore50</DebugTestFrameworkFolder>
     <DebugEngines>{2E36F1D4-B23C-435D-AB41-18E608940038}</DebugEngines>
@@ -111,7 +116,7 @@
 
     <!-- Replace the {XunitTraitOptions} place holder with the actual traits.  We use the place holder
          because code coverage needs to have a bit of the test command line after the traits (it adds ending quotes
-		 to one of its options).  Simply appending the traits would break code coverage. -->
+         to one of its options).  Simply appending the traits would break code coverage. -->
     <PropertyGroup>
       <TestCommandLine>$(TestCommandLine.Replace('{XunitTraitOptions}', '$(XunitTraitOptions)'))</TestCommandLine>
     </PropertyGroup>
@@ -162,8 +167,8 @@
   </Target>
 
   <Target Name="CheckTestPlatforms"
-  		  AfterTargets="Test"
-  		  Condition="'$(TestDisabled)'!='true'">
+          AfterTargets="Test"
+          Condition="'$(TestDisabled)'!='true'">
     <PropertyGroup>
       <IsWindowsAssembly Condition="'$(OS)'=='Windows_NT' And '%(UnsupportedPlatformsItems.Identity)'=='Windows_NT'">false</IsWindowsAssembly>
       <TestDisabled Condition="'$(IsWindowsAssembly)'=='false'">true</TestDisabled>
