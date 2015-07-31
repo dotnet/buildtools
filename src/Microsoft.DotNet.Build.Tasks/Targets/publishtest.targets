@@ -27,14 +27,13 @@
     </ItemGroup>
 
     <PrereleaseResolveNuGetPackageAssets Condition="'@(TestNugetProjectLockFile)' != ''"
-                               Architecture="$(TestArchitecture)"
-                               Configuration="$(NuGetConfiguration)"
-                               Language="$(Language)"
-                               PackageRoot="$(PackagesDir)"
+                               AllowFallbackOnTargetSelection="true"
+                               IncludeFrameworkReferences="false"
+                               NuGetPackagesDirectory="$(PackagesDir)"
+                               RuntimeIdentifier="win7-x86"
+                               ProjectLanguage="$(Language)"
                                ProjectLockFile="%(TestNugetProjectLockFile.FullPath)"
-                               TargetFrameworkMonikers="@(TestTargetFramework)"
-                               TargetPlatformMonikers="$(TargetPlatformMoniker)">
-
+                               TargetMonikers="@(TestTargetFramework)">
       <Output TaskParameter="ResolvedCopyLocalItems" ItemName="TestCopyLocal" />
     </PrereleaseResolveNuGetPackageAssets>
 
