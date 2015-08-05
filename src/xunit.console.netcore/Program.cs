@@ -39,6 +39,7 @@ namespace Xunit.ConsoleClient
 
 #if !NETCORE
                 AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+#endif
                 Console.CancelKeyPress += (sender, e) =>
                 {
                     if (!cancel)
@@ -48,9 +49,6 @@ namespace Xunit.ConsoleClient
                         e.Cancel = true;
                     }
                 };
-#else
-                cancel = false;
-#endif
 
                 var defaultDirectory = Directory.GetCurrentDirectory();
                 if (!defaultDirectory.EndsWith(new String(new[] { Path.DirectorySeparatorChar })))
@@ -263,6 +261,9 @@ namespace Xunit.ConsoleClient
             {
                 if (!ValidateFileExists(consoleLock, assembly.AssemblyFilename) || !ValidateFileExists(consoleLock, assembly.ConfigFilename))
                     return null;
+
+                // Turn off pre-enumeration of theories, since there is no theory selection UI in this runner
+                assembly.Configuration.PreEnumerateTheories = false;
 
                 var discoveryOptions = TestFrameworkOptions.ForDiscovery(assembly.Configuration);
                 var executionOptions = TestFrameworkOptions.ForExecution(assembly.Configuration);
