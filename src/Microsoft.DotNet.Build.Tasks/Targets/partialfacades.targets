@@ -52,13 +52,27 @@
       $(TargetsTriggeredByCompilation);FindPartialFacadeContractReference;FillPartialFacade
     </TargetsTriggeredByCompilation>
   </PropertyGroup>
+  
+  <!-- If a reference assembly project exists for the partial facade, prefer that over the package  -->
+  <Target Name="FindPartialFacadeProjectReference" Condition="'$(IsPartialFacadeAssembly)' == 'true'" BeforeTargets="AssignProjectConfiguration">
+    <PropertyGroup>
+      <_referenceAssemblyProjectRelativeToRoot>$([System.IO.Path]::Combine('ref', '$(APIVersion)', '$(AssemblyName).csproj'))</_referenceAssemblyProjectRelativeToRoot>
+      <_referenceAssemblyProject>$([System.IO.Path]::Combine($([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), $(_referenceAssemblyProjectRelativeToRoot))), $(_referenceAssemblyProjectRelativeToRoot)))</_referenceAssemblyProject>
+    </PropertyGroup>
+    <ItemGroup>
+      <ProjectReference Include="$(_referenceAssemblyProject)" Condition="'$(_referenceAssemblyProject)' != ''">
+        <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+        <OutputItemType>ResolvedMatchingContract</OutputItemType>
+      </ProjectReference>
+    </ItemGroup>
+  </Target>
 
   <!-- FindPartialFacadeContractReference
          Generates a special project.json file to restore the NuGet package containing the partial facade's contract assembly.
          Filters the list of references returned by the PrereleaseResolveNuGetPackageAssets task to just the contract assembly and stores it.
          The identity of the NuGet package is constructed from the assembly's name and version number.
   -->
-  <Target Name="FindPartialFacadeContractReference">
+  <Target Name="FindPartialFacadeContractReference" Condition="'@(ResolvedMatchingContract)' == ''">
     <PropertyGroup>
       <CustomPartialFacadeDirectory>$(IntermediateOutputPath)partial-facade-packages</CustomPartialFacadeDirectory>
       <CustomPartialFacadeJsonFile>$(CustomPartialFacadeDirectory)/project.json</CustomPartialFacadeJsonFile>

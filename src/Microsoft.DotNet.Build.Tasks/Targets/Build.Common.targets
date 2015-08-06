@@ -10,6 +10,21 @@
     <CLSCompliant Condition="'$(CLSCompliant)'==''">true</CLSCompliant>
   </PropertyGroup>
   
+  <!--
+    Import the reference assembly targets
+    
+    This must be imported early because it modifies OutputPath and IntermediateOutputPath
+    used by other targets
+    
+      Depends on Properties:
+        AssemblyVersion - Needed to determine API version used in
+    
+      Sets Properties:
+        IsReferenceAssemblyProject - Set if the project is in the ref assm path
+        APIVersion - Major.Minor assembly version for the project
+  -->
+  <Import Project="$(MSBuildThisFileDirectory)ReferenceAssemblies.targets" Condition="'$(ExcludeReferenceAssembliesImport)'!='true'" />
+  
   <!-- 
     Import the default target framework targets.
     

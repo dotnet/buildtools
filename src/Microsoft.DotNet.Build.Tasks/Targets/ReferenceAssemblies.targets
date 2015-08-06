@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <IsReferenceAssemblyProject Condition="'$(IsReferenceAssemblyProject)'=='' AND ($(MSBuildProjectDirectory.Contains('\ref\')) OR $(MSBuildProjectDirectory.Contains('/ref/')))">true</IsReferenceAssemblyProject>
+
+    <!-- The first two parts of the assembly version represent API version, 
+         the third part is for bugfixes, the fourth is for hotfixes/securtity-updates -->
+    <APIVersion>$([System.Version]::Parse('$(AssemblyVersion)').ToString(2))</APIVersion>
+    
+    <CompilerResponseFile Condition="'$(IsCoreAssembly)' == 'true'">$(MSBuildThisFileDirectory)coreAssembly.rsp</CompilerResponseFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(IsReferenceAssemblyProject)'=='true'">
+    <OutputPath>$([System.IO.Path]::Combine('$(OutputPath)', 'ref', '$(APIVersion)'))</OutputPath>
+    <IntermediateOutputPath>$([System.IO.Path]::Combine('$(IntermediateOutputPath)', 'ref', '$(APIVersion)'))</IntermediateOutputPath>
+  </PropertyGroup>
+  
+</Project>

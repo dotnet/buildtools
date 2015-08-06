@@ -44,6 +44,7 @@
       $(ResolveAssemblyReferencesDependsOn);
       ResolveNuGetPackages;
     </ResolveAssemblyReferencesDependsOn>
+    <NugetTargetFrameworkMoniker Condition="'$(NugetTargetFrameworkMoniker)' == '' and '$(IsReferenceAssemblyProject)' == 'true'">.NETPlatform,Version=v5.0</NugetTargetFrameworkMoniker>
     <NugetTargetFrameworkMoniker Condition="'$(NugetTargetFrameworkMoniker)' == ''">$(TargetFrameworkMoniker)</NugetTargetFrameworkMoniker>
   </PropertyGroup>
 
