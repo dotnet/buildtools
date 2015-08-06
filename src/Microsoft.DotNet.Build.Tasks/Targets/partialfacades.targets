@@ -60,7 +60,7 @@
       <_referenceAssemblyProject>$([System.IO.Path]::Combine($([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), $(_referenceAssemblyProjectRelativeToRoot))), $(_referenceAssemblyProjectRelativeToRoot)))</_referenceAssemblyProject>
     </PropertyGroup>
     <ItemGroup>
-      <ProjectReference Include="$(_referenceAssemblyProject)" Condition="'$(_referenceAssemblyProject)' != ''">
+      <ProjectReference Include="$(_referenceAssemblyProject)" Condition="Exists('$(_referenceAssemblyProject)')">
         <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
         <OutputItemType>ResolvedMatchingContract</OutputItemType>
       </ProjectReference>
