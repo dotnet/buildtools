@@ -27,6 +27,7 @@
     <Compile Include="Delegates.cs" />
     <Compile Include="ExecWithMutex.cs" />
     <Compile Include="GenerateResourcesCode.cs" />
+    <Compile Include="GenerateEncodingTable.cs" />
     <Compile Include="GetWorkspaceBranch.cs" />
     <Compile Include="GitTag.cs" />
     <Compile Include="GetPackageVersion.cs" />
