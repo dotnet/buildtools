@@ -29,6 +29,7 @@ namespace Microsoft.DotNet.Build.Tasks
         public override bool Execute()
         {
             Dictionary<string, ushort> nameMappings = ParseNameMappings(IANAMappings);
+            Dictionary<ushort, KeyValuePair<string, string>> preferredNames = ParsePreferredNames(PreferedIANANames);
 
             return true;
         }
@@ -72,6 +73,54 @@ namespace Microsoft.DotNet.Build.Tasks
             }
 
             return mapping;
+        }
+
+        private Dictionary<ushort, KeyValuePair<string, string>> ParsePreferredNames(string path)
+        {
+            Dictionary<ushort, KeyValuePair<string, string>> preferredNames = new Dictionary<ushort, KeyValuePair<string, string>>();
+
+            foreach (var line in DelimitedFileRows(path, 3))
+            {
+                ushort codepage;
+                if (!ushort.TryParse(line.Value[0], out codepage))
+                {
+                    Log.LogError("Code page in file {0} at line {1} is not valid, expecting numeric entry in range [" + ushort.MinValue + ", " + ushort.MaxValue + "]  Was: ->{2}<-", path, line.Key, line.Value[0]);
+                    continue;
+                }
+
+                string name = line.Value[1].Trim().ToLowerInvariant();
+                if (name != line.Value[1])
+                {
+                    Log.LogWarning("Code page name in file {0} at line {1} has whitespace or upper-case characters.  Was: ->{2}<-, Using ->{3}<-", path, line.Key, line.Value[1], name);
+                }
+
+                string englishName = line.Value[2].Trim();
+                if (englishName != line.Value[2])
+                {
+                    Log.LogWarning("English name in file {0} at line {1} has whitespace.  Was: ->{2}<-, Using ->{3}<-", path, line.Key, line.Value[2], englishName);
+                }
+
+                KeyValuePair<string, string> names = KeyValuePair.Create(name, englishName);
+
+                KeyValuePair<string, string> existing;
+                if (preferredNames.TryGetValue(codepage, out existing))
+                {
+                    if (names.Equals(existing))
+                    {
+                        Log.LogWarning("Code page names {0} for code page {1} in file {2} at line {3} is a duplicate entry, and can be removed.", names, codepage, path, line.Key);
+                    }
+                    else
+                    {
+                        Log.LogError("Code page {0} in file {1} at line {2} is mapped to multiple names; new is {3}, old was {4}", codepage, path, line.Key, names, existing);
+                    }
+                }
+                else
+                {
+                    preferredNames[codepage] = names;
+                }
+            }
+
+            return preferredNames;
         }
 
         private IEnumerable<KeyValuePair<int, string[]>> DelimitedFileRows(string path, int columns = 0)
