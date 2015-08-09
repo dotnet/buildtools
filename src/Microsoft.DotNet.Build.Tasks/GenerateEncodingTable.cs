@@ -1,7 +1,9 @@
 ﻿using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -9,6 +11,9 @@ namespace Microsoft.DotNet.Build.Tasks
 {
     public class GenerateEncodingTable : Task
     {
+        private const string CommentIndicator = "#";
+        private const char FieldDelimiter = ';';
+
         [Required]
         public string IANAMappings { get; set; }
 
@@ -24,6 +29,32 @@ namespace Microsoft.DotNet.Build.Tasks
         public override bool Execute()
         {
             return true;
+        }
+
+        private IEnumerable<KeyValuePair<int, string[]>> DelimitedFileRows(string path, int columns = 0)
+        {
+            using (var input = new StreamReader(path))
+            {
+                int lineNumber = 1;
+                string line;
+
+                for (; (line = input.ReadLine()) != null; ++lineNumber)
+                {
+                    if (line.StartsWith(CommentIndicator) || string.IsNullOrWhiteSpace(line))
+                    {
+                        continue;
+                    }
+
+                    string[] values = line.Split(FieldDelimiter);
+
+                    if (columns > 0 && values.Length != columns)
+                    {
+                        Log.LogError("Parsing mapping in file {0}, line {1}.  Expected {2} fields, saw {3}: {4}", path, lineNumber, columns, values.Length, line);
+                    }
+
+                    yield return KeyValuePair.Create(lineNumber, line.Split(FieldDelimiter));
+                }
+            }
         }
 
         private const string Header =
@@ -181,5 +212,13 @@ namespace {0}
     }
 }
 ";
+
+        private static class KeyValuePair
+        {
+            public static KeyValuePair<TKey, TValue> Create<TKey, TValue>(TKey key, TValue value)
+            {
+                return new KeyValuePair<TKey, TValue>(key, value);
+            }
+        }
     }
 }
