@@ -31,6 +31,12 @@ namespace Microsoft.DotNet.Build.Tasks
             Dictionary<string, ushort> nameMappings = ParseNameMappings(IANAMappings);
             Dictionary<ushort, KeyValuePair<string, string>> preferredNames = ParsePreferredNames(PreferedIANANames);
 
+            // If there were errors during the read, later validation would have problems too.
+            if (Log.HasLoggedErrors)
+            {
+                return false;
+            }
+
             return true;
         }
 
