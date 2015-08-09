@@ -28,7 +28,50 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public override bool Execute()
         {
+            Dictionary<string, ushort> nameMappings = ParseNameMappings(IANAMappings);
+
             return true;
+        }
+
+        private Dictionary<string, ushort> ParseNameMappings(string path)
+        {
+            Dictionary<string, ushort> mapping = new Dictionary<string, ushort>();
+
+            foreach (var line in DelimitedFileRows(path, 2))
+            {
+                string name = line.Value[0].Trim().ToLowerInvariant();
+
+                if (name != line.Value[0])
+                {
+                    Log.LogWarning("Code page name in file {0} at line {1} has whitespace or upper-case characters.  Was: ->{2}<-, Using ->{3}<-", path, line.Key, line.Value[0], name);
+                }
+
+                ushort codepage;
+                if (!ushort.TryParse(line.Value[1], out codepage))
+                {
+                    Log.LogError("Code page in file {0} at line {1} is not valid, expecting numeric entry in range [" + ushort.MinValue + ", " + ushort.MaxValue + "]  Was: ->{2}<-", path, line.Key, line.Value[1]);
+                    continue;
+                }
+
+                ushort existing;
+                if (mapping.TryGetValue(name, out existing))
+                {
+                    if (existing == codepage)
+                    {
+                        Log.LogWarning("Code page mapping {0} to {1} in file {2} at line {3} is a duplicate entry, and can be removed.", name, codepage, path, line.Key);
+                    }
+                    else
+                    {
+                        Log.LogError("Code page name {0} in file {1} at line {2} is mapped to multiple code pages; new is {3}, old was {4}", name, path, line.Key, name, codepage, existing);
+                    }
+                }
+                else
+                {
+                    mapping[name] = codepage;
+                }
+            }
+
+            return mapping;
         }
 
         private IEnumerable<KeyValuePair<int, string[]>> DelimitedFileRows(string path, int columns = 0)
