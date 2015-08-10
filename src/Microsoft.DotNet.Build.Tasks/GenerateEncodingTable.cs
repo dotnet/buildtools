@@ -42,6 +42,12 @@ namespace Microsoft.DotNet.Build.Tasks
                 return false;
             }
 
+            using (StreamWriter output = File.CreateText(OutputDataTable))
+            {
+                output.Write(Header, Namespace ?? "System.Text", ClassName ?? "EncodingTable");
+
+                output.Write(Footer);
+            }
             return true;
         }
 
