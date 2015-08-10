@@ -40,7 +40,7 @@
 
   <!-- Need to add references to the mscorlib design-time facade for some old-style portable dependencies like xunit -->
   <Target Name="AddDesignTimeFacadeReferences"
-      Condition="'$(TargetingDefaultPlatform)' == 'true' AND '$(IsReferenceAssemblyProject)' != 'true'"
+      Condition="'$(TargetingDefaultPlatform)' == 'true' AND '$(IsReferenceAssembly)' != 'true'"
       BeforeTargets="ResolveReferences"
       DependsOnTargets="GetReferenceAssemblyPaths"
   >

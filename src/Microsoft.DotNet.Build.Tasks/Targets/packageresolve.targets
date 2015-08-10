@@ -46,7 +46,7 @@
     </ResolveAssemblyReferencesDependsOn>
     <!-- We use dotnet as the framework for our reference assemblies, in the future we'll move to 
          targets that are closer to what shipped in Dev14 and we won't need to special case this.-->
-    <NugetTargetFrameworkMoniker Condition="'$(NugetTargetFrameworkMoniker)' == '' and '$(IsReferenceAssemblyProject)' == 'true'">.NETPlatform,Version=v5.0</NugetTargetFrameworkMoniker>    
+    <NugetTargetFrameworkMoniker Condition="'$(NugetTargetFrameworkMoniker)' == '' and '$(IsReferenceAssembly)' == 'true'">.NETPlatform,Version=v5.0</NugetTargetFrameworkMoniker>    
     <NugetTargetFrameworkMoniker Condition="'$(NugetTargetFrameworkMoniker)' == ''">$(TargetFrameworkMoniker)</NugetTargetFrameworkMoniker>
   </PropertyGroup>
 

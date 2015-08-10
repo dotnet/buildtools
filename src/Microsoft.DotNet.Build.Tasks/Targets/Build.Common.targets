@@ -20,7 +20,7 @@
         AssemblyVersion - Needed to determine API version used in
     
       Sets Properties:
-        IsReferenceAssemblyProject - Set if the project is in the ref assm path
+        IsReferenceAssembly - Set if the project is in the ref assm path
         APIVersion - Major.Minor assembly version for the project
   -->
   <Import Project="$(MSBuildThisFileDirectory)ReferenceAssemblies.targets" Condition="'$(ExcludeReferenceAssembliesImport)'!='true'" />
