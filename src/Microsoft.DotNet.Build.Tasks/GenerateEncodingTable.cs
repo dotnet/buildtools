@@ -46,9 +46,27 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 output.Write(Header, Namespace ?? "System.Text", ClassName ?? "EncodingTable");
 
+                OutputData(output, EncodingNames, nameMappings.OrderBy(kv => kv.Key, StringComparer.Ordinal), kv => new object[] { kv.Key, kv.Value });
+
                 output.Write(Footer);
             }
             return true;
+        }
+
+        // Takes and formats data to the format inside the source.
+        private void OutputData<TKey, TValue>(StreamWriter output, string source, IEnumerable<KeyValuePair<TKey, TValue>> data, Func<KeyValuePair<TKey, TValue>, object[]> translator)
+        {
+            string[] sourceData = source.Split('|');
+            string format = sourceData[1];
+
+            output.Write(sourceData[0]);
+
+            foreach (object[] parameters in data.Select(translator))
+            {
+                output.Write(format, parameters);
+            }
+
+            output.Write(sourceData[2]);
         }
 
         private bool ValidateMappings(Dictionary<string, ushort> nameMappings, Dictionary<ushort, KeyValuePair<string, string>> preferredNames)
