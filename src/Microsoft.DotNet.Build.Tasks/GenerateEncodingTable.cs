@@ -47,6 +47,10 @@ namespace Microsoft.DotNet.Build.Tasks
                 output.Write(Header, Namespace ?? "System.Text", ClassName ?? "EncodingTable");
 
                 OutputData(output, EncodingNames, nameMappings.OrderBy(kv => kv.Key, StringComparer.Ordinal), kv => new object[] { kv.Key, kv.Value });
+                {
+                    int nextStart = 0;
+                    OutputData(output, EncodingNameIndices, nameMappings.OrderBy(kv => kv.Key, StringComparer.Ordinal), kv => new object[] { kv.Key, kv.Value, nextStart += kv.Key.Length });
+                }
 
                 output.Write(Footer);
             }
