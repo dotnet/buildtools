@@ -52,6 +52,21 @@ namespace Microsoft.DotNet.Build.Tasks
                     OutputData(output, EncodingNameIndices, nameMappings.OrderBy(kv => kv.Key, StringComparer.Ordinal), kv => new object[] { kv.Key, kv.Value, nextStart += kv.Key.Length });
                 }
 
+                OutputData(output, CodePagesByName, nameMappings.OrderBy(kv => kv.Key, StringComparer.Ordinal), kv => new object[] { kv.Value, kv.Key });
+                OutputData(output, MappedCodePages, preferredNames.OrderBy(kv => kv.Key), kv => new object[] { kv.Key, kv.Value.Key });
+
+                OutputData(output, WebNames, preferredNames.OrderBy(kv => kv.Key), kv => new object[] { kv.Value.Key, kv.Key });
+                {
+                    int nextStart = 0;
+                    OutputData(output, WebNameIndices, preferredNames.OrderBy(kv => kv.Key), kv => new object[] { kv.Value.Key, kv.Key, nextStart += kv.Value.Key.Length });
+                }
+
+                OutputData(output, EnglishNames, preferredNames.OrderBy(kv => kv.Key), kv => new object[] { kv.Value.Value, kv.Key });
+                {
+                    int nextStart = 0;
+                    OutputData(output, EnglishNameIndices, preferredNames.OrderBy(kv => kv.Key), kv => new object[] { kv.Value.Value, kv.Key, nextStart += kv.Value.Value.Length });
+                }
+
                 output.Write(Footer);
             }
             return true;
