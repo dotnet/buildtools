@@ -37,7 +37,29 @@ namespace Microsoft.DotNet.Build.Tasks
                 return false;
             }
 
+            if (!ValidateMappings(nameMappings, preferredNames))
+            {
+                return false;
+            }
+
             return true;
+        }
+
+        private bool ValidateMappings(Dictionary<string, ushort> nameMappings, Dictionary<ushort, KeyValuePair<string, string>> preferredNames)
+        {
+            // There are multiple mapped names, and each must have a matching preferred name/English name.
+            foreach (ushort codepage in nameMappings.Values.Except(preferredNames.Keys))
+            {
+                Log.LogError("Code page {0} is mapped to name(s), but has no preferred entry/English name", codepage);
+            }
+
+            // Each preferred name must have a matching mapped name.
+            foreach (string name in preferredNames.Values.Select(kv => kv.Key).Except(nameMappings.Keys))
+            {
+                Log.LogError("Preferred name {0} exists, but isn't mapped to a codepage", name);
+            }
+
+            return !Log.HasLoggedErrors;
         }
 
         private Dictionary<string, ushort> ParseNameMappings(string path)
