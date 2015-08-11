@@ -14,11 +14,9 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(IsReferenceAssembly)'=='true'">
-    <_refIndex>$(MSBuildProjectFullPath.IndexOf('ref\'))</_refIndex>
-    <_refIndex Condition="'$(_refIndex)' == '-1'">$(MSBuildProjectFullPath.IndexOf('ref/'))</_refIndex>
-    <_refProjectRelativePath>$(MSBuildProjectDirectory.Substring($(_refIndex)))</_refProjectRelativePath>
-    <OutputPath>$(OutputPath)$(_refProjectRelativePath)</OutputPath>
-    <IntermediateOutputPath>$(IntermediateOutputPath)$(_refProjectRelativePath)</IntermediateOutputPath>
+    <AssemblyName Condition="'$(AssemblyName)' == ''">$(MSBuildProjectName)</AssemblyName>
+    <OutputPath>$(BaseOutputPath)ref\$(AssemblyName)\$(AssemblyVersion)</OutputPath>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)ref\$(AssemblyName)\$(AssemblyVersion)</IntermediateOutputPath>
 
     <OmitTransitiveCompileReferences>true</OmitTransitiveCompileReferences>
   </PropertyGroup>
