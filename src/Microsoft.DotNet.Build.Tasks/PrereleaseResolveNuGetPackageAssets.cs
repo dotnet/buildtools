@@ -146,6 +146,11 @@ namespace Microsoft.DotNet.Build.Tasks
             get; set;
         }
 
+        public bool OmitTransitiveCompileReferences
+        {
+            get; set;
+        }
+
         /// <summary>
         /// Performs the NuGet package resolution.
         /// </summary>
@@ -193,11 +198,24 @@ namespace Microsoft.DotNet.Build.Tasks
             var frameworkReferences = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var fileNamesOfRegularReferences = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
+            HashSet<string> directReferences = new HashSet<string>();
+            if (OmitTransitiveCompileReferences)
+            {
+                directReferences.UnionWith(GetDirectReferences(lockFile));
+            }
+
             foreach (var package in target)
             {
                 var packageNameParts = package.Key.Split('/');
                 var packageName = packageNameParts[0];
                 var packageVersion = packageNameParts[1];
+
+
+                if (OmitTransitiveCompileReferences && !directReferences.Contains(packageName))
+                {
+                    Log.LogMessageFromResources(MessageImportance.Low, "OmitReferencesFromIndirectPackage", packageName);
+                    continue;
+                }
 
                 Log.LogMessageFromResources(MessageImportance.Low, "ResolvedReferencesFromPackage", packageName);
 
@@ -465,6 +483,36 @@ namespace Microsoft.DotNet.Build.Tasks
             }
 
             return firstTarget;
+        }
+
+
+        /// <summary>
+        /// Determines the packages IDs that were directly referenced
+        /// </summary>
+        /// <param name="lockFile">The lock file JSON.</param>
+        private IEnumerable<string> GetDirectReferences(JObject lockFile)
+        {
+            var dependencyGroups = (JObject)lockFile["projectFileDependencyGroups"];
+
+            if (null == dependencyGroups)
+            {
+                return Enumerable.Empty<string>();
+            }
+
+            return dependencyGroups.Values<JProperty>()
+                .Where(dg => dg.Name == "" || TargetMonikers.Select(tm => tm.ItemSpec).Contains(dg.Name))
+                .SelectMany(dg => dg.Value.Values<string>())
+                .Select(dependencyClause =>
+                {
+                    int lengthOfDependencyId = dependencyClause.IndexOf(' ');
+
+                    if (lengthOfDependencyId == -1)
+                    {
+                        throw new Exception("InvalidDependencyFormat");
+                    }
+
+                    return dependencyClause.Substring(0, lengthOfDependencyId);
+                });
         }
 
         private string GetTargetMonikerWithOptionalRuntimeIdentifier(ITaskItem preferredTargetMoniker, bool needsRuntimeIdentifier)

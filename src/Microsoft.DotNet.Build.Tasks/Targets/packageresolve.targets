@@ -80,7 +80,8 @@
                                RuntimeIdentifier=""
                                ProjectLanguage="$(Language)"
                                ProjectLockFile="$(ProjectLockJson)"
-                               TargetMonikers="$(NugetTargetFrameworkMoniker)">
+                               TargetMonikers="$(NugetTargetFrameworkMoniker)"
+                               OmitTransitiveCompileReferences="$(OmitTransitiveCompileReferences)">
       <Output TaskParameter="ResolvedAnalyzers" ItemName="Analyzer" />
       <Output TaskParameter="ResolvedReferences" ItemName="Reference" />
       <Output TaskParameter="ResolvedCopyLocalItems" ItemName="None" />

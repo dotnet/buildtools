@@ -16,6 +16,8 @@
   <PropertyGroup Condition="'$(IsReferenceAssembly)'=='true'">
     <OutputPath>$([System.IO.Path]::Combine('$(OutputPath)', 'ref', '$(APIVersion)'))</OutputPath>
     <IntermediateOutputPath>$([System.IO.Path]::Combine('$(IntermediateOutputPath)', 'ref', '$(APIVersion)'))</IntermediateOutputPath>
+
+    <OmitTransitiveCompileReferences>true</OmitTransitiveCompileReferences>
   </PropertyGroup>
   
 </Project>
