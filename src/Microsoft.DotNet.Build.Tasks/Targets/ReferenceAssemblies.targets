@@ -2,7 +2,7 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <IsReferenceAssembly Condition="'$(IsReferenceAssembly)'=='' AND ($(MSBuildProjectDirectory.Contains('\ref\')) OR $(MSBuildProjectDirectory.Contains('/ref/')))">true</IsReferenceAssembly>
+    <IsReferenceAssembly Condition="'$(IsReferenceAssembly)'=='' AND ($(MSBuildProjectFullPath.Contains('\ref\')) OR $(MSBuildProjectFullPath.Contains('/ref/')))">true</IsReferenceAssembly>
 
     <!-- The first two parts of the assembly version represent API version, 
          the third part is for bugfixes, the fourth is for hotfixes/securtity-updates -->
@@ -14,8 +14,11 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(IsReferenceAssembly)'=='true'">
-    <OutputPath>$([System.IO.Path]::Combine('$(OutputPath)', 'ref', '$(APIVersion)'))</OutputPath>
-    <IntermediateOutputPath>$([System.IO.Path]::Combine('$(IntermediateOutputPath)', 'ref', '$(APIVersion)'))</IntermediateOutputPath>
+    <_refIndex>$(MSBuildProjectFullPath.IndexOf('ref\'))</_refIndex>
+    <_refIndex Condition="'$(_refIndex)' == '-1'">$(MSBuildProjectFullPath.IndexOf('ref/'))</_refIndex>
+    <_refProjectRelativePath>$(MSBuildProjectDirectory.Substring($(_refIndex)))</_refProjectRelativePath>
+    <OutputPath>$(OutputPath)$(_refProjectRelativePath)</OutputPath>
+    <IntermediateOutputPath>$(IntermediateOutputPath)$(_refProjectRelativePath)</IntermediateOutputPath>
 
     <OmitTransitiveCompileReferences>true</OmitTransitiveCompileReferences>
   </PropertyGroup>

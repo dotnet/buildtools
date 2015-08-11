@@ -56,11 +56,17 @@
   <!-- If a reference assembly project exists for the partial facade, prefer that over the package  -->
   <Target Name="FindPartialFacadeProjectReference" Condition="'$(IsPartialFacadeAssembly)' == 'true'" BeforeTargets="AssignProjectConfiguration">
     <PropertyGroup>
-      <_referenceAssemblyProjectRelativeToRoot>$([System.IO.Path]::Combine('ref', '$(APIVersion)', '$(AssemblyName).csproj'))</_referenceAssemblyProjectRelativeToRoot>
-      <_referenceAssemblyProject>$([System.IO.Path]::Combine($([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), $(_referenceAssemblyProjectRelativeToRoot))), $(_referenceAssemblyProjectRelativeToRoot)))</_referenceAssemblyProject>
+      <_referenceAssemblyProject>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'ref\$(AssemblyName).csproj'))\ref\$(AssemblyName).csproj</_referenceAssemblyProject>
+      <_versionReferenceAssemblyProject>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'ref\$(APIVersion)\$(AssemblyName).csproj'))\ref\$(APIVersion)\$(AssemblyName).csproj</_versionReferenceAssemblyProject>
     </PropertyGroup>
     <ItemGroup>
-      <ProjectReference Include="$(_referenceAssemblyProject)" Condition="Exists('$(_referenceAssemblyProject)')">
+      <!-- first check for a specific version -->
+      <ProjectReference Include="$(_versionReferenceAssemblyProject)" Condition="Exists('$(_versionReferenceAssemblyProject)')">
+        <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+        <OutputItemType>ResolvedMatchingContract</OutputItemType>
+      </ProjectReference>
+      <!-- fall back to 'current' version -->
+      <ProjectReference Include="$(_referenceAssemblyProject)" Condition="!Exists('$(_versionReferenceAssemblyProject)') AND Exists('$(_referenceAssemblyProject)')">
         <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
         <OutputItemType>ResolvedMatchingContract</OutputItemType>
       </ProjectReference>
