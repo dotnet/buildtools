@@ -17,6 +17,9 @@
     <AssemblyName Condition="'$(AssemblyName)' == ''">$(MSBuildProjectName)</AssemblyName>
     <OutputPath>$(BaseOutputPath)ref\$(AssemblyName)\$(AssemblyVersion)</OutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)ref\$(AssemblyName)\$(AssemblyVersion)</IntermediateOutputPath>
+    
+    <!-- ensure a unique path to assemblyinfo -->
+    <AssemblyInfoFileDir>$(IntermediateOutputPath)</AssemblyInfoFileDir>
 
     <OmitTransitiveCompileReferences>true</OmitTransitiveCompileReferences>
   </PropertyGroup>
