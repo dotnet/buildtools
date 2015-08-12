@@ -54,7 +54,18 @@
   </PropertyGroup>
   
   <!-- If a reference assembly project exists for the partial facade, prefer that over the package  -->
-  <Target Name="FindPartialFacadeProjectReference" Condition="'$(IsPartialFacadeAssembly)' == 'true'" BeforeTargets="AssignProjectConfiguration">
+  <PropertyGroup Condition="'$(IsPartialFacadeAssembly)' == 'true'">
+    <ResolveReferencesDependsOn>
+      FindPartialFacadeProjectReference;
+      $(ResolveReferencesDependsOn)
+    </ResolveReferencesDependsOn>
+    <CleanDependsOn>
+      FindPartialFacadeProjectReference;
+      $(CleanDependsOn);
+    </CleanDependsOn>
+  </PropertyGroup>
+  
+  <Target Name="FindPartialFacadeProjectReference">
     <PropertyGroup>
       <_referenceAssemblyProject>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'ref\$(AssemblyName).csproj'))\ref\$(AssemblyName).csproj</_referenceAssemblyProject>
       <_versionReferenceAssemblyProject>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'ref\$(APIVersion)\$(AssemblyName).csproj'))\ref\$(APIVersion)\$(AssemblyName).csproj</_versionReferenceAssemblyProject>
