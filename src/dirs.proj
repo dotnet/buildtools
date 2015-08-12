@@ -3,7 +3,7 @@
   <Import Project="BuildValues.props" />
 
   <ItemGroup>
-    <Project Include="*\*.csproj" />
+    <Project Include="*\**\*.csproj" />
   </ItemGroup>
 
   <Import Project="..\dir.targets" />

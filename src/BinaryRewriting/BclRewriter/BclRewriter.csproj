@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.props))\dir.props" />
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>BclRewriter</RootNamespace>
+    <AssemblyName>BclRewriter</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <CLSCompliant>false</CLSCompliant>
+  </PropertyGroup>
+  
+  <!-- Default configurations to help VS understand the configurations -->
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
+  
+  <ItemGroup>
+    <Compile Include="..\Trimmer\TrimEngine\IncludeSet.cs">
+      <Link>Trimmer\TrimEngine\IncludeSet.cs</Link>
+    </Compile>
+    <Compile Include="..\Trimmer\TrimEngine\Trimmer.cs">
+      <Link>Trimmer\TrimEngine\Trimmer.cs</Link>
+    </Compile>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Include="..\ModelFileToCCI2\CodeModel.cs">
+      <Link>ModelFileToCCI2\CodeModel.cs</Link>
+    </Compile>
+    <Compile Include="..\ModelFileToCCI2\ConditionParser.cs">
+      <Link>ModelFileToCCI2\ConditionParser.cs</Link>
+    </Compile>
+    <Compile Include="..\ModelFileToCCI2\HostEnvironment.cs">
+      <Link>ModelFileToCCI2\HostEnvironment.cs</Link>
+    </Compile>
+    <Compile Include="..\ModelFileToCCI2\ModelFileReader.cs">
+      <Link>ModelFileToCCI2\ModelFileReader.cs</Link>
+    </Compile>
+    <Compile Include="..\ModelFileToCCI2\ModelFileToCCI2.cs">
+      <Link>ModelFileToCCI2\ModelFileToCCI2.cs</Link>
+    </Compile>
+    <Compile Include="..\ModelFileToCCI2\ModelSigFormatter.cs">
+      <Link>ModelFileToCCI2\ModelSigFormatter.cs</Link>
+    </Compile>
+    <Compile Include="..\ModelFileToCCI2\Util.cs">
+      <Link>ModelFileToCCI2\Util.cs</Link>
+    </Compile>
+    <Compile Include="..\ModelFileToCCI2\XmlImporter.cs">
+      <Link>ModelFileToCCI2\XmlImporter.cs</Link>
+    </Compile>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Include="..\Thinner2\ClosureEngine\ApiClosureVisitor.cs">
+      <Link>Thinner2\ClosureEngine\ApiClosureVisitor.cs</Link>
+    </Compile>
+    <Compile Include="..\Thinner2\ClosureEngine\ClosureVisitor.cs">
+      <Link>Thinner2\ClosureEngine\ClosureVisitor.cs</Link>
+    </Compile>
+    <Compile Include="..\Thinner2\ClosureEngine\ImplClosureVisitor.cs">
+      <Link>Thinner2\ClosureEngine\ImplClosureVisitor.cs</Link>
+    </Compile>
+    <Compile Include="..\Thinner2\ClosureEngine\Implementation.cs">
+      <Link>Thinner2\ClosureEngine\Implementation.cs</Link>
+    </Compile>
+    <Compile Include="..\Thinner2\ClosureEngine\Thinner.cs">
+      <Link>Thinner2\ClosureEngine\Thinner.cs</Link>
+    </Compile>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Include="BclRewriter.cs" />
+    <Compile Include="..\Misc\CommandLineParser.cs" />
+    <Compile Include="..\Misc\SimpleTimer.cs" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>-->
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+</Project>

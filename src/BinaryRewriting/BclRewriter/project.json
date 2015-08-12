@@ -1,0 +1,16 @@
+﻿{
+  "dependencies": {
+    "Microsoft.Cci": "4.0.0-beta-23321",
+    "System.Console": "4.0.0-beta-23321",
+    "System.Xml.ReaderWriter": "4.0.10",
+    "System.Linq": "4.0.0-beta-23321",
+    "System.Reflection.TypeExtensions": "4.0.0-beta-23321",
+    "System.Reflection.Extensions": "4.0.0-beta-23127",
+  },
+    "frameworks": {
+       "dnxcore50": { }
+    },
+    "runtimes": {
+       "win7-x64": { }
+    }
+}
