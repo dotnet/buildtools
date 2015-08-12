@@ -10,6 +10,21 @@
     <CLSCompliant Condition="'$(CLSCompliant)'==''">true</CLSCompliant>
   </PropertyGroup>
   
+  <!--
+    Import the reference assembly targets
+    
+    This must be imported early because it modifies OutputPath and IntermediateOutputPath
+    used by other targets
+    
+      Depends on Properties:
+        AssemblyVersion - Needed to determine API version used in
+    
+      Sets Properties:
+        IsReferenceAssembly - Set if the project is in the ref assm path
+        APIVersion - Major.Minor assembly version for the project
+  -->
+  <Import Project="$(MSBuildThisFileDirectory)ReferenceAssemblies.targets" Condition="'$(ExcludeReferenceAssembliesImport)'!='true'" />
+  
   <!-- 
     Import the default target framework targets.
     
@@ -106,6 +121,35 @@
         PackagesDir - Packages are restored to and resolved from this location    
    -->
   <Import Project="$(MSBuildThisFileDirectory)tests.targets" Condition="'$(IsTestProject)'=='true' and '$(ExcldueTestsImport)'!='true'"/>
+  
+  <!-- 
+    Import the PackageLibs.targets which exposes targets from library projects to report what
+    assets they contribute to nuget packages.
+      
+      Optional Inputs:
+        PackageSourcePath - Source path to the built output to be packaged, default is $(TargetPath)
+                            Can be overridden.
+        IsReferenceAssembly - true if this project is a reference assembly.
+        PackageTargetPath - Destination subpath in the package at which all assets from this project
+                            should be located.  Default is lib\dotnet for implementation assemblies,
+                            ref\dotnet for reference assemblies.  Can be overridden.  When overridding
+                            also override PackageTargetFramework.
+        PackageTargetFramework - Target moniker to use for harvested dependencies, default is 'dotnet'.
+                                 Can be overridden.  If PackageTargetFramework is overridden and PackageTargetPath
+                                 is not, PackageTargetPath will be constructed based on PackageTargetFramework.
+        PackageTargetRuntime - Runtime id to use for harvested dependencies, default is none.
+                               Can be overridden.  If PackageTargetRuntime is overridden and PackageTargetPath
+                               is not, PackageTargetPath will be constructed based on PackageTargetRuntime.
+        @(PackageDestination) - List of items with TargetFramework metadata that represent destination 
+                                subpaths in the package at which all assets from this project should be 
+                                located.  When specified takes precedence over PackageTargetPath & 
+                                PackageTargetFramework.
+        DocumentationFile - location of xml doc produced by this project.
+        XmlDocFileRoot - location to pre-authored localized xml doc files
+        PackageIncludeDocs - true to include the docs next to this project's ouput.  Default
+                             is true for reference assemblies, false for implementation.
+   -->
+  <Import Project="$(MSBuildThisFileDirectory)PackageLibs.targets" Condition="'$(ExclduePackageLibsImport)'!='true'"/>
 
   <Target Name="CheckDesignTime">
     <!--
