@@ -15,7 +15,8 @@
 
   <PropertyGroup Condition="'$(IsReferenceAssembly)'=='true'">
     <AssemblyName Condition="'$(AssemblyName)' == ''">$(MSBuildProjectName)</AssemblyName>
-    <OutputPath>$(BaseOutputPath)ref\$(AssemblyName)\$(AssemblyVersion)</OutputPath>
+    <ReferenceAssemblyOutputPath Condition="'$(ReferenceAssemblyOutputPath)' == ''">$(BaseOutputPath)ref\</ReferenceAssemblyOutputPath>
+    <OutputPath>$(ReferenceAssemblyOutputPath)$(AssemblyName)\$(AssemblyVersion)</OutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)ref\$(AssemblyName)\$(AssemblyVersion)</IntermediateOutputPath>
     
     <!-- ensure a unique path to assemblyinfo -->
