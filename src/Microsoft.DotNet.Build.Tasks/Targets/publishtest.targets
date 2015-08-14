@@ -16,7 +16,8 @@
 
   <PropertyGroup>
     <PrepareForRunDependsOn Condition="'$(IsTestProject)'=='true'">$(PrepareForRunDependsOn);CopyTestToTestDirectory</PrepareForRunDependsOn>
-    <TestArchitecture Condition="'$(TestArchitecture)' == ''">x86</TestArchitecture>
+    <TestArchitecture Condition="'$(TestArchitecture)' == ''">x64</TestArchitecture>
+    <TestNugetRuntimeId Condition="'$(TestNugetRuntimeId)' == ''">win7-$(TestArchitecture)</TestNugetRuntimeId>
   </PropertyGroup>
 
   <Target Name="CopyTestToTestDirectory" 
@@ -30,7 +31,7 @@
                                AllowFallbackOnTargetSelection="true"
                                IncludeFrameworkReferences="false"
                                NuGetPackagesDirectory="$(PackagesDir)"
-                               RuntimeIdentifier="win7-x64"
+                               RuntimeIdentifier="$(TestNugetRuntimeId)"
                                ProjectLanguage="$(Language)"
                                ProjectLockFile="%(TestNugetProjectLockFile.FullPath)"
                                TargetMonikers="@(TestTargetFramework)">
