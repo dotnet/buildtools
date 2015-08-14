@@ -41,6 +41,7 @@
       Outputs="$(AssemblyInfoFile)"
       Condition="'$(GenerateAssemblyInfo)'=='true'">
 
+    <MakeDir Condition="!Exists('$(AssemblyInfoFileDir)')" Directories="$(AssemblyInfoFileDir)" ContinueOnError="true" />
     <Error Condition="!Exists('$(AssemblyInfoFileDir)')" Text="GenerateAssemblyInfo failed because AssemblyInfoFileDir: &quot;$(AssemblyInfoFileDir)&quot; isn't a valid directory" />
 
     <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
