@@ -10,7 +10,7 @@
 
   <Target Name="RestoreTestRuntimePackage"
           BeforeTargets="ResolveNuGetPackages"
-          Condition="'$(IsTestProject)' == 'true' AND '$(TestRuntimeProjectJson)' != ''">
+          Condition="'$(RestorePackages)'=='true' AND '$(IsTestProject)' == 'true' AND '$(TestRuntimeProjectJson)' != ''">
     <Exec Command="$(DnuRestoreCommand) &quot;$(TestRuntimeProjectJson)&quot;" StandardOutputImportance="Low" CustomErrorRegularExpression="^Unable to locate .*" />
   </Target>
 
