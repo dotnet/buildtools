@@ -5,12 +5,13 @@
   <!--
        Include the following in the .csproj of a project which needs to generate an encoding data-table:
        <PropertyGroup>
-         <IANAMappingPath>$(MSBuildThisFileDirectory)\nameOfMappingFile</IANAMappingPath>
-         <PreferredIANANamesPath>$(MSBuildThisFileDirectory)\nameOfPreferredNameFile</PreferredIANANamesPath>
-         <OutputDataTablePath>$(MSBuildThisFileDirectory)\nameOfOutputFile</OutputDataTablePath>
+         <IANAMappingPath>nameOfMappingFile</IANAMappingPath>
+         <PreferredIANANamesPath>nameOfPreferredNameFile</PreferredIANANamesPath>
+         <OutputDataTablePath>nameOfOutputFile</OutputDataTablePath>
        </PropertyGroup>
        <Import Project="$(ToolsDir)encoding.targets" Condition="Exists('$(ToolsDir)encoding.targets')" />
   -->
+
   <Target Name="GenerateEncodingSource"
           Condition="'$(OutputDataTablePath)'!='' And '$(IANAMappingPath)'!='' And Exists('$(IANAMappingPath)') And '$(PreferredIANANamesPath)'!='' And Exists('$(PreferredIANANamesPath)')"
           Inputs="$(IANAMappingPath);$(PreferredIANANamesPath)"
@@ -20,6 +21,7 @@
         IANAMappings="$(IANAMappingPath)"
         PreferedIANANames="$(PreferredIANANamesPath)"
         OutputDataTable="$(OutputDataTablePath)"
+        BuildProjectDirectory="$(MSBuildProjectDirectory)\"
         Namespace="$(Namespace)"
         ClassName="$(Classname)" />
   </Target>

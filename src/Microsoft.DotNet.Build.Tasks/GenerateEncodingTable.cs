@@ -23,13 +23,16 @@ namespace Microsoft.DotNet.Build.Tasks
         [Required]
         public string OutputDataTable { get; set; }
 
+        [Required]
+        public string BuildProjectDirectory { get; set; }
+
         public string Namespace { get; set; }
         public string ClassName { get; set; }
 
         public override bool Execute()
         {
-            Dictionary<string, ushort> nameMappings = ParseNameMappings(IANAMappings);
-            Dictionary<ushort, KeyValuePair<string, string>> preferredNames = ParsePreferredNames(PreferedIANANames);
+            Dictionary<string, ushort> nameMappings = ParseNameMappings(BuildProjectDirectory + IANAMappings);
+            Dictionary<ushort, KeyValuePair<string, string>> preferredNames = ParsePreferredNames(BuildProjectDirectory + PreferedIANANames);
 
             // If there were errors during the read, later validation would have problems too.
             if (Log.HasLoggedErrors)
@@ -42,7 +45,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 return false;
             }
 
-            using (StreamWriter output = File.CreateText(OutputDataTable))
+            using (StreamWriter output = File.CreateText(BuildProjectDirectory + OutputDataTable))
             {
                 output.Write(Header, IANAMappings, PreferedIANANames, Namespace ?? "System.Text", ClassName ?? "EncodingTable");
 
