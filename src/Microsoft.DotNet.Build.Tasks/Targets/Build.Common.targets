@@ -8,6 +8,12 @@
     <AssemblyVersion Condition="'$(AssemblyVersion)'==''">999.999.999.999</AssemblyVersion>
     <CLSCompliant Condition="'$(CLSCompliant)'=='' and '$(IsTestProject)'=='true'">false</CLSCompliant>
     <CLSCompliant Condition="'$(CLSCompliant)'==''">true</CLSCompliant>
+
+    <!--
+      Check if the project has been localized by looking for the existence of the .de.xlf file.  By convention, we assume that if 
+      a project is localized in German, then it is localized in all languages.
+    -->
+    <ExcludeLocalizationImport Condition="'$(ExcludeLocalizationImport)'=='' And !Exists('$(MSBuildProjectDirectory)\MultilingualResources\$(MSBuildProjectName).de.xlf')">true</ExcludeLocalizationImport>
   </PropertyGroup>
   
   <!--
@@ -83,6 +89,11 @@
       BuildNumberTarget - If this property is set it will try to import the file which allows for it to override the properties above.
   -->
   <Import Project="$(MSBuildThisFileDirectory)versioning.targets" Condition="'$(ExcludeVersioningImport)'!='true'" />
+
+  <!--
+    Import the localization target
+  -->
+  <Import Project="$(MSBuildThisFileDirectory)localization.targets" Condition="'$(ExcludeLocalizationImport)'!='true'" />
 
   <!-- 
     Import the partial facade generation targets
