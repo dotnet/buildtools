@@ -94,8 +94,6 @@
       <AssemblyInfoLines Include="}" />
     </ItemGroup>
 
-    <MakeDir Directories="$(AssemblyInfoFileDir)" />
-
     <WriteLinesToFile
       File="$(AssemblyInfoFile)"
       Lines="@(AssemblyInfoComments);@(AssemblyInfoUsings);@(AssemblyInfoLines)"
