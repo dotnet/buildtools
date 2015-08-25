@@ -35,9 +35,9 @@
        "System.Threading.Thread": "4.0.0-beta-*",
        "System.Xml.ReaderWriter": "4.0.10",
        "System.Xml.XDocument": "4.0.10",
-       "xunit": "2.1.0-beta3-*",
+       "xunit": "2.1.0-beta4-*",
        "xunit.console.netcore": "1.0.2-prerelease-*",
-       "xunit.runner.utility": "2.1.0-beta3-*"
+       "xunit.runner.utility": "2.1.0-beta4-*"
     },
     "frameworks": {
        "dnxcore50": { }
