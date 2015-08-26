@@ -67,6 +67,12 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets"
           Condition="'$(TargetFrameworkIdentifier)' != '.NETPortable' and '$(MSBuildProjectExtension)' == '.vbproj'" />
 
+  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework' and '$(OutputType)' == 'exe'">
+    <!-- RAR thinks all EXEs require binding redirects.  That's not the case for CoreCLR -->
+    <AutoUnifyAssemblyReferences>true</AutoUnifyAssemblyReferences>
+    <GenerateBindingRedirectsOutputType>false</GenerateBindingRedirectsOutputType>
+  </PropertyGroup>
+  
   <!-- We need to point $(FrameworkPathOverride) to the directory that contains explicitly referenced System.Runtime.dll, if any.
        Otherwise, if $(FrameworkPathOverride)\System.Runtime.dll is not the same file as the one referenced explicitly, 
        VS2013 VB compiler would load it and then it would complain about ambiguous type declarations. 

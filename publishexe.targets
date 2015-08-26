@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <PropertyGroup>
+    <!-- require latest build tools, can be removed once we update the whole repo to latest 
+         after this change -->
+    <UseLiveBuildTools>true</UseLiveBuildTools>
+  </PropertyGroup>
+
   <Target Name="PublishFilesToRuntime" AfterTargets="CopyFilesToOutputDirectory"
           Condition="'$(OutputType)' == 'Exe' ">
 
