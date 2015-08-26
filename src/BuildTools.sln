@@ -14,6 +14,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{8B5A7D
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nuget", "nuget", "{097CEB51-8AD7-454B-A027-475C58C16A1A}"
 	ProjectSection(SolutionItems) = preProject
+		nuget\GenFacades-Win7-x64.nuspec = nuget\GenFacades-Win7-x64.nuspec
+		nuget\GenFacades.Desktop.nuspec = nuget\GenFacades.Desktop.nuspec
+		nuget\Microsoft.DotNet.BuildTools.GenAPI.nuspec = nuget\Microsoft.DotNet.BuildTools.GenAPI.nuspec
 		nuget\Microsoft.DotNet.BuildTools.nuspec = nuget\Microsoft.DotNet.BuildTools.nuspec
 		nuget\Microsoft.DotNet.PerfTools.nuspec = nuget\Microsoft.DotNet.PerfTools.nuspec
 		nuget\xunit.console.netcore.nuspec = nuget\xunit.console.netcore.nuspec
