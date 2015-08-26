@@ -11,7 +11,6 @@
     <AssemblyName>GenFacades</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);COREFX</DefineConstants>
-    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
     <!-- Default configurations to help VS understand the configurations -->

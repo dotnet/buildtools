@@ -6,6 +6,14 @@
          after this change -->
     <UseLiveBuildTools>true</UseLiveBuildTools>
   </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'">
+    <!-- hardcoding win7-x64 for now, this should eventually be built as runtime agnostic,
+         packaged as a DLL and be consumed by a deployment step that resolves that package
+         and its dependencies for a specific runtime -->
+    <PlatformTarget>x64</PlatformTarget>
+    <BaseNuGetRuntimeIdentifier>win7</BaseNuGetRuntimeIdentifier>
+  </PropertyGroup>
 
   <Target Name="PublishFilesToRuntime" AfterTargets="CopyFilesToOutputDirectory"
           Condition="'$(OutputType)' == 'Exe' ">
