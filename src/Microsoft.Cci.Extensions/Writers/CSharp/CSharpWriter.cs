@@ -42,6 +42,8 @@ namespace Microsoft.Cci.Writers
 
         public bool HighlightInterfaceMembers { get; set; }
 
+        public bool PutBraceOnNewLine { get; set; }
+
         public bool IncludeGlobalPrefixForCompilation
         {
             get { return _declarationWriter.ForCompilationIncludeGlobalPrefix; }
@@ -68,7 +70,7 @@ namespace Microsoft.Cci.Writers
         {
             _declarationWriter.WriteDeclaration(ns);
 
-            using (_syntaxWriter.StartBraceBlock())
+            using (_syntaxWriter.StartBraceBlock(PutBraceOnNewLine))
             {
                 base.Visit(ns);
             }
@@ -88,7 +90,7 @@ namespace Microsoft.Cci.Writers
 
             if (!type.IsDelegate)
             {
-                using (_syntaxWriter.StartBraceBlock())
+                using (_syntaxWriter.StartBraceBlock(PutBraceOnNewLine))
                 {
                     // If we have no constructors then output a private one this
                     // prevents the C# compiler from creating a default public one.

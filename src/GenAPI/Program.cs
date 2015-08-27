@@ -91,6 +91,7 @@ namespace GenAPI
                         writer.IncludeSpaceBetweenMemberGroups = writer.IncludeMemberGroupHeadings = s_memberHeadings;
                         writer.HighlightBaseMembers = s_hightlightBaseMembers;
                         writer.HighlightInterfaceMembers = s_hightlightInterfaceMembers;
+                        writer.PutBraceOnNewLine = true;
                         return writer;
                     }
             }
@@ -137,7 +138,7 @@ namespace GenAPI
                     return new HtmlSyntaxWriter(output);
                 case SyntaxWriterType.Text:
                 default:
-                    return new TextSyntaxWriter(output);
+                    return new TextSyntaxWriter(output) { SpacesInIndent = 4 };
             }
         }
 

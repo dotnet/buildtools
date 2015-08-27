@@ -80,7 +80,20 @@ namespace Microsoft.Cci.Writers.Syntax
 
         public static IDisposable StartBraceBlock(this ISyntaxWriter writer)
         {
-            writer.WriteSpace();
+            return StartBraceBlock(writer, false);
+        }
+
+        public static IDisposable StartBraceBlock(this ISyntaxWriter writer, bool onNewLine)
+        {
+            if (onNewLine)
+            {
+                writer.WriteLine();
+            }
+            else
+            {
+                writer.WriteSpace();
+            }
+
             writer.WriteSymbol("{");
             writer.WriteLine();
             writer.IndentLevel++;
