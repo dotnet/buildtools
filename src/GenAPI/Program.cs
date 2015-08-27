@@ -69,7 +69,7 @@ namespace GenAPI
             if (string.IsNullOrWhiteSpace(s_out) || Directory.Exists(s_out))
                 return Console.Out;
 
-            return new StreamWriter(File.OpenWrite(s_out));
+            return File.CreateText(s_out);
         }
 
         private static ICciWriter GetWriter(TextWriter output, IStyleSyntaxWriter syntaxWriter)
