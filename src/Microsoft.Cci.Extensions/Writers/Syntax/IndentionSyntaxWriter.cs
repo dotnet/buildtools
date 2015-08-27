@@ -13,7 +13,6 @@ namespace Microsoft.Cci.Writers.Syntax
     public class IndentionSyntaxWriter
     {
         private readonly TextWriter _writer;
-        protected const int SpacesInIndent = 2;
         private string _indent = "";
         private bool _needToWriteIndent = true;
         private bool _shouldWriteLine = false;
@@ -22,6 +21,7 @@ namespace Microsoft.Cci.Writers.Syntax
         {
             Contract.Requires(writer != null);
             _writer = writer;
+            SpacesInIndent = 2;
         }
 
         protected void WriteCore(string format, params object[] args)
@@ -73,5 +73,7 @@ namespace Microsoft.Cci.Writers.Syntax
                 _indent = new string(' ', value * SpacesInIndent);
             }
         }
+
+        public int SpacesInIndent { get; set; }
     }
 }

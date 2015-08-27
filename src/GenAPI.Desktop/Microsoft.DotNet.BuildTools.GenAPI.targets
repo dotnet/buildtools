@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <GenAPITargetPath Condition="'$(GenAPITargetPath)' == ''">$(TargetDir)$(TargetName).cs</GenAPITargetPath>
+    <_GenAPIPath>$(MSBuildThisFileDirectory)\..\tools\GenApi.exe</_GenAPIPath>
+
+    <!-- Sequence ourselves last in PrepareForRun 
+         This ensures the output has been copied to TargetPath, but still permits
+         us to participate in FileWrites. -->
+    <PrepareForRunDependsOn>
+      $(PrepareForRunDependsOn);
+      GenerateReferenceAssemblySource;
+    </PrepareForRunDependsOn>
+  </PropertyGroup>
+
+  <Target Name="GenerateReferenceAssemblySource"
+          Inputs="$(TargetPath)"
+          Outputs="$(GenAPITargetPath)">
+
+    <ItemGroup>
+      <!-- build out a list of directories where dependencies are located -->
+      <_referencePathDirectoriesWithDuplicates Include="@(ReferencePath->'%(RootDir)%(Directory)'->TrimEnd('\'))" />
+      <!-- strip metadata, removing duplicates -->
+      <_referencePathDirectories Include="%(_referencePathDirectoriesWithDuplicates.Identity)" />
+    </ItemGroup>
+
+    <Exec Command="&quot;$(_GenAPIPath)&quot; &quot;$(TargetPath)&quot; -libPath:&quot;@(_referencePathDirectories)&quot; -out:&quot;$(GenAPITargetPath)&quot; $(GenAPIAdditionalParameters)" />
+
+    <ItemGroup>
+      <FileWrites Include="$(GenAPITargetPath)"/>
+    </ItemGroup>
+  </Target>
+</Project>

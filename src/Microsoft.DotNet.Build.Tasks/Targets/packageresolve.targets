@@ -48,6 +48,9 @@
          targets that are closer to what shipped in Dev14 and we won't need to special case this.-->
     <NugetTargetFrameworkMoniker Condition="'$(NugetTargetFrameworkMoniker)' == '' and '$(IsReferenceAssembly)' == 'true'">.NETPlatform,Version=v5.0</NugetTargetFrameworkMoniker>    
     <NugetTargetFrameworkMoniker Condition="'$(NugetTargetFrameworkMoniker)' == ''">$(TargetFrameworkMoniker)</NugetTargetFrameworkMoniker>
+
+    <BaseNuGetRuntimeIdentifier Condition="'$(BaseNuGetRuntimeIdentifier)' == ''">win</BaseNuGetRuntimeIdentifier>
+    <NuGetRuntimeIdentifier Condition="'$(NuGetRuntimeIdentifier)' == ''">$(BaseNuGetRuntimeIdentifier)-$(PlatformTarget.ToLower())</NuGetRuntimeIdentifier>
   </PropertyGroup>
 
   <Target Name="ResolveNuGetPackages"
@@ -77,7 +80,7 @@
                                AllowFallbackOnTargetSelection="true"
                                IncludeFrameworkReferences="false"
                                NuGetPackagesDirectory="$(PackagesDir)"
-                               RuntimeIdentifier=""
+                               RuntimeIdentifier="$(NuGetRuntimeIdentifier)"
                                ProjectLanguage="$(Language)"
                                ProjectLockFile="$(ProjectLockJson)"
                                TargetMonikers="$(NugetTargetFrameworkMoniker)"

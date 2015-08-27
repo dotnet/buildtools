@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata minClientVersion="2.8.1">
+    <id>Microsoft.DotNet.BuildTools.GenAPI</id>
+    <version>1.0.0-beta</version>
+    <title>Reference Assembly Source Generator (GenAPI)</title>
+    <authors>Microsoft</authors>
+    <owners>Microsoft</owners>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <licenseUrl>http://go.microsoft.com/fwlink/?LinkId=329770</licenseUrl>
+    <projectUrl>http://go.microsoft.com/fwlink/?LinkId=518631</projectUrl>
+    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
+    <summary>A tool that can be used to generate source for a reference assembly.</summary>
+    <description>This package provides build-time support generating reference assembly source.  Referencing this package will cause the build to produce a CS file in the output directory that represents the public surface area of the project.  This package requires .NET Framework 4.6 or later to be installed on your build machine.</description>
+    <copyright>Copyright © Microsoft Corporation</copyright>
+    <tags></tags>
+    <dependencies>
+      <!-- Currently we redistribute the dependencies locally since nuget has no 
+           support for treating packages as build dependencies.-->
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="GenAPI.Desktop\GenAPI.exe" target="tools" />
+    <file src="GenAPI.Desktop\GenAPI.exe.config" target="tools" />
+    <file src="GenAPI.Desktop\*.dll" target="tools" />
+
+    <file src="GenAPI.Desktop\Microsoft.DotNet.BuildTools.GenAPI.targets" target="build" />
+  </files>
+  
+</package>

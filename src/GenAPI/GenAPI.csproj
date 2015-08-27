@@ -4,26 +4,21 @@
 
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
     <OutputType>Exe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>GenFacades</RootNamespace>
-    <AssemblyName>GenFacades</AssemblyName>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <GenFacadesSrc>..\GenFacades</GenFacadesSrc>
+    <RootNamespace>GenAPI</RootNamespace>
+    <AssemblyName>GenAPI</AssemblyName>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <DefineConstants>$(DefineConstants);COREFX</DefineConstants>
   </PropertyGroup>
 
-    <!-- Default configurations to help VS understand the configurations -->
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
+  <!-- Default configurations to help VS understand the configurations -->
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' " />
 
   <ItemGroup>
-    <Compile Include="$(GenFacadesSrc)\FacadeGenerationException.cs" />
-    <Compile Include="$(GenFacadesSrc)\Program.cs" />
-    <Compile Include="$(GenFacadesSrc)\VersionResourceSerializer.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="TypeListWriter.cs" />
   </ItemGroup>
 
   <!-- Common command-line helper sources -->
@@ -45,9 +40,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.CCI.Extensions\Microsoft.CCI.Extensions.csproj" />
-    <Reference Include="mscorlib" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
   </ItemGroup>
 
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), publishexe.targets))\publishexe.targets" />

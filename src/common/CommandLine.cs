@@ -1044,14 +1044,17 @@ class CommandLine
                 foreach (string alias in aliases)
                 {
                     int aliasEncodedPos;
-                    if (_dashedParameterEncodedPositions.TryGetValue(name, out aliasEncodedPos))
+                    if (_dashedParameterEncodedPositions.TryGetValue(alias, out aliasEncodedPos))
                     {
                         int aliasPos = GetPosition(aliasEncodedPos);
-                        if (aliasPos < ret)
+                        // if this alias occurs before the officialName or if no officialName was found
+                        // choose the alias as a match
+                        if (aliasPos < ret || ret == -1)
                         {
                             name = alias;
                             encodedPos = aliasEncodedPos;
                             ret = aliasPos;
+                            match = name;
                         }
                     }
                 }
