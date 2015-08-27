@@ -98,15 +98,30 @@ namespace GenAPI
 
         private static ICciFilter GetFilter()
         {
+            ICciFilter includeFilter = null;
+
             if (string.IsNullOrWhiteSpace(s_apiList))
             {
                 if (s_all)
-                    return new IncludeAllFilter();
-
-                return new PublicOnlyCciFilter(excludeAttributes: s_apiOnly);
+                {
+                    includeFilter = new IncludeAllFilter();
+                }
+                else
+                {
+                    includeFilter = new PublicOnlyCciFilter(excludeAttributes: s_apiOnly);
+                }
+            }
+            else
+            {
+                includeFilter = new DocIdIncludeListFilter(s_apiList);
             }
 
-            return new DocIdWhitelistFilter(s_apiList);
+            if (!string.IsNullOrWhiteSpace(s_excludeApiList))
+            {
+                includeFilter = new IntersectionFilter(includeFilter, new DocIdExcludeListFilter(s_excludeApiList));
+            }
+
+            return includeFilter;
         }
 
         private static IStyleSyntaxWriter GetSyntaxWriter(TextWriter output)
@@ -145,6 +160,7 @@ namespace GenAPI
         private static WriterType s_writer = WriterType.CSDecl;
         private static SyntaxWriterType s_syntaxWriter = SyntaxWriterType.Text;
         private static string s_apiList;
+        private static string s_excludeApiList;
         private static string s_headerFile;
         private static string s_out;
         private static string s_libPath;
@@ -161,6 +177,8 @@ namespace GenAPI
                 parser.DefineOptionalQualifier("libPath", ref s_libPath, "Delimited (',' or ';') set of paths to use for resolving assembly references");
                 parser.DefineAliases("apiList", "al");
                 parser.DefineOptionalQualifier("apiList", ref s_apiList, "(-al) Specify a api list in the DocId format of which APIs to include.");
+                parser.DefineAliases("excludeApiList", "xal");
+                parser.DefineOptionalQualifier("excludeApiList", ref s_excludeApiList, "(-xal) Specify a api list in the DocId format of which APIs to exclude.");
                 parser.DefineAliases("writer", "w");
                 parser.DefineOptionalQualifier<WriterType>("writer", ref s_writer, "(-w) Specify the writer type to use.");
                 parser.DefineAliases("syntax", "s");
