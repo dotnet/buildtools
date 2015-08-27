@@ -37,6 +37,20 @@ namespace GenAPI
             using (TextWriter output = GetOutput())
             using (IStyleSyntaxWriter syntaxWriter = GetSyntaxWriter(output))
             {
+                if (!String.IsNullOrEmpty(s_headerFile))
+                {
+                    if (!File.Exists(s_headerFile))
+                    {
+                        Console.WriteLine("ERROR: header file '{0}' does not exist", s_headerFile);
+                        return 1;
+                    }
+
+                    using (TextReader headerText = File.OpenText(s_headerFile))
+                    {
+                        output.Write(headerText.ReadToEnd());
+                    }
+                }
+
                 ICciWriter writer = GetWriter(output, syntaxWriter);
                 writer.WriteAssemblies(assemblies);
             }
@@ -131,6 +145,7 @@ namespace GenAPI
         private static WriterType s_writer = WriterType.CSDecl;
         private static SyntaxWriterType s_syntaxWriter = SyntaxWriterType.Text;
         private static string s_apiList;
+        private static string s_headerFile;
         private static string s_out;
         private static string s_libPath;
         private static bool s_apiOnly;
@@ -151,6 +166,8 @@ namespace GenAPI
                 parser.DefineAliases("syntax", "s");
                 parser.DefineOptionalQualifier<SyntaxWriterType>("syntax", ref s_syntaxWriter, "(-s) Specific the syntax writer type. Only used if the writer is CSDecl");
                 parser.DefineOptionalQualifier("out", ref s_out, "Output path. Default is the console.");
+                parser.DefineAliases("headerFile", "h");
+                parser.DefineOptionalQualifier("headerFile", ref s_headerFile, "(-h) Specify a file with header content to prepend to output.");
                 parser.DefineAliases("apiOnly", "api");
                 parser.DefineOptionalQualifier("apiOnly", ref s_apiOnly, "(-api) [CSDecl] Include only API's not CS code that compiles.");
                 parser.DefineOptionalQualifier("all", ref s_all, "Include all API's not just public APIs. Default is public only.");
