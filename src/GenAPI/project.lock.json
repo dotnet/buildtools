@@ -3,7 +3,7 @@
   "version": -9996,
   "targets": {
     "DNXCore,Version=v5.0": {
-      "Microsoft.Cci/4.0.0-beta-23213": {
+      "Microsoft.Cci/4.0.0-beta-23227": {
         "dependencies": {
           "System.Runtime": "4.0.20",
           "System.Collections": "4.0.10",
@@ -17,8 +17,6 @@
           "System.Collections.NonGeneric": "4.0.0",
           "System.Threading": "4.0.0",
           "System.Globalization": "4.0.0",
-          "System.Security.Cryptography.Hashing.Algorithms": "4.0.0-beta-23213",
-          "System.Security.Cryptography.Hashing": "4.0.0-beta-23213",
           "System.IO.FileSystem.Primitives": "4.0.0",
           "System.Text.Encoding": "4.0.0"
         },
@@ -307,61 +305,6 @@
           "lib/DNXCore50/System.Runtime.InteropServices.dll": {}
         }
       },
-      "System.Security.Cryptography.Algorithms/4.0.0-beta-23213": {
-        "dependencies": {
-          "System.Runtime": "4.0.20",
-          "System.Resources.ResourceManager": "4.0.0",
-          "System.Runtime.Handles": "4.0.0",
-          "System.Security.Cryptography.Primitives": "4.0.0-beta-23213",
-          "System.Text.Encoding.Extensions": "4.0.0",
-          "System.Text.Encoding": "4.0.0",
-          "System.IO": "4.0.10"
-        },
-        "compile": {
-          "ref/dotnet/System.Security.Cryptography.Algorithms.dll": {}
-        },
-        "runtime": {
-          "lib/DNXCore50/System.Security.Cryptography.Algorithms.dll": {}
-        }
-      },
-      "System.Security.Cryptography.Hashing/4.0.0-beta-23213": {
-        "dependencies": {
-          "System.Runtime": "4.0.0",
-          "System.Security.Cryptography.Primitives": "4.0.0-beta-23213"
-        },
-        "compile": {
-          "lib/DNXCore50/System.Security.Cryptography.Hashing.dll": {}
-        },
-        "runtime": {
-          "lib/DNXCore50/System.Security.Cryptography.Hashing.dll": {}
-        }
-      },
-      "System.Security.Cryptography.Hashing.Algorithms/4.0.0-beta-23213": {
-        "dependencies": {
-          "System.Runtime": "4.0.0",
-          "System.Security.Cryptography.Algorithms": "4.0.0-beta-23213"
-        },
-        "compile": {
-          "lib/DNXCore50/System.Security.Cryptography.Hashing.Algorithms.dll": {}
-        },
-        "runtime": {
-          "lib/DNXCore50/System.Security.Cryptography.Hashing.Algorithms.dll": {}
-        }
-      },
-      "System.Security.Cryptography.Primitives/4.0.0-beta-23213": {
-        "dependencies": {
-          "System.Runtime": "4.0.20",
-          "System.Resources.ResourceManager": "4.0.0",
-          "System.Globalization": "4.0.0",
-          "System.IO": "4.0.10"
-        },
-        "compile": {
-          "ref/dotnet/System.Security.Cryptography.Primitives.dll": {}
-        },
-        "runtime": {
-          "lib/DNXCore50/System.Security.Cryptography.Primitives.dll": {}
-        }
-      },
       "System.Text.Encoding/4.0.10": {
         "dependencies": {
           "System.Runtime": "4.0.0"
@@ -422,7 +365,7 @@
       }
     },
     "DNXCore,Version=v5.0/win7-x64": {
-      "Microsoft.Cci/4.0.0-beta-23213": {
+      "Microsoft.Cci/4.0.0-beta-23227": {
         "dependencies": {
           "System.Runtime": "4.0.20",
           "System.Collections": "4.0.10",
@@ -436,8 +379,6 @@
           "System.Collections.NonGeneric": "4.0.0",
           "System.Threading": "4.0.0",
           "System.Globalization": "4.0.0",
-          "System.Security.Cryptography.Hashing.Algorithms": "4.0.0-beta-23213",
-          "System.Security.Cryptography.Hashing": "4.0.0-beta-23213",
           "System.IO.FileSystem.Primitives": "4.0.0",
           "System.Text.Encoding": "4.0.0"
         },
@@ -968,61 +909,6 @@
           "lib/DNXCore50/System.Runtime.InteropServices.dll": {}
         }
       },
-      "System.Security.Cryptography.Algorithms/4.0.0-beta-23213": {
-        "dependencies": {
-          "System.Runtime": "4.0.20",
-          "System.Resources.ResourceManager": "4.0.0",
-          "System.Runtime.Handles": "4.0.0",
-          "System.Security.Cryptography.Primitives": "4.0.0-beta-23213",
-          "System.Text.Encoding.Extensions": "4.0.0",
-          "System.Text.Encoding": "4.0.0",
-          "System.IO": "4.0.10"
-        },
-        "compile": {
-          "ref/dotnet/System.Security.Cryptography.Algorithms.dll": {}
-        },
-        "runtime": {
-          "lib/DNXCore50/System.Security.Cryptography.Algorithms.dll": {}
-        }
-      },
-      "System.Security.Cryptography.Hashing/4.0.0-beta-23213": {
-        "dependencies": {
-          "System.Runtime": "4.0.0",
-          "System.Security.Cryptography.Primitives": "4.0.0-beta-23213"
-        },
-        "compile": {
-          "lib/DNXCore50/System.Security.Cryptography.Hashing.dll": {}
-        },
-        "runtime": {
-          "lib/DNXCore50/System.Security.Cryptography.Hashing.dll": {}
-        }
-      },
-      "System.Security.Cryptography.Hashing.Algorithms/4.0.0-beta-23213": {
-        "dependencies": {
-          "System.Runtime": "4.0.0",
-          "System.Security.Cryptography.Algorithms": "4.0.0-beta-23213"
-        },
-        "compile": {
-          "lib/DNXCore50/System.Security.Cryptography.Hashing.Algorithms.dll": {}
-        },
-        "runtime": {
-          "lib/DNXCore50/System.Security.Cryptography.Hashing.Algorithms.dll": {}
-        }
-      },
-      "System.Security.Cryptography.Primitives/4.0.0-beta-23213": {
-        "dependencies": {
-          "System.Runtime": "4.0.20",
-          "System.Resources.ResourceManager": "4.0.0",
-          "System.Globalization": "4.0.0",
-          "System.IO": "4.0.10"
-        },
-        "compile": {
-          "ref/dotnet/System.Security.Cryptography.Primitives.dll": {}
-        },
-        "runtime": {
-          "lib/DNXCore50/System.Security.Cryptography.Primitives.dll": {}
-        }
-      },
       "System.Text.Encoding/4.0.11-beta-23213": {
         "dependencies": {
           "System.Runtime": "4.0.0"
@@ -1095,12 +981,12 @@
     }
   },
   "libraries": {
-    "Microsoft.Cci/4.0.0-beta-23213": {
+    "Microsoft.Cci/4.0.0-beta-23227": {
       "serviceable": true,
-      "sha512": "5pitMvk1K1poqYDf6KIOj6dmUp1BlQmYX1G93fdD1r6j2gw+5VPFuY7JwYOHmL3Fn9aiJ0AL0xcDOUlDWhR5VQ==",
+      "sha512": "YV69KEJQuj/lJj09WfQR4Fa/te4GaL/OWt+FRGo3lCx8zDliZDfG/t/J3+uIefHczY8Lfzor8m1c6F9p45KffQ==",
       "files": [
-        "Microsoft.Cci.4.0.0-beta-23213.nupkg",
-        "Microsoft.Cci.4.0.0-beta-23213.nupkg.sha512",
+        "Microsoft.Cci.4.0.0-beta-23227.nupkg",
+        "Microsoft.Cci.4.0.0-beta-23227.nupkg.sha512",
         "Microsoft.Cci.nuspec",
         "lib/dotnet/Microsoft.Cci.dll"
       ]
@@ -2467,68 +2353,6 @@
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
         "runtimes/win8-aot/lib/netcore50/System.Runtime.InteropServices.dll"
-      ]
-    },
-    "System.Security.Cryptography.Algorithms/4.0.0-beta-23213": {
-      "serviceable": true,
-      "sha512": "KhX967EM+zlRxehVuLzlqvmGD2gBI3pXEhzJxt86fjD5YdrQjMoFOwOlqLFdUBY/oVMbFywl20S1aSBa5X5Wyg==",
-      "files": [
-        "System.Security.Cryptography.Algorithms.4.0.0-beta-23213.nupkg",
-        "System.Security.Cryptography.Algorithms.4.0.0-beta-23213.nupkg.sha512",
-        "System.Security.Cryptography.Algorithms.nuspec",
-        "lib/DNXCore50/System.Security.Cryptography.Algorithms.dll",
-        "lib/MonoAndroid10/_._",
-        "lib/MonoTouch10/_._",
-        "lib/net46/System.Security.Cryptography.Algorithms.dll",
-        "lib/xamarinios10/_._",
-        "lib/xamarinmac20/_._",
-        "ref/dotnet/System.Security.Cryptography.Algorithms.dll",
-        "ref/MonoAndroid10/_._",
-        "ref/MonoTouch10/_._",
-        "ref/net46/System.Security.Cryptography.Algorithms.dll",
-        "ref/xamarinios10/_._",
-        "ref/xamarinmac20/_._"
-      ]
-    },
-    "System.Security.Cryptography.Hashing/4.0.0-beta-23213": {
-      "serviceable": true,
-      "sha512": "XtAprf/L4AH62RGkeYYwFLZPt9+B5ExZF2Aa7gIofF9mo0wN9/IPFai6T3yx7OyNfBHS6FbIwR41YK7ZNSv3jg==",
-      "files": [
-        "System.Security.Cryptography.Hashing.4.0.0-beta-23213.nupkg",
-        "System.Security.Cryptography.Hashing.4.0.0-beta-23213.nupkg.sha512",
-        "System.Security.Cryptography.Hashing.nuspec",
-        "lib/DNXCore50/System.Security.Cryptography.Hashing.dll"
-      ]
-    },
-    "System.Security.Cryptography.Hashing.Algorithms/4.0.0-beta-23213": {
-      "serviceable": true,
-      "sha512": "fqQws/MLVTSdCXBU3FVkz6DmiSZPTPGFAs7D48nGMvp+zx6eijPrjuQyE8nUBHfN8JpvluMtloi0hlbNj+wRXw==",
-      "files": [
-        "System.Security.Cryptography.Hashing.Algorithms.4.0.0-beta-23213.nupkg",
-        "System.Security.Cryptography.Hashing.Algorithms.4.0.0-beta-23213.nupkg.sha512",
-        "System.Security.Cryptography.Hashing.Algorithms.nuspec",
-        "lib/DNXCore50/System.Security.Cryptography.Hashing.Algorithms.dll"
-      ]
-    },
-    "System.Security.Cryptography.Primitives/4.0.0-beta-23213": {
-      "serviceable": true,
-      "sha512": "/ynAVo8PbJEm6EoB6HJanBJDMbgzraf1/lZpPNEPNXr9rv3tP3KIrBtFm+zQ5n2rMJkvNhpeMcFsRUPCJ9Wv7Q==",
-      "files": [
-        "System.Security.Cryptography.Primitives.4.0.0-beta-23213.nupkg",
-        "System.Security.Cryptography.Primitives.4.0.0-beta-23213.nupkg.sha512",
-        "System.Security.Cryptography.Primitives.nuspec",
-        "lib/DNXCore50/System.Security.Cryptography.Primitives.dll",
-        "lib/MonoAndroid10/_._",
-        "lib/MonoTouch10/_._",
-        "lib/net46/System.Security.Cryptography.Primitives.dll",
-        "lib/xamarinios10/_._",
-        "lib/xamarinmac20/_._",
-        "ref/dotnet/System.Security.Cryptography.Primitives.dll",
-        "ref/MonoAndroid10/_._",
-        "ref/MonoTouch10/_._",
-        "ref/net46/System.Security.Cryptography.Primitives.dll",
-        "ref/xamarinios10/_._",
-        "ref/xamarinmac20/_._"
       ]
     },
     "System.Text.Encoding/4.0.10": {
