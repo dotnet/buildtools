@@ -4,7 +4,12 @@
   "targets": {
     "DNXCore,Version=v5.0": {
       "coveralls.io/1.4": {},
-      "Microsoft.DotNet.PerfTools/0.0.1-prerelease-00080": {},
+      "Microsoft.DotNet.xunit.performance.analysis/1.0.0-alpha-build0011": {},
+      "Microsoft.DotNet.xunit.performance.runner.Windows/1.0.0-alpha-build0011": {
+        "dependencies": {
+          "xunit.runner.console": "2.1.0-beta4-build3109"
+        }
+      },
       "Microsoft.NETCore.Runtime/1.0.1-beta-23213": {},
       "Microsoft.NETCore.TestHost-x64/1.0.0-beta-23213": {},
       "Microsoft.NETCore.TestHost-x86/1.0.0-beta-23213": {},
@@ -462,7 +467,7 @@
           "lib/dotnet/xunit.assert.dll": {}
         }
       },
-      "xunit.console.netcore/1.0.2-prerelease-00080": {
+      "xunit.console.netcore/1.0.2-prerelease-00081": {
         "dependencies": {
           "System.Collections": "4.0.10",
           "System.Collections.Concurrent": "4.0.10",
@@ -548,6 +553,7 @@
           "lib/dotnet/xunit.execution.DotNetCore.dll": {}
         }
       },
+      "xunit.runner.console/2.1.0-beta4-build3109": {},
       "xunit.runner.utility/2.1.0-beta4-build3109": {
         "dependencies": {
           "System.Collections": "4.0.10",
@@ -574,7 +580,12 @@
     },
     "DNXCore,Version=v5.0/win7-x64": {
       "coveralls.io/1.4": {},
-      "Microsoft.DotNet.PerfTools/0.0.1-prerelease-00080": {},
+      "Microsoft.DotNet.xunit.performance.analysis/1.0.0-alpha-build0011": {},
+      "Microsoft.DotNet.xunit.performance.runner.Windows/1.0.0-alpha-build0011": {
+        "dependencies": {
+          "xunit.runner.console": "2.1.0-beta4-build3109"
+        }
+      },
       "Microsoft.NETCore.Runtime/1.0.1-beta-23213": {},
       "Microsoft.NETCore.Runtime.CoreCLR-x64/1.0.1-beta-23213": {
         "dependencies": {
@@ -1244,7 +1255,7 @@
           "lib/dotnet/xunit.assert.dll": {}
         }
       },
-      "xunit.console.netcore/1.0.2-prerelease-00080": {
+      "xunit.console.netcore/1.0.2-prerelease-00081": {
         "dependencies": {
           "System.Collections": "4.0.10",
           "System.Collections.Concurrent": "4.0.10",
@@ -1330,6 +1341,7 @@
           "lib/dotnet/xunit.execution.DotNetCore.dll": {}
         }
       },
+      "xunit.runner.console/2.1.0-beta4-build3109": {},
       "xunit.runner.utility/2.1.0-beta4-build3109": {
         "dependencies": {
           "System.Collections": "4.0.10",
@@ -1356,7 +1368,12 @@
     },
     "DNXCore,Version=v5.0/win7-x86": {
       "coveralls.io/1.4": {},
-      "Microsoft.DotNet.PerfTools/0.0.1-prerelease-00080": {},
+      "Microsoft.DotNet.xunit.performance.analysis/1.0.0-alpha-build0011": {},
+      "Microsoft.DotNet.xunit.performance.runner.Windows/1.0.0-alpha-build0011": {
+        "dependencies": {
+          "xunit.runner.console": "2.1.0-beta4-build3109"
+        }
+      },
       "Microsoft.NETCore.Runtime/1.0.1-beta-23213": {},
       "Microsoft.NETCore.Runtime.CoreCLR-x86/1.0.1-beta-23213": {
         "dependencies": {
@@ -2026,7 +2043,7 @@
           "lib/dotnet/xunit.assert.dll": {}
         }
       },
-      "xunit.console.netcore/1.0.2-prerelease-00080": {
+      "xunit.console.netcore/1.0.2-prerelease-00081": {
         "dependencies": {
           "System.Collections": "4.0.10",
           "System.Collections.Concurrent": "4.0.10",
@@ -2112,6 +2129,7 @@
           "lib/dotnet/xunit.execution.DotNetCore.dll": {}
         }
       },
+      "xunit.runner.console/2.1.0-beta4-build3109": {},
       "xunit.runner.utility/2.1.0-beta4-build3109": {
         "dependencies": {
           "System.Collections": "4.0.10",
@@ -2161,19 +2179,51 @@
         "tools/Newtonsoft.Json.xml"
       ]
     },
-    "Microsoft.DotNet.PerfTools/0.0.1-prerelease-00080": {
+    "Microsoft.DotNet.xunit.performance.analysis/1.0.0-alpha-build0011": {
       "serviceable": true,
-      "sha512": "ITSXHLLjj5/+zbs/xqWOO7HjlJo5UajgEHrgzYyH+OnuM+7TphbQZB6dBCieEL6kD7hJKhBb5TEMKxElMFtb0A==",
+      "sha512": "xmGnY5GXHAllcHnxMqTZQsXweHx7r9m4KAh4rXMdu4/wOq6ULyOV9/YiRaWc5tAcGA2jasINVflz7rVOPk2DdQ==",
       "files": [
-        "Microsoft.DotNet.PerfTools.0.0.1-prerelease-00080.nupkg",
-        "Microsoft.DotNet.PerfTools.0.0.1-prerelease-00080.nupkg.sha512",
-        "Microsoft.DotNet.PerfTools.nuspec",
-        "tools/ComparePerfEventsData.exe",
-        "tools/EventTracer.exe",
-        "tools/GenPerfBaseline.exe",
+        "Microsoft.DotNet.xunit.performance.analysis.1.0.0-alpha-build0011.nupkg",
+        "Microsoft.DotNet.xunit.performance.analysis.1.0.0-alpha-build0011.nupkg.sha512",
+        "Microsoft.DotNet.xunit.performance.analysis.nuspec",
+        "tools/MathNet.Numerics.dll",
         "tools/Microsoft.Diagnostics.Tracing.TraceEvent.dll",
-        "tools/PerfEventsData.dll",
-        "tools/PowerArgs.dll"
+        "tools/xunit.performance.analysis.exe",
+        "tools/xunit.performance.analysis.exe.config",
+        "tools/xunit.performance.analysis.pdb"
+      ]
+    },
+    "Microsoft.DotNet.xunit.performance.runner.Windows/1.0.0-alpha-build0011": {
+      "serviceable": true,
+      "sha512": "7QCiHvwoeNY9zM7tyGALmTe879855OnvvOrFyb+D6GEtxtlL2/s4XhyjQ3HbHuVKsV2vm2q6S5IX33yrikw3lQ==",
+      "files": [
+        "Microsoft.DotNet.xunit.performance.runner.Windows.1.0.0-alpha-build0011.nupkg",
+        "Microsoft.DotNet.xunit.performance.runner.Windows.1.0.0-alpha-build0011.nupkg.sha512",
+        "Microsoft.DotNet.xunit.performance.runner.Windows.nuspec",
+        "tools/Microsoft.Diagnostics.Tracing.TraceEvent.dll",
+        "tools/ProcDomain.dll",
+        "tools/ProcDomain.pdb",
+        "tools/xunit.abstractions.dll",
+        "tools/xunit.core.dll",
+        "tools/xunit.core.pdb",
+        "tools/xunit.execution.desktop.dll",
+        "tools/xunit.performance.core.dll",
+        "tools/xunit.performance.core.pdb",
+        "tools/xunit.performance.execution.desktop.dll",
+        "tools/xunit.performance.execution.desktop.pdb",
+        "tools/xunit.performance.logger.exe",
+        "tools/xunit.performance.logger.pdb",
+        "tools/xunit.performance.metrics.dll",
+        "tools/xunit.performance.metrics.pdb",
+        "tools/xunit.performance.run.exe",
+        "tools/xunit.performance.run.exe.config",
+        "tools/xunit.performance.run.pdb",
+        "tools/xunit.runner.utility.desktop.dll",
+        "tools/xunit.runner.utility.desktop.pdb",
+        "tools/amd64/KernelTraceControl.dll",
+        "tools/amd64/msdia120.dll",
+        "tools/x86/KernelTraceControl.dll",
+        "tools/x86/msdia120.dll"
       ]
     },
     "Microsoft.NETCore.Runtime/1.0.1-beta-23213": {
@@ -3857,11 +3907,11 @@
         "lib/portable-net45+netcore45+wp8+wpa81/xunit.assert.xml"
       ]
     },
-    "xunit.console.netcore/1.0.2-prerelease-00080": {
-      "sha512": "EvPeoJ++tUGdSKlcaiTWqIIP6QFKt9k/O72/T89pEFxHHA+qgEI7gxf0Lx7hP7KTCJpsKdO7MeLj7bEcwsS2aQ==",
+    "xunit.console.netcore/1.0.2-prerelease-00081": {
+      "sha512": "SAiD0CNmlGGsAFHIbrOcgdMZ2w5tYxgJegbHSW0Wuibuyufo1HMOS0nL0kyQNeaJ36J1qml6s6NJI3K3LLPlvw==",
       "files": [
-        "xunit.console.netcore.1.0.2-prerelease-00080.nupkg",
-        "xunit.console.netcore.1.0.2-prerelease-00080.nupkg.sha512",
+        "xunit.console.netcore.1.0.2-prerelease-00081.nupkg",
+        "xunit.console.netcore.1.0.2-prerelease-00081.nupkg.sha512",
         "xunit.console.netcore.nuspec",
         "lib/aspnetcore50/xunit.console.netcore.exe"
       ]
@@ -3942,6 +3992,24 @@
         "lib/xamarinios/xunit.execution.iOS-Universal.xml"
       ]
     },
+    "xunit.runner.console/2.1.0-beta4-build3109": {
+      "sha512": "lz+sZtqfQhD6CA+u1KhahQD8ijyL64HNqiiPK4eplvM9r5f6C2OP9EiWS6nVT3rZlPCUXmGzf5kCCWh45kFf6w==",
+      "files": [
+        "xunit.runner.console.2.1.0-beta4-build3109.nupkg",
+        "xunit.runner.console.2.1.0-beta4-build3109.nupkg.sha512",
+        "xunit.runner.console.nuspec",
+        "tools/HTML.xslt",
+        "tools/NUnitXml.xslt",
+        "tools/xunit.abstractions.dll",
+        "tools/xunit.console.exe",
+        "tools/xunit.console.exe.config",
+        "tools/xunit.console.x86.exe",
+        "tools/xunit.console.x86.exe.config",
+        "tools/xunit.runner.reporters.desktop.dll",
+        "tools/xunit.runner.utility.desktop.dll",
+        "tools/xUnit1.xslt"
+      ]
+    },
     "xunit.runner.utility/2.1.0-beta4-build3109": {
       "sha512": "I+TGCpObhGKCef0uNvc0BwG0+FYKLLb2jyNbXs3TWszbzSgEHCVZ4Vw2B/JIn0575vCqR1oOWkLOyu6jKSJ8+w==",
       "files": [
@@ -3986,7 +4054,8 @@
       "Microsoft.NETCore.TestHost-x64 >= 1.0.0-beta-*",
       "Microsoft.NETCore.TestHost-x86 >= 1.0.0-beta-*",
       "Microsoft.NETCore.Runtime >= 1.0.1-beta-*",
-      "Microsoft.DotNet.PerfTools >= 0.0.1-prerelease-*",
+      "Microsoft.DotNet.xunit.performance.analysis >= 1.0.0-*",
+      "Microsoft.DotNet.xunit.performance.runner.Windows >= 1.0.0-*",
       "OpenCover >= 4.6.166",
       "ReportGenerator >= 2.1.6.0",
       "System.Collections >= 4.0.10",

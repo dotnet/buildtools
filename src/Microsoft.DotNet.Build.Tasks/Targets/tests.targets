@@ -74,9 +74,6 @@
   <!-- The Code Coverage targets will override TestHost and TestCommandLine if coverage is enabled -->
   <Import Project="$(MSBuildThisFileDirectory)CodeCoverage.targets" />
 
-  <!-- import settings for perf testing -->
-  <Import Project="$(MSBuildThisFileDirectory)PerfTesting.targets" />
-
   <!-- In VS (2015 Preview or later currently required): Debug to run unit tests on CoreCLR. -->
   <PropertyGroup Condition="'$(IsTestProject)'=='true'">
     <StartWorkingDirectory Condition="'$(StartWorkingDirectory)'==''">$(TestPath)$(DebugTestFrameworkFolder)</StartWorkingDirectory>
@@ -107,7 +104,7 @@
           AfterTargets="CheckTestCategories"
           Inputs="@(RunTestsForProjectInputs)"
           Outputs="$(TestPath)%(TestTargetFramework.Folder)\$(TestsSuccessfulSemaphore);$(TestPath)%(TestTargetFramework.Folder)\$(XunitResultsFileName);$(CoverageOutputFilePath)"
-          Condition="'$(TestDisabled)'!='true'">
+          Condition="'$(TestDisabled)'!='true' and '$(IsPerfTestProject)' != 'true'">
 
     <PropertyGroup>
       <XunitTraitOptions Condition="'@(RunWithTraits)'!=''">$(XunitTraitOptions) -trait category=@(RunWithTraits, ' -trait category=') </XunitTraitOptions>
@@ -174,4 +171,8 @@
       <TestDisabled Condition="'$(IsWindowsAssembly)'=='false'">true</TestDisabled>
     </PropertyGroup>
   </Target>
+
+  <!-- import settings for perf testing -->
+  <Import Project="$(MSBuildThisFileDirectory)PerfTesting.targets" Condition="'$(IsPerfTestProject)' == 'true'" />
+
 </Project>

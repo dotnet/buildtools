@@ -1,36 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <!-- properties for consumptive metric testing -->
-  <PropertyGroup Condition="'$(TestConsumptiveMetrics)' == 'true'">
-    <CollectConsumptiveMetrics>true</CollectConsumptiveMetrics>
-    <CollectPerfEvents>true</CollectPerfEvents>
-  </PropertyGroup>
-
-  <!--
-    Perf tools package versions go here and in the test-runtime-packages.config
-  -->
+  <!-- Perf Runner NuGet package paths -->
   <PropertyGroup>
-    <PerfToolsVersion>0.0.1-prerelease-00077</PerfToolsVersion>
-    <PerfToolsDir Condition="'$(PerfToolsDir)'==''">$(PackagesDir)Microsoft.DotNet.PerfTools\$(PerfToolsVersion)\tools\</PerfToolsDir>
-    <EventTracer>"$(PerfToolsDir)EventTracer.exe"</EventTracer>
-    <!-- by default delete the trace files after consumption -->
-    <DeletePerfDataFile Condition="'$(DeletePerfDataFile)' == ''">true</DeletePerfDataFile>
-    <!-- run tests is serial when collecting perf data so they don't all bleed together -->
-    <SerializeProjects Condition="'$(CollectPerfEvents)' == 'true'">true</SerializeProjects>
+    <XunitPerfRunnerPackageId>Microsoft.DotNet.xunit.performance.runner.Windows</XunitPerfRunnerPackageId>
+    <XunitPerfRunnerPackageVersion>1.0.0-alpha-build0011</XunitPerfRunnerPackageVersion>
+    <XunitPerfRunnerPackageDir>$(PackagesDir)$(XunitPerfRunnerPackageId)/$(XunitPerfRunnerPackageVersion)</XunitPerfRunnerPackageDir>
+    <XunitPerfRunnerPath>$(XunitPerfRunnerPackageDir)/tools/xunit.performance.run.exe</XunitPerfRunnerPath>
   </PropertyGroup>
 
-  <!-- perf events for consumptive metrics testing -->
-  <PropertyGroup Condition="'$(CollectConsumptiveMetrics)' == 'true'">
-    <ClrMetrics>GCSampledObjectAllocationHigh,GCSampledObjectAllocationLow</ClrMetrics>
-    <KernelMetrics>ImageLoad</KernelMetrics>
-  </PropertyGroup>
-
-  <!-- command line args to EventTracer.exe -->
+  <!-- Perf Analysis NuGet package paths -->
   <PropertyGroup>
-    <EventTracerDataFile>$(TargetFileName).etl</EventTracerDataFile>
-    <EventTracerMetrics>-c $(ClrMetrics) -k $(KernelMetrics)</EventTracerMetrics>
-    <EventTracerReport>Perf.$(MSBuildProjectName).xml</EventTracerReport>
+    <XunitPerfAnalysisPackageId>Microsoft.DotNet.xunit.performance.analysis</XunitPerfAnalysisPackageId>
+    <XunitPerfAnalysisPackageVersion>1.0.0-alpha-build0011</XunitPerfAnalysisPackageVersion>
+    <XunitPerfAnalysisPath>$(PackagesDir)$(XunitPerfAnalysisPackageId)/$(XunitPerfAnalysisPackageVersion)/tools/xunit.performance.analysis.exe</XunitPerfAnalysisPath>
   </PropertyGroup>
 
+  <!-- Executable properties -->
+  <PropertyGroup>
+    <XunitRunnerArgs>$(TargetFileName) -runnerhost $(TestHost) -runner $(XunitExecutable) -verbose</XunitRunnerArgs>
+    <PerfTestCommandLine>$(XunitPerfRunnerPath) $(XunitRunnerArgs) $(AdditionalPerfTestArgs)</PerfTestCommandLine>
+
+    <XunitAnalysisArgs>$(TestPath)$(DebugTestFrameworkFolder) -html latest-perf-analysis.html $(AdditionalXunitAnalysisArgs)</XunitAnalysisArgs>
+    <PerfAnalysisCommandLine>$(XunitPerfAnalysisPath) $(XunitAnalysisArgs)</PerfAnalysisCommandLine>
+  </PropertyGroup>
+
+  <!-- In VS 2015: setup Debug target to run perf tests. -->
+  <PropertyGroup Condition="'$(IsPerfTestProject)'=='true'">
+    <StartWorkingDirectory Condition="'$(StartWorkingDirectory)'==''">$(TestPath)$(DebugTestFrameworkFolder)</StartWorkingDirectory>
+    <StartAction Condition="'$(StartAction)'==''">Program</StartAction>
+    <StartProgram Condition="'$(StartProgram)'==''">$(XunitPerfRunnerPath)</StartProgram>
+    <StartArguments Condition="'$(StartArguments)'==''">$(XunitRunnerArgs)</StartArguments>
+  </PropertyGroup>
+
+  <!-- NOTE: Temporary workaround, there is some issue where the discoverer requires this to be in the target directory -->
+  <Target Name="CopyXunitExecutionDesktop">
+    <Copy SourceFiles="$(XunitPerfRunnerPackageDir)/tools/xunit.execution.desktop.dll"
+          DestinationFolder="$(TestPath)$(DebugTestFrameworkFolder)"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="RunPerfTestsForAssembly" AfterTargets="Test" DependsOnTargets="CopyXunitExecutionDesktop">
+    <Exec Command="$(PerfTestCommandLine)"
+      WorkingDirectory="$(TestPath)%(TestTargetFramework.Folder)"
+      ContinueOnError="false">
+      <Output PropertyName="PerfTestRunExitCode" TaskParameter="ExitCode" />
+    </Exec>
+  </Target>
+
+  <Target Name="AnalyzePerfResults"
+          AfterTargets="RunPerfTestsForAssembly"
+          Condition="'$(AnalyzePerfResults)' != 'false'">
+    <Exec Command="$(PerfAnalysisCommandLine)"
+      WorkingDirectory="$(TestPath)%(TestTargetFramework.Folder)"
+      ContinueOnError="false">
+      <Output PropertyName="PerfTestRunExitCode" TaskParameter="ExitCode" />
+    </Exec>
+    <Message Text="Performance test analysis report is available at $(TestPath)$(DebugTestFrameworkFolder)/latest-perf-analysis.html" />
+  </Target>
 </Project>
