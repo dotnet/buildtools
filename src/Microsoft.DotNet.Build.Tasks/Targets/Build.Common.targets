@@ -4,6 +4,7 @@
   <PropertyGroup>
     <!-- A number of the imports below depend on these default properties -->
     <IsTestProject Condition="'$(IsTestProject)'=='' And $(MSBuildProjectName.EndsWith('.Tests'))">true</IsTestProject>
+    <IsPerfTestProject Condition="'$(IsPerfTestProject)'=='' And $(MSBuildProjectName.EndsWith('.Performance.Tests'))">true</IsPerfTestProject>
 
     <AssemblyVersion Condition="'$(AssemblyVersion)'==''">999.999.999.999</AssemblyVersion>
     <CLSCompliant Condition="'$(CLSCompliant)'=='' and '$(IsTestProject)'=='true'">false</CLSCompliant>
@@ -132,7 +133,7 @@
         PackagesDir - Packages are restored to and resolved from this location    
    -->
   <Import Project="$(MSBuildThisFileDirectory)tests.targets" Condition="'$(IsTestProject)'=='true' and '$(ExcldueTestsImport)'!='true'"/>
-  
+
   <!-- 
     Import the PackageLibs.targets which exposes targets from library projects to report what
     assets they contribute to nuget packages.

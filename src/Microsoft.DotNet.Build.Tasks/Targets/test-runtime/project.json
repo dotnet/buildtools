@@ -4,7 +4,8 @@
        "Microsoft.NETCore.TestHost-x64": "1.0.0-beta-*",
        "Microsoft.NETCore.TestHost-x86": "1.0.0-beta-*",
        "Microsoft.NETCore.Runtime": "1.0.1-beta-*",
-       "Microsoft.DotNet.PerfTools": "0.0.1-prerelease-*",
+       "Microsoft.DotNet.xunit.performance.analysis": "1.0.0-*",
+       "Microsoft.DotNet.xunit.performance.runner.Windows": "1.0.0-*",
        "OpenCover": "4.6.166",
        "ReportGenerator": "2.1.6.0",
        "System.Collections": "4.0.10",
@@ -35,9 +36,9 @@
        "System.Threading.Thread": "4.0.0-beta-*",
        "System.Xml.ReaderWriter": "4.0.10",
        "System.Xml.XDocument": "4.0.10",
-       "xunit": "2.1.0-beta3-*",
+       "xunit": "2.1.0-beta4-*",
        "xunit.console.netcore": "1.0.2-prerelease-*",
-       "xunit.runner.utility": "2.1.0-beta3-*"
+       "xunit.runner.utility": "2.1.0-beta4-*"
     },
     "frameworks": {
        "dnxcore50": { }
