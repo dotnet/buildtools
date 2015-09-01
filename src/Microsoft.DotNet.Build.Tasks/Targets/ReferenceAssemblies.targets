@@ -18,9 +18,6 @@
     <ReferenceAssemblyOutputPath Condition="'$(ReferenceAssemblyOutputPath)' == ''">$(BaseOutputPath)ref\</ReferenceAssemblyOutputPath>
     <OutputPath>$(ReferenceAssemblyOutputPath)$(AssemblyName)\$(AssemblyVersion)</OutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)ref\$(AssemblyName)\$(AssemblyVersion)</IntermediateOutputPath>
-    
-    <!-- ensure a unique path to assemblyinfo -->
-    <AssemblyInfoFileDir>$(IntermediateOutputPath)</AssemblyInfoFileDir>
 
     <OmitTransitiveCompileReferences>true</OmitTransitiveCompileReferences>
   </PropertyGroup>
