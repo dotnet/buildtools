@@ -6,7 +6,7 @@
   -->
   <PropertyGroup>
     <OpenCoverVersion>4.6.166</OpenCoverVersion>
-    <ReportGeneratorVersion>2.1.6.0</ReportGeneratorVersion>
+    <ReportGeneratorVersion>2.3.0.0</ReportGeneratorVersion>
     <CoverallsUploaderVersion>1.4</CoverallsUploaderVersion>
   </PropertyGroup>
   
@@ -45,8 +45,8 @@
 
   <!-- Report Generator Properties -->
   <PropertyGroup>
-    <CoverageReportGeneratorOptions>-targetdir:$(CoverageReportDir) -reporttypes:Html</CoverageReportGeneratorOptions>
-    <CoverageReportGeneratorCommandLine>$(PackagesDir)ReportGenerator\$(ReportGeneratorVersion)\ReportGenerator.exe $(CoverageReportGeneratorOptions)</CoverageReportGeneratorCommandLine>
+    <CoverageReportGeneratorOptions>-targetdir:$(CoverageReportDir) -reporttypes:Html;Badges</CoverageReportGeneratorOptions>
+    <CoverageReportGeneratorCommandLine>$(PackagesDir)ReportGenerator\$(ReportGeneratorVersion)\tools\ReportGenerator.exe $(CoverageReportGeneratorOptions)</CoverageReportGeneratorCommandLine>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(GenerateIndividualCoverageReport)'=='true'">
