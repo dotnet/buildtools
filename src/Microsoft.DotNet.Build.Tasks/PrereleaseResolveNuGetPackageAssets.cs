@@ -7,6 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
@@ -67,7 +69,6 @@ namespace Microsoft.DotNet.Build.Tasks
         /// </summary>
         public PrereleaseResolveNuGetPackageAssets()
         {
-            Log.TaskResources = Strings.ResourceManager;
         }
 
         /// <summary>
@@ -156,6 +157,8 @@ namespace Microsoft.DotNet.Build.Tasks
         /// </summary>
         public override bool Execute()
         {
+            Log.TaskResources = Strings.ResourceManager;
+
             try
             {
                 ExecuteCore();
@@ -664,26 +667,17 @@ namespace Microsoft.DotNet.Build.Tasks
         /// <returns>The CLR runtime version or empty if the path does not exist.</returns>
         private static string TryGetRuntimeVersion(string path)
         {
-            StringBuilder runtimeVersion = null;
-            uint hresult = 0;
-            uint actualBufferSize = 0;
-            int bufferLength = 11; // 11 is the length of a runtime version and null terminator v2.0.50727/0
-
-            do
+            try
             {
-                runtimeVersion = new StringBuilder(bufferLength);
-                hresult = NativeMethods.GetFileVersion(path, runtimeVersion, bufferLength, out actualBufferSize);
-                bufferLength = bufferLength * 2;
-
-            } while (hresult == NativeMethods.ERROR_INSUFFICIENT_BUFFER);
-
-            if (hresult == NativeMethods.S_OK && runtimeVersion != null)
-            {
-                return runtimeVersion.ToString();
+                using (FileStream stream = File.OpenRead(path))
+                using (PEReader peReader = new PEReader(stream))
+                {
+                    return peReader.GetMetadataReader().MetadataVersion;
+                }
             }
-            else
+            catch (Exception)
             {
-                return String.Empty;
+                return string.Empty;
             }
         }
     }

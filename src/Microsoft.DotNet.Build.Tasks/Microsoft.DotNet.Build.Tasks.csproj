@@ -34,7 +34,6 @@
     <Compile Include="GetPackageDependencies.cs" />
     <Compile Include="GitPush.cs" />
     <Compile Include="GetNextRevisionNumber.cs" />
-    <Compile Include="NativeMethods.cs" />
     <Compile Include="NormalizePaths.cs" />
     <Compile Include="GetDoItemsIntersect.cs" />
     <Compile Include="OpenSourceSign.cs" />
