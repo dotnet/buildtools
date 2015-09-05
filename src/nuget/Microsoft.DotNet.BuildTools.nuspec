@@ -40,6 +40,7 @@
     <file src="Microsoft.DotNet.Build.Tasks\System.Reflection.Metadata.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\NativeBinaries\amd64\git2-69db893.dll" target="lib\NativeBinaries\amd64" />
     <file src="Microsoft.DotNet.Build.Tasks\NativeBinaries\x86\git2-69db893.dll" target="lib\NativeBinaries\x86" />
+    <file src="Microsoft.DotNet.Build.Tasks\AssemblyInfoPartial.*" target="lib" />
   </files>
   
 </package>
