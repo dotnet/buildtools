@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <Import Project="$(MSBuildThisFileDirectory)buildtoolsversion.targets" />
+
   <UsingTask TaskName="PrereleaseResolveNuGetPackageAssets" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
   <PropertyGroup>
-    <GenFacadesNuGetName>Microsoft.DotNet.BuildTools.ApiTools.1.0.0-prerelease</GenFacadesNuGetName>
+    <GenFacadesNuGetName>GenFacades.Desktop.1.0.0-experimental-$(BuildToolsRevisionNumber)</GenFacadesNuGetName>
     <GenFacadesPath>$(PackagesDir)$(GenFacadesNuGetName)\tools\GenFacades.exe</GenFacadesPath>
   </PropertyGroup>
 
@@ -163,12 +165,19 @@
       <GenFacadesArgs>$(GenFacadesArgs) -contracts:"%(ResolvedMatchingContract.Identity)"</GenFacadesArgs>
       <GenFacadesArgs>$(GenFacadesArgs) -seeds:"@(GenFacadesSeeds, ';')"</GenFacadesArgs>
       <GenFacadesArgs>$(GenFacadesArgs) -facadePath:"$(GenFacadesOutputPath.TrimEnd('\'))"</GenFacadesArgs>
+      <GenFacadesArgs Condition="'$(DebugSymbols)' == 'false'">$(GenFacadesArgs) -producePdb:false</GenFacadesArgs>
       <GenFacadesArgs Condition="'@(SeedTypePreference)' != ''">$(GenFacadesArgs) -preferSeedType:"@(SeedTypePreference->'%(Identity)=%(Assembly)', ',')"</GenFacadesArgs>
     </PropertyGroup>
 
     <!-- Move the assembly into a subdirectory for GenFacades -->
-    <Move SourceFiles="$(PartialFacadeAssemblyPath);$(PartialFacadeSymbols)"
+    <Move SourceFiles="$(PartialFacadeAssemblyPath)"
           DestinationFolder="$(GenFacadesInputPath)"
+    />
+
+    <!-- Move the PDB into a subdirectory for GenFacades if we are producing PDBs -->
+    <Move SourceFiles="$(PartialFacadeSymbols)"
+          DestinationFolder="$(GenFacadesInputPath)"
+          Condition="'$(DebugSymbols)' != 'false'"
     />
 
     <Exec Command="&quot;$(GenFacadesPath)&quot; $(GenFacadesArgs)" />
