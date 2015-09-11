@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <UsingTask TaskName="PrereleaseResolveNuGetPackageAssets" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+
+  <PropertyGroup>
+    <ToolRuntimeProjectJson Condition="'$(ToolRuntimeProjectJson)' == ''">$(MSBuildThisFileDirectory)tool-runtime\project.json</ToolRuntimeProjectJson>
+    <ToolRuntimeProjectLockJson Condition="'$(ToolRuntimeProjectLockJson)' == ''">$(MSBuildThisFileDirectory)tool-runtime\project.lock.json</ToolRuntimeProjectLockJson>
+    <!-- Invoke with the correct casing of corerun per-OS.  There are some process Tools
+         that check the invoked process name against known casing which fail under code coverage.
+         This is probably because the code coverage target invocation does not canonicalize the
+         process name. -->
+    <ToolHost Condition="'$(OS)' == 'Windows_NT'">CoreRun.exe</ToolHost>
+    <ToolHost Condition="'$(OS)' != 'Windows_NT'">corerun</ToolHost>
+
+    <ToolTargetFramework Condition="'$(ToolTargetFramework)' ==''">DNXCore,Version=v5.0</ToolTargetFramework>
+    <ToolArchitecture Condition="'$(ToolArchitecture)' == ''">x64</ToolArchitecture>
+    <ToolNugetRuntimeId Condition="'$(ToolNugetRuntimeId)' == ''">win7-$(ToolArchitecture)</ToolNugetRuntimeId>
+
+    <ToolRuntimePath Condition="'$(ToolRuntimePath)' == ''">$(BaseOutputPath)$(OSPlatformConfig)\ToolRuntime\</ToolRuntimePath>
+    <ToolRuntimeSempahore>$(ToolRuntimePath)\ToolRuntime.semaphore</ToolRuntimeSempahore>
+  </PropertyGroup>
+
+  <Target Name="EnsureBuildToolsRuntime"
+      Inputs="$(BuildToolsSemaphore)"
+      Outputs="$(ToolRuntimeSempahore)">
+
+    <!-- Restore tool runtime -->
+    <Exec Command="$(DnuRestoreCommand) &quot;$(ToolRuntimeProjectJson)&quot;" StandardOutputImportance="Low" CustomErrorRegularExpression="^Unable to locate .*" />
+
+    <!-- Resolve the tool runtime files -->
+    <PrereleaseResolveNuGetPackageAssets
+                               AllowFallbackOnTargetSelection="true"
+                               IncludeFrameworkReferences="false"
+                               NuGetPackagesDirectory="$(PackagesDir)"
+                               RuntimeIdentifier="$(ToolNugetRuntimeId)"
+                               ProjectLanguage="$(Language)"
+                               ProjectLockFile="$(ToolRuntimeProjectLockJson)"
+                               TargetMonikers="$(ToolTargetFramework)">
+      <Output TaskParameter="ResolvedCopyLocalItems" ItemName="ToolCopyLocal" />
+    </PrereleaseResolveNuGetPackageAssets>
+
+    <!-- Ideally, we'd have UseHardLinksIfPossible on by default because we copy tons of files
+         but it doesn't currently work x-plat. So we only turn it on by default for Windows builds for now. -->
+    <PropertyGroup>
+      <CreateHardLinksForCopyTestToTestDirectoryIfPossible Condition="'$(CreateHardLinksForCopyTestToTestDirectoryIfPossible)'=='' and '$(OS)' == 'Windows_NT'">true</CreateHardLinksForCopyTestToTestDirectoryIfPossible>
+      <CreateHardLinksForCopyTestToTestDirectoryIfPossible Condition="'$(CreateHardLinksForCopyTestToTestDirectoryIfPossible)'==''">$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)</CreateHardLinksForCopyTestToTestDirectoryIfPossible>
+   </PropertyGroup>
+
+    <!-- Copy the runtime and libraries into the flat shared path $(ToolRuntimePath) -->
+    <Copy 
+      SourceFiles="@(ToolCopyLocal)" 
+      DestinationFolder="$(ToolRuntimePath)" 
+      SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
+      OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
+      Retries="$(CopyRetryCount)"
+      RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
+      UseHardlinksIfPossible="$(CreateHardLinksForCopyTestToTestDirectoryIfPossible)" />
+
+    <Touch Files="$(ToolRuntimeSempahore)"
+       ContinueOnError="WarnAndContinue"
+       AlwaysCreate="true"
+       ForceTouch="true" />
+
+  </Target>
+
+</Project>
