@@ -32,6 +32,7 @@ namespace GenFacades
             ErrorTreatment contractLoadErrorTreatment = ErrorTreatment.Default;
             string[] seedTypePreferencesUnsplit = null;
             bool forceZeroVersionSeeds = false;
+            bool producePdb = true;
             string partialFacadeAssemblyPath = null;
 
             bool parsingSucceeded = CommandLineParser.ParseForConsoleApplication((parser) =>
@@ -49,6 +50,7 @@ namespace GenFacades
                 parser.DefineOptionalQualifier("preferSeedType", ref seedTypePreferencesUnsplit, "Set which seed assembly to choose for a given type when it is defined in more than one assembly. Format: FullTypeName=PreferredSeedAssemblyName");
                 parser.DefineOptionalQualifier("forceZeroVersionSeeds", ref forceZeroVersionSeeds, "Forces all seed assembly versions to 0.0.0.0, regardless of their true version.");
                 parser.DefineOptionalQualifier("partialFacadeAssemblyPath", ref partialFacadeAssemblyPath, "Specifies the path to a single partial facade assembly, into which appropriate type forwards will be added to satisfy the given contract. If this option is specified, only a single partial assembly and a single contract may be given.");
+                parser.DefineOptionalQualifier("producePdb", ref producePdb, "Specifices if a PDB file should be produced for the resulting partial facade.");
             }, args);
 
             if (!parsingSucceeded)
@@ -127,12 +129,15 @@ namespace GenFacades
 
                         string pdbLocation = null;
 
-                        string pdbFolder = Path.GetDirectoryName(partialFacadeAssemblyPath);
-                        pdbLocation = Path.Combine(pdbFolder, contractAssembly.Name + ".pdb");
-                        if (!File.Exists(pdbLocation))
+                        if (producePdb)
                         {
-                            pdbLocation = null;
-                            Trace.TraceWarning("No PDB file present for un-transformed partial facade. No PDB will be generated.");
+                            string pdbFolder = Path.GetDirectoryName(partialFacadeAssemblyPath);
+                            pdbLocation = Path.Combine(pdbFolder, contractAssembly.Name + ".pdb");
+                            if (producePdb && !File.Exists(pdbLocation))
+                            {
+                                pdbLocation = null;
+                                Trace.TraceWarning("No PDB file present for un-transformed partial facade. No PDB will be generated.");
+                            }
                         }
 
                         OutputFacadeToFile(facadePath, seedHost, filledPartialFacade, contractAssembly, pdbLocation);
