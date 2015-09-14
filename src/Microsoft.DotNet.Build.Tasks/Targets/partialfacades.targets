@@ -163,12 +163,19 @@
       <GenFacadesArgs>$(GenFacadesArgs) -contracts:"%(ResolvedMatchingContract.Identity)"</GenFacadesArgs>
       <GenFacadesArgs>$(GenFacadesArgs) -seeds:"@(GenFacadesSeeds, ';')"</GenFacadesArgs>
       <GenFacadesArgs>$(GenFacadesArgs) -facadePath:"$(GenFacadesOutputPath.TrimEnd('\'))"</GenFacadesArgs>
+      <GenFacadesArgs Condition="'$(DebugSymbols)' == 'false'">$(GenFacadesArgs) -producePdb:false</GenFacadesArgs>
       <GenFacadesArgs Condition="'@(SeedTypePreference)' != ''">$(GenFacadesArgs) -preferSeedType:"@(SeedTypePreference->'%(Identity)=%(Assembly)', ',')"</GenFacadesArgs>
     </PropertyGroup>
 
     <!-- Move the assembly into a subdirectory for GenFacades -->
-    <Move SourceFiles="$(PartialFacadeAssemblyPath);$(PartialFacadeSymbols)"
+    <Move SourceFiles="$(PartialFacadeAssemblyPath)"
           DestinationFolder="$(GenFacadesInputPath)"
+    />
+
+    <!-- Move the PDB into a subdirectory for GenFacades if we are producing PDBs -->
+    <Move SourceFiles="$(PartialFacadeSymbols)"
+          DestinationFolder="$(GenFacadesInputPath)"
+          Condition="'$(DebugSymbols)' != 'false'"
     />
 
     <Exec Command="&quot;$(GenFacadesPath)&quot; $(GenFacadesArgs)" />
