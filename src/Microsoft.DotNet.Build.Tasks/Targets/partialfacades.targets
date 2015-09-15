@@ -3,11 +3,6 @@
 
   <UsingTask TaskName="PrereleaseResolveNuGetPackageAssets" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
-  <PropertyGroup>
-    <GenFacadesNuGetName>Microsoft.DotNet.BuildTools.ApiTools.1.0.0-prerelease</GenFacadesNuGetName>
-    <GenFacadesPath>$(PackagesDir)$(GenFacadesNuGetName)\tools\GenFacades.exe</GenFacadesPath>
-  </PropertyGroup>
-
   <!-- Default properties for partial facade projects -->
   <PropertyGroup Condition="'$(IsPartialFacadeAssembly)' == 'true'">
     <PostFilterNugetReferences>true</PostFilterNugetReferences>
@@ -149,7 +144,7 @@
        Fills the "input assembly" by finding types in the contract assembly that are missing from it, and adding type-forwards
          to those matching types in the seed assemblies.
   -->
-  <Target Name="FillPartialFacade">
+  <Target Name="FillPartialFacade" DependsOnTargets="EnsureBuildToolsRuntime">
 
     <ItemGroup>
       <!-- References used for compilation are automatically included as seed assemblies -->
@@ -178,7 +173,11 @@
           Condition="'$(DebugSymbols)' != 'false'"
     />
 
-    <Exec Command="&quot;$(GenFacadesPath)&quot; $(GenFacadesArgs)" />
+    <PropertyGroup>
+      <GenFacadesCmd>"$(ToolRuntimePath)$(ToolHost)" "$(ToolsDir)GenFacades.dll"</GenFacadesCmd>
+    </PropertyGroup>
+
+    <Exec Command="$(GenFacadesCmd) $(GenFacadesArgs)" WorkingDirectory="$(ToolRuntimePath)" />
 
     <ItemGroup>
       <FileWrites Include="$(GenFacadesInputAssembly)" />

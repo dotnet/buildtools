@@ -15,6 +15,14 @@
     -->
     <ExcludeLocalizationImport Condition="'$(ExcludeLocalizationImport)'=='' And !Exists('$(MSBuildProjectDirectory)\MultilingualResources\$(MSBuildProjectName).de.xlf')">true</ExcludeLocalizationImport>
   </PropertyGroup>
+
+  <!--
+    Import the provides support for EnsureBuildToolsRuntime target which will restore a .NET Core based 
+    runtime and setup a $(ToolRuntimePath) and $(ToolHost) for others to consume.
+    
+    This must be imported before any tools that need to use it are imported.
+  -->
+  <Import Project="$(MSBuildThisFileDirectory)toolruntime.targets" Condition="'$(ExcludeToolRuntimeImport)' != 'true'"/>
   
   <!--
     Import the reference assembly targets

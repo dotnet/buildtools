@@ -30,6 +30,8 @@
     <file src="Microsoft.DotNet.Build.Tasks\coreAssembly.rsp" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\test-runtime\project.json" target="lib\test-runtime\project.json" />
     <file src="Microsoft.DotNet.Build.Tasks\test-runtime\project.lock.json" target="lib\test-runtime\project.lock.json" />
+    <file src="Microsoft.DotNet.Build.Tasks\tool-runtime\project.json" target="lib\tool-runtime\project.json" />
+    <file src="Microsoft.DotNet.Build.Tasks\tool-runtime\project.lock.json" target="lib\tool-runtime\project.lock.json" />
     <file src="Microsoft.DotNet.Build.Tasks\Microsoft.DotNet.Build.Tasks.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\NuGet.*.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\Newtonsoft.Json.dll" target="lib" />
@@ -41,6 +43,8 @@
     <file src="Microsoft.DotNet.Build.Tasks\NativeBinaries\amd64\git2-69db893.dll" target="lib\NativeBinaries\amd64" />
     <file src="Microsoft.DotNet.Build.Tasks\NativeBinaries\x86\git2-69db893.dll" target="lib\NativeBinaries\x86" />
     <file src="Microsoft.DotNet.Build.Tasks\AssemblyInfoPartial.*" target="lib" />
+    <file src="GenFacades\GenFacades.dll" target="lib" />
+    <file src="Microsoft.Cci.Extensions\Microsoft.Cci.Extensions.dll" target="lib" />
   </files>
   
 </package>
