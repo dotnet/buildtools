@@ -12,8 +12,8 @@
     "System.Resources.ResourceManager": "4.0.0",
     "System.Runtime.Extensions": "4.0.10",
     "System.Xml.XDocument": "4.0.10",
-    "xunit": "2.1.0-beta3-*",
-    "xunit.runner.utility": "2.1.0-beta3-*"
+    "xunit": "2.1.0-rc1-*",
+    "xunit.runner.utility": "2.1.0-rc1-*"
   },
   "frameworks": {
     "dnxcore50": {}

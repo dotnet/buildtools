@@ -44,7 +44,6 @@ namespace Xunit.ConsoleClient
                 {
                     AssemblyFilename = Path.GetFullPath(assembly.Item1),
                     ConfigFilename = assembly.Item2 != null ? Path.GetFullPath(assembly.Item2) : null,
-                    ShadowCopy = true
                 });
 
             return result;
@@ -167,7 +166,7 @@ namespace Xunit.ConsoleClient
                 {
                     GuardNoOptionValue(option);
                     foreach (var assembly in project.Assemblies)
-                        assembly.ShadowCopy = false;
+                        assembly.Configuration.ShadowCopy = false;
                 }
                 else if (optionName == "-trait")
                 {
