@@ -1,25 +1,28 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.props))\dir.props" />
+
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>GenFacades</RootNamespace>
     <AssemblyName>GenFacades</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);COREFX</DefineConstants>
-    <ProjectGuid>{BD307691-0A85-4CA2-A7ED-6747EECDCEC2}</ProjectGuid>
   </PropertyGroup>
-  <!-- Default configurations to help VS understand the configurations -->
+
+    <!-- Default configurations to help VS understand the configurations -->
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' " />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' " />
+
   <ItemGroup>
     <Compile Include="FacadeGenerationException.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="VersionResourceSerializer.cs" />
   </ItemGroup>
+
   <!-- Common command-line helper sources -->
   <ItemGroup>
     <Compile Include="$(CommonPath)\CommandLine.cs">
@@ -32,11 +35,15 @@
       <Link>Common\ConsoleTraceListener.cs</Link>
     </Compile>
   </ItemGroup>
+
   <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.CCI.Extensions\Microsoft.CCI.Extensions.csproj" />
   </ItemGroup>
+
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), publishexe.targets))\publishexe.targets" />
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
 </Project>

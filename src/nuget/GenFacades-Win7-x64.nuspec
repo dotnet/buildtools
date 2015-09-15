@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/01/nuspec.xsd">
+  <metadata minClientVersion="2.8.1">
+    <id>GenFacades-Win7-x64</id>
+    <version>1.0.0-experimental</version> 
+    <title>GenFacades</title>
+    <authors>Microsoft</authors>
+    <owners>Microsoft</owners>
+    <description>This package provides the GenFacades tool, used for creating full and partial facades as part of the dotnet/corefx repository's build process.</description>
+    <summary>Provides the GenFacades build tool</summary>
+    <copyright>Copyright © Microsoft Corporation</copyright>
+    <tags>BCL GenFacades buildtools</tags>
+  </metadata>
+  <files>
+    <file src="GenFacades\*.dll" target="tools" />
+    <file src="GenFacades\*.exe" target="tools" />
+  </files>
+</package>
