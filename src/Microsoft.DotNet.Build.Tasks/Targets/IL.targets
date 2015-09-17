@@ -17,7 +17,7 @@
       <_KeyFileArgument Condition="'$(KeyOriginatorFile)' != ''">/KEY=$(KeyOriginatorFile)</_KeyFileArgument>
     </PropertyGroup>
 
-    <Exec Command="ilasm /QUIET $(_OutputTypeArgument) /OUTPUT=@(IntermediateAssembly) $(_KeyFileArgument) @(Compile)">
+    <Exec Command="ilasm /QUIET $(_OutputTypeArgument) $(IlasmFlags) /OUTPUT=@(IntermediateAssembly) $(_KeyFileArgument) @(Compile, ' ')">
       <Output TaskParameter="ExitCode" PropertyName="_ILAsmExitCode" />
     </Exec>
     <Error Text="ILAsm failed" Condition="'$(_ILAsmExitCode)' != '0'" />
