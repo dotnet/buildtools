@@ -11,17 +11,32 @@
   <!-- Perf Runner NuGet package paths -->
   <PropertyGroup>
     <XunitPerfRunnerPackageId>Microsoft.DotNet.xunit.performance.runner.Windows</XunitPerfRunnerPackageId>
-    <XunitPerfRunnerPackageVersion>1.0.0-alpha-build0012</XunitPerfRunnerPackageVersion>
+    <XunitPerfRunnerPackageVersion>1.0.0-alpha-build0014</XunitPerfRunnerPackageVersion>
     <XunitPerfRunnerPackageDir>$(PackagesDir)$(XunitPerfRunnerPackageId)/$(XunitPerfRunnerPackageVersion)</XunitPerfRunnerPackageDir>
-    <XunitPerfRunnerPath>$(XunitPerfRunnerPackageDir)/tools/xunit.performance.run.exe</XunitPerfRunnerPath>
+    <XunitPerfRunnerPath>$(TestPath)$(DebugTestFrameworkFolder)/xunit.performance.run.exe</XunitPerfRunnerPath>
   </PropertyGroup>
 
   <!-- Perf Analysis NuGet package paths -->
   <PropertyGroup>
     <XunitPerfAnalysisPackageId>Microsoft.DotNet.xunit.performance.analysis</XunitPerfAnalysisPackageId>
-    <XunitPerfAnalysisPackageVersion>1.0.0-alpha-build0012</XunitPerfAnalysisPackageVersion>
+    <XunitPerfAnalysisPackageVersion>1.0.0-alpha-build0014</XunitPerfAnalysisPackageVersion>
     <XunitPerfAnalysisPath>$(PackagesDir)$(XunitPerfAnalysisPackageId)/$(XunitPerfAnalysisPackageVersion)/tools/xunit.performance.analysis.exe</XunitPerfAnalysisPath>
   </PropertyGroup>
+  
+  <!-- Copy over the performance runners to the test directory-->
+  <Target Name="CopyXunitExecutionDesktop" BeforeTargets="RunTestsForProject" Condition="'$(RunPerfTestsForProject)' == 'true'">
+    <ItemGroup>
+	  <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/xunit.performance.run.exe" />
+	  <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/xunit.performance.metrics.dll" />
+	  <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/xunit.performance.logger.exe" />
+	  <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/ProcDomain.dll" />
+	  <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/Microsoft.Diagnostics.Tracing.TraceEvent.dll" />
+	  <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/*/*.*" />
+	</ItemGroup>
+    <Copy SourceFiles="@(PerfRunners)"
+          DestinationFiles="@(PerfRunners->'$(TestPath)$(DebugTestFrameworkFolder)\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+  </Target>
 
   <!-- Executable properties -->
   <PropertyGroup>
@@ -38,13 +53,7 @@
     <TestCommandLine>$(PerfTestCommandLine)</TestCommandLine>
   </PropertyGroup>
 
-  <!-- NOTE: Temporary workaround, there is some issue where the discoverer requires this to be in the target directory -->
-  <Target Name="CopyXunitExecutionDesktop" BeforeTargets="RunTestsForProject"
-          Condition="'$(RunPerfTestsForProject)' == 'true'">
-    <Copy SourceFiles="$(XunitPerfRunnerPackageDir)/tools/xunit.execution.desktop.dll"
-          DestinationFolder="$(TestPath)$(DebugTestFrameworkFolder)"
-          SkipUnchangedFiles="true" />
-  </Target>
+
 
   <Target Name="AnalyzePerfResults"
           AfterTargets="RunTestsForProject"
