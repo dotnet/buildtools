@@ -74,9 +74,6 @@
   <!-- The Code Coverage targets will override TestHost and TestCommandLine if coverage is enabled -->
   <Import Project="$(MSBuildThisFileDirectory)CodeCoverage.targets" />
 
-  <!-- import settings for perf testing -->
-  <Import Project="$(MSBuildThisFileDirectory)PerfTesting.targets" />
-
   <!-- In VS (2015 Preview or later currently required): Debug to run unit tests on CoreCLR. -->
   <PropertyGroup Condition="'$(IsTestProject)'=='true'">
     <StartWorkingDirectory Condition="'$(StartWorkingDirectory)'==''">$(TestPath)$(DebugTestFrameworkFolder)</StartWorkingDirectory>
@@ -123,19 +120,11 @@
 
     <MakeDir Condition="'$(CoverageEnabledForProject)'=='true'" Directories="$(CoverageReportDir)" />
 
-    <Exec Command="$(EventTracer) -m start -t $(TargetFileName) -d $(EventTracerDataFile) $(EventTracerMetrics)"
-          WorkingDirectory="$(TestPath)%(TestTargetFramework.Folder)"
-          Condition="'$(CollectPerfEvents)' == 'true'" />
-
     <Exec Command="$(TestCommandLine)"
           WorkingDirectory="$(TestPath)%(TestTargetFramework.Folder)"
           ContinueOnError="true">
       <Output PropertyName="TestRunExitCode" TaskParameter="ExitCode" />
     </Exec>
-
-    <Exec Command="$(EventTracer) -m stop -t $(TargetFileName) -d $(EventTracerDataFile) $(EventTracerMetrics) -x $(EventTracerReport) -p CoreRun"
-          WorkingDirectory="$(TestPath)%(TestTargetFramework.Folder)"
-          Condition="'$(CollectPerfEvents)' == 'true'" />
 
     <Delete Condition="'$(DeletePerfDataFile)' == 'true'" Files="$(TestPath)%(TestTargetFramework.Folder)\$(EventTracerDataFile)" />
     <Error Condition="'$(TestRunExitCode)' != '0'" Text="One or more tests failed while running tests from '$(MSBuildProjectName)' please check log for details!" />
