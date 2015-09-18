@@ -1,17 +1,16 @@
 {
     "dependencies": {
        "coveralls.io": "1.4",
-       "Microsoft.NETCore.Platforms":  "1.0.1-beta-*",
-       "Microsoft.NETCore.TestHost-x64": "1.0.0-beta-*",
-       "Microsoft.NETCore.TestHost-x86": "1.0.0-beta-*",
-       "Microsoft.NETCore.Runtime": "1.0.1-beta-*",
-       "Microsoft.DotNet.xunit.performance.analysis": "1.0.0-*",
-       "Microsoft.DotNet.xunit.performance.runner.Windows": "1.0.0-*",
+       "Microsoft.NETCore.Platforms":  "1.0.1-beta-23316",
+       "Microsoft.NETCore.TestHost": "1.0.0-beta-23316",
+       "Microsoft.NETCore.Runtime": "1.0.1-beta-23316",
+       "Microsoft.DotNet.xunit.performance.analysis": "1.0.0-alpha-build0014",
+       "Microsoft.DotNet.xunit.performance.runner.Windows": "1.0.0-alpha-build0014",
        "OpenCover": "4.6.166",
        "ReportGenerator": "2.3.0.0",
        "System.Collections": "4.0.10",
        "System.Collections.Concurrent": "4.0.10",
-       "System.Console": "4.0.0-beta-*",
+       "System.Console": "4.0.0-beta-23316",
        "System.Diagnostics.Contracts": "4.0.0",
        "System.Diagnostics.Debug": "4.0.10",
        "System.Diagnostics.Tools": "4.0.0",
@@ -34,13 +33,13 @@
        "System.Text.RegularExpressions": "4.0.10",
        "System.Threading": "4.0.10",
        "System.Threading.Tasks": "4.0.10",
-       "System.Threading.ThreadPool": "4.0.10-beta-*",
-       "System.Threading.Thread": "4.0.0-beta-*",
+       "System.Threading.ThreadPool": "4.0.10-beta-23316",
+       "System.Threading.Thread": "4.0.0-beta-23316",
        "System.Xml.ReaderWriter": "4.0.10",
        "System.Xml.XDocument": "4.0.10",
-       "xunit": "2.1.0-rc1-*",
-       "xunit.console.netcore": "1.0.2-prerelease-*",
-       "xunit.runner.utility": "2.1.0-rc1-*"
+       "xunit": "2.1.0-rc1-build3168",
+       "xunit.console.netcore": "1.0.2-prerelease-00088",
+       "xunit.runner.utility": "2.1.0-rc1-build3168"
     },
     "frameworks": {
        "dnxcore50": { }

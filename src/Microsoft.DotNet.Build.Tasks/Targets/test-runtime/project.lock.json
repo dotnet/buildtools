@@ -84,10 +84,7 @@
           "System.Threading.Timer": "[4.0.1-beta-23316]"
         }
       },
-      "Microsoft.NETCore.TestHost-x64/1.0.0-beta-23225": {
-        "type": "package"
-      },
-      "Microsoft.NETCore.TestHost-x86/1.0.0-beta-23225": {
+      "Microsoft.NETCore.TestHost/1.0.0-beta-23316": {
         "type": "package"
       },
       "Microsoft.NETCore.Windows.ApiSets/1.0.1-beta-23316": {
@@ -886,13 +883,7 @@
           "System.Threading.Timer": "[4.0.1-beta-23316]"
         }
       },
-      "Microsoft.NETCore.TestHost-x64/1.0.0-beta-23225": {
-        "type": "package",
-        "native": {
-          "runtimes/win7-x64/native/CoreRun.exe": {}
-        }
-      },
-      "Microsoft.NETCore.TestHost-x86/1.0.0-beta-23225": {
+      "Microsoft.NETCore.TestHost/1.0.0-beta-23316": {
         "type": "package"
       },
       "Microsoft.NETCore.Windows.ApiSets/1.0.1-beta-23316": {
@@ -940,6 +931,12 @@
           "runtimes/win7-x64/native/mscordbi.dll": {},
           "runtimes/win7-x64/native/mscorrc.debug.dll": {},
           "runtimes/win7-x64/native/mscorrc.dll": {}
+        }
+      },
+      "runtime.win7-x64.Microsoft.NETCore.TestHost/1.0.0-beta-23316": {
+        "type": "package",
+        "native": {
+          "runtimes/win7-x64/native/CoreRun.exe": {}
         }
       },
       "runtime.win7-x64.Microsoft.NETCore.Windows.ApiSets/1.0.1-beta-23316": {
@@ -1871,14 +1868,8 @@
           "System.Threading.Timer": "[4.0.1-beta-23316]"
         }
       },
-      "Microsoft.NETCore.TestHost-x64/1.0.0-beta-23225": {
+      "Microsoft.NETCore.TestHost/1.0.0-beta-23316": {
         "type": "package"
-      },
-      "Microsoft.NETCore.TestHost-x86/1.0.0-beta-23225": {
-        "type": "package",
-        "native": {
-          "runtimes/win7-x86/native/CoreRun.exe": {}
-        }
       },
       "Microsoft.NETCore.Windows.ApiSets/1.0.1-beta-23316": {
         "type": "package"
@@ -1925,6 +1916,12 @@
           "runtimes/win7-x86/native/mscordbi.dll": {},
           "runtimes/win7-x86/native/mscorrc.debug.dll": {},
           "runtimes/win7-x86/native/mscorrc.dll": {}
+        }
+      },
+      "runtime.win7-x86.Microsoft.NETCore.TestHost/1.0.0-beta-23316": {
+        "type": "package",
+        "native": {
+          "runtimes/win7-x86/native/CoreRun.exe": {}
         }
       },
       "runtime.win7-x86.Microsoft.NETCore.Windows.ApiSets/1.0.1-beta-23316": {
@@ -2885,26 +2882,14 @@
         "Microsoft.NETCore.Runtime.Native.nuspec"
       ]
     },
-    "Microsoft.NETCore.TestHost-x64/1.0.0-beta-23225": {
+    "Microsoft.NETCore.TestHost/1.0.0-beta-23316": {
       "type": "package",
-      "sha512": "D+OrRHthQ/ViCNveXP8ClxEVKJdDTFwp4s9ubLhagMPTWsJKh3NWmUw35sGEXzZcRNAKAEDjaH8iybD7T285QQ==",
+      "sha512": "hz4eIUcoD6yEqxiqHppk3VYfIhkJSAlct3sVCzTA1Qnw5BGiG4Lg50lgvSx4u6kL9V2K8Cd4ohmALo3Q9EVxvg==",
       "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
-        "Microsoft.NETCore.TestHost-x64.nuspec",
-        "package/services/metadata/core-properties/f72cd73704b8482e88186e3d16f77b5a.psmdcp",
-        "runtimes/win7-x64/native/CoreRun.exe"
-      ]
-    },
-    "Microsoft.NETCore.TestHost-x86/1.0.0-beta-23225": {
-      "type": "package",
-      "sha512": "MBJ6VGE6mkmWs8fnIQucHrLzNM4VOemMzFtyPSR1AceVn35BFpiACvvKZKkcJ47il+m9MqnfcKMGJVDNm+IdLA==",
-      "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
-        "Microsoft.NETCore.TestHost-x86.nuspec",
-        "package/services/metadata/core-properties/12518f97a3414352b8f842f7d0e54f4f.psmdcp",
-        "runtimes/win7-x86/native/CoreRun.exe"
+        "Microsoft.NETCore.TestHost.1.0.0-beta-23316.nupkg",
+        "Microsoft.NETCore.TestHost.1.0.0-beta-23316.nupkg.sha512",
+        "Microsoft.NETCore.TestHost.nuspec",
+        "runtime.json"
       ]
     },
     "Microsoft.NETCore.Windows.ApiSets/1.0.1-beta-23316": {
@@ -3028,6 +3013,16 @@
         "runtimes/win7-x64/native/mscordbi.dll",
         "runtimes/win7-x64/native/mscorrc.debug.dll",
         "runtimes/win7-x64/native/mscorrc.dll"
+      ]
+    },
+    "runtime.win7-x64.Microsoft.NETCore.TestHost/1.0.0-beta-23316": {
+      "type": "package",
+      "sha512": "5eL0jWItF5iwLYvom9T6eDvwHrUDEOKD42ryOgOPrRdcLRg1ocrGOlUu40KNXIvMiChRoX4pzPr0Y4rpC11u9Q==",
+      "files": [
+        "runtime.win7-x64.Microsoft.NETCore.TestHost.1.0.0-beta-23316.nupkg",
+        "runtime.win7-x64.Microsoft.NETCore.TestHost.1.0.0-beta-23316.nupkg.sha512",
+        "runtime.win7-x64.Microsoft.NETCore.TestHost.nuspec",
+        "runtimes/win7-x64/native/CoreRun.exe"
       ]
     },
     "runtime.win7-x64.Microsoft.NETCore.Windows.ApiSets/1.0.1-beta-23316": {
@@ -3212,6 +3207,16 @@
         "runtimes/win7-x86/native/mscordbi.dll",
         "runtimes/win7-x86/native/mscorrc.debug.dll",
         "runtimes/win7-x86/native/mscorrc.dll"
+      ]
+    },
+    "runtime.win7-x86.Microsoft.NETCore.TestHost/1.0.0-beta-23316": {
+      "type": "package",
+      "sha512": "/IX0e1BJ2U5bT8RbNRxsuYL8xqrbUIze+DbZkZUA8vnPNfrpN7U9nbt6k26ikOSveYsIxulsNZv53VUgUrDBwQ==",
+      "files": [
+        "runtime.win7-x86.Microsoft.NETCore.TestHost.1.0.0-beta-23316.nupkg",
+        "runtime.win7-x86.Microsoft.NETCore.TestHost.1.0.0-beta-23316.nupkg.sha512",
+        "runtime.win7-x86.Microsoft.NETCore.TestHost.nuspec",
+        "runtimes/win7-x86/native/CoreRun.exe"
       ]
     },
     "runtime.win7-x86.Microsoft.NETCore.Windows.ApiSets/1.0.1-beta-23316": {
@@ -4789,17 +4794,16 @@
   "projectFileDependencyGroups": {
     "": [
       "coveralls.io >= 1.4",
-      "Microsoft.NETCore.Platforms >= 1.0.1-beta-*",
-      "Microsoft.NETCore.TestHost-x64 >= 1.0.0-beta-*",
-      "Microsoft.NETCore.TestHost-x86 >= 1.0.0-beta-*",
-      "Microsoft.NETCore.Runtime >= 1.0.1-beta-*",
-      "Microsoft.DotNet.xunit.performance.analysis >= 1.0.0-*",
-      "Microsoft.DotNet.xunit.performance.runner.Windows >= 1.0.0-*",
+      "Microsoft.NETCore.Platforms >= 1.0.1-beta-23316",
+      "Microsoft.NETCore.TestHost >= 1.0.0-beta-23316",
+      "Microsoft.NETCore.Runtime >= 1.0.1-beta-23316",
+      "Microsoft.DotNet.xunit.performance.analysis >= 1.0.0-alpha-build0014",
+      "Microsoft.DotNet.xunit.performance.runner.Windows >= 1.0.0-alpha-build0014",
       "OpenCover >= 4.6.166",
       "ReportGenerator >= 2.3.0.0",
       "System.Collections >= 4.0.10",
       "System.Collections.Concurrent >= 4.0.10",
-      "System.Console >= 4.0.0-beta-*",
+      "System.Console >= 4.0.0-beta-23316",
       "System.Diagnostics.Contracts >= 4.0.0",
       "System.Diagnostics.Debug >= 4.0.10",
       "System.Diagnostics.Tools >= 4.0.0",
@@ -4822,13 +4826,13 @@
       "System.Text.RegularExpressions >= 4.0.10",
       "System.Threading >= 4.0.10",
       "System.Threading.Tasks >= 4.0.10",
-      "System.Threading.ThreadPool >= 4.0.10-beta-*",
-      "System.Threading.Thread >= 4.0.0-beta-*",
+      "System.Threading.ThreadPool >= 4.0.10-beta-23316",
+      "System.Threading.Thread >= 4.0.0-beta-23316",
       "System.Xml.ReaderWriter >= 4.0.10",
       "System.Xml.XDocument >= 4.0.10",
-      "xunit >= 2.1.0-rc1-*",
-      "xunit.console.netcore >= 1.0.2-prerelease-*",
-      "xunit.runner.utility >= 2.1.0-rc1-*"
+      "xunit >= 2.1.0-rc1-build3168",
+      "xunit.console.netcore >= 1.0.2-prerelease-00088",
+      "xunit.runner.utility >= 2.1.0-rc1-build3168"
     ],
     "DNXCore,Version=v5.0": []
   }
