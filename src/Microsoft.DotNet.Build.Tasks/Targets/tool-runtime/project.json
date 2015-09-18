@@ -1,11 +1,11 @@
 {
   "dependencies": {
-    "Microsoft.NETCore.Platforms": "1.0.1-beta-*",
-    "Microsoft.NETCore.TestHost-x64": "1.0.0-beta-*",
-    "Microsoft.NETCore.Console": "1.0.0-beta-*",
-    "Microsoft.Cci": "4.0.0-beta-*",
-    "System.Diagnostics.TextWriterTraceListener": "4.0.0-beta-*",
-    "System.Diagnostics.TraceSource": "4.0.0-beta-*",
+    "Microsoft.NETCore.Platforms": "1.0.1-beta-23316",
+    "Microsoft.NETCore.TestHost": "1.0.0-beta-23316",
+    "Microsoft.NETCore.Console": "1.0.0-beta-23316",
+    "Microsoft.Cci": "4.0.0-beta-23316",
+    "System.Diagnostics.TextWriterTraceListener": "4.0.0-beta-23316",
+    "System.Diagnostics.TraceSource": "4.0.0-beta-23316",
   },
   "frameworks": {
     "dnxcore50": { }
