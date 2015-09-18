@@ -13,7 +13,7 @@
     <XunitPerfRunnerPackageId>Microsoft.DotNet.xunit.performance.runner.Windows</XunitPerfRunnerPackageId>
     <XunitPerfRunnerPackageVersion>1.0.0-alpha-build0014</XunitPerfRunnerPackageVersion>
     <XunitPerfRunnerPackageDir>$(PackagesDir)$(XunitPerfRunnerPackageId)/$(XunitPerfRunnerPackageVersion)</XunitPerfRunnerPackageDir>
-    <XunitPerfRunnerPath>$(TestPath)$(DebugTestFrameworkFolder)/tools/xunit.performance.run.exe</XunitPerfRunnerPath>
+    <XunitPerfRunnerPath>$(TestPath)$(DebugTestFrameworkFolder)/xunit.performance.run.exe</XunitPerfRunnerPath>
   </PropertyGroup>
 
   <!-- Perf Analysis NuGet package paths -->
