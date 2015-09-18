@@ -495,7 +495,8 @@ namespace GenFacades
                 //       but the runtime currently throws a TypeLoadException without explicit forwarders for the nested 
                 //       types.
                 foreach (var nestedType in seedType.NestedTypes.OrderBy(t => t.Name.Value))
-                    AddTypeForward(assembly, nestedType);
+                    if (nestedType.IsVisibleOutsideAssembly())
+                        AddTypeForward(assembly, nestedType);
             }
 
             private void AddWin32VersionResource(string contractLocation, Assembly facade)
