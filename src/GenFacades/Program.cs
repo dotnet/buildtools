@@ -485,12 +485,7 @@ namespace GenFacades
                     assembly.ExportedTypes = new List<IAliasForType>();
                 assembly.ExportedTypes.Add(alias);
 
-                // Recursively add forwarders for all nested types regardless of their accessibility. This is
-                // how the C# compiler emits type forwarders for nested types. We might not need them for
-                // nested types that are not visible outside the assembly, but it is safer to replicate how
-                // the C# compiler works. Plus, it helps when diffing the output from ildasm for facades
-                // that were built from source vs. those that were produced by this tool.
-                //
+                // Recursively add forwarders only for the nested types that are accessible outside of the assembly.
                 // NOTE: Some design-time tools can resolve forwarded nested types with only the top-level forwarder,
                 //       but the runtime currently throws a TypeLoadException without explicit forwarders for the nested 
                 //       types.
