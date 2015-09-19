@@ -33,11 +33,16 @@
       <dependency id="System.Threading" version="4.0.10" />
       <dependency id="System.Threading.Tasks" version="4.0.10" />
       <dependency id="System.Xml.XDocument" version="4.0.10" />
+      <dependency id="xunit.runner.utility" version="2.1.0-rc1-build3168" />
     </dependencies>
   </metadata>
   <files>
     <!-- xunit runner for .NET Core -->
     <file src="xunit.console.netcore\xunit.console.netcore.exe" target="lib\aspnetcore50" />
+    <file src="xunit.console.netcore\_._" target="lib\dnxcore50" />
+    <file src="xunit.console.netcore\_._" target="lib\dotnet" />
+  
+    <file src="xunit.console.netcore\xunit.console.netcore.exe" target="runtimes\any\native" />
   </files>
   
 </package>

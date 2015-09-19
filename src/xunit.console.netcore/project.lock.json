@@ -35,7 +35,7 @@
           "lib/dotnet/System.Collections.Concurrent.dll": {}
         }
       },
-      "System.Console/4.0.0-beta-23316": {
+      "System.Console/4.0.0-beta-23318": {
         "type": "package",
         "dependencies": {
           "System.IO": "4.0.0",
@@ -618,10 +618,10 @@
         "System.Collections.Concurrent.nuspec"
       ]
     },
-    "System.Console/4.0.0-beta-23316": {
+    "System.Console/4.0.0-beta-23318": {
       "type": "package",
       "serviceable": true,
-      "sha512": "pYDflUHKD2oIllR+HsbgfkbwNsjivEgYsFjM3eZWS6KVqa5vYVMl93OvC+WfB0Va3Q9gAZYzxXQJUv6gWoJGLw==",
+      "sha512": "7O8pbiNDUzI4arqyeMUFOFBiUAY1eHh0z4HclT8iPi+P+i5TZcBP65JoqdS784HQGdkdKUAidJlpCIi7knHvzA==",
       "files": [
         "lib/MonoAndroid10/_._",
         "lib/MonoTouch10/_._",
@@ -635,8 +635,8 @@
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
         "runtime.json",
-        "System.Console.4.0.0-beta-23316.nupkg",
-        "System.Console.4.0.0-beta-23316.nupkg.sha512",
+        "System.Console.4.0.0-beta-23318.nupkg",
+        "System.Console.4.0.0-beta-23318.nupkg.sha512",
         "System.Console.nuspec"
       ]
     },
@@ -1731,7 +1731,7 @@
       "System.Runtime.Extensions >= 4.0.10",
       "System.Xml.XDocument >= 4.0.10",
       "xunit >= 2.1.0-rc1-*",
-      "xunit.runner.utility >= 2.1.0-rc1-*"
+      "xunit.runner.utility >= 2.1.0-rc1-build3168"
     ],
     "DNXCore,Version=v5.0": []
   }
