@@ -262,7 +262,7 @@
       "OpenCover/4.6.166": {
         "type": "package"
       },
-      "ReportGenerator/2.3.0.0": {
+      "ReportGenerator/2.3.1.0": {
         "type": "package"
       },
       "System.AppContext/4.0.1-beta-23316": {
@@ -2454,7 +2454,7 @@
       "OpenCover/4.6.166": {
         "type": "package"
       },
-      "ReportGenerator/2.3.0.0": {
+      "ReportGenerator/2.3.1.0": {
         "type": "package"
       },
       "runtime.win7.Microsoft.Win32.Primitives/4.0.1-beta-23316": {
@@ -4925,7 +4925,7 @@
       "OpenCover/4.6.166": {
         "type": "package"
       },
-      "ReportGenerator/2.3.0.0": {
+      "ReportGenerator/2.3.1.0": {
         "type": "package"
       },
       "runtime.win7.Microsoft.Win32.Primitives/4.0.1-beta-23316": {
@@ -7464,19 +7464,17 @@
         "transform/transform.ps1"
       ]
     },
-    "ReportGenerator/2.3.0.0": {
+    "ReportGenerator/2.3.1.0": {
       "type": "package",
-      "sha512": "xa4La+rR2d0dbAN2ZABa2+mY/zjcbPRM5TwEMT4qZrTjLSQFbslnywcfeiZiAtZvBF3c0kOD4opk8sXkvAzBbg==",
+      "sha512": "R0NM/SAjRjGGtlMcnyD53RVtPykTPkU7JNWgomUSKfTN66Vtuw8aDzmpycd5BJZ06yJ7NOE+6Pw4/esKnVeXdg==",
       "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
         "LICENSE.txt",
-        "package/services/metadata/core-properties/855ca210c2b845718b9f871b418b5f02.psmdcp",
         "Readme.txt",
+        "ReportGenerator.2.3.1.nupkg",
+        "ReportGenerator.2.3.1.nupkg.sha512",
         "ReportGenerator.nuspec",
         "tools/ICSharpCode.NRefactory.CSharp.dll",
         "tools/ICSharpCode.NRefactory.dll",
-        "tools/log4net.dll",
         "tools/ReportGenerator.exe",
         "tools/ReportGenerator.Reporting.dll",
         "tools/ReportGenerator.Reporting.XML",
@@ -11185,7 +11183,7 @@
       "Microsoft.NETCore.Console >= 1.0.0-beta-23316",
       "coveralls.io >= 1.4",
       "OpenCover >= 4.6.166",
-      "ReportGenerator >= 2.3.0.0",
+      "ReportGenerator >= 2.3.1",
       "Microsoft.DotNet.xunit.performance.analysis >= 1.0.0-alpha-build0014",
       "Microsoft.DotNet.xunit.performance.runner.Windows >= 1.0.0-alpha-build0014",
       "xunit >= 2.1.0-rc1-build3168",
