@@ -19,6 +19,9 @@
 
     <ToolRuntimePath Condition="'$(ToolRuntimePath)' == ''">$(BaseOutputPath)$(OSPlatformConfig)\ToolRuntime\</ToolRuntimePath>
     <ToolRuntimeSempahore>$(ToolRuntimePath)\ToolRuntime.semaphore</ToolRuntimeSempahore>
+    <ToolHostCmd>"$(ToolRuntimePath)$(ToolHost)"</ToolHostCmd>
+    <!-- If COMPLUS_InstallRoot is set clear it before calling the ToolHost otherwise some root activations like PDB COM activation will fail -->
+    <ToolHostCmd Condition="'$(COMPLUS_InstallRoot)' != ''">(set COMPLUS_InstallRoot=) &amp; $(ToolHostCmd)</ToolHostCmd>
   </PropertyGroup>
 
   <Target Name="EnsureBuildToolsRuntime"
@@ -40,13 +43,6 @@
       <Output TaskParameter="ResolvedCopyLocalItems" ItemName="ToolCopyLocal" />
     </PrereleaseResolveNuGetPackageAssets>
 
-    <!-- Ideally, we'd have UseHardLinksIfPossible on by default because we copy tons of files
-         but it doesn't currently work x-plat. So we only turn it on by default for Windows builds for now. -->
-    <PropertyGroup>
-      <CreateHardLinksForCopyTestToTestDirectoryIfPossible Condition="'$(CreateHardLinksForCopyTestToTestDirectoryIfPossible)'=='' and '$(OS)' == 'Windows_NT'">true</CreateHardLinksForCopyTestToTestDirectoryIfPossible>
-      <CreateHardLinksForCopyTestToTestDirectoryIfPossible Condition="'$(CreateHardLinksForCopyTestToTestDirectoryIfPossible)'==''">$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)</CreateHardLinksForCopyTestToTestDirectoryIfPossible>
-   </PropertyGroup>
-
     <!-- Copy the runtime and libraries into the flat shared path $(ToolRuntimePath) -->
     <Copy 
       SourceFiles="@(ToolCopyLocal)" 
@@ -54,8 +50,7 @@
       SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
       OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
       Retries="$(CopyRetryCount)"
-      RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
-      UseHardlinksIfPossible="$(CreateHardLinksForCopyTestToTestDirectoryIfPossible)" />
+      RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)" />
 
     <Touch Files="$(ToolRuntimeSempahore)"
        ContinueOnError="WarnAndContinue"
