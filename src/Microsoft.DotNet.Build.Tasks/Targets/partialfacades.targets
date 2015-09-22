@@ -174,7 +174,7 @@
     />
 
     <PropertyGroup>
-      <GenFacadesCmd>$(ToolHostCmd) "$(ToolsDir)GenFacades.dll"</GenFacadesCmd>
+      <GenFacadesCmd>$(ToolHostCmd) "$(ToolsDir)GenFacades.exe"</GenFacadesCmd>
     </PropertyGroup>
 
     <Exec Command="$(GenFacadesCmd) $(GenFacadesArgs)" WorkingDirectory="$(ToolRuntimePath)" />

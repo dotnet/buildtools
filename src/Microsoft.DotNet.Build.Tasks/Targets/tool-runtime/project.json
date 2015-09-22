@@ -1,16 +1,17 @@
 {
   "dependencies": {
-    "Microsoft.NETCore.Platforms": "1.0.1-beta-23316",
-    "Microsoft.NETCore.TestHost": "1.0.0-beta-23316",
-    "Microsoft.NETCore.Console": "1.0.0-beta-23316",
-    "Microsoft.Cci": "4.0.0-beta-23316",
-    "System.Diagnostics.TextWriterTraceListener": "4.0.0-beta-23316",
-    "System.Diagnostics.TraceSource": "4.0.0-beta-23316",
+    "Microsoft.NETCore.TestHost": "1.0.0-beta-23321",
+    "Microsoft.NETCore.Console": "1.0.0-beta-23321",
+    "Microsoft.Cci": "4.0.0-beta-23321",
+    "System.Diagnostics.TextWriterTraceListener": "4.0.0-beta-23321",
+    "System.Diagnostics.TraceSource": "4.0.0-beta-23321",
   },
   "frameworks": {
-    "dnxcore50": { }
+    "dnxcore50": { },
   },
   "runtimes": {
-    "win7-x64": { }
+    "win7-x64": { },
+    "win7-x86": { },
+    "ubuntu.14.04-x64": { },
   }
 }
