@@ -101,12 +101,15 @@
     </ItemGroup>
   </Target>
 
-  <!-- On command line run unit tests on CoreCLR after the Test target -->
+  <!--
+    On command line run unit tests on CoreCLR after the Test target.
+    Set ForceRunTests to true to run tests even if there have been no changes since the last successful run.
+  -->
   <Target Name="RunTestsForProject"
           DependsOnTargets="DiscoverTestInputs"
           AfterTargets="CheckTestCategories"
           Inputs="@(RunTestsForProjectInputs)"
-          Outputs="$(TestPath)%(TestTargetFramework.Folder)\$(TestsSuccessfulSemaphore);$(TestPath)%(TestTargetFramework.Folder)\$(XunitResultsFileName);$(CoverageOutputFilePath)"
+          Outputs="$(TestsSuccessfulSemaphore);$(TestPath)%(TestTargetFramework.Folder)\$(XunitResultsFileName);$(CoverageOutputFilePath)"
           Condition="'$(TestDisabled)'!='true'">
 
     <PropertyGroup>
@@ -131,7 +134,7 @@
 
     <Delete Condition="'$(DeletePerfDataFile)' == 'true'" Files="$(TestPath)%(TestTargetFramework.Folder)\$(EventTracerDataFile)" />
     <Error Condition="'$(TestRunExitCode)' != '0'" Text="One or more tests failed while running tests from '$(MSBuildProjectName)' please check log for details!" />
-    <Touch Condition="'$(TestRunExitCode)' == '0'" Files="$(TestPath)%(TestTargetFramework.Folder)\$(TestsSuccessfulSemaphore)" AlwaysCreate="true" />
+    <Touch Condition="'$(TestRunExitCode)' == '0'" Files="$(TestsSuccessfulSemaphore)" AlwaysCreate="true" />
   </Target>
 
   <!-- Needs to run before RunTestsForProject target as it computes categories and set TestDisabled -->
@@ -155,7 +158,11 @@
     <PropertyGroup>
       <TestsSuccessfulSemaphore Condition="'@(RunWithTraits)' != ''">$(TestsSuccessfulSemaphore).with.@(RunWithTraits, '.')</TestsSuccessfulSemaphore>
       <TestsSuccessfulSemaphore Condition="'@(RunWithoutTraits)' != ''">$(TestsSuccessfulSemaphore).without.@(RunWithoutTraits, '.')</TestsSuccessfulSemaphore>
+      <TestsSuccessfulSemaphore>$(TestPath)%(TestTargetFramework.Folder)\$(TestsSuccessfulSemaphore)</TestsSuccessfulSemaphore>
     </PropertyGroup>
+
+    <Delete Condition="'$(ForceRunTests)'=='true' And Exists($(TestsSuccessfulSemaphore))"
+            Files="$(TestsSuccessfulSemaphore)" />
   </Target>
 
   <Target Name="CheckTestPlatforms"
