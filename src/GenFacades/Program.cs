@@ -417,7 +417,7 @@ namespace GenFacades
                         continue;
                     }
 
-                    AddTypeForward(assembly, seedType);
+                    AddTypeForward(assembly, seedType, contractAssembly);
                 }
 
                 if (error)
@@ -475,7 +475,7 @@ namespace GenFacades
                 }
             }
 
-            private void AddTypeForward(Assembly assembly, INamedTypeDefinition seedType)
+            private void AddTypeForward(Assembly assembly, INamedTypeDefinition seedType, IAssembly contractAssembly)
             {
                 var alias = new NamespaceAliasForType();
                 alias.AliasedType = ConvertDefinitionToReferenceIfTypeIsNested(seedType, _seedHost);
@@ -485,13 +485,21 @@ namespace GenFacades
                     assembly.ExportedTypes = new List<IAliasForType>();
                 assembly.ExportedTypes.Add(alias);
 
-                // Recursively add forwarders only for the nested types that are accessible outside of the assembly.
+                INamedTypeDefinition contractType = contractAssembly.GetAllTypes().Where(t => t.FullName() == seedType.FullName()).FirstOrDefault();
+                if (contractType == null)
+                    throw new Exception("Type was not found in the contract.");
+
+                // Recursively add forwarders for all the nested types specified in the contract assembly.
                 // NOTE: Some design-time tools can resolve forwarded nested types with only the top-level forwarder,
                 //       but the runtime currently throws a TypeLoadException without explicit forwarders for the nested 
                 //       types.
-                foreach (var nestedType in seedType.NestedTypes.OrderBy(t => t.Name.Value))
-                    if (nestedType.IsVisibleOutsideAssembly())
-                        AddTypeForward(assembly, nestedType);
+                foreach (var nestedType in contractType.NestedTypes.OrderBy(t => t.Name.Value))
+                {
+                    var seedNestedType = seedType.NestedTypes.Where(nt => nt.Name.Value == nestedType.Name.Value).FirstOrDefault();
+                    if (seedNestedType == null)
+                        throw new Exception("Nested type found in the contract, but not on the seedType.");
+                    AddTypeForward(assembly, seedNestedType, contractAssembly);
+                }
             }
 
             private void AddWin32VersionResource(string contractLocation, Assembly facade)
