@@ -11,7 +11,7 @@
          This is probably because the code coverage target invocation does not canonicalize the
          process name. -->
     <ToolHost Condition="'$(OS)' == 'Windows_NT'">CoreRun.exe</ToolHost>
-    <ToolHost Condition="'$(OS)' != 'Windows_NT'">CoreRun</ToolHost>
+    <ToolHost Condition="'$(OS)' != 'Windows_NT'">corerun</ToolHost>
 
     <ToolTargetFramework Condition="'$(ToolTargetFramework)' == ''">DNXCore,Version=v5.0</ToolTargetFramework>
     <ToolOS Condition="'$(OS)' == 'Windows_NT'">win7</ToolOS>
@@ -56,7 +56,7 @@
 
     <Exec
       Condition="'$(OS)' != 'Windows_NT' and Exists('$(ToolRuntimePath)/corerun')"
-      Command="chmod a+x &quot;$(ToolRuntimePath)/CoreRun&quot;" />
+      Command="chmod a+x &quot;$(ToolRuntimePath)/$(ToolHost)&quot;" />
 
     <Touch Files="$(ToolRuntimeSempahore)"
       ContinueOnError="WarnAndContinue"
