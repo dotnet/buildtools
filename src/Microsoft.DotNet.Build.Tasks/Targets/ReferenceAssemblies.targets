@@ -20,6 +20,9 @@
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)ref\$(AssemblyName)\$(AssemblyVersion)</IntermediateOutputPath>
 
     <OmitTransitiveCompileReferences>true</OmitTransitiveCompileReferences>
+    <!-- if this is a reference assembly deployment project use compile assets 
+         instead of runtime -->
+    <NuGetDeploySourceItem>Reference</NuGetDeploySourceItem>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(IsReferenceAssembly)'=='true'">
