@@ -13,7 +13,7 @@
     <ToolHost Condition="'$(OS)' == 'Windows_NT'">CoreRun.exe</ToolHost>
     <ToolHost Condition="'$(OS)' != 'Windows_NT'">corerun</ToolHost>
 
-    <ToolTargetFramework Condition="'$(ToolTargetFramework)' ==''">DNXCore,Version=v5.0</ToolTargetFramework>
+    <ToolTargetFramework Condition="'$(ToolTargetFramework)' == ''">DNXCore,Version=v5.0</ToolTargetFramework>
     <ToolArchitecture Condition="'$(ToolArchitecture)' == ''">x64</ToolArchitecture>
     <ToolNugetRuntimeId Condition="'$(ToolNugetRuntimeId)' == ''">win7-$(ToolArchitecture)</ToolNugetRuntimeId>
 
@@ -52,10 +52,14 @@
       Retries="$(CopyRetryCount)"
       RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)" />
 
+    <Exec
+      Condition="'$(OS)' != 'Windows_NT'"
+      Command="chmod a+x &quot;$(ToolRuntimePath)/corerun&quot;" />
+
     <Touch Files="$(ToolRuntimeSempahore)"
-       ContinueOnError="WarnAndContinue"
-       AlwaysCreate="true"
-       ForceTouch="true" />
+      ContinueOnError="WarnAndContinue"
+      AlwaysCreate="true"
+      ForceTouch="true" />
 
   </Target>
 
