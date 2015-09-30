@@ -14,10 +14,8 @@
     <ToolHost Condition="'$(OS)' != 'Windows_NT'">corerun</ToolHost>
 
     <ToolTargetFramework Condition="'$(ToolTargetFramework)' == ''">DNXCore,Version=v5.0</ToolTargetFramework>
-    <ToolOS Condition="'$(OS)' == 'Windows_NT'">win7</ToolOS>
-    <ToolOS Condition="'$(OS)' != 'Windows_NT'">ubuntu.14.04</ToolOS>
     <ToolArchitecture Condition="'$(ToolArchitecture)' == ''">x64</ToolArchitecture>
-    <ToolNugetRuntimeId Condition="'$(ToolNugetRuntimeId)' == ''">$(ToolOS)-$(ToolArchitecture)</ToolNugetRuntimeId>
+    <ToolNugetRuntimeId Condition="'$(ToolNugetRuntimeId)' == ''">win7-$(ToolArchitecture)</ToolNugetRuntimeId>
 
     <ToolRuntimePath Condition="'$(ToolRuntimePath)' == ''">$(BaseOutputPath)$(OSPlatformConfig)\ToolRuntime\</ToolRuntimePath>
     <ToolRuntimeSempahore>$(ToolRuntimePath)\ToolRuntime.semaphore</ToolRuntimeSempahore>
