@@ -53,7 +53,7 @@
       RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)" />
 
     <Exec
-      Condition="'$(OS)' != 'Windows_NT'"
+      Condition="'$(OS)' != 'Windows_NT' and Exists('$(ToolRuntimePath)/corerun')"
       Command="chmod a+x &quot;$(ToolRuntimePath)/corerun&quot;" />
 
     <Touch Files="$(ToolRuntimeSempahore)"
