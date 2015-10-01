@@ -44,13 +44,27 @@
       $(ResolveAssemblyReferencesDependsOn);
       ResolveNuGetPackages;
     </ResolveAssemblyReferencesDependsOn>
+    
+    <!-- temporarily accept the old name NuGetTargetFrameworkMoniker until all projects are moved forward -->
+    <NuGetTargetMoniker Condition="'$(NuGetTargetMoniker)' == ''">(NuGetTargetFrameworkMoniker)</NuGetTargetMoniker>
     <!-- We use dotnet as the framework for our reference assemblies, in the future we'll move to 
          targets that are closer to what shipped in Dev14 and we won't need to special case this.-->
-    <NugetTargetFrameworkMoniker Condition="'$(NugetTargetFrameworkMoniker)' == '' and '$(IsReferenceAssembly)' == 'true'">.NETPlatform,Version=v5.0</NugetTargetFrameworkMoniker>    
-    <NugetTargetFrameworkMoniker Condition="'$(NugetTargetFrameworkMoniker)' == ''">$(TargetFrameworkMoniker)</NugetTargetFrameworkMoniker>
+    <NuGetTargetMoniker Condition="'$(NuGetTargetMoniker)' == '' and '$(IsReferenceAssembly)' == 'true'">.NETPlatform,Version=v5.0</NuGetTargetMoniker>
+    <UseTargetPlatformAsNuGetTargetMoniker Condition="'$(UseTargetPlatformAsNuGetTargetMoniker)' == '' AND '$(TargetFrameworkMoniker)' == '.NETCore,Version=v5.0'">true</UseTargetPlatformAsNuGetTargetMoniker>
+    <NuGetTargetMoniker Condition="'$(NuGetTargetMoniker)' == '' AND '$(UseTargetPlatformAsNuGetTargetMoniker)' == 'true'">$(TargetPlatformIdentifier),Version=v$([System.Version]::Parse('$(TargetPlatformMinVersion)').ToString(3))</NuGetTargetMoniker>
+    <NuGetTargetMoniker Condition="'$(NuGetTargetMoniker)' == '' AND '$(UseTargetPlatformAsNuGetTargetMoniker)' != 'true'">$(TargetFrameworkMoniker)</NuGetTargetMoniker>
 
+
+    <BaseNuGetRuntimeIdentifier Condition="'$(BaseNuGetRuntimeIdentifier)' == '' and '$(TargetPlatformIdentifier)' == 'UAP'">win10</BaseNuGetRuntimeIdentifier>
     <BaseNuGetRuntimeIdentifier Condition="'$(BaseNuGetRuntimeIdentifier)' == ''">win</BaseNuGetRuntimeIdentifier>
-    <NuGetRuntimeIdentifier Condition="'$(NuGetRuntimeIdentifier)' == ''">$(BaseNuGetRuntimeIdentifier)-$(PlatformTarget.ToLower())</NuGetRuntimeIdentifier>
+    <CopyNuGetImplementations Condition="'$(CopyNuGetImplementations)' == '' and '$(OutputType)' != 'library' and ('$(OutputType)' != 'winmdobj' or '$(AppxPackage)' == 'true')">true</CopyNuGetImplementations>
+  </PropertyGroup>
+
+  <!-- If a RuntimeIndentifier wasn't already specified, let's go generate it -->
+  <PropertyGroup Condition="'$(NuGetRuntimeIdentifier)' == '' and '$(CopyNuGetImplementations)' == 'true'">
+    <_NuGetRuntimeIdentifierWithoutAot>$(BaseNuGetRuntimeIdentifier)-$(PlatformTarget.ToLower())</_NuGetRuntimeIdentifierWithoutAot>
+    <NuGetRuntimeIdentifier>$(_NuGetRuntimeIdentifierWithoutAot)</NuGetRuntimeIdentifier>
+    <NuGetRuntimeIdentifier Condition="'$(UseDotNetNativeToolchain)' == 'true'">$(_NuGetRuntimeIdentifierWithoutAot)-aot</NuGetRuntimeIdentifier>
   </PropertyGroup>
 
   <Target Name="ResolveNuGetPackages"
@@ -63,17 +77,17 @@
                           Platform="$(PlatformTarget)"
                           Configuration="$(Configuration)"
                           Language="$(Language)"
-                          TargetFramework="$(NugetTargetFrameworkMoniker)"
+                          TargetFramework="$(NuGetTargetMoniker)"
                           TargetPlatformMoniker="$(TargetPlatformMoniker)">
 
       <Output TaskParameter="ResolvedAnalyzers" ItemName="Analyzer" />
       <Output TaskParameter="ResolvedReferences" ItemName="Reference" />
-      <Output TaskParameter="ResolvedCopyLocal" ItemName="None" />
+      <Output TaskParameter="ResolvedCopyLocal" ItemName="ReferenceCopyLocalPaths" />
     </ResolveNuGetPackages>
 
     <PropertyGroup>
       <!-- Temporary workaround -->
-      <NugetTargetFrameworkMoniker Condition="'$(NugetTargetFrameworkMoniker)' == '.NETPortable,Version=v4.5,Profile=Profile7'">DNXCore,Version=v5.0</NugetTargetFrameworkMoniker>
+      <NuGetTargetMoniker Condition="'$(NuGetTargetMoniker)' == '.NETPortable,Version=v4.5,Profile=Profile7'">DNXCore,Version=v5.0</NuGetTargetMoniker>
     </PropertyGroup>
 
     <PrereleaseResolveNuGetPackageAssets Condition="Exists('$(ProjectLockJson)')"
@@ -83,24 +97,24 @@
                                RuntimeIdentifier="$(NuGetRuntimeIdentifier)"
                                ProjectLanguage="$(Language)"
                                ProjectLockFile="$(ProjectLockJson)"
-                               TargetMonikers="$(NugetTargetFrameworkMoniker)"
+                               TargetMonikers="$(NuGetTargetMoniker)"
                                OmitTransitiveCompileReferences="$(OmitTransitiveCompileReferences)">
       <Output TaskParameter="ResolvedAnalyzers" ItemName="Analyzer" />
       <Output TaskParameter="ResolvedReferences" ItemName="Reference" />
-      <Output TaskParameter="ResolvedCopyLocalItems" ItemName="None" />
+      <Output TaskParameter="ResolvedCopyLocalItems" ItemName="ReferenceCopyLocalPaths" />
     </PrereleaseResolveNuGetPackageAssets>
 
     <!-- We may have an indirect package reference that we want to replace with a project reference -->
     <ItemGroup>
       <!-- Intersect project-refs with package-refs -->
       <_ReferenceFileNamesToRemove Include="@(Reference)" Condition="'@(_ResolvedProjectReferencePaths->'%(FileName)%(Extension)')' == '%(FileName)%(Extension)'" />
-      <_NoneFileNamesToRemove Include="@(None)" Condition="'@(_ResolvedProjectReferencePaths->'%(FileName)%(Extension)')' == '%(FileName)%(Extension)'" />
+      <_ReferenceCopyLocalPathsFileNamesToRemove Include="@(ReferenceCopyLocalPaths)" Condition="'@(_ResolvedProjectReferencePaths->'%(FileName)%(Extension)')' == '%(FileName)%(Extension)'" />
 
       <Reference Remove="@(_ReferenceFileNamesToRemove)" />
-      <None Remove="@(_NoneFileNamesToRemove)"/>
+      <ReferenceCopyLocalPaths Remove="@(_ReferenceCopyLocalPathsFileNamesToRemove)"/>
     </ItemGroup>
 
-    <Message Text="Excluding @(_ReferenceFileNamesToRemove);@(_NoneFileNamesToRemove) from package references since the same file is provided by a project refrence."
-             Condition="'@(_ReferenceFileNamesToRemove)' != '' or '@(_NoneFileNamesToRemove)' != ''"/>
+    <Message Text="Excluding @(_ReferenceFileNamesToRemove);@(_ReferenceCopyLocalPathsFileNamesToRemove) from package references since the same file is provided by a project refrence."
+             Condition="'@(_ReferenceFileNamesToRemove)' != '' or '@(_ReferenceCopyLocalPathsFileNamesToRemove)' != ''"/>
   </Target>
 </Project>
