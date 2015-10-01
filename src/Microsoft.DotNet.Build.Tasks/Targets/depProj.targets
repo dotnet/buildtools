@@ -53,8 +53,11 @@ Licensed under the MIT license. See LICENSE file in the project root for full li
       <!-- Don't set IntermediateAssembly since this is not produced -->
       <IntermediateAssembly Remove="@(IntermediateAssembly)" />
       
-      <!-- filter to items that came from packages -->
-      <NuGetDeploy Include="@($(NuGetDeploySourceItem))" Condition="'%($(NuGetDeploySourceItem).NuGetPackageId)' != ''" />
+      <NuGetDeploy Include="@($(NuGetDeploySourceItem))" />
+      <!-- filter to only items that came from packages -->
+      <!-- the following condition must be applied after the include because msbuild doesn't seem
+           to support property-defined-item-names in a metadata statement -->
+      <NuGetDeploy Remove="@(NuGetDeploy)" Condition="'%(NugetDeploy.NuGetPackageId)' == ''" />
       
       <!-- remove all existing items from NuGet packages we'll be defining these in our own item -->
       <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' != ''"/>
