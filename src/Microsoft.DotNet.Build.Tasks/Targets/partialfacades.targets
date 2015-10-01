@@ -98,7 +98,7 @@
 
     <MakeDir Directories="$(CustomPartialFacadeDirectory)" />
     <WriteLinesToFile File="$(CustomPartialFacadeJsonFile)" Overwrite="true"
-                      Lines="{&quot;dependencies&quot;:{&quot;$(AssemblyName)&quot;: &quot;$(AssemblyVersionString)-*&quot;},&quot;frameworks&quot;:{&quot;$(NugetTargetFrameworkMoniker)&quot;: { }}}"
+                      Lines="{&quot;dependencies&quot;:{&quot;$(AssemblyName)&quot;: &quot;$(AssemblyVersionString)-*&quot;},&quot;frameworks&quot;:{&quot;$(NuGetTargetMoniker)&quot;: { }}}"
     />
 
     <!-- Restore the special partial facade json file, which must contain the contract package to use in GenFacades -->
@@ -112,7 +112,7 @@
                                RuntimeIdentifier=""
                                ProjectLanguage="$(Language)"
                                ProjectLockFile="$(CustomPartialFacadeLockJsonFile)"
-                               TargetMonikers="$(NugetTargetFrameworkMoniker)">
+                               TargetMonikers="$(NuGetTargetMoniker)">
       <Output TaskParameter="ResolvedReferences" ItemName="PossibleContractRefs" />
     </PrereleaseResolveNuGetPackageAssets>
 

@@ -37,6 +37,9 @@ Licensed under the MIT license. See LICENSE file in the project root for full li
 
     <!-- suppress the attempt to copy build output. -->
     <CopyBuildOutputToOutputDirectory>false</CopyBuildOutputToOutputDirectory>
+
+    <!-- make sure we tell nuget targets to copy, even if output type would not by default -->
+    <CopyNuGetImplementations>true</CopyNuGetImplementations>
   </PropertyGroup>
   
   <Target Name="CoreCompile">
