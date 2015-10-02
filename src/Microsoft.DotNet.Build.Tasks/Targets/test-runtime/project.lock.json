@@ -1878,6 +1878,33 @@
           "lib/dotnet/xunit.assert.dll": {}
         }
       },
+      "xunit.console.netcore/1.0.2-prerelease-00101": {
+        "type": "package",
+        "dependencies": {
+          "System.Collections": "4.0.10",
+          "System.Collections.Concurrent": "4.0.10",
+          "System.Console": "4.0.0-beta-23213",
+          "System.Diagnostics.Debug": "4.0.10",
+          "System.Globalization": "4.0.10",
+          "System.IO": "4.0.10",
+          "System.IO.FileSystem": "4.0.0",
+          "System.IO.FileSystem.Primitives": "4.0.0",
+          "System.Linq": "4.0.0",
+          "System.Runtime": "4.0.20",
+          "System.Runtime.Extensions": "4.0.10",
+          "System.Text.RegularExpressions": "4.0.10",
+          "System.Threading": "4.0.10",
+          "System.Threading.Tasks": "4.0.10",
+          "System.Xml.XDocument": "4.0.10",
+          "xunit.runner.utility": "2.1.0"
+        },
+        "compile": {
+          "lib/dnxcore50/_._": {}
+        },
+        "runtime": {
+          "lib/dnxcore50/_._": {}
+        }
+      },
       "xunit.core/2.1.0": {
         "type": "package",
         "dependencies": {
@@ -4518,6 +4545,36 @@
           "lib/dotnet/xunit.assert.dll": {}
         }
       },
+      "xunit.console.netcore/1.0.2-prerelease-00101": {
+        "type": "package",
+        "dependencies": {
+          "System.Collections": "4.0.10",
+          "System.Collections.Concurrent": "4.0.10",
+          "System.Console": "4.0.0-beta-23213",
+          "System.Diagnostics.Debug": "4.0.10",
+          "System.Globalization": "4.0.10",
+          "System.IO": "4.0.10",
+          "System.IO.FileSystem": "4.0.0",
+          "System.IO.FileSystem.Primitives": "4.0.0",
+          "System.Linq": "4.0.0",
+          "System.Runtime": "4.0.20",
+          "System.Runtime.Extensions": "4.0.10",
+          "System.Text.RegularExpressions": "4.0.10",
+          "System.Threading": "4.0.10",
+          "System.Threading.Tasks": "4.0.10",
+          "System.Xml.XDocument": "4.0.10",
+          "xunit.runner.utility": "2.1.0"
+        },
+        "compile": {
+          "lib/dnxcore50/_._": {}
+        },
+        "runtime": {
+          "lib/dnxcore50/_._": {}
+        },
+        "native": {
+          "runtimes/any/native/xunit.console.netcore.exe": {}
+        }
+      },
       "xunit.core/2.1.0": {
         "type": "package",
         "dependencies": {
@@ -7156,6 +7213,36 @@
         },
         "runtime": {
           "lib/dotnet/xunit.assert.dll": {}
+        }
+      },
+      "xunit.console.netcore/1.0.2-prerelease-00101": {
+        "type": "package",
+        "dependencies": {
+          "System.Collections": "4.0.10",
+          "System.Collections.Concurrent": "4.0.10",
+          "System.Console": "4.0.0-beta-23213",
+          "System.Diagnostics.Debug": "4.0.10",
+          "System.Globalization": "4.0.10",
+          "System.IO": "4.0.10",
+          "System.IO.FileSystem": "4.0.0",
+          "System.IO.FileSystem.Primitives": "4.0.0",
+          "System.Linq": "4.0.0",
+          "System.Runtime": "4.0.20",
+          "System.Runtime.Extensions": "4.0.10",
+          "System.Text.RegularExpressions": "4.0.10",
+          "System.Threading": "4.0.10",
+          "System.Threading.Tasks": "4.0.10",
+          "System.Xml.XDocument": "4.0.10",
+          "xunit.runner.utility": "2.1.0"
+        },
+        "compile": {
+          "lib/dnxcore50/_._": {}
+        },
+        "runtime": {
+          "lib/dnxcore50/_._": {}
+        },
+        "native": {
+          "runtimes/any/native/xunit.console.netcore.exe": {}
         }
       },
       "xunit.core/2.1.0": {
@@ -11896,6 +11983,19 @@
         "xunit.assert.nuspec"
       ]
     },
+    "xunit.console.netcore/1.0.2-prerelease-00101": {
+      "type": "package",
+      "sha512": "RZn6xkGDXPsXjzhpna8LDdbFBeqB0WDmHZmmyoqHmrrtiIYBSAoaXzdvqjKu4Ic+MrRNfaXwYZIun/+yn4pxEQ==",
+      "files": [
+        "lib/aspnetcore50/xunit.console.netcore.exe",
+        "lib/dnxcore50/_._",
+        "lib/dotnet/_._",
+        "runtimes/any/native/xunit.console.netcore.exe",
+        "xunit.console.netcore.1.0.2-prerelease-00101.nupkg",
+        "xunit.console.netcore.1.0.2-prerelease-00101.nupkg.sha512",
+        "xunit.console.netcore.nuspec"
+      ]
+    },
     "xunit.core/2.1.0": {
       "type": "package",
       "sha512": "jlbYdPbnkPIRwJllcT/tQZCNsSElVDEymdpJfH79uTUrPARkELVYw9o/zhAjKZXmeikGqGK5C2Yny4gTNoEu0Q==",
@@ -12028,7 +12128,7 @@
       "Microsoft.DotNet.xunit.performance.analysis >= 1.0.0-alpha-build0022",
       "Microsoft.DotNet.xunit.performance.runner.Windows >= 1.0.0-alpha-build0022",
       "xunit >= 2.1.0",
-      "xunit.console.netcore >= 1.0.2-prerelease-00100",
+      "xunit.console.netcore >= 1.0.2-prerelease-00101",
       "xunit.runner.utility >= 2.1.0"
     ],
     "DNXCore,Version=v5.0": []
