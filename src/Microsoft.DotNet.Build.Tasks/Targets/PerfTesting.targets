@@ -4,8 +4,6 @@
   <PropertyGroup>
     <RunPerfTestsForProject Condition="'$(Performance)' == 'true' and '$(RunPerfTestsForProject)' != 'false' and '$(OS)' == 'Windows_NT' and Exists('$(MSBuildProgramFiles32)\MSBuild\Microsoft\Portable\v5.0\Microsoft.Portable.CSharp.targets')" >true</RunPerfTestsForProject>
     <AnalyzePerfResults Condition="'$(RunPerfTestsForProject)' == 'true' And '$(AnalyzePerfResults)' != 'false'">true</AnalyzePerfResults>
-    <PerfRunId Condition="'$(PerfRunId)' == ''">latest-perf-build</PerfRunId>
-    <AnalysisReportFileName>$(PerfRunId)-analysis.html</AnalysisReportFileName>
   </PropertyGroup>
 
   <!-- Perf Runner NuGet package paths -->
@@ -29,6 +27,7 @@
       <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/xunit.performance.run.exe" />
       <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/xunit.performance.metrics.dll" />
       <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/xunit.performance.logger.exe" />
+      <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/xunit.performance.core.dll" />
       <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/ProcDomain.dll" />
       <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/Microsoft.Diagnostics.Tracing.TraceEvent.dll" />
       <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/*/*.*" />
@@ -40,7 +39,9 @@
 
   <!-- Executable properties -->
   <PropertyGroup>
-    <XunitRunnerArgs>$(TargetFileName) -runnerhost $(TestHost) -runner $(XunitExecutable) -runid $(PerfRunId) -verbose</XunitRunnerArgs>
+    <PerfRunId Condition="'$(PerfRunId)' == ''">$(TargetFileName)-WindowsCore</PerfRunId>
+    <AnalysisReportFileName>$(PerfRunId)-analysis.html</AnalysisReportFileName>
+    <XunitRunnerArgs>$(TargetFileName) -trait Benchmark=true -runnerhost $(TestHost) -runner $(XunitExecutable) -runid $(PerfRunId) -verbose</XunitRunnerArgs>
     <PerfTestCommandLine>$(XunitPerfRunnerPath) $(XunitRunnerArgs) $(AdditionalPerfTestArgs)</PerfTestCommandLine>
 
     <PerfRunOutputFile>$(TestPath)$(DebugTestFrameworkFolder)/$(PerfRunId).xml</PerfRunOutputFile>
