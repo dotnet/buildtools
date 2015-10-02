@@ -33,7 +33,7 @@
       <dependency id="System.Threading" version="4.0.10" />
       <dependency id="System.Threading.Tasks" version="4.0.10" />
       <dependency id="System.Xml.XDocument" version="4.0.10" />
-      <dependency id="xunit.runner.utility" version="2.1.0-rc1-build3168" />
+      <dependency id="xunit.runner.utility" version="2.1.0" />
     </dependencies>
   </metadata>
   <files>

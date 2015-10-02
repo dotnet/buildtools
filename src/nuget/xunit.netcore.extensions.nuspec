@@ -27,7 +27,7 @@
       <dependency id="System.Text.Encoding" version="4.0.10" />
       <dependency id="System.Threading" version="4.0.10" />
       <dependency id="System.Threading.Tasks" version="4.0.10" />
-      <dependency id="xunit" version="2.1.0-beta3-build3029" />
+      <dependency id="xunit" version="2.1.0" />
     </dependencies>
   </metadata>
   <files>
