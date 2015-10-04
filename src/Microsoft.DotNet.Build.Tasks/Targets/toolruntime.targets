@@ -54,7 +54,7 @@
 
     <Exec
       Condition="'$(OS)' != 'Windows_NT' and Exists('$(ToolRuntimePath)/corerun')"
-      Command="chmod a+x &quot;$(ToolRuntimePath)/corerun&quot;" />
+      Command="chmod a+x &quot;$(ToolRuntimePath)/$(ToolHost)&quot;" />
 
     <Touch Files="$(ToolRuntimeSempahore)"
       ContinueOnError="WarnAndContinue"
