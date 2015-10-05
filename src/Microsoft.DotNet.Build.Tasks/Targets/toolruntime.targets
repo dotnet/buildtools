@@ -23,7 +23,7 @@
     <!-- If COMPLUS_InstallRoot is set clear it before calling the ToolHost otherwise some root activations like PDB COM activation will fail -->
     <ToolHostCmd Condition="'$(COMPLUS_InstallRoot)' != ''">(set COMPLUS_InstallRoot=) &amp; $(ToolHostCmd)</ToolHostCmd>
   </PropertyGroup>
-
+  
   <Target Name="EnsureBuildToolsRuntime"
       Inputs="$(BuildToolsSemaphore)"
       Outputs="$(ToolRuntimeSempahore)">
@@ -51,6 +51,13 @@
       OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
       Retries="$(CopyRetryCount)"
       RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)" />
+
+    <!-- If BUILDTOOLS_OVERRIDE_RUNTIME is set, then we will use that as the tool and test runtime, else we will restore it from NuGet. -->
+    <ItemGroup Condition="'$(BUILDTOOLS_OVERRIDE_RUNTIME)' != ''">
+      <ToolRuntimeSource Include="$(BUILDTOOLS_OVERRIDE_RUNTIME)\*.*" />
+    </ItemGroup>
+
+    <Copy Condition="'$(BUILDTOOLS_OVERRIDE_RUNTIME)' != ''" SourceFiles="@(ToolRuntimeSource)" DestinationFolder="$(ToolRuntimePath)" />
 
     <Exec
       Condition="'$(OS)' != 'Windows_NT' and Exists('$(ToolRuntimePath)/corerun')"
