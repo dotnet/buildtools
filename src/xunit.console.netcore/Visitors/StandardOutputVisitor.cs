@@ -12,17 +12,20 @@ namespace Xunit.ConsoleClient
         readonly object consoleLock;
         readonly ConcurrentDictionary<string, ExecutionSummary> completionMessages;
         readonly string defaultDirectory;
+        readonly bool showProgress;
 
         public StandardOutputVisitor(object consoleLock,
                                      string defaultDirectory,
                                      XElement assemblyElement,
                                      Func<bool> cancelThunk,
-                                     ConcurrentDictionary<string, ExecutionSummary> completionMessages = null)
+                                     ConcurrentDictionary<string, ExecutionSummary> completionMessages = null,
+                                     bool showProgress = false)
             : base(assemblyElement, cancelThunk)
         {
             this.consoleLock = consoleLock;
             this.defaultDirectory = defaultDirectory;
             this.completionMessages = completionMessages;
+            this.showProgress = showProgress;
         }
 
         protected override bool Visit(ITestAssemblyStarting assemblyStarting)
@@ -93,7 +96,26 @@ namespace Xunit.ConsoleClient
 
         protected override bool Visit(ITestStarting testStarting)
         {
+            if (showProgress)
+            {
+                lock (consoleLock)
+                {
+                    Console.WriteLine("   {0} [STARTING]", Escape(testStarting.Test.DisplayName));
+                }
+            }
             return base.Visit(testStarting);
+        }
+
+        protected override bool Visit(ITestFinished testFinished)
+        {
+            if (showProgress)
+            {
+                lock (consoleLock)
+                {
+                    Console.WriteLine("   {0} [FINISHED] Time: {1}s", Escape(testFinished.Test.DisplayName), testFinished.ExecutionTime);
+                }
+            }
+            return base.Visit(testFinished);
         }
 
         protected override bool Visit(IErrorMessage error)

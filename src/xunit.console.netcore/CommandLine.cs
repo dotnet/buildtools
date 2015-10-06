@@ -31,6 +31,8 @@ namespace Xunit.ConsoleClient
 
         public bool? ParallelizeTestCollections { get; set; }
 
+        public bool ShowProgress { get; protected set; }
+
         public bool TeamCity { get; protected set; }
 
         public bool Wait { get; protected set; }
@@ -161,6 +163,11 @@ namespace Xunit.ConsoleClient
                 {
                     GuardNoOptionValue(option);
                     AppVeyor = true;
+                }
+                else if (optionName == "-showprogress")
+                {
+                    GuardNoOptionValue(option);
+                    ShowProgress = true;
                 }
                 else if (optionName == "-noshadow")
                 {
