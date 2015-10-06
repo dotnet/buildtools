@@ -1,0 +1,6 @@
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- 
+     This file will contain all of the common properties from most repos. The intention is to only have 
+     repo specific properties inside the repos, and move to this file everything that is common.
+  -->
+</Project>

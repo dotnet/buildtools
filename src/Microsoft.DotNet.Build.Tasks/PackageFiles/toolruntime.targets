@@ -4,8 +4,6 @@
   <UsingTask TaskName="PrereleaseResolveNuGetPackageAssets" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
   <PropertyGroup>
-    <ToolRuntimeProjectJson Condition="'$(ToolRuntimeProjectJson)' == ''">$(MSBuildThisFileDirectory)tool-runtime\project.json</ToolRuntimeProjectJson>
-    <ToolRuntimeProjectLockJson Condition="'$(ToolRuntimeProjectLockJson)' == ''">$(MSBuildThisFileDirectory)tool-runtime\project.lock.json</ToolRuntimeProjectLockJson>
     <!-- Invoke with the correct casing of corerun per-OS.  There are some process Tools
          that check the invoked process name against known casing which fail under code coverage.
          This is probably because the code coverage target invocation does not canonicalize the
@@ -17,57 +15,14 @@
     <ToolArchitecture Condition="'$(ToolArchitecture)' == ''">x64</ToolArchitecture>
     <ToolNugetRuntimeId Condition="'$(ToolNugetRuntimeId)' == ''">win7-$(ToolArchitecture)</ToolNugetRuntimeId>
 
-    <ToolRuntimePath Condition="'$(ToolRuntimePath)' == ''">$(IntermediateOutputRootPath)ToolRuntime\</ToolRuntimePath>
-    <ToolRuntimeSempahore>$(ToolRuntimePath)\ToolRuntime.semaphore</ToolRuntimeSempahore>
+    <ToolRuntimePath Condition="'$(ToolRuntimePath)' == ''">$(ProjectDir)Tools\</ToolRuntimePath>
     <ToolHostCmd>"$(ToolRuntimePath)$(ToolHost)"</ToolHostCmd>
     <!-- If COMPLUS_InstallRoot is set clear it before calling the ToolHost otherwise some root activations like PDB COM activation will fail -->
     <ToolHostCmd Condition="'$(COMPLUS_InstallRoot)' != ''">(set COMPLUS_InstallRoot=) &amp; $(ToolHostCmd)</ToolHostCmd>
   </PropertyGroup>
   
-  <Target Name="EnsureBuildToolsRuntime"
-      Inputs="$(BuildToolsSemaphore)"
-      Outputs="$(ToolRuntimeSempahore)">
-
-    <!-- Restore tool runtime -->
-    <Exec Command="$(DnuRestoreCommand) &quot;$(ToolRuntimeProjectJson)&quot;" StandardOutputImportance="Low" CustomErrorRegularExpression="^Unable to locate .*" />
-
-    <!-- Resolve the tool runtime files -->
-    <PrereleaseResolveNuGetPackageAssets
-                               AllowFallbackOnTargetSelection="true"
-                               IncludeFrameworkReferences="false"
-                               NuGetPackagesDirectory="$(PackagesDir)"
-                               RuntimeIdentifier="$(ToolNugetRuntimeId)"
-                               ProjectLanguage="$(Language)"
-                               ProjectLockFile="$(ToolRuntimeProjectLockJson)"
-                               TargetMonikers="$(ToolTargetFramework)">
-      <Output TaskParameter="ResolvedCopyLocalItems" ItemName="ToolCopyLocal" />
-    </PrereleaseResolveNuGetPackageAssets>
-
-    <!-- Copy the runtime and libraries into the flat shared path $(ToolRuntimePath) -->
-    <Copy 
-      SourceFiles="@(ToolCopyLocal)" 
-      DestinationFolder="$(ToolRuntimePath)" 
-      SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
-      OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
-      Retries="$(CopyRetryCount)"
-      RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)" />
-
-    <!-- If BUILDTOOLS_OVERRIDE_RUNTIME is set, then we will use that as the tool and test runtime, else we will restore it from NuGet. -->
-    <ItemGroup Condition="'$(BUILDTOOLS_OVERRIDE_RUNTIME)' != ''">
-      <ToolRuntimeSource Include="$(BUILDTOOLS_OVERRIDE_RUNTIME)\*.*" />
-    </ItemGroup>
-
-    <Copy Condition="'$(BUILDTOOLS_OVERRIDE_RUNTIME)' != ''" SourceFiles="@(ToolRuntimeSource)" DestinationFolder="$(ToolRuntimePath)" />
-
-    <Exec
-      Condition="'$(OS)' != 'Windows_NT' and Exists('$(ToolRuntimePath)/corerun')"
-      Command="chmod a+x &quot;$(ToolRuntimePath)/$(ToolHost)&quot;" />
-
-    <Touch Files="$(ToolRuntimeSempahore)"
-      ContinueOnError="WarnAndContinue"
-      AlwaysCreate="true"
-      ForceTouch="true" />
-
+  <Target Name="EnsureBuildToolsRuntime">
+    <Error Condition="!Exists('$(ToolRuntimePath)')"
+           Text="The Tool Runtime directory [$(ToolRuntimePath)] does not exist. Please run $(SourceDir)Build.cmd to ensure the tools are installed before attempting to build an individual project." />
   </Target>
-
 </Project>
