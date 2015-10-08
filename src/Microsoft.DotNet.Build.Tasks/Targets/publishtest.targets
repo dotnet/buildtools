@@ -92,6 +92,12 @@
       
       <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
     </Copy>
+
+    <ItemGroup Condition="'$(BUILDTOOLS_OVERRIDE_RUNTIME)' != ''">
+      <TestRuntimeSource Include="$(BUILDTOOLS_OVERRIDE_RUNTIME)\*.*" />
+    </ItemGroup>
+
+    <Copy Condition="'$(BUILDTOOLS_OVERRIDE_RUNTIME)' != ''" SourceFiles="@(TestRuntimeSource)" DestinationFolder="$(TestPath)%(TestTargetFramework.Folder)" />
   </Target>
 
 </Project>
