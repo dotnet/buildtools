@@ -114,7 +114,7 @@
     <RemoveDir Directories="%(LocalPackages.InstallLocation)\%(LocalPackages.PackageName).%(LocalPackages.PackageVersion)" />
 
     <!-- Restoring the packages -->
-    <Exec Command="$(NuGetExe) install $(RestoreConfig) -Source $(LocalPackagesSources) -NoCache -Prerelease -OutputDirectory %(LocalPackages.InstallLocation)" />
+    <Exec Command="$(NuGetExe) install &quot;$(RestoreConfig)&quot; -Source $(LocalPackagesSources) -NoCache -Prerelease -OutputDirectory &quot;%(LocalPackages.InstallLocation)&quot;" />
 
     <!-- Write a file in the packages folder to let the user know this is not the original package -->
     <ItemGroup>
