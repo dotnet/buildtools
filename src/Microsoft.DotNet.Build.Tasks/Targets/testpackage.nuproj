@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(NuProjPropsPath)" />
+
+  <PropertyGroup>
+    <!--
+      $Id,
+      $Title,
+      $Version,
+      $Description,
+      $Content,
+      $NuProjPropsPath, and
+      $NuProjTargetsPath are supplied by the caller -->
+
+    <Authors>Microsoft</Authors>
+    <Owners>microsoft,dotnetframework</Owners>
+    <LicenseUrl>http://go.microsoft.com/fwlink/?LinkID=279007</LicenseUrl>
+    <IconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</IconUrl>
+    <Copyright>© Microsoft Corporation.  All rights reserved.</Copyright>
+    <RequireLicenseAcceptance>True</RequireLicenseAcceptance>
+    
+    <!-- Disable package analysis because we are adding lots of assemblies 
+         to the content directory, which would create many warnings -->
+    <NoPackageAnalysis>True</NoPackageAnalysis>
+    
+    <!-- Disable symbols package -->
+    <GenerateSymbolPackage>False</GenerateSymbolPackage>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <Content Include="$(Content)">
+      <Link>\content\%(Filename)%(Extension)</Link>
+    </Content>
+  </ItemGroup>
+
+  <Import Project="$(NuProjTargetsPath)" />
+</Project>

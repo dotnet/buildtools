@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <package>
   <metadata minClientVersion="2.8.1">
     <id>Microsoft.DotNet.BuildTools</id>
@@ -20,6 +20,7 @@
       <dependency id="Microsoft.DotNet.TestHost" version="1.0.3-prerelease" />
       <dependency id="Microsoft.DotNet.CoreCLR" version="1.0.0-prerelease" />
       <dependency id="Microsoft.DotNet.BuildTools.ApiTools" version="1.0.0-prerelease" />
+      <dependency id="NuProj" version="0.10.4-beta-gf7fc34e7d8" />
     </dependencies>
   </metadata>
   <files>
@@ -27,6 +28,7 @@
     <file src="Microsoft.DotNet.Build.Tasks\MSFT.snk" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\PriConfig.xml" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\*.targets" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks\testpackage.nuproj" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\coreAssembly.rsp" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\test-runtime\project.json" target="lib\test-runtime\project.json" />
     <file src="Microsoft.DotNet.Build.Tasks\test-runtime\project.lock.json" target="lib\test-runtime\project.lock.json" />
