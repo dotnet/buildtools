@@ -312,33 +312,62 @@ namespace GenFacades
 
             var typesToForward = contractAssembly.GetAllTypes().Where(t => TypeHelper.IsVisibleOutsideAssembly(t))
                                                                .OfType<INamespaceTypeDefinition>();
+            List<string> result = typeForwardsToForward.Concat(typesToForward)
+                                        .Select(type => TypeHelper.GetTypeName(type, NameFormattingOptions.DocumentationId)).ToList();
+            
+            foreach(var type in typesToForward)
+            {
+                AddNestedTypeDocIds(result, type);
+            }
 
-            return typeForwardsToForward.Concat(typesToForward)
-                                        .Select(type => TypeHelper.GetTypeName(type, NameFormattingOptions.DocumentationId));
+            return result;
         }
 
-        private static IReadOnlyDictionary<string, IReadOnlyList<INamespaceTypeDefinition>> GenerateTypeTable(IEnumerable<IAssembly> seedAssemblies)
+        private static void AddNestedTypeDocIds(List<string> docIds, INamedTypeDefinition type)
         {
-            var typeTable = new Dictionary<string, IReadOnlyList<INamespaceTypeDefinition>>();
+            foreach (var nestedType in type.NestedTypes)
+            {
+                if (TypeHelper.IsVisibleOutsideAssembly(nestedType))
+                    docIds.Add(TypeHelper.GetTypeName(nestedType, NameFormattingOptions.DocumentationId));
+                AddNestedTypeDocIds(docIds, nestedType);
+            }
+        }
+
+        private static IReadOnlyDictionary<string, IReadOnlyList<INamedTypeDefinition>> GenerateTypeTable(IEnumerable<IAssembly> seedAssemblies)
+        {
+            var typeTable = new Dictionary<string, IReadOnlyList<INamedTypeDefinition>>();
             foreach (var assembly in seedAssemblies)
             {
-                foreach (var type in assembly.GetAllTypes().OfType<INamespaceTypeDefinition>())
+                foreach (var type in assembly.GetAllTypes().OfType<INamedTypeDefinition>())
                 {
                     if (!TypeHelper.IsVisibleOutsideAssembly(type))
                         continue;
-
-                    IReadOnlyList<INamespaceTypeDefinition> seedTypes;
-                    string docId = TypeHelper.GetTypeName(type, NameFormattingOptions.DocumentationId);
-                    if (!typeTable.TryGetValue(docId, out seedTypes))
-                    {
-                        seedTypes = new List<INamespaceTypeDefinition>(1);
-                        typeTable.Add(docId, seedTypes);
-                    }
-
-                    ((List<INamespaceTypeDefinition>)seedTypes).Add(type);
+                    AddTypeAndNestedTypesToTable(typeTable, type);
                 }
             }
             return typeTable;
+        }
+
+        private static void AddTypeAndNestedTypesToTable(Dictionary<string, IReadOnlyList<INamedTypeDefinition>> typeTable, INamedTypeDefinition type)
+        {
+            if (type != null)
+            {
+                IReadOnlyList<INamedTypeDefinition> seedTypes;
+                string docId = TypeHelper.GetTypeName(type, NameFormattingOptions.DocumentationId);
+                if (!typeTable.TryGetValue(docId, out seedTypes))
+                {
+                    seedTypes = new List<INamedTypeDefinition>(1);
+                    typeTable.Add(docId, seedTypes);
+                }
+                if (!seedTypes.Contains(type))
+                    ((List<INamedTypeDefinition>)seedTypes).Add(type);
+
+                foreach (INestedTypeDefinition nestedType in type.NestedTypes)
+                {
+                    if (TypeHelper.IsVisibleOutsideAssembly(nestedType))
+                        AddTypeAndNestedTypesToTable(typeTable, nestedType);
+                }
+            }
         }
 
         private class FacadeGenerator
@@ -346,7 +375,7 @@ namespace GenFacades
             private readonly IMetadataHost _seedHost;
             private readonly IMetadataHost _contractHost;
             private readonly IReadOnlyDictionary<string, IEnumerable<string>> _docIdTable;
-            private readonly IReadOnlyDictionary<string, IReadOnlyList<INamespaceTypeDefinition>> _typeTable;
+            private readonly IReadOnlyDictionary<string, IReadOnlyList<INamedTypeDefinition>> _typeTable;
             private readonly IReadOnlyDictionary<string, string> _seedTypePreferences;
             private readonly bool _clearBuildAndRevision;
             private readonly bool _buildDesignTimeFacades;
@@ -356,7 +385,7 @@ namespace GenFacades
                 IMetadataHost seedHost,
                 IMetadataHost contractHost,
                 IReadOnlyDictionary<string, IEnumerable<string>> docIdTable,
-                IReadOnlyDictionary<string, IReadOnlyList<INamespaceTypeDefinition>> typeTable,
+                IReadOnlyDictionary<string, IReadOnlyList<INamedTypeDefinition>> typeTable,
                 IReadOnlyDictionary<string, string> seedTypePreferences,
                 bool clearBuildAndRevision,
                 bool buildDesignTimeFacades,
@@ -398,7 +427,7 @@ namespace GenFacades
                 IEnumerable<string> missingDocIds = docIds.Where(id => !existingDocIds.Contains(id));
                 foreach (string docId in missingDocIds)
                 {
-                    IReadOnlyList<INamespaceTypeDefinition> seedTypes;
+                    IReadOnlyList<INamedTypeDefinition> seedTypes;
                     if (!_typeTable.TryGetValue(docId, out seedTypes))
                     {
                         if (!ignoreMissingTypes)
@@ -409,7 +438,7 @@ namespace GenFacades
                         continue;
                     }
 
-                    INamespaceTypeDefinition seedType = GetSeedType(docId, seedTypes);
+                    INamedTypeDefinition seedType = GetSeedType(docId, seedTypes);
                     if (seedType == null)
                     {
                         TraceDuplicateSeedTypeError(docId, seedTypes);
@@ -447,7 +476,7 @@ namespace GenFacades
                 return assembly;
             }
 
-            private INamespaceTypeDefinition GetSeedType(string docId, IReadOnlyList<INamespaceTypeDefinition> seedTypes)
+            private INamedTypeDefinition GetSeedType(string docId, IReadOnlyList<INamedTypeDefinition> seedTypes)
             {
                 Debug.Assert(seedTypes.Count != 0); // we should already have checked for non-existent types.
 
@@ -459,20 +488,28 @@ namespace GenFacades
                 string preferredSeedAssembly;
                 if (_seedTypePreferences.TryGetValue(docId, out preferredSeedAssembly))
                 {
-                    return seedTypes.SingleOrDefault(t => String.Equals(t.ContainingUnitNamespace.Unit.Name.Value, preferredSeedAssembly, StringComparison.OrdinalIgnoreCase));
+                    return seedTypes.SingleOrDefault(t => String.Equals(GetContainingUnitNamespaceFromType(t), preferredSeedAssembly, StringComparison.OrdinalIgnoreCase));
                 }
 
                 return null;
             }
 
-            private static void TraceDuplicateSeedTypeError(string docId, IReadOnlyList<INamespaceTypeDefinition> seedTypes)
+            private static void TraceDuplicateSeedTypeError(string docId, IReadOnlyList<INamedTypeDefinition> seedTypes)
             {
                 Trace.TraceError("The type '{0}' is defined in multiple seed assemblies. If this is intentional, specify one of the following arguments to choose the preferred seed type:", docId);
 
-                foreach (INamespaceTypeDefinition type in seedTypes)
+                foreach (INamedTypeDefinition type in seedTypes)
                 {
-                    Trace.TraceError("  /preferSeedType:{0}={1}", docId.Substring("T:".Length), type.ContainingUnitNamespace.Unit.Name.Value);
+                    Trace.TraceError("  /preferSeedType:{0}={1}", docId.Substring("T:".Length), GetContainingUnitNamespaceFromType(type));
                 }
+            }
+
+            private static string GetContainingUnitNamespaceFromType(INamedTypeDefinition type)
+            {
+                INamespaceTypeDefinition namespaceTypeDefinition = type as INamespaceTypeDefinition;
+                if (namespaceTypeDefinition != null)
+                    return namespaceTypeDefinition.ContainingUnitNamespace.Unit.Name.Value;
+                return type.GetAssembly().Name.Value;
             }
 
             private void AddTypeForward(Assembly assembly, INamedTypeDefinition seedType, IAssembly contractAssembly)
@@ -484,25 +521,6 @@ namespace GenFacades
                 if (assembly.ExportedTypes == null)
                     assembly.ExportedTypes = new List<IAliasForType>();
                 assembly.ExportedTypes.Add(alias);
-
-                // Recursively add forwarders for nested types.
-                // NOTE: Some design-time tools can resolve forwarded nested types with only the top-level forwarder,
-                //       but the runtime currently throws a TypeLoadException without explicit forwarders for the nested 
-                //       types.
-                INamedTypeDefinition contractType = contractAssembly.GetAllTypes().Where(t => t.FullName() == seedType.FullName()).FirstOrDefault();
-                if (contractType != null) // Only add forwarders for the nested types on the contract
-                {
-                    foreach (var nestedType in contractType.NestedTypes.OrderBy(t => t.Name.Value))
-                    {
-                        var seedNestedType = seedType.NestedTypes.Where(nt => nt.Name.Value == nestedType.Name.Value).FirstOrDefault();
-                        if (seedNestedType == null)
-                            throw new Exception("Nested type found in the contract, but not on the seedType.");
-                        AddTypeForward(assembly, seedNestedType, contractAssembly);
-                    }
-                }
-                else // Add all the nested types for ExportedTypes.
-                    foreach (var nestedType in seedType.NestedTypes.OrderBy(t => t.Name.Value))
-                        AddTypeForward(assembly, nestedType, contractAssembly);
             }
 
             private void AddWin32VersionResource(string contractLocation, Assembly facade)
