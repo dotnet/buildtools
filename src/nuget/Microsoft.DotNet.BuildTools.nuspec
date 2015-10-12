@@ -20,6 +20,7 @@
       <dependency id="Microsoft.DotNet.TestHost" version="1.0.3-prerelease" />
       <dependency id="Microsoft.DotNet.CoreCLR" version="1.0.0-prerelease" />
       <dependency id="Microsoft.DotNet.BuildTools.ApiTools" version="1.0.0-prerelease" />
+      <!-- This version should be kept up to date with the version in publishtest.targets -->
       <dependency id="NuProj" version="0.10.4-beta-gf7fc34e7d8" />
     </dependencies>
   </metadata>
