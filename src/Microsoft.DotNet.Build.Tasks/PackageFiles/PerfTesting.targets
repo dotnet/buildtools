@@ -9,7 +9,7 @@
   <!-- Perf Runner NuGet package paths -->
   <PropertyGroup>
     <XunitPerfRunnerPackageId>Microsoft.DotNet.xunit.performance.runner.Windows</XunitPerfRunnerPackageId>
-    <XunitPerfRunnerPackageVersion>1.0.0-alpha-build0022</XunitPerfRunnerPackageVersion>
+    <XunitPerfRunnerPackageVersion>1.0.0-alpha-build0023</XunitPerfRunnerPackageVersion>
     <XunitPerfRunnerPackageDir>$(PackagesDir)$(XunitPerfRunnerPackageId)/$(XunitPerfRunnerPackageVersion)</XunitPerfRunnerPackageDir>
     <XunitPerfRunnerPath>$(TestPath)$(DebugTestFrameworkFolder)/xunit.performance.run.exe</XunitPerfRunnerPath>
   </PropertyGroup>
@@ -17,9 +17,15 @@
   <!-- Perf Analysis NuGet package paths -->
   <PropertyGroup>
     <XunitPerfAnalysisPackageId>Microsoft.DotNet.xunit.performance.analysis</XunitPerfAnalysisPackageId>
-    <XunitPerfAnalysisPackageVersion>1.0.0-alpha-build0022</XunitPerfAnalysisPackageVersion>
+    <XunitPerfAnalysisPackageVersion>1.0.0-alpha-build0023</XunitPerfAnalysisPackageVersion>
     <XunitPerfAnalysisPath>$(PackagesDir)$(XunitPerfAnalysisPackageId)/$(XunitPerfAnalysisPackageVersion)/tools/xunit.performance.analysis.exe</XunitPerfAnalysisPath>
   </PropertyGroup>
+  
+  <!-- Perf testing assembly attribute -->
+  <ItemGroup Condition="'$(RunPerfTestsForProject)' == 'true' and '$(DisableTests)' != 'true'">
+    <AssemblyInfoUsings Include="using Microsoft.Xunit.Performance%3B" />
+    <AssemblyInfoLines Include="[assembly:OptimizeForBenchmarks]" />
+  </ItemGroup>
 
   <!-- Copy over the performance runners to the test directory-->
   <Target Name="CopyXunitExecutionDesktop" BeforeTargets="RunTestsForProject" Condition="'$(RunPerfTestsForProject)' == 'true'">
