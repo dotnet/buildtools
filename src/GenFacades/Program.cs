@@ -446,7 +446,7 @@ namespace GenFacades
                         continue;
                     }
 
-                    AddTypeForward(assembly, seedType, contractAssembly);
+                    AddTypeForward(assembly, seedType);
                 }
 
                 if (error)
@@ -488,7 +488,7 @@ namespace GenFacades
                 string preferredSeedAssembly;
                 if (_seedTypePreferences.TryGetValue(docId, out preferredSeedAssembly))
                 {
-                    return seedTypes.SingleOrDefault(t => String.Equals(GetContainingUnitNamespaceFromType(t), preferredSeedAssembly, StringComparison.OrdinalIgnoreCase));
+                    return seedTypes.SingleOrDefault(t => String.Equals(t.GetAssembly().Name.Value, preferredSeedAssembly, StringComparison.OrdinalIgnoreCase));
                 }
 
                 return null;
@@ -500,19 +500,11 @@ namespace GenFacades
 
                 foreach (INamedTypeDefinition type in seedTypes)
                 {
-                    Trace.TraceError("  /preferSeedType:{0}={1}", docId.Substring("T:".Length), GetContainingUnitNamespaceFromType(type));
+                    Trace.TraceError("  /preferSeedType:{0}={1}", docId.Substring("T:".Length), type.GetAssembly().Name.Value);
                 }
             }
 
-            private static string GetContainingUnitNamespaceFromType(INamedTypeDefinition type)
-            {
-                INamespaceTypeDefinition namespaceTypeDefinition = type as INamespaceTypeDefinition;
-                if (namespaceTypeDefinition != null)
-                    return namespaceTypeDefinition.ContainingUnitNamespace.Unit.Name.Value;
-                return type.GetAssembly().Name.Value;
-            }
-
-            private void AddTypeForward(Assembly assembly, INamedTypeDefinition seedType, IAssembly contractAssembly)
+            private void AddTypeForward(Assembly assembly, INamedTypeDefinition seedType)
             {
                 var alias = new NamespaceAliasForType();
                 alias.AliasedType = ConvertDefinitionToReferenceIfTypeIsNested(seedType, _seedHost);
