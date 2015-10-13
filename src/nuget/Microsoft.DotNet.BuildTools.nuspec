@@ -15,37 +15,20 @@
     <copyright>Copyright © Microsoft Corporation</copyright>
     <tags></tags>
     <dependencies>
-      <dependency id="xunit.console.netcore" version="1.0.2-prerelease" />
-      <dependency id="xunit.runner.dependencies.netcore" version="1.0.1-prerelease" />
-      <dependency id="Microsoft.DotNet.TestHost" version="1.0.3-prerelease" />
-      <dependency id="Microsoft.DotNet.CoreCLR" version="1.0.0-prerelease" />
-      <dependency id="Microsoft.DotNet.BuildTools.ApiTools" version="1.0.0-prerelease" />
-      <!-- This version should be kept up to date with the version in publishtest.targets -->
-      <dependency id="NuProj" version="0.10.4-beta-gf7fc34e7d8" />
+     <!-- Do not add any dependencies to this package as we want to install it versionless (i.e. -ExcludeVersion) and we don't want the dependencies to be installed that way -->
     </dependencies>
   </metadata>
   <files>
-    <file src="Microsoft.DotNet.Build.Tasks\ECMA.snk" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks\MSFT.snk" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks\PriConfig.xml" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks\*.targets" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks\testpackage.nuproj" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks\coreAssembly.rsp" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks\test-runtime\project.json" target="lib\test-runtime\project.json" />
-    <file src="Microsoft.DotNet.Build.Tasks\test-runtime\project.lock.json" target="lib\test-runtime\project.lock.json" />
-    <file src="Microsoft.DotNet.Build.Tasks\tool-runtime\project.json" target="lib\tool-runtime\project.json" />
-    <file src="Microsoft.DotNet.Build.Tasks\tool-runtime\project.lock.json" target="lib\tool-runtime\project.lock.json" />
+    <file src="Microsoft.DotNet.Build.Tasks\package\**\*.*" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\Microsoft.DotNet.Build.Tasks.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\NuGet.*.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\Newtonsoft.Json.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\Microsoft.Web.XmlTransform.dll" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks\NativeVersion.rc" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\LibGit2Sharp.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\System.Collections.Immutable.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\System.Reflection.Metadata.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\NativeBinaries\amd64\git2-69db893.dll" target="lib\NativeBinaries\amd64" />
     <file src="Microsoft.DotNet.Build.Tasks\NativeBinaries\x86\git2-69db893.dll" target="lib\NativeBinaries\x86" />
-    <file src="Microsoft.DotNet.Build.Tasks\AssemblyInfoPartial.*" target="lib" />
     <file src="BclRewriter\BclRewriter.exe" target="lib" />
     <file src="GenFacades\GenFacades.exe" target="lib" />
     <file src="Microsoft.Cci.Extensions\Microsoft.Cci.Extensions.dll" target="lib" />
