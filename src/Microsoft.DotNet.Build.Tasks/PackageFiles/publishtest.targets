@@ -29,9 +29,7 @@
       <TestPackageBuild Condition="'$(TestPackageBuild)'==''">000000</TestPackageBuild>
       <TestPackageVersion Condition="'$(TestPackageVersion)'==''">1.0.0-prerelease-$(TestPackageBuild)</TestPackageVersion>
       
-      <!-- This version should be kept up to date with the version in Microsoft.DotNet.BuildTools.nuspec -->
-      <NuProjVersion Condition="'$(NuProjVersion)'==''">0.10.4-beta-gf7fc34e7d8</NuProjVersion>
-      <NuProjDir Condition="'$(NuProjDir)'==''">$(PackagesDir)NuProj.$(NuProjVersion)/tools/</NuProjDir>
+      <NuProjDir Condition="'$(NuProjDir)'==''">$(MSBuildThisFileDirectory)\NuProj\</NuProjDir>
     </PropertyGroup>
     <MSBuild Projects="$(MSBuildThisFileDirectory)testpackage.nuproj"
       Properties="
