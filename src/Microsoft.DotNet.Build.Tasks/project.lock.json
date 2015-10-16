@@ -1,0 +1,45 @@
+{
+  "locked": false,
+  "version": 1,
+  "targets": {
+    "DNXCore,Version=v5.0": {
+      "NuProj/0.10.4-beta-gf7fc34e7d8": {
+        "type": "package"
+      }
+    }
+  },
+  "libraries": {
+    "NuProj/0.10.4-beta-gf7fc34e7d8": {
+      "type": "package",
+      "sha512": "E/xNhHQo+9XbojAxgMUlo0d0tLS8kIeXKCiNnuWIZjNdygX2e0AszBkhqmHeCnOvHeJl0d+vUUidx55bspHwaw==",
+      "files": [
+        "NuProj.0.10.4-beta-gf7fc34e7d8.nupkg",
+        "NuProj.0.10.4-beta-gf7fc34e7d8.nupkg.sha512",
+        "NuProj.nuspec",
+        "tools/Microsoft.Common.NuProj.targets",
+        "tools/Microsoft.Web.XmlTransform.dll",
+        "tools/NuGet.Core.dll",
+        "tools/NuGet.exe",
+        "tools/NuProj.props",
+        "tools/NuProj.targets",
+        "tools/NuProj.Tasks.dll",
+        "tools/NuProj.Tasks.pdb",
+        "tools/Rules/content.xaml",
+        "tools/Rules/folder.xaml",
+        "tools/Rules/general.browseobject.xaml",
+        "tools/Rules/general.xaml",
+        "tools/Rules/none.xaml",
+        "tools/Rules/ProjectItemsSchema.xaml",
+        "tools/Rules/ProjectReference.xaml",
+        "tools/Rules/ResolvedProjectReference.xaml",
+        "tools/Rules/scc.xaml"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    "": [
+      "NuProj >= 0.10.4-beta-gf7fc34e7d8"
+    ],
+    "DNXCore,Version=v5.0": []
+  }
+}

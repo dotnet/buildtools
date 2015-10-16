@@ -16,8 +16,6 @@
     <DnxPackageName Condition="'$(DnxPackageName)' == '' and '$(OsEnvironment)'=='Unix'">dnx-mono.$(DnxVersion)</DnxPackageName>
     <RoslynVersion>1.0.0-rc3-20150510-01</RoslynVersion>
     <RoslynPackageName>Microsoft.Net.ToolsetCompilers</RoslynPackageName>
-    <!-- This version should be kept up to date with packages.Windows_NT.config -->
-    <NuProjVersion>0.10.4-beta-gf7fc34e7d8</NuProjVersion>
   </PropertyGroup>
 
   <ItemGroup>
