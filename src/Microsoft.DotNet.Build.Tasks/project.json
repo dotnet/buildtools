@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "NuProj": "0.10.4-beta-gf7fc34e7d8"
+  },
+  "frameworks": {
+    "dnxcore50": {}
+  }
+}

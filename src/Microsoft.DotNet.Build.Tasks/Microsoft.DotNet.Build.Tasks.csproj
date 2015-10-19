@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.props))\dir.props" />
   <PropertyGroup>
@@ -102,13 +102,19 @@
   </ItemGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
   <Target Name="AfterBuild">
+    <PropertyGroup>
+      <!-- This version should be kept up to date with project.json -->
+      <NuProjVersion>0.10.4-beta-gf7fc34e7d8</NuProjVersion>
+    </PropertyGroup>
     <ItemGroup>
       <PackageFiles Include="$(MSBuildThisProjectDirectory)PackageFiles\**\*.*" />
       <NativeBinariesx86 Include="$(PackagesDir)LibGit2Sharp.0.19.0.0\lib\net40\NativeBinaries\x86\*.*" />
       <NativeBinariesamd64 Include="$(PackagesDir)LibGit2Sharp.0.19.0.0\lib\net40\NativeBinaries\amd64\*.*" />
+      <NuProjFiles Include="$(PackagesDir)NuProj\$(NuProjVersion)\tools\**\*.*" />
     </ItemGroup>
     <Copy SourceFiles="@(PackageFiles)" DestinationFolder="$(OutputPath)\package\%(RecursiveDir)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(NativeBinariesx86)" DestinationFolder="$(OutputPath)NativeBinaries\x86" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(NativeBinariesamd64)" DestinationFolder="$(OutputPath)NativeBinaries\amd64" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(NuProjFiles)" DestinationFolder="$(OutputPath)\NuProj\%(RecursiveDir)" SkipUnchangedFiles="true" />
   </Target>
 </Project>

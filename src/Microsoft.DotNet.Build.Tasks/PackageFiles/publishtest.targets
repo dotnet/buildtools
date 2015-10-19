@@ -15,10 +15,34 @@
   </Target>
 
   <PropertyGroup>
-    <PrepareForRunDependsOn Condition="'$(IsTestProject)'=='true'">$(PrepareForRunDependsOn);CopyTestToTestDirectory</PrepareForRunDependsOn>
+    <PrepareForRunDependsOn Condition="'$(IsTestProject)'=='true'">$(PrepareForRunDependsOn);CopyTestToTestDirectory;CreateTestNuGetPackage</PrepareForRunDependsOn>
     <TestArchitecture Condition="'$(TestArchitecture)' == ''">x64</TestArchitecture>
     <TestNugetRuntimeId Condition="'$(TestNugetRuntimeId)' == ''">win7-$(TestArchitecture)</TestNugetRuntimeId>
   </PropertyGroup>
+
+  <Target Name="CreateTestNuGetPackage"
+          DependsOnTargets="CopyTestToTestDirectory"
+          Condition="'$(GenerateTestPackages)'=='true'">
+    <PropertyGroup>
+      <TestPackageContent>@(_TestCopyLocalByFileNameWithoutDuplicates->'%(SourcePath)')</TestPackageContent>
+      <TestPackageBuild Condition="'$(TestPackageBuild)'==''">$(BuildNumberMajor)</TestPackageBuild>
+      <TestPackageBuild Condition="'$(TestPackageBuild)'==''">000000</TestPackageBuild>
+      <TestPackageVersion Condition="'$(TestPackageVersion)'==''">1.0.0-prerelease-$(TestPackageBuild)</TestPackageVersion>
+      
+      <NuProjDir Condition="'$(NuProjDir)'==''">$(MSBuildThisFileDirectory)\NuProj\</NuProjDir>
+    </PropertyGroup>
+    <MSBuild Projects="$(MSBuildThisFileDirectory)testpackage.nuproj"
+      Properties="
+      IntermediateOutputPath=$(IntermediateOutputPath);
+      OutputPath=$(OutputPath);
+      NuProjPropsPath=$(NuProjDir)NuProj.props;
+      NuProjTargetsPath=$(NuProjDir)NuProj.targets;
+      Id=$(ProjectName);
+      Title=$(ProjectName) Test Package;
+      Version=$(TestPackageVersion);
+      Description=This package contains the tests, product, and dependencies for $(ProjectName);
+      Content=$(TestPackageContent)"/>
+  </Target>
 
   <Target Name="CopyTestToTestDirectory" 
           DependsOnTargets="DiscoverTestInputs">
