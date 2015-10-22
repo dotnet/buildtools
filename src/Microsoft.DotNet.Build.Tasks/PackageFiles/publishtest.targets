@@ -3,6 +3,7 @@
 
   <UsingTask TaskName="PrereleaseResolveNuGetPackageAssets" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="RemoveDuplicatesWithLastOneWinsPolicy" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="ZipFileCreateFromDirectory" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
   
   <PropertyGroup>
     <SerializeProjects Condition="'$(TestWithLocalLibraries)'=='true'">true</SerializeProjects>
@@ -15,7 +16,7 @@
   </Target>
 
   <PropertyGroup>
-    <PrepareForRunDependsOn Condition="'$(IsTestProject)'=='true'">$(PrepareForRunDependsOn);CopyTestToTestDirectory;CreateTestNuGetPackage</PrepareForRunDependsOn>
+    <PrepareForRunDependsOn Condition="'$(IsTestProject)'=='true'">$(PrepareForRunDependsOn);CopyTestToTestDirectory;CreateTestNuGetPackage;CreateAssemblyListTxt</PrepareForRunDependsOn>
     <TestArchitecture Condition="'$(TestArchitecture)' == ''">x64</TestArchitecture>
     <TestNugetRuntimeId Condition="'$(TestNugetRuntimeId)' == ''">win7-$(TestArchitecture)</TestNugetRuntimeId>
   </PropertyGroup>
@@ -91,6 +92,7 @@
          every incremental build. -->
     <ItemGroup>
       <_TestCopyLocalByFileName Include="@(TestCopyLocal->'%(FileName)%(Extension)')">
+        <NugetPackageId>%(TestCopyLocal.NugetPackageId)</NugetPackageId>
         <SourcePath>%(Identity)</SourcePath>
       </_TestCopyLocalByFileName>
     </ItemGroup>      
@@ -122,6 +124,29 @@
     </ItemGroup>
 
     <Copy Condition="'$(BUILDTOOLS_OVERRIDE_RUNTIME)' != ''" SourceFiles="@(TestRuntimeSource)" DestinationFolder="$(TestPath)%(TestTargetFramework.Folder)" />
+  </Target>
+
+  <Target Name="CreateAssemblyListTxt" DependsOnTargets="CopyTestToTestDirectory">
+    <Message Text="Generating $(OutDir)AssemblyList.txt" />
+    <ItemGroup>
+      <AssemblyPaths Include="$([MSBuild]::MakeRelative($(PackagesDir), %(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)))" Condition="'%(_TestCopyLocalByFileNameWithoutDuplicates.NugetPackageId)' != ''" />
+    </ItemGroup>
+    <WriteLinesToFile
+      File="$(OutDir)AssemblyList.txt"
+      Lines="@(AssemblyPaths)"
+      Overwrite="true"
+      Encoding="Ascii" />
+  </Target>
+
+  <!-- archive the test binaries along with some supporting files -->
+  <Target Name="ArchiveTestBuild" AfterTargets="CreateAssemblyListTxt" Condition="'$(ArchiveTests)' == 'true'">
+    <PropertyGroup>
+      <TestArchiveDir>$(TestWorkingDir)$(OSPlatformConfig)\archive\tests\</TestArchiveDir>
+    </PropertyGroup>
+    <!-- the project json files need to be included in the archive -->
+    <Copy SourceFiles="$(ProjectJson);$(ProjectLockJson)" DestinationFolder="$(OutDir)" />
+    <MakeDir Directories="$(TestArchiveDir)" />
+    <ZipFileCreateFromDirectory SourceDirectory="$(OutDir)" DestinationArchive="$(TestArchiveDir)$(MSBuildProjectName).zip" OverwriteDestination="true" />
   </Target>
 
 </Project>

@@ -23,7 +23,9 @@
     <file src="Microsoft.DotNet.Build.Tasks\Microsoft.DotNet.Build.Tasks.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\NuGet.*.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\Newtonsoft.Json.dll" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks\Microsoft.ServiceBus.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\Microsoft.Web.XmlTransform.dll" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks\Microsoft.WindowsAzure.Storage.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\LibGit2Sharp.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\System.Collections.Immutable.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\System.Reflection.Metadata.dll" target="lib" />

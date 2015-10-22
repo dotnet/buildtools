@@ -22,7 +22,7 @@
   </PropertyGroup>
   
   <!-- Perf testing assembly attribute -->
-  <ItemGroup Condition="'$(RunPerfTestsForProject)' == 'true' and '$(DisableTests)' != 'true'">
+  <ItemGroup Condition="'$(RunPerfTestsForProject)' == 'true' and '$(TestDisabled)' != 'true'">
     <AssemblyInfoUsings Include="using Microsoft.Xunit.Performance%3B" />
     <AssemblyInfoLines Include="[assembly:OptimizeForBenchmarks]" />
   </ItemGroup>
