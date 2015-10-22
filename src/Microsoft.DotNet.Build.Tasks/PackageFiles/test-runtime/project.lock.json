@@ -1,9 +1,9 @@
 {
   "locked": true,
-  "version": 1,
+  "version": 2,
   "targets": {
     "DNXCore,Version=v5.0": {
-      "coveralls.io/1.4": {
+      "coveralls.io/1.4.0": {
         "type": "package"
       },
       "Microsoft.CSharp/4.0.1-beta-23328": {
@@ -244,7 +244,7 @@
       "OpenCover/4.6.166": {
         "type": "package"
       },
-      "ReportGenerator/2.3.1.0": {
+      "ReportGenerator/2.3.1": {
         "type": "package"
       },
       "System.AppContext/4.0.1-beta-23328": {
@@ -1991,7 +1991,7 @@
       }
     },
     "DNXCore,Version=v5.0/win7-x64": {
-      "coveralls.io/1.4": {
+      "coveralls.io/1.4.0": {
         "type": "package"
       },
       "Microsoft.CSharp/4.0.1-beta-23328": {
@@ -2250,7 +2250,7 @@
       "OpenCover/4.6.166": {
         "type": "package"
       },
-      "ReportGenerator/2.3.1.0": {
+      "ReportGenerator/2.3.1": {
         "type": "package"
       },
       "runtime.win7.Microsoft.Win32.Primitives/4.0.1-beta-23328": {
@@ -2710,8 +2710,8 @@
         "native": {
           "runtimes/win7-x64/native/API-MS-Win-Base-Util-L1-1-0.dll": {},
           "runtimes/win7-x64/native/api-ms-win-core-com-l1-1-0.dll": {},
-          "runtimes/win7-x64/native/api-ms-win-core-comm-l1-1-0.dll": {},
           "runtimes/win7-x64/native/api-ms-win-core-com-private-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-comm-l1-1-0.dll": {},
           "runtimes/win7-x64/native/api-ms-win-core-console-l1-1-0.dll": {},
           "runtimes/win7-x64/native/api-ms-win-core-console-l2-1-0.dll": {},
           "runtimes/win7-x64/native/api-ms-win-core-datetime-l1-1-0.dll": {},
@@ -2774,13 +2774,13 @@
           "runtimes/win7-x64/native/api-ms-win-core-shlwapi-obsolete-l1-1-0.dll": {},
           "runtimes/win7-x64/native/api-ms-win-core-shutdown-l1-1-0.dll": {},
           "runtimes/win7-x64/native/api-ms-win-core-shutdown-l1-1-1.dll": {},
-          "runtimes/win7-x64/native/API-MS-Win-Core-StringAnsi-L1-1-0.dll": {},
           "runtimes/win7-x64/native/api-ms-win-core-string-l1-1-0.dll": {},
           "runtimes/win7-x64/native/API-MS-Win-Core-String-L2-1-0.dll": {},
-          "runtimes/win7-x64/native/api-ms-win-core-stringloader-l1-1-0.dll": {},
-          "runtimes/win7-x64/native/api-ms-win-core-stringloader-l1-1-1.dll": {},
           "runtimes/win7-x64/native/api-ms-win-core-string-obsolete-l1-1-0.dll": {},
           "runtimes/win7-x64/native/api-ms-win-core-string-obsolete-l1-1-1.dll": {},
+          "runtimes/win7-x64/native/API-MS-Win-Core-StringAnsi-L1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-stringloader-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-stringloader-l1-1-1.dll": {},
           "runtimes/win7-x64/native/api-ms-win-core-synch-l1-1-0.dll": {},
           "runtimes/win7-x64/native/api-ms-win-core-synch-l1-2-0.dll": {},
           "runtimes/win7-x64/native/api-ms-win-core-sysinfo-l1-1-0.dll": {},
@@ -2830,6 +2830,12 @@
           "runtimes/win7-x64/native/api-ms-win-service-private-l1-1-1.dll": {},
           "runtimes/win7-x64/native/api-ms-win-service-winsvc-l1-1-0.dll": {},
           "runtimes/win7-x64/native/ext-ms-win-advapi32-encryptedfile-l1-1-0.dll": {}
+        }
+      },
+      "runtime.win7-x64.System.Data.SqlClient.sni/4.0.0-beta-23328": {
+        "type": "package",
+        "native": {
+          "runtimes/win7-x64/native/sni.dll": {}
         }
       },
       "System.AppContext/4.0.1-beta-23328": {
@@ -4661,7 +4667,7 @@
       }
     },
     "DNXCore,Version=v5.0/win7-x86": {
-      "coveralls.io/1.4": {
+      "coveralls.io/1.4.0": {
         "type": "package"
       },
       "Microsoft.CSharp/4.0.1-beta-23328": {
@@ -4920,7 +4926,7 @@
       "OpenCover/4.6.166": {
         "type": "package"
       },
-      "ReportGenerator/2.3.1.0": {
+      "ReportGenerator/2.3.1": {
         "type": "package"
       },
       "runtime.win7.Microsoft.Win32.Primitives/4.0.1-beta-23328": {
@@ -5380,8 +5386,8 @@
         "native": {
           "runtimes/win7-x86/native/API-MS-Win-Base-Util-L1-1-0.dll": {},
           "runtimes/win7-x86/native/api-ms-win-core-com-l1-1-0.dll": {},
-          "runtimes/win7-x86/native/api-ms-win-core-comm-l1-1-0.dll": {},
           "runtimes/win7-x86/native/api-ms-win-core-com-private-l1-1-0.dll": {},
+          "runtimes/win7-x86/native/api-ms-win-core-comm-l1-1-0.dll": {},
           "runtimes/win7-x86/native/api-ms-win-core-console-l1-1-0.dll": {},
           "runtimes/win7-x86/native/api-ms-win-core-console-l2-1-0.dll": {},
           "runtimes/win7-x86/native/api-ms-win-core-datetime-l1-1-0.dll": {},
@@ -5444,13 +5450,13 @@
           "runtimes/win7-x86/native/api-ms-win-core-shlwapi-obsolete-l1-1-0.dll": {},
           "runtimes/win7-x86/native/api-ms-win-core-shutdown-l1-1-0.dll": {},
           "runtimes/win7-x86/native/api-ms-win-core-shutdown-l1-1-1.dll": {},
-          "runtimes/win7-x86/native/API-MS-Win-Core-StringAnsi-L1-1-0.dll": {},
           "runtimes/win7-x86/native/api-ms-win-core-string-l1-1-0.dll": {},
           "runtimes/win7-x86/native/API-MS-Win-Core-String-L2-1-0.dll": {},
-          "runtimes/win7-x86/native/api-ms-win-core-stringloader-l1-1-0.dll": {},
-          "runtimes/win7-x86/native/api-ms-win-core-stringloader-l1-1-1.dll": {},
           "runtimes/win7-x86/native/api-ms-win-core-string-obsolete-l1-1-0.dll": {},
           "runtimes/win7-x86/native/api-ms-win-core-string-obsolete-l1-1-1.dll": {},
+          "runtimes/win7-x86/native/API-MS-Win-Core-StringAnsi-L1-1-0.dll": {},
+          "runtimes/win7-x86/native/api-ms-win-core-stringloader-l1-1-0.dll": {},
+          "runtimes/win7-x86/native/api-ms-win-core-stringloader-l1-1-1.dll": {},
           "runtimes/win7-x86/native/api-ms-win-core-synch-l1-1-0.dll": {},
           "runtimes/win7-x86/native/api-ms-win-core-synch-l1-2-0.dll": {},
           "runtimes/win7-x86/native/api-ms-win-core-sysinfo-l1-1-0.dll": {},
@@ -5500,6 +5506,12 @@
           "runtimes/win7-x86/native/api-ms-win-service-private-l1-1-1.dll": {},
           "runtimes/win7-x86/native/api-ms-win-service-winsvc-l1-1-0.dll": {},
           "runtimes/win7-x86/native/ext-ms-win-advapi32-encryptedfile-l1-1-0.dll": {}
+        }
+      },
+      "runtime.win7-x86.System.Data.SqlClient.sni/4.0.0-beta-23328": {
+        "type": "package",
+        "native": {
+          "runtimes/win7-x86/native/sni.dll": {}
         }
       },
       "System.AppContext/4.0.1-beta-23328": {
@@ -7332,14 +7344,13 @@
     }
   },
   "libraries": {
-    "coveralls.io/1.4": {
+    "coveralls.io/1.4.0": {
       "type": "package",
       "sha512": "QJLuUzAD50drCp5P+PiWHh/TKcNBbsgnnZiN600YtRPx5DP4aY4MpVeY1oYs8eOnuhCZW+5TqcpUct3oHJigIQ==",
       "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
+        "coveralls.io.1.4.0.nupkg",
+        "coveralls.io.1.4.0.nupkg.sha512",
         "coveralls.io.nuspec",
-        "package/services/metadata/core-properties/746ff290a4d24d1aa0f9843c51cd2208.psmdcp",
         "tools/CommandLine.dll",
         "tools/CommandLine.xml",
         "tools/Coveralls.dll",
@@ -7613,15 +7624,14 @@
       "type": "package",
       "sha512": "bor8lEgWH0upmsYg4/aj0CMOsczSwwGy6tBZRC26T1pBs1D2IkVQ/EHU/Shn5SjQ8M04cp8N4xiLFMzF8GzT6g==",
       "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
         "docs/ReleaseNotes.txt",
         "docs/Usage.rtf",
         "License.rtf",
         "MSBuild/OpenCover.MSBuild.dll",
         "MSBuild/OpenCover.targets",
+        "OpenCover.4.6.166.nupkg",
+        "OpenCover.4.6.166.nupkg.sha512",
         "OpenCover.nuspec",
-        "package/services/metadata/core-properties/4fe83ffa9479499aaa3f61a5f28de643.psmdcp",
         "readme.txt",
         "Samples/x64/OpenCover.Simple.Target.exe",
         "Samples/x64/OpenCover.Simple.Target.pdb",
@@ -7660,7 +7670,7 @@
         "transform/transform.ps1"
       ]
     },
-    "ReportGenerator/2.3.1.0": {
+    "ReportGenerator/2.3.1": {
       "type": "package",
       "sha512": "R0NM/SAjRjGGtlMcnyD53RVtPykTPkU7JNWgomUSKfTN66Vtuw8aDzmpycd5BJZ06yJ7NOE+6Pw4/esKnVeXdg==",
       "files": [
@@ -8457,6 +8467,16 @@
         "runtimes/win8-x64/native/api-ms-win-service-private-l1-1-1.dll"
       ]
     },
+    "runtime.win7-x64.System.Data.SqlClient.sni/4.0.0-beta-23328": {
+      "type": "package",
+      "sha512": "w8HaGekATQEDCuBbm8OjpVSXw0+PvdP4dbjJcPiK5zRMmNsLduWPA8leveDo4Z82+6n5/wPn8pRC8dblnzWRVQ==",
+      "files": [
+        "runtime.win7-x64.System.Data.SqlClient.sni.4.0.0-beta-23328.nupkg",
+        "runtime.win7-x64.System.Data.SqlClient.sni.4.0.0-beta-23328.nupkg.sha512",
+        "runtime.win7-x64.System.Data.SqlClient.sni.nuspec",
+        "runtimes/win7-x64/native/sni.dll"
+      ]
+    },
     "runtime.win7-x86.Microsoft.NETCore.ConsoleHost/1.0.0-beta-23328": {
       "type": "package",
       "sha512": "FOw3aSULeip6gywDAP70eKGKU5TTCWVvley7EXNst0gDjdgJNiHiFzlRyNblFptV4CrwcYqbH1jtEV/3PhfkNw==",
@@ -8661,6 +8681,16 @@
         "runtimes/win8-x86/native/api-ms-win-security-cryptoapi-l1-1-0.dll",
         "runtimes/win8-x86/native/api-ms-win-security-lsalookup-l2-1-1.dll",
         "runtimes/win8-x86/native/api-ms-win-service-private-l1-1-1.dll"
+      ]
+    },
+    "runtime.win7-x86.System.Data.SqlClient.sni/4.0.0-beta-23328": {
+      "type": "package",
+      "sha512": "DdVYozmyzahXkyu3jlcDzI95nck7yDY7vX/ZZXy4dJK1PQTv0764XYOp/+JSTt6MWimrflUaN2DHOhPxYyZBlg==",
+      "files": [
+        "runtime.win7-x86.System.Data.SqlClient.sni.4.0.0-beta-23328.nupkg",
+        "runtime.win7-x86.System.Data.SqlClient.sni.4.0.0-beta-23328.nupkg.sha512",
+        "runtime.win7-x86.System.Data.SqlClient.sni.nuspec",
+        "runtimes/win7-x86/native/sni.dll"
       ]
     },
     "System.AppContext/4.0.1-beta-23328": {
@@ -11605,14 +11635,12 @@
     },
     "System.Threading.Overlapped/4.0.0": {
       "type": "package",
+      "serviceable": true,
       "sha512": "X5LuQFhM5FTqaez3eXKJ9CbfSGZ7wj6j4hSVtxct3zmwQXLqG95qoWdvILcgN7xtrDOBIFtpiyDg0vmoI0jE2A==",
       "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/DNXCore50/System.Threading.Overlapped.dll",
         "lib/net46/System.Threading.Overlapped.dll",
         "lib/netcore50/System.Threading.Overlapped.dll",
-        "package/services/metadata/core-properties/e9846a81e829434aafa4ae2e8c3517d7.psmdcp",
         "ref/dotnet/de/System.Threading.Overlapped.xml",
         "ref/dotnet/es/System.Threading.Overlapped.xml",
         "ref/dotnet/fr/System.Threading.Overlapped.xml",
@@ -11625,6 +11653,8 @@
         "ref/dotnet/zh-hans/System.Threading.Overlapped.xml",
         "ref/dotnet/zh-hant/System.Threading.Overlapped.xml",
         "ref/net46/System.Threading.Overlapped.dll",
+        "System.Threading.Overlapped.4.0.0.nupkg",
+        "System.Threading.Overlapped.4.0.0.nupkg.sha512",
         "System.Threading.Overlapped.nuspec"
       ]
     },
@@ -11958,13 +11988,12 @@
       "type": "package",
       "sha512": "NAdxKQRzuLnCZ0g++x6i87/8rMBpQoRiRlRNLAqfODm2zJPbteHRoSER3DXfxnqrHXyBJT8rFaZ8uveBeQyaMA==",
       "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
         "lib/net35/xunit.abstractions.dll",
         "lib/net35/xunit.abstractions.xml",
         "lib/portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS/xunit.abstractions.dll",
         "lib/portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS/xunit.abstractions.xml",
-        "package/services/metadata/core-properties/24083640fee244bf9de77f4c35d40a72.psmdcp",
+        "xunit.abstractions.2.0.0.nupkg",
+        "xunit.abstractions.2.0.0.nupkg.sha512",
         "xunit.abstractions.nuspec"
       ]
     },
@@ -12122,7 +12151,7 @@
       "Microsoft.NETCore.Platforms >= 1.0.1-beta-23328",
       "Microsoft.NETCore.TestHost >= 1.0.0-beta-23328",
       "Microsoft.NETCore.Console >= 1.0.0-beta-23328",
-      "coveralls.io >= 1.4",
+      "coveralls.io >= 1.4.0",
       "OpenCover >= 4.6.166",
       "ReportGenerator >= 2.3.1",
       "Microsoft.DotNet.xunit.performance.analysis >= 1.0.0-alpha-build0023",
