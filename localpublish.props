@@ -1,9 +1,0 @@
-<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ItemGroup>
-    <LocalPackages Include="$(PackagesOutDir)">
-      <PackageName>Microsoft.DotNet.BuildTools</PackageName>
-      <PackageVersion>1.0.25-prerelease-00096</PackageVersion>
-      <InstallLocation>E:\corefx\packages</InstallLocation>
-    </LocalPackages>
-  </ItemGroup>
-</Project>
