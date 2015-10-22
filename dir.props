@@ -77,8 +77,9 @@
 
     <!-- list of directories to perform batch restore -->
   <ItemGroup>
-    <DnuRestoreDir Include="&quot;$(MSBuildProjectDirectory)\src&quot;" />
-    <DnuRestoreDir Include="&quot;$(ToolsDir)&quot;" />
+    <DnuRestoreDir Include="$(MSBuildProjectDirectory)\src" />
+    <DnuRestoreDir Include="$(ToolsDir)" />
+    <DnuRestoreDir Include="$(MSBuildProjectDirectory)\src\**\*runtime\project.json" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -87,7 +88,7 @@
     <DnuToolPath Condition="'$(DnuToolPath)'=='' and '$(OsEnvironment)'=='Unix'">$(DnxPackageDir)/bin/dnu</DnuToolPath>
 
     <DnuRestoreSource>@(DnuSourceList -> '--source %(Identity)', ' ')</DnuRestoreSource>
-    <DnuRestoreDirs>@(DnuRestoreDir -> '%(Identity)', ' ')</DnuRestoreDirs>
+    <DnuRestoreDirs>@(DnuRestoreDir -> '&quot;%(Identity)&quot;', ' ')</DnuRestoreDirs>
 
     <DnuRestoreCommand>"$(DnuToolPath)"</DnuRestoreCommand>
     <DnuRestoreCommand>$(DnuRestoreCommand) restore</DnuRestoreCommand>
