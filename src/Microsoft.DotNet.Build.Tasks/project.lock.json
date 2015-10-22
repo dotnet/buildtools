@@ -1,8 +1,18 @@
 {
-  "locked": false,
-  "version": 1,
+  "locked": true,
+  "version": 2,
   "targets": {
     "DNXCore,Version=v5.0": {
+      "NuProj/0.10.4-beta-gf7fc34e7d8": {
+        "type": "package"
+      }
+    },
+    "DNXCore,Version=v5.0/win7-x86": {
+      "NuProj/0.10.4-beta-gf7fc34e7d8": {
+        "type": "package"
+      }
+    },
+    "DNXCore,Version=v5.0/win7-x64": {
       "NuProj/0.10.4-beta-gf7fc34e7d8": {
         "type": "package"
       }

@@ -1,6 +1,6 @@
 {
-  "locked": false,
-  "version": 2,
+  "locked": true,
+  "version": 1,
   "targets": {
     "DNXCore,Version=v5.0": {
       "Microsoft.Cci/4.0.0-beta-23328": {
@@ -167,6 +167,9 @@
         }
       },
       "Microsoft.NETCore.ConsoleHost/1.0.0-beta-23328": {
+        "type": "package"
+      },
+      "Microsoft.NETCore.Platforms/1.0.1-beta-23328": {
         "type": "package"
       },
       "Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23328": {
@@ -2038,6 +2041,9 @@
       "Microsoft.NETCore.ConsoleHost/1.0.0-beta-23328": {
         "type": "package"
       },
+      "Microsoft.NETCore.Platforms/1.0.1-beta-23328": {
+        "type": "package"
+      },
       "Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23328": {
         "type": "package",
         "dependencies": {
@@ -2733,12 +2739,6 @@
           "runtimes/win7-x64/native/api-ms-win-service-private-l1-1-1.dll": {},
           "runtimes/win7-x64/native/api-ms-win-service-winsvc-l1-1-0.dll": {},
           "runtimes/win7-x64/native/ext-ms-win-advapi32-encryptedfile-l1-1-0.dll": {}
-        }
-      },
-      "runtime.win7-x64.System.Data.SqlClient.sni/4.0.0-beta-23328": {
-        "type": "package",
-        "native": {
-          "runtimes/win7-x64/native/sni.dll": {}
         }
       },
       "System.AppContext/4.0.1-beta-23328": {
@@ -4610,6 +4610,9 @@
       "Microsoft.NETCore.ConsoleHost/1.0.0-beta-23328": {
         "type": "package"
       },
+      "Microsoft.NETCore.Platforms/1.0.1-beta-23328": {
+        "type": "package"
+      },
       "Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23328": {
         "type": "package",
         "dependencies": {
@@ -5305,12 +5308,6 @@
           "runtimes/win7-x86/native/api-ms-win-service-private-l1-1-1.dll": {},
           "runtimes/win7-x86/native/api-ms-win-service-winsvc-l1-1-0.dll": {},
           "runtimes/win7-x86/native/ext-ms-win-advapi32-encryptedfile-l1-1-0.dll": {}
-        }
-      },
-      "runtime.win7-x86.System.Data.SqlClient.sni/4.0.0-beta-23328": {
-        "type": "package",
-        "native": {
-          "runtimes/win7-x86/native/sni.dll": {}
         }
       },
       "System.AppContext/4.0.1-beta-23328": {
@@ -7180,6 +7177,9 @@
         }
       },
       "Microsoft.NETCore.ConsoleHost/1.0.0-beta-23328": {
+        "type": "package"
+      },
+      "Microsoft.NETCore.Platforms/1.0.1-beta-23328": {
         "type": "package"
       },
       "Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23328": {
@@ -9533,6 +9533,9 @@
       "Microsoft.NETCore.ConsoleHost/1.0.0-beta-23328": {
         "type": "package"
       },
+      "Microsoft.NETCore.Platforms/1.0.1-beta-23328": {
+        "type": "package"
+      },
       "Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23328": {
         "type": "package",
         "dependencies": {
@@ -11812,6 +11815,16 @@
         "runtime.json"
       ]
     },
+    "Microsoft.NETCore.Platforms/1.0.1-beta-23328": {
+      "type": "package",
+      "sha512": "bbpN1YRDRyP2kdMVub9n6D6uk5NvKsLoEmC5TINyiWYM3tn99eJr8Ng38r81h2BI06Uii1h4jXZ0BQYVuF4Uqw==",
+      "files": [
+        "Microsoft.NETCore.Platforms.1.0.1-beta-23328.nupkg",
+        "Microsoft.NETCore.Platforms.1.0.1-beta-23328.nupkg.sha512",
+        "Microsoft.NETCore.Platforms.nuspec",
+        "runtime.json"
+      ]
+    },
     "Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23328": {
       "type": "package",
       "sha512": "9pC1Xbcq23JoLfl7WwOwJaKSFELD9gvTi1ugOexyP4jrdmouis38M3PVnomiLUMb3fLr4Zai2hR2pvjN8wjSLg==",
@@ -13265,16 +13278,6 @@
         "runtimes/win8-x64/native/api-ms-win-service-private-l1-1-1.dll"
       ]
     },
-    "runtime.win7-x64.System.Data.SqlClient.sni/4.0.0-beta-23328": {
-      "type": "package",
-      "sha512": "w8HaGekATQEDCuBbm8OjpVSXw0+PvdP4dbjJcPiK5zRMmNsLduWPA8leveDo4Z82+6n5/wPn8pRC8dblnzWRVQ==",
-      "files": [
-        "runtime.win7-x64.System.Data.SqlClient.sni.4.0.0-beta-23328.nupkg",
-        "runtime.win7-x64.System.Data.SqlClient.sni.4.0.0-beta-23328.nupkg.sha512",
-        "runtime.win7-x64.System.Data.SqlClient.sni.nuspec",
-        "runtimes/win7-x64/native/sni.dll"
-      ]
-    },
     "runtime.win7-x86.Microsoft.NETCore.ConsoleHost/1.0.0-beta-23328": {
       "type": "package",
       "sha512": "FOw3aSULeip6gywDAP70eKGKU5TTCWVvley7EXNst0gDjdgJNiHiFzlRyNblFptV4CrwcYqbH1jtEV/3PhfkNw==",
@@ -13479,16 +13482,6 @@
         "runtimes/win8-x86/native/api-ms-win-security-cryptoapi-l1-1-0.dll",
         "runtimes/win8-x86/native/api-ms-win-security-lsalookup-l2-1-1.dll",
         "runtimes/win8-x86/native/api-ms-win-service-private-l1-1-1.dll"
-      ]
-    },
-    "runtime.win7-x86.System.Data.SqlClient.sni/4.0.0-beta-23328": {
-      "type": "package",
-      "sha512": "DdVYozmyzahXkyu3jlcDzI95nck7yDY7vX/ZZXy4dJK1PQTv0764XYOp/+JSTt6MWimrflUaN2DHOhPxYyZBlg==",
-      "files": [
-        "runtime.win7-x86.System.Data.SqlClient.sni.4.0.0-beta-23328.nupkg",
-        "runtime.win7-x86.System.Data.SqlClient.sni.4.0.0-beta-23328.nupkg.sha512",
-        "runtime.win7-x86.System.Data.SqlClient.sni.nuspec",
-        "runtimes/win7-x86/native/sni.dll"
       ]
     },
     "System.AppContext/4.0.1-beta-23328": {
