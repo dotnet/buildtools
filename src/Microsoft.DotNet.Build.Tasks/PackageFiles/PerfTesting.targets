@@ -2,8 +2,7 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <RunPerfTestsForProject Condition="'$(Performance)' == 'true' and '$(RunPerfTestsForProject)' != 'false' and '$(OS)' == 'Windows_NT' and Exists('$(MSBuildProgramFiles32)\MSBuild\Microsoft\Portable\v5.0\Microsoft.Portable.CSharp.targets')" >true</RunPerfTestsForProject>
-    <AnalyzePerfResults Condition="'$(RunPerfTestsForProject)' == 'true' And '$(AnalyzePerfResults)' != 'false'">true</AnalyzePerfResults>
+    <AnalyzePerfResults Condition="'$(IncludePerformanceTests)' == 'true' And '$(AnalyzePerfResults)' != 'false'">true</AnalyzePerfResults>
   </PropertyGroup>
 
   <!-- Perf Runner NuGet package paths -->
@@ -22,13 +21,13 @@
   </PropertyGroup>
   
   <!-- Perf testing assembly attribute -->
-  <ItemGroup Condition="'$(RunPerfTestsForProject)' == 'true' and '$(TestDisabled)' != 'true'">
+  <ItemGroup Condition="'$(IncludePerformanceTests)' == 'true'">
     <AssemblyInfoUsings Include="using Microsoft.Xunit.Performance%3B" />
     <AssemblyInfoLines Include="[assembly:OptimizeForBenchmarks]" />
   </ItemGroup>
 
   <!-- Copy over the performance runners to the test directory-->
-  <Target Name="CopyXunitExecutionDesktop" BeforeTargets="RunTestsForProject" Condition="'$(RunPerfTestsForProject)' == 'true'">
+  <Target Name="CopyXunitExecutionDesktop" AfterTargets="RestorePackages" Condition="'$(IncludePerformanceTests)' == 'true'">
     <ItemGroup>
       <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/xunit.performance.run.exe" />
       <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/xunit.performance.metrics.dll" />
@@ -55,17 +54,11 @@
     <PerfAnalysisCommandLine>$(XunitPerfAnalysisPath) $(XunitAnalysisArgs)</PerfAnalysisCommandLine>
   </PropertyGroup>
 
-  <!-- Override test settings if RunPerfTestsForProject == true -->
-  <PropertyGroup Condition="'$(RunPerfTestsForProject)' == 'true'">
+  <!-- Override test settings if IncludePerformanceTests == true -->
+  <PropertyGroup Condition="'$(IncludePerformanceTests)' == 'true'">
     <TestCommandLine>$(PerfTestCommandLine)</TestCommandLine>
   </PropertyGroup>
   
-  <!-- Perf tests require TargetFrameworkVersion=v5.0. If it isn't installed, throw a helpful warning and run unit tests instead -->
-  <Target Name="ValidateFrameworkVersion" BeforeTargets="RestorePackages">
-    <Error Text="To run performance tests, .NET Portable v5.0 must be installed with VS 2015. Installation instructions available at: https://github.com/dotnet/corefx/blob/master/Documentation/project-docs/performance-tests.md"
-      Condition="'$(Performance)' == 'true' and '$(RunPerfTestsForProject)' != 'true'" />
-  </Target>
-
   <Target Name="AnalyzePerfResults"
           AfterTargets="RunTestsForProject"
           Condition="'$(AnalyzePerfResults)' == 'true' and Exists('$(PerfRunOutputFile)')">
@@ -79,7 +72,7 @@
 
   <Target Name="WarnForDebugPerfConfiguration"
           BeforeTargets="RunTestsForProject"
-          Condition="'$(RunPerfTestsForProject)' == 'true' and !$(Configuration.ToLower().Contains('release'))">
+          Condition="'$(IncludePerformanceTests)' == 'true' and !$(Configuration.ToLower().Contains('release'))">
     <Warning Text="You are running performance tests in a configuration other than Release. Your results may be unreliable." />
   </Target>
 
