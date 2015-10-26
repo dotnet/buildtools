@@ -58,7 +58,11 @@
   <PropertyGroup>
     <XunitResultsFileName>testResults.xml</XunitResultsFileName>
     <XunitOptions>$(XunitOptions) -xml $(XunitResultsFileName)</XunitOptions>
-    <XunitOptions Condition="'$(OS)'=='Windows_NT'">$(XunitOptions) -notrait category=nonwindowstests</XunitOptions>
+    <XunitOptions Condition="'$(OSGroup)'=='Windows_NT'">$(XunitOptions) -notrait category=nonwindowstests</XunitOptions>
+    <XunitOptions Condition="'$(OSGroup)'=='Linux'">$(XunitOptions) -notrait category=nonlinuxtests</XunitOptions>
+    <XunitOptions Condition="'$(OSGroup)'=='OSX'">$(XunitOptions) -notrait category=nonosxtests</XunitOptions>
+    <XunitOptions Condition="'$(OSGroup)'=='FreeBSD'">$(XunitOptions) -notrait category=nonfreebsdtests</XunitOptions>
+
     <XunitOptions Condition="'$(XunitMaxThreads)'!=''">$(XunitOptions) -maxthreads $(XunitMaxThreads)</XunitOptions>
     <XunitArguments>$(TargetFileName) $(XunitOptions)</XunitArguments>
 
@@ -126,7 +130,7 @@
 
     <MakeDir Condition="'$(CoverageEnabledForProject)'=='true'" Directories="$(CoverageReportDir)" />
 
-    <Exec Command="$(TestCommandLine)"
+    <Exec Command="$(TestPath)%(TestTargetFramework.Folder)/$(TestCommandLine)"
           WorkingDirectory="$(TestPath)%(TestTargetFramework.Folder)"
           ContinueOnError="true">
       <Output PropertyName="TestRunExitCode" TaskParameter="ExitCode" />

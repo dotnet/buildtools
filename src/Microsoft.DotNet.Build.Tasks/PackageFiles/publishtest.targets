@@ -124,6 +124,10 @@
     </ItemGroup>
 
     <Copy Condition="'$(BUILDTOOLS_OVERRIDE_RUNTIME)' != ''" SourceFiles="@(TestRuntimeSource)" DestinationFolder="$(TestPath)%(TestTargetFramework.Folder)" />
+
+    <Exec Condition="'$(OS)'=='Unix'"
+          Command="chmod a+x &quot;$(TestPath)%(TestTargetFramework.Folder)/corerun&quot;" />
+
   </Target>
 
   <Target Name="CreateAssemblyListTxt" DependsOnTargets="CopyTestToTestDirectory">
