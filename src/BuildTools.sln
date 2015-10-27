@@ -43,6 +43,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BclRewriter", "BinaryRewrit
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.DotNet.Build.CloudTestTasks", "Microsoft.DotNet.Build.CloudTestTasks\Microsoft.DotNet.Build.CloudTestTasks.csproj", "{F01FAA6C-4EF1-4283-B9B5-4C1416FA7F50}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.DotNet.Build.Tasks.NetCore", "Microsoft.DotNet.Build.Tasks.NetCore\Microsoft.DotNet.Build.Tasks.NetCore.csproj", "{9AB674A0-AEF7-4539-8049-0406D2C7BB32}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -243,6 +245,22 @@ Global
 		{F01FAA6C-4EF1-4283-B9B5-4C1416FA7F50}.Release|x64.Build.0 = Release|Any CPU
 		{F01FAA6C-4EF1-4283-B9B5-4C1416FA7F50}.Release|x86.ActiveCfg = Release|Any CPU
 		{F01FAA6C-4EF1-4283-B9B5-4C1416FA7F50}.Release|x86.Build.0 = Release|Any CPU
+		{9AB674A0-AEF7-4539-8049-0406D2C7BB32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9AB674A0-AEF7-4539-8049-0406D2C7BB32}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9AB674A0-AEF7-4539-8049-0406D2C7BB32}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{9AB674A0-AEF7-4539-8049-0406D2C7BB32}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{9AB674A0-AEF7-4539-8049-0406D2C7BB32}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{9AB674A0-AEF7-4539-8049-0406D2C7BB32}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9AB674A0-AEF7-4539-8049-0406D2C7BB32}.Debug|x64.Build.0 = Debug|Any CPU
+		{9AB674A0-AEF7-4539-8049-0406D2C7BB32}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9AB674A0-AEF7-4539-8049-0406D2C7BB32}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9AB674A0-AEF7-4539-8049-0406D2C7BB32}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9AB674A0-AEF7-4539-8049-0406D2C7BB32}.Release|ARM.ActiveCfg = Release|Any CPU
+		{9AB674A0-AEF7-4539-8049-0406D2C7BB32}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{9AB674A0-AEF7-4539-8049-0406D2C7BB32}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{9AB674A0-AEF7-4539-8049-0406D2C7BB32}.Release|x64.ActiveCfg = Release|Any CPU
+		{9AB674A0-AEF7-4539-8049-0406D2C7BB32}.Release|x64.Build.0 = Release|Any CPU
+		{9AB674A0-AEF7-4539-8049-0406D2C7BB32}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

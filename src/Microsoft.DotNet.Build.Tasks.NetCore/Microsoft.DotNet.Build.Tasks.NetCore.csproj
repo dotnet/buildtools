@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.props))\dir.props" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{9AB674A0-AEF7-4539-8049-0406D2C7BB32}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.DotNet.Build.Tasks</RootNamespace>
+    <AssemblyName>Microsoft.DotNet.Build.Tasks</AssemblyName>
+    <CLSCompliant>false</CLSCompliant>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <SkipSigning>true</SkipSigning>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\Delegates.cs">
+    </Compile>
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\ExecWithMutex.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\GenerateResourcesCode.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\GenerateEncodingTable.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\GetPackageVersion.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\GetPackageDependencies.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\GetNextRevisionNumber.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\NormalizePaths.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\GetDoItemsIntersect.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\OpenSourceSign.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\ParseTestCoverageInfo.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\RemoveDuplicatesWithLastOneWinsPolicy.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\PrereleaseResolveNuGetPackageAssets.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\Strings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\Microsoft.DotNet.Build.Tasks\Strings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
+  <Target Name="AfterBuild">
+    <PropertyGroup>
+      <!-- This version should be kept up to date with project.json -->
+      <NuProjVersion>0.10.4-beta-gf7fc34e7d8</NuProjVersion>
+    </PropertyGroup>
+    <ItemGroup>
+      <PackageFiles Include="$(MSBuildThisProjectDirectory)..\Microsoft.DotNet.Build.Tasks\PackageFiles\**\*.*" />
+      <NuProjFiles Include="$(PackagesDir)NuProj\$(NuProjVersion)\tools\**\*.*" />
+    </ItemGroup>
+    <ItemGroup>
+      <PublishedRuntimeItems Include="@(ReferenceCopyLocalPaths)">
+        <DestinationRelativePath>%(FileName)%(Extension)</DestinationRelativePath>
+      </PublishedRuntimeItems>
+      <PublishedRuntimeItems Include="@(Content)">
+        <DestinationRelativePath>%(FileName)%(Extension)</DestinationRelativePath>
+      </PublishedRuntimeItems>
+      <PublishedRuntimeItems Include="@(None)">
+        <DestinationRelativePath>%(FileName)%(Extension)</DestinationRelativePath>
+      </PublishedRuntimeItems>
+    </ItemGroup>
+    <Copy SourceFiles="%(PublishedRuntimeItems.Identity)" DestinationFiles="$(Outdir)%(DestinationRelativePath)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(PackageFiles)" DestinationFolder="$(OutputPath)\PackageFiles\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(NuProjFiles)" DestinationFolder="$(OutputPath)\NuProj\%(RecursiveDir)" SkipUnchangedFiles="true" />
+  </Target>
+</Project>

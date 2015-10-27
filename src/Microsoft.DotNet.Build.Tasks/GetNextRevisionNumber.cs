@@ -5,7 +5,9 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks
@@ -40,7 +42,7 @@ namespace Microsoft.DotNet.Build.Tasks
             RevisionNumber = incRevNum.ToString("D5");
 
             buildNode.Value = RevisionNumber;
-            versionProps.Save(VersionPropsFile);
+            versionProps.Save(new FileStream(VersionPropsFile, FileMode.Create, FileAccess.Write, FileShare.Read));
 
             Log.LogMessage(string.Format("GetNextRevisionNumber completed successfully - the revision number is now {0}", RevisionNumber));
 

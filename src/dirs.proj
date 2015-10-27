@@ -4,6 +4,7 @@
 
   <ItemGroup>
     <Project Include="*\**\*.csproj" />
+    <Project Include="*\**\*.depproj" />
   </ItemGroup>
 
   <Import Project="..\dir.targets" />

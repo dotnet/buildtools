@@ -184,7 +184,7 @@ namespace Microsoft.DotNet.Build.Tasks
             }
 
             JObject lockFile;
-            using (var streamReader = new StreamReader(ProjectLockFile))
+            using (var streamReader = new StreamReader(new FileStream(ProjectLockFile, FileMode.Open, FileAccess.Read, FileShare.Read)))
             {
                 lockFile = JObject.Load(new JsonTextReader(streamReader));
             }
@@ -573,7 +573,7 @@ namespace Microsoft.DotNet.Build.Tasks
         private static string TryGetTargetPath(string file)
         {
             var foldersAndFile = file.Split('\\').ToArray();
-
+#if TODO // Not sure if we support culture specific directories yet...
             for (int i = foldersAndFile.Length - 1; i > -1; i--)
             {
                 if (CultureStringUtilities.IsValidCultureString(foldersAndFile[i]))
@@ -581,7 +581,7 @@ namespace Microsoft.DotNet.Build.Tasks
                     return Path.Combine(foldersAndFile.Skip(i).ToArray());
                 }
             }
-
+#endif
             // There is no culture-specific directory, so it'll go in the root
             return null;
         }
@@ -641,7 +641,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 return packagesFolder;
             }
 
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
+            return string.Empty;
         }
         
         /// <summary>

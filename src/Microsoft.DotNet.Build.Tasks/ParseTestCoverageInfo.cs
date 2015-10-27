@@ -5,7 +5,6 @@ using System;
 using System.IO;
 using System.Xml;
 using System.Collections.Generic;
-
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
@@ -53,7 +52,7 @@ namespace Microsoft.DotNet.Build.Tasks
         private void ParseCoverageFile(string file)
         {
             XmlDocument coverageXml = new XmlDocument();
-            coverageXml.Load(file);
+            coverageXml.Load(XmlReader.Create(file));
 
             string testAssemblyName = file.Replace(".coverage.xml", "");
 
@@ -116,7 +115,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
             Log.LogMessage(MessageImportance.Normal, "Writing {0}", OutputReport);
 
-            using (XmlWriter xWriter = XmlWriter.Create(OutputReport, settings))
+            using (XmlWriter xWriter = XmlWriter.Create(File.OpenWrite(OutputReport), settings))
             {
                 xWriter.WriteStartDocument();
                 xWriter.WriteStartElement("Tests"); // <Tests>
