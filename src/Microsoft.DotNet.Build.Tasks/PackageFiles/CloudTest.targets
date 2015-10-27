@@ -1,0 +1,235 @@
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <UsingTask TaskName="CreateAzureContainer" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="CreateAzureFileShare" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="GetPerfTestAssemblies" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="SendToEventHub" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="UploadToAzure" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="WriteItemsToJson" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="ZipFileCreateFromDirectory" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+
+  <PropertyGroup>
+    <ContainerName>$(TestProduct)-$(Branch)-$(BuildMoniker)</ContainerName>
+    <ContainerName>$(ContainerName.ToLower())</ContainerName>
+    <FuncTestListFilename>FuncTests.$(OSGroup).$(Platform)$(ConfigurationGroup).json</FuncTestListFilename>
+    <PerfTestListFilename>PerfTests.$(OSGroup).$(Platform)$(ConfigurationGroup).json</PerfTestListFilename>
+    <ArchivesRoot>$(TestWorkingDir)$(OSPlatformConfig)\archive\</ArchivesRoot>
+    <TestArchivesRoot>$(ArchivesRoot)Tests\</TestArchivesRoot>
+    <PackagesArchiveFilename>Packages.zip</PackagesArchiveFilename>
+    <PackagesArchiveFile>$(ArchivesRoot)$(PackagesArchiveFilename)</PackagesArchiveFile>
+    <FuncTestListFile>$(TestWorkingDir)$(OSPlatformConfig)\$(FuncTestListFilename)</FuncTestListFile>
+    <PerfTestListFile>$(TestWorkingDir)$(OSPlatformConfig)\$(PerfTestListFilename)</PerfTestListFile>
+  </PropertyGroup>
+
+  <!-- main entrypoint -->
+  <Target Name="CloudBuild"
+          AfterTargets="Build"
+          DependsOnTargets="VerifyInputs;CreateTestListJson;UploadContent" />
+
+  <!-- gather the test archives for upload -->
+  <ItemGroup>
+    <ForUpload Include="$(TestArchivesRoot)*.zip" />
+  </ItemGroup>
+
+  <Target Name="VerifyInputs">
+    <!-- verify all required properties have been specified -->
+    <Error Condition="'$(Creator)' == ''" Text="Missing required property Creator." />
+    <Error Condition="'$(TargetQueue)' == ''" Text="Missing required property TargetQueue." />
+    <Error Condition="'$(TestProduct)' == ''" Text="Missing required property TestProduct." />
+    <Error Condition="'$(BuildMoniker)' == ''" Text="Missing required property BuildMoniker." />
+    <Error Condition="'$(Branch)' == ''" Text="Missing required property Branch." />
+    <Error Condition="'$(CloudProductDropAccountName)' == ''" Text="Missing required property CloudProductDropAccountName." />
+    <Error Condition="'$(CloudOutputAccountName)' == ''" Text="Missing required property CloudOutputAccountName." />
+    <Error Condition="'$(DropAccessToken)' == ''" Text="Missing required property DropAccessToken." />
+    <Error Condition="'$(FileShareAccessToken)' == ''" Text="Missing required property FileShareAccessToken." />
+    <Error Condition="'$(BuildCompleteConnection)' == ''" Text="Missing required property BuildCompleteConnection." />
+    <Error Condition="'$(BuildIsOfficial)' == 'true' and '$(BuildIsOfficialConnection)' == ''" Text="Missing required property BuildIsOfficialConnection." />
+    <!-- verify the test archives were created -->
+    <Error Condition="'@(ForUpload->Count())' == '0'" Text="Didn't find any test archives in '$(ArchivesRoot)'." />
+    <!-- add relative blob path metadata -->
+    <ItemGroup>
+      <ForUpload>
+        <RelativeBlobPath>$(Platform)$(ConfigurationGroup)\Tests\%(Filename)%(Extension)</RelativeBlobPath>
+      </ForUpload>
+    </ItemGroup>
+  </Target>
+
+  <!-- create Azure containers and file shares -->
+  <Target Name="CreateAzureStorage">
+    <CreateAzureContainer
+      AccountKey="$(DropAccessToken)"
+      AccountName="$(CloudProductDropAccountName)"
+      ContainerName="$(ContainerName)"
+      ReadOnlyTokenDaysValid="30">
+        <Output TaskParameter="StorageUri" PropertyName="DropUriRoot" />
+        <Output TaskParameter="ReadOnlyToken" PropertyName="DropUriReadOnlyToken" />
+    </CreateAzureContainer>
+    <!-- append the build arch and type to the root URI -->
+    <CreateProperty Value="$(DropUriRoot)/$(BuildArch)$(BuildType)">
+      <Output TaskParameter="Value" PropertyName="DropUri" />
+    </CreateProperty>
+    <CreateAzureFileShare
+      AccountKey="$(FileShareAccessToken)"
+      AccountName="$(CloudOutputAccountName)"
+      ShareName="results"
+      ReadOnlyTokenDaysValid="30"
+      WriteOnlyTokenDaysValid="1">
+        <Output TaskParameter="StorageUri" PropertyName="ResultsUri" />
+        <Output TaskParameter="ReadOnlyToken" PropertyName="ResultsReadOnlyToken" />
+        <Output TaskParameter="WriteOnlyToken" PropertyName="ResultsWriteOnlyToken" />
+    </CreateAzureFileShare>
+  </Target>
+
+  <Target Name="CreateTestListJson"
+          DependsOnTargets="CreateFuncTestListJson;CreatePerfTestListJson" />
+
+  <Target Name="CreateFuncTestListJson" DependsOnTargets="CreateAzureStorage">
+    <!-- create item group of functional tests -->
+    <ItemGroup>
+      <FunctionalTest Include="$(TestArchivesRoot)*.zip" />
+    </ItemGroup>
+    <ItemGroup>
+      <FunctionalTest>
+        <Command>%HELIX_PYTHONPATH% %HELIX_SCRIPT_ROOT%\xunitrunner.py --dll %(Filename).dll</Command>
+        <CorrelationPayloadUris>[$(DropUri)$(Platform)$(ConfigurationGroup)/Packages.zip$(DropUriReadOnlyToken);;http://dotnetbuildscripts.blob.core.windows.net/scripts/xunit_210.zip;;http://dotnetbuildscripts.blob.core.windows.net/scripts/amd64ret/corerun.zip]</CorrelationPayloadUris>
+        <PayloadUri>$(DropUri)$(Platform)$(ConfigurationGroup)/Tests/%(Filename)%(Extension)$(DropUriReadOnlyToken)</PayloadUri>
+        <WorkItemId>FunctionalTest.%(Filename)</WorkItemId>
+      </FunctionalTest>
+    </ItemGroup> 
+    <WriteItemsToJson JsonFileName="$(FuncTestListFile)" Items="@(FunctionalTest)" />
+    <!-- add test lists to the list of items for upload -->
+    <ItemGroup>
+      <ForUpload Include="$(FuncTestListFile)">
+        <RelativeBlobPath>$(FuncTestListFilename)</RelativeBlobPath>
+      </ForUpload>
+    </ItemGroup>
+    <!-- for completion event -->
+    <ItemGroup>
+      <TestListFile Include="$(FuncTestListFile)">
+        <CorrelationId>$([System.Guid]::NewGuid())</CorrelationId>
+        <BuildCompleteJson>$(TestWorkingDir)$(OSPlatformConfig)\FuncBuildComplete.json</BuildCompleteJson>
+        <OfficialBuildJson>$(TestWorkingDir)$(OSPlatformConfig)\FuncOfficialBuild.json</OfficialBuildJson>
+      </TestListFile>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="CreatePerfTestListJson" DependsOnTargets="CreateAzureStorage" Condition="'$(Performance)' == 'true'">
+    <!-- now gather the perf tests -->
+    <ItemGroup>
+      <TestBinary Include="$(BinDir)$(OSPlatformConfig)\**\*Tests.dll" />
+    </ItemGroup>
+    <GetPerfTestAssemblies TestBinaries="@(TestBinary)">
+      <Output TaskParameter="PerfTestAssemblies" ItemName="PerfTestAssembly" />
+    </GetPerfTestAssemblies>
+    <!-- don't add any items to the group if no perf tests were found -->
+    <ItemGroup Condition="'@(PerfTestAssembly->Count())' != '0'">
+      <PerfTest Include="$(TestArchivesRoot)%(PerfTestAssembly.Identity).zip" />
+    </ItemGroup>
+    <ItemGroup Condition="'@(PerfTestAssembly->Count())' != '0'">
+      <PerfTest>
+        <Command>%HELIX_PYTHONPATH% %HELIX_SCRIPT_ROOT%\xunitrunner.py --dll %(Filename).dll --perf-runner Microsoft.DotNet.xunit.performance.runner.Windows</Command>
+        <CorrelationPayloadUris>[$(DropUri)$(Platform)$(ConfigurationGroup)/Packages.zip$(DropUriReadOnlyToken);;http://dotnetbuildscripts.blob.core.windows.net/scripts/xunit_210.zip;;http://dotnetbuildscripts.blob.core.windows.net/scripts/amd64ret/corerun.zip]</CorrelationPayloadUris>
+        <PayloadUri>$(DropUri)$(Platform)$(ConfigurationGroup)/Tests/%(Filename)%(Extension)$(DropUriReadOnlyToken)</PayloadUri>
+        <WorkItemId>PerfTest.%(Filename)</WorkItemId>
+        <TimeoutInSeconds>600</TimeoutInSeconds>
+      </PerfTest>
+    </ItemGroup>
+    <WriteItemsToJson JsonFileName="$(PerfTestListFile)" Items="@(PerfTest)" />
+    <!-- add test lists to the list of items for upload -->
+    <ItemGroup>
+      <ForUpload Include="$(PerfTestListFile)">
+        <RelativeBlobPath>$(PerfTestListFilename)</RelativeBlobPath>
+      </ForUpload>
+    </ItemGroup>
+    <!-- for completion event -->
+    <ItemGroup>
+      <TestListFile Include="$(PerfTestListFile)">
+        <CorrelationId>$([System.Guid]::NewGuid())</CorrelationId>
+        <BuildCompleteJson>$(TestWorkingDir)$(OSPlatformConfig)\PerfBuildComplete.json</BuildCompleteJson>
+        <OfficialBuildJson>$(TestWorkingDir)$(OSPlatformConfig)\PerfOfficialBuild.json</OfficialBuildJson>
+      </TestListFile>
+    </ItemGroup>
+  </Target>
+
+  <!-- compress the packages dir in preparation for uploading -->
+  <Target Name="CompressPackagesDir" Condition="'$(SkipArchive)' != 'true'">
+    <ItemGroup>
+      <ExcludeFromArchive Include="nupkg$" />
+      <ExcludeFromArchive Include="Microsoft.DotNet.BuildTools" />
+      <ExcludeFromArchive Include="TestData" />
+    </ItemGroup>
+    <ZipFileCreateFromDirectory
+        SourceDirectory="$(PackagesDir)"
+        DestinationArchive="$(PackagesArchiveFile)"
+        ExcludePatterns="@(ExcludeFromArchive)"
+        OverwriteDestination="true" />
+    <!-- add to the list of uploads -->
+    <ItemGroup>
+      <ForUpload Include="$(PackagesArchiveFile)">
+        <RelativeBlobPath>$(Platform)$(ConfigurationGroup)\$(PackagesArchiveFilename)</RelativeBlobPath>
+      </ForUpload>
+    </ItemGroup>
+  </Target>
+
+  <!-- upload content to Azure -->
+  <Target Name="UploadContent" DependsOnTargets="CompressPackagesDir" Condition="'$(SkipUpload)' != 'true'">
+    <UploadToAzure
+      AccountKey="$(DropAccessToken)"
+      AccountName="$(CloudProductDropAccountName)"
+      ContainerName="$(ContainerName)"
+      Items="@(ForUpload)"
+      Overwrite="true" />
+  </Target>
+
+  <!-- write event hub notification JSON files -->
+  <Target Name="WriteCompletionEvent"
+          AfterTargets="UploadContent"
+          Inputs="%(TestListFile.Identity)"
+          Outputs="%(TestListFile.BuildCompleteJson)">
+    <!-- signal that the build is ready for testing -->
+    <ItemGroup>
+      <BuildComplete Include="%(TestListFile.BuildCompleteJson)">
+        <CorrelationId>%(TestListFile.CorrelationId)</CorrelationId>
+        <DropContainerSAS>$(DropUriReadOnlyToken)</DropContainerSAS>
+        <ListUri>$(DropUri)%(TestListFile.Filename)%(TestListFile.Extension)$(DropUriReadOnlyToken)</ListUri>
+        <QueueId>$(TargetQueue)</QueueId>
+        <ResultsUri>$(ResultsUri)/%(TestListFile.CorrelationId)</ResultsUri>
+        <ResultsUriRSAS>$(ResultsReadOnlyToken)</ResultsUriRSAS>
+        <ResultsUriWSAS>$(ResultsWriteOnlyToken)</ResultsUriWSAS>
+        <Creator>$(Creator)</Creator>
+        <Product>$(TestProduct)</Product>
+        <Architecture>$(Platform)</Architecture>
+        <Configuration>$(ConfigurationGroup)</Configuration>
+        <BuildNumber>$(BuildMoniker)</BuildNumber>
+        <Branch>$(Branch)</Branch>
+      </BuildComplete>
+    </ItemGroup>
+    <WriteItemsToJson JsonFileName="%(TestListFile.BuildCompleteJson)" Items="@(BuildComplete)" />
+    <!-- signal that this is an official build as required -->
+    <ItemGroup>
+      <OfficialBuild Include="%(TestListFile.OfficialBuildJson)">
+        <Type>MarkTestRunAsOfficial</Type>
+        <Aggregate>%(TestListFile.CorrelationId)</Aggregate>
+      </OfficialBuild>
+    </ItemGroup>
+    <WriteItemsToJson JsonFileName="%(TestListFile.OfficialBuildJson)" Items="@(OfficialBuild)" />
+  </Target>
+
+  <!-- send completion events -->
+  <Target Name="SendCompletionEvent"
+          AfterTargets="WriteCompletionEvent"
+          Inputs="%(TestListFile.BuildCompleteJson)"
+          Outputs="%(TestListFile.CorrelationId)"
+          Condition="'$(SkipNotifyEvent)' != 'true'">
+    <SendToEventHub
+      ConnectionString="$(BuildCompleteConnection)"
+      EventHubPath="controler"
+      EventData="%(TestListFile.BuildCompleteJson)" />
+    <SendToEventHub
+      Condition="'$(BuildIsOfficial)' == 'true'"
+      ConnectionString="$(BuildIsOfficialConnection)"
+      EventHubPath="clrstats-events"
+      EventData="%(TestListFile.OfficialBuildJson)" />
+  </Target>
+
+</Project>
