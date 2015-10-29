@@ -8,7 +8,7 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Microsoft.ServiceBus.Messaging;
 
-namespace Microsoft.DotNet.Build.Tasks
+namespace Microsoft.DotNet.Build.CloudTestTasks
 {
     public sealed class SendToEventHub : Task
     {

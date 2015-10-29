@@ -1,11 +1,11 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <UsingTask TaskName="CreateAzureContainer" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
-  <UsingTask TaskName="CreateAzureFileShare" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
-  <UsingTask TaskName="GetPerfTestAssemblies" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
-  <UsingTask TaskName="SendToEventHub" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
-  <UsingTask TaskName="UploadToAzure" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
-  <UsingTask TaskName="WriteItemsToJson" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="CreateAzureContainer" AssemblyFile="$(ToolsDir)net45\Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="CreateAzureFileShare" AssemblyFile="$(ToolsDir)net45\Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="GetPerfTestAssemblies" AssemblyFile="$(ToolsDir)net45\Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="SendToEventHub" AssemblyFile="$(ToolsDir)net45\Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="UploadToAzure" AssemblyFile="$(ToolsDir)net45\Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="WriteItemsToJson" AssemblyFile="$(ToolsDir)net45\Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="ZipFileCreateFromDirectory" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
   <PropertyGroup>
