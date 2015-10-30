@@ -90,7 +90,7 @@
     </ItemGroup>
     <ItemGroup>
       <FunctionalTest>
-        <Command>%HELIX_PYTHONPATH% %HELIX_SCRIPT_ROOT%\xunitrunner.py --dll %(Filename).dll</Command>
+        <Command>%HELIX_PYTHONPATH% %HELIX_SCRIPT_ROOT%\xunitrunner.py --dll %(Filename).dll -- -notrait category=nonwindowstests</Command>
         <CorrelationPayloadUris>[$(DropUri)$(Platform)$(ConfigurationGroup)/Packages.zip$(DropUriReadOnlyToken);;http://dotnetbuildscripts.blob.core.windows.net/scripts/xunit_210.zip;;http://dotnetbuildscripts.blob.core.windows.net/scripts/amd64ret/corerun.zip]</CorrelationPayloadUris>
         <PayloadUri>$(DropUri)$(Platform)$(ConfigurationGroup)/Tests/%(Filename)%(Extension)$(DropUriReadOnlyToken)</PayloadUri>
         <WorkItemId>FunctionalTest.%(Filename)</WorkItemId>
@@ -127,7 +127,7 @@
     </ItemGroup>
     <ItemGroup Condition="'@(PerfTestAssembly->Count())' != '0'">
       <PerfTest>
-        <Command>%HELIX_PYTHONPATH% %HELIX_SCRIPT_ROOT%\xunitrunner.py --dll %(Filename).dll --perf-runner Microsoft.DotNet.xunit.performance.runner.Windows</Command>
+        <Command>%HELIX_PYTHONPATH% %HELIX_SCRIPT_ROOT%\xunitrunner.py --dll %(Filename).dll --perf-runner Microsoft.DotNet.xunit.performance.runner.Windows -- -notrait category=nonwindowstests</Command>
         <CorrelationPayloadUris>[$(DropUri)$(Platform)$(ConfigurationGroup)/Packages.zip$(DropUriReadOnlyToken);;http://dotnetbuildscripts.blob.core.windows.net/scripts/xunit_210.zip;;http://dotnetbuildscripts.blob.core.windows.net/scripts/amd64ret/corerun.zip]</CorrelationPayloadUris>
         <PayloadUri>$(DropUri)$(Platform)$(ConfigurationGroup)/Tests/%(Filename)%(Extension)$(DropUriReadOnlyToken)</PayloadUri>
         <WorkItemId>PerfTest.%(Filename)</WorkItemId>
