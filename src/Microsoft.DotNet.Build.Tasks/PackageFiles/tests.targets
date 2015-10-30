@@ -32,6 +32,7 @@
          process name. -->
     <TestHost Condition="'$(OS)' == 'Windows_NT'">CoreRun.exe</TestHost>
     <TestHost Condition="'$(OS)' != 'Windows_NT'">corerun</TestHost>
+    <TestHost>$(TestPath)dnxcore50/$(TestHost)</TestHost>
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.netcore.exe</XunitExecutable>
     <DebugTestFrameworkFolder>dnxcore50</DebugTestFrameworkFolder>
     <DebugEngines>{2E36F1D4-B23C-435D-AB41-18E608940038}</DebugEngines>
@@ -130,7 +131,7 @@
 
     <MakeDir Condition="'$(CoverageEnabledForProject)'=='true'" Directories="$(CoverageReportDir)" />
 
-    <Exec Command="$(TestPath)%(TestTargetFramework.Folder)/$(TestCommandLine)"
+    <Exec Command="$(TestCommandLine)"
           WorkingDirectory="$(TestPath)%(TestTargetFramework.Folder)"
           ContinueOnError="true">
       <Output PropertyName="TestRunExitCode" TaskParameter="ExitCode" />
