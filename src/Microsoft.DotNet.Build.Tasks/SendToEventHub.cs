@@ -30,12 +30,20 @@ namespace Microsoft.DotNet.Build.Tasks
         [Required]
         public string EventData { get; set; }
 
+        /// <summary>
+        /// The partition key for the event.
+        /// </summary>
+        public string PartitionKey { get; set; }
+
         public override bool Execute()
         {
             using (var streamReader = new StreamReader(EventData))
             {
                 EventHubClient client = EventHubClient.CreateFromConnectionString(ConnectionString, EventHubPath);
-                client.Send(new EventData(Encoding.UTF8.GetBytes(streamReader.ReadToEnd())));
+                client.Send(new EventData(Encoding.UTF8.GetBytes(streamReader.ReadToEnd()))
+                {
+                    PartitionKey = PartitionKey
+                });
                 Log.LogMessage(MessageImportance.Normal, "Successfully sent notification to event hub path {0}.", EventHubPath);
             }
             return true;
