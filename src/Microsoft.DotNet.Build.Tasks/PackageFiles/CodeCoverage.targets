@@ -6,7 +6,7 @@
   -->
   <PropertyGroup>
     <OpenCoverVersion>4.6.166</OpenCoverVersion>
-    <ReportGeneratorVersion>2.3.1</ReportGeneratorVersion>
+    <ReportGeneratorVersion>2.3.4</ReportGeneratorVersion>
     <CoverallsUploaderVersion>1.4</CoverallsUploaderVersion>
   </PropertyGroup>
   
