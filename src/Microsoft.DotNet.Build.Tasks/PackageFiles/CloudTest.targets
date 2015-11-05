@@ -229,7 +229,8 @@
       Condition="'$(BuildIsOfficial)' == 'true'"
       ConnectionString="$(BuildIsOfficialConnection)"
       EventHubPath="clrstats-events"
-      EventData="%(TestListFile.OfficialBuildJson)" />
+      EventData="%(TestListFile.OfficialBuildJson)"
+      PartitionKey="%(TestListFile.CorrelationId)"/>
   </Target>
 
 </Project>
