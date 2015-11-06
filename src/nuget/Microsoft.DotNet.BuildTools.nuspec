@@ -19,13 +19,13 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="Microsoft.DotNet.Build.Tasks\package\**\*.*" target="lib" />
+    <file src="Microsoft.DotNet.Build.CloudTestTasks\*.dll" target="lib\net45" />
+    <file src="Microsoft.Dotnet.Build.CloudTestTasks\PackageFiles\**\*.*" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks\PackageFiles\**\*.*" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\Microsoft.DotNet.Build.Tasks.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\NuGet.*.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\Newtonsoft.Json.dll" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks\Microsoft.ServiceBus.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\Microsoft.Web.XmlTransform.dll" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks\Microsoft.WindowsAzure.Storage.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\LibGit2Sharp.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\System.Collections.Immutable.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\System.Reflection.Metadata.dll" target="lib" />

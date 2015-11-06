@@ -7,7 +7,7 @@ using Microsoft.Build.Utilities;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.File;
 
-namespace Microsoft.DotNet.Build.Tasks
+namespace Microsoft.DotNet.Build.CloudTestTasks
 {
     public sealed class CreateAzureFileShare : Task
     {

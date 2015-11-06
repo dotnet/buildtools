@@ -9,7 +9,7 @@ using System.Reflection.PortableExecutable;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
-namespace Microsoft.DotNet.Build.Tasks
+namespace Microsoft.DotNet.Build.CloudTestTasks
 {
     public sealed class GetPerfTestAssemblies : Task
     {

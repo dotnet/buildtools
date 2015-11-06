@@ -7,7 +7,7 @@ using Microsoft.Build.Utilities;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 
-namespace Microsoft.DotNet.Build.Tasks
+namespace Microsoft.DotNet.Build.CloudTestTasks
 {
     public sealed class CreateAzureContainer : Task
     {
