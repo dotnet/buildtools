@@ -87,6 +87,10 @@
       <TestCopyLocal Include="@(_ExistingReplacementCandidate)" />
     </ItemGroup>
 
+    <ItemGroup Condition="'$(BUILDTOOLS_OVERRIDE_RUNTIME)' != ''">
+      <TestCopyLocal Include="$(BUILDTOOLS_OVERRIDE_RUNTIME)\*.*" />
+    </ItemGroup>
+
     <!-- Remove duplicates. Note that we musn't just copy in sequence and let 
          the last one win that way because it will cause copies to occur on 
          every incremental build. -->
@@ -118,12 +122,6 @@
       
       <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
     </Copy>
-
-    <ItemGroup Condition="'$(BUILDTOOLS_OVERRIDE_RUNTIME)' != ''">
-      <TestRuntimeSource Include="$(BUILDTOOLS_OVERRIDE_RUNTIME)\*.*" />
-    </ItemGroup>
-
-    <Copy Condition="'$(BUILDTOOLS_OVERRIDE_RUNTIME)' != ''" SourceFiles="@(TestRuntimeSource)" DestinationFolder="$(TestPath)%(TestTargetFramework.Folder)" />
 
     <Exec Condition="'$(OS)'=='Unix'"
           Command="chmod a+x &quot;$(TestPath)%(TestTargetFramework.Folder)/corerun&quot;" />
