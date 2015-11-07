@@ -63,6 +63,7 @@
     <XunitOptions Condition="'$(OSGroup)'=='Linux'">$(XunitOptions) -notrait category=nonlinuxtests</XunitOptions>
     <XunitOptions Condition="'$(OSGroup)'=='OSX'">$(XunitOptions) -notrait category=nonosxtests</XunitOptions>
     <XunitOptions Condition="'$(OSGroup)'=='FreeBSD'">$(XunitOptions) -notrait category=nonfreebsdtests</XunitOptions>
+    <XunitOptions Condition="'$(Performance)'!='true'">$(XunitOptions) -notrait Benchmark=true</XunitOptions>
 
     <XunitOptions Condition="'$(XunitMaxThreads)'!=''">$(XunitOptions) -maxthreads $(XunitMaxThreads)</XunitOptions>
     <XunitArguments>$(TargetFileName) $(XunitOptions)</XunitArguments>
