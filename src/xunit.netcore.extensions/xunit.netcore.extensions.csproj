@@ -14,13 +14,18 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
+    <Compile Include="Attributes\ConditionalFactAttribute.cs" />
+    <Compile Include="Attributes\ConditionalTheoryAttribute.cs" />
     <Compile Include="Attributes\ActiveIssueAttribute.cs" />
     <Compile Include="Attributes\PlatformSpecificAttribute.cs" />
+    <Compile Include="Discoverers\ConditionalFactDiscoverer.cs" />
+    <Compile Include="Discoverers\ConditionalTheoryDiscoverer.cs" />
     <Compile Include="Discoverers\ActiveIssueDiscoverer.cs" />
     <Compile Include="Attributes\OuterLoopAttribute.cs" />
     <Compile Include="Discoverers\OuterLoopTestsDiscoverer.cs" />
     <Compile Include="Discoverers\PlatformSpecificDiscoverer.cs" />
     <Compile Include="PlatformID.cs" />
+    <Compile Include="SkippedTestCase.cs" />
     <Compile Include="XunitConstants.cs" />
   </ItemGroup>
   <ItemGroup>
