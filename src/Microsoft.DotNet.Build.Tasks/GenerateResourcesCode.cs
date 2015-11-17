@@ -8,7 +8,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Resources;
+using System.Xml.Linq;
 using System.Text;
 
 namespace Microsoft.DotNet.Build.Tasks
@@ -16,7 +16,6 @@ namespace Microsoft.DotNet.Build.Tasks
     public class GenerateResourcesCode : Task
     {
         private TargetLanguage _targetLanguage = TargetLanguage.CSharp;
-        private ResXResourceReader _resxReader;
         private StreamWriter _targetStream;
         private StringBuilder _debugCode = new StringBuilder();
         private Dictionary<string, int> _keys;
@@ -39,24 +38,19 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 _resourcesName = "FxResources." + AssemblyName;
 
-                using (_resxReader = new ResXResourceReader(ResxFilePath))
+                using (_targetStream = File.CreateText(OutputSourceFilePath))
                 {
-                    using (_targetStream = File.CreateText(OutputSourceFilePath))
+                    if (String.Equals(Path.GetExtension(OutputSourceFilePath), ".vb", StringComparison.OrdinalIgnoreCase))
                     {
-
-                        if (String.Equals(Path.GetExtension(OutputSourceFilePath), ".vb", StringComparison.OrdinalIgnoreCase))
-                        {
-                            _targetLanguage = TargetLanguage.VB;
-                        }
-
-                        _keys = new Dictionary<string, int>();
-                        WriteClassHeader();
-                        RunOnResFile();
-                        WriteDebugCode();
-                        WriteGetTypeProperty();
-                        WriteClassEnd();
-                        WriteResourceTypeClass();
+                        _targetLanguage = TargetLanguage.VB;
                     }
+                    _keys = new Dictionary<string, int>();
+                    WriteClassHeader();
+					RunOnResFile();
+					WriteDebugCode();
+					WriteGetTypeProperty();
+					WriteClassEnd();
+					WriteResourceTypeClass();
                 }
             }
             catch (Exception e)
@@ -106,10 +100,9 @@ namespace Microsoft.DotNet.Build.Tasks
 
         private void RunOnResFile()
         {
-            IDictionaryEnumerator dict = _resxReader.GetEnumerator();
-            while (dict.MoveNext())
+            foreach(KeyValuePair<string, string> pair in GetResources(ResxFilePath))
             {
-                StoreValues((string)dict.Key, (string)dict.Value);
+                StoreValues((string)pair.Key, (string)pair.Value);
             }
         }
 
@@ -226,6 +219,17 @@ namespace Microsoft.DotNet.Build.Tasks
         private enum TargetLanguage
         {
             CSharp, VB
+        }
+
+        internal static IEnumerable<KeyValuePair<string, string>> GetResources(string fileName)
+        {
+            XDocument doc = XDocument.Load(fileName, LoadOptions.PreserveWhitespace);
+            foreach (XElement dataElem in doc.Element("root").Elements("data"))
+            {
+                string name = dataElem.Attribute("name").Value;
+                string value = dataElem.Element("value").Value;
+                yield return new KeyValuePair<string, string>(name, value);
+            }
         }
     }
 }

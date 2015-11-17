@@ -23,16 +23,12 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="CultureStringUtilities.cs" />
     <Compile Include="Delegates.cs" />
     <Compile Include="ExecWithMutex.cs" />
     <Compile Include="GenerateResourcesCode.cs" />
     <Compile Include="GenerateEncodingTable.cs" />
-    <Compile Include="GetWorkspaceBranch.cs" />
-    <Compile Include="GitTag.cs" />
     <Compile Include="GetPackageVersion.cs" />
     <Compile Include="GetPackageDependencies.cs" />
-    <Compile Include="GitPush.cs" />
     <Compile Include="GetNextRevisionNumber.cs" />
     <Compile Include="NormalizePaths.cs" />
     <Compile Include="GetDoItemsIntersect.cs" />
@@ -40,7 +36,6 @@
     <Compile Include="ParseTestCoverageInfo.cs" />
     <Compile Include="RemoveDuplicatesWithLastOneWinsPolicy.cs" />
     <Compile Include="PrereleaseResolveNuGetPackageAssets.cs" />
-    <Compile Include="ResolveNuGetPackages.cs" />
     <Compile Include="ZipFileCreateFromDirectory.cs" />
     <Compile Include="Strings.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -101,7 +96,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="PackageFiles\**\*.*" />
   </ItemGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
   <Target Name="AfterBuild">

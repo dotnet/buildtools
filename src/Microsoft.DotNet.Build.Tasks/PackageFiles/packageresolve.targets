@@ -1,17 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <UsingTask TaskName="ReadNuGetPackageReferences" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
-  <UsingTask TaskName="ResolveNuGetPackages" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="PrereleaseResolveNuGetPackageAssets" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
   <PropertyGroup>
-    <ProjectPackagesConfigFile Condition="'$(ProjectPackagesConfigFile)'=='' and Exists('$(MSBuildProjectDirectory)/packages.config')">$(MSBuildProjectDirectory)/packages.config</ProjectPackagesConfigFile>
     <ProjectJson Condition="'$(ProjectJson)'=='' and Exists('$(MSBuildProjectDirectory)/project.json')">$(MSBuildProjectDirectory)/project.json</ProjectJson>
     <ProjectLockJson Condition="Exists('$(ProjectJson)') and '$(ProjectLockJson)'==''">$(MSBuildProjectDirectory)/project.lock.json</ProjectLockJson>
     <ResolveNugetProjectFile Condition="'$(ResolveNugetProjectFile)' == ''">$(MSBuildProjectFullPath)</ResolveNugetProjectFile>
-    <RestorePackages Condition="'$(RestorePackages)'!='false' and (Exists('$(ProjectPackagesConfigFile)') or Exists('$(ProjectJson)')) and '$(DesignTimeBuild)' != 'true'">true</RestorePackages>
-    <PrereleaseResolveNuGetPackages Condition="'$(PrereleaseResolveNuGetPackages)'!='false' and (Exists('$(ProjectPackagesConfigFile)') or Exists('$(ProjectJson)'))">true</PrereleaseResolveNuGetPackages>
+    <RestorePackages Condition="'$(RestorePackages)'!='false' and Exists('$(ProjectJson)') and '$(DesignTimeBuild)' != 'true'">true</RestorePackages>
+    <PrereleaseResolveNuGetPackages Condition="'$(PrereleaseResolveNuGetPackages)'!='false' and Exists('$(ProjectJson)')">true</PrereleaseResolveNuGetPackages>
 
     <!-- 
         For now, prevent built-in task (if available) from running.
@@ -27,15 +24,12 @@
           BeforeTargets="ResolveNuGetPackages"
           Condition="'$(RestorePackages)'=='true' and !('$(VSDesignTimeBuild)'=='true' and '$(VisualStudioVersion)' >= '14.0')">
 
-    <Error Condition="'$(NugetRestoreCommand)'=='' and Exists('$(ProjectPackagesConfigFile)')" Text="RestorePackages target needs a predefined NugetRestoreCommand property set in order to restore $(ProjectPackagesConfigFile)" /> 
     <Error Condition="'$(DnuRestoreCommand)'=='' and Exists('$(ProjectJson)')" Text="RestorePackages target needs a predefined DnuRestoreCommand property set in order to restore $(ProjectJson)" /> 
     
-    <Exec Condition="Exists('$(ProjectPackagesConfigFile)')" Command="$(NugetRestoreCommand) &quot;$(ProjectPackagesConfigFile)&quot;" StandardOutputImportance="Low" />
     <Exec Condition="Exists('$(ProjectJson)')" Command="$(DnuRestoreCommand) &quot;$(ProjectJson)&quot;" StandardOutputImportance="Low" CustomErrorRegularExpression="^Unable to locate .*" />
   </Target>
 
   <ItemGroup Condition="'$(ResolvePackages)'=='true' or '$(PrereleaseResolveNuGetPackages)'=='true'">
-    <CustomAdditionalCompileInputs Condition="Exists('$(ProjectPackagesConfigFile)')" Include="$(ProjectPackagesConfigFile)" />
     <CustomAdditionalCompileInputs Condition="Exists('$(ProjectJson)')" Include="$(ProjectJson)" />
   </ItemGroup>
 
@@ -69,21 +63,6 @@
 
   <Target Name="ResolveNuGetPackages"
           Condition="'$(PrereleaseResolveNuGetPackages)'=='true'">
-
-    <!-- Use old task for packages.config -->
-    <ResolveNuGetPackages Condition="'$(ProjectPackagesConfigFile)' != ''"
-                          PackagesConfigs="$(ProjectPackagesConfigFile)"
-                          PackageRoot="$(PackagesDir)"
-                          Platform="$(PlatformTarget)"
-                          Configuration="$(Configuration)"
-                          Language="$(Language)"
-                          TargetFramework="$(NuGetTargetMoniker)"
-                          TargetPlatformMoniker="$(TargetPlatformMoniker)">
-
-      <Output TaskParameter="ResolvedAnalyzers" ItemName="Analyzer" />
-      <Output TaskParameter="ResolvedReferences" ItemName="Reference" />
-      <Output TaskParameter="ResolvedCopyLocal" ItemName="ReferenceCopyLocalPaths" />
-    </ResolveNuGetPackages>
 
     <PropertyGroup>
       <!-- Temporary workaround -->

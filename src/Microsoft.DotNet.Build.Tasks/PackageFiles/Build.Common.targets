@@ -56,9 +56,8 @@
   
       Inputs:
         ProjectJson - If not set defaults to $(MSBuildProjectDirectory)\project.json
-        ProjectPackagesConfigFile - If not set defaults to $(MSBuildProjectDirectory)\packages.config
-        RestorePackages - If not set defaults to the existence of the file $(ProjectPackagesConfigFile) or $(ProjectJson)
-        ResolveNuGetPackages - If not set defaults to to the existence of the file $(ProjectPackagesConfigFile) or $(ProjectJson)
+        RestorePackages - If not set defaults to the existence of the $(ProjectJson)
+        ResolveNuGetPackages - If not set defaults to the existance of $(ProjectJson)
       
       Depends on properties:
         NugetRestoreCommand - Used to restore the project packages from packages.config
@@ -130,7 +129,6 @@
         CoverageEnabledForProject - Usually set at the project level to disable code coverage for a single project. 
         SkipTests - Usually set at the root level for builds that want to disable all the tests.
         ProjectJson - If not set defaults to $(MSBuildProjectDirectory)\project.json
-        ProjectPackagesConfigFile - Test publishing depends on this to be able to copy the dependencies to the test output
         CopyTestToTestDirectory - If not set defaults to $(IsTestProject)
 
       Depends on Properties:
