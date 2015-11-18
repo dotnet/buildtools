@@ -4,18 +4,13 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{17C66BCE-EB35-44CA-893C-8AAFB67708E9}</ProjectGuid>
+    <ProjectGuid>{9AB674A0-AEF7-4539-8049-0406D2C7BB32}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.DotNet.Build.Tasks</RootNamespace>
     <AssemblyName>Microsoft.DotNet.Build.Tasks</AssemblyName>
-    <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
+    <CopyNuGetImplementations>true</CopyNuGetImplementations>
+    <CLSCompliant>false</CLSCompliant>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <ResolveNuGetPackages>false</ResolveNuGetPackages>
     <SkipSigning>true</SkipSigning>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -51,51 +46,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Build.Tasks.v4.0" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.IO.Compression.FileSystem" />
-    <Reference Include="mscorlib" />
-    <Reference Include="LibGit2Sharp">
-      <HintPath>..\..\packages\LibGit2Sharp.0.19.0.0\lib\net40\LibGit2Sharp.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Build.Framework, Version=4.0.0.0" />
-    <Reference Include="Microsoft.Build.Utilities.v4.0" />
-    <Reference Include="Microsoft.Web.XmlTransform, Version=2.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.NuManifest.DotNet.1.0.1-alpha\lib\net45\Microsoft.Web.XmlTransform.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="NuGet.Core, Version=2.8.50926.602, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.NuManifest.DotNet.1.0.1-alpha\lib\net45\NuGet.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="NuGet.NuManifest, Version=1.0.0.0, Culture=neutral, PublicKeyToken=fde1dfc9ddcb8e3e, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.NuManifest.1.0.1-alpha\lib\net45\NuGet.NuManifest.dll</HintPath>
-    </Reference>
-    <Reference Include="NuGet.NuManifest.DotNet, Version=1.0.0.0, Culture=neutral, PublicKeyToken=fde1dfc9ddcb8e3e, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.NuManifest.DotNet.1.0.1-alpha\lib\net45\NuGet.NuManifest.DotNet.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Collections.Immutable">
-      <HintPath>..\..\packages\System.Collections.Immutable.1.1.32-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-      <Private>true</Private>
-    </Reference>
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Reflection.Metadata">
-      <HintPath>..\..\packages\System.Reflection.Metadata.1.0.17-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="project.json" />
   </ItemGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
   <Target Name="AfterBuild">
@@ -105,13 +56,9 @@
     </PropertyGroup>
     <ItemGroup>
       <PackageFiles Include="$(MSBuildThisProjectDirectory)PackageFiles\**\*.*" />
-      <NativeBinariesx86 Include="$(PackagesDir)LibGit2Sharp.0.19.0.0\lib\net40\NativeBinaries\x86\*.*" />
-      <NativeBinariesamd64 Include="$(PackagesDir)LibGit2Sharp.0.19.0.0\lib\net40\NativeBinaries\amd64\*.*" />
       <NuProjFiles Include="$(PackagesDir)NuProj\$(NuProjVersion)\tools\**\*.*" />
     </ItemGroup>
     <Copy SourceFiles="@(PackageFiles)" DestinationFolder="$(OutputPath)\PackageFiles\%(RecursiveDir)" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(NativeBinariesx86)" DestinationFolder="$(OutputPath)NativeBinaries\x86" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(NativeBinariesamd64)" DestinationFolder="$(OutputPath)NativeBinaries\amd64" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(NuProjFiles)" DestinationFolder="$(OutputPath)\NuProj\%(RecursiveDir)" SkipUnchangedFiles="true" />
   </Target>
 </Project>
