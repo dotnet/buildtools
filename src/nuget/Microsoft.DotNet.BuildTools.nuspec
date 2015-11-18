@@ -21,9 +21,9 @@
   <files>
     <file src="Microsoft.DotNet.Build.CloudTestTasks\*.dll" target="lib\net45" />
     <file src="Microsoft.Dotnet.Build.CloudTestTasks\PackageFiles\**\*.*" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks.NetCore\PackageFiles\**\*.*" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks.NetCore\*.dll" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks.NetCore\NuProj\**\*.*" target="lib\NuProj" />
+    <file src="Microsoft.DotNet.Build.Tasks\PackageFiles\**\*.*" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks\*.dll" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks\NuProj\**\*.*" target="lib\NuProj" />
     <file src="BclRewriter\BclRewriter.exe" target="lib" />
     <file src="GenFacades\GenFacades.exe" target="lib" />
     <file src="Microsoft.Cci.Extensions\Microsoft.Cci.Extensions.dll" target="lib" />
