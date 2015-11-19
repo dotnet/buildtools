@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{9AB674A0-AEF7-4539-8049-0406D2C7BB32}</ProjectGuid>
+    <ProjectGuid>{17C66BCE-EB35-44CA-893C-8AAFB67708E9}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.DotNet.Build.Tasks</RootNamespace>
     <AssemblyName>Microsoft.DotNet.Build.Tasks</AssemblyName>
@@ -20,6 +20,7 @@
   <ItemGroup>
     <Compile Include="Delegates.cs" />
     <Compile Include="ExecWithMutex.cs" />
+    <Compile Include="GenerateAssemblyList.cs" />
     <Compile Include="GenerateResourcesCode.cs" />
     <Compile Include="GenerateEncodingTable.cs" />
     <Compile Include="GetPackageVersion.cs" />
