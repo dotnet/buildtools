@@ -5,6 +5,8 @@
   <UsingTask TaskName="RemoveDuplicatesWithLastOneWinsPolicy" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ZipFileCreateFromDirectory" Condition="'$(ArchiveTests)' == 'true'" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
   
+  <UsingTask TaskName="GenerateAssemblyList" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  
   <PropertyGroup>
     <SerializeProjects Condition="'$(TestWithLocalLibraries)'=='true'">true</SerializeProjects>
   </PropertyGroup>
@@ -134,10 +136,14 @@
       <AssemblyPaths Include="$([MSBuild]::MakeRelative($(PackagesDir), %(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)))" Condition="'%(_TestCopyLocalByFileNameWithoutDuplicates.NugetPackageId)' != ''" />
     </ItemGroup>
     <WriteLinesToFile
-      File="$(OutDir)AssemblyList.txt"
+      File="$(OutDir)AssemblyList.flat.txt"
       Lines="@(AssemblyPaths)"
       Overwrite="true"
       Encoding="Ascii" />
+    <GenerateAssemblyList
+      InputListLocation="$(OutDir)AssemblyList.flat.txt"
+      OutputListLocation="$(OutDir)AssemblyList.txt"
+     />
   </Target>
 
   <!-- archive the test binaries along with some supporting files -->
