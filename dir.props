@@ -72,6 +72,7 @@
     <DnuSourceList Include="https:%2F%2Fwww.myget.org/F/dotnet-corefx/" />
     <DnuSourceList Include="https:%2F%2Fwww.myget.org/F/dotnet-corefxtestdata/" />
     <DnuSourceList Include="https:%2F%2Fwww.myget.org/F/dotnet-buildtools/" />
+    <DnuSourceList Include="https:%2F%2Fwww.myget.org/F/nugetbuild/" />
     <DnuSourceList Include="https:%2F%2Fwww.nuget.org/api/v2/" />
   </ItemGroup>
 
