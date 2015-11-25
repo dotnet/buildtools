@@ -3,41 +3,6 @@
 
   <UsingTask TaskName="PrereleaseResolveNuGetPackageAssets" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
-  <!-- Default properties for partial facade projects -->
-  <PropertyGroup Condition="'$(IsPartialFacadeAssembly)' == 'true'">
-    <PostFilterNugetReferences>true</PostFilterNugetReferences>
-    <IgnoreArchitectureMismatches>true</IgnoreArchitectureMismatches>
-  </PropertyGroup>
-
-  <!-- It seems this needs to be set here, and cannot be set in individual project files -->
-  <PropertyGroup Condition="'$(IgnoreArchitectureMismatches)' == 'true'">
-    <!-- Needed because we are using mscorlib.dll from the CoreCLR package, rather than a true reference assembly -->
-    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
-  </PropertyGroup>
-
-  <!-- PostFilterNuGetReferences
-       Filters the set of references generated from the ResolveNugetPackages target. This is a default target for partial facade
-         assemblies, and can be optionally used in other projects as well, by setting PostFilterNugetReferences=true. The target
-         contains some logic for removing well-known assemblies from the "Microsoft.DotNet.CoreCLR" package, except for "mscorlib.dll".
-  -->
-  <Target Name="PostFilterNugetReferences"
-    Condition="'$(PostFilterNugetReferences)' == 'true'"
-    AfterTargets="ResolveNugetPackages">
-
-    <!-- Well-known default removals -->
-    <ItemGroup>
-      <!-- Only take mscorlib from Microsoft.DotNet.CoreCLR. -->
-      <ReferenceRemovals Include="@(Reference)" Condition="('%(Reference.NuGetPackageName)' == 'Microsoft.DotNet.CoreCLR' or '%(Reference.NuGetPackageId)' == 'Microsoft.DotNet.CoreCLR') and '%(FileName)' != 'mscorlib'"/>
-      <!-- We don't want any of these from Microsoft.DotNet.CoreCLR, either. -->
-      <NoneRemovals Include="@(Reference)" Condition="('%(Reference.NuGetPackageName)' == 'Microsoft.DotNet.CoreCLR' or '%(Reference.NuGetPackageId)' == 'Microsoft.DotNet.CoreCLR')"/>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Reference Remove="@(ReferenceRemovals)" />
-      <None Remove="@(NoneRemovals)" />
-    </ItemGroup> 
-  </Target>
-
   <!-- Hook both partial-facade-related targets into TargetsTriggeredByCompilation. This will cause them
           to only be invoked upon a successful compilation; they can conceptualized as an extension
           of the assembly compilation process.
