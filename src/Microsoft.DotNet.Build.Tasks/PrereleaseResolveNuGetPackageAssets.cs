@@ -401,6 +401,12 @@ namespace Microsoft.DotNet.Build.Tasks
 
         private bool IsFileValid(string file, string expectedLanguage, string unExpectedLanguage)
         {
+
+            if(ProjectLanguage == null)
+            {
+                throw new ExceptionFromResource("NoProgrammingLanguageSpecified");
+            }
+
             var expectedProjectLanguage = expectedLanguage;
             expectedLanguage = expectedLanguage == "C#" ? "cs" : expectedLanguage;
             unExpectedLanguage = unExpectedLanguage == "C#" ? "cs" : unExpectedLanguage;
