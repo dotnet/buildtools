@@ -91,7 +91,7 @@
 
   </Target>
 
-  <UsingTask TaskName="ParseTestCoverageInfo" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="ParseTestCoverageInfo" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
   <!-- Generates VisitedMethodsReport.xml -->
   <Target Name="GenerateVisitedReport"

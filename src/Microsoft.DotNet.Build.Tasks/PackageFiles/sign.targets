@@ -9,7 +9,7 @@
     </FilesToSign>
   </ItemGroup>
 
-  <UsingTask AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll" TaskName="OpenSourceSign" />
+  <UsingTask AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" TaskName="OpenSourceSign" />
   
   <PropertyGroup Condition="'$(SkipSigning)'!='true'">
     <SignAssembly>true</SignAssembly>
