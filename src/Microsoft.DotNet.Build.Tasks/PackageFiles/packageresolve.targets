@@ -96,4 +96,22 @@
     <Message Text="Excluding @(_ReferenceFileNamesToRemove);@(_ReferenceCopyLocalPathsFileNamesToRemove) from package references since the same file is provided by a project refrence."
              Condition="'@(_ReferenceFileNamesToRemove)' != '' or '@(_ReferenceCopyLocalPathsFileNamesToRemove)' != ''"/>
   </Target>
+
+  <Target Name="FilterTargetingPackResolvedNugetPackages" AfterTargets="ResolveNuGetPackages"
+   	       Condition="'$(TargetingPackNugetPackageId)' != ''">
+
+    <ItemGroup>
+      <ResolvedTargetingPackReference Include="@(Reference)" Condition="'%(Reference.NuGetPackageId)' == '$(TargetingPackNugetPackageId)'"  />
+      <ResolvedTargetingPackReferenceFilename Include="@(ResolvedTargetingPackReference -> '%(Filename)')">
+        <OriginalIdentity>%(Identity)</OriginalIdentity>
+      </ResolvedTargetingPackReferenceFilename>
+      <ResolvedTargetingPackReferenceFilename Remove="@(TargetingPackReference)"  /> 
+
+      <PackageReferencesToRemove Include="@(ResolvedTargetingPackReferenceFilename -> '%(OriginalIdentity)')" />
+      <Reference Remove="@(PackageReferencesToRemove)" />
+    </ItemGroup>
+
+    <Message Importance="Low" 
+        Text="Removed all ResolvedTagetingPackReferences that were not specified explicitly as a TargetingPackReference=[@(TargetingPackReference)]. PackageReferencesToRemove=[@(PackageReferencesToRemove)]." />
+  </Target>
 </Project>
