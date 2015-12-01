@@ -103,9 +103,8 @@
   <Target Name="ValidatePackageVersions">
     <ValidateProjectDependencyVersions Condition="Exists('$(ProjectJson)')"
                                        ProjectJson="$(ProjectJson)"
-                                       ValidPrereleaseVersion="$(CoreFXDependencyPrereleaseVersion)"
-                                       FloatingDependenciesInvalid="$(FloatingDependenciesInvalid)"
-                                       OurPackageIdentities="$(OurPackageIdentityRegex)" />
+                                       ProhibitFloatingDependencies="$(ProhibitFloatingDependencies)"
+                                       ValidationPatterns="@(ValidationPattern)" />
   </Target>
 
   <Target Name="UpdateDependencies">

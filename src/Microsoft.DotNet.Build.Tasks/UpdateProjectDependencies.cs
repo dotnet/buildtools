@@ -26,25 +26,42 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public override bool Execute()
         {
-            if (new[] { OldPrerelease, NewPrerelease }.All(s => !string.IsNullOrEmpty(s)))
+            bool anyPrereleaseUpdateParams = new[] { OldPrerelease, NewPrerelease }.Any(s => !string.IsNullOrEmpty(s));
+            bool anyVersionUpdateParams = new[] { PackageId, OldVersion, NewVersion }.Any(s => !string.IsNullOrEmpty(s));
+
+            if (anyPrereleaseUpdateParams ^ anyVersionUpdateParams)
             {
-                ReplacePrerelease();
+                if (new[] { OldPrerelease, NewPrerelease }.All(s => !string.IsNullOrEmpty(s)))
+                {
+                    ReplacePrerelease();
+                }
+                else if (new[] { PackageId, OldVersion, NewVersion }.All(s => !string.IsNullOrEmpty(s)))
+                {
+                    ReplacePackageVersion();
+                }
+                else
+                {
+                    if (anyPrereleaseUpdateParams)
+                    {
+                        Log.LogError("Not all properties found: expected (OldPrerelease, NewPrerelease)");
+                    }
+                    else
+                    {
+                        Log.LogError("Not all properties found: expected (PackageId, OldVersion, NewVersion)");
+                    }
+                }
             }
-            if (new[] { PackageId, OldVersion, NewVersion }.All(s => !string.IsNullOrEmpty(s)))
+            else
             {
-                ReplacePackageVersion();
+                Log.LogError(
+                    "Expected properties from one of (OldPrerelease, NewPrerelease) or (PackageId, OldVersion, NewVersion) but found {0}.",
+                    (anyPrereleaseUpdateParams && anyVersionUpdateParams) ? "properties from both" : "none");
             }
             return !Log.HasLoggedErrors;
         }
 
         public void ReplacePrerelease()
         {
-            Log.LogMessage(
-                "Changing all packages with prerelease {0} to prerelease {1} in {2}",
-                OldPrerelease,
-                NewPrerelease,
-                ProjectJson.ItemSpec);
-
             JObject projectRoot = ReadProject();
             bool changed = false;
 
@@ -57,9 +74,11 @@ namespace Microsoft.DotNet.Build.Tasks
                 if (dependencyVersion.Release == OldPrerelease)
                 {
                     Log.LogMessage(
-                        "Changing {0} {1}",
+                        "Changing {0} {1} to {2} in {3}",
                         dependencyIdentifier,
-                        dependencyVersion);
+                        dependencyVersion,
+                        NewPrerelease,
+                        ProjectJson);
 
                     package.Value = dependencyVersionRange.OriginalString.Replace(OldPrerelease, NewPrerelease);
                     changed = true;
@@ -73,13 +92,6 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public void ReplacePackageVersion()
         {
-            Log.LogMessage(
-                "Changing {0} version {1} to version {2} in {3}",
-                PackageId,
-                OldVersion,
-                NewVersion,
-                ProjectJson.ItemSpec);
-
             JObject projectRoot = ReadProject();
             bool changed = false;
 
@@ -91,9 +103,11 @@ namespace Microsoft.DotNet.Build.Tasks
                 if (dependencyIdentifier == PackageId && dependencyVersion == OldVersion)
                 {
                     Log.LogMessage(
-                        "Changing {0} {1}",
+                        "Changing {0} {1} to {2} in {3}",
                         dependencyIdentifier,
-                        dependencyVersion);
+                        dependencyVersion,
+                        NewVersion,
+                        ProjectJson);
 
                     package.Value = NewVersion;
                     changed = true;
