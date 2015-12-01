@@ -96,7 +96,13 @@ namespace Microsoft.DotNet.Build.Tasks
                 var serializer = new JsonSerializer();
                 JObject projectRoot = serializer.Deserialize<JObject>(projectJsonReader);
 
-                foreach (var package in projectRoot["dependencies"].OfType<JProperty>())
+                var dependencyObjects = projectRoot
+                    .Descendants()
+                    .OfType<JProperty>()
+                    .Where(property => property.Name == "dependencies")
+                    .Select(property => property.Value);
+
+                foreach (var package in dependencyObjects.SelectMany(o => o.Children<JProperty>()))
                 {
                     string id = package.Name;
                     string version = package.Value.ToObject<string>();
