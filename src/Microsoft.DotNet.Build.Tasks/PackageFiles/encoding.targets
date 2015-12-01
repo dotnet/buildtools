@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <UsingTask TaskName="GenerateEncodingTable" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="GenerateEncodingTable" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
 
   <!-- Include the following in the .csproj of a project which needs to generate an encoding data-table, uncomment as appropriate:
 

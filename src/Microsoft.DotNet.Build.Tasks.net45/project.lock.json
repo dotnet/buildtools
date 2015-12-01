@@ -1,0 +1,441 @@
+{
+  "locked": false,
+  "version": 2,
+  "targets": {
+    ".NETFramework,Version=v4.5": {
+      "LibGit2Sharp/0.19.0": {
+        "type": "package",
+        "compile": {
+          "lib/net40/LibGit2Sharp.dll": {}
+        },
+        "runtime": {
+          "lib/net40/LibGit2Sharp.dll": {}
+        }
+      },
+      "Microsoft.Web.Xdt/2.1.1": {
+        "type": "package",
+        "compile": {
+          "lib/net40/Microsoft.Web.XmlTransform.dll": {}
+        },
+        "runtime": {
+          "lib/net40/Microsoft.Web.XmlTransform.dll": {}
+        }
+      },
+      "Newtonsoft.Json/6.0.8": {
+        "type": "package",
+        "compile": {
+          "lib/net45/Newtonsoft.Json.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Newtonsoft.Json.dll": {}
+        }
+      },
+      "NuGet.Core/2.8.3": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Web.Xdt": "2.1.0"
+        },
+        "compile": {
+          "lib/net40-Client/NuGet.Core.dll": {}
+        },
+        "runtime": {
+          "lib/net40-Client/NuGet.Core.dll": {}
+        }
+      },
+      "NuGet.NuManifest/1.0.1-alpha": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Web.Xdt": "2.1.1",
+          "NuGet.Core": "2.8.3",
+          "System.Collections.Immutable": "1.1.32-beta"
+        },
+        "compile": {
+          "lib/net45/NuGet.NuManifest.dll": {}
+        },
+        "runtime": {
+          "lib/net45/NuGet.NuManifest.dll": {}
+        }
+      },
+      "NuGet.NuManifest.DotNet/1.0.1-alpha": {
+        "type": "package",
+        "dependencies": {
+          "System.Collections.Immutable": "1.1.32-beta"
+        },
+        "compile": {
+          "lib/net45/Microsoft.Web.XmlTransform.dll": {},
+          "lib/net45/NuGet.Core.dll": {},
+          "lib/net45/NuGet.NuManifest.DotNet.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Microsoft.Web.XmlTransform.dll": {},
+          "lib/net45/NuGet.Core.dll": {},
+          "lib/net45/NuGet.NuManifest.DotNet.dll": {}
+        }
+      },
+      "System.Collections.Immutable/1.1.32-beta": {
+        "type": "package",
+        "compile": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
+        },
+        "runtime": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
+        }
+      },
+      "System.Reflection.Metadata/1.0.17-beta": {
+        "type": "package",
+        "dependencies": {
+          "System.Collections.Immutable": "1.1.32-beta"
+        },
+        "compile": {
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
+        },
+        "runtime": {
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
+        }
+      },
+      "xunit.runners/2.0.0-beta5-build2785": {
+        "type": "package"
+      }
+    },
+    ".NETFramework,Version=v4.5/win7-x86": {
+      "LibGit2Sharp/0.19.0": {
+        "type": "package",
+        "compile": {
+          "lib/net40/LibGit2Sharp.dll": {}
+        },
+        "runtime": {
+          "lib/net40/LibGit2Sharp.dll": {}
+        }
+      },
+      "Microsoft.Web.Xdt/2.1.1": {
+        "type": "package",
+        "compile": {
+          "lib/net40/Microsoft.Web.XmlTransform.dll": {}
+        },
+        "runtime": {
+          "lib/net40/Microsoft.Web.XmlTransform.dll": {}
+        }
+      },
+      "Newtonsoft.Json/6.0.8": {
+        "type": "package",
+        "compile": {
+          "lib/net45/Newtonsoft.Json.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Newtonsoft.Json.dll": {}
+        }
+      },
+      "NuGet.Core/2.8.3": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Web.Xdt": "2.1.0"
+        },
+        "compile": {
+          "lib/net40-Client/NuGet.Core.dll": {}
+        },
+        "runtime": {
+          "lib/net40-Client/NuGet.Core.dll": {}
+        }
+      },
+      "NuGet.NuManifest/1.0.1-alpha": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Web.Xdt": "2.1.1",
+          "NuGet.Core": "2.8.3",
+          "System.Collections.Immutable": "1.1.32-beta"
+        },
+        "compile": {
+          "lib/net45/NuGet.NuManifest.dll": {}
+        },
+        "runtime": {
+          "lib/net45/NuGet.NuManifest.dll": {}
+        }
+      },
+      "NuGet.NuManifest.DotNet/1.0.1-alpha": {
+        "type": "package",
+        "dependencies": {
+          "System.Collections.Immutable": "1.1.32-beta"
+        },
+        "compile": {
+          "lib/net45/Microsoft.Web.XmlTransform.dll": {},
+          "lib/net45/NuGet.Core.dll": {},
+          "lib/net45/NuGet.NuManifest.DotNet.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Microsoft.Web.XmlTransform.dll": {},
+          "lib/net45/NuGet.Core.dll": {},
+          "lib/net45/NuGet.NuManifest.DotNet.dll": {}
+        }
+      },
+      "System.Collections.Immutable/1.1.32-beta": {
+        "type": "package",
+        "compile": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
+        },
+        "runtime": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
+        }
+      },
+      "System.Reflection.Metadata/1.0.17-beta": {
+        "type": "package",
+        "dependencies": {
+          "System.Collections.Immutable": "1.1.32-beta"
+        },
+        "compile": {
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
+        },
+        "runtime": {
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
+        }
+      },
+      "xunit.runners/2.0.0-beta5-build2785": {
+        "type": "package"
+      }
+    },
+    ".NETFramework,Version=v4.5/win7-x64": {
+      "LibGit2Sharp/0.19.0": {
+        "type": "package",
+        "compile": {
+          "lib/net40/LibGit2Sharp.dll": {}
+        },
+        "runtime": {
+          "lib/net40/LibGit2Sharp.dll": {}
+        }
+      },
+      "Microsoft.Web.Xdt/2.1.1": {
+        "type": "package",
+        "compile": {
+          "lib/net40/Microsoft.Web.XmlTransform.dll": {}
+        },
+        "runtime": {
+          "lib/net40/Microsoft.Web.XmlTransform.dll": {}
+        }
+      },
+      "Newtonsoft.Json/6.0.8": {
+        "type": "package",
+        "compile": {
+          "lib/net45/Newtonsoft.Json.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Newtonsoft.Json.dll": {}
+        }
+      },
+      "NuGet.Core/2.8.3": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Web.Xdt": "2.1.0"
+        },
+        "compile": {
+          "lib/net40-Client/NuGet.Core.dll": {}
+        },
+        "runtime": {
+          "lib/net40-Client/NuGet.Core.dll": {}
+        }
+      },
+      "NuGet.NuManifest/1.0.1-alpha": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Web.Xdt": "2.1.1",
+          "NuGet.Core": "2.8.3",
+          "System.Collections.Immutable": "1.1.32-beta"
+        },
+        "compile": {
+          "lib/net45/NuGet.NuManifest.dll": {}
+        },
+        "runtime": {
+          "lib/net45/NuGet.NuManifest.dll": {}
+        }
+      },
+      "NuGet.NuManifest.DotNet/1.0.1-alpha": {
+        "type": "package",
+        "dependencies": {
+          "System.Collections.Immutable": "1.1.32-beta"
+        },
+        "compile": {
+          "lib/net45/Microsoft.Web.XmlTransform.dll": {},
+          "lib/net45/NuGet.Core.dll": {},
+          "lib/net45/NuGet.NuManifest.DotNet.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Microsoft.Web.XmlTransform.dll": {},
+          "lib/net45/NuGet.Core.dll": {},
+          "lib/net45/NuGet.NuManifest.DotNet.dll": {}
+        }
+      },
+      "System.Collections.Immutable/1.1.32-beta": {
+        "type": "package",
+        "compile": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
+        },
+        "runtime": {
+          "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
+        }
+      },
+      "System.Reflection.Metadata/1.0.17-beta": {
+        "type": "package",
+        "dependencies": {
+          "System.Collections.Immutable": "1.1.32-beta"
+        },
+        "compile": {
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
+        },
+        "runtime": {
+          "lib/portable-net45+win8/System.Reflection.Metadata.dll": {}
+        }
+      },
+      "xunit.runners/2.0.0-beta5-build2785": {
+        "type": "package"
+      }
+    }
+  },
+  "libraries": {
+    "LibGit2Sharp/0.19.0": {
+      "type": "package",
+      "sha512": "kJQoiQJ0DzGXIPqfkl92o9XzugB2SpFd7cixsy3f3ME8vQ8Mux6ThDD1vL98W0ydkslTTiq8TDynq1IjdskT5Q==",
+      "files": [
+        "App_Readme/libgit2.license.txt",
+        "App_Readme/LibGit2Sharp.CHANGES.md",
+        "App_Readme/LibGit2Sharp.LICENSE.md",
+        "App_Readme/LibGit2Sharp.README.md",
+        "lib/net40/LibGit2Sharp.dll",
+        "lib/net40/LibGit2Sharp.xml",
+        "lib/net40/NativeBinaries/amd64/git2-69db893.dll",
+        "lib/net40/NativeBinaries/amd64/git2-69db893.pdb",
+        "lib/net40/NativeBinaries/x86/git2-69db893.dll",
+        "lib/net40/NativeBinaries/x86/git2-69db893.pdb",
+        "LibGit2Sharp.0.19.0.nupkg",
+        "LibGit2Sharp.0.19.0.nupkg.sha512",
+        "LibGit2Sharp.nuspec",
+        "Tools/GetLibGit2SharpPostBuildCmd.ps1",
+        "Tools/install.ps1",
+        "Tools/uninstall.ps1"
+      ]
+    },
+    "Microsoft.Web.Xdt/2.1.1": {
+      "type": "package",
+      "sha512": "PHoqib4d+f2lmnluVwMFM8M4AF8Z7y2g18hUTi5UCKkjNQIzkNnB1uyqnS5od2sMsRcI/9mexQjDO6e5dL/MeA==",
+      "files": [
+        "lib/net40/Microsoft.Web.XmlTransform.dll",
+        "Microsoft.Web.Xdt.2.1.1.nupkg",
+        "Microsoft.Web.Xdt.2.1.1.nupkg.sha512",
+        "Microsoft.Web.Xdt.nuspec"
+      ]
+    },
+    "Newtonsoft.Json/6.0.8": {
+      "type": "package",
+      "sha512": "7ut47NDedTW19EbL0JpFDYUP62fcuz27hJrehCDNajdCS5NtqL+E39+7Um3OkNc2wl2ym7K8Ln5eNuLus6mVGQ==",
+      "files": [
+        "lib/net20/Newtonsoft.Json.dll",
+        "lib/net20/Newtonsoft.Json.xml",
+        "lib/net35/Newtonsoft.Json.dll",
+        "lib/net35/Newtonsoft.Json.xml",
+        "lib/net40/Newtonsoft.Json.dll",
+        "lib/net40/Newtonsoft.Json.xml",
+        "lib/net45/Newtonsoft.Json.dll",
+        "lib/net45/Newtonsoft.Json.xml",
+        "lib/netcore45/Newtonsoft.Json.dll",
+        "lib/netcore45/Newtonsoft.Json.xml",
+        "lib/portable-net40+sl5+wp80+win8+wpa81/Newtonsoft.Json.dll",
+        "lib/portable-net40+sl5+wp80+win8+wpa81/Newtonsoft.Json.xml",
+        "lib/portable-net45+wp80+win8+wpa81+aspnetcore50/Newtonsoft.Json.dll",
+        "lib/portable-net45+wp80+win8+wpa81+aspnetcore50/Newtonsoft.Json.xml",
+        "Newtonsoft.Json.6.0.8.nupkg",
+        "Newtonsoft.Json.6.0.8.nupkg.sha512",
+        "Newtonsoft.Json.nuspec",
+        "tools/install.ps1"
+      ]
+    },
+    "NuGet.Core/2.8.3": {
+      "type": "package",
+      "sha512": "2Z+8+UzWeKPl0D2uFGZGZxXM61cRcjLi6UjUqxt0PBMpMREt+G/7E12o/l/YrpBQXiNpGAd2i0s2X4j/GKfNdg==",
+      "files": [
+        "lib/net40-Client/NuGet.Core.dll",
+        "NuGet.Core.2.8.3.nupkg",
+        "NuGet.Core.2.8.3.nupkg.sha512",
+        "NuGet.Core.nuspec"
+      ]
+    },
+    "NuGet.NuManifest/1.0.1-alpha": {
+      "type": "package",
+      "sha512": "yztahLM8iUQG8H4VNyxngKR5uqANmG7onpCvLTbDVrVvDqH2bO2fs3IMNv4mNZTNgRyNrK/JqBHIS1WpBXKfLQ==",
+      "files": [
+        "lib/net45/NuGet.NuManifest.dll",
+        "lib/net45/NuGet.NuManifest.pdb",
+        "NuGet.NuManifest.1.0.1-alpha.nupkg",
+        "NuGet.NuManifest.1.0.1-alpha.nupkg.sha512",
+        "NuGet.NuManifest.nuspec"
+      ]
+    },
+    "NuGet.NuManifest.DotNet/1.0.1-alpha": {
+      "type": "package",
+      "sha512": "6d42FiYZNtzJRGbC32+UcFC5uKhY6Y/gNUhcUFciyeAzkDliWhCtbffswSo9eo/Z0Q+6Kx1hy9Rw9XMaGa7oZw==",
+      "files": [
+        "lib/net45/Microsoft.Web.XmlTransform.dll",
+        "lib/net45/NuGet.Core.dll",
+        "lib/net45/NuGet.NuManifest.DotNet.dll",
+        "lib/net45/NuGet.NuManifest.DotNet.pdb",
+        "NuGet.NuManifest.DotNet.1.0.1-alpha.nupkg",
+        "NuGet.NuManifest.DotNet.1.0.1-alpha.nupkg.sha512",
+        "NuGet.NuManifest.DotNet.nuspec"
+      ]
+    },
+    "System.Collections.Immutable/1.1.32-beta": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "ckfFUM6keywtdZ+DT7/KWSmQ0YRLHu4OCnKKWbumvO8uDcKtCoxjLKcaWNzguGCSTy2r2Ap9gojazgCwMYw0bQ==",
+      "files": [
+        "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.xml",
+        "License-Stable.rtf",
+        "System.Collections.Immutable.1.1.32-beta.nupkg",
+        "System.Collections.Immutable.1.1.32-beta.nupkg.sha512",
+        "System.Collections.Immutable.nuspec"
+      ]
+    },
+    "System.Reflection.Metadata/1.0.17-beta": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "PyXG0gfs9gDDj4Km2PKadmPOMsH7IL+S4zckKMESdgv34f0I063VKi+RgmZ8f4wtgBVQTw8UrYE911lpePFAgA==",
+      "files": [
+        "lib/portable-net45+win8/System.Reflection.Metadata.dll",
+        "lib/portable-net45+win8/System.Reflection.Metadata.xml",
+        "License-Stable.rtf",
+        "System.Reflection.Metadata.1.0.17-beta.nupkg",
+        "System.Reflection.Metadata.1.0.17-beta.nupkg.sha512",
+        "System.Reflection.Metadata.nuspec"
+      ]
+    },
+    "xunit.runners/2.0.0-beta5-build2785": {
+      "type": "package",
+      "sha512": "5LO4Hlgpqqcwai8Owe2qJ9P7t53zXHex48zUvGIC0AfzxAEbQ9dd8vGhmklsgw/xLnJQwTYrcmWx/SGP+vSqxg==",
+      "files": [
+        "tools/HTML.xslt",
+        "tools/xunit.abstractions.dll",
+        "tools/xunit.console.exe",
+        "tools/xunit.console.exe.config",
+        "tools/xunit.console.x86.exe",
+        "tools/xunit.console.x86.exe.config",
+        "tools/xunit.runner.msbuild.dll",
+        "tools/xunit.runner.utility.dll",
+        "tools/xUnit1.xslt",
+        "xunit.runners.2.0.0-beta5-build2785.nupkg",
+        "xunit.runners.2.0.0-beta5-build2785.nupkg.sha512",
+        "xunit.runners.nuspec"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    "": [
+      "LibGit2Sharp >= 0.19.0",
+      "Microsoft.Web.Xdt >= 2.1.1",
+      "Newtonsoft.Json >= 6.0.8",
+      "NuGet.Core >= 2.8.3",
+      "NuGet.NuManifest >= 1.0.1-alpha",
+      "NuGet.NuManifest.DotNet >= 1.0.1-alpha",
+      "System.Collections.Immutable >= 1.1.32-beta",
+      "System.Reflection.Metadata >= 1.0.17-beta",
+      "xunit.runners >= 2.0.0-beta5-build2785"
+    ],
+    ".NETFramework,Version=v4.5": []
+  }
+}

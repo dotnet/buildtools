@@ -1,5 +1,5 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <UsingTask TaskName="GetNextRevisionNumber" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="GetNextRevisionNumber" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
 
   <PropertyGroup>
     <GitWorkingBranch Condition="'$(GitWorkingBranch)' == ''">master</GitWorkingBranch>

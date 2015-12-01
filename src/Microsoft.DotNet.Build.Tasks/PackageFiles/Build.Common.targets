@@ -2,6 +2,8 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003"  InitialTargets="CheckDesignTime">
 
   <PropertyGroup>
+    <BuildToolsTaskDir Condition="'$(BuildToolsTaskDir)' == ''">$(ToolsDir)</BuildToolsTaskDir>
+  
     <!-- A number of the imports below depend on these default properties -->
     <IsTestProject Condition="'$(IsTestProject)'=='' And $(MSBuildProjectName.EndsWith('.Tests'))">true</IsTestProject>
 

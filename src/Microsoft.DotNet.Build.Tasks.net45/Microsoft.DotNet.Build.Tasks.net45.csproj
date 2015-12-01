@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.props))\dir.props" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Microsoft.DotNet.Build.Tasks</RootNamespace>
+    <AssemblyName>Microsoft.DotNet.Build.Tasks</AssemblyName>
+    <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
+    <CopyNuGetImplementations>true</CopyNuGetImplementations>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <SkipSigning>true</SkipSigning>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\Delegates.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\ExecWithMutex.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\GenerateResourcesCode.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\GenerateEncodingTable.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\GetPackageVersion.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\GetPackageDependencies.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\GetNextRevisionNumber.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\NormalizePaths.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\GetDoItemsIntersect.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\OpenSourceSign.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\ParseTestCoverageInfo.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\RemoveDuplicatesWithLastOneWinsPolicy.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\PrereleaseResolveNuGetPackageAssets.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\ZipFileCreateFromDirectory.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\Strings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\Microsoft.DotNet.Build.Tasks\Strings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Build.Tasks.v4.0" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="mscorlib" />
+    <Reference Include="LibGit2Sharp">
+      <HintPath>..\..\packages\LibGit2Sharp\0.19.0\lib\net40\LibGit2Sharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Build.Framework, Version=4.0.0.0" />
+    <Reference Include="Microsoft.Build.Utilities.v4.0" />
+    <Reference Include="Microsoft.Web.XmlTransform, Version=2.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\NuGet.NuManifest.DotNet\1.0.1-alpha\lib\net45\Microsoft.Web.XmlTransform.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\packages\Newtonsoft.Json\6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="NuGet.Core, Version=2.8.50926.602, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\NuGet.NuManifest.DotNet\1.0.1-alpha\lib\net45\NuGet.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.NuManifest, Version=1.0.0.0, Culture=neutral, PublicKeyToken=fde1dfc9ddcb8e3e, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\NuGet.NuManifest\1.0.1-alpha\lib\net45\NuGet.NuManifest.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.NuManifest.DotNet, Version=1.0.0.0, Culture=neutral, PublicKeyToken=fde1dfc9ddcb8e3e, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\NuGet.NuManifest.DotNet\1.0.1-alpha\lib\net45\NuGet.NuManifest.DotNet.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Collections.Immutable">
+      <HintPath>..\..\packages\System.Collections.Immutable\1.1.32-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Reflection.Metadata">
+      <HintPath>..\..\packages\System.Reflection.Metadata\1.0.17-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
+  <Target Name="AfterBuild">
+    <PropertyGroup>
+      <!-- This version should be kept up to date with project.json -->
+      <NuProjVersion>0.10.4-beta-gf7fc34e7d8</NuProjVersion>
+    </PropertyGroup>
+    <ItemGroup>
+      <PackageFiles Include="$(MSBuildThisProjectDirectory)PackageFiles\**\*.*" />
+      <NativeBinariesx86 Include="$(PackagesDir)LibGit2Sharp.0.19.0.0\lib\net40\NativeBinaries\x86\*.*" />
+      <NativeBinariesamd64 Include="$(PackagesDir)LibGit2Sharp.0.19.0.0\lib\net40\NativeBinaries\amd64\*.*" />
+      <NuProjFiles Include="$(PackagesDir)NuProj\$(NuProjVersion)\tools\**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PackageFiles)" DestinationFolder="$(OutputPath)\PackageFiles\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(NativeBinariesx86)" DestinationFolder="$(OutputPath)NativeBinaries\x86" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(NativeBinariesamd64)" DestinationFolder="$(OutputPath)NativeBinaries\amd64" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(NuProjFiles)" DestinationFolder="$(OutputPath)\NuProj\%(RecursiveDir)" SkipUnchangedFiles="true" />
+  </Target>
+</Project>

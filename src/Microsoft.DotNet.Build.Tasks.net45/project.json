@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "LibGit2Sharp": "0.19.0.0",
+	"Microsoft.Web.Xdt": "2.1.1",
+	"Newtonsoft.Json": "6.0.8",
+	"NuGet.Core": "2.8.3",
+	"NuGet.NuManifest": "1.0.1-alpha",
+	"NuGet.NuManifest.DotNet": "1.0.1-alpha",
+	"System.Collections.Immutable": "1.1.32-beta",
+	"System.Reflection.Metadata": "1.0.17-beta",
+	"xunit.runners": "2.0.0-beta5-build2785"
+  },
+  "frameworks": {
+    "net45": { }
+  }
+}

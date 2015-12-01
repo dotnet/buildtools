@@ -6,7 +6,7 @@
   <UsingTask TaskName="SendToEventHub" AssemblyFile="$(ToolsDir)net45\Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="UploadToAzure" AssemblyFile="$(ToolsDir)net45\Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="WriteItemsToJson" AssemblyFile="$(ToolsDir)net45\Microsoft.DotNet.Build.CloudTestTasks.dll"/>
-  <UsingTask TaskName="ZipFileCreateFromDirectory" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="ZipFileCreateFromDirectory" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
   <PropertyGroup>
     <ContainerName>$(TestProduct)-$(Branch)-$(BuildMoniker)</ContainerName>
