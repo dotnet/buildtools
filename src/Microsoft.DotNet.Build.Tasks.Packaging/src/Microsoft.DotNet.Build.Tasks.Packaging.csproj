@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.props))\dir.props" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{C2CB2F39-91FB-4050-9DD2-6E5DD6460ED8}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.DotNet.Build.Tasks.Packaging</RootNamespace>
+    <AssemblyName>Microsoft.DotNet.Build.Tasks.Packaging</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <CLSCompliant>false</CLSCompliant>
+    <SkipSigning>true</SkipSigning>
+  </PropertyGroup>
+  <!-- Default configurations to help VS understand the options -->
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="CreateTrimDependencyGroups.cs" />
+    <Compile Include="EnsureOOBFramework.cs" />
+    <Compile Include="Framework.cs" />
+    <Compile Include="FrameworkUtilities.cs" />
+    <Compile Include="GenerateRuntimeDependencies.cs" />
+    <Compile Include="Generations.cs" />
+    <Compile Include="GetAssemblyReferences.cs" />
+    <Compile Include="GetPackageVersion.cs" />
+    <Compile Include="GetInboxFrameworks.cs" />
+    <Compile Include="ApplyPreReleaseSuffix.cs" />
+    <Compile Include="GetPackageDescription.cs" />
+    <Compile Include="GetRuntimeTargets.cs" />
+    <Compile Include="IsPropertyInItemGroup.cs" />
+    <Compile Include="Log.cs" />
+    <Compile Include="NuGetAssetResolver.cs" />
+    <Compile Include="PackageItem.cs" />
+    <Compile Include="PackageMetadata.cs" />
+    <Compile Include="GetRuntimeJsonValues.cs" />
+    <Compile Include="ValidatePackage.cs" />
+    <Compile Include="VersionUtility.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Generations.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="project.json" />
+    <None Include="FrameworkLists\**\*.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
+</Project>

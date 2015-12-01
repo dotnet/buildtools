@@ -1,0 +1,20 @@
+{
+  "dependencies": {
+    "Microsoft.Build.Framework": "0.1.0-preview-00005",
+    "Microsoft.Build.Tasks.Core": "0.1.0-preview-00005",
+    "Microsoft.Build.Utilities.Core": "0.1.0-preview-00005",
+    "Microsoft.NETCore": "5.0.0",
+    "Newtonsoft.Json": "7.0.1",
+    "NuGet.Client": "3.3.0",
+    "xunit": "2.1.0"
+  },
+  "frameworks": {
+    "dnxcore50": { }
+  },
+  "runtimes": {
+    "win7-x64": { },
+    "win7-x86": { },
+    "ubuntu.14.04-x64": { },
+    "osx.10.10-x64": { }
+  }
+}

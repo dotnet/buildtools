@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.props))\dir.props" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{2B0AF548-9ACA-4CD5-9A2F-3A678BFBFB64}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.DotNet.Build.Tasks.Packaging.Tests</RootNamespace>
+    <AssemblyName>Microsoft.DotNet.Build.Tasks.Packaging.Tests</AssemblyName>
+    <SkipSigning>true</SkipSigning>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="CreateTrimDependencyGroupsTests.cs" />
+    <Compile Include="EnsureOOBFrameworkTests.cs" />
+    <Compile Include="NuGetAssetResolverTests.cs" />
+    <Compile Include="GenerationsTests.cs" />
+    <Compile Include="Log.cs" />
+    <Compile Include="TestBuildEngine.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\src\Microsoft.DotNet.Build.Tasks.Packaging.csproj">
+      <Project>{c2cb2f39-91fb-4050-9dd2-6e5dd6460ed8}</Project>
+      <Name>CoreFx.Build.Packaging.Tasks</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
