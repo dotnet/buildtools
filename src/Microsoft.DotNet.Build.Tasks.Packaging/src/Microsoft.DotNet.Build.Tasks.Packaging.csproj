@@ -45,7 +45,8 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="project.json" />
-    <None Include="FrameworkLists\**\*.xml">
+    <None Include="$(MSBuildThisFileDirectory)FrameworkLists\**\*.xml">
+      <Link>FrameworkLists\%(RecursiveDir)%(FileName)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
