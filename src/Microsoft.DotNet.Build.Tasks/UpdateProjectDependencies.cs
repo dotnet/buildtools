@@ -26,16 +26,22 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public override bool Execute()
         {
-            bool anyPrereleaseUpdateParams = new[] { OldPrerelease, NewPrerelease }.Any(s => !string.IsNullOrEmpty(s));
-            bool anyVersionUpdateParams = new[] { PackageId, OldVersion, NewVersion }.Any(s => !string.IsNullOrEmpty(s));
+            var prereleaseUpdateParams = new[] { OldPrerelease, NewPrerelease }
+                .Select(param => !string.IsNullOrEmpty(param));
+
+            var versionUpdateParams = new[] { PackageId, OldVersion, NewVersion }
+                .Select(param => !string.IsNullOrEmpty(param));
+
+            bool anyPrereleaseUpdateParams = prereleaseUpdateParams.Any(p => p);
+            bool anyVersionUpdateParams = versionUpdateParams.Any(p => p);
 
             if (anyPrereleaseUpdateParams ^ anyVersionUpdateParams)
             {
-                if (new[] { OldPrerelease, NewPrerelease }.All(s => !string.IsNullOrEmpty(s)))
+                if (prereleaseUpdateParams.All(p => p))
                 {
                     ReplacePrerelease();
                 }
-                else if (new[] { PackageId, OldVersion, NewVersion }.All(s => !string.IsNullOrEmpty(s)))
+                else if (versionUpdateParams.All(p => p))
                 {
                     ReplacePackageVersion();
                 }

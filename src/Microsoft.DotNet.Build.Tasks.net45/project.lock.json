@@ -72,6 +72,21 @@
           "lib/net45/NuGet.NuManifest.DotNet.dll": {}
         }
       },
+      "NuGet.Versioning/3.3.0": {
+        "type": "package",
+        "frameworkAssemblies": [
+          "Microsoft.CSharp",
+          "mscorlib",
+          "System",
+          "System.Core"
+        ],
+        "compile": {
+          "lib/net45/NuGet.Versioning.dll": {}
+        },
+        "runtime": {
+          "lib/net45/NuGet.Versioning.dll": {}
+        }
+      },
       "System.Collections.Immutable/1.1.32-beta": {
         "type": "package",
         "compile": {
@@ -167,6 +182,21 @@
           "lib/net45/NuGet.NuManifest.DotNet.dll": {}
         }
       },
+      "NuGet.Versioning/3.3.0": {
+        "type": "package",
+        "frameworkAssemblies": [
+          "Microsoft.CSharp",
+          "mscorlib",
+          "System",
+          "System.Core"
+        ],
+        "compile": {
+          "lib/net45/NuGet.Versioning.dll": {}
+        },
+        "runtime": {
+          "lib/net45/NuGet.Versioning.dll": {}
+        }
+      },
       "System.Collections.Immutable/1.1.32-beta": {
         "type": "package",
         "compile": {
@@ -260,6 +290,21 @@
           "lib/net45/Microsoft.Web.XmlTransform.dll": {},
           "lib/net45/NuGet.Core.dll": {},
           "lib/net45/NuGet.NuManifest.DotNet.dll": {}
+        }
+      },
+      "NuGet.Versioning/3.3.0": {
+        "type": "package",
+        "frameworkAssemblies": [
+          "Microsoft.CSharp",
+          "mscorlib",
+          "System",
+          "System.Core"
+        ],
+        "compile": {
+          "lib/net45/NuGet.Versioning.dll": {}
+        },
+        "runtime": {
+          "lib/net45/NuGet.Versioning.dll": {}
         }
       },
       "System.Collections.Immutable/1.1.32-beta": {
@@ -379,6 +424,19 @@
         "NuGet.NuManifest.DotNet.nuspec"
       ]
     },
+    "NuGet.Versioning/3.3.0": {
+      "type": "package",
+      "sha512": "f87vlVEFb4TyAqE7cpv4uX2cZkg70NeyzSTJ0D1w9kaGiYNv4l9/niKpuF8ek3PUAYCau+3YnxEp1wswVvWgAQ==",
+      "files": [
+        "lib/dnxcore50/NuGet.Versioning.dll",
+        "lib/dnxcore50/NuGet.Versioning.xml",
+        "lib/net45/NuGet.Versioning.dll",
+        "lib/net45/NuGet.Versioning.xml",
+        "NuGet.Versioning.3.3.0.nupkg",
+        "NuGet.Versioning.3.3.0.nupkg.sha512",
+        "NuGet.Versioning.nuspec"
+      ]
+    },
     "System.Collections.Immutable/1.1.32-beta": {
       "type": "package",
       "serviceable": true,
@@ -432,6 +490,7 @@
       "NuGet.Core >= 2.8.3",
       "NuGet.NuManifest >= 1.0.1-alpha",
       "NuGet.NuManifest.DotNet >= 1.0.1-alpha",
+      "NuGet.Versioning >= 3.3.0",
       "System.Collections.Immutable >= 1.1.32-beta",
       "System.Reflection.Metadata >= 1.0.17-beta",
       "xunit.runners >= 2.0.0-beta5-build2785"

@@ -6,6 +6,7 @@
 	"NuGet.Core": "2.8.3",
 	"NuGet.NuManifest": "1.0.1-alpha",
 	"NuGet.NuManifest.DotNet": "1.0.1-alpha",
+    "NuGet.Versioning": "3.3.0",
 	"System.Collections.Immutable": "1.1.32-beta",
 	"System.Reflection.Metadata": "1.0.17-beta",
 	"xunit.runners": "2.0.0-beta5-build2785"

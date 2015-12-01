@@ -3,7 +3,6 @@ using Microsoft.Build.Utilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Versioning;
-using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -18,7 +17,7 @@ namespace Microsoft.DotNet.Build.Tasks
             private string _expectedVersion;
             private string _expectedPrerelease;
 
-            public ValidationPattern(ITaskItem item)
+            public ValidationPattern(ITaskItem item, TaskLoggingHelper log)
             {
                 _idPattern = new Regex(item.ItemSpec);
                 _expectedVersion = item.GetMetadata("ExpectedVersion");
@@ -28,20 +27,20 @@ namespace Microsoft.DotNet.Build.Tasks
                 {
                     if (string.IsNullOrWhiteSpace(_expectedPrerelease))
                     {
-                        throw new ArgumentException(string.Format(
+                        log.LogError(
                             "Can't find ExpectedVersion or ExpectedPrerelease metadata on item {0}",
-                            item.ItemSpec));
+                            item.ItemSpec);
                     }
                 }
                 else if (!string.IsNullOrWhiteSpace(_expectedPrerelease))
                 {
-                    throw new ArgumentException(string.Format(
+                    log.LogError(
                         "Both ExpectedVersion and ExpectedPrerelease metadata found on item {0}, but only one permitted",
-                        item.ItemSpec));
+                        item.ItemSpec);
                 }
             }
 
-            public string FindValidationError(string packageId, string version)
+            public void Validate(string packageId, string version, TaskLoggingHelper log, string dependencyMessage)
             {
                 var dependencyVersionRange = VersionRange.Parse(version);
                 NuGetVersion dependencyVersion = dependencyVersionRange.MinVersion;
@@ -50,24 +49,25 @@ namespace Microsoft.DotNet.Build.Tasks
                 {
                     if (!string.IsNullOrWhiteSpace(_expectedVersion) && _expectedVersion != version)
                     {
-                        return string.Format(
-                            "package version '{0}', but expected '{1}' for packages matching '{2}'",
+                        log.LogError(
+                            "Dependency validation error: package version '{0}', but expected '{1}' for packages matching '{2}' for {3}",
                             version,
                             _expectedVersion,
-                            _idPattern);
+                            _idPattern,
+                            dependencyMessage);
                     }
                     if (!string.IsNullOrWhiteSpace(_expectedPrerelease) &&
                         dependencyVersion.IsPrerelease &&
                         _expectedPrerelease != dependencyVersion.Release)
                     {
-                        return string.Format(
-                            "package prerelease '{0}', but expected '{1}' for packages matching '{2}'",
+                        log.LogError(
+                            "Dependency validation error: package prerelease '{0}', but expected '{1}' for packages matching '{2}' for {3}",
                             dependencyVersion.Release,
                             _expectedPrerelease,
-                            _idPattern);
+                            _idPattern,
+                            dependencyMessage);
                     }
                 }
-                return null;
             }
         }
 
@@ -80,7 +80,14 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public override bool Execute()
         {
-            var patterns = ValidationPatterns.Select(item => new ValidationPattern(item));
+            var patterns = Enumerable.Empty<ValidationPattern>();
+
+            if (ValidationPatterns != null)
+            {
+                patterns = ValidationPatterns
+                    .Select(item => new ValidationPattern(item, Log))
+                    .ToArray();
+            }
 
             using (TextReader projectFileReader = File.OpenText(ProjectJson.ItemSpec))
             {
@@ -94,7 +101,7 @@ namespace Microsoft.DotNet.Build.Tasks
                     string id = package.Name;
                     string version = package.Value.ToObject<string>();
 
-                    string versionMessage = string.Format(
+                    string dependencyMessage = string.Format(
                         "{0} {1} in {2}",
                         id,
                         version,
@@ -102,20 +109,13 @@ namespace Microsoft.DotNet.Build.Tasks
 
                     if (ProhibitFloatingDependencies && version.Contains('*'))
                     {
-                        Log.LogError("Floating dependency detected: {0}", versionMessage);
+                        Log.LogError("Floating dependency detected: {0}", dependencyMessage);
                     }
                     else
                     {
-                        string validationError = patterns
-                            .Select(pattern => pattern.FindValidationError(id, version))
-                            .FirstOrDefault(error => error != null);
-
-                        if (validationError != null)
+                        foreach (var pattern in patterns)
                         {
-                            Log.LogError(
-                                "Dependency validation error: {0} for {1}",
-                                validationError,
-                                versionMessage);
+                            pattern.Validate(id, version, Log, dependencyMessage);
                         }
                     }
                 }
