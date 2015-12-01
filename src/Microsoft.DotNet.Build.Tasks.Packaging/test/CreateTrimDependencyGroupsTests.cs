@@ -188,8 +188,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
             // System.Collections.Immutable is not inbox and we've specified different versions for dotnet51 and dotnet54, so
             // we're expecting those dependencies to both be present for the net45 and net46 target frameworks.
             Assert.Equal(3, task.TrimmedDependencies.Length);
-            Assert.Equal(1, task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Equals("net45") && f.ToString().Equals("System.Collections.Immutable", StringComparison.OrdinalIgnoreCase)).Count());
-            Assert.Equal(1, task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Equals("net451") && f.ToString().Equals("System.Collections.Immutable", StringComparison.OrdinalIgnoreCase)).Count());
+            Assert.Equal(1, task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Equals("net45") && f.ItemSpec.Equals("System.Collections.Immutable", StringComparison.OrdinalIgnoreCase)).Count());
+            Assert.Equal(1, task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Equals("net451") && f.ItemSpec.Equals("System.Collections.Immutable", StringComparison.OrdinalIgnoreCase)).Count());
         }
 
         [Fact]
@@ -295,7 +295,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
             Assert.Equal(1, task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Equals("monoandroid10")).Count());
 
             // The only added dependency in wpa81 is System.Collections.Immutable
-            Assert.Equal("System.Collections.Immutable", task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Equals("wpa81")).First().ToString());
+            Assert.Equal("System.Collections.Immutable", task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Equals("wpa81")).First().ItemSpec);
         }
 
         public static ITaskItem CreateFileItem(string sourcePath, string targetPath, string targetFramework)
