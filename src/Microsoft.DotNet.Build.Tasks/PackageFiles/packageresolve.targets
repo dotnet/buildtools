@@ -3,7 +3,6 @@
 
   <UsingTask TaskName="PrereleaseResolveNuGetPackageAssets" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ValidateProjectDependencyVersions" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
-  <UsingTask TaskName="UpdateProjectDependencies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
   <PropertyGroup>
     <ProjectJson Condition="'$(ProjectJson)'=='' and Exists('$(MSBuildProjectDirectory)/project.json')">$(MSBuildProjectDirectory)/project.json</ProjectJson>
@@ -105,16 +104,6 @@
                                        ProjectJson="$(ProjectJson)"
                                        ProhibitFloatingDependencies="$(ProhibitFloatingDependencies)"
                                        ValidationPatterns="@(ValidationPattern)" />
-  </Target>
-
-  <Target Name="UpdateDependencies">
-    <UpdateProjectDependencies Condition="Exists('$(ProjectJson)')"
-                               ProjectJson="$(ProjectJson)"
-                               OldPrerelease="$(OldPrerelease)"
-                               NewPrerelease="$(NewPrerelease)"
-                               PackageId="$(PackageId)"
-                               OldVersion="$(OldVersion)"
-                               NewVersion="$(NewVersion)" />
   </Target>
 
   <Target Name="FilterTargetingPackResolvedNugetPackages" AfterTargets="ResolveNuGetPackages"
