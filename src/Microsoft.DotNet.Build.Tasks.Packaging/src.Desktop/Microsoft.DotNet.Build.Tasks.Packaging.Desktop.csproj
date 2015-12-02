@@ -2,7 +2,7 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <NuGetRuntimeIdentifier>win</NuGetRuntimeIdentifier>
     <ImportedProjectRelativePath>..\src\</ImportedProjectRelativePath>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>

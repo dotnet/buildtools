@@ -6,7 +6,7 @@
     "System.Reflection.Metadata": "1.0.22"
   },
   "frameworks": {
-    "net46": { }
+    "net45": { }
   },
   "runtimes": {
     "win": { }

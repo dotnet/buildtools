@@ -2,7 +2,7 @@
   "locked": false,
   "version": 2,
   "targets": {
-    ".NETFramework,Version=v4.6": {
+    ".NETFramework,Version=v4.5": {
       "Microsoft.NETCore.Platforms/1.0.0": {
         "type": "package"
       },
@@ -380,7 +380,7 @@
         }
       }
     },
-    ".NETFramework,Version=v4.6/win": {
+    ".NETFramework,Version=v4.5/win": {
       "Microsoft.NETCore.Platforms/1.0.0": {
         "type": "package"
       },
@@ -794,7 +794,7 @@
     },
     "NuGet.Client/3.3.0": {
       "type": "package",
-      "sha512": "D1aOrOr8h5Tkat7lAvPIsjEvo+yn8or+COyO6GLBCT1HAUxp6hozDMRpZ2mWnUXq0PxAjqYxxJv+ty32V379vQ==",
+      "sha512": "x9I1yLJp3YmVo8nSlS5ddqpXKQfpjkRBBUiQCiCmI50kw5voCSpB+2BnaGF8FdXg7ItO4cpSu/+0+2kmNSVK6g==",
       "files": [
         "lib/dnxcore50/NuGet.Client.dll",
         "lib/dnxcore50/NuGet.Client.xml",
@@ -807,7 +807,7 @@
     },
     "NuGet.ContentModel/3.3.0": {
       "type": "package",
-      "sha512": "/XBhdr9B4A8kyA2dRpaDhtHpoEDzlgiM7obfa2ZRkQO7HVSyL5VA3NXgCna5PlHFV+G2+Vyp5F7rFff0KE+iqA==",
+      "sha512": "fVCmP89av9QPEnkw9R0PvtOc7Xg7iMbjVtx16aUl7crWjWIBOFQaV5Q3gW9tS2hkx3IW/2f1TpEoheep6v1cQA==",
       "files": [
         "lib/dnxcore50/NuGet.ContentModel.dll",
         "lib/dnxcore50/NuGet.ContentModel.xml",
@@ -820,7 +820,7 @@
     },
     "NuGet.Frameworks/3.3.0": {
       "type": "package",
-      "sha512": "bZiL1+Z7fI3MtujcZex75EuaUp5YQADzIVacKt3Ju/JNIjlb1agJ3TWXclVD0I6RCj/sk41jMrHuzp4oUXB/QA==",
+      "sha512": "kOS9FTJqFvCQR3z8C3VhnvXM4Wgi2aGDZREK+gqpnQXdCvkBPgD1PKFjGDckQLqao38DijWPppaanVGiV5Vjxw==",
       "files": [
         "lib/dnxcore50/NuGet.Frameworks.dll",
         "lib/dnxcore50/NuGet.Frameworks.xml",
@@ -833,7 +833,7 @@
     },
     "NuGet.Logging/3.3.0": {
       "type": "package",
-      "sha512": "Sbuck4iisxHeDDaRQTXTwUMZeycFhADBEp1fH8HWE/XzoDv20Yvcwto+JpeXvmZyDhlq7dalEHtnXdXNmt55TQ==",
+      "sha512": "cnMsgbWx3a9sl4WoYSu03/zrOfmSK9ZQVghTwX0WPNW7LsHYRx2INhtxhcgHV14XUpxLvqJ8xTTSLhS/QEgpBA==",
       "files": [
         "lib/dnxcore50/NuGet.Logging.dll",
         "lib/dnxcore50/NuGet.Logging.xml",
@@ -846,7 +846,7 @@
     },
     "NuGet.Packaging/3.3.0": {
       "type": "package",
-      "sha512": "JQOdXmcr7iOoROaATLe8F14Cgh0FiZwXwHxA8hEL7QsrnGjK0/8zW3A5UYD381Db6xIoPQrcoC199yv/+jpIxA==",
+      "sha512": "8ZmxGaRSyuAg4tn+o2AtRrp5fs+hJRALTlIEPakPWSL/FMkg+2aQxce1hbNjAdpCh2LtxMdJBkbzpHevOnrb5A==",
       "files": [
         "lib/dnxcore50/NuGet.Packaging.dll",
         "lib/dnxcore50/NuGet.Packaging.xml",
@@ -859,7 +859,7 @@
     },
     "NuGet.Packaging.Core/3.3.0": {
       "type": "package",
-      "sha512": "QeNfeyAUtC1USGpXmLDto4Y2xlpjg0VDHcmdDkzLurZuC48adsz9nVVEa5oA7osCTul/xShU0ELHzqNdxO9k+g==",
+      "sha512": "6gfzKM6uk/e44iuLS2KglZPs3JiZmLL9lCTBUhDtet8gjmKrHa5RbNctaKNotpQl3NbihSo3F+iDM/SnRO7E/Q==",
       "files": [
         "lib/dnxcore50/NuGet.Packaging.Core.dll",
         "lib/dnxcore50/NuGet.Packaging.Core.xml",
@@ -872,7 +872,7 @@
     },
     "NuGet.Packaging.Core.Types/3.3.0": {
       "type": "package",
-      "sha512": "EMOQuYUZXJfrOZ4rwApu3IWteEaf/jotLJ88DyPw8rr6lXq6GF2E7OlxKxyQ8sIj9mDkQUNa4OWp/fVlnmjYeg==",
+      "sha512": "J23niUhKIG/J8yDakRwc9UieQvcgTaknYeUsOCxaDb4DrXVDnZ+5GNQMsEyQohNr+4I0b4lEQJvpjoPaxR3+cw==",
       "files": [
         "lib/dnxcore50/NuGet.Packaging.Core.Types.dll",
         "lib/dnxcore50/NuGet.Packaging.Core.Types.xml",
@@ -885,7 +885,7 @@
     },
     "NuGet.Repositories/3.3.0": {
       "type": "package",
-      "sha512": "ido1mDu47C3QANipJAmWuv9VzLJt1X0cw2IIo6pHi14V9GUD0beUmRtUvGyk9CKBJmeTnNEsDrYoogJZrFWwaA==",
+      "sha512": "p8OG6CkIVr1wu27J11bVympOhiS5CLL4yhdrq8EkH4NhC7cNCYx9wcsbWMcVIM5JsLIMPkDf53fHVSr1dmF8YQ==",
       "files": [
         "lib/dnxcore50/NuGet.Repositories.dll",
         "lib/dnxcore50/NuGet.Repositories.xml",
@@ -898,7 +898,7 @@
     },
     "NuGet.RuntimeModel/3.3.0": {
       "type": "package",
-      "sha512": "1bZ0nP+Dht76RiBo+3jYV7qd6SDvKqs4ByxBy+3/yVwHoYYSwcH1CfdSs4UpAQu81C7fzp64ImSYQfxXH8EZhQ==",
+      "sha512": "5TxZt0NJEA1kOA/rXyo8b26BgktJO64yaDAPiyuBBvMuGTpqbq2uDVYE/dKL/D/yCOawPEIawY955Rn+V7JyRA==",
       "files": [
         "lib/dnxcore50/NuGet.RuntimeModel.dll",
         "lib/dnxcore50/NuGet.RuntimeModel.xml",
@@ -911,7 +911,7 @@
     },
     "NuGet.Versioning/3.3.0": {
       "type": "package",
-      "sha512": "PMC1DZZcpSntqufRuogIhOgqPo1/lNomMYSnPvKhKkfv6dUGJ6p58zbocdNE6/kOtvIKMty4rIH/udJ0S9KFIw==",
+      "sha512": "/dR3pxThkahpSuYvWUiq0KdBetg8F64WulokAPI7+3z+SsmPh57IXUbhkFdRxxRf9P3fdWkkcDabTwq5YoGr5A==",
       "files": [
         "lib/dnxcore50/NuGet.Versioning.dll",
         "lib/dnxcore50/NuGet.Versioning.xml",
@@ -1619,6 +1619,6 @@
       "NuGet.Client >= 3.3.0",
       "System.Reflection.Metadata >= 1.0.22"
     ],
-    ".NETFramework,Version=v4.6": []
+    ".NETFramework,Version=v4.5": []
   }
 }

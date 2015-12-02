@@ -2,7 +2,7 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <NuGetRuntimeIdentifier>win</NuGetRuntimeIdentifier>
     <ImportedProjectRelativePath>..\test\</ImportedProjectRelativePath>
     <TaskProject>..\src.Desktop\Microsoft.DotNet.Build.Tasks.Packaging.Desktop.csproj</TaskProject>
