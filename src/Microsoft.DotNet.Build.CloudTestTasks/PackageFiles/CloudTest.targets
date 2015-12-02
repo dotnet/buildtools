@@ -83,7 +83,10 @@
   <Target Name="CreateTestListJson"
           DependsOnTargets="CreateFuncTestListJson;CreatePerfTestListJson" />
 
-  <Target Name="CreateFuncTestListJson" DependsOnTargets="CreateAzureStorage">
+  <!-- allow skipping this target if perf testing is enabled -->
+  <Target Name="CreateFuncTestListJson"
+          DependsOnTargets="CreateAzureStorage"
+          Condition="'$(Performance)' != 'true' or '$(FuncTestsDisabled)' != 'true'">
     <!-- create item group of functional tests -->
     <ItemGroup>
       <FunctionalTest Include="$(TestArchivesRoot)*.zip" />
@@ -156,7 +159,6 @@
     <ItemGroup>
       <ExcludeFromArchive Include="nupkg$" />
       <ExcludeFromArchive Include="Microsoft.DotNet.BuildTools" />
-      <ExcludeFromArchive Include="TestData" />
     </ItemGroup>
     <ZipFileCreateFromDirectory
         SourceDirectory="$(PackagesDir)"
