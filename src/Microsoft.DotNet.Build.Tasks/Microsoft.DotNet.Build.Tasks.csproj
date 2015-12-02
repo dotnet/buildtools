@@ -32,6 +32,8 @@
     <Compile Include="ParseTestCoverageInfo.cs" />
     <Compile Include="RemoveDuplicatesWithLastOneWinsPolicy.cs" />
     <Compile Include="PrereleaseResolveNuGetPackageAssets.cs" />
+    <Compile Include="UpdatePackageDependencyVersion.cs" />
+    <Compile Include="UpdatePrereleaseDependencies.cs" />
     <Compile Include="UpdateProjectDependencies.cs" />
     <Compile Include="ValidateProjectDependencyVersions.cs" />
     <Compile Include="ZipFileCreateFromDirectory.cs" />

@@ -35,6 +35,8 @@
     <Compile Include="..\Microsoft.DotNet.Build.Tasks\ParseTestCoverageInfo.cs" />
     <Compile Include="..\Microsoft.DotNet.Build.Tasks\RemoveDuplicatesWithLastOneWinsPolicy.cs" />
     <Compile Include="..\Microsoft.DotNet.Build.Tasks\PrereleaseResolveNuGetPackageAssets.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\UpdatePackageDependencyVersion.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\UpdatePrereleaseDependencies.cs" />
     <Compile Include="..\Microsoft.DotNet.Build.Tasks\UpdateProjectDependencies.cs" />
     <Compile Include="..\Microsoft.DotNet.Build.Tasks\ValidateProjectDependencyVersions.cs" />
     <Compile Include="..\Microsoft.DotNet.Build.Tasks\ZipFileCreateFromDirectory.cs" />
