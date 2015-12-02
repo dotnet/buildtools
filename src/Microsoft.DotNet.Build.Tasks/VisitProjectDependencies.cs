@@ -3,12 +3,13 @@ using Microsoft.Build.Utilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public abstract class UpdateProjectDependencies : Task
+    public abstract class VisitProjectDependencies : Task
     {
         [Required]
         public ITaskItem[] ProjectJsons { get; set; }
@@ -31,7 +32,23 @@ namespace Microsoft.DotNet.Build.Tasks
             File.WriteAllText(projectJsonPath, projectJson + Environment.NewLine);
         }
 
-        public abstract bool UpdatePackage(JProperty package, string projectJsonPath);
+        private static IEnumerable<JProperty> FindAllDependencyProperties(JObject projectJsonRoot)
+        {
+            return projectJsonRoot
+                .Descendants()
+                .OfType<JProperty>()
+                .Where(property => property.Name == "dependencies")
+                .Select(property => property.Value)
+                .SelectMany(o => o.Children<JProperty>());
+        }
+
+        /// <summary>
+        /// Visit a package.
+        /// </summary>
+        /// <param name="package"></param>
+        /// <param name="projectJsonPath"></param>
+        /// <returns>True if a change was made that needs to be saved back to the project.json.</returns>
+        public abstract bool VisitPackage(JProperty package, string projectJsonPath);
 
         public override bool Execute()
         {
@@ -39,9 +56,8 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 JObject projectRoot = ReadProject(projectJsonPath);
 
-                bool changedAnyPackage = projectRoot["dependencies"]
-                    .OfType<JProperty>()
-                    .Any(package => UpdatePackage(package, projectJsonPath));
+                bool changedAnyPackage = FindAllDependencyProperties(projectRoot)
+                    .Any(package => VisitPackage(package, projectJsonPath));
 
                 if (changedAnyPackage)
                 {

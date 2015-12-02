@@ -101,7 +101,7 @@
 
   <Target Name="ValidatePackageVersions">
     <ValidateProjectDependencyVersions Condition="Exists('$(ProjectJson)')"
-                                       ProjectJson="$(ProjectJson)"
+                                       ProjectJsons="$(ProjectJson)"
                                        ProhibitFloatingDependencies="$(ProhibitFloatingDependencies)"
                                        ValidationPatterns="@(ValidationPattern)" />
   </Target>

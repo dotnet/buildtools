@@ -1,15 +1,13 @@
 ﻿using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Versioning;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class ValidateProjectDependencyVersions : Task
+    public class ValidateProjectDependencyVersions : VisitProjectDependencies
     {
         private class ValidationPattern
         {
@@ -71,14 +69,18 @@ namespace Microsoft.DotNet.Build.Tasks
             }
         }
 
-        [Required]
-        public ITaskItem ProjectJson { get; set; }
-
+        /// <summary>
+        /// Prohibits floating dependencies, aka "*" dependencies. Defaults to false, allowing them.
+        /// </summary>
         public bool ProhibitFloatingDependencies { get; set; }
 
+        /// <summary>
+        /// A set of patterns to enforce for package dependencies. If not specified, all
+        /// versions are permitted for any package.
+        /// </summary>
         public ITaskItem[] ValidationPatterns { get; set; }
 
-        public override bool Execute()
+        public override bool VisitPackage(JProperty package, string projectJsonPath)
         {
             var patterns = Enumerable.Empty<ValidationPattern>();
 
@@ -89,45 +91,28 @@ namespace Microsoft.DotNet.Build.Tasks
                     .ToArray();
             }
 
-            using (TextReader projectFileReader = File.OpenText(ProjectJson.ItemSpec))
+            string id = package.Name;
+            string version = package.Value.ToObject<string>();
+
+            string dependencyMessage = string.Format(
+                "{0} {1} in {2}",
+                id,
+                version,
+                projectJsonPath);
+
+            if (ProhibitFloatingDependencies && version.Contains('*'))
             {
-                var projectJsonReader = new JsonTextReader(projectFileReader);
-
-                var serializer = new JsonSerializer();
-                JObject projectRoot = serializer.Deserialize<JObject>(projectJsonReader);
-
-                var dependencyObjects = projectRoot
-                    .Descendants()
-                    .OfType<JProperty>()
-                    .Where(property => property.Name == "dependencies")
-                    .Select(property => property.Value);
-
-                foreach (var package in dependencyObjects.SelectMany(o => o.Children<JProperty>()))
+                Log.LogError("Floating dependency detected: {0}", dependencyMessage);
+            }
+            else
+            {
+                foreach (var pattern in patterns)
                 {
-                    string id = package.Name;
-                    string version = package.Value.ToObject<string>();
-
-                    string dependencyMessage = string.Format(
-                        "{0} {1} in {2}",
-                        id,
-                        version,
-                        ProjectJson);
-
-                    if (ProhibitFloatingDependencies && version.Contains('*'))
-                    {
-                        Log.LogError("Floating dependency detected: {0}", dependencyMessage);
-                    }
-                    else
-                    {
-                        foreach (var pattern in patterns)
-                        {
-                            pattern.Validate(id, version, Log, dependencyMessage);
-                        }
-                    }
+                    pattern.Validate(id, version, Log, dependencyMessage);
                 }
             }
 
-            return !Log.HasLoggedErrors;
+            return false;
         }
     }
 }

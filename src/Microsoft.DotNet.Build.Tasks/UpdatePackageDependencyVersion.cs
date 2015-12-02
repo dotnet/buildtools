@@ -4,7 +4,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class UpdatePackageDependencyVersion : UpdateProjectDependencies
+    public class UpdatePackageDependencyVersion : VisitProjectDependencies
     {
         [Required]
         public string PackageId { get; set; }
@@ -15,7 +15,7 @@ namespace Microsoft.DotNet.Build.Tasks
         [Required]
         public string NewVersion { get; set; }
 
-        public override bool UpdatePackage(JProperty package, string projectJsonPath)
+        public override bool VisitPackage(JProperty package, string projectJsonPath)
         {
             var dependencyIdentifier = package.Name;
             var dependencyVersion = package.Value.ToObject<string>();
