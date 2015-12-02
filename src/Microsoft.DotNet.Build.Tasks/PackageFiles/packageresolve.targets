@@ -2,6 +2,7 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <UsingTask TaskName="PrereleaseResolveNuGetPackageAssets" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="ValidateProjectDependencyVersions" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
   <PropertyGroup>
     <ProjectJson Condition="'$(ProjectJson)'=='' and Exists('$(MSBuildProjectDirectory)/project.json')">$(MSBuildProjectDirectory)/project.json</ProjectJson>
@@ -21,7 +22,7 @@
 
   <!-- Restoring packages during a background (designtime) build will cause VS 2015 (v14) to get into an endless loop of resolving references. -->
   <Target Name="RestorePackages"
-          BeforeTargets="ResolveNuGetPackages"
+          BeforeTargets="ResolveNuGetPackages;ValidatePackageVersions"
           Condition="'$(RestorePackages)'=='true' and !('$(VSDesignTimeBuild)'=='true' and '$(VisualStudioVersion)' >= '14.0')">
 
     <Error Condition="'$(DnuRestoreCommand)'=='' and Exists('$(ProjectJson)')" Text="RestorePackages target needs a predefined DnuRestoreCommand property set in order to restore $(ProjectJson)" /> 
@@ -37,6 +38,7 @@
     <ResolveAssemblyReferencesDependsOn>
       $(ResolveAssemblyReferencesDependsOn);
       ResolveNuGetPackages;
+      ValidatePackageVersions;
     </ResolveAssemblyReferencesDependsOn>
     
     <!-- temporarily accept the old name NuGetTargetFrameworkMoniker until all projects are moved forward -->
@@ -97,8 +99,15 @@
              Condition="'@(_ReferenceFileNamesToRemove)' != '' or '@(_ReferenceCopyLocalPathsFileNamesToRemove)' != ''"/>
   </Target>
 
+  <Target Name="ValidatePackageVersions">
+    <ValidateProjectDependencyVersions Condition="Exists('$(ProjectJson)')"
+                                       ProjectJsons="$(ProjectJson)"
+                                       ProhibitFloatingDependencies="$(ProhibitFloatingDependencies)"
+                                       ValidationPatterns="@(ValidationPattern)" />
+  </Target>
+
   <Target Name="FilterTargetingPackResolvedNugetPackages" AfterTargets="ResolveNuGetPackages"
-   	       Condition="'$(TargetingPackNugetPackageId)' != ''">
+          Condition="'$(TargetingPackNugetPackageId)' != ''">
 
     <ItemGroup>
       <ResolvedTargetingPackReference Include="@(Reference)" Condition="'%(Reference.NuGetPackageId)' == '$(TargetingPackNugetPackageId)'"  />
@@ -112,6 +121,6 @@
     </ItemGroup>
 
     <Message Importance="Low" 
-        Text="Removed all ResolvedTagetingPackReferences that were not specified explicitly as a TargetingPackReference=[@(TargetingPackReference)]. PackageReferencesToRemove=[@(PackageReferencesToRemove)]." />
+             Text="Removed all ResolvedTagetingPackReferences that were not specified explicitly as a TargetingPackReference=[@(TargetingPackReference)]. PackageReferencesToRemove=[@(PackageReferencesToRemove)]." />
   </Target>
 </Project>
