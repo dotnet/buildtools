@@ -57,7 +57,9 @@ namespace Microsoft.DotNet.Build.Tasks
                 JObject projectRoot = ReadProject(projectJsonPath);
 
                 bool changedAnyPackage = FindAllDependencyProperties(projectRoot)
-                    .Any(package => VisitPackage(package, projectJsonPath));
+                    .Select(package => VisitPackage(package, projectJsonPath))
+                    .ToArray()
+                    .Any();
 
                 if (changedAnyPackage)
                 {
