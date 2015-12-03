@@ -426,7 +426,7 @@
     },
     "NuGet.Versioning/3.3.0": {
       "type": "package",
-      "sha512": "f87vlVEFb4TyAqE7cpv4uX2cZkg70NeyzSTJ0D1w9kaGiYNv4l9/niKpuF8ek3PUAYCau+3YnxEp1wswVvWgAQ==",
+      "sha512": "90wrt/mbOApvWYz/skYYS9w2Y1YdGrHp7irAflAWEW4C1NKzFX80XB3h8BaGKJPcZ6gWNZhh+zZ21MdZ8rJETg==",
       "files": [
         "lib/dnxcore50/NuGet.Versioning.dll",
         "lib/dnxcore50/NuGet.Versioning.xml",
