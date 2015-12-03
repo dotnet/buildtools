@@ -8,27 +8,8 @@ using System.IO;
 
 namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
-    public class GetInboxFrameworks : ITask
+    public class GetInboxFrameworks : PackagingTask
     {
-        private TaskLoggingHelper _log;
-
-        public GetInboxFrameworks()
-        {
-            _log = new TaskLoggingHelper(this);
-        }
-
-        public IBuildEngine BuildEngine
-        {
-            get;
-            set;
-        }
-
-        public ITaskHost HostObject
-        {
-            get;
-            set;
-        }
-
         [Required]
         public string FrameworkListsPath
         {
@@ -56,7 +37,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             set;
         }
 
-        public bool Execute()
+        public override bool Execute()
         {
             if (null == FrameworkListsPath)
             {
@@ -76,10 +57,10 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 return false;
             }
 
-            _log.LogMessage(MessageImportance.Low, "Determining inbox frameworks for {0}, {1}", AssemblyName, AssemblyVersion);
+            _log.LogMessage(LogImportance.Low, "Determining inbox frameworks for {0}, {1}", AssemblyName, AssemblyVersion);
 
 
-            InboxFrameworks = Frameworks.GetInboxFrameworksList(FrameworkListsPath, AssemblyName, AssemblyVersion, ref _log);
+            InboxFrameworks = Frameworks.GetInboxFrameworksList(FrameworkListsPath, AssemblyName, AssemblyVersion, _log);
 
             return !_log.HasLoggedErrors;
         }

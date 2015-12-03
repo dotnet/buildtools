@@ -9,22 +9,10 @@ using System.IO;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 
-namespace CoreFx.Build.Tasks
+namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
-    public class GetAssemblyReferences : ITask
+    public class GetAssemblyReferences : PackagingTask
     {
-        public IBuildEngine BuildEngine
-        {
-            get;
-            set;
-        }
-
-        public ITaskHost HostObject
-        {
-            get;
-            set;
-        }
-
         [Required]
         public ITaskItem[] Assemblies
         {
@@ -40,7 +28,7 @@ namespace CoreFx.Build.Tasks
             set;
         }
 
-        public bool Execute()
+        public override bool Execute()
         {
             if (Assemblies == null || Assemblies.Length == 0)
                 return true;

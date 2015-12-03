@@ -11,27 +11,8 @@ using System.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
-    public class CreateTrimDependencyGroups : ITask
+    public class CreateTrimDependencyGroups : PackagingTask
     {
-        private TaskLoggingHelper _log;
-
-        public CreateTrimDependencyGroups()
-        {
-            _log = new TaskLoggingHelper(this);
-        }
-
-        public IBuildEngine BuildEngine
-        {
-            get;
-            set;
-        }
-
-        public ITaskHost HostObject
-        {
-            get;
-            set;
-        }
-
         [Required]
         public string FrameworkListsPath
         {
@@ -74,7 +55,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
         /* Given a set of available frameworks ("InboxOnTargetFrameworks"), and a list of desired frameworks,
         reduce the set of frameworks to the minimum set of frameworks which is compatible (preferring inbox frameworks. */
-        public bool Execute()
+        public override bool Execute()
         {
             if (null == Dependencies)
             {

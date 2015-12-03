@@ -6,8 +6,6 @@
     <NuGetRuntimeIdentifier>win</NuGetRuntimeIdentifier>
     <ImportedProjectRelativePath>..\test\</ImportedProjectRelativePath>
     <TaskProject>..\src.Desktop\Microsoft.DotNet.Build.Tasks.Packaging.Desktop.csproj</TaskProject>
-    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <Import Project="$(ImportedProjectRelativePath)Microsoft.DotNet.Build.Tasks.Packaging.Tests.csproj" />
   <PropertyGroup>

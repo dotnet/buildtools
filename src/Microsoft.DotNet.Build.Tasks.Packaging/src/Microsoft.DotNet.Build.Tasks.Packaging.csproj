@@ -30,13 +30,11 @@
     <Compile Include="GetInboxFrameworks.cs" />
     <Compile Include="ApplyPreReleaseSuffix.cs" />
     <Compile Include="GetPackageDescription.cs" />
-    <Compile Include="GetRuntimeTargets.cs" />
-    <Compile Include="IsPropertyInItemGroup.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="NuGetAssetResolver.cs" />
     <Compile Include="PackageItem.cs" />
     <Compile Include="PackageMetadata.cs" />
-    <Compile Include="GetRuntimeJsonValues.cs" />
+    <Compile Include="PackagingTask.cs" />
     <Compile Include="ValidatePackage.cs" />
     <Compile Include="VersionUtility.cs" />
   </ItemGroup>

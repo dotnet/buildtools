@@ -146,7 +146,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 s_inboxFrameworks = FrameworkSet.Load(frameworkListsPath);
             return s_inboxFrameworks;
         }
-        public static string[] GetInboxFrameworksList(string frameworkListsPath, string assemblyName, string assemblyVersion, ref TaskLoggingHelper _taskLoggingHelper)
+        public static string[] GetInboxFrameworksList(string frameworkListsPath, string assemblyName, string assemblyVersion, ILog log)
         {
             // if no version is specified just use 0.0.0.0 to evaluate for any version of the contract
             Version version = String.IsNullOrEmpty(assemblyVersion) ? new Version(0, 0, 0, 0) : new Version(assemblyVersion);
@@ -168,8 +168,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     {
                         if (supportedVersion >= version)
                         {
-                            if (_taskLoggingHelper != null)
-                                _taskLoggingHelper.LogMessage(MessageImportance.Low, "inbox on {0}", fxVersion.ShortName);
+                            if (log != null)
+                                log.LogMessage(LogImportance.Low, "inbox on {0}", fxVersion.ShortName);
                             inboxIds.Add(fxVersion.ShortName);
                             break;
                         }
@@ -180,8 +180,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                         if (supportedVersion == latestLegacyVersion &&
                             version.Major == latestLegacyVersion.Major && version.Minor == latestLegacyVersion.Minor)
                         {
-                            if (_taskLoggingHelper != null)
-                                _taskLoggingHelper.LogMessage(MessageImportance.Low, "Considering {0},Version={1} inbox on {2}, since it only differs in revsion.build from {3}", assemblyName, assemblyVersion, fxVersion.ShortName, latestLegacyVersion);
+                            if (log != null)
+                                log.LogMessage(LogImportance.Low, "Considering {0},Version={1} inbox on {2}, since it only differs in revsion.build from {3}", assemblyName, assemblyVersion, fxVersion.ShortName, latestLegacyVersion);
                             inboxIds.Add(fxVersion.ShortName);
                             break;
                         }

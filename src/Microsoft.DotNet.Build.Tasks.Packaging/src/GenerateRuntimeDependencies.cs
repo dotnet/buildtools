@@ -11,29 +11,11 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-namespace CoreFx.Build.Tasks
+namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
-    public class GenerateRuntimeDependencies : ITask
+    public class GenerateRuntimeDependencies : PackagingTask
     {
-        private TaskLoggingHelper _log;
         private const string c_emptyDependency = "none";
-
-        public GenerateRuntimeDependencies()
-        {
-            _log = new TaskLoggingHelper(this);
-        }
-
-        public IBuildEngine BuildEngine
-        {
-            get;
-            set;
-        }
-
-        public ITaskHost HostObject
-        {
-            get;
-            set;
-        }
 
         [Required]
         public ITaskItem[] Dependencies
@@ -69,7 +51,7 @@ namespace CoreFx.Build.Tasks
         }
 
 
-        public bool Execute()
+        public override bool Execute()
         {
             if (Dependencies == null || Dependencies.Length == 0)
             {
@@ -119,7 +101,7 @@ namespace CoreFx.Build.Tasks
                     continue;
                 }
 
-                _log.LogMessage(MessageImportance.Low, "Aliasing {0} -> {1}", alias, dependency.ItemSpec);
+                _log.LogMessage(LogImportance.Low, "Aliasing {0} -> {1}", alias, dependency.ItemSpec);
                 packageAliases[alias] = dependency.ItemSpec;
             }
 
@@ -133,7 +115,7 @@ namespace CoreFx.Build.Tasks
 
                 if (String.IsNullOrEmpty(targetRuntimeId))
                 {
-                    _log.LogMessage(MessageImportance.Low, "Skipping dependency {0} since it doesn't have a TargetRuntime.", dependency.ItemSpec);
+                    _log.LogMessage(LogImportance.Low, "Skipping dependency {0} since it doesn't have a TargetRuntime.", dependency.ItemSpec);
                     continue;
                 }
 
@@ -143,7 +125,7 @@ namespace CoreFx.Build.Tasks
                 }
                 else
                 {
-                    _log.LogMessage(MessageImportance.Low, "Using {0} for TargetPackageAlias {1}", targetPackageId, targetPackageAlias);
+                    _log.LogMessage(LogImportance.Low, "Using {0} for TargetPackageAlias {1}", targetPackageId, targetPackageAlias);
                 }
 
                 RuntimeSpec targetRuntime = null;
@@ -155,7 +137,7 @@ namespace CoreFx.Build.Tasks
 
                 if (String.IsNullOrEmpty(targetPackageId))
                 {
-                    _log.LogMessage(MessageImportance.Low, "Dependency {0} has no parent so will assume {1}.", dependency.ItemSpec, PackageId);
+                    _log.LogMessage(LogImportance.Low, "Dependency {0} has no parent so will assume {1}.", dependency.ItemSpec, PackageId);
                     targetPackageId = PackageId;
                 }
 
@@ -182,7 +164,7 @@ namespace CoreFx.Build.Tasks
                     if (targetPackage.Implementations.TryGetValue(dependencyId, out existing))
                     {
                         string newVersion = CompareSemanticVersion(dependencyVersion, existing.Version) > 0 ? dependencyVersion : existing.Version;
-                        _log.LogMessage(MessageImportance.Low, "Dependency {0} has been added more than once, {1}, {2}, using {3}", dependencyId, existing.Version, dependencyVersion, newVersion);
+                        _log.LogMessage(LogImportance.Low, "Dependency {0} has been added more than once, {1}, {2}, using {3}", dependencyId, existing.Version, dependencyVersion, newVersion);
                         dependencyVersion = newVersion;
                     }
 

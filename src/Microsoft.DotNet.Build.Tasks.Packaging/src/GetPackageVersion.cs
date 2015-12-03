@@ -9,27 +9,8 @@ using System.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
-    public class GetPackageVersion : ITask
+    public class GetPackageVersion : PackagingTask
     {
-        private TaskLoggingHelper _log;
-
-        public GetPackageVersion()
-        {
-            _log = new TaskLoggingHelper(this);
-        }
-
-        public IBuildEngine BuildEngine
-        {
-            get;
-            set;
-        }
-
-        public ITaskHost HostObject
-        {
-            get;
-            set;
-        }
-
         [Required]
         public ITaskItem[] Files
         {
@@ -44,7 +25,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             private set;
         }
 
-        public bool Execute()
+        public override bool Execute()
         {
             if (Files == null || Files.Length == 0)
             {

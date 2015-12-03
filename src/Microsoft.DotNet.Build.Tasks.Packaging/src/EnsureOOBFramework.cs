@@ -16,27 +16,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
     /// Examines assets to ensure that an OOB framework still has out-of-box
     /// assets if a previous version of that framework had inbox assets
     /// </summary>
-    public class EnsureOOBFramework : ITask
+    public class EnsureOOBFramework : PackagingTask
     {
-        private TaskLoggingHelper _log;
-
-        public EnsureOOBFramework()
-        {
-            _log = new TaskLoggingHelper(this);
-        }
-
-        public IBuildEngine BuildEngine
-        {
-            get;
-            set;
-        }
-
-        public ITaskHost HostObject
-        {
-            get;
-            set;
-        }
-
         [Required]
         public string[] OOBFrameworks { get; set; }
 
@@ -53,7 +34,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
         private IEnumerable<PackageItem> _packageItems;
 
-        public bool Execute()
+        public override bool Execute()
         {
             _packageItems = Files.Select(f => new PackageItem(f));
             var packageDlls = _packageItems.Where(pi => Path.GetExtension(pi.SourcePath).Equals(".dll", StringComparison.OrdinalIgnoreCase));
@@ -130,7 +111,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             var resolvedFramework = assets.Properties["tfm"] as NuGetFramework;
             if (targetFramework.Equals(resolvedFramework))
             {
-                _log.LogMessage(MessageImportance.Low, $"Not overriding explicit placeholder for {targetFrameworkName}");
+                _log.LogMessage(LogImportance.Low, $"Not overriding explicit placeholder for {targetFrameworkName}");
                 return Enumerable.Empty<string>();
             }
 
@@ -158,7 +139,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             {
                 // it's acceptable to have no override, this is the case for packages which 
                 // carry implementation in a runtime-specific package
-                _log.LogMessage(MessageImportance.Low, $"No {expectedAssetFolder} assets could be found to override inbox placeholder for {targetFrameworkName}.");
+                _log.LogMessage(LogImportance.Low, $"No {expectedAssetFolder} assets could be found to override inbox placeholder for {targetFrameworkName}.");
             }
 
             return obscuredAssetPaths;
@@ -174,7 +155,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     if (packageItem.TargetPath.StartsWith(keyAsset))
                     {
                         string subPath = packageItem.TargetPath.Substring(keyAsset.Length);
-                        _log.LogMessage(MessageImportance.Low, $"Copying {packageItem.TargetPath} to {targetAssetFolder}/{targetFrameworkName}{subPath}.");
+                        _log.LogMessage(LogImportance.Low, $"Copying {packageItem.TargetPath} to {targetAssetFolder}/{targetFrameworkName}{subPath}.");
                         yield return GetOOBItem(packageItem, $"{targetAssetFolder}/{targetFrameworkName}{subPath}", targetFrameworkName);
                     }
                 }

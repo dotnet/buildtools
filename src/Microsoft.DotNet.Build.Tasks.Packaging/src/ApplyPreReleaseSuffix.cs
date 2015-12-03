@@ -12,27 +12,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
     /// This task will determine if a set of packages need to be stable based on another set.
     /// If not stable, it will append a pre-release suffix.  It will also standardize on 3-part versions.
     /// </summary>
-    public class ApplyPreReleaseSuffix : ITask
+    public class ApplyPreReleaseSuffix : PackagingTask
     {
-        private TaskLoggingHelper _log;
-
-        public ApplyPreReleaseSuffix()
-        {
-            _log = new TaskLoggingHelper(this);
-        }
-
-        public IBuildEngine BuildEngine
-        {
-            get;
-            set;
-        }
-
-        public ITaskHost HostObject
-        {
-            get;
-            set;
-        }
-
         public ITaskItem[] StablePackages
         {
             get;
@@ -66,7 +47,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             set;
         }
 
-        public bool Execute()
+        public override bool Execute()
         {
             if (null == StablePackages)
             {

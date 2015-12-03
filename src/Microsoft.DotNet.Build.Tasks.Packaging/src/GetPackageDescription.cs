@@ -10,30 +10,11 @@ using System.Text;
 
 namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
-    public class GetPackageDescription : ITask
+    public class GetPackageDescription : PackagingTask
     {
         // avoid parsing the same document multiple times on a single node.
         private static Dictionary<string, Dictionary<string, string>> s_descriptionCache = new Dictionary<string, Dictionary<string, string>>();
-
-        private TaskLoggingHelper _log;
-
-        public GetPackageDescription()
-        {
-            _log = new TaskLoggingHelper(this);
-        }
-
-        public IBuildEngine BuildEngine
-        {
-            get;
-            set;
-        }
-
-        public ITaskHost HostObject
-        {
-            get;
-            set;
-        }
-
+                
         [Required]
         public ITaskItem DescriptionFile
         {
@@ -55,7 +36,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             set;
         }
 
-        public bool Execute()
+        public override bool Execute()
         {
             if (null == DescriptionFile)
             {

@@ -13,27 +13,8 @@ using PropertyNames = NuGet.Client.ManagedCodeConventions.PropertyNames;
 
 namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
-    public class ValidatePackage : ITask
+    public class ValidatePackage : PackagingTask
     {
-        private Log _log;
-
-        public ValidatePackage()
-        {
-            _log = new Log(new TaskLoggingHelper(this));
-        }
-
-        public IBuildEngine BuildEngine
-        {
-            get;
-            set;
-        }
-
-        public ITaskHost HostObject
-        {
-            get;
-            set;
-        }
-
         [Required]
         public string ContractName
         {
@@ -155,7 +136,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         private AggregateNuGetAssetResolver _resolver;
         private Dictionary<string, PackageItem> _targetPathToPackageItem;
 
-        public bool Execute()
+        public override bool Execute()
         {
             LoadSuppressions();
             LoadFiles();
