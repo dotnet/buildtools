@@ -96,12 +96,12 @@ namespace Microsoft.DotNet.Build.Common.Desktop
 
                 if (name.Version >= minimumVersion)
                 {
-                    assm = Assembly.Load(name);
+                    assembly = Assembly.Load(name);
                     return true;
                 }
             }
 
-            assm = null;
+            assembly = null;
             return false;
         }
     }
