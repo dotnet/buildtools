@@ -14,7 +14,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
     {
         // avoid parsing the same document multiple times on a single node.
         private static Dictionary<string, Dictionary<string, string>> s_descriptionCache = new Dictionary<string, Dictionary<string, string>>();
-                
+
         [Required]
         public ITaskItem DescriptionFile
         {

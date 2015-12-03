@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
 using NuGet.Frameworks;
 using System;
 using System.Collections.Generic;
@@ -60,7 +58,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             string lastNonSemanticVersionsListPath = Path.Combine(frameworkListsPath, LastNonSemanticVersionsFileName);
             AddAssembliesFromFrameworkList(result.LastNonSemanticVersions, lastNonSemanticVersionsListPath);
 
-            lock(s_frameworkSetCacheLock)
+            lock (s_frameworkSetCacheLock)
             {
                 s_frameworkSetCache[frameworkListsPath] = result;
             }
