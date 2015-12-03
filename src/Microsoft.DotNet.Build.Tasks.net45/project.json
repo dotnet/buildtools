@@ -1,10 +1,9 @@
 {
   "dependencies": {
-    "Newtonsoft.Json": "6.0.8",
+    "Newtonsoft.Json": "7.0.1",
     "NuGet.Versioning": "3.3.0",
-    "System.Collections.Immutable": "1.1.32-beta",
-    "System.Reflection.Metadata": "1.0.17-beta",
-    "xunit.runners": "2.0.0-beta5-build2785"
+    "System.Collections.Immutable": "1.1.37",
+    "System.Reflection.Metadata": "1.1.0"
   },
   "frameworks": {
     "net45": { }
