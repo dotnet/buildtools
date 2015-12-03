@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.props))\dir.props" />
   <PropertyGroup>
@@ -23,19 +23,27 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\common\AssemblyResolver.cs" />
     <Compile Include="CreateAzureContainer.cs" />
     <Compile Include="CreateAzureFileShare.cs" />
     <Compile Include="GetPerfTestAssemblies.cs" />
+    <Compile Include="SendJsonToDocumentDb.cs" />
     <Compile Include="SendToEventHub.cs" />
     <Compile Include="UploadToAzure.cs" />
+    <Compile Include="WriteBuildStatsJson.cs" />
     <Compile Include="WriteItemsToJson.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Azure.Documents.Client">
+      <HintPath>..\..\packages\Microsoft.Azure.DocumentDB.1.5.1\lib\net40\Microsoft.Azure.Documents.Client.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.Build.Tasks.v4.0" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="mscorlib" />
     <Reference Include="Microsoft.Build.Framework, Version=4.0.0.0" />
     <Reference Include="Microsoft.Build.Utilities.v4.0" />
+    <Reference Include="System.Core" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Reflection.Metadata">
       <HintPath>..\..\packages\System.Reflection.Metadata.1.0.17-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>

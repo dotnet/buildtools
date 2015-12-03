@@ -3,9 +3,11 @@
   <UsingTask TaskName="CreateAzureContainer" AssemblyFile="$(ToolsDir)net45\Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="CreateAzureFileShare" AssemblyFile="$(ToolsDir)net45\Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="GetPerfTestAssemblies" AssemblyFile="$(ToolsDir)net45\Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="SendJsonToDocumentDb" AssemblyFile="$(ToolsDir)net45\Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="SendToEventHub" AssemblyFile="$(ToolsDir)net45\Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="UploadToAzure" AssemblyFile="$(ToolsDir)net45\Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="WriteItemsToJson" AssemblyFile="$(ToolsDir)net45\Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="WriteTestBuildStatsJson" AssemblyFile="$(ToolsDir)net45\Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="ZipFileCreateFromDirectory" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
   <PropertyGroup>
@@ -19,6 +21,7 @@
     <PackagesArchiveFile>$(ArchivesRoot)$(PackagesArchiveFilename)</PackagesArchiveFile>
     <FuncTestListFile>$(TestWorkingDir)$(OSPlatformConfig)\$(FuncTestListFilename)</FuncTestListFile>
     <PerfTestListFile>$(TestWorkingDir)$(OSPlatformConfig)\$(PerfTestListFilename)</PerfTestListFile>
+    <BuildStatsJsonFile>$(TestWorkingDir)$(OSPlatformConfig)\BuildStats.json</BuildStatsJsonFile>
   </PropertyGroup>
 
   <!-- main entrypoint -->
@@ -44,6 +47,8 @@
     <Error Condition="'$(FileShareAccessToken)' == ''" Text="Missing required property FileShareAccessToken." />
     <Error Condition="'$(BuildCompleteConnection)' == ''" Text="Missing required property BuildCompleteConnection." />
     <Error Condition="'$(BuildIsOfficial)' == 'true' and '$(BuildIsOfficialConnection)' == ''" Text="Missing required property BuildIsOfficialConnection." />
+    <Error Condition="'$(BuildIsOfficial)' == 'true' and '$(DocumentDbKey)' == ''" Text="Missing required property DocumentDbKey." />
+    <Error Condition="'$(BuildIsOfficial)' == 'true' and '$(DocumentDbUri)' == ''" Text="Missing required property DocumentDbUri." />
     <!-- verify the test archives were created -->
     <Error Condition="'@(ForUpload->Count())' == '0'" Text="Didn't find any test archives in '$(ArchivesRoot)'." />
     <!-- add relative blob path metadata -->
@@ -94,7 +99,7 @@
     <ItemGroup>
       <FunctionalTest>
         <Command>%HELIX_PYTHONPATH% %HELIX_SCRIPT_ROOT%\xunitrunner.py --dll %(Filename).dll -- -notrait category=nonwindowstests</Command>
-        <CorrelationPayloadUris>[$(DropUri)$(Platform)$(ConfigurationGroup)/Packages.zip$(DropUriReadOnlyToken);;http://dotnetbuildscripts.blob.core.windows.net/scripts/xunit_210.zip;;http://dotnetbuildscripts.blob.core.windows.net/scripts/amd64ret/corerun.zip]</CorrelationPayloadUris>
+        <CorrelationPayloadUris>[$(DropUri)$(Platform)$(ConfigurationGroup)/Packages.zip$(DropUriReadOnlyToken)]</CorrelationPayloadUris>
         <PayloadUri>$(DropUri)$(Platform)$(ConfigurationGroup)/Tests/%(Filename)%(Extension)$(DropUriReadOnlyToken)</PayloadUri>
         <WorkItemId>FunctionalTest.%(Filename)</WorkItemId>
       </FunctionalTest>
@@ -131,7 +136,7 @@
     <ItemGroup Condition="'@(PerfTestAssembly->Count())' != '0'">
       <PerfTest>
         <Command>%HELIX_PYTHONPATH% %HELIX_SCRIPT_ROOT%\xunitrunner.py --dll %(Filename).dll --perf-runner Microsoft.DotNet.xunit.performance.runner.Windows -- -notrait category=nonwindowstests</Command>
-        <CorrelationPayloadUris>[$(DropUri)$(Platform)$(ConfigurationGroup)/Packages.zip$(DropUriReadOnlyToken);;http://dotnetbuildscripts.blob.core.windows.net/scripts/xunit_210.zip;;http://dotnetbuildscripts.blob.core.windows.net/scripts/amd64ret/corerun.zip]</CorrelationPayloadUris>
+        <CorrelationPayloadUris>[$(DropUri)$(Platform)$(ConfigurationGroup)/Packages.zip$(DropUriReadOnlyToken)]</CorrelationPayloadUris>
         <PayloadUri>$(DropUri)$(Platform)$(ConfigurationGroup)/Tests/%(Filename)%(Extension)$(DropUriReadOnlyToken)</PayloadUri>
         <WorkItemId>PerfTest.%(Filename)</WorkItemId>
         <TimeoutInSeconds>600</TimeoutInSeconds>
@@ -215,6 +220,17 @@
       </OfficialBuild>
     </ItemGroup>
     <WriteItemsToJson JsonFileName="%(TestListFile.OfficialBuildJson)" Items="@(OfficialBuild)" />
+    <!-- write out build statistics (only contains number of built projects at present) -->
+    <ItemGroup>
+      <BuiltSuccessfully Include="$(TestArchivesRoot)*.zip" />
+    </ItemGroup>
+    <WriteTestBuildStatsJson
+      CorrelationIds="@(TestListFile->'%(CorrelationId)')"
+      LogUri="none"
+      OutputFile="$(BuildStatsJsonFile)"
+      ProjectsBuiltCount="@(BuiltSuccessfully->Count())"
+      ProjectsFailed="@(FailedToBuild)"
+      TestCount="0" />
   </Target>
 
   <!-- send completion events -->
@@ -233,6 +249,14 @@
       EventHubPath="clrstats-events"
       EventData="%(TestListFile.OfficialBuildJson)"
       PartitionKey="%(TestListFile.CorrelationId)"/>
+    <SendJsonToDocumentDb
+      Condition="'$(BuildIsOfficial)' == 'true'"
+      AccountKey="$(DocumentDbKey)"
+      Collection="ExecutionSummary"
+      Database="HelixMonitoringService"
+      DocumentId="Build|%(TestListFile.CorrelationId)"
+      EndpointUri="$(DocumentDbUri)"
+      JsonFile="$(BuildStatsJsonFile)" />
   </Target>
 
 </Project>
