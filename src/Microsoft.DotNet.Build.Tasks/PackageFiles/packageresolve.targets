@@ -99,9 +99,9 @@
              Condition="'@(_ReferenceFileNamesToRemove)' != '' or '@(_ReferenceCopyLocalPathsFileNamesToRemove)' != ''"/>
   </Target>
 
-  <Target Name="ValidatePackageVersions">
-    <ValidateProjectDependencyVersions Condition="Exists('$(ProjectJson)')"
-                                       ProjectJsons="$(ProjectJson)"
+  <Target Name="ValidatePackageVersions"
+          Condition="'$(RestorePackages)'=='true' and '$(ValidatePackageVersions)'=='true' and Exists('$(ProjectJson)')">
+    <ValidateProjectDependencyVersions ProjectJsons="$(ProjectJson)"
                                        ProhibitFloatingDependencies="$(ProhibitFloatingDependencies)"
                                        ValidationPatterns="@(ValidationPattern)" />
   </Target>
