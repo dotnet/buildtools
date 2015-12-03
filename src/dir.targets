@@ -19,4 +19,28 @@
   <Import Project="$(ToolsDir)Build.Common.targets" Condition="'$(UseLiveBuildTools)' != 'true' AND Exists('$(ToolsDir)Build.Common.targets')" />
   <Import Project="..\override.targets" Condition="Exists('..\override.targets')"/>
 
+  <PropertyGroup Condition="'$(ImportedProjectRelativePath)' != ''">
+    <CoreBuildDependsOn>UpdateImportedProjectRelativePaths;$(CoreBuildDependsOn)</CoreBuildDependsOn>
+    <CoreCleanDependsOn>UpdateImportedProjectRelativePaths;$(CoreCleanDependsOn)</CoreCleanDependsOn>
+  </PropertyGroup>
+  
+  <Target Name="UpdateImportedProjectRelativePaths">
+    <ItemGroup>
+      <RelCompile Include="@(Compile)" Condition="!$([System.IO.Path]::IsPathRooted('%(Identity)'))" />
+      <Compile Remove="@(RelCompile)" />
+      <Compile Include="@(RelCompile -> '$(ImportedProjectRelativePath)\%(Identity)')" />
+
+      <RelNone Include="@(None)" Condition="!$([System.IO.Path]::IsPathRooted('%(Identity)'))" />
+      <None Remove="@(RelNone)" />
+      <None Include="@(RelNone -> '$(ImportedProjectRelativePath)\%(Identity)')" />
+      
+      <RelProjectReference Include="@(ProjectReference)" Condition="!$([System.IO.Path]::IsPathRooted('%(Identity)'))" />
+      <ProjectReference Remove="@(RelProjectReference)" />
+      <ProjectReference Include="@(RelProjectReference -> '$(ImportedProjectRelativePath)\%(Identity)')" />
+
+      <RelEmbeddedResource Include="@(EmbeddedResource)" Condition="!$([System.IO.Path]::IsPathRooted('%(Identity)'))" />
+      <EmbeddedResource Remove="@(RelEmbeddedResource)" />
+      <EmbeddedResource Include="@(RelEmbeddedResource -> '$(ImportedProjectRelativePath)\%(Identity)')" />
+    </ItemGroup>
+  </Target>
 </Project>
