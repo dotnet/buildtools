@@ -23,5 +23,9 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Common\AssemblyResolver.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PackagingTask.Desktop.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateNuSpec.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Metadata.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PackageDirectory.cs" />
   </ItemGroup>
 </Project>

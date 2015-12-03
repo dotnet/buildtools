@@ -6,6 +6,15 @@
       "Microsoft.NETCore.Platforms/1.0.0": {
         "type": "package"
       },
+      "Microsoft.Web.Xdt/2.1.0": {
+        "type": "package",
+        "compile": {
+          "lib/net40/Microsoft.Web.XmlTransform.dll": {}
+        },
+        "runtime": {
+          "lib/net40/Microsoft.Web.XmlTransform.dll": {}
+        }
+      },
       "Newtonsoft.Json/7.0.1": {
         "type": "package",
         "compile": {
@@ -50,6 +59,18 @@
         },
         "runtime": {
           "lib/net45/NuGet.ContentModel.dll": {}
+        }
+      },
+      "NuGet.Core/2.10.1": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Web.Xdt": "2.1.0"
+        },
+        "compile": {
+          "lib/net40-Client/NuGet.Core.dll": {}
+        },
+        "runtime": {
+          "lib/net40-Client/NuGet.Core.dll": {}
         }
       },
       "NuGet.Frameworks/3.3.0": {
@@ -384,6 +405,15 @@
       "Microsoft.NETCore.Platforms/1.0.0": {
         "type": "package"
       },
+      "Microsoft.Web.Xdt/2.1.0": {
+        "type": "package",
+        "compile": {
+          "lib/net40/Microsoft.Web.XmlTransform.dll": {}
+        },
+        "runtime": {
+          "lib/net40/Microsoft.Web.XmlTransform.dll": {}
+        }
+      },
       "Newtonsoft.Json/7.0.1": {
         "type": "package",
         "compile": {
@@ -428,6 +458,18 @@
         },
         "runtime": {
           "lib/net45/NuGet.ContentModel.dll": {}
+        }
+      },
+      "NuGet.Core/2.10.1": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Web.Xdt": "2.1.0"
+        },
+        "compile": {
+          "lib/net40-Client/NuGet.Core.dll": {}
+        },
+        "runtime": {
+          "lib/net40-Client/NuGet.Core.dll": {}
         }
       },
       "NuGet.Frameworks/3.3.0": {
@@ -770,6 +812,16 @@
         "runtime.json"
       ]
     },
+    "Microsoft.Web.Xdt/2.1.0": {
+      "type": "package",
+      "sha512": "/ieJ02r4MEJM21Eyl+c5kwoJWPhy+qEEcN68JaqDoamabgxJI1jGi/kNLuKvHUCl6tU7E0rMvaR6FmEnDWtS4A==",
+      "files": [
+        "lib/net40/Microsoft.Web.XmlTransform.dll",
+        "Microsoft.Web.Xdt.2.1.0.nupkg",
+        "Microsoft.Web.Xdt.2.1.0.nupkg.sha512",
+        "Microsoft.Web.Xdt.nuspec"
+      ]
+    },
     "Newtonsoft.Json/7.0.1": {
       "type": "package",
       "sha512": "q3V4KLetMLnt1gpAVWgtXnHjKs0UG/RalBc29u2ZKxd5t5Ze4JBL5WiiYIklJyK/5CRiIiNwigVQUo0FgbsuWA==",
@@ -816,6 +868,16 @@
         "NuGet.ContentModel.3.3.0.nupkg",
         "NuGet.ContentModel.3.3.0.nupkg.sha512",
         "NuGet.ContentModel.nuspec"
+      ]
+    },
+    "NuGet.Core/2.10.1": {
+      "type": "package",
+      "sha512": "HaC8ng2xlmQQ2p2MoALmn+0OZnNGsdfOriGNhWc2xwuJLJZOVfyI3Eki2ybSa9K+cNjptASEsgejWvQbfiPtZQ==",
+      "files": [
+        "lib/net40-Client/NuGet.Core.dll",
+        "NuGet.Core.2.10.1.nupkg",
+        "NuGet.Core.2.10.1.nupkg.sha512",
+        "NuGet.Core.nuspec"
       ]
     },
     "NuGet.Frameworks/3.3.0": {
@@ -1617,6 +1679,7 @@
       "Microsoft.NETCore.Platforms >= 1.0.0",
       "Newtonsoft.Json >= 7.0.1",
       "NuGet.Client >= 3.3.0",
+      "NuGet.Core >= 2.10.1",
       "System.Reflection.Metadata >= 1.0.22"
     ],
     ".NETFramework,Version=v4.5": []

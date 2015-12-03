@@ -65,6 +65,13 @@
     <NuProjDir Condition="'$(NuProjDir)'==''">$(MSBuildThisFileDirectory)NuProj\</NuProjDir>
   </PropertyGroup>
 
+  <!-- Override NuProj version, we needed to support placeholder dependency groups -->
+  <UsingTask TaskName="GenerateNuSpec" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+
+  <!-- Currently we still rely on a small set of targets/tasks in NuProj
+       NuProj is a problem since it won't work x-plat.
+       We will replace it completely once we have support in x-plat NuGet 
+       APIs to do nuspec creation & packaging.  -->
   <Import Project="$(NuProjDir)\NuProj.props" />
   <Import Project="$(NuProjDir)\NuProj.targets" />
   <Import Project="stable.packages.targets" />
