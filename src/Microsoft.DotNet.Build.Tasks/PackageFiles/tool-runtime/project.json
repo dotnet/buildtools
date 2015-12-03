@@ -1,8 +1,13 @@
 {
   "dependencies": {
+    "Microsoft.Build.Framework": "0.1.0-preview-00005",
+    "Microsoft.Build.Tasks.Core": "0.1.0-preview-00005",
+    "Microsoft.Build.Utilities.Core": "0.1.0-preview-00005",
     "Microsoft.NETCore.TestHost": "1.0.0-beta-23328",
     "Microsoft.NETCore.Console": "1.0.0-beta-23328",
     "Microsoft.Cci": "4.0.0-beta-23328",
+    "Newtonsoft.Json": "7.0.1",
+    "NuGet.Client": "3.3.0",
     "System.Diagnostics.TextWriterTraceListener": "4.0.0-beta-23328",
     "System.Diagnostics.TraceSource": "4.0.0-beta-23328",
   },

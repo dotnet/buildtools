@@ -1,0 +1,684 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" TreatAsLocalProperty="BuildProjectReferences" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- The following properties are expected to change as we transition from 
+       Beta -> RC - RTM. We should set $(IncludeBuildNumberInPackageVersion)
+       to false for the Beta/RC builds that get uploaded to NuGet.
+  -->
+  
+  <PropertyGroup>
+    <PreReleaseLabel Condition="'$(PreReleaseLabel)' == ''">rc2</PreReleaseLabel>
+    <IncludeBuildNumberInPackageVersion Condition="'$(IncludeBuildNumberInPackageVersion)' == ''">true</IncludeBuildNumberInPackageVersion>
+
+    <VersionSuffix Condition="'$(PreReleaseLabel)' != ''">-$(PreReleaseLabel)</VersionSuffix>
+    <VersionSuffix Condition="'$(IncludeBuildNumberInPackageVersion)' == 'true'">$(VersionSuffix)-$(BuildNumberMajor)</VersionSuffix>
+    
+    <PackageRevStableToPrerelease Condition="'$(PackageRevStableToPrerelease)' == ''">false</PackageRevStableToPrerelease>
+    <DependencyRevStableToPrerelease Condition="'$(PackageRevStableToPrerelease)' == ''">false</DependencyRevStableToPrerelease>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(IsRuntimePackage)' == 'true' or '$(PackageTargetRuntime)' != ''">
+    <IdPrefix>runtime.</IdPrefix>
+    <IdPrefix Condition="'$(PackageTargetRuntime)' != ''">$(IdPrefix)$(PackageTargetRuntime).</IdPrefix>
+    <IdPrefix Condition="'$(PackageTargetFramework)' != ''">$(IdPrefix)$(PackageTargetFramework).</IdPrefix>
+  </PropertyGroup>
+
+  <!-- 
+       NuSpec configuration.
+       
+       NOTE: It's by design that these properties override the project. We don't
+       want projects to specify any metadata, most of the metadata should be 
+       the same for all packages, and the rest will be centralized.
+  -->
+  <PropertyGroup>
+    <BaseId>$(MSBuildProjectName)</BaseId>
+    <Id>$(IdPrefix)$(BaseId)</Id>
+    <!-- It is by design that the Title matches the Id. We want users to get an assembly view. -->
+    <Title>$(Id)</Title>
+    <Authors>Microsoft</Authors>
+    <Owners>microsoft,dotnetframework</Owners>
+    <Description>TODO</Description>
+    <ReleaseNotes></ReleaseNotes>
+    <ProjectUrl></ProjectUrl>
+    <LicenseUrl>http://go.microsoft.com/fwlink/?LinkId=329770</LicenseUrl>
+    <IconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</IconUrl>
+    <Copyright>&#169; Microsoft Corporation.  All rights reserved.</Copyright>
+    <Tags></Tags>
+    <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
+    <!-- we depend on nuget v3 behavior -->
+    <MinClientVersion Condition="'$(MinClientVersion)' == ''">3.0</MinClientVersion>
+  </PropertyGroup>
+
+  <!-- Shared properties -->
+  <PropertyGroup>
+    <PackageOutputPath Condition="'$(PackageOutputPath)' == ''">$(BaseOutputPath)pkg\</PackageOutputPath>
+    <OutputPath>$(PackageOutputPath)</OutputPath>
+    <PlaceholderFile>$(MSBuildThisFileDirectory)_._</PlaceholderFile>
+    <PackageDescriptionFile Condition="'$(PackageDescriptionFile)' == ''">path to descriptions.json must be specified</PackageDescriptionFile>
+    <RuntimeIdGraphDefinitionFile Condition="'$(RuntimeIdGraphDefinitionFile)' == ''">$(MSBuildThisFileDirectory)runtime.json</RuntimeIdGraphDefinitionFile>
+    <GenerationDefinitionFile Condition="'$(GenerationDefinitionFile)' == ''">$(MSBuildThisFileDirectory)Generations.json</GenerationDefinitionFile>
+    <FrameworkListsPath Condition="'$(FrameworkListsPath)' == ''">$(MSBuildThisFileDirectory)FrameworkLists</FrameworkListsPath>
+    <ValidationSuppressionFile Condition="'$(ValidationSuppressionFile)' == ''">ValidationSuppression.txt</ValidationSuppressionFile>
+    <ValidationReferencePath>$(ReferenceAssemblyOutputPath);$(PackagesDir)</ValidationReferencePath>
+    <SyncInfoFile Condition="'$(SyncInfoFile)' == ''">unspecified</SyncInfoFile>
+    <PackagingTaskDir Condition="'$(PackagingTaskDir)' == ''">$(MSBuildThisFileDirectory)</PackagingTaskDir>
+    <NuProjDir Condition="'$(NuProjDir)'==''">$(MSBuildThisFileDirectory)NuProj\</NuProjDir>
+  </PropertyGroup>
+
+  <Import Project="$(NuProjDir)\NuProj.props" />
+  <Import Project="$(NuProjDir)\NuProj.targets" />
+  <Import Project="stable.packages.targets" />
+
+  <PropertyGroup>
+    <!-- Override NuProj
+         NuProj puts this in intermediates because it eventually Packs it, but
+         we want a seperate step to do the pack since that needs to happen after
+         signing -->
+    <NuSpecPath>$(OutputPath)$(Id)$(NuspecSuffix).nuspec</NuSpecPath>    
+  </PropertyGroup>
+  
+  <UsingTask TaskName="ApplyPreReleaseSuffix" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  <UsingTask TaskName="GetAssemblyReferences" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  <UsingTask TaskName="GenerateRuntimeDependencies" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  <UsingTask TaskName="GetPackageDescription" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  <UsingTask TaskName="GetInboxFrameworks" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  <UsingTask TaskName="GetPackageVersion" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  <UsingTask TaskName="EnsureOOBFramework" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  <UsingTask TaskName="ValidatePackage" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  <UsingTask TaskName="CreateTrimDependencyGroups" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+
+  <!-- Don't build project references, we build all projects anyway and nuproj targets were having trouble
+       with multiple nodes building the same project at the same time. -->
+  <PropertyGroup>
+    <BuildProjectReferences>false</BuildProjectReferences>
+  </PropertyGroup>
+  
+  <!-- Determine if we actually need to build for this architecture -->
+  <!-- Packages can specifically control their architecture by specifying the PackagePlatforms 
+       property as a semi-colon delimited list.
+       If this is not done then the package will build if the target runtime contains the current
+       architecture or if we're building for x86. -->
+  <PropertyGroup>
+    <PackagePlatform>$(Platform)</PackagePlatform>
+    <PackagePlatform Condition="'$(Platform)' == 'amd64'">x64</PackagePlatform>
+    
+    <!-- build if the package specifically requests current architecture via PackagePlatforms -->
+    <ShouldGenerateNuSpec Condition="$(PackagePlatforms.Contains('$(PackagePlatform);'))">true</ShouldGenerateNuSpec>
+    <!-- build if PackagePlatforms is not specified and the PackageTargetRuntime contains the current architecture -->
+    <ShouldGenerateNuSpec Condition="'$(PackagePlatforms)' == '' AND $(PackageTargetRuntime.Contains('-$(PackagePlatform)'))">true</ShouldGenerateNuSpec>
+    <!-- build if PackagePlatforms is not specified and arch is x86 or AnyCPU -->
+    <ShouldGenerateNuSpec Condition="'$(PackagePlatforms)' == '' AND ('$(PackagePlatform)' == 'x86' OR '$(PackagePlatform)' == 'AnyCPU')">true</ShouldGenerateNuSpec>
+    <BuildDependsOn Condition="'$(ShouldGenerateNuSpec)' == 'true'">GenerateNuSpec</BuildDependsOn>
+  </PropertyGroup>
+
+  <!-- Redefine build to just create the NuSpec only, we'll create the package during ArcProjects phase -->
+  <Target Name="Build" 
+          DependsOnTargets="$(BuildDependsOn)">
+    
+    <Message Condition="'$(ShouldGenerateNuSpec)' == 'true'"
+             Text="$(MSBuildProjectName) -> $(NuSpecPath)"
+             Importance="high" />
+    
+    <Message Condition="'$(ShouldGenerateNuSpec)' != 'true'"
+             Text="Skipping nuspec generation for this platform."
+             Importance="high" />
+  </Target>
+
+  <!-- We support the following metadata on ProjectReferences as shortcuts to passing the property 
+         PackageTargetFramework
+         PackageTargetPath
+         PackageTargetRuntime
+         Platform -->
+  <Target Name="AddProjectReferenceProperties"
+          BeforeTargets="_NuProjGetProjectClosure">
+    <ItemGroup>
+      <!-- list each append as a seperate item to force re-evaluation of AdditionalProperties metadata -->
+      <ProjectReference>
+        <AdditionalProperties Condition="'%(ProjectReference.PackageTargetFramework)' != ''">PackageTargetFramework=%(ProjectReference.PackageTargetFramework);%(ProjectReference.AdditionalProperties)</AdditionalProperties>
+      </ProjectReference>
+      <ProjectReference>
+        <AdditionalProperties Condition="'%(ProjectReference.PackageTargetPath)' != ''">PackageTargetPath=%(ProjectReference.PackageTargetPath);%(ProjectReference.AdditionalProperties)</AdditionalProperties>
+      </ProjectReference>
+      <ProjectReference>
+        <AdditionalProperties Condition="'%(ProjectReference.PackageTargetRuntime)' != ''">PackageTargetRuntime=%(ProjectReference.PackageTargetRuntime);%(ProjectReference.AdditionalProperties)</AdditionalProperties>
+      </ProjectReference>
+      <ProjectReference>
+        <AdditionalProperties Condition="'%(ProjectReference.Platform)' != ''">Platform=%(ProjectReference.Platform);%(ProjectReference.AdditionalProperties)</AdditionalProperties>
+      </ProjectReference>
+    </ItemGroup>
+  </Target>
+  
+  <!-- Override the NuProj version.
+       We define a custom target: GetFilesToPackage which does a minimal build of the project
+       and passes all information in a single item group.
+       This helps minimize the number of project evaluations and targets that build in order
+       to determine the contents of the package-->
+  <Target Name="ExpandProjectReferences"
+          DependsOnTargets="SplitProjectReferences">
+
+    <MSBuild Targets="GetFilesToPackage"
+             BuildInParallel="$(BuildInParallel)"
+             Projects="@(_NonNuProjProjectReference)"
+             Properties="$(ProjectProperties)">
+      <Output TaskParameter="TargetOutputs"
+              ItemName="_FilesToPackage" />
+    </MSBuild>
+
+    <ItemGroup>
+      <File Include="@(_FilesToPackage)">
+        <NuProjPackageId>$(Id)</NuProjPackageId>
+        <NuProjPackageVersion>$(Version)</NuProjPackageVersion>
+        <!-- Some packages support legacy portable profiles where dependencies are provided by targeting pack -->
+        <HarvestDependencies Condition="!$([System.String]::new('%(_FilesToPackage.TargetFramework)').StartsWith('portable-'))">true</HarvestDependencies>
+      </File>
+    </ItemGroup>
+
+    <Error Condition="'$(SkipPackageFileCheck)' != 'true' AND
+                      '%(File.SkipPackageFileCheck)' != 'true' AND
+                      '%(File.FileName)' != '_' AND
+                      '%(File.FileName)%(File.Extension)' != 'runtime.json' AND
+                      !$(ID.Contains('%(File.FileName)'))"
+           Text="Package $(ID) contains file with name %(File.FileName).  If this is expected you can disable this filename checking for this item or package by setting SkipPackageFileCheck = true"
+           ContinueOnError="ErrorAndContinue" />
+  </Target>
+  
+  <!-- Override the NuProj version.
+       Permit setting TargetFramework and add our own metadata (TargetRuntime) -->
+  <Target Name="GetPackageIdentity"
+          Returns="@(_PackageIdentity)"
+          DependsOnTargets="$(VersionDependsOn)">
+    <ItemGroup>
+      <_PackageIdentity Include="$(Id)">
+        <Version>$(Version)</Version>
+        <TargetFramework Condition="'$(PackageTargetFramework)' != ''">$(PackageTargetFramework)</TargetFramework>
+        <TargetRuntime Condition="'$(PackageTargetRuntime)' != ''">$(PackageTargetRuntime)</TargetRuntime>
+      </_PackageIdentity>
+    </ItemGroup>
+  </Target>
+  
+  <!-- Override the NuProj version.
+       Don't actually walk the closure all the time, conditioned on GetClosure metadata on ProjectReference.
+       We don't use any of the asset -> package mapping logic from nuproj so we don't need the full set of packages.
+       Walking the closure is very expensive for many of our packages.  -->
+  <Target Name="_NuProjGetProjectClosure"
+          Returns="@(_ProjectReferenceClosure)">
+          
+    <!-- Get closure of indirect references if they opt-in -->
+    <MSBuild Projects="@(ProjectReference)"
+             Targets="_NuProjGetProjectClosure"
+             Properties="$(ProjectProperties)"
+             ContinueOnError="WarnAndContinue"
+             BuildInParallel="$(BuildInParallel)"
+             Condition="'%(ProjectReference.GetClosure)' == 'true'">
+      <Output TaskParameter="TargetOutputs"
+              ItemName="_ProjectReferenceClosureWithDuplicates" />
+    </MSBuild>
+
+    <!-- Remove duplicates from closure -->
+    <RemoveDuplicates Inputs="@(_ProjectReferenceClosureWithDuplicates)">
+      <Output TaskParameter="Filtered"
+              ItemName="_ProjectReferenceClosureWithoutMetadata"/>
+    </RemoveDuplicates>
+
+    <ItemGroup>
+      <!-- Remove references that are also direct references -->
+      <_ProjectReferenceClosureWithoutMetadata Remove="%(ProjectReference.FullPath)" />
+      <!-- We can now mark all the closure references as indirect -->
+      <_ProjectReferenceClosure Include="@(_ProjectReferenceClosureWithoutMetadata)">
+        <DependencyKind>Indirect</DependencyKind>
+        <PackageDirectory>%(ProjectReference.PackageDirectory)</PackageDirectory>
+      </_ProjectReferenceClosure>
+      <!-- Now add the direct references, preserving metadata -->
+      <_ProjectReferenceClosure Include="@(ProjectReference->'%(FullPath)')">
+        <DependencyKind>Direct</DependencyKind>
+      </_ProjectReferenceClosure>
+    </ItemGroup>
+
+  </Target>
+
+  <!-- Override the NuProj version.  
+       Don't infer TFM from files.  Instead allow explicit definition of TFM by projects/references.-->
+  <Target Name="AssignNuProjPackageDependenciesTargetFramework"
+          DependsOnTargets="GetNuProjPackageDependencies;GetFiles">
+
+    <ItemGroup>
+      <!-- ensure that unconstrained dependencies are also expanded in constrained TFM groups -->
+      <_NuProjDependencyWithoutTFM Include="@(NuProjDependency)" Condition="'%(NuProjDependency.TargetFramework)' == '' AND '%(NuProjDependency.DoNotExpand)' != 'true'" />
+      <_AllNuProjTFMs Include="%(NuProjDependency.TargetFramework)" Condition="'%(NuProjDependency.DependencyKind)' == 'Direct'" />
+
+      <NuProjDependency Include="@(_NuProjDependencyWithoutTFM)">
+        <TargetFramework>%(_AllNuProjTFMs.Identity)</TargetFramework>
+      </NuProjDependency>
+    </ItemGroup>
+  </Target>
+  
+  <!-- Override the NuProj version.  
+       Don't do any filtering of files. 
+       We explicitly determine package content so we do not need to
+       filter out files that come from dependent packages. -->
+  <Target Name="GetPackageFiles"
+          Returns="@(PackageFile)"
+          DependsOnTargets="GetFiles;$(VersionDependsOn)">
+    <ItemGroup>
+      <PackageFile Include="@(File)" />
+      <PackageFile Condition="'%(PackageFile.NuProjPackageId)' == ''">
+        <NuProjPackageId>$(Id)</NuProjPackageId>
+        <NuProjPackageVersion>$(Version)</NuProjPackageVersion>
+      </PackageFile>
+
+      <!-- Nuget will treat TargetPath as a directory if the extensions dont match,
+           however we need to package files without an extension (Unix exectuables).
+           As such nuget will always consider TargetPath to be a file path for these
+           files.  Ensure that the TargetPath is the file path for these files. -->
+      <PackageFile Condition="'%(Extension)' == ''">
+        <TargetPath>%(PackageFile.TargetPath)/%(FileName)</TargetPath>
+      </PackageFile>
+    </ItemGroup>
+  </Target>
+
+  <!-- Harvest dependencies from assembly references.
+       Assume version of package dependency == assembly version of dependency (3-part).
+       For prerelease (not stable) packages apply a pre-release suffix to the dependency -->
+  <Target Name="DetermineFileDependencies"
+          AfterTargets="EnsureOOBFramework"
+          Condition="'$(OmitDependencies)' != 'true'"
+          Inputs="%(File.Identity);%(File.TargetFramework)"
+          Outputs="fake">
+    <!-- nuproj's GetNuGetPackageDependencies will resolve packages from packages.config of dependencies,
+         but our current build uses references -->
+    <GetAssemblyReferences Assemblies="@(File)" Condition="'%(File.HarvestDependencies)' == 'true' and '%(File.Extension)' == '.dll'">
+      <Output TaskParameter="ReferencedAssemblies"
+              ItemName="_FileReferencedAssemblies"/>
+    </GetAssemblyReferences>
+    
+    <PropertyGroup>
+      <_IsClassicAssembly>false</_IsClassicAssembly>
+      <_IsClassicAssembly Condition="'%(_FileReferencedAssemblies.FileName)' == 'mscorlib'">true</_IsClassicAssembly>
+      <_IsClassicAssembly Condition="'%(_FileReferencedAssemblies.FileName)' == 'System.Private.Corelib'">true</_IsClassicAssembly>
+      <_TargetFramework>%(File.TargetFramework)</_TargetFramework>
+    </PropertyGroup>
+    
+    <ItemGroup Condition="'@(_FileReferencedAssemblies)' != ''">
+      <_FilePackageReference Include="@(_FileReferencedAssemblies)" 
+                             Exclude="corefx;mscorlib;System;System.Core;System.Xml;Windows">
+        <AssemblyVersion>%(Version)</AssemblyVersion>
+      </_FilePackageReference>
+      
+      <_FilePackageReference Remove="@(_FilePackageReference)"
+                             Condition="$([System.String]::new('%(Identity)').StartsWith('Internal.'))"/>
+      <_FilePackageReference Remove="@(_FilePackageReference)"
+                             Condition="$([System.String]::new('%(Identity)').StartsWith('System.Private.'))"/>
+      <_FilePackageReference Remove="@(PackageDependencyExclude)"/>
+
+      <!-- Projects may specify additional references by assembly name & identity that we'll process 
+           applying pre-release logic -->
+      <_FilePackageReference Include="@(AdditionalAssemblyReference)"/>
+
+      <_FilePackageReference Condition="'%(Identity)' == '@(FileRuntimeDependency)'">
+        <TargetRuntime>@(FileRuntimeDependency->'%(TargetRuntime)')</TargetRuntime>
+      </_FilePackageReference>
+    </ItemGroup>
+
+    <ApplyPreReleaseSuffix Condition="'@(_FilePackageReference)' != ''" StablePackages="@(StablePackage)" OriginalPackages="@(_FilePackageReference)" PreReleaseSuffix="$(VersionSuffix)" RevStableToPrerelease="$(DependencyRevStableToPrerelease)">
+      <Output TaskParameter="UpdatedPackages" ItemName="_FilePackageReferenceFinal"/>
+    </ApplyPreReleaseSuffix>
+
+    <ItemGroup>
+      <Dependency Condition="'$(_IsClassicAssembly)' != 'true' OR !$(_TargetFramework.StartsWith('net4'))"  Include="@(_FilePackageReferenceFinal)">
+        <TargetFramework Condition="'$(_TargetFramework)' != ''" >$(_TargetFramework)</TargetFramework>
+      </Dependency>
+      <FrameworkReference Condition="'$(_IsClassicAssembly)' == 'true' AND $(_TargetFramework.StartsWith('net4'))" Include="%(_FileReferencedAssemblies.Identity)">
+        <TargetFramework>$(_TargetFramework)</TargetFramework>
+      </FrameworkReference>
+    </ItemGroup>
+  </Target>
+
+  <!-- Walks every project gathering its AssemblyVersion, choosing the highest -->
+  <!-- Skipped if the package explicitly defines a version -->
+  <Target Name="GetAssemblyVersionFromProjects"
+          Condition="$(Version) == ''"
+          DependsOnTargets="ExpandProjectReferences">
+
+    <GetPackageVersion Files="@(File)">
+      <Output TaskParameter="Version" PropertyName="_AssemblyVersion" />
+    </GetPackageVersion>
+
+    <Error Condition="'$(_AssemblyVersion)' == ''"
+           Text="No assembly version could be determined."
+           ContinueOnError="ErrorAndContinue" />
+  </Target>
+
+  <!-- Calculates the package version including any prerelease suffix -->
+  <Target Name="CalculatePackageVersion"
+        BeforeTargets="GenerateNuSpec;GetPackageIdentity"
+        DependsOnTargets="GetAssemblyVersionFromProjects">
+
+    <Error Text="No version could be detected.  Either specify the Version property or provide at least one managed assembly."
+           Condition="'$(Version)' == '' AND '$(_AssemblyVersion)' == ''"
+           ContinueOnError="ErrorAndContinue" />
+    
+    <ItemGroup>
+      <_thisPackage Include="$(Id)">
+        <Version Condition="'$(Version)' != ''">$(Version)</Version>
+        <Version Condition="'$(Version)' == ''">$(_AssemblyVersion)</Version>
+      </_thisPackage>
+    </ItemGroup>
+
+
+    <ApplyPreReleaseSuffix StablePackages="@(StablePackage)" OriginalPackages="@(_thisPackage)" PreReleaseSuffix="$(VersionSuffix)" RevStableToPrerelease="$(PackageRevStableToPrerelease)">
+      <Output TaskParameter="UpdatedPackages" ItemName="_thisPackageFinal"/>
+    </ApplyPreReleaseSuffix>
+    
+    <PropertyGroup>
+      <Version>%(_thisPackageFinal.Version)</Version>
+    </PropertyGroup>
+  </Target>
+
+  <!-- Updates version metadata of a pinned dependency to be a fixed version -->
+  <Target Name="PinDependencies"
+          DependsOnTargets="GetPackageDependencies"
+          BeforeTargets="GenerateRuntimeDependencies">
+    <ItemGroup>
+      <DependenciesToPin Include="@(Dependency)" Condition="'@(PinDependency)' == '%(Identity)'"  />
+      <Dependency Remove="@(DependenciesToPin)"/>
+      <Dependency Include="@(DependenciesToPin)">
+        <Version>[%(DependenciesToPin.Version)]</Version>
+      </Dependency>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="DetermineRuntimeDependencies"
+          DependsOnTargets="PinDependencies"
+          Returns="@(RuntimeDependency)"
+          BeforeTargets="GetPackageFiles">
+    <!-- see if we have any runtime dependencies to write to runtime.json -->
+    <ItemGroup>
+      <RuntimeDependency Condition="'%(Dependency.TargetRuntime)' != ''" Include="@(Dependency)"/>
+      <!-- don't include runtime depdendencies in the dependency list, they'll be written to the runtime.json -->
+      <Dependency Remove="@(RuntimeDependency)"/>
+    </ItemGroup>
+
+    <Error Text="Packages that are constrained by runtime should not have runtime dependencies.  They will be ignored by nuget"
+           Condition="'$(PackageTargetRuntime)' != '' AND '@(RuntimeDependency)' != ''" 
+           ContinueOnError="ErrorAndContinue" />
+
+    <!-- determine if there is a file to be updated, and setup the output file -->
+    <PropertyGroup>
+      <RuntimeFileSource Condition="'%(File.FileName)%(File.Extension)' == 'runtime.json'">%(File.Identity)</RuntimeFileSource>
+      <RuntimeFileDest Condition="'$(RuntimeFileDest)' == ''">$(OutputPath)$(Id)$(NuspecSuffix)\runtime.json</RuntimeFileDest>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'@(RuntimeDependency)' != ''">
+      <!-- if we are updating, remove it from the file group, we'll replace it with the generated version -->
+      <File Condition="'$(RuntimeFileSource)' != ''" Remove="$(RuntimeFileSource)"/>
+      <File Include="$(RuntimeFileDest)">
+        <NuProjPackageId>$(Id)</NuProjPackageId>
+        <NuProjPackageVersion>$(Version)</NuProjPackageVersion>
+        <IsLibrary>false</IsLibrary>
+      </File>
+    </ItemGroup>
+  </Target>
+  
+  <Target Name="EnsureEmptyPackage"
+          BeforeTargets="GetPackageFiles">
+    <!-- Nuget will include all files when nuspec is empty, ensure we have at least one file to avoid that -->
+    <ItemGroup Condition="'@(File)' == ''">
+      <File Include="$(PlaceholderFile)">
+        <NuProjPackageId>$(Id)</NuProjPackageId>
+        <NuProjPackageVersion>$(Version)</NuProjPackageVersion>
+        <IsLibrary>false</IsLibrary>
+      </File>
+    </ItemGroup>
+  </Target>
+
+  <!-- If the "PreventImplementationReference" property is true, then don't permit references to the 
+    package implementation from lib.  This is used in the platform specific packages which should
+    not be directly referenced by projects for implemtation dependencies. -->
+  <Target Name="PreventImplementationReference"
+          BeforeTargets="EnsureEmptyPackage">
+    <ItemGroup Condition="'$(PreventImplementationReference)' == 'true'">
+      <File Include="$(PlaceholderFile)">
+        <NuProjPackageId>$(Id)</NuProjPackageId>
+        <NuProjPackageVersion>$(Version)</NuProjPackageVersion>
+        <TargetPath>ref/dotnet</TargetPath>
+      </File>
+    </ItemGroup>
+  </Target>
+
+
+  <!-- 
+      InboxOnTargetFramework: contract implementation and reference are inbox, use placeholders for both
+      NotSupportedOnTargetFramework: contract should not be supported, use place holder for lib
+      ExternalOnTargetFramework: contract implementation is provided by another package, use placeholders for both
+  -->
+  <Target Name="AddPlaceholders"
+          DependsOnTargets="ExpandProjectReferences"
+          Inputs="%(InboxOnTargetFramework.Identity);%(NotSupportedOnTargetFramework.Identity);%(ExternalOnTargetFramework.Identity)"
+          Outputs="fake"
+          BeforeTargets="ConvertItems">
+    <ItemGroup>
+      <_targetItem Include="@(InboxOnTargetFramework)"/>
+      <_targetItem Include="@(NotSupportedOnTargetFramework)"/>
+      <_targetItem Include="@(ExternalOnTargetFramework)"/>
+    </ItemGroup>
+    <PropertyGroup>
+      <_target>%(_targetItem.Identity)</_target>
+      <_targetRuntime>$(PackageTargetRuntime)</_targetRuntime>
+      <_targetRuntime Condition="'%(_targetItem.PackageTargetRuntime)' != ''">%(_targetItem.PackageTargetRuntime)</_targetRuntime>
+      <!-- don't use 'any' in paths due to https://github.com/NuGet/Home/issues/1676 -->
+      <_targetRuntime Condition="'$(_targetRuntime)' == 'any'"></_targetRuntime>
+      <!-- include a ref placeholder for everything but NotSupportedOnTargetFramework, never put placeholders in runtime packages -->
+      <_targetRef Condition="'%(NotSupportedOnTargetFramework.Identity)' == '' AND '$(PackageTargetRuntime)' == ''">true</_targetRef>
+    </PropertyGroup>
+    <ItemGroup>
+      <File Include="$(PlaceholderFile)">
+        <NuProjPackageId>$(Id)</NuProjPackageId>
+        <NuProjPackageVersion>$(Version)</NuProjPackageVersion>
+        <TargetPath Condition="'$(_targetRuntime)' != ''">runtimes/$(_targetRuntime)/lib/$(_target)</TargetPath>
+        <TargetPath Condition="'$(_targetRuntime)' == ''">lib/$(_target)</TargetPath>
+      </File>
+      <File Include="$(PlaceholderFile)" Condition="'$(_targetRef)' == 'true'">
+        <NuProjPackageId>$(Id)</NuProjPackageId>
+        <NuProjPackageVersion>$(Version)</NuProjPackageVersion>
+        <TargetPath>ref/$(_target)</TargetPath>
+      </File>
+      <FrameworkReference Condition="'%(InboxOnTargetFramework.AsFrameworkReference)' == 'true'" Include="$(Id)">
+        <TargetFramework>$(_target)</TargetFramework>
+      </FrameworkReference>
+      <Dependency Include="_._">
+        <TargetFramework>$(_target)</TargetFramework>
+      </Dependency>
+    </ItemGroup>
+  </Target>
+
+  <!-- Ensures that OOB frameworks aren't obscured by placeholders for inbox frameworks
+       This is needed because nuget treats portable implementations as having less 
+       precedence than platform specific implementations of any version and we 
+       put a place-holder in the platform specific folder when an asset is inbox. -->
+  <ItemGroup>
+    <OutOfBoxFramework Include="netcore50"/>
+  </ItemGroup>
+  <Target Name="EnsureOOBFramework"
+          AfterTargets="AddPlaceholders">
+    <EnsureOOBFramework Condition="'@(OutOfBoxFramework)' != ''" OOBFrameworks="@(OutOfBoxFramework)" Files="@(File)" RuntimeJson="$(RuntimeIdGraphDefinitionFile)" RuntimeId="$(PackageTargetRuntime)">
+      <Output TaskParameter="AdditionalFiles" ItemName="File" />
+    </EnsureOOBFramework>
+  </Target>
+  
+  <!-- We can reduce the number of dependencies listed for any framework that has
+       inbox implementations since that framework doesn't need the packages for
+       compile/runtime.  This reduces the noise when consuming our packages in 
+       packages.config based projects.  -->
+  <Target Name="TrimInboxDependencies"
+          BeforeTargets="GenerateNuSpec"
+          Condition="'$(PackageTargetRuntime)' == ''">
+    <CreateTrimDependencyGroups Dependencies="@(Dependency)"
+                      GenerationDefinitionsFile="$(GenerationDefinitionFile)"
+                      FrameworkListsPath="$(FrameworkListsPath)"
+                      TrimFrameworks="@(InboxOnTargetFramework);@(NotSupportedOnTargetFramework);@(ExternalOnTargetFramework)"
+                      Files="@(File)"
+                      Condition="'@(Dependency)' != ''">
+      <Output TaskParameter="TrimmedDependencies" ItemName="TrimmedDependency" />
+    </CreateTrimDependencyGroups>                    
+    <ItemGroup>
+       <Dependency Include="@(TrimmedDependency)" />
+   </ItemGroup>                      
+  </Target>
+  
+  <!-- Generates a runtime.json file containing all dependencies with TargetRuntime -->
+  <Target Name="GenerateRuntimeDependencies"
+          DependsOnTargets="DetermineRuntimeDependencies"
+          Condition="'@(RuntimeDependency)' != ''"
+          BeforeTargets="GenerateNuspec">
+
+     <!-- Lineups need to have all runtime dependencies to ensure that they are part of the compile graph -->
+     <MSBuild Projects="@(ProjectReference)" Targets="DetermineRuntimeDependencies" Condition="'$(IsLineupPackage)' == 'true'" Properties="$(ProjectProperties)">
+       <Output TaskParameter="TargetOutputs" ItemName="_indirectRuntimeDependencies" />
+     </MSBuild>
+
+    <!-- pass both RuntimeDependencies and regular dependencies.
+         Only RuntimeDependencies will be generated, but Dependencies are required
+         since they may be the target of a RuntimeDependency -->
+    <GenerateRuntimeDependencies Dependencies="@(RuntimeDependency);@(Dependency);@(_indirectRuntimeDependencies)"
+                                 PackageId="$(Id)"
+                                 RuntimeJsonTemplate="$(RuntimeFileSource)"
+                                 RuntimeJson="$(RuntimeFileDest)"
+                                 EnsureBase="$(IsLineupPackage)"/>
+  </Target>
+
+  <Target Name="GetSyncInfo"
+    BeforeTargets="GetPackageDescription"
+    Condition="Exists('$(SyncInfoFile)')">
+    <ReadLinesFromFile
+      File="$(SyncInfoFile)">
+      <Output
+        TaskParameter="Lines"
+        ItemName="SyncInfoLines" />
+    </ReadLinesFromFile>
+  </Target>
+
+  <Target Name="GetPackageDescription"
+          BeforeTargets="GenerateNuspec">
+    <GetPackageDescription DescriptionFile="$(PackageDescriptionFile)"
+                           PackageId="$(BaseId)">
+      <Output TaskParameter="Description"
+              PropertyName="Description" />
+    </GetPackageDescription>
+    
+    <GetPackageDescription DescriptionFile="$(PackageDescriptionFile)"
+                           Condition="'$(PackageTargetRuntime)' != ''"
+                           PackageId="RuntimePackage">
+      <Output TaskParameter="Description"
+              PropertyName="RuntimeDisclaimer" />
+    </GetPackageDescription>
+    
+    <PropertyGroup>
+      <Description Condition="'$(RuntimeDisclaimer)' != ''">$(RuntimeDisclaimer) \r\n $(Description)</Description>
+      <Description Condition="'@(SyncInfoLines)' != ''">$(Description) \r\n %(SyncInfoLines.Identity)</Description>
+    </PropertyGroup>
+  </Target>
+  
+  <ItemGroup>
+    <ValidateFramework Include="dnxcore50">
+      <!-- todo: add unix RIDs once we have appropriate support -->
+      <RuntimeIDs>win7-x86;win7-x64</RuntimeIDs>
+    </ValidateFramework>
+    <ValidateFramework Include="netcore50">
+      <RuntimeIDs>win10-x86;win10-x86-aot;win10-x64;win10-x64-aot;win10-arm;win10-arm-aot</RuntimeIDs>
+    </ValidateFramework>
+    <ValidateFramework Include="net46" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
+      <!-- add additional win7 RIDs to validate up-level authoring -->
+      <RuntimeIDs>win-x86;win-x64;win7-x86;win7-x64</RuntimeIDs>
+    </ValidateFramework>
+    <ValidateFramework Include="net461" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
+      <!-- add additional win7 RIDs to validate up-level authoring -->
+      <RuntimeIDs>win-x86;win-x64;win7-x86;win7-x64</RuntimeIDs>
+    </ValidateFramework>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <!-- Skip validation of runtime packages, they will be validated in the context of their reference package -->
+    <SkipValidatePackage Condition="'$(SkipValidateTargetFrameworks)' == '' AND '$(PackageTargetRuntime)' != ''">true</SkipValidatePackage>
+    <SkipSupportCheck Condition="'$(SkipSupportCheck)' == '' AND ($(Id.StartsWith('System.Private.')) OR $(Id.StartsWith('Microsoft.NETCore.')))">true</SkipSupportCheck>
+  </PropertyGroup>
+
+  <Target Name="ValidatePackage"
+          DependsOnTargets="GetPackageFiles"
+          BeforeTargets="GenerateNuspec"
+          Condition="'$(SkipValidatePackage)' != 'true'">
+     <ItemGroup>
+       <RuntimeDependencyProject Include="%(RuntimeDependency.OriginalItemSpec)" KeepDuplicates="false" />
+       <!-- map back to the project references -->
+       <RuntimeDependencyProjectFullPath Include="@(RuntimeDependencyProject->'%(FullPath)')"/>
+       <ProjectReferenceFullPath Include="@(ProjectReference->'%(FullPath)')"/>
+       <RuntimeProjectReference Include="@(ProjectReferenceFullPath)" Condition="'@(ProjectReferenceFullPath)' == '@(RuntimeDependencyProjectFullPath)' AND '%(Identity)' != ''"/>
+     </ItemGroup>
+
+     <ItemGroup>
+       <!-- assume an OOB package supports all ValidateFrameworks -->
+       <ContractSupport Include="$(BaseId)" Condition="'$(OOBPackage)' == 'true'">
+         <Version>$(_AssemblyVersion)</Version>
+         <TargetFramework>%(ValidateFramework.Identity)</TargetFramework>
+       </ContractSupport>
+     </ItemGroup>
+     
+     <MSBuild Projects="@(RuntimeProjectReference)" Targets="GetPackageFiles" Properties="$(ProjectProperties)">
+      <Output TaskParameter="TargetOutputs" ItemName="RuntimeFile" />
+     </MSBuild>
+
+     <ValidatePackage ContractName="$(BaseId)"
+                      PackageId="$(Id)"
+                      Files="@(PackageFile);@(RuntimeFile)"
+                      ContractSupport="@(ContractSupport)"
+                      ReferencePaths="$(ValidationReferencePath)"
+                      Frameworks="@(ValidateFramework)"
+                      GenerationDefinitionsFile="$(GenerationDefinitionFile)"
+                      RuntimeFile="$(RuntimeIdGraphDefinitionFile)"
+                      FrameworkListsPath="$(FrameworkListsPath)"
+                      SkipGenerationCheck="$(SkipGenerationCheck)"
+                      SkipSupportCheck="$(SkipSupportCheck)"
+                      SuppressionFile="$(ValidationSuppressionFile)"
+                      ContinueOnError="ErrorAndContinue"/>
+  </Target>
+  
+  <Target Name="ValidateMetaPackageFramework"
+          Condition="'$(MetaPackageFramework)' != ''"
+          BeforeTargets="GenerateNuspec">
+    
+    <ItemGroup>
+      <_ExpectedMetaDependencies Include="@(ContractAssembly)" Condition="'%(ContractAssembly.Platform)' == '$(MetaPackageFramework)'">
+        <Version>$([System.Version]::Parse('%(Version)').ToString(3))</Version>
+      </_ExpectedMetaDependencies>
+      
+      <_ExpectedMetaDependencies Remove="@(ExcludePackage);@(NoPackage)" />
+
+      <_ActualMetaDependencies Include="@(Dependency);@(RuntimeDependency)"/>
+      <!-- also consider indirect dependencies that may come from the core package, 
+           TODO: right now this also picks up indirect dependencies other packages (eg: runtime pinning) -->
+      <_ActualMetaDependencies Include="@(NuProjDependency)" Condition="'%(NuProjDependency.DependencyKind)' == 'Indirect'" />
+      <_ActualMetaDependencies>
+        <Version>$([System.String]::new('%(Version)').Replace('$(VersionSuffix)', ''))</Version>
+      </_ActualMetaDependencies>
+      
+      <_MissingMetaDependencies Include="@(_ExpectedMetaDependencies)" Exclude="@(_ActualMetaDependencies)"/>
+      <_SatisfiedMetaDependencies Include="@(_ExpectedMetaDependencies)" Condition="'@(_ExpectedMetaDependencies)' == '@(_ActualMetaDependencies)' and '%(Identity)' != ''">
+        <!-- Use transform here because we don't want to effect the batching -->
+        <ActualVersion>@(_ActualMetaDependencies->'%(Version)')</ActualVersion>
+      </_SatisfiedMetaDependencies>
+      
+      <_SatisfiedMetaDependencies>
+        <!-- Compare and store the result in metadata -->
+        <!-- This cannot be done in a condition because MSBuild logical ops aren't short 
+             circuit and parse would throw on empty string as a result of empty _SatisfiedDependencies -->
+        <CompareResult>$([System.Version]::Parse('%(ActualVersion)').CompareTo( $([System.Version]::Parse('%(Version)')) ))</CompareResult>
+      </_SatisfiedMetaDependencies>
+    </ItemGroup>
+
+    <Error Text="Packages @(_MissingMetaDependencies->'%(Identity)-%(Version)') should be included."
+           Condition="'@(_MissingMetaDependencies)' != ''"
+           ContinueOnError="ErrorAndContinue" />
+    <Error Text="Package @(_SatisfiedMetaDependencies)-%(ActualVersion) is higher version than %(Version) expected." 
+           Condition="'@(_SatisfiedMetaDependencies)' != '' AND  %(CompareResult) &gt; 0"
+           ContinueOnError="ErrorAndContinue" />
+  </Target>
+</Project>

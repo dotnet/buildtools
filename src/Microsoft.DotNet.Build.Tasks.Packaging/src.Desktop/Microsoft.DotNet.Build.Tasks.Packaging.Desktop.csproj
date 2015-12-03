@@ -5,6 +5,7 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <NuGetRuntimeIdentifier>win</NuGetRuntimeIdentifier>
     <ImportedProjectRelativePath>..\src\</ImportedProjectRelativePath>
+    <CopyNuGetImplementations>true</CopyNuGetImplementations>
   </PropertyGroup>
   <Import Project="$(ImportedProjectRelativePath)Microsoft.DotNet.Build.Tasks.Packaging.csproj" />
   <PropertyGroup>

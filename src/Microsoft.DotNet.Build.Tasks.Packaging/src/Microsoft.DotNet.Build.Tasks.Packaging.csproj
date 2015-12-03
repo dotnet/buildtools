@@ -12,6 +12,7 @@
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <CLSCompliant>false</CLSCompliant>
     <SkipSigning>true</SkipSigning>
+    <CopyNuGetImplementations>true</CopyNuGetImplementations>
   </PropertyGroup>
   <!-- Default configurations to help VS understand the options -->
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -39,12 +40,24 @@
     <Compile Include="VersionUtility.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Generations.json">
+    <None Include="PackageFiles\Generations.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="PackageFiles\Packaging.targets">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="PackageFiles\_._">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="project.json" />
     <None Include="$(MSBuildThisFileDirectory)FrameworkLists\**\*.xml">
       <Link>FrameworkLists\%(RecursiveDir)%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="PackageFiles\stable.packages.targets">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="$(PackagesDir)Microsoft.NETCore.Platforms\1.0.1-rc2-23530\runtime.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

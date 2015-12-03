@@ -19,7 +19,7 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="Microsoft.DotNet.Build.Tasks.net45\*.dll" target="lib\net45" />
+    <file src="Microsoft.DotNet.Build.Tasks.net45\*.dll" exclude="Microsoft.DotNet.Build.Tasks.net45\Nuget.*.dll" target="lib\net45" />
     <file src="Microsoft.DotNet.Build.CloudTestTasks\Microsoft.Azure.Documents.Client.dll" target="lib\net45" />
     <file src="Microsoft.DotNet.Build.CloudTestTasks\Microsoft.DotNet.Build.CloudTestTasks.dll" target="lib\net45" />
     <file src="Microsoft.DotNet.Build.CloudTestTasks\Microsoft.Azure.KeyVault.Core.dll" target="lib\net45" />
@@ -32,10 +32,16 @@
     <file src="Microsoft.DotNet.Build.CloudTestTasks\System.Spatial.dll" target="lib\net45" />
     <file src="Microsoft.Dotnet.Build.CloudTestTasks\PackageFiles\**\*.*" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\PackageFiles\**\*.*" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks\*.dll" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks\*.dll" exclude="Microsoft.DotNet.Build.Tasks\Nuget.*.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\NuProj\**\*.*" target="lib\NuProj" />
     <file src="BclRewriter\BclRewriter.exe" target="lib" />
     <file src="GenFacades\GenFacades.exe" target="lib" />
     <file src="Microsoft.Cci.Extensions\Microsoft.Cci.Extensions.dll" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks.Packaging\Microsoft.DotNet.Build.Tasks.Packaging.dll" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks.Packaging\Nuget.*.dll" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks.Packaging\FrameworkLists\**\*.*" target="lib\FrameworkLists" />
+    <file src="Microsoft.DotNet.Build.Tasks.Packaging\PackageFiles\**\*.*" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks.Packaging.Desktop\Microsoft.DotNet.Build.Tasks.Packaging.dll" target="lib\net45" />
+    <file src="Microsoft.DotNet.Build.Tasks.Packaging.Desktop\NuGet.*.dll" target="lib\net45" />
   </files>
 </package>
