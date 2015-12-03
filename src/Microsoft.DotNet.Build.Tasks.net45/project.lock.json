@@ -1,26 +1,8 @@
 {
-  "locked": false,
+  "locked": true,
   "version": 2,
   "targets": {
     ".NETFramework,Version=v4.5": {
-      "LibGit2Sharp/0.19.0": {
-        "type": "package",
-        "compile": {
-          "lib/net40/LibGit2Sharp.dll": {}
-        },
-        "runtime": {
-          "lib/net40/LibGit2Sharp.dll": {}
-        }
-      },
-      "Microsoft.Web.Xdt/2.1.1": {
-        "type": "package",
-        "compile": {
-          "lib/net40/Microsoft.Web.XmlTransform.dll": {}
-        },
-        "runtime": {
-          "lib/net40/Microsoft.Web.XmlTransform.dll": {}
-        }
-      },
       "Newtonsoft.Json/6.0.8": {
         "type": "package",
         "compile": {
@@ -28,48 +10,6 @@
         },
         "runtime": {
           "lib/net45/Newtonsoft.Json.dll": {}
-        }
-      },
-      "NuGet.Core/2.8.3": {
-        "type": "package",
-        "dependencies": {
-          "Microsoft.Web.Xdt": "2.1.0"
-        },
-        "compile": {
-          "lib/net40-Client/NuGet.Core.dll": {}
-        },
-        "runtime": {
-          "lib/net40-Client/NuGet.Core.dll": {}
-        }
-      },
-      "NuGet.NuManifest/1.0.1-alpha": {
-        "type": "package",
-        "dependencies": {
-          "Microsoft.Web.Xdt": "2.1.1",
-          "NuGet.Core": "2.8.3",
-          "System.Collections.Immutable": "1.1.32-beta"
-        },
-        "compile": {
-          "lib/net45/NuGet.NuManifest.dll": {}
-        },
-        "runtime": {
-          "lib/net45/NuGet.NuManifest.dll": {}
-        }
-      },
-      "NuGet.NuManifest.DotNet/1.0.1-alpha": {
-        "type": "package",
-        "dependencies": {
-          "System.Collections.Immutable": "1.1.32-beta"
-        },
-        "compile": {
-          "lib/net45/Microsoft.Web.XmlTransform.dll": {},
-          "lib/net45/NuGet.Core.dll": {},
-          "lib/net45/NuGet.NuManifest.DotNet.dll": {}
-        },
-        "runtime": {
-          "lib/net45/Microsoft.Web.XmlTransform.dll": {},
-          "lib/net45/NuGet.Core.dll": {},
-          "lib/net45/NuGet.NuManifest.DotNet.dll": {}
         }
       },
       "NuGet.Versioning/3.3.0": {
@@ -113,24 +53,6 @@
       }
     },
     ".NETFramework,Version=v4.5/win7-x86": {
-      "LibGit2Sharp/0.19.0": {
-        "type": "package",
-        "compile": {
-          "lib/net40/LibGit2Sharp.dll": {}
-        },
-        "runtime": {
-          "lib/net40/LibGit2Sharp.dll": {}
-        }
-      },
-      "Microsoft.Web.Xdt/2.1.1": {
-        "type": "package",
-        "compile": {
-          "lib/net40/Microsoft.Web.XmlTransform.dll": {}
-        },
-        "runtime": {
-          "lib/net40/Microsoft.Web.XmlTransform.dll": {}
-        }
-      },
       "Newtonsoft.Json/6.0.8": {
         "type": "package",
         "compile": {
@@ -138,48 +60,6 @@
         },
         "runtime": {
           "lib/net45/Newtonsoft.Json.dll": {}
-        }
-      },
-      "NuGet.Core/2.8.3": {
-        "type": "package",
-        "dependencies": {
-          "Microsoft.Web.Xdt": "2.1.0"
-        },
-        "compile": {
-          "lib/net40-Client/NuGet.Core.dll": {}
-        },
-        "runtime": {
-          "lib/net40-Client/NuGet.Core.dll": {}
-        }
-      },
-      "NuGet.NuManifest/1.0.1-alpha": {
-        "type": "package",
-        "dependencies": {
-          "Microsoft.Web.Xdt": "2.1.1",
-          "NuGet.Core": "2.8.3",
-          "System.Collections.Immutable": "1.1.32-beta"
-        },
-        "compile": {
-          "lib/net45/NuGet.NuManifest.dll": {}
-        },
-        "runtime": {
-          "lib/net45/NuGet.NuManifest.dll": {}
-        }
-      },
-      "NuGet.NuManifest.DotNet/1.0.1-alpha": {
-        "type": "package",
-        "dependencies": {
-          "System.Collections.Immutable": "1.1.32-beta"
-        },
-        "compile": {
-          "lib/net45/Microsoft.Web.XmlTransform.dll": {},
-          "lib/net45/NuGet.Core.dll": {},
-          "lib/net45/NuGet.NuManifest.DotNet.dll": {}
-        },
-        "runtime": {
-          "lib/net45/Microsoft.Web.XmlTransform.dll": {},
-          "lib/net45/NuGet.Core.dll": {},
-          "lib/net45/NuGet.NuManifest.DotNet.dll": {}
         }
       },
       "NuGet.Versioning/3.3.0": {
@@ -223,24 +103,6 @@
       }
     },
     ".NETFramework,Version=v4.5/win7-x64": {
-      "LibGit2Sharp/0.19.0": {
-        "type": "package",
-        "compile": {
-          "lib/net40/LibGit2Sharp.dll": {}
-        },
-        "runtime": {
-          "lib/net40/LibGit2Sharp.dll": {}
-        }
-      },
-      "Microsoft.Web.Xdt/2.1.1": {
-        "type": "package",
-        "compile": {
-          "lib/net40/Microsoft.Web.XmlTransform.dll": {}
-        },
-        "runtime": {
-          "lib/net40/Microsoft.Web.XmlTransform.dll": {}
-        }
-      },
       "Newtonsoft.Json/6.0.8": {
         "type": "package",
         "compile": {
@@ -248,48 +110,6 @@
         },
         "runtime": {
           "lib/net45/Newtonsoft.Json.dll": {}
-        }
-      },
-      "NuGet.Core/2.8.3": {
-        "type": "package",
-        "dependencies": {
-          "Microsoft.Web.Xdt": "2.1.0"
-        },
-        "compile": {
-          "lib/net40-Client/NuGet.Core.dll": {}
-        },
-        "runtime": {
-          "lib/net40-Client/NuGet.Core.dll": {}
-        }
-      },
-      "NuGet.NuManifest/1.0.1-alpha": {
-        "type": "package",
-        "dependencies": {
-          "Microsoft.Web.Xdt": "2.1.1",
-          "NuGet.Core": "2.8.3",
-          "System.Collections.Immutable": "1.1.32-beta"
-        },
-        "compile": {
-          "lib/net45/NuGet.NuManifest.dll": {}
-        },
-        "runtime": {
-          "lib/net45/NuGet.NuManifest.dll": {}
-        }
-      },
-      "NuGet.NuManifest.DotNet/1.0.1-alpha": {
-        "type": "package",
-        "dependencies": {
-          "System.Collections.Immutable": "1.1.32-beta"
-        },
-        "compile": {
-          "lib/net45/Microsoft.Web.XmlTransform.dll": {},
-          "lib/net45/NuGet.Core.dll": {},
-          "lib/net45/NuGet.NuManifest.DotNet.dll": {}
-        },
-        "runtime": {
-          "lib/net45/Microsoft.Web.XmlTransform.dll": {},
-          "lib/net45/NuGet.Core.dll": {},
-          "lib/net45/NuGet.NuManifest.DotNet.dll": {}
         }
       },
       "NuGet.Versioning/3.3.0": {
@@ -334,38 +154,6 @@
     }
   },
   "libraries": {
-    "LibGit2Sharp/0.19.0": {
-      "type": "package",
-      "sha512": "kJQoiQJ0DzGXIPqfkl92o9XzugB2SpFd7cixsy3f3ME8vQ8Mux6ThDD1vL98W0ydkslTTiq8TDynq1IjdskT5Q==",
-      "files": [
-        "App_Readme/libgit2.license.txt",
-        "App_Readme/LibGit2Sharp.CHANGES.md",
-        "App_Readme/LibGit2Sharp.LICENSE.md",
-        "App_Readme/LibGit2Sharp.README.md",
-        "lib/net40/LibGit2Sharp.dll",
-        "lib/net40/LibGit2Sharp.xml",
-        "lib/net40/NativeBinaries/amd64/git2-69db893.dll",
-        "lib/net40/NativeBinaries/amd64/git2-69db893.pdb",
-        "lib/net40/NativeBinaries/x86/git2-69db893.dll",
-        "lib/net40/NativeBinaries/x86/git2-69db893.pdb",
-        "LibGit2Sharp.0.19.0.nupkg",
-        "LibGit2Sharp.0.19.0.nupkg.sha512",
-        "LibGit2Sharp.nuspec",
-        "Tools/GetLibGit2SharpPostBuildCmd.ps1",
-        "Tools/install.ps1",
-        "Tools/uninstall.ps1"
-      ]
-    },
-    "Microsoft.Web.Xdt/2.1.1": {
-      "type": "package",
-      "sha512": "PHoqib4d+f2lmnluVwMFM8M4AF8Z7y2g18hUTi5UCKkjNQIzkNnB1uyqnS5od2sMsRcI/9mexQjDO6e5dL/MeA==",
-      "files": [
-        "lib/net40/Microsoft.Web.XmlTransform.dll",
-        "Microsoft.Web.Xdt.2.1.1.nupkg",
-        "Microsoft.Web.Xdt.2.1.1.nupkg.sha512",
-        "Microsoft.Web.Xdt.nuspec"
-      ]
-    },
     "Newtonsoft.Json/6.0.8": {
       "type": "package",
       "sha512": "7ut47NDedTW19EbL0JpFDYUP62fcuz27hJrehCDNajdCS5NtqL+E39+7Um3OkNc2wl2ym7K8Ln5eNuLus6mVGQ==",
@@ -390,43 +178,9 @@
         "tools/install.ps1"
       ]
     },
-    "NuGet.Core/2.8.3": {
-      "type": "package",
-      "sha512": "2Z+8+UzWeKPl0D2uFGZGZxXM61cRcjLi6UjUqxt0PBMpMREt+G/7E12o/l/YrpBQXiNpGAd2i0s2X4j/GKfNdg==",
-      "files": [
-        "lib/net40-Client/NuGet.Core.dll",
-        "NuGet.Core.2.8.3.nupkg",
-        "NuGet.Core.2.8.3.nupkg.sha512",
-        "NuGet.Core.nuspec"
-      ]
-    },
-    "NuGet.NuManifest/1.0.1-alpha": {
-      "type": "package",
-      "sha512": "yztahLM8iUQG8H4VNyxngKR5uqANmG7onpCvLTbDVrVvDqH2bO2fs3IMNv4mNZTNgRyNrK/JqBHIS1WpBXKfLQ==",
-      "files": [
-        "lib/net45/NuGet.NuManifest.dll",
-        "lib/net45/NuGet.NuManifest.pdb",
-        "NuGet.NuManifest.1.0.1-alpha.nupkg",
-        "NuGet.NuManifest.1.0.1-alpha.nupkg.sha512",
-        "NuGet.NuManifest.nuspec"
-      ]
-    },
-    "NuGet.NuManifest.DotNet/1.0.1-alpha": {
-      "type": "package",
-      "sha512": "6d42FiYZNtzJRGbC32+UcFC5uKhY6Y/gNUhcUFciyeAzkDliWhCtbffswSo9eo/Z0Q+6Kx1hy9Rw9XMaGa7oZw==",
-      "files": [
-        "lib/net45/Microsoft.Web.XmlTransform.dll",
-        "lib/net45/NuGet.Core.dll",
-        "lib/net45/NuGet.NuManifest.DotNet.dll",
-        "lib/net45/NuGet.NuManifest.DotNet.pdb",
-        "NuGet.NuManifest.DotNet.1.0.1-alpha.nupkg",
-        "NuGet.NuManifest.DotNet.1.0.1-alpha.nupkg.sha512",
-        "NuGet.NuManifest.DotNet.nuspec"
-      ]
-    },
     "NuGet.Versioning/3.3.0": {
       "type": "package",
-      "sha512": "90wrt/mbOApvWYz/skYYS9w2Y1YdGrHp7irAflAWEW4C1NKzFX80XB3h8BaGKJPcZ6gWNZhh+zZ21MdZ8rJETg==",
+      "sha512": "/dR3pxThkahpSuYvWUiq0KdBetg8F64WulokAPI7+3z+SsmPh57IXUbhkFdRxxRf9P3fdWkkcDabTwq5YoGr5A==",
       "files": [
         "lib/dnxcore50/NuGet.Versioning.dll",
         "lib/dnxcore50/NuGet.Versioning.xml",
@@ -484,12 +238,7 @@
   },
   "projectFileDependencyGroups": {
     "": [
-      "LibGit2Sharp >= 0.19.0",
-      "Microsoft.Web.Xdt >= 2.1.1",
       "Newtonsoft.Json >= 6.0.8",
-      "NuGet.Core >= 2.8.3",
-      "NuGet.NuManifest >= 1.0.1-alpha",
-      "NuGet.NuManifest.DotNet >= 1.0.1-alpha",
       "NuGet.Versioning >= 3.3.0",
       "System.Collections.Immutable >= 1.1.32-beta",
       "System.Reflection.Metadata >= 1.0.17-beta",
