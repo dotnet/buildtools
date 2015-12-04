@@ -59,7 +59,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 bool changedAnyPackage = FindAllDependencyProperties(projectRoot)
                     .Select(package => VisitPackage(package, projectJsonPath))
                     .ToArray()
-                    .Any();
+                    .Any(shouldWrite => shouldWrite);
 
                 if (changedAnyPackage)
                 {
