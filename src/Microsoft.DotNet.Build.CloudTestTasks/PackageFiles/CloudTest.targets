@@ -41,10 +41,10 @@
     <Error Condition="'$(TestProduct)' == ''" Text="Missing required property TestProduct." />
     <Error Condition="'$(BuildMoniker)' == ''" Text="Missing required property BuildMoniker." />
     <Error Condition="'$(Branch)' == ''" Text="Missing required property Branch." />
-    <Error Condition="'$(CloudProductDropAccountName)' == ''" Text="Missing required property CloudProductDropAccountName." />
-    <Error Condition="'$(CloudOutputAccountName)' == ''" Text="Missing required property CloudOutputAccountName." />
-    <Error Condition="'$(DropAccessToken)' == ''" Text="Missing required property DropAccessToken." />
-    <Error Condition="'$(FileShareAccessToken)' == ''" Text="Missing required property FileShareAccessToken." />
+    <Error Condition="'$(CloudDropAccountName)' == ''" Text="Missing required property CloudDropAccountName." />
+    <Error Condition="'$(CloudResultsAccountName)' == ''" Text="Missing required property CloudResultsAccountName." />
+    <Error Condition="'$(CloudDropAccessToken)' == ''" Text="Missing required property CloudDropAccessToken." />
+    <Error Condition="'$(CloudResultsAccessToken)' == ''" Text="Missing required property CloudResultsAccessToken." />
     <Error Condition="'$(BuildCompleteConnection)' == ''" Text="Missing required property BuildCompleteConnection." />
     <Error Condition="'$(BuildIsOfficial)' == 'true' and '$(BuildIsOfficialConnection)' == ''" Text="Missing required property BuildIsOfficialConnection." />
     <Error Condition="'$(BuildIsOfficial)' == 'true' and '$(DocumentDbKey)' == ''" Text="Missing required property DocumentDbKey." />
@@ -62,8 +62,8 @@
   <!-- create Azure containers and file shares -->
   <Target Name="CreateAzureStorage">
     <CreateAzureContainer
-      AccountKey="$(DropAccessToken)"
-      AccountName="$(CloudProductDropAccountName)"
+      AccountKey="$(CloudDropAccessToken)"
+      AccountName="$(CloudDropAccountName)"
       ContainerName="$(ContainerName)"
       ReadOnlyTokenDaysValid="30">
         <Output TaskParameter="StorageUri" PropertyName="DropUriRoot" />
@@ -73,16 +73,16 @@
     <CreateProperty Value="$(DropUriRoot)/$(BuildArch)$(BuildType)">
       <Output TaskParameter="Value" PropertyName="DropUri" />
     </CreateProperty>
-    <CreateAzureFileShare
-      AccountKey="$(FileShareAccessToken)"
-      AccountName="$(CloudOutputAccountName)"
-      ShareName="results"
+    <CreateAzureContainer
+      AccountKey="$(CloudResultsAccessToken)"
+      AccountName="$(CloudResultsAccountName)"
+      ContainerName="$(ContainerName)"
       ReadOnlyTokenDaysValid="30"
       WriteOnlyTokenDaysValid="1">
         <Output TaskParameter="StorageUri" PropertyName="ResultsUri" />
         <Output TaskParameter="ReadOnlyToken" PropertyName="ResultsReadOnlyToken" />
         <Output TaskParameter="WriteOnlyToken" PropertyName="ResultsWriteOnlyToken" />
-    </CreateAzureFileShare>
+    </CreateAzureContainer>
   </Target>
 
   <Target Name="CreateTestListJson"
@@ -181,8 +181,8 @@
   <!-- upload content to Azure -->
   <Target Name="UploadContent" DependsOnTargets="CompressPackagesDir" Condition="'$(SkipUpload)' != 'true'">
     <UploadToAzure
-      AccountKey="$(DropAccessToken)"
-      AccountName="$(CloudProductDropAccountName)"
+      AccountKey="$(CloudDropAccessToken)"
+      AccountName="$(CloudDropAccountName)"
       ContainerName="$(ContainerName)"
       Items="@(ForUpload)"
       Overwrite="true" />
