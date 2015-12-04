@@ -586,21 +586,44 @@
   </Target>
   
   <ItemGroup>
-    <ValidateFramework Include="dnxcore50">
-      <!-- todo: add unix RIDs once we have appropriate support -->
-      <RuntimeIDs>win7-x86;win7-x64</RuntimeIDs>
-    </ValidateFramework>
-    <ValidateFramework Include="netcore50">
+    <!-- Default validation frameworks : every framework that supports contracts -->
+    <DefaultValidateFramework Include="dnxcore50">
+      <RuntimeIDs>win7-x86;win7-x64;osx.10.11-x64;centos.7.1-x64;ubuntu.14.04-x64;linuxmint.17-x64</RuntimeIDs>
+    </DefaultValidateFramework>
+
+    <DefaultValidateFramework Include="netcore50">
       <RuntimeIDs>win10-x86;win10-x86-aot;win10-x64;win10-x64-aot;win10-arm;win10-arm-aot</RuntimeIDs>
-    </ValidateFramework>
-    <ValidateFramework Include="net46" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
+    </DefaultValidateFramework>
+    <DefaultValidateFramework Include="netcore45">
+      <RuntimeIDs>win8-x86;win8-x64;win8-arm</RuntimeIDs>
+    </DefaultValidateFramework>
+    <DefaultValidateFramework Include="netcore451">
+      <RuntimeIDs>win81-x86;win81-x64;win81-arm</RuntimeIDs>
+    </DefaultValidateFramework>
+
+    <DefaultValidateFramework Include="net45" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
+      <RuntimeIDs>win-x86;win-x64</RuntimeIDs>
+    </DefaultValidateFramework>
+    <DefaultValidateFramework Include="net451" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
+      <RuntimeIDs>win-x86;win-x64</RuntimeIDs>
+    </DefaultValidateFramework>
+    <DefaultValidateFramework Include="net46" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
       <!-- add additional win7 RIDs to validate up-level authoring -->
       <RuntimeIDs>win-x86;win-x64;win7-x86;win7-x64</RuntimeIDs>
-    </ValidateFramework>
-    <ValidateFramework Include="net461" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
+    </DefaultValidateFramework>
+    <DefaultValidateFramework Include="net461" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
       <!-- add additional win7 RIDs to validate up-level authoring -->
       <RuntimeIDs>win-x86;win-x64;win7-x86;win7-x64</RuntimeIDs>
-    </ValidateFramework>
+    </DefaultValidateFramework>
+
+    <DefaultValidateFramework Include="wpa81">
+      <!-- Intentionally empty, no RIDs defined for phone-->
+      <RuntimeIDs></RuntimeIDs>
+    </DefaultValidateFramework>
+    <DefaultValidateFramework Include="wp8">
+      <!-- Intentionally empty, no RIDs defined for phone-->
+      <RuntimeIDs></RuntimeIDs>
+    </DefaultValidateFramework>
   </ItemGroup>
 
   <PropertyGroup>
@@ -621,14 +644,31 @@
        <RuntimeProjectReference Include="@(ProjectReferenceFullPath)" Condition="'@(ProjectReferenceFullPath)' == '@(RuntimeDependencyProjectFullPath)' AND '%(Identity)' != ''"/>
      </ItemGroup>
 
+    <ItemGroup>
+      <!-- Validation framework metadata can be sepecified in multiple ways.
+           By default we have a set of frameworks that we validate for.  If a package includes SupportedFramework items it will 
+           be tested for support of those frameworks, and not support of any thing in the default set and not the supported set.
+           The default set may be completely replaced by setting IncludeDefaultValidateFramework=false and populating
+           the ValidateFramework item yourself (eg: at the repo level), or by excluding individual frameworks by setting
+           ExcludeDefaultValidateFramework.  Excluding a framework just means we won't explicitly validate it. -->
+      <ValidateFramework Condition="'$(IncludeDefaultValidateFramework)' != 'false'" Include="@(DefaultValidateFramework)" Exclude="@(ExcludeDefaultValidateFramework)" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <!-- Allow for SupportedFramework to be defined as metadata on project references -->
+      <SupportedFramework Include="%(File.SupportedFramework)" Condition="'%(File.SupportedFramework)' != ''">
+        <Version>%(File.AssemblyVersion)</Version>
+      </SupportedFramework>
+    </ItemGroup>
+    
      <ItemGroup>
-       <!-- assume an OOB package supports all ValidateFrameworks -->
-       <ContractSupport Include="$(BaseId)" Condition="'$(OOBPackage)' == 'true'">
+       <!-- default to the current version for any unspecified SupportedFrameworks with unspecified version -->
+       <SupportedFramework Condition="'%(SupportedFramework.Version)' == ''">
          <Version>$(_AssemblyVersion)</Version>
-         <TargetFramework>%(ValidateFramework.Identity)</TargetFramework>
-       </ContractSupport>
+       </SupportedFramework>
      </ItemGroup>
-     
+
+     <!-- Get all the files from runtime implementation packages to include in reference path-->
      <MSBuild Projects="@(RuntimeProjectReference)" Targets="GetPackageFiles" Properties="$(ProjectProperties)">
       <Output TaskParameter="TargetOutputs" ItemName="RuntimeFile" />
      </MSBuild>
@@ -636,7 +676,7 @@
      <ValidatePackage ContractName="$(BaseId)"
                       PackageId="$(Id)"
                       Files="@(PackageFile);@(RuntimeFile)"
-                      ContractSupport="@(ContractSupport)"
+                      SupportedFrameworks="@(SupportedFramework)"
                       ReferencePaths="$(ValidationReferencePath)"
                       Frameworks="@(ValidateFramework)"
                       GenerationDefinitionsFile="$(GenerationDefinitionFile)"

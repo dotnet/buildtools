@@ -55,13 +55,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         }
 
         /// <summary>
-        /// Contracts supported by various frameworks.
-        ///   Identity: ContractName
-        ///   Version: API version
-        ///   TargetFramework: Framework that supports the contract
+        /// Frameworks supported by this package
+        ///   Identity: name of framework, can suffx '+' to indicate all later frameworks under validation.
+        ///   RuntimeIDs: Semi-colon seperated list of runtime IDs.  If specified overrides the value specified in Frameworks.
+        ///   Version: version of API supported
         /// </summary>
         [Required]
-        public ITaskItem[] ContractSupport
+        public ITaskItem[] SupportedFrameworks
         {
             get;
             set;
@@ -530,7 +530,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 NuGetFramework fx;
                 try
                 {
-                    fx = NuGetFramework.Parse(framework.ItemSpec);
+                    fx = FrameworkUtilities.ParseNormalized(framework.ItemSpec);
                 }
                 catch (Exception ex)
                 {
@@ -538,55 +538,105 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     continue;
                 }
 
-                ValidationFramework validationFramework = null;
-                if (!_frameworks.TryGetValue(fx, out validationFramework))
+                if (fx.Equals(NuGetFramework.UnsupportedFramework))
                 {
-                    _frameworks[fx] = validationFramework = new ValidationFramework(fx);
-                }
-
-                string runtimeIdList = framework.GetMetadata("RuntimeIDs");
-                if (!String.IsNullOrWhiteSpace(runtimeIdList))
-                {
-                    validationFramework.RuntimeIds = runtimeIdList.Split(';');
-                }
-            }
-
-            // determine what version should be supported based on ContractSupport items
-            foreach (var supportedContract in ContractSupport.Where(c => c.ItemSpec == ContractName))
-            {
-                NuGetFramework fx;
-                Version supportedVersion;
-                string tfm = supportedContract.GetMetadata("TargetFramework");
-                string version = supportedContract.GetMetadata("Version");
-
-                try
-                {
-                    fx = NuGetFramework.Parse(tfm);
-                }
-                catch (Exception ex)
-                {
-                    _log.LogError($"Could not parse TargetFramework {tfm} on ContractSupport item {supportedContract.ItemSpec}. {ex}");
+                    _log.LogError($"Did not recognize {framework.ItemSpec} as valid Framework.");
                     continue;
                 }
 
+                string runtimeIdList = framework.GetMetadata("RuntimeIDs");
+                
+                if (_frameworks.ContainsKey(fx))
+                {
+                    _log.LogError($"Framework {fx} has been listed in Frameworks more than once.");
+                    continue;
+                }
+
+                _frameworks[fx] = new ValidationFramework(fx);
+
+                if (!String.IsNullOrWhiteSpace(runtimeIdList))
+                {
+                    _frameworks[fx].RuntimeIds = runtimeIdList.Split(';');
+                }
+            }
+
+            // keep a list of explicitly listed supported frameworks so that we can check for conflicts.
+            HashSet<NuGetFramework> explicitlySupportedFrameworks = new HashSet<NuGetFramework>();
+
+            // determine what version should be supported based on SupportedFramework items
+            foreach (var supportedFramework in SupportedFrameworks)
+            {
+                NuGetFramework fx;
+                string fxString = supportedFramework.ItemSpec;
+                bool isExclusiveVersion = fxString.Length > 1 && fxString[0] == '[' && fxString[fxString.Length - 1] == ']';
+                if (isExclusiveVersion)
+                {
+                    fxString = fxString.Substring(1, fxString.Length - 2);
+                }
+
+                try
+                {
+                    fx = FrameworkUtilities.ParseNormalized(fxString);
+                }
+                catch (Exception ex)
+                {
+                    _log.LogError($"Could not parse TargetFramework {fxString} as a SupportedFramework. {ex}");
+                    continue;
+                }
+
+                if (fx.Equals(NuGetFramework.UnsupportedFramework))
+                {
+                    _log.LogError($"Did not recognize TargetFramework {fxString} as a SupportedFramework.");
+                    continue;
+                }
+
+                Version supportedVersion;
+                string version = supportedFramework.GetMetadata("Version");
                 try
                 {
                     supportedVersion = Version.Parse(version);
                 }
                 catch (Exception ex)
                 {
-                    _log.LogError($"Could not parse Version {version} on ContractSupport item {supportedContract.ItemSpec}. {ex}");
+                    _log.LogError($"Could not parse Version {version} on SupportedFramework item {supportedFramework.ItemSpec}. {ex}");
                     continue;
                 }
 
                 ValidationFramework validationFramework = null;
-                if (_frameworks.TryGetValue(fx, out validationFramework))
+                if (!_frameworks.TryGetValue(fx, out validationFramework))
                 {
-                    validationFramework.SupportedVersion = supportedVersion;
+                    _log.LogError($"SupportedFramework {fx} was specified but is not part of the Framework list to use for validation.");
+                    continue;
                 }
-                else
+
+
+                if (explicitlySupportedFrameworks.Contains(fx))
                 {
-                    _log.LogMessage(LogImportance.Low, $"Skipping validation for {fx} because it was not listed in Frameworks item list.");
+                    if (validationFramework.SupportedVersion != supportedVersion)
+                    {
+                        _log.LogError($"Framework {fx} has been listed in SupportedFrameworks more than once with different versions {validationFramework.SupportedVersion} and {supportedVersion}.  Framework should only be listed once with the expected API version for that platform.");
+                    }
+                    continue;
+                }
+                explicitlySupportedFrameworks.Add(fx);
+
+                validationFramework.SupportedVersion = supportedVersion;
+                
+                if (!isExclusiveVersion)
+                {
+                    // find all frameworks of higher version, sorted by version ascending
+                    var higherFrameworks = _frameworks.Values.Where(vf => vf.Framework.Framework == fx.Framework && vf.Framework.Version > fx.Version).OrderBy(vf => vf.Framework.Version);
+
+                    foreach(var higherFramework in higherFrameworks)
+                    {
+                        if (higherFramework.SupportedVersion != null && higherFramework.SupportedVersion > supportedVersion)
+                        {
+                            // found an higher framework version a higher API version, stop applying this supported version
+                            break;
+                        }
+
+                        higherFramework.SupportedVersion = supportedVersion;
+                    }
                 }
             }
 
@@ -603,7 +653,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                     if (inboxVersion != null)
                     {
-                        NuGetFramework fx = NuGetFramework.Parse(inboxFx.ShortName);
+                        NuGetFramework fx = FrameworkUtilities.ParseNormalized(inboxFx.ShortName);
                         ValidationFramework validationFramework = null;
                         if (_frameworks.TryGetValue(fx, out validationFramework))
                         {
@@ -659,7 +709,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 ValidationFramework existingGeneration = null;
                 if (generationsToValidate.TryGetValue(generation, out existingGeneration))
                 {
-                    if ((existingGeneration.SupportedVersion > framework.SupportedVersion) && !genVersionSuppression.Contains(framework.Framework.ToString()))
+                    if (!VersionUtility.IsCompatibleApiVersion(framework.SupportedVersion, existingGeneration.SupportedVersion) && !genVersionSuppression.Contains(framework.Framework.ToString()))
                     {
                         _log.LogError($"Framework {framework.Framework} supports {ContractName} at {framework.SupportedVersion} which is lower than {existingGeneration.SupportedVersion} supported by generation {generation.GetShortFolderName()}");
                     }

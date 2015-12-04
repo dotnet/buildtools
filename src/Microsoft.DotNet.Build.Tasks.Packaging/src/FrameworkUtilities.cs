@@ -80,5 +80,22 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         {
             return Reducer.ReduceDownwards(frameworks);
         }
+
+        public static NuGetFramework ParseNormalized(string framework)
+        {
+            NuGetFramework fx = NuGetFramework.Parse(framework);
+
+            // remap win8 & win81 since they are synonymous with netcore45 and netcore451 respectively
+            if (fx.Equals(FrameworkConstants.CommonFrameworks.Win8))
+            {
+                fx = FrameworkConstants.CommonFrameworks.NetCore45;
+            }
+            else if (fx.Equals(FrameworkConstants.CommonFrameworks.Win81))
+            {
+                fx = FrameworkConstants.CommonFrameworks.NetCore451;
+            }
+
+            return fx;
+        }
     }
 }
