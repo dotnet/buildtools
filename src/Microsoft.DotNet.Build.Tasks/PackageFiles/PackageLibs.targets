@@ -57,7 +57,18 @@
       <XmlDocFile Remove="@(XmlDocFile)" Condition="!Exists('%(XmlDocFile.Identity)')"/>
     </ItemGroup>
 
-    <Error Condition="'$(IsReferenceAssembly)' == 'true' AND '$(PackageTargetRuntime)' != ''"
+    <!-- Desktop libraries that contain types in classic assemblies need to be included in ref
+         so that the types unify with the classic assemblies from the targeting pack. -->
+    <PropertyGroup>
+      <PackageAsRefAndLib Condition="'$(PackageAsRefAndLib)' == '' AND '$(IsPartialFacadeAssembly)' == 'true' AND $(PackageTargetFramework.StartsWith('net4', StringComparison.OrdinalIgnoreCase))">true</PackageAsRefAndLib>
+
+      <!-- A reference asset is any file contributed from a project that is contributing a reference,
+           not just the file in the ref folder. -->
+      <IsReferenceAsset>false</IsReferenceAsset>
+      <IsReferenceAsset Condition="'$(IsReferenceAssembly)' == 'true' OR '$(PackageAsRefAndLib)' == 'true'">true</IsReferenceAsset>
+    </PropertyGroup>
+
+    <Error Condition="'$(IsReferenceAsset)' == 'true' AND '$(PackageTargetRuntime)' != ''"
            Text="Reference assemblies should not specify the PackageTargetRuntime property since runtimes cannot effect compile time assets."/>
 
     <!-- PackageTargetRuntime Defaults -->
@@ -72,7 +83,7 @@
       <_packageTargetRefLib Condition="'$(IsReferenceAssembly)' == 'true'">ref</_packageTargetRefLib>
       
       <!-- no path or runtime, but framework: lib/{txm}-->
-      <PackageTargetPath Condition="'$(PackageTargetPath)' == ''AND '$(PackageTargetRuntime)' == '' AND '$(PackageTargetFramework)' != ''">$(_packageTargetRefLib)/$(PackageTargetFramework)</PackageTargetPath>
+      <PackageTargetPath Condition="'$(PackageTargetPath)' == '' AND '$(PackageTargetRuntime)' == '' AND '$(PackageTargetFramework)' != ''">$(_packageTargetRefLib)/$(PackageTargetFramework)</PackageTargetPath>
 
       <!-- no path but runtime and framework: runtimes/{rid}/lib/{txm}-->
       <PackageTargetPath Condition="'$(PackageTargetPath)' == '' AND '$(PackageTargetFramework)' != '' AND '$(PackageTargetRuntime)' != ''">runtimes/$(PackageTargetRuntime)/lib/$(PackageTargetFramework)</PackageTargetPath>
@@ -87,11 +98,17 @@
       <PackageDestination Include="$(PackageTargetPath)">
         <TargetFramework Condition="'$(PackageTargetFramework)' != ''">$(PackageTargetFramework)</TargetFramework>
       </PackageDestination>
+      <PackageDestination Condition="'$(PackageAsRefAndLib)' == 'true'" Include="ref/$(PackageTargetFramework)">
+        <TargetFramework>$(PackageTargetFramework)</TargetFramework>
+      </PackageDestination>
     </ItemGroup>
 
     <!-- default to dotnet if not specified by the project  -->
     <ItemGroup Condition="'@(PackageDestination)' == ''">
       <PackageDestination Include="$(_packageTargetRefLib)/dotnet">
+        <TargetFramework>dotnet</TargetFramework>
+      </PackageDestination>
+      <PackageDestination Condition="'$(PackageAsRefAndLib)' == 'true'" Include="ref/dotnet">
         <TargetFramework>dotnet</TargetFramework>
       </PackageDestination>
     </ItemGroup>
@@ -104,22 +121,25 @@
         <AssemblyVersion>$(AssemblyVersion)</AssemblyVersion>
         <TargetFramework>%(PackageDestination.TargetFramework)</TargetFramework>
         <TargetPath>%(PackageDestination.Identity)</TargetPath>
+        <IsReferenceAsset>$(IsReferenceAsset)</IsReferenceAsset>
       </FilesToPackage>
 
       <!-- Include doc output -->
       <FilesToPackage Include="$(DocumentationFile)" Condition="'$(DocumentationFile)' != '' AND '$(PackageIncludeDocs)' == 'true'">
         <TargetPath>%(PackageDestination.Identity)</TargetPath>
+        <IsReferenceAsset>$(IsReferenceAsset)</IsReferenceAsset>
         <!-- intentionally omit TargetFramework: no dependencies for docs -->
       </FilesToPackage>
 
       <!-- Include pre-authored docs if available and required -->
       <FilesToPackage Include="@(XmlDocFile)" Condition="'$(PackageIncludeDocs)' == 'true'">
         <TargetPath>%(PackageDestination.Identity)</TargetPath>
+        <IsReferenceAsset>$(IsReferenceAsset)</IsReferenceAsset>
         <!-- intentionally omit TargetFramework: no dependencies for docs -->
       </FilesToPackage>
       <FilesToPackage Condition="'%(FilesToPackage.SubFolder)' != ''">
         <TargetPath>%(TargetPath)%(FilesToPackage.SubFolder)</TargetPath>
-      </FilesToPackage>     
-    </ItemGroup>    
+      </FilesToPackage>
+    </ItemGroup>
   </Target>
 </Project>

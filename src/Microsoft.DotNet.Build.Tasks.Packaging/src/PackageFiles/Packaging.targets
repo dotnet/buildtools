@@ -155,6 +155,13 @@
     </ItemGroup>
   </Target>
   
+  <PropertyGroup>
+    <!-- exclude reference assets for runtime packages 
+         these assets are only packaged in the reference packages.  Even
+         if they have a runtime asset we package it in the reference package
+         for better compression.  -->
+    <ExcludeReferenceAssets Condition="'$(ExcludeReferenceAssets)' == '' AND '$(PackageTargetRuntime)' != ''">true</ExcludeReferenceAssets>
+  </PropertyGroup>
   <!-- Override the NuProj version.
        We define a custom target: GetFilesToPackage which does a minimal build of the project
        and passes all information in a single item group.
@@ -172,6 +179,7 @@
     </MSBuild>
 
     <ItemGroup>
+      <_FilesToPackage Remove="@(_FilesToPackage)" Condition="'$(ExcludeReferenceAssets)' == 'true' AND '%(_FilesToPackage.IsReferenceAsset)' == 'true'" />
       <File Include="@(_FilesToPackage)">
         <NuProjPackageId>$(Id)</NuProjPackageId>
         <NuProjPackageVersion>$(Version)</NuProjPackageVersion>
