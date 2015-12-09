@@ -63,6 +63,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
                 if (changedAnyPackage)
                 {
+                    Log.LogMessage("Writing changes to {0}", projectJsonPath);
                     WriteProject(projectRoot, projectJsonPath);
                 }
             }
