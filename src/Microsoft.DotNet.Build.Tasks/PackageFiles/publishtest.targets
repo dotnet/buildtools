@@ -130,6 +130,45 @@
 
   </Target>
 
+  <!--
+    Temporary until we have proper nuget support to deploy content files.
+    Copies supplemental test data to the build output and test directories.
+  -->
+  <Target Name="CopySupplementalTestData"
+          AfterTargets="CopyTestToTestDirectory"
+          Inputs="@(SupplementalTestData)"
+          Outputs="%(TestTargetFramework.Folder)">
+    <PropertyGroup>
+      <TestTargetFrameworkFolder>%(TestTargetFramework.Folder)</TestTargetFrameworkFolder>
+    </PropertyGroup>
+    <ItemGroup>
+      <SupplementalTestDataTestDir Include="@(SupplementalTestData->'$(TestPath)$(TestTargetFrameworkFolder)\%(RecursiveDir)%(Filename)%(Extension)')" />
+      <SupplementalTestDataOutDir Include="@(SupplementalTestData->'$(OutDir)\%(RecursiveDir)%(Filename)%(Extension)')" />
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(SupplementalTestData)"
+      DestinationFiles="@(SupplementalTestDataTestDir)"
+      SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
+      OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
+      Retries="$(CopyRetryCount)"
+      RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
+      UseHardlinksIfPossible="$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)">
+
+      <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
+    </Copy>
+    <Copy
+      SourceFiles="@(SupplementalTestData)"
+      DestinationFiles="@(SupplementalTestDataOutDir)"
+      SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
+      OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
+      Retries="$(CopyRetryCount)"
+      RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
+      UseHardlinksIfPossible="$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)">
+
+      <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
+    </Copy>
+  </Target>
+
   <Target Name="CreateAssemblyListTxt" DependsOnTargets="CopyTestToTestDirectory">
     <Message Text="Generating $(OutDir)AssemblyList.txt" />
     <ItemGroup>

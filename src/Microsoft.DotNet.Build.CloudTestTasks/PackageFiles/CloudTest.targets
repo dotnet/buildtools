@@ -164,6 +164,7 @@
     <ItemGroup>
       <ExcludeFromArchive Include="nupkg$" />
       <ExcludeFromArchive Include="Microsoft.DotNet.BuildTools" />
+      <ExcludeFromArchive Include="TestData" />
     </ItemGroup>
     <ZipFileCreateFromDirectory
         SourceDirectory="$(PackagesDir)"
