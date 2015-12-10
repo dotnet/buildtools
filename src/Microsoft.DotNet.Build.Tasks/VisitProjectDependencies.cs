@@ -14,9 +14,9 @@ namespace Microsoft.DotNet.Build.Tasks
         [Required]
         public ITaskItem[] ProjectJsons { get; set; }
 
-        private static JObject ReadProject(string projectJsonPath)
+        public static JObject ReadJsonFile(string jsonPath)
         {
-            using (TextReader projectFileReader = File.OpenText(projectJsonPath))
+            using (TextReader projectFileReader = File.OpenText(jsonPath))
             {
                 var projectJsonReader = new JsonTextReader(projectFileReader);
 
@@ -25,11 +25,11 @@ namespace Microsoft.DotNet.Build.Tasks
             }
         }
 
-        private static void WriteProject(JObject projectRoot, string projectJsonPath)
+        public static void WriteJsonFile(JObject projectRoot, string jsonPath)
         {
             string projectJson = JsonConvert.SerializeObject(projectRoot, Formatting.Indented);
 
-            File.WriteAllText(projectJsonPath, projectJson + Environment.NewLine);
+            File.WriteAllText(jsonPath, projectJson + Environment.NewLine);
         }
 
         private static IEnumerable<JProperty> FindAllDependencyProperties(JObject projectJsonRoot)
@@ -54,7 +54,7 @@ namespace Microsoft.DotNet.Build.Tasks
         {
             foreach (var projectJsonPath in ProjectJsons.Select(item => item.ItemSpec))
             {
-                JObject projectRoot = ReadProject(projectJsonPath);
+                JObject projectRoot = ReadJsonFile(projectJsonPath);
 
                 bool changedAnyPackage = FindAllDependencyProperties(projectRoot)
                     .Select(package => VisitPackage(package, projectJsonPath))
@@ -64,7 +64,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 if (changedAnyPackage)
                 {
                     Log.LogMessage("Writing changes to {0}", projectJsonPath);
-                    WriteProject(projectRoot, projectJsonPath);
+                    WriteJsonFile(projectRoot, projectJsonPath);
                 }
             }
 
