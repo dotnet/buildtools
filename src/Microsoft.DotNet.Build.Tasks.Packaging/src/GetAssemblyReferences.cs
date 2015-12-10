@@ -39,6 +39,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             {
                 try
                 {
+                    if (!File.Exists(assemblyItem.ItemSpec))
+                    {
+                        _log.LogError($"File {assemblyItem.ItemSpec} does not exist, ensure you have built libraries before building the package.");
+                        continue;
+                    }
+
                     using (PEReader peReader = new PEReader(new FileStream(assemblyItem.ItemSpec, FileMode.Open, FileAccess.Read, FileShare.Delete | FileShare.Read)))
                     {
                         MetadataReader reader = peReader.GetMetadataReader();
