@@ -37,6 +37,7 @@
     <Compile Include="PackageMetadata.cs" />
     <Compile Include="PackagingTask.cs" />
     <Compile Include="ValidatePackage.cs" />
+    <Compile Include="ValidatePackageTargetFramework.cs" />
     <Compile Include="VersionUtility.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -44,6 +45,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="PackageFiles\Packaging.targets">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="PackageFiles\PackageLibs.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="PackageFiles\_._">
@@ -60,6 +64,20 @@
     <None Include="$(PackagesDir)Microsoft.NETCore.Platforms\1.0.1-rc2-23530\runtime.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="FrameworkLists\.NETCore,Version=v4.5.1\" />
+    <Folder Include="FrameworkLists\.NETCore,Version=v4.5\" />
+    <Folder Include="FrameworkLists\.NETFramework,Version=v4.5.1\" />
+    <Folder Include="FrameworkLists\.NETFramework,Version=v4.5\" />
+    <Folder Include="FrameworkLists\.NETFramework,Version=v4.6.1\" />
+    <Folder Include="FrameworkLists\.NETFramework,Version=v4.6\" />
+    <Folder Include="FrameworkLists\MonoAndroid,Version=v1.0\" />
+    <Folder Include="FrameworkLists\MonoTouch,Version=v1.0\" />
+    <Folder Include="FrameworkLists\WindowsPhone,Version=v8.0\" />
+    <Folder Include="FrameworkLists\WindowsPhoneApp,Version=v8.1\" />
+    <Folder Include="FrameworkLists\Xamarin.iOS,Version=v1.0\" />
+    <Folder Include="FrameworkLists\Xamarin.Mac,Version=v2.0\" />
   </ItemGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
 </Project>

@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PackagingTaskDir Condition="'$(PackagingTaskDir)' == ''">$(MSBuildThisFileDirectory)</PackagingTaskDir>
+    <GenerationDefinitionFile Condition="'$(GenerationDefinitionFile)' == ''">$(MSBuildThisFileDirectory)Generations.json</GenerationDefinitionFile>
+    <ValidationReferencePath>$(ReferenceAssemblyOutputPath);$(PackagesDir)</ValidationReferencePath>
+  </PropertyGroup>
+  
+  <UsingTask TaskName="ValidatePackageTargetFramework" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  
   <!-- Returns the set of files to be included in the nuget package
        with appropriate metadata.-->
   <Target Name="GetFilesToPackage"
@@ -142,4 +150,16 @@
       </FilesToPackage>
     </ItemGroup>
   </Target>
+
+  <Target Name="ValidatePackageTargetFramework"
+          Inputs="$(MSBuildAllProjects);@(CustomAdditionalCompileInputs);@(ReferencePath)"
+          Outputs="@(IntermediateAssembly)"
+          Condition="'$(PackageTargetFramework)' != ''"
+          AfterTargets="ResolveAssemblyReferences">
+    <ValidatePackageTargetFramework GenerationDefinitionsFile="$(GenerationDefinitionFile)"
+                                    PackageTargetFramework="$(PackageTargetFramework)"
+                                    References="@(ReferencePath)"
+                                    ReferencePaths="$(ValidationReferencePath)" />
+  </Target>
+  
 </Project>
