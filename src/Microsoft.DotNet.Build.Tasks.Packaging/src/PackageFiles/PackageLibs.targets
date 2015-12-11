@@ -3,7 +3,6 @@
   <PropertyGroup>
     <PackagingTaskDir Condition="'$(PackagingTaskDir)' == ''">$(MSBuildThisFileDirectory)</PackagingTaskDir>
     <GenerationDefinitionFile Condition="'$(GenerationDefinitionFile)' == ''">$(MSBuildThisFileDirectory)Generations.json</GenerationDefinitionFile>
-    <ValidationReferencePath>$(ReferenceAssemblyOutputPath);$(PackagesDir)</ValidationReferencePath>
   </PropertyGroup>
   
   <UsingTask TaskName="ValidatePackageTargetFramework" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
@@ -155,11 +154,13 @@
           Inputs="$(MSBuildAllProjects);@(CustomAdditionalCompileInputs);@(ReferencePath)"
           Outputs="@(IntermediateAssembly)"
           Condition="'$(PackageTargetFramework)' != ''"
-          AfterTargets="ResolveAssemblyReferences">
-    <ValidatePackageTargetFramework GenerationDefinitionsFile="$(GenerationDefinitionFile)"
+          AfterTargets="ResolveReferences">
+    <ValidatePackageTargetFramework AssemblyName="$(AssemblyName)"
+                                    AssemblyVersion="$(AssemblyVersion)"
+                                    GenerationDefinitionsFile="$(GenerationDefinitionFile)"
                                     PackageTargetFramework="$(PackageTargetFramework)"
-                                    References="@(ReferencePath)"
-                                    ReferencePaths="$(ValidationReferencePath)" />
+                                    DirectReferences="@(ReferencePath)"
+                                    CandidateReferences="@(ReferencePath);@(IndirectReference)" />
   </Target>
   
 </Project>

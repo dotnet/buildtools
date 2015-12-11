@@ -147,11 +147,6 @@ namespace Microsoft.DotNet.Build.Tasks
             get; set;
         }
 
-        public bool OmitTransitiveCompileReferences
-        {
-            get; set;
-        }
-
         /// <summary>
         /// Performs the NuGet package resolution.
         /// </summary>
@@ -201,24 +196,12 @@ namespace Microsoft.DotNet.Build.Tasks
             var frameworkReferences = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var fileNamesOfRegularReferences = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            HashSet<string> directReferences = new HashSet<string>();
-            if (OmitTransitiveCompileReferences)
-            {
-                directReferences.UnionWith(GetDirectReferences(lockFile));
-            }
-
             foreach (var package in target)
             {
                 var packageNameParts = package.Key.Split('/');
                 var packageName = packageNameParts[0];
                 var packageVersion = packageNameParts[1];
 
-
-                if (OmitTransitiveCompileReferences && !directReferences.Contains(packageName))
-                {
-                    Log.LogMessageFromResources(MessageImportance.Low, "OmitReferencesFromIndirectPackage", packageName);
-                    continue;
-                }
 
                 Log.LogMessageFromResources(MessageImportance.Low, "ResolvedReferencesFromPackage", packageName);
 

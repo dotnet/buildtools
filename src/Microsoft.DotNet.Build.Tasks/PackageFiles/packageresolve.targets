@@ -78,11 +78,11 @@
                                RuntimeIdentifier="$(NuGetRuntimeIdentifier)"
                                ProjectLanguage="$(Language)"
                                ProjectLockFile="$(ProjectLockJson)"
-                               TargetMonikers="$(NuGetTargetMoniker)"
-                               OmitTransitiveCompileReferences="$(OmitTransitiveCompileReferences)">
+                               TargetMonikers="$(NuGetTargetMoniker)">
       <Output TaskParameter="ResolvedAnalyzers" ItemName="Analyzer" />
       <Output TaskParameter="ResolvedReferences" ItemName="Reference" />
       <Output TaskParameter="ResolvedCopyLocalItems" ItemName="ReferenceCopyLocalPaths" />
+      <Output TaskParameter="ReferencedPackages" ItemName="ReferencedNuGetPackages" />
     </PrereleaseResolveNuGetPackageAssets>
 
     <!-- We may have an indirect package reference that we want to replace with a project reference -->
@@ -99,6 +99,24 @@
              Condition="'@(_ReferenceFileNamesToRemove)' != '' or '@(_ReferenceCopyLocalPathsFileNamesToRemove)' != ''"/>
   </Target>
 
+  <Target Name="RemoveTransitiveCompileReferences"
+          AfterTargets="ResolveNuGetPackages">
+    <ItemGroup Condition="'$(OmitTransitiveCompileReferences)' == 'true'">
+      <!-- get all references from nuget packages as ID so that we can substract the direct ref IDs-->
+      <_ReferenceAsPackageId Include="@(Reference->'%(NuGetPackageId)')" Condition="'%(Reference.NuGetPackageId)' != ''">
+        <OriginalIdentity>%(Identity)</OriginalIdentity>
+      </_ReferenceAsPackageId>
+
+      <!-- Indirect references are any references whose PackageId isn't in the direct reference set: ReferencedNuGetPackages -->
+      <_IndirectReferenceAsPackageId Include="@(_ReferenceAsPackageId)" Exclude="@(ReferencedNuGetPackages)"/>
+
+      <!-- Transform back to original -->
+      <IndirectReference Include="@(_IndirectReferenceAsPackageId->'%(OriginalIdentity)')" />
+
+      <Reference Remove="@(IndirectReference)"/>
+    </ItemGroup>
+  </Target>
+  
   <Target Name="ValidatePackageVersions"
           Condition="'$(RestorePackages)'=='true' and '$(ValidatePackageVersions)'=='true' and Exists('$(ProjectJson)')">
     <ValidateProjectDependencyVersions ProjectJsons="$(ProjectJson)"

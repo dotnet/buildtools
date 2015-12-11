@@ -28,7 +28,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
         public void Generations_MaxVersion()
         {
             _log.Reset();
-            var generation = _generations.DetermineGeneration("System.Runtime", new Version(4, 0, 30, 0), _log);
+            var generation = _generations.DetermineGenerationFromSeeds("System.Runtime", new Version(4, 0, 30, 0), _log);
             Assert.Equal(new Version(5, 4, 0, 0), generation);
             _log.AssertNoErrorsOrWarnings();
         }
@@ -37,7 +37,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
         public void Generations_MidVersion()
         {
             _log.Reset();
-            var generation = _generations.DetermineGeneration("System.Runtime", new Version(4, 0, 15, 0), _log);
+            var generation = _generations.DetermineGenerationFromSeeds("System.Runtime", new Version(4, 0, 15, 0), _log);
             Assert.Equal(new Version(5, 3, 0, 0), generation);
             _log.AssertNoErrorsOrWarnings();
         }
@@ -46,7 +46,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
         public void Generations_NotTracked()
         {
             _log.Reset();
-            var generation = _generations.DetermineGeneration("System.Banana", new Version(4, 0, 0, 0), _log);
+            var generation = _generations.DetermineGenerationFromSeeds("System.Banana", new Version(4, 0, 0, 0), _log);
             Assert.Equal(null, generation);
             _log.AssertNoErrorsOrWarnings();
         }
@@ -55,7 +55,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
         public void Generations_PreVersion()
         {
             _log.Reset();
-            var generation = _generations.DetermineGeneration("System.Runtime", new Version(3, 0, 0, 0), _log);
+            var generation = _generations.DetermineGenerationFromSeeds("System.Runtime", new Version(3, 0, 0, 0), _log);
             Assert.Equal(null, generation);
             // expect an error since the contract is tracked with generations but this version is lower than any mapping
             Assert.Equal(1, _log.ErrorsLogged);
@@ -73,12 +73,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 foreach (var fx in fxGroup.Value)
                 {
                     var thisFx = new NuGetFramework(fx.FrameworkName.Identifier, fx.FrameworkName.Version);
-                    var fxGeneration = _generations.DetermineGeneration(thisFx);
+                    var fxGeneration = Generations.DetermineGenerationForFramework(thisFx);
 
                     foreach (var assembly in fx.Assemblies.Where(a => !s_classicAssemblies.Contains(a.Key) && a.Value != maxVersion))
                     {
                         _log.Reset();
-                        Version assmGeneration = _generations.DetermineGeneration(assembly.Key, assembly.Value, _log);
+                        Version assmGeneration = _generations.DetermineGenerationFromSeeds(assembly.Key, assembly.Value, _log);
 
                         Version effectiveFxGeneration;
                         if (!s_generationException.TryGetValue(Tuple.Create(fx.FrameworkName, assembly.Key), out effectiveFxGeneration))

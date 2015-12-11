@@ -59,14 +59,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 CreateDependencyItem(@"System.Globalization", "4.0.0", "dotnet5.1"),
                 CreateDependencyItem(@"System.Threading", "4.0.0", "dotnet5.1")
             };
-            string generationsDefinitionsFile = @"generations.json";
             string frameworkListsPath = "FrameworkLists";
 
             CreateTrimDependencyGroups task = new CreateTrimDependencyGroups()
             {
                 BuildEngine = _engine,
                 Files = files,
-                GenerationDefinitionsFile = generationsDefinitionsFile,
                 Dependencies = dependencies,
                 FrameworkListsPath = frameworkListsPath
             };
@@ -101,14 +99,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 CreateDependencyItem(@"System.Globalization", "4.0.0", "dotnet5.1"),
                 CreateDependencyItem(@"System.Threading", "4.0.0", "dotnet5.1")
             };
-            string generationsDefinitionsFile = @"generations.json";
             string frameworkListsPath = "FrameworkLists";
 
             CreateTrimDependencyGroups task = new CreateTrimDependencyGroups()
             {
                 BuildEngine = _engine,
                 Files = files,
-                GenerationDefinitionsFile = generationsDefinitionsFile,
                 Dependencies = dependencies,
                 FrameworkListsPath = frameworkListsPath
             };
@@ -168,14 +164,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 CreateDependencyItem(@"System.Collections.Immutable", "4.0.20", "dotnet54"),
                 CreateDependencyItem(@"System.Runtime", "4.0.20", ".NETCore50")
             };
-            string generationsDefinitionsFile = @"generations.json";
             string frameworkListsPath = "FrameworkLists";
 
             CreateTrimDependencyGroups task = new CreateTrimDependencyGroups()
             {
                 BuildEngine = _engine,
                 Files = files,
-                GenerationDefinitionsFile = generationsDefinitionsFile,
                 Dependencies = dependencies,
                 FrameworkListsPath = frameworkListsPath
             };
@@ -221,14 +215,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 CreateDependencyItem(@"System.Runtime.Handles", "4.0.0", "dnxcore50"),
                 CreateDependencyItem(@"System.Threading", "4.0.10", "dnxcore50")
             };
-            string generationsDefinitionsFile = @"generations.json";
             string frameworkListsPath = "FrameworkLists";
 
             CreateTrimDependencyGroups task = new CreateTrimDependencyGroups()
             {
                 BuildEngine = _engine,
                 Files = files,
-                GenerationDefinitionsFile = generationsDefinitionsFile,
                 Dependencies = dependencies,
                 FrameworkListsPath = frameworkListsPath
             };
@@ -270,14 +262,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 CreateDependencyItem(@"System.Collections.Immutable", "1.1.37", "dotnet5.2"),
                 CreateDependencyItem(@"System.Collections.Immutable", "1.1.37", "portable-net45+win80")
             };
-            string generationsDefinitionsFile = @"generations.json";
             string frameworkListsPath = "FrameworkLists";
 
             CreateTrimDependencyGroups task = new CreateTrimDependencyGroups()
             {
                 BuildEngine = _engine,
                 Files = files,
-                GenerationDefinitionsFile = generationsDefinitionsFile,
                 Dependencies = dependencies,
                 FrameworkListsPath = frameworkListsPath
             };

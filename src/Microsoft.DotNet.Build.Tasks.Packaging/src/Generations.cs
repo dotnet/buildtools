@@ -31,7 +31,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         private readonly List<Generation> _generations = new List<Generation>();
 
         private Generations()
-        { }
+        {
+            ReferencePaths = new string[0];
+        }
 
         public string[] ReferencePaths { get; set; }
 
@@ -65,12 +67,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         private Dictionary<string, Version> _generationCache = new Dictionary<string, Version>(StringComparer.OrdinalIgnoreCase);
         private List<string> _cycleStack = new List<string>();
 
-        public Version DetermineGeneration(string assemblyPath, ILog log, Version expectedVersion = null)
+        public Version DetermineGenerationFromFile(string assemblyPath, ILog log, Version expectedVersion = null, IDictionary<string, string> candidateRefs = null)
         {
             Version maxGeneration = null;
 
             if (_generationCache.TryGetValue(assemblyPath, out maxGeneration))
             {
+                log.LogMessage(LogImportance.Low, $"Generation of {assemblyPath} is dotnet{maxGeneration} from cache.");
                 return maxGeneration;
             }
 
@@ -97,35 +100,40 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 }
 
                 // first determine if the identity itself has a generation.
-                maxGeneration = DetermineGeneration(assemblyName, assemblyDef.Version, log);
+                maxGeneration = DetermineGenerationFromSeeds(assemblyName, assemblyDef.Version, log);
 
                 foreach (var handle in reader.AssemblyReferences)
                 {
                     AssemblyReference reference = reader.GetAssemblyReference(handle);
                     string referenceName = reader.GetString(reference.Name);
-
+                    
                     if (s_ignoredReferences.Contains(referenceName))
                     {
                         continue;
                     }
 
-                    Version assemblyGeneration;
+                    // indirect dependency: prefer the seed value if it exists since we only care about
+                    // reference assembly generation for indirect dependencies
+                    Version assemblyGeneration = DetermineGenerationFromSeeds(referenceName, reference.Version, log);
 
-                    string contractPath = LocateReference(referenceName, reference.Version);
-
-                    // traverse the indirect dependencies recursively.
-                    if (contractPath != null && File.Exists(contractPath))
+                    if (assemblyGeneration == null)
                     {
-                        assemblyGeneration = DetermineGeneration(contractPath, log, reference.Version);
-                    }
-                    else
-                    {
-                        assemblyGeneration = DetermineGeneration(referenceName, reference.Version, log);
-
-                        if (assemblyGeneration == null)
+                        string contractPath = null;
+                        if (candidateRefs != null && candidateRefs.TryGetValue(referenceName, out contractPath) &&
+                            File.Exists(contractPath))
                         {
-                            log.LogError($"Could not determine generation for {referenceName}, {reference.Version}.  File did not exist and isn't a known mapping.");
+                            // traverse the indirect dependencies recursively.
+                            assemblyGeneration = DetermineGenerationFromFile(contractPath, log, reference.Version, candidateRefs);
                         }
+                        else
+                        {
+                            log.LogError($"Cannot resolve indirect dependency {referenceName}, Version={reference.Version}");
+                        }
+                    }
+
+                    if (assemblyGeneration == null)
+                    {
+                        log.LogError($"Could not determine generation for {referenceName}, {reference.Version}.  File did not exist and isn't a known mapping.");
                     }
 
                     if (maxGeneration == null)
@@ -146,7 +154,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             return maxGeneration;
         }
 
-        public Version DetermineGeneration(string assemblyName, Version assemblyVersion, ILog log)
+        public Version DetermineGenerationFromSeeds(string assemblyName, Version assemblyVersion, ILog log)
         {
             // find the lowest generation that supports this assembly version
             Version result = null;
@@ -191,30 +199,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             return result;
         }
 
-        public Version DetermineGeneration(params NuGetFramework[] frameworks)
+        public static Version DetermineGenerationForFramework(NuGetFramework framework)
         {
-            var generationFxs = _generations.Select(gen => new NuGetFramework(FrameworkConstants.FrameworkIdentifiers.NetPlatform, gen.Version));
+            FrameworkExpander expander = new FrameworkExpander();
 
-            FrameworkReducer reducer = new FrameworkReducer();
+            var generationFxs = expander.Expand(framework).Where(fx => fx.Framework == FrameworkConstants.FrameworkIdentifiers.NetPlatform).Select(fx => fx.Version);
 
-            Version minGeneration = null;
-
-            foreach (var framework in frameworks)
-            {
-                NuGetFramework closestGeneration = reducer.GetNearest(framework, generationFxs);
-
-                if (closestGeneration == null)
-                {
-                    throw new ArgumentException($"{framework} is not compatible with generations.", "frameworks");
-                }
-
-                if (minGeneration == null || closestGeneration.Version < minGeneration)
-                {
-                    minGeneration = closestGeneration.Version;
-                }
-            }
-
-            return minGeneration;
+            return generationFxs.Max();
         }
 
         public Version DetermineContractVersionForGeneration(string assemblyName, Version targetGeneration)
@@ -233,30 +224,38 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             return result;
         }
 
-        private string LocateReference(string assemblyName, Version assemblyVersion)
+        private string LocateReference(string assemblyName, Version assemblyVersion, ILog log)
         {
             string contractPath = null;
             string fileName = assemblyName + ".dll";
+            
+            log.LogMessage(LogImportance.Low, $"Searching for {assemblyName}, {assemblyVersion}.");
 
             foreach (string referencePath in ReferencePaths)
             {
                 string contractNamePath = Path.Combine(referencePath, assemblyName);
 
                 // <path>/<name>/<version>/<name>.dll
-                if (File.Exists(contractPath = Path.Combine(contractNamePath, assemblyVersion.ToString(), fileName)))
+                contractPath = Path.Combine(contractNamePath, assemblyVersion.ToString(), fileName);
+                log.LogMessage(LogImportance.Low, $"Considering {contractPath}");
+                if (File.Exists(contractPath))
                 {
                     break;
                 }
 
                 // nuget paths, just a heuristic.  Could do better here by actually using NugetAPI.
                 // <path>/<name>/<3PartVersion>/ref/dotnet/<name>.dll
-                if (File.Exists(contractPath = Path.Combine(contractNamePath, assemblyVersion.ToString(3), "ref", "dotnet", fileName)))
+                contractPath = Path.Combine(contractNamePath, assemblyVersion.ToString(3), "ref", "dotnet", fileName);
+                log.LogMessage(LogImportance.Low, $"Considering {contractPath}");
+                if (File.Exists(contractPath))
                 {
                     break;
                 }
 
                 // <path>/<name>/<3PartVersion>/lib/dotnet/<name>.dll
-                if (File.Exists(contractPath = Path.Combine(contractNamePath, assemblyVersion.ToString(3), "lib", "dotnet", fileName)))
+                contractPath = Path.Combine(contractNamePath, assemblyVersion.ToString(3), "lib", "dotnet", fileName);
+                log.LogMessage(LogImportance.Low, $"Considering {contractPath}");
+                if (File.Exists(contractPath))
                 {
                     break;
                 }

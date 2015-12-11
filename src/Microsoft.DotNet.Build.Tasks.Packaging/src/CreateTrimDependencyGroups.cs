@@ -19,12 +19,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             get;
             set;
         }
-        [Required]
-        public string GenerationDefinitionsFile
-        {
-            get;
-            set;
-        }
 
         [Required]
         public ITaskItem[] Dependencies
@@ -67,11 +61,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 _log.LogError("FrameworkListsPath argument must be specified");
                 return false;
             }
-            if (null == GenerationDefinitionsFile)
-            {
-                _log.LogError("GenerationDefinitionsFile argument must be specified");
-                return false;
-            }
 
             // Retrieve the list of generation dependency group TFM's
             Dictionary<string, IEnumerable<ITaskItem>> portableDependencyGroups = new Dictionary<string, IEnumerable<ITaskItem>>();
@@ -83,8 +72,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     portableDependencyGroups.Add(framework, Dependencies.Where(d => d.GetMetadata("TargetFramework") == framework));
                 }
             }
-
-            Generations generations = Generations.Load(GenerationDefinitionsFile);
 
             List<ITaskItem> addedDependencies = new List<ITaskItem>();
             List<string> placeHolderFrameworks = new List<string>();
@@ -107,7 +94,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                 foreach (NuGetFramework inboxFramework in Frameworks.GetAlllInboxFrameworks(FrameworkListsPath))
                 {
-                    if (generations.DetermineGeneration(inboxFramework) >= portableDependencyFramework.Version &&
+                    if (Generations.DetermineGenerationForFramework(inboxFramework) >= portableDependencyFramework.Version &&
                         !frameworksToExclude.Contains(inboxFramework))
                     {
                         inboxFrameworksList.Add(inboxFramework);

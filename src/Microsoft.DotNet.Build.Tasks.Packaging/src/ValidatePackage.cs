@@ -22,13 +22,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         }
 
         [Required]
-        public string[] ReferencePaths
-        {
-            get;
-            set;
-        }
-
-        [Required]
         public string PackageId
         {
             get;
@@ -80,16 +73,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         }
 
         /// <summary>
-        /// Generations.json definition
-        /// </summary>
-        [Required]
-        public string GenerationDefinitionsFile
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
         /// Path to runtime.json that contains the runtime graph.
         /// </summary>
         [Required]
@@ -131,7 +114,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         private Dictionary<Suppression, HashSet<string>> _suppressions;
         private Dictionary<string, List<PackageItem>> _validateFiles;
         private Dictionary<NuGetFramework, ValidationFramework> _frameworks;
-        private Generations _generations;
         private AggregateNuGetAssetResolver _resolver;
         private Dictionary<string, PackageItem> _targetPathToPackageItem;
 
@@ -140,7 +122,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             LoadSuppressions();
             LoadFiles();
             LogPackageContent();
-            LoadGenerations();
             LoadSupport();
 
             if (!SkipGenerationCheck)
@@ -180,23 +161,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             foreach (var validateFile in _validateFiles.SelectMany(packageFileSet => packageFileSet.Value)
                 .Where(f => IsDll(f.SourcePath) && IsGeneration(f.TargetFramework)))
             {
-                if (!File.Exists(validateFile.SourcePath))
-                {
-                    _log.LogError($"Cannot validate generation of {validateFile.SourcePath} because it does not exist");
-                    continue;
-                }
-
-                var calculatedGeneration = _generations.DetermineGeneration(validateFile.SourcePath, _log);
-
-                if (validateFile.TargetFramework.Version < calculatedGeneration)
-                {
-                    _log.LogError($"Invalid generation {validateFile.TargetFramework.Version} for {validateFile.SourcePath}, must be at least {calculatedGeneration} based on dependencies of the file and/or explicit seeding in {GenerationDefinitionsFile}.");
-                }
-                else if (validateFile.TargetFramework.Version > calculatedGeneration)
-                {
-                    _log.LogMessage(LogImportance.Low, $"Generation {validateFile.TargetFramework.Version} for {validateFile.SourcePath} is higher than the calculated miniumum {calculatedGeneration}.");
-                }
-
                 if (validateFile.TargetFramework.Version < minSupportedGeneration)
                 {
                     _log.LogError($"Invalid generation {validateFile.TargetFramework.Version} for {validateFile.SourcePath}, must be at least {minSupportedGeneration} based on the implementations in the package.  If you meant to target the lower generation you may be missing an implementation for a framework on that lower generation.  If not you should raise the generation of the reference assembly to match that of the lowest supported generation of all implementations/placeholders.");
@@ -501,13 +465,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
         }
 
-        private void LoadGenerations()
-        {
-            _generations = Generations.Load(GenerationDefinitionsFile);
-
-            _generations.ReferencePaths = ReferencePaths;
-        }
-
         private void LogPackageContent()
         {
             foreach (var packageId in _validateFiles.Keys)
@@ -703,7 +660,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             Dictionary<NuGetFramework, ValidationFramework> generationsToValidate = new Dictionary<NuGetFramework, ValidationFramework>();
             foreach (var framework in portableFrameworks)
             {
-                NuGetFramework generation = new NuGetFramework(FrameworkConstants.FrameworkIdentifiers.NetPlatform, _generations.DetermineGeneration(framework.Framework));
+                NuGetFramework generation = new NuGetFramework(FrameworkConstants.FrameworkIdentifiers.NetPlatform, Generations.DetermineGenerationForFramework(framework.Framework));
                 _log.LogMessage(LogImportance.Low, $"Validating {generation} for {ContractName}, {framework.SupportedVersion} since it is supported by {framework.Framework}");
 
                 ValidationFramework existingGeneration = null;

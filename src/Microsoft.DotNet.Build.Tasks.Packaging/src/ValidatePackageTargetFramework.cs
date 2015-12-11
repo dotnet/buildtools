@@ -11,7 +11,30 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
     public class ValidatePackageTargetFramework : PackagingTask
     {
+        private static readonly HashSet<string> designTimeFacades = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "mscorlib",
+            "System.Core",
+            "System",
+            "System.Net",
+            "System.Numerics",
+            "System.Runtime.Serialization",
+            "System.Windows",
+            "System.Xml",
+            "System.Xml.Linq",
+            "System.Xml.Serialization",
+            "System.ComponentModel.DataAnnotations",
+            "System.ServiceModel",
+            "System.ServiceModel.Web"
+        };
+
         private Generations _generations;
+
+        [Required]
+        public string AssemblyName { get; set; }
+
+        [Required]
+        public string AssemblyVersion { get; set; }
 
         [Required]
         public string GenerationDefinitionsFile { get; set; }
@@ -19,14 +42,10 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         public string PackageTargetFramework { get; set; }
 
         [Required]
-        public ITaskItem[] References { get; set; }
+        public ITaskItem[] DirectReferences { get; set; }
 
         [Required]
-        public string[] ReferencePaths
-        {
-            get;
-            set;
-        }
+        public ITaskItem[] CandidateReferences { get; set; }
 
         public override bool Execute()
         {
@@ -36,7 +55,23 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 return true;
             }
 
-            NuGetFramework fx = NuGetFramework.Parse(PackageTargetFramework);
+            NuGetFramework fx = null;
+            try
+            {
+                fx = NuGetFramework.Parse(PackageTargetFramework);
+            }
+            catch(Exception ex)
+            {
+                _log.LogError($"Could not parse PackageTargetFramework {PackageTargetFramework}. {ex}");
+                return false;
+            }
+
+            Version assemblyVersion = null;
+            if (!Version.TryParse(AssemblyVersion, out assemblyVersion))
+            {
+                _log.LogError($"Could not parse AssemblyVersion {AssemblyVersion}.");
+                return false;
+            }
 
             if (fx.Framework != FrameworkConstants.FrameworkIdentifiers.NetPlatform)
             {
@@ -44,11 +79,28 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 return true;
             }
 
-            LoadGenerations();
+            _generations = Generations.Load(GenerationDefinitionsFile);
 
-            foreach(var reference in References)
+            Dictionary<string, string> candidateRefs = CandidateReferences.ToDictionary(r => r.GetMetadata("FileName"), r => r.GetMetadata("FullPath"));
+
+            Version idealGeneration = _generations.DetermineGenerationFromSeeds(AssemblyName, assemblyVersion, _log) ?? new Version(0, 0, 0, 0);
+            if (idealGeneration > fx.Version)
+            {
+                _log.LogError($"Assembly {AssemblyName}, Version={assemblyVersion} is generation {idealGeneration} based on the seed data in {GenerationDefinitionsFile} which is greater than project generation {fx.Version}.");
+            }
+
+            foreach (var reference in DirectReferences)
             {
                 string path = reference.GetMetadata("FullPath");
+
+                // workaround issue where portable targeting pack design time facades
+                // include dangling refs and refs to higher versions of contracts than 
+                // exist in the targeting pack.
+                if (path.IndexOf(".NETPortable", StringComparison.OrdinalIgnoreCase) != -1 &&
+                    designTimeFacades.Contains(Path.GetFileNameWithoutExtension(path)))
+                {
+                    continue;
+                }
                 
                 if (!File.Exists(path))
                 {
@@ -56,23 +108,26 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     continue;
                 }
 
-                var dependencyGeneration = _generations.DetermineGeneration(path, _log);
+                var dependencyGeneration = _generations.DetermineGenerationFromFile(path, _log, candidateRefs: candidateRefs);
 
                 if (dependencyGeneration > fx.Version)
                 {
                     _log.LogError($"Dependency {path} is generation {dependencyGeneration} which is greater than project generation {fx.Version}.");
                 }
+                
+                if (dependencyGeneration > idealGeneration)
+                {
+                    idealGeneration = dependencyGeneration;
+                }
             }
 
+            if (fx.Version > idealGeneration)
+            {
+                _log.LogMessage(LogImportance.Low, $"Generation {fx.Version} is higher than the ideal miniumum {idealGeneration}.");
+            }
+
+
             return !_log.HasLoggedErrors;
-        }
-
-
-        private void LoadGenerations()
-        {
-            _generations = Generations.Load(GenerationDefinitionsFile);
-
-            _generations.ReferencePaths = ReferencePaths;
         }
 
     }

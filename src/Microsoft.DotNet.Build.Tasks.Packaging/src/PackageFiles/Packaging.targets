@@ -57,10 +57,8 @@
     <PlaceholderFile>$(MSBuildThisFileDirectory)_._</PlaceholderFile>
     <PackageDescriptionFile Condition="'$(PackageDescriptionFile)' == ''">path to descriptions.json must be specified</PackageDescriptionFile>
     <RuntimeIdGraphDefinitionFile Condition="'$(RuntimeIdGraphDefinitionFile)' == ''">$(MSBuildThisFileDirectory)runtime.json</RuntimeIdGraphDefinitionFile>
-    <GenerationDefinitionFile Condition="'$(GenerationDefinitionFile)' == ''">$(MSBuildThisFileDirectory)Generations.json</GenerationDefinitionFile>
     <FrameworkListsPath Condition="'$(FrameworkListsPath)' == ''">$(MSBuildThisFileDirectory)FrameworkLists</FrameworkListsPath>
     <ValidationSuppressionFile Condition="'$(ValidationSuppressionFile)' == ''">ValidationSuppression.txt</ValidationSuppressionFile>
-    <ValidationReferencePath>$(ReferenceAssemblyOutputPath);$(PackagesDir)</ValidationReferencePath>
     <SyncInfoFile Condition="'$(SyncInfoFile)' == ''">unspecified</SyncInfoFile>
     <PackagingTaskDir Condition="'$(PackagingTaskDir)' == ''">$(MSBuildThisFileDirectory)</PackagingTaskDir>
   </PropertyGroup>
@@ -635,7 +633,6 @@
           BeforeTargets="GenerateNuSpec"
           Condition="'$(PackageTargetRuntime)' == ''">
     <CreateTrimDependencyGroups Dependencies="@(Dependency)"
-                      GenerationDefinitionsFile="$(GenerationDefinitionFile)"
                       FrameworkListsPath="$(FrameworkListsPath)"
                       TrimFrameworks="@(InboxOnTargetFramework);@(NotSupportedOnTargetFramework);@(ExternalOnTargetFramework)"
                       Files="@(File)"
@@ -792,9 +789,7 @@
                      PackageId="$(Id)"
                      Files="@(PackageFile);@(RuntimeFile)"
                      SupportedFrameworks="@(SupportedFramework)"
-                     ReferencePaths="$(ValidationReferencePath)"
                      Frameworks="@(ValidateFramework)"
-                     GenerationDefinitionsFile="$(GenerationDefinitionFile)"
                      RuntimeFile="$(RuntimeIdGraphDefinitionFile)"
                      FrameworkListsPath="$(FrameworkListsPath)"
                      SkipGenerationCheck="$(SkipGenerationCheck)"
