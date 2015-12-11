@@ -20,6 +20,7 @@
   <ItemGroup>
     <Compile Include="Delegates.cs" />
     <Compile Include="ExecWithMutex.cs" />
+    <Compile Include="FixNonExistentProjectDependencies.cs" />
     <Compile Include="GenerateAssemblyList.cs" />
     <Compile Include="GenerateResourcesCode.cs" />
     <Compile Include="GenerateEncodingTable.cs" />
@@ -33,6 +34,7 @@
     <Compile Include="RemoveDuplicatesWithLastOneWinsPolicy.cs" />
     <Compile Include="PrereleaseResolveNuGetPackageAssets.cs" />
     <Compile Include="UpdatePackageDependencyVersion.cs" />
+    <Compile Include="ValidateRestoredProjectDependencies.cs" />
     <Compile Include="VisitProjectDependencies.cs" />
     <Compile Include="ValidateProjectDependencyVersions.cs" />
     <Compile Include="ZipFileCreateFromDirectory.cs" />
