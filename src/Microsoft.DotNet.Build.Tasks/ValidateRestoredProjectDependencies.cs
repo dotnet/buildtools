@@ -44,14 +44,23 @@ namespace Microsoft.DotNet.Build.Tasks
 
                 if (!versionsRestored.Contains(requestedVersion))
                 {
-                    Log.LogError(
-                        "Desired version {0} '{1}' not restored, found '{2}' in {3}",
-                        requestedId,
-                        requestedVersion,
-                        string.Join(", ", versionsRestored),
-                        lockFilePath);
+                    HandleNonExistentDependency(requestedId, requestedVersion, versionsRestored, lockFilePath);
                 }
             }
+        }
+
+        protected virtual void HandleNonExistentDependency(
+            string name,
+            string version,
+            IEnumerable<string> libraryVersionsRestored,
+            string lockFilePath)
+        {
+            Log.LogError(
+                "Desired version {0} {1} not restored, found '{2}' for {3}",
+                name,
+                version,
+                string.Join(", ", libraryVersionsRestored),
+                lockFilePath);
         }
     }
 }
