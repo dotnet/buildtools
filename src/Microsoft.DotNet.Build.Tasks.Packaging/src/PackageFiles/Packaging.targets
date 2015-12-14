@@ -54,6 +54,7 @@
     <PackageOutputPath Condition="'$(PackageOutputPath)' == ''">$(BaseOutputPath)pkg\</PackageOutputPath>
     <OutputPath>$(PackageOutputPath)</OutputPath>
     <NuSpecPath>$(OutputPath)$(Id)$(NuspecSuffix).nuspec</NuSpecPath>
+    <RuntimeFilePath Condition="'$(RuntimeFilePath)' == ''">$(OutputPath)$(Id)$(NuspecSuffix)\runtime.json</RuntimeFilePath>
     <PlaceholderFile>$(MSBuildThisFileDirectory)_._</PlaceholderFile>
     <PackageDescriptionFile Condition="'$(PackageDescriptionFile)' == ''">path to descriptions.json must be specified</PackageDescriptionFile>
     <RuntimeIdGraphDefinitionFile Condition="'$(RuntimeIdGraphDefinitionFile)' == ''">$(MSBuildThisFileDirectory)runtime.json</RuntimeIdGraphDefinitionFile>
@@ -107,6 +108,17 @@
              Importance="high" />
   </Target>
 
+  <Target Name="Clean">
+    <ItemGroup>
+      <_ToBeDeleted Include="$(NuSpecPath)" />
+      <_ToBeDeleted Include="$(RuntimeFilePath)" />
+    </ItemGroup>
+    <Delete Files="@(_ToBeDeleted)" />
+  </Target>
+
+  <Target Name="Rebuild"
+          DependsOnTargets="Clean;Build" />
+  
   <Target Name="SplitProjectReferences"
           DependsOnTargets="_NuProjGetProjectClosure">
     <ItemGroup>
@@ -525,13 +537,12 @@
     <!-- determine if there is a file to be updated, and setup the output file -->
     <PropertyGroup>
       <RuntimeFileSource Condition="'%(File.FileName)%(File.Extension)' == 'runtime.json'">%(File.Identity)</RuntimeFileSource>
-      <RuntimeFileDest Condition="'$(RuntimeFileDest)' == ''">$(OutputPath)$(Id)$(NuspecSuffix)\runtime.json</RuntimeFileDest>
     </PropertyGroup>
 
     <ItemGroup Condition="'@(RuntimeDependency)' != ''">
       <!-- if we are updating, remove it from the file group, we'll replace it with the generated version -->
       <PackageFile Condition="'$(RuntimeFileSource)' != ''" Remove="$(RuntimeFileSource)"/>
-      <PackageFile Include="$(RuntimeFileDest)">
+      <PackageFile Include="$(RuntimeFilePath)">
         <NuProjPackageId>$(Id)</NuProjPackageId>
         <NuProjPackageVersion>$(Version)</NuProjPackageVersion>
         <IsLibrary>false</IsLibrary>
@@ -661,7 +672,7 @@
                                  Dependencies="@(RuntimeDependency);@(Dependency);@(_indirectRuntimeDependencies)"
                                  PackageId="$(Id)"
                                  RuntimeJsonTemplate="$(RuntimeFileSource)"
-                                 RuntimeJson="$(RuntimeFileDest)"
+                                 RuntimeJson="$(RuntimeFilePath)"
                                  EnsureBase="$(IsLineupPackage)"/>
   </Target>
 
