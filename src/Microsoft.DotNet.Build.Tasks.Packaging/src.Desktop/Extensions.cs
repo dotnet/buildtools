@@ -11,7 +11,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.Versioning;
 
-namespace NuProj.Tasks
+namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
     public static class Extensions
     {
@@ -31,7 +31,7 @@ namespace NuProj.Tasks
             var metadataValue = taskItem.GetMetadata(Metadata.TargetFramework);
             if (!string.IsNullOrEmpty(metadataValue))
             {
-                result = VersionUtility.ParseFrameworkName(metadataValue);
+                result = NuGet.VersionUtility.ParseFrameworkName(metadataValue);
             }
             else
             {
@@ -76,7 +76,7 @@ namespace NuProj.Tasks
             var metadataValue = taskItem.GetMetadata(Metadata.Version);
             if (!string.IsNullOrEmpty(metadataValue))
             {
-                VersionUtility.TryParseVersionSpec(metadataValue, out result);
+                NuGet.VersionUtility.TryParseVersionSpec(metadataValue, out result);
             }
 
             return result;
@@ -99,7 +99,7 @@ namespace NuProj.Tasks
                 return null;
             }
 
-            return VersionUtility.GetShortFrameworkName(frameworkName);
+            return NuGet.VersionUtility.GetShortFrameworkName(frameworkName);
         }
 
         public static string ToStringSafe(this object value)

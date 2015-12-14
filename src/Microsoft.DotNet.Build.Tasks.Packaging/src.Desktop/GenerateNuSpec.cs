@@ -11,7 +11,7 @@ using System.Linq;
 using System.Runtime.Versioning;
 using System.Text;
 
-namespace NuProj.Tasks
+namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
     public class GenerateNuSpec : Task
     {

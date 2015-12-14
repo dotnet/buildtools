@@ -22,7 +22,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 TargetFramework = NuGetFramework.Parse(fx);
             }
             TargetPath = item.GetMetadata("TargetPath");
-            Package = item.GetMetadata("NuProjPackageId");
+            Package = item.GetMetadata("PackageId");
 
             // determine if we need to append filename to TargetPath
             // see https://docs.nuget.org/create/nuspec-reference#specifying-files-to-include-in-the-package

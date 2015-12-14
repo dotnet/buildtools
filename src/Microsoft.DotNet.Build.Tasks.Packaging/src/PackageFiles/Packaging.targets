@@ -120,39 +120,39 @@
           DependsOnTargets="Clean;Build" />
   
   <Target Name="SplitProjectReferences"
-          DependsOnTargets="_NuProjGetProjectClosure">
+          DependsOnTargets="_GetProjectClosure">
     <ItemGroup>
       <!-- Split direct and indirect project dependencies -->
-      <_NuProjProjectReferenceClosure Include="@(_ProjectReferenceClosure)"
-                                      Condition="'%(_ProjectReferenceClosure.Extension)' == '.nuproj'" />
-      <_NonNuProjProjectReferenceClosure Include="@(_ProjectReferenceClosure)"
-                                         Condition="'%(_ProjectReferenceClosure.Extension)' != '.nuproj'" />
+      <_PkgProjProjectReferenceClosure Include="@(_ProjectReferenceClosure)"
+                                      Condition="'%(_ProjectReferenceClosure.Extension)' == '.pkgproj'" />
+      <_NonPkgProjProjectReferenceClosure Include="@(_ProjectReferenceClosure)"
+                                         Condition="'%(_ProjectReferenceClosure.Extension)' != '.pkgproj'" />
 
       <!-- Split direct project dependencies -->
-      <_NuProjProjectReference Include="@(_NuProjProjectReferenceClosure)"
+      <_PkgProjProjectReference Include="@(_PkgProjProjectReferenceClosure)"
                                Condition="'%(DependencyKind)' == 'Direct'" />
-      <_NonNuProjProjectReference Include="@(_NonNuProjProjectReferenceClosure)"
+      <_NonPkgProjProjectReference Include="@(_NonPkgProjProjectReferenceClosure)"
                                   Condition="'%(DependencyKind)' == 'Direct'" />
 
     </ItemGroup>
   </Target>
 
 
-  <Target Name="GetNuProjPackageDependencies"
-          Returns="@(NuProjDependency)"
-          Inputs="%(_NuProjProjectReferenceClosure.DependencyKind)"
+  <Target Name="GetPkgProjPackageDependencies"
+          Returns="@(PkgProjDependency)"
+          Inputs="%(_PkgProjProjectReferenceClosure.DependencyKind)"
           Outputs="fake"
           DependsOnTargets="SplitProjectReferences">
     <MSBuild Targets="GetPackageIdentity"
-             Projects="@(_NuProjProjectReferenceClosure)"
-             Properties="%(_NuProjProjectReferenceClosure.SetConfiguration); %(_NuProjProjectReferenceClosure.SetPlatform)">
+             Projects="@(_PkgProjProjectReferenceClosure)"
+             Properties="%(_PkgProjProjectReferenceClosure.SetConfiguration); %(_PkgProjProjectReferenceClosure.SetPlatform)">
       <Output TaskParameter="TargetOutputs"
-              ItemName="_NuProjDependency" />
+              ItemName="_PkgProjDependency" />
     </MSBuild>
     <ItemGroup>
-      <NuProjDependency Include="@(_NuProjDependency)">
-        <DependencyKind>%(_NuProjProjectReferenceClosure.DependencyKind)</DependencyKind>
-      </NuProjDependency>
+      <PkgProjDependency Include="@(_PkgProjDependency)">
+        <DependencyKind>%(_PkgProjProjectReferenceClosure.DependencyKind)</DependencyKind>
+      </PkgProjDependency>
     </ItemGroup>
   </Target>
 
@@ -207,11 +207,11 @@
   </Target>
 
   <Target Name="GetPackageDependencies"
-          DependsOnTargets="AssignNuProjPackageDependenciesTargetFramework;GetNuGetPackageDependencies"
+          DependsOnTargets="AssignPkgProjPackageDependenciesTargetFramework;GetNuGetPackageDependencies"
           Returns="@(Dependency)">
     <ItemGroup>
-      <Dependency Include="@(NuProjDependency)"
-                  Condition="'%(NuProjDependency.DependencyKind)' == 'Direct'" />
+      <Dependency Include="@(PkgProjDependency)"
+                  Condition="'%(PkgProjDependency.DependencyKind)' == 'Direct'" />
       <Dependency Include="@(NuGetDependency)"
                   Condition="'%(NuGetDependency.DependencyKind)' == 'Direct'" />
     </ItemGroup>
@@ -255,7 +255,7 @@
          PackageTargetRuntime
          Platform -->
   <Target Name="AddProjectReferenceProperties"
-          BeforeTargets="_NuProjGetProjectClosure">
+          BeforeTargets="_GetProjectClosure">
     <ItemGroup>
       <!-- list each append as a seperate item to force re-evaluation of AdditionalProperties metadata -->
       <ProjectReference>
@@ -290,7 +290,7 @@
 
     <MSBuild Targets="GetFilesToPackage"
              BuildInParallel="$(BuildInParallel)"
-             Projects="@(_NonNuProjProjectReference)"
+             Projects="@(_NonPkgProjProjectReference)"
              Properties="$(ProjectProperties)">
       <Output TaskParameter="TargetOutputs"
               ItemName="_FilesToPackage" />
@@ -299,8 +299,8 @@
     <ItemGroup>
       <_FilesToPackage Remove="@(_FilesToPackage)" Condition="'$(ExcludeReferenceAssets)' == 'true' AND '%(_FilesToPackage.IsReferenceAsset)' == 'true'" />
       <File Include="@(_FilesToPackage)">
-        <NuProjPackageId>$(Id)</NuProjPackageId>
-        <NuProjPackageVersion>$(Version)</NuProjPackageVersion>
+        <PackageId>$(Id)</PackageId>
+        <PackageVersion>$(Version)</PackageVersion>
         <!-- Some packages support legacy portable profiles where dependencies are provided by targeting pack -->
         <HarvestDependencies Condition="!$([System.String]::new('%(_FilesToPackage.TargetFramework)').StartsWith('portable-'))">true</HarvestDependencies>
       </File>
@@ -315,8 +315,7 @@
            ContinueOnError="ErrorAndContinue" />
   </Target>
   
-  <!-- Override the NuProj version.
-       Permit setting TargetFramework and add our own metadata (TargetRuntime) -->
+  <!-- Permit setting TargetFramework and add our own metadata (TargetRuntime) -->
   <Target Name="GetPackageIdentity"
           Returns="@(_PackageIdentity)"
           DependsOnTargets="$(VersionDependsOn)">
@@ -330,14 +329,14 @@
   </Target>
 
   <!-- Don't actually walk the closure all the time, conditioned on GetClosure metadata on ProjectReference.
-       We don't use any of the asset -> package mapping logic from nuproj so we don't need the full set of packages.
-       Walking the closure is very expensive for many of our packages.  -->
-  <Target Name="_NuProjGetProjectClosure"
+       Walking the closure is very expensive for many of our packages and is unecessary since we are very
+       strict about assets that are included in the package.  -->
+  <Target Name="_GetProjectClosure"
           Returns="@(_ProjectReferenceClosure)">
           
     <!-- Get closure of indirect references if they opt-in -->
     <MSBuild Projects="@(ProjectReference)"
-             Targets="_NuProjGetProjectClosure"
+             Targets="_GetProjectClosure"
              Properties="$(ProjectProperties)"
              ContinueOnError="WarnAndContinue"
              BuildInParallel="$(BuildInParallel)"
@@ -368,24 +367,22 @@
 
   </Target>
 
-  <!-- Override the NuProj version.  
-       Don't infer TFM from files.  Instead allow explicit definition of TFM by projects/references.-->
-  <Target Name="AssignNuProjPackageDependenciesTargetFramework"
-          DependsOnTargets="GetNuProjPackageDependencies;GetFiles">
+  <!-- Don't infer TFM from files.  Instead allow explicit definition of TFM by projects/references.-->
+  <Target Name="AssignPkgProjPackageDependenciesTargetFramework"
+          DependsOnTargets="GetPkgProjPackageDependencies;GetFiles">
 
     <ItemGroup>
       <!-- ensure that unconstrained dependencies are also expanded in constrained TFM groups -->
-      <_NuProjDependencyWithoutTFM Include="@(NuProjDependency)" Condition="'%(NuProjDependency.TargetFramework)' == '' AND '%(NuProjDependency.DoNotExpand)' != 'true'" />
-      <_AllNuProjTFMs Include="%(NuProjDependency.TargetFramework)" Condition="'%(NuProjDependency.DependencyKind)' == 'Direct'" />
+      <_PkgProjDependencyWithoutTFM Include="@(PkgProjDependency)" Condition="'%(PkgProjDependency.TargetFramework)' == '' AND '%(PkgProjDependency.DoNotExpand)' != 'true'" />
+      <_AllPkgProjTFMs Include="%(PkgProjDependency.TargetFramework)" Condition="'%(PkgProjDependency.DependencyKind)' == 'Direct'" />
 
-      <NuProjDependency Include="@(_NuProjDependencyWithoutTFM)">
-        <TargetFramework>%(_AllNuProjTFMs.Identity)</TargetFramework>
-      </NuProjDependency>
+      <PkgProjDependency Include="@(_PkgProjDependencyWithoutTFM)">
+        <TargetFramework>%(_AllPkgProjTFMs.Identity)</TargetFramework>
+      </PkgProjDependency>
     </ItemGroup>
   </Target>
   
-  <!-- Override the NuProj version.  
-       Don't do any filtering of files. 
+  <!-- Don't do any filtering of files. 
        We explicitly determine package content so we do not need to
        filter out files that come from dependent packages. -->
   <Target Name="GetPackageFiles"
@@ -393,9 +390,9 @@
           DependsOnTargets="GetFiles;EnsureOOBFramework;$(VersionDependsOn)">
     <ItemGroup>
       <PackageFile Include="@(File)" />
-      <PackageFile Condition="'%(PackageFile.NuProjPackageId)' == ''">
-        <NuProjPackageId>$(Id)</NuProjPackageId>
-        <NuProjPackageVersion>$(Version)</NuProjPackageVersion>
+      <PackageFile Condition="'%(PackageFile.PackageId)' == ''">
+        <PackageId>$(Id)</PackageId>
+        <PackageVersion>$(Version)</PackageVersion>
       </PackageFile>
 
       <!-- Nuget will treat TargetPath as a directory if the extensions dont match,
@@ -418,8 +415,7 @@
           Condition="'$(OmitDependencies)' != 'true'"
           Inputs="%(File.Identity);%(File.TargetFramework)"
           Outputs="fake">
-    <!-- nuproj's GetNuGetPackageDependencies will resolve packages from packages.config of dependencies,
-         but our current build uses references -->
+    <!-- Generate package references based on assembly dependencies -->
     <GetAssemblyReferences Assemblies="@(File)" Condition="'%(File.HarvestDependencies)' == 'true' and '%(File.Extension)' == '.dll'">
       <Output TaskParameter="ReferencedAssemblies"
               ItemName="_FileReferencedAssemblies"/>
@@ -543,8 +539,8 @@
       <!-- if we are updating, remove it from the file group, we'll replace it with the generated version -->
       <PackageFile Condition="'$(RuntimeFileSource)' != ''" Remove="$(RuntimeFileSource)"/>
       <PackageFile Include="$(RuntimeFilePath)">
-        <NuProjPackageId>$(Id)</NuProjPackageId>
-        <NuProjPackageVersion>$(Version)</NuProjPackageVersion>
+        <PackageId>$(Id)</PackageId>
+        <PackageVersion>$(Version)</PackageVersion>
         <IsLibrary>false</IsLibrary>
       </PackageFile>
     </ItemGroup>
@@ -555,8 +551,8 @@
     <!-- Nuget will include all files when nuspec is empty, ensure we have at least one file to avoid that -->
     <ItemGroup Condition="'@(File)' == ''">
       <File Include="$(PlaceholderFile)">
-        <NuProjPackageId>$(Id)</NuProjPackageId>
-        <NuProjPackageVersion>$(Version)</NuProjPackageVersion>
+        <PackageId>$(Id)</PackageId>
+        <PackageVersion>$(Version)</PackageVersion>
         <IsLibrary>false</IsLibrary>
       </File>
     </ItemGroup>
@@ -569,8 +565,8 @@
           BeforeTargets="EnsureEmptyPackage">
     <ItemGroup Condition="'$(PreventImplementationReference)' == 'true'">
       <File Include="$(PlaceholderFile)">
-        <NuProjPackageId>$(Id)</NuProjPackageId>
-        <NuProjPackageVersion>$(Version)</NuProjPackageVersion>
+        <PackageId>$(Id)</PackageId>
+        <PackageVersion>$(Version)</PackageVersion>
         <TargetPath>ref/dotnet</TargetPath>
       </File>
     </ItemGroup>
@@ -603,14 +599,14 @@
     </PropertyGroup>
     <ItemGroup>
       <File Include="$(PlaceholderFile)">
-        <NuProjPackageId>$(Id)</NuProjPackageId>
-        <NuProjPackageVersion>$(Version)</NuProjPackageVersion>
+        <PackageId>$(Id)</PackageId>
+        <PackageVersion>$(Version)</PackageVersion>
         <TargetPath Condition="'$(_targetRuntime)' != ''">runtimes/$(_targetRuntime)/lib/$(_target)</TargetPath>
         <TargetPath Condition="'$(_targetRuntime)' == ''">lib/$(_target)</TargetPath>
       </File>
       <File Include="$(PlaceholderFile)" Condition="'$(_targetRef)' == 'true'">
-        <NuProjPackageId>$(Id)</NuProjPackageId>
-        <NuProjPackageVersion>$(Version)</NuProjPackageVersion>
+        <PackageId>$(Id)</PackageId>
+        <PackageVersion>$(Version)</PackageVersion>
         <TargetPath>ref/$(_target)</TargetPath>
       </File>
       <FrameworkReference Condition="'%(InboxOnTargetFramework.AsFrameworkReference)' == 'true'" Include="$(Id)">
@@ -823,7 +819,7 @@
       <_ActualMetaDependencies Include="@(Dependency);@(RuntimeDependency)"/>
       <!-- also consider indirect dependencies that may come from the core package, 
            TODO: right now this also picks up indirect dependencies other packages (eg: runtime pinning) -->
-      <_ActualMetaDependencies Include="@(NuProjDependency)" Condition="'%(NuProjDependency.DependencyKind)' == 'Indirect'" />
+      <_ActualMetaDependencies Include="@(PkgProjDependency)" Condition="'%(PkgProjDependency.DependencyKind)' == 'Indirect'" />
       <_ActualMetaDependencies>
         <Version>$([System.String]::new('%(Version)').Replace('$(VersionSuffix)', ''))</Version>
       </_ActualMetaDependencies>
