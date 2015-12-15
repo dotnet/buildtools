@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <NuGetRuntimeIdentifier>win</NuGetRuntimeIdentifier>
+    <ImportedProjectRelativePath>..\test\</ImportedProjectRelativePath>
+    <TaskProject>..\src.Desktop\Microsoft.DotNet.Build.Tasks.Packaging.Desktop.csproj</TaskProject>
+  </PropertyGroup>
+  <Import Project="$(ImportedProjectRelativePath)Microsoft.DotNet.Build.Tasks.Packaging.Tests.csproj" />
+  <PropertyGroup>
+    <ProjectGuid>{31DF5A4A-AA0D-443E-9BE5-08B27710B8AD}</ProjectGuid>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Build.Framework" />
+    <Reference Include="Microsoft.Build.Utilities.v4.0" />
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+</Project>

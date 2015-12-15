@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "Microsoft.NETCore.Platforms": "1.0.0",
+    "Newtonsoft.Json": "7.0.1",
+    "NuGet.Client": "3.3.0",
+    "NuGet.Core": "2.10.1",
+    "System.Reflection.Metadata": "1.0.22"
+  },
+  "frameworks": {
+    "net45": { }
+  },
+  "runtimes": {
+    "win": { }
+  }
+}

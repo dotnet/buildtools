@@ -10,11 +10,15 @@
   <Import Project="..\dir.targets" />
 
   <Import Project="..\dir.traversal.targets" />
+  
+  <PropertyGroup>
+    <BuildToolsTaskDir>$(ToolsDir)</BuildToolsTaskDir>
+  </PropertyGroup>
 
-  <Import Project="$(ToolsDir)packages.targets" Condition="Exists('$(ToolsDir)packages.targets') and '$(ImportGetNuGetPackageVersions)' != 'false'" />
+  <Import Project="Microsoft.DotNet.Build.Tasks\PackageFiles\packages.targets" Condition="'$(ImportGetNuGetPackageVersions)' != 'false'" />
   <Import Project="$(ToolsDir)UpdateBuildValues.targets" Condition="Exists('$(ToolsDir)UpdateBuildValues.targets')" />
 
-  <PropertyGroup Condition="Exists('$(ToolsDir)packages.targets') and '$(ImportGetNuGetPackageVersions)' != 'false'">
+  <PropertyGroup Condition="'$(ImportGetNuGetPackageVersions)' != 'false'">
     <TraversalBuildDependsOn>
       $(TraversalBuildDependsOn);
       BuildPackages;

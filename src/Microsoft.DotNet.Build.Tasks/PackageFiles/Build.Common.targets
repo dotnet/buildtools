@@ -41,6 +41,8 @@
   -->
   <Import Project="$(MSBuildThisFileDirectory)ReferenceAssemblies.targets" Condition="'$(ExcludeReferenceAssembliesImport)'!='true'" />
   
+  <Import Project="$(MSBuildThisFileDirectory)Packaging.targets" Condition="'$(ExcludePackagingImport)'!='true' AND '$(MSBuildProjectExtension)' == '.pkgproj'" />
+
   <!-- 
     Import the default target framework targets.
     

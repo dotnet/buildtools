@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.props))\dir.props" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{2B0AF548-9ACA-4CD5-9A2F-3A678BFBFB64}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.DotNet.Build.Tasks.Packaging.Tests</RootNamespace>
+    <AssemblyName>Microsoft.DotNet.Build.Tasks.Packaging.Tests</AssemblyName>
+    <CLSCompliant>false</CLSCompliant>
+    <SkipSigning>true</SkipSigning>
+    <CopyNuGetImplementations>true</CopyNuGetImplementations>
+    <TaskProject Condition="'$(TaskProject)' == ''">..\src\Microsoft.DotNet.Build.Tasks.Packaging.csproj</TaskProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="CreateTrimDependencyGroupsTests.cs" />
+    <Compile Include="EnsureOOBFrameworkTests.cs" />
+    <Compile Include="NuGetAssetResolverTests.cs" />
+    <Compile Include="GenerationsTests.cs" />
+    <Compile Include="Log.cs" />
+    <Compile Include="TestBuildEngine.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(TaskProject)">
+      <Name>Microsoft.DotNet.Build.Tasks.Packaging</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+    <None Include="$(PackagesDir)Microsoft.NETCore.Platforms\1.0.0\runtime.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <!-- Copy the framework lists to the test directory,
+       This is required because the publishtest.targets used by buildtools isn't handling 
+       paths with subdirectories (it assumes all assets are copied to test output folder).
+       https://github.com/dotnet/buildtools/issues/343 -->
+  <Target Name="CopyFrameworkLists" AfterTargets="CopyTestToTestDirectory" Inputs="%(TestTargetFramework.Folder)" Outputs="none">
+    <PropertyGroup>
+      <_testDirectory>$(TestPath)%(TestTargetFramework.Folder)</_testDirectory>
+    </PropertyGroup>
+    <ItemGroup>
+      <_frameworkList Include="..\src\FrameworkLists\**\*.xml">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </_frameworkList>
+    </ItemGroup>
+    <Copy SourceFiles="@(_frameworkList)" DestinationFiles="@(_frameworkList->'$(_testDirectory)\FrameworkLists\%(RecursiveDir)%(FileName)%(Extension)')" SkipUnchangedFiles="$(SkipCopyUnchangedFiles)" OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)" Retries="$(CopyRetryCount)" RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)" UseHardlinksIfPossible="$(CreateHardLinksForCopyTestToTestDirectoryIfPossible)">
+      <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
+    </Copy>
+  </Target>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

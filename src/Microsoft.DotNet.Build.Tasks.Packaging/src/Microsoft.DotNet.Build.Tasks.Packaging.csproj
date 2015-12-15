@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.props))\dir.props" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{C2CB2F39-91FB-4050-9DD2-6E5DD6460ED8}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.DotNet.Build.Tasks.Packaging</RootNamespace>
+    <AssemblyName>Microsoft.DotNet.Build.Tasks.Packaging</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <CLSCompliant>false</CLSCompliant>
+    <SkipSigning>true</SkipSigning>
+    <CopyNuGetImplementations>true</CopyNuGetImplementations>
+  </PropertyGroup>
+  <!-- Default configurations to help VS understand the options -->
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="CreateTrimDependencyGroups.cs" />
+    <Compile Include="EnsureOOBFramework.cs" />
+    <Compile Include="Framework.cs" />
+    <Compile Include="FrameworkUtilities.cs" />
+    <Compile Include="GenerateRuntimeDependencies.cs" />
+    <Compile Include="Generations.cs" />
+    <Compile Include="GetAssemblyReferences.cs" />
+    <Compile Include="GetPackageVersion.cs" />
+    <Compile Include="GetInboxFrameworks.cs" />
+    <Compile Include="ApplyPreReleaseSuffix.cs" />
+    <Compile Include="GetPackageDescription.cs" />
+    <Compile Include="Log.cs" />
+    <Compile Include="NuGetAssetResolver.cs" />
+    <Compile Include="PackageItem.cs" />
+    <Compile Include="PackageMetadata.cs" />
+    <Compile Include="PackagingTask.cs" />
+    <Compile Include="ValidatePackage.cs" />
+    <Compile Include="ValidatePackageTargetFramework.cs" />
+    <Compile Include="VersionUtility.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="PackageFiles\Generations.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="PackageFiles\Packaging.targets">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="PackageFiles\PackageLibs.targets">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="PackageFiles\_._">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="project.json" />
+    <None Include="$(MSBuildThisFileDirectory)FrameworkLists\**\*.xml">
+      <Link>FrameworkLists\%(RecursiveDir)%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="PackageFiles\stable.packages.targets">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="$(PackagesDir)Microsoft.NETCore.Platforms\1.0.1-rc2-23530\runtime.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="FrameworkLists\.NETCore,Version=v4.5.1\" />
+    <Folder Include="FrameworkLists\.NETCore,Version=v4.5\" />
+    <Folder Include="FrameworkLists\.NETFramework,Version=v4.5.1\" />
+    <Folder Include="FrameworkLists\.NETFramework,Version=v4.5\" />
+    <Folder Include="FrameworkLists\.NETFramework,Version=v4.6.1\" />
+    <Folder Include="FrameworkLists\.NETFramework,Version=v4.6\" />
+    <Folder Include="FrameworkLists\MonoAndroid,Version=v1.0\" />
+    <Folder Include="FrameworkLists\MonoTouch,Version=v1.0\" />
+    <Folder Include="FrameworkLists\WindowsPhone,Version=v8.0\" />
+    <Folder Include="FrameworkLists\WindowsPhoneApp,Version=v8.1\" />
+    <Folder Include="FrameworkLists\Xamarin.iOS,Version=v1.0\" />
+    <Folder Include="FrameworkLists\Xamarin.Mac,Version=v2.0\" />
+  </ItemGroup>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
+</Project>
