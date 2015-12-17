@@ -27,5 +27,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Metadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PackageDirectory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NuGetPack.cs" />
   </ItemGroup>
 </Project>
