@@ -471,36 +471,6 @@ namespace Microsoft.DotNet.Build.Tasks
             return firstTarget;
         }
 
-
-        /// <summary>
-        /// Determines the packages IDs that were directly referenced
-        /// </summary>
-        /// <param name="lockFile">The lock file JSON.</param>
-        private IEnumerable<string> GetDirectReferences(JObject lockFile)
-        {
-            var dependencyGroups = (JObject)lockFile["projectFileDependencyGroups"];
-
-            if (null == dependencyGroups)
-            {
-                return Enumerable.Empty<string>();
-            }
-
-            return dependencyGroups.Values<JProperty>()
-                .Where(dg => dg.Name == "" || TargetMonikers.Select(tm => tm.ItemSpec).Contains(dg.Name))
-                .SelectMany(dg => dg.Value.Values<string>())
-                .Select(dependencyClause =>
-                {
-                    int lengthOfDependencyId = dependencyClause.IndexOf(' ');
-
-                    if (lengthOfDependencyId == -1)
-                    {
-                        throw new Exception("InvalidDependencyFormat");
-                    }
-
-                    return dependencyClause.Substring(0, lengthOfDependencyId);
-                });
-        }
-
         private string GetTargetMonikerWithOptionalRuntimeIdentifier(ITaskItem preferredTargetMoniker, bool needsRuntimeIdentifier)
         {
             return needsRuntimeIdentifier ? preferredTargetMoniker.ItemSpec + "/" + RuntimeIdentifier : preferredTargetMoniker.ItemSpec;
@@ -572,15 +542,28 @@ namespace Microsoft.DotNet.Build.Tasks
         private void GetReferencedPackages(JObject lockFile)
         {
             var projectFileDependencyGroups = (JObject)lockFile["projectFileDependencyGroups"];
-            var projectFileDependencies = (JArray)projectFileDependencyGroups[""];
 
-            foreach (var packageDependency in projectFileDependencies.Select(v => (string)v))
+            // find whichever target we will have selected
+            var actualTarget = GetTargetOrAttemptFallback(lockFile, needsRuntimeIdentifier: false)?.Parent as JProperty;
+            string targetMoniker = null;
+            if (actualTarget != null)
             {
-                int firstSpace = packageDependency.IndexOf(' ');
+                targetMoniker = actualTarget.Name.Split('/').FirstOrDefault();
+            }
 
-                if (firstSpace > -1)
+            foreach (var dependencyGroup in projectFileDependencyGroups.Values<JProperty>())
+            {
+                if (dependencyGroup.Name.Length == 0 || dependencyGroup.Name == targetMoniker)
                 {
-                    _referencedPackages.Add(new TaskItem(packageDependency.Substring(0, firstSpace)));
+                    foreach (var packageDependency in dependencyGroup.Value.Values<string>())
+                    {
+                        int firstSpace = packageDependency.IndexOf(' ');
+
+                        if (firstSpace > -1)
+                        {
+                            _referencedPackages.Add(new TaskItem(packageDependency.Substring(0, firstSpace)));
+                        }
+                    }
                 }
             }
         }
