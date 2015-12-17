@@ -47,6 +47,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         [Required]
         public ITaskItem[] CandidateReferences { get; set; }
 
+        public ITaskItem[] IgnoredReferences { get; set; }
+
         public override bool Execute()
         {
             if (String.IsNullOrEmpty(PackageTargetFramework))
@@ -89,6 +91,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 _log.LogError($"Assembly {AssemblyName}, Version={assemblyVersion} is generation {idealGeneration} based on the seed data in {GenerationDefinitionsFile} which is greater than project generation {fx.Version}.");
             }
 
+            HashSet<string> ignoredRefs = null;
+
+            if (IgnoredReferences != null)
+            {
+                ignoredRefs = new HashSet<string>(IgnoredReferences.Select(ir => ir.ItemSpec), StringComparer.OrdinalIgnoreCase);
+            }
+
             foreach (var reference in DirectReferences)
             {
                 string path = reference.GetMetadata("FullPath");
@@ -101,6 +110,11 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 {
                     continue;
                 }
+
+                if (ignoredRefs != null && ignoredRefs.Contains(Path.GetFileNameWithoutExtension(path)))
+                {
+                    continue;
+                }
                 
                 if (!File.Exists(path))
                 {
@@ -108,7 +122,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     continue;
                 }
 
-                var dependencyGeneration = _generations.DetermineGenerationFromFile(path, _log, candidateRefs: candidateRefs);
+                var dependencyGeneration = _generations.DetermineGenerationFromFile(path, _log, candidateRefs: candidateRefs, ignoredRefs: ignoredRefs) ?? FrameworkConstants.CommonFrameworks.DotNet.Version;
 
                 if (dependencyGeneration > fx.Version)
                 {

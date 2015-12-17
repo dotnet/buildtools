@@ -67,7 +67,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         private Dictionary<string, Version> _generationCache = new Dictionary<string, Version>(StringComparer.OrdinalIgnoreCase);
         private List<string> _cycleStack = new List<string>();
 
-        public Version DetermineGenerationFromFile(string assemblyPath, ILog log, Version expectedVersion = null, IDictionary<string, string> candidateRefs = null)
+        public Version DetermineGenerationFromFile(string assemblyPath, ILog log, Version expectedVersion = null, IDictionary<string, string> candidateRefs = null, ICollection<string> ignoredRefs = null)
         {
             Version maxGeneration = null;
 
@@ -77,12 +77,22 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 return maxGeneration;
             }
 
+            string assemblyName = Path.GetFileNameWithoutExtension(assemblyPath);
+            if (s_ignoredReferences.Contains(assemblyName) || (ignoredRefs != null && ignoredRefs.Contains(assemblyName)))
+            {
+                return null;
+            }
+
             using (PEReader peReader = new PEReader(new FileStream(assemblyPath, FileMode.Open, FileAccess.Read, FileShare.Delete | FileShare.Read)))
             {
                 MetadataReader reader = peReader.GetMetadataReader();
                 AssemblyDefinition assemblyDef = reader.GetAssemblyDefinition();
 
-                string assemblyName = reader.GetString(assemblyDef.Name);
+                assemblyName = reader.GetString(assemblyDef.Name);
+                if (s_ignoredReferences.Contains(assemblyName) || (ignoredRefs != null && ignoredRefs.Contains(assemblyName)))
+                {
+                    return null;
+                }
 
                 // break a circular dependency
                 int cycleIndex = _cycleStack.IndexOf(assemblyName);
@@ -106,8 +116,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 {
                     AssemblyReference reference = reader.GetAssemblyReference(handle);
                     string referenceName = reader.GetString(reference.Name);
-                    
-                    if (s_ignoredReferences.Contains(referenceName))
+
+                    if (s_ignoredReferences.Contains(referenceName) || (ignoredRefs != null && ignoredRefs.Contains(referenceName)))
                     {
                         continue;
                     }

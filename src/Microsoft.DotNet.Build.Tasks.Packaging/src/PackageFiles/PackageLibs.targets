@@ -160,7 +160,8 @@
                                     GenerationDefinitionsFile="$(GenerationDefinitionFile)"
                                     PackageTargetFramework="$(PackageTargetFramework)"
                                     DirectReferences="@(ReferencePath)"
-                                    CandidateReferences="@(ReferencePath);@(IndirectReference)" />
+                                    CandidateReferences="@(ReferencePath);@(IndirectReference)" 
+                                    IgnoredReferences="@(ValidateIgnoreReference)"/>
   </Target>
   
 </Project>
