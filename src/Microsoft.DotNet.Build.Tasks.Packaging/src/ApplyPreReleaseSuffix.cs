@@ -56,13 +56,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             if (null == OriginalPackages || OriginalPackages.Length == 0)
             {
-                _log.LogError("OriginalPackages argument must be specified");
+                Log.LogError("OriginalPackages argument must be specified");
                 return false;
             }
 
             if (String.IsNullOrEmpty(PreReleaseSuffix))
             {
-                _log.LogError("PreReleaseSuffix argument must be specified");
+                Log.LogError("PreReleaseSuffix argument must be specified");
                 return false;
             }
 
@@ -117,7 +117,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             UpdatedPackages = updatedPackages.ToArray();
 
-            return !_log.HasLoggedErrors;
+            return !Log.HasLoggedErrors;
         }
 
         private static Version ParseAs3PartVersion(string versionString)

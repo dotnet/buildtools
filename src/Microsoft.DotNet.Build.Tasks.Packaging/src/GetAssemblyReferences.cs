@@ -41,7 +41,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 {
                     if (!File.Exists(assemblyItem.ItemSpec))
                     {
-                        _log.LogError($"File {assemblyItem.ItemSpec} does not exist, ensure you have built libraries before building the package.");
+                        Log.LogError($"File {assemblyItem.ItemSpec} does not exist, ensure you have built libraries before building the package.");
                         continue;
                     }
 

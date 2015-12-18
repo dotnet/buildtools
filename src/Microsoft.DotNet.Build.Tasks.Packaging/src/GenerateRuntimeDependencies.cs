@@ -54,19 +54,19 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         {
             if (Dependencies == null || Dependencies.Length == 0)
             {
-                _log.LogError("Dependencies argument must be specified");
+                Log.LogError("Dependencies argument must be specified");
                 return false;
             }
 
             if (String.IsNullOrEmpty(PackageId))
             {
-                _log.LogError("PackageID argument must be specified");
+                Log.LogError("PackageID argument must be specified");
                 return false;
             }
 
             if (RuntimeJson == null)
             {
-                _log.LogError("RuntimeJson argument must be specified");
+                Log.LogError("RuntimeJson argument must be specified");
                 return false;
             }
 
@@ -100,7 +100,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     continue;
                 }
 
-                _log.LogMessage(LogImportance.Low, "Aliasing {0} -> {1}", alias, dependency.ItemSpec);
+                Log.LogMessage(LogImportance.Low, "Aliasing {0} -> {1}", alias, dependency.ItemSpec);
                 packageAliases[alias] = dependency.ItemSpec;
             }
 
@@ -114,17 +114,17 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                 if (String.IsNullOrEmpty(targetRuntimeId))
                 {
-                    _log.LogMessage(LogImportance.Low, "Skipping dependency {0} since it doesn't have a TargetRuntime.", dependency.ItemSpec);
+                    Log.LogMessage(LogImportance.Low, "Skipping dependency {0} since it doesn't have a TargetRuntime.", dependency.ItemSpec);
                     continue;
                 }
 
                 if (!String.IsNullOrEmpty(targetPackageAlias) && !packageAliases.TryGetValue(targetPackageAlias, out targetPackageId))
                 {
-                    _log.LogWarning("Dependency {0} specified TargetPackageAlias {1} but no package was found defining this alias.", dependency.ItemSpec, targetPackageAlias);
+                    Log.LogWarning("Dependency {0} specified TargetPackageAlias {1} but no package was found defining this alias.", dependency.ItemSpec, targetPackageAlias);
                 }
                 else
                 {
-                    _log.LogMessage(LogImportance.Low, "Using {0} for TargetPackageAlias {1}", targetPackageId, targetPackageAlias);
+                    Log.LogMessage(LogImportance.Low, "Using {0} for TargetPackageAlias {1}", targetPackageId, targetPackageAlias);
                 }
 
                 RuntimeSpec targetRuntime = null;
@@ -136,7 +136,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                 if (String.IsNullOrEmpty(targetPackageId))
                 {
-                    _log.LogMessage(LogImportance.Low, "Dependency {0} has no parent so will assume {1}.", dependency.ItemSpec, PackageId);
+                    Log.LogMessage(LogImportance.Low, "Dependency {0} has no parent so will assume {1}.", dependency.ItemSpec, PackageId);
                     targetPackageId = PackageId;
                 }
 
@@ -155,7 +155,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 {
                     if (String.IsNullOrEmpty(dependencyVersion))
                     {
-                        _log.LogWarning("Dependency {0} has no version", dependency.ItemSpec);
+                        Log.LogWarning("Dependency {0} has no version", dependency.ItemSpec);
                     }
 
                     ImplementationSpec existing;
@@ -163,7 +163,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     if (targetPackage.Implementations.TryGetValue(dependencyId, out existing))
                     {
                         string newVersion = CompareSemanticVersion(dependencyVersion, existing.Version) > 0 ? dependencyVersion : existing.Version;
-                        _log.LogMessage(LogImportance.Low, "Dependency {0} has been added more than once, {1}, {2}, using {3}", dependencyId, existing.Version, dependencyVersion, newVersion);
+                        Log.LogMessage(LogImportance.Low, "Dependency {0} has been added more than once, {1}, {2}, using {3}", dependencyId, existing.Version, dependencyVersion, newVersion);
                         dependencyVersion = newVersion;
                     }
 

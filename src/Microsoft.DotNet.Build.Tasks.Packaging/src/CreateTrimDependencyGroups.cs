@@ -53,12 +53,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         {
             if (null == Dependencies)
             {
-                _log.LogError("Dependencies argument must be specified");
+                Log.LogError("Dependencies argument must be specified");
                 return false;
             }
             if (null == FrameworkListsPath)
             {
-                _log.LogError("FrameworkListsPath argument must be specified");
+                Log.LogError("FrameworkListsPath argument must be specified");
                 return false;
             }
 
@@ -211,7 +211,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
             TrimmedDependencies = collapsedDependencies.ToArray();
 
-            return !_log.HasLoggedErrors;
+            return !Log.HasLoggedErrors;
         }
 
         private bool IsSupported(NuGetFramework inboxFx, NuGetAssetResolver resolver)

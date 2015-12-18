@@ -40,13 +40,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         {
             if (null == DescriptionFile)
             {
-                _log.LogError("DescriptionFile argument must be specified");
+                Log.LogError("DescriptionFile argument must be specified");
                 return false;
             }
 
             if (String.IsNullOrEmpty(PackageId))
             {
-                _log.LogError("PackageId argument must be specified");
+                Log.LogError("PackageId argument must be specified");
                 return false;
             }
 
@@ -54,7 +54,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             if (!File.Exists(descriptionPath))
             {
-                _log.LogError("DescriptionFile '{0}' does not exist", descriptionPath);
+                Log.LogError("DescriptionFile '{0}' does not exist", descriptionPath);
                 return false;
             }
 
@@ -77,12 +77,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             if (String.IsNullOrEmpty(description))
             {
-                _log.LogError("Unable to find description for package {0}", PackageId);
+                Log.LogError("Unable to find description for package {0}", PackageId);
             }
 
             Description = description;
 
-            return !_log.HasLoggedErrors;
+            return !Log.HasLoggedErrors;
         }
 
         private Dictionary<string, string> LoadDescriptions(string descriptionPath)
@@ -104,7 +104,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             {
                 if (excep is IOException || excep is UnauthorizedAccessException)
                 {
-                    _log.LogError("Error loading {0}, {1}", descriptionPath, excep);
+                    Log.LogError("Error loading {0}, {1}", descriptionPath, excep);
                     return null;
                 }
                 else
@@ -118,7 +118,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         {
             if (String.IsNullOrEmpty(metadata.Description))
             {
-                _log.LogError("Package {0} has no Description, please add it to {1}", metadata.Name, descriptionPath);
+                Log.LogError("Package {0} has no Description, please add it to {1}", metadata.Name, descriptionPath);
             }
 
             StringBuilder description = new StringBuilder(metadata.Description);
