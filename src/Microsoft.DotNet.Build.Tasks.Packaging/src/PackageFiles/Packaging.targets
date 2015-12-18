@@ -53,8 +53,9 @@
   <PropertyGroup>
     <PackageOutputPath Condition="'$(PackageOutputPath)' == ''">$(BaseOutputPath)pkg\</PackageOutputPath>
     <OutputPath>$(PackageOutputPath)</OutputPath>
-    <NuSpecPath>$(OutputPath)$(Id)$(NuspecSuffix).nuspec</NuSpecPath>
-    <RuntimeFilePath Condition="'$(RuntimeFilePath)' == ''">$(OutputPath)$(Id)$(NuspecSuffix)\runtime.json</RuntimeFilePath>
+    <NuSpecOutputPath Condition="'$(NuSpecOutputPath)' == ''">$(PackageOutputPath)specs\</NuSpecOutputPath>
+    <NuSpecPath>$(NuSpecOutputPath)$(Id)$(NuspecSuffix).nuspec</NuSpecPath>
+    <RuntimeFilePath Condition="'$(RuntimeFilePath)' == ''">$(NuSpecOutputPath)$(Id)$(NuspecSuffix)\runtime.json</RuntimeFilePath>
     <PlaceholderFile>$(MSBuildThisFileDirectory)_._</PlaceholderFile>
     <PackageDescriptionFile Condition="'$(PackageDescriptionFile)' == ''">path to descriptions.json must be specified</PackageDescriptionFile>
     <RuntimeIdGraphDefinitionFile Condition="'$(RuntimeIdGraphDefinitionFile)' == ''">$(MSBuildThisFileDirectory)runtime.json</RuntimeIdGraphDefinitionFile>
@@ -76,6 +77,7 @@
   <UsingTask TaskName="ValidatePackage" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="CreateTrimDependencyGroups" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="GenerateNuSpec" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  <UsingTask TaskName="NuGetPack" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
 
   <!-- Determine if we actually need to build for this architecture -->
   <!-- Packages can specifically control their architecture by specifying the PackagePlatforms 
@@ -92,7 +94,10 @@
     <ShouldGenerateNuSpec Condition="'$(PackagePlatforms)' == '' AND $(PackageTargetRuntime.Contains('-$(PackagePlatform)'))">true</ShouldGenerateNuSpec>
     <!-- build if PackagePlatforms is not specified and arch is x86 or AnyCPU -->
     <ShouldGenerateNuSpec Condition="'$(PackagePlatforms)' == '' AND ('$(PackagePlatform)' == 'x86' OR '$(PackagePlatform)' == 'AnyCPU')">true</ShouldGenerateNuSpec>
+    <!-- if we built a nuspec, also pack unless explicitly set -->
+    <ShouldCreatePackage Condition="'$(ShouldCreatePackage)' == ''">$(ShouldGenerateNuSpec)</ShouldCreatePackage>
     <BuildDependsOn Condition="'$(ShouldGenerateNuSpec)' == 'true'">GenerateNuSpec</BuildDependsOn>
+    <BuildDependsOn Condition="'$(ShouldCreatePackage)' == 'true'">$(BuildDependsOn);CreatePackage</BuildDependsOn>
   </PropertyGroup>
 
   <!-- Redefine build to just create the NuSpec only, we'll create the package during ArcProjects phase -->
@@ -109,8 +114,15 @@
   </Target>
 
   <Target Name="Clean">
+    <!-- package version is calculated so read the last version from the marker file. -->
+    <ReadLinesFromFile File="$(NuSpecPath).pkgpath"
+                       Condition="Exists('$(NuSpecPath).pkgpath')">
+      <Output TaskParameter="Lines" ItemName="_ToBeDeleted"/>
+    </ReadLinesFromFile>
+                       
     <ItemGroup>
       <_ToBeDeleted Include="$(NuSpecPath)" />
+      <_ToBeDeleted Include="$(NuSpecPath).pkgpath" />
       <_ToBeDeleted Include="$(RuntimeFilePath)" />
     </ItemGroup>
     <Delete Files="@(_ToBeDeleted)" />
@@ -844,5 +856,18 @@
     <Error Text="Package @(_SatisfiedMetaDependencies)-%(ActualVersion) is higher version than %(Version) expected." 
            Condition="'@(_SatisfiedMetaDependencies)' != '' AND  %(CompareResult) &gt; 0"
            ContinueOnError="ErrorAndContinue" />
+  </Target>
+
+  <Target Name="CreatePackage"
+          Inputs="$(NuSpecPath)"
+          Outputs="$(PackageOutputPath)$(Id).$(Version).nupkg">
+    <NugetPack Nuspecs="$(NuSpecPath)"
+               OutputDirectory="$(PackageOutputPath)"
+               Properties="$(PackageProperties)"
+               ExcludeEmptyDirectories="true" />
+    <!-- Create a marker that records the path to the generated package -->
+    <WriteLinesToFile Lines="$(PackageOutputPath)$(Id).$(Version).nupkg"
+                      File="$(NuSpecPath).pkgpath"
+                      Overwrite="true"/>
   </Target>
 </Project>
