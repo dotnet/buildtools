@@ -227,71 +227,70 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             return result;
         }
 
-        private string LocateReference(string assemblyName, Version assemblyVersion, ILog log)
+        private string LocateReference(string assemblyName, Version assemblyVersion)
         {
             string contractPath = null;
             string fileName = assemblyName + ".dll";
-            
-            log.LogMessage(LogImportance.Low, $"Searching for {assemblyName}, {assemblyVersion}.");
 
             foreach (string referencePath in ReferencePaths)
             {
                 string contractNamePath = Path.Combine(referencePath, assemblyName);
 
+                if (!Directory.Exists(contractNamePath))
+                {
+                    continue;
+                }
+
                 // <path>/<name>/<version>/<name>.dll
-                contractPath = Path.Combine(contractNamePath, assemblyVersion.ToString(), fileName);
-                log.LogMessage(LogImportance.Low, $"Considering {contractPath}");
-                if (File.Exists(contractPath))
+                if (File.Exists(contractPath = Path.Combine(contractNamePath, assemblyVersion.ToString(), fileName)))
+                {
+                    break;
+                }
+
+                // bugfix version
+                string versionDir = Directory.EnumerateDirectories(contractNamePath, $"{assemblyVersion.ToString(2)}.*.0").LastOrDefault();
+                if (versionDir != null && File.Exists(contractPath = Path.Combine(versionDir, fileName)))
                 {
                     break;
                 }
 
                 // nuget paths, just a heuristic.  Could do better here by actually using NugetAPI.
-                // <path>/<name>/<3PartVersion>/ref/dotnet/<name>.dll
-                contractPath = Path.Combine(contractNamePath, assemblyVersion.ToString(3), "ref", "dotnet", fileName);
-                log.LogMessage(LogImportance.Low, $"Considering {contractPath}");
-                if (File.Exists(contractPath))
+                versionDir = Path.Combine(contractNamePath, assemblyVersion.ToString(3));
+                if (!Directory.Exists(versionDir))
                 {
-                    break;
+                    versionDir = Directory.EnumerateDirectories(contractNamePath, $"{assemblyVersion.ToString(3)}-*").LastOrDefault();
                 }
 
-                // <path>/<name>/<3PartVersion>/lib/dotnet/<name>.dll
-                contractPath = Path.Combine(contractNamePath, assemblyVersion.ToString(3), "lib", "dotnet", fileName);
-                log.LogMessage(LogImportance.Low, $"Considering {contractPath}");
-                if (File.Exists(contractPath))
+                if (!Directory.Exists(versionDir))
                 {
-                    break;
+                    versionDir = Directory.EnumerateDirectories(contractNamePath, $"{assemblyVersion.ToString(2)}.*-*").LastOrDefault();
                 }
 
-                if (Directory.Exists(contractNamePath))
+                if (versionDir != null)
                 {
-                    // <path>/<name>/<newerVersion>/<name>.dll
-                    string foundVersionDir = Directory.EnumerateDirectories(contractNamePath, assemblyVersion.ToString(2) + ".*")
-                        .Where(d => new Version(Path.GetFileName(d)) >= assemblyVersion).FirstOrDefault();
+                    string libDir = null;
 
-                    if (foundVersionDir != null)
+                    if (Directory.Exists(Path.Combine(versionDir, "ref")))
                     {
-                        contractPath = Path.Combine(foundVersionDir, fileName);
-                        break;
+                        libDir = Directory.EnumerateDirectories(Path.Combine(versionDir, "ref"), "dotnet*").FirstOrDefault();
+                    }
+
+                    if (libDir == null && Directory.Exists(Path.Combine(versionDir, "lib")))
+                    {
+                        libDir = Directory.EnumerateDirectories(Path.Combine(versionDir, "lib"), "dotnet*").FirstOrDefault();
+                    }
+
+                    if (libDir != null)
+                    {
+                        if (File.Exists(contractPath = Path.Combine(libDir, fileName)))
+                        {
+                            break;
+                        }
                     }
                 }
+
 
                 contractPath = null;
-            }
-
-            if (contractPath == null)
-            {
-                // do an unversioned check
-                foreach (string referencePath in ReferencePaths)
-                {
-                    // <path>/<name>.dll
-                    if (File.Exists(contractPath = Path.Combine(referencePath, fileName)))
-                    {
-                        break;
-                    }
-
-                    contractPath = null;
-                }
             }
 
             return contractPath;
