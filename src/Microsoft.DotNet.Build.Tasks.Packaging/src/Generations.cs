@@ -21,13 +21,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// </summary>
         private static Dictionary<string, Generations> s_generationsCache = new Dictionary<string, Generations>(StringComparer.OrdinalIgnoreCase); // file paths are case insensitive
 
-        private static HashSet<string> s_ignoredReferences = new HashSet<string>()
-        {
-            "mscorlib",
-            "System.Private.Uri",
-            "Windows"
-        };
-
         private readonly List<Generation> _generations = new List<Generation>();
 
         private Generations()
@@ -78,7 +71,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
 
             string assemblyName = Path.GetFileNameWithoutExtension(assemblyPath);
-            if (s_ignoredReferences.Contains(assemblyName) || (ignoredRefs != null && ignoredRefs.Contains(assemblyName)))
+            if (ignoredRefs != null && ignoredRefs.Contains(assemblyName))
             {
                 return null;
             }
@@ -89,7 +82,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 AssemblyDefinition assemblyDef = reader.GetAssemblyDefinition();
 
                 assemblyName = reader.GetString(assemblyDef.Name);
-                if (s_ignoredReferences.Contains(assemblyName) || (ignoredRefs != null && ignoredRefs.Contains(assemblyName)))
+                if (ignoredRefs != null && ignoredRefs.Contains(assemblyName))
                 {
                     return null;
                 }
@@ -117,7 +110,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     AssemblyReference reference = reader.GetAssemblyReference(handle);
                     string referenceName = reader.GetString(reference.Name);
 
-                    if (s_ignoredReferences.Contains(referenceName) || (ignoredRefs != null && ignoredRefs.Contains(referenceName)))
+                    if (ignoredRefs != null && ignoredRefs.Contains(referenceName))
                     {
                         continue;
                     }

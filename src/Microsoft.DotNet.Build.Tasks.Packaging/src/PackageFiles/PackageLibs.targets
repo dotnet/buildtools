@@ -155,6 +155,10 @@
           Outputs="@(IntermediateAssembly)"
           Condition="'$(PackageTargetFramework)' != '' AND '$(SkipValidatePackageTargetFramework)' != 'true'"
           AfterTargets="ResolveReferences">
+    <ItemGroup Condition="'@(ValidateIgnoreReference)' == ''">
+      <ValidateIgnoreReference Include="mscorlib;System.Private.Uri;Windows" />
+    </ItemGroup>
+    
     <ValidatePackageTargetFramework AssemblyName="$(AssemblyName)"
                                     AssemblyVersion="$(AssemblyVersion)"
                                     GenerationDefinitionsFile="$(GenerationDefinitionFile)"
