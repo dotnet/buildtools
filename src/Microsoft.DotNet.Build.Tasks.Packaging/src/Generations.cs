@@ -21,13 +21,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// </summary>
         private static Dictionary<string, Generations> s_generationsCache = new Dictionary<string, Generations>(StringComparer.OrdinalIgnoreCase); // file paths are case insensitive
 
-        private static HashSet<string> s_ignoredReferences = new HashSet<string>()
-        {
-            "mscorlib",
-            "System.Private.Uri",
-            "Windows"
-        };
-
         private readonly List<Generation> _generations = new List<Generation>();
 
         private Generations()
@@ -67,7 +60,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         private Dictionary<string, Version> _generationCache = new Dictionary<string, Version>(StringComparer.OrdinalIgnoreCase);
         private List<string> _cycleStack = new List<string>();
 
-        public Version DetermineGenerationFromFile(string assemblyPath, ILog log, Version expectedVersion = null, IDictionary<string, string> candidateRefs = null)
+        public Version DetermineGenerationFromFile(string assemblyPath, ILog log, Version expectedVersion = null, IDictionary<string, string> candidateRefs = null, ICollection<string> ignoredRefs = null)
         {
             Version maxGeneration = null;
 
@@ -77,12 +70,22 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 return maxGeneration;
             }
 
+            string assemblyName = Path.GetFileNameWithoutExtension(assemblyPath);
+            if (ignoredRefs != null && ignoredRefs.Contains(assemblyName))
+            {
+                return null;
+            }
+
             using (PEReader peReader = new PEReader(new FileStream(assemblyPath, FileMode.Open, FileAccess.Read, FileShare.Delete | FileShare.Read)))
             {
                 MetadataReader reader = peReader.GetMetadataReader();
                 AssemblyDefinition assemblyDef = reader.GetAssemblyDefinition();
 
-                string assemblyName = reader.GetString(assemblyDef.Name);
+                assemblyName = reader.GetString(assemblyDef.Name);
+                if (ignoredRefs != null && ignoredRefs.Contains(assemblyName))
+                {
+                    return null;
+                }
 
                 // break a circular dependency
                 int cycleIndex = _cycleStack.IndexOf(assemblyName);
@@ -106,8 +109,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 {
                     AssemblyReference reference = reader.GetAssemblyReference(handle);
                     string referenceName = reader.GetString(reference.Name);
-                    
-                    if (s_ignoredReferences.Contains(referenceName))
+
+                    if (ignoredRefs != null && ignoredRefs.Contains(referenceName))
                     {
                         continue;
                     }

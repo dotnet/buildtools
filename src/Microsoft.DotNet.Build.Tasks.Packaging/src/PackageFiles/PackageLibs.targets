@@ -153,14 +153,19 @@
   <Target Name="ValidatePackageTargetFramework"
           Inputs="$(MSBuildAllProjects);@(CustomAdditionalCompileInputs);@(ReferencePath)"
           Outputs="@(IntermediateAssembly)"
-          Condition="'$(PackageTargetFramework)' != ''"
+          Condition="'$(PackageTargetFramework)' != '' AND '$(SkipValidatePackageTargetFramework)' != 'true'"
           AfterTargets="ResolveReferences">
+    <ItemGroup Condition="'@(ValidateIgnoreReference)' == ''">
+      <ValidateIgnoreReference Include="mscorlib;System.Private.Uri;Windows" />
+    </ItemGroup>
+    
     <ValidatePackageTargetFramework AssemblyName="$(AssemblyName)"
                                     AssemblyVersion="$(AssemblyVersion)"
                                     GenerationDefinitionsFile="$(GenerationDefinitionFile)"
                                     PackageTargetFramework="$(PackageTargetFramework)"
                                     DirectReferences="@(ReferencePath)"
-                                    CandidateReferences="@(ReferencePath);@(IndirectReference)" />
+                                    CandidateReferences="@(ReferencePath);@(IndirectReference)" 
+                                    IgnoredReferences="@(ValidateIgnoreReference)"/>
   </Target>
   
 </Project>
