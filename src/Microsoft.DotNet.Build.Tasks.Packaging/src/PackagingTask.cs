@@ -8,11 +8,15 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
     public abstract partial class PackagingTask : ITask
     {
-        internal Log _log;
+        private Log _log = null;
+
+        internal Log Log
+        {
+            get { return _log ?? (_log = new Log(new TaskLoggingHelper(this))); }
+        }
 
         public PackagingTask()
         {
-            _log = new Log(new TaskLoggingHelper(this));
         }
 
         public IBuildEngine BuildEngine

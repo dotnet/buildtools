@@ -42,13 +42,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         {
             if (Nuspecs == null || Nuspecs.Length == 0)
             {
-                _log.LogError("Nuspecs argument must be specified");
+                Log.LogError("Nuspecs argument must be specified");
                 return false;
             }
 
             if (String.IsNullOrEmpty(OutputDirectory))
             {
-                _log.LogError("OuputDirectory argument must be specified");
+                Log.LogError("OuputDirectory argument must be specified");
                 return false;
             }
 
@@ -68,7 +68,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                     if (propertyPair.Length < 2)
                     {
-                        _log.LogError($"Invalid property pair {property}.  Properties should be of the form name=value.");
+                        Log.LogError($"Invalid property pair {property}.  Properties should be of the form name=value.");
                         continue;
                     }
 
@@ -85,7 +85,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                 if (!File.Exists(nuspecPath))
                 {
-                    _log.LogError($"Nuspec {nuspecPath} does not exist");
+                    Log.LogError($"Nuspec {nuspecPath} does not exist");
                     continue;
                 }
 
@@ -97,13 +97,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                     if (String.IsNullOrEmpty(id))
                     {
-                        _log.LogError($"Nuspec {nuspecPath} does not contain a valid Id");
+                        Log.LogError($"Nuspec {nuspecPath} does not contain a valid Id");
                         continue;
                     }
 
                     if (String.IsNullOrEmpty(version))
                     {
-                        _log.LogError($"Nuspec {nuspecPath} does not contain a valid version");
+                        Log.LogError($"Nuspec {nuspecPath} does not contain a valid version");
                         continue;
                     }
 
@@ -114,15 +114,15 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                         builder.Save(fileStream);
                     }
 
-                    _log.LogMessage($"Created '{nupkgPath}'");
+                    Log.LogMessage($"Created '{nupkgPath}'");
                 }
                 catch (Exception e)
                 {
-                    _log.LogError($"Error when creating nuget package from {nuspecPath}. {e}");
+                    Log.LogError($"Error when creating nuget package from {nuspecPath}. {e}");
                 }
             }
 
-            return !_log.HasLoggedErrors;
+            return !Log.HasLoggedErrors;
         }
 
         private class DictionaryPropertyProvider : IPropertyProvider

@@ -41,28 +41,28 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         {
             if (null == FrameworkListsPath)
             {
-                _log.LogError("FrameworkListsPath argument must be specified");
+                Log.LogError("FrameworkListsPath argument must be specified");
                 return false;
             }
 
             if (String.IsNullOrEmpty(AssemblyName))
             {
-                _log.LogError("AssemblyName argument must be specified");
+                Log.LogError("AssemblyName argument must be specified");
                 return false;
             }
 
             if (!Directory.Exists(FrameworkListsPath))
             {
-                _log.LogError("FrameworkListsPath '{0}' does not exist", FrameworkListsPath);
+                Log.LogError("FrameworkListsPath '{0}' does not exist", FrameworkListsPath);
                 return false;
             }
 
-            _log.LogMessage(LogImportance.Low, "Determining inbox frameworks for {0}, {1}", AssemblyName, AssemblyVersion);
+            Log.LogMessage(LogImportance.Low, "Determining inbox frameworks for {0}, {1}", AssemblyName, AssemblyVersion);
 
 
-            InboxFrameworks = Frameworks.GetInboxFrameworksList(FrameworkListsPath, AssemblyName, AssemblyVersion, _log);
+            InboxFrameworks = Frameworks.GetInboxFrameworksList(FrameworkListsPath, AssemblyName, AssemblyVersion, Log);
 
-            return !_log.HasLoggedErrors;
+            return !Log.HasLoggedErrors;
         }
     }
 }

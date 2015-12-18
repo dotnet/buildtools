@@ -29,7 +29,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         {
             if (Files == null || Files.Length == 0)
             {
-                _log.LogError("Files argument must be specified");
+                Log.LogError("Files argument must be specified");
                 return false;
             }
 
@@ -72,11 +72,11 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             {
                 if (!permittedVersions.Contains(file.Version))
                 {
-                    _log.LogError("File {0} has version {1} which is inconsistent with other libs and doesn't match any reference assembly", file.File, file.Version);
+                    Log.LogError("File {0} has version {1} which is inconsistent with other libs and doesn't match any reference assembly", file.File, file.Version);
                 }
             }
 
-            return !_log.HasLoggedErrors;
+            return !Log.HasLoggedErrors;
         }
     }
 }

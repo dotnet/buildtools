@@ -43,7 +43,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             if (!String.IsNullOrEmpty(RuntimeJson) && !File.Exists(RuntimeJson))
             {
-                _log.LogError("Could not load runtime file: {0}", RuntimeJson);
+                Log.LogError("Could not load runtime file: {0}", RuntimeJson);
                 RuntimeJson = null;
             }
 
@@ -88,7 +88,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             AdditionalFiles = newItems.ToArray();
 
-            return !_log.HasLoggedErrors;
+            return !Log.HasLoggedErrors;
         }
 
         private IEnumerable<string> GetObscuredAssetFolders(ContentItemGroup assets, ContentItemGroup obscuredAssets, NuGetFramework targetFramework, string targetFrameworkName, string expectedAssetFolder, string ignoredAssetFolder = null)
@@ -111,7 +111,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             var resolvedFramework = assets.Properties["tfm"] as NuGetFramework;
             if (targetFramework.Equals(resolvedFramework))
             {
-                _log.LogMessage(LogImportance.Low, $"Not overriding explicit placeholder for {targetFrameworkName}");
+                Log.LogMessage(LogImportance.Low, $"Not overriding explicit placeholder for {targetFrameworkName}");
                 return Enumerable.Empty<string>();
             }
 
@@ -128,7 +128,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 var unexpectedAssetPaths = obscuredAssetPaths.Where(ri => !ri.StartsWith(expectedAssetFolder, StringComparison.OrdinalIgnoreCase));
                 foreach (var unexpectedAssetPath in unexpectedAssetPaths)
                 {
-                    _log.LogWarning($"Unexpected targetPath {unexpectedAssetPath}.  Expected only {expectedAssetFolder}.");
+                    Log.LogWarning($"Unexpected targetPath {unexpectedAssetPath}.  Expected only {expectedAssetFolder}.");
                 }
 
                 // filter after we've warned
@@ -139,7 +139,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             {
                 // it's acceptable to have no override, this is the case for packages which 
                 // carry implementation in a runtime-specific package
-                _log.LogMessage(LogImportance.Low, $"No {expectedAssetFolder} assets could be found to override inbox placeholder for {targetFrameworkName}.");
+                Log.LogMessage(LogImportance.Low, $"No {expectedAssetFolder} assets could be found to override inbox placeholder for {targetFrameworkName}.");
             }
 
             return obscuredAssetPaths;
@@ -155,7 +155,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     if (packageItem.TargetPath.StartsWith(keyAsset))
                     {
                         string subPath = packageItem.TargetPath.Substring(keyAsset.Length);
-                        _log.LogMessage(LogImportance.Low, $"Copying {packageItem.TargetPath} to {targetAssetFolder}/{targetFrameworkName}{subPath}.");
+                        Log.LogMessage(LogImportance.Low, $"Copying {packageItem.TargetPath} to {targetAssetFolder}/{targetFrameworkName}{subPath}.");
                         yield return GetOOBItem(packageItem, $"{targetAssetFolder}/{targetFrameworkName}{subPath}", targetFrameworkName);
                     }
                 }

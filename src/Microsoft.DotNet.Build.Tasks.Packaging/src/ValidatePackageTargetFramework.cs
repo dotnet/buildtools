@@ -53,7 +53,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         {
             if (String.IsNullOrEmpty(PackageTargetFramework))
             {
-                _log.LogMessage(LogImportance.Low, $"Skipping validation since PackageTargetFramework is not defined");
+                Log.LogMessage(LogImportance.Low, $"Skipping validation since PackageTargetFramework is not defined");
                 return true;
             }
 
@@ -64,20 +64,20 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
             catch(Exception ex)
             {
-                _log.LogError($"Could not parse PackageTargetFramework {PackageTargetFramework}. {ex}");
+                Log.LogError($"Could not parse PackageTargetFramework {PackageTargetFramework}. {ex}");
                 return false;
             }
 
             Version assemblyVersion = null;
             if (!Version.TryParse(AssemblyVersion, out assemblyVersion))
             {
-                _log.LogError($"Could not parse AssemblyVersion {AssemblyVersion}.");
+                Log.LogError($"Could not parse AssemblyVersion {AssemblyVersion}.");
                 return false;
             }
 
             if (fx.Framework != FrameworkConstants.FrameworkIdentifiers.NetPlatform)
             {
-                _log.LogMessage(LogImportance.Low, $"Skipping validation since PackageTargetFramework {fx} is not {FrameworkConstants.FrameworkIdentifiers.NetPlatform}");
+                Log.LogMessage(LogImportance.Low, $"Skipping validation since PackageTargetFramework {fx} is not {FrameworkConstants.FrameworkIdentifiers.NetPlatform}");
                 return true;
             }
 
@@ -85,10 +85,10 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             Dictionary<string, string> candidateRefs = CandidateReferences.ToDictionary(r => r.GetMetadata("FileName"), r => r.GetMetadata("FullPath"));
 
-            Version idealGeneration = _generations.DetermineGenerationFromSeeds(AssemblyName, assemblyVersion, _log) ?? new Version(0, 0, 0, 0);
+            Version idealGeneration = _generations.DetermineGenerationFromSeeds(AssemblyName, assemblyVersion, Log) ?? new Version(0, 0, 0, 0);
             if (idealGeneration > fx.Version)
             {
-                _log.LogError($"Assembly {AssemblyName}, Version={assemblyVersion} is generation {idealGeneration} based on the seed data in {GenerationDefinitionsFile} which is greater than project generation {fx.Version}.");
+                Log.LogError($"Assembly {AssemblyName}, Version={assemblyVersion} is generation {idealGeneration} based on the seed data in {GenerationDefinitionsFile} which is greater than project generation {fx.Version}.");
             }
 
             HashSet<string> ignoredRefs = null;
@@ -118,15 +118,15 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 
                 if (!File.Exists(path))
                 {
-                    _log.LogError($"Reference {path} does not exist.");
+                    Log.LogError($"Reference {path} does not exist.");
                     continue;
                 }
 
-                var dependencyGeneration = _generations.DetermineGenerationFromFile(path, _log, candidateRefs: candidateRefs, ignoredRefs: ignoredRefs) ?? FrameworkConstants.CommonFrameworks.DotNet.Version;
+                var dependencyGeneration = _generations.DetermineGenerationFromFile(path, Log, candidateRefs: candidateRefs, ignoredRefs: ignoredRefs) ?? FrameworkConstants.CommonFrameworks.DotNet.Version;
 
                 if (dependencyGeneration > fx.Version)
                 {
-                    _log.LogError($"Dependency {path} is generation {dependencyGeneration} which is greater than project generation {fx.Version}.");
+                    Log.LogError($"Dependency {path} is generation {dependencyGeneration} which is greater than project generation {fx.Version}.");
                 }
                 
                 if (dependencyGeneration > idealGeneration)
@@ -137,11 +137,11 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             if (fx.Version > idealGeneration)
             {
-                _log.LogMessage(LogImportance.Low, $"Generation {fx.Version} is higher than the ideal miniumum {idealGeneration}.");
+                Log.LogMessage(LogImportance.Low, $"Generation {fx.Version} is higher than the ideal miniumum {idealGeneration}.");
             }
 
 
-            return !_log.HasLoggedErrors;
+            return !Log.HasLoggedErrors;
         }
 
     }

@@ -136,7 +136,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
 
 
-            return !_log.HasLoggedErrors;
+            return !Log.HasLoggedErrors;
         }
 
         private void ValidateGenerations()
@@ -163,7 +163,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             {
                 if (validateFile.TargetFramework.Version < minSupportedGeneration)
                 {
-                    _log.LogError($"Invalid generation {validateFile.TargetFramework.Version} for {validateFile.SourcePath}, must be at least {minSupportedGeneration} based on the implementations in the package.  If you meant to target the lower generation you may be missing an implementation for a framework on that lower generation.  If not you should raise the generation of the reference assembly to match that of the lowest supported generation of all implementations/placeholders.");
+                    Log.LogError($"Invalid generation {validateFile.TargetFramework.Version} for {validateFile.SourcePath}, must be at least {minSupportedGeneration} based on the implementations in the package.  If you meant to target the lower generation you may be missing an implementation for a framework on that lower generation.  If not you should raise the generation of the reference assembly to match that of the lowest supported generation of all implementations/placeholders.");
                 }
             }
         }
@@ -195,16 +195,16 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                         if (hasCompileAsset && (hasRuntimeAsset & !permitImplementation))
                         {
-                            _log.LogError($"{ContractName} should not be supported on {target} but has both compile and runtime assets.");
+                            Log.LogError($"{ContractName} should not be supported on {target} but has both compile and runtime assets.");
                         }
                         else if (hasRuntimeAsset & !permitImplementation)
                         {
-                            _log.LogError($"{ContractName} should not be supported on {target} but has runtime assets.");
+                            Log.LogError($"{ContractName} should not be supported on {target} but has runtime assets.");
                         }
 
                         if (hasRuntimePlaceHolder && hasCompilePlaceHolder)
                         {
-                            _log.LogError($"{ContractName} should not be supported on {target} but has placeholders for both compile and runtime which will permit the package to install.");
+                            Log.LogError($"{ContractName} should not be supported on {target} but has placeholders for both compile and runtime which will permit the package to install.");
                         }
                     }
                     else
@@ -213,20 +213,20 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                         {
                             if (!hasCompileAsset && !hasCompilePlaceHolder)
                             {
-                                _log.LogError($"Framework {fx} should support {ContractName} inbox but was missing a placeholder for compile-time.  You may need to add <InboxOnTargetFramework Include=\"{fx.GetShortFolderName()}\" /> to your project.");
+                                Log.LogError($"Framework {fx} should support {ContractName} inbox but was missing a placeholder for compile-time.  You may need to add <InboxOnTargetFramework Include=\"{fx.GetShortFolderName()}\" /> to your project.");
                             }
                             else if (hasCompileAsset)
                             {
-                                _log.LogError($"Framework {fx} should support {ContractName} inbox but contained a reference assemblies: {String.Join(", ", compileAssetPaths)}.  You may need to add <InboxOnTargetFramework Include=\"{fx.GetShortFolderName()}\" /> to your project.");
+                                Log.LogError($"Framework {fx} should support {ContractName} inbox but contained a reference assemblies: {String.Join(", ", compileAssetPaths)}.  You may need to add <InboxOnTargetFramework Include=\"{fx.GetShortFolderName()}\" /> to your project.");
                             }
 
                             if (!hasRuntimeAsset && !hasRuntimePlaceHolder)
                             {
-                                _log.LogError($"Framework {fx} should support {ContractName} inbox but was missing a placeholder for run-time.  You may need to add <InboxOnTargetFramework Include=\"{fx.GetShortFolderName()}\" /> to your project.");
+                                Log.LogError($"Framework {fx} should support {ContractName} inbox but was missing a placeholder for run-time.  You may need to add <InboxOnTargetFramework Include=\"{fx.GetShortFolderName()}\" /> to your project.");
                             }
                             else if (hasRuntimeAsset)
                             {
-                                _log.LogError($"Framework {fx} should support {ContractName} inbox but contained a implementation assemblies: {String.Join(", ", runtimeAssetPaths)}.  You may need to add <InboxOnTargetFramework Include=\"{fx.GetShortFolderName()}\" /> to your project.");
+                                Log.LogError($"Framework {fx} should support {ContractName} inbox but contained a implementation assemblies: {String.Join(", ", runtimeAssetPaths)}.  You may need to add <InboxOnTargetFramework Include=\"{fx.GetShortFolderName()}\" /> to your project.");
                             }
                         }
                         else
@@ -234,7 +234,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                             Version referenceAssemblyVersion = null;
                             if (!hasCompileAsset)
                             {
-                                _log.LogError($"{ContractName} should be supported on {target} but has no compile assets.");
+                                Log.LogError($"{ContractName} should be supported on {target} but has no compile assets.");
                             }
                             else
                             {
@@ -242,7 +242,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                                 if (referenceAssemblies.Count() > 1)
                                 {
-                                    _log.LogError($"{ContractName} should only contain a single compile asset for {target}.");
+                                    Log.LogError($"{ContractName} should only contain a single compile asset for {target}.");
                                 }
 
                                 foreach (var referenceAssembly in referenceAssemblies)
@@ -251,14 +251,14 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                                     if (!VersionUtility.IsCompatibleApiVersion(supportedVersion, referenceAssemblyVersion))
                                     {
-                                        _log.LogError($"{ContractName} should support API version {supportedVersion} on {target} but {referenceAssembly} was found to support {referenceAssemblyVersion?.ToString() ?? "<unknown version>"}.");
+                                        Log.LogError($"{ContractName} should support API version {supportedVersion} on {target} but {referenceAssembly} was found to support {referenceAssemblyVersion?.ToString() ?? "<unknown version>"}.");
                                     }
                                 }
                             }
 
                             if (!hasRuntimeAsset && !IsGeneration(validateFramework.Framework))
                             {
-                                _log.LogError($"{ContractName} should be supported on {target} but has no runtime assets.");
+                                Log.LogError($"{ContractName} should be supported on {target} but has no runtime assets.");
                             }
                             else
                             {
@@ -271,19 +271,19 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                                     if (!VersionUtility.IsCompatibleApiVersion(supportedVersion, implementationVersion))
                                     {
-                                        _log.LogError($"{ContractName} should support API version {supportedVersion} on {target} but {implementationAssembly} was found to support {implementationVersion?.ToString() ?? "<unknown version>"}.");
+                                        Log.LogError($"{ContractName} should support API version {supportedVersion} on {target} but {implementationAssembly} was found to support {implementationVersion?.ToString() ?? "<unknown version>"}.");
                                     }
 
                                     if (referenceAssemblyVersion != null && implementationVersion != referenceAssemblyVersion)
                                     {
-                                        _log.LogError($"{ContractName} has mismatched compile ({referenceAssemblyVersion}) and runtime ({implementationVersion}) versions on {target}.");
+                                        Log.LogError($"{ContractName} has mismatched compile ({referenceAssemblyVersion}) and runtime ({implementationVersion}) versions on {target}.");
                                     }
 
                                     string fileName = Path.GetFileName(implementationAssembly);
 
                                     if (implementationFiles.ContainsKey(fileName))
                                     {
-                                        _log.LogError($"{ContractName} includes both {implementationAssembly} and {implementationFiles[fileName]} an on {target} which have the same name and will clash when both packages are used.");
+                                        Log.LogError($"{ContractName} includes both {implementationAssembly} and {implementationFiles[fileName]} an on {target} which have the same name and will clash when both packages are used.");
                                     }
                                     else
                                     {
@@ -359,7 +359,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 assetLog.AppendLine();
                 assetLog.Append("  <none>");
             }
-            _log.LogMessage(LogImportance.Low, assetLog.ToString());
+            Log.LogMessage(LogImportance.Low, assetLog.ToString());
         }
 
         private void LoadSuppressions()
@@ -396,7 +396,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     }
                     else
                     {
-                        _log.LogError($"{SuppressionFile} contained unkown suppression {keyString}");
+                        Log.LogError($"{SuppressionFile} contained unkown suppression {keyString}");
                     }
                 }
             }
@@ -413,18 +413,18 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                     if (String.IsNullOrWhiteSpace(validateFile.TargetPath))
                     {
-                        _log.LogError($"{validateFile.TargetPath} is missing TargetPath metadata");
+                        Log.LogError($"{validateFile.TargetPath} is missing TargetPath metadata");
                     }
 
                     if (IsDll(validateFile.SourcePath))
                     {
                         if (validateFile.TargetFramework == null)
                         {
-                            _log.LogError($"{validateFile.SourcePath} is missing TargetFramework metadata");
+                            Log.LogError($"{validateFile.SourcePath} is missing TargetFramework metadata");
                         }
                         else if (validateFile.TargetPath.IndexOf(validateFile.TargetFramework.GetShortFolderName(), StringComparison.OrdinalIgnoreCase) == -1)
                         {
-                            _log.LogError($"{validateFile.SourcePath} specifies TargetFramework {validateFile.TargetFramework} but TargetPath {validateFile.TargetPath} is missing the {validateFile.TargetFramework.GetShortFolderName()} qualifier");
+                            Log.LogError($"{validateFile.SourcePath} specifies TargetFramework {validateFile.TargetFramework} but TargetPath {validateFile.TargetPath} is missing the {validateFile.TargetFramework.GetShortFolderName()} qualifier");
                         }
                     }
 
@@ -436,7 +436,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 }
                 catch (Exception ex)
                 {
-                    _log.LogError($"Could not parse File {file.ItemSpec}. {ex}");
+                    Log.LogError($"Could not parse File {file.ItemSpec}. {ex}");
                     // skip it.
                 }
             }
@@ -452,7 +452,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                     if (_targetPathToPackageItem.ContainsKey(packageSpecificTargetPath))
                     {
-                        _log.LogError($"Files {_targetPathToPackageItem[packageSpecificTargetPath].SourcePath} and {validateFile.SourcePath} have the same TargetPath {packageSpecificTargetPath}.");
+                        Log.LogError($"Files {_targetPathToPackageItem[packageSpecificTargetPath].SourcePath} and {validateFile.SourcePath} have the same TargetPath {packageSpecificTargetPath}.");
                     }
                     _targetPathToPackageItem[packageSpecificTargetPath] = validateFile;
                 }
@@ -469,10 +469,10 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         {
             foreach (var packageId in _validateFiles.Keys)
             {
-                _log.LogMessage(LogImportance.Low, $"Package {packageId}");
+                Log.LogMessage(LogImportance.Low, $"Package {packageId}");
                 foreach (var targetPath in _validateFiles[packageId].Select(pi => pi.TargetPath))
                 {
-                    _log.LogMessage(LogImportance.Low, $"  {targetPath}");
+                    Log.LogMessage(LogImportance.Low, $"  {targetPath}");
                 }
             }
         }
@@ -491,13 +491,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 }
                 catch (Exception ex)
                 {
-                    _log.LogError($"Could not parse Framework {framework.ItemSpec}. {ex}");
+                    Log.LogError($"Could not parse Framework {framework.ItemSpec}. {ex}");
                     continue;
                 }
 
                 if (fx.Equals(NuGetFramework.UnsupportedFramework))
                 {
-                    _log.LogError($"Did not recognize {framework.ItemSpec} as valid Framework.");
+                    Log.LogError($"Did not recognize {framework.ItemSpec} as valid Framework.");
                     continue;
                 }
 
@@ -505,7 +505,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 
                 if (_frameworks.ContainsKey(fx))
                 {
-                    _log.LogError($"Framework {fx} has been listed in Frameworks more than once.");
+                    Log.LogError($"Framework {fx} has been listed in Frameworks more than once.");
                     continue;
                 }
 
@@ -537,13 +537,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 }
                 catch (Exception ex)
                 {
-                    _log.LogError($"Could not parse TargetFramework {fxString} as a SupportedFramework. {ex}");
+                    Log.LogError($"Could not parse TargetFramework {fxString} as a SupportedFramework. {ex}");
                     continue;
                 }
 
                 if (fx.Equals(NuGetFramework.UnsupportedFramework))
                 {
-                    _log.LogError($"Did not recognize TargetFramework {fxString} as a SupportedFramework.");
+                    Log.LogError($"Did not recognize TargetFramework {fxString} as a SupportedFramework.");
                     continue;
                 }
 
@@ -555,14 +555,14 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 }
                 catch (Exception ex)
                 {
-                    _log.LogError($"Could not parse Version {version} on SupportedFramework item {supportedFramework.ItemSpec}. {ex}");
+                    Log.LogError($"Could not parse Version {version} on SupportedFramework item {supportedFramework.ItemSpec}. {ex}");
                     continue;
                 }
 
                 ValidationFramework validationFramework = null;
                 if (!_frameworks.TryGetValue(fx, out validationFramework))
                 {
-                    _log.LogError($"SupportedFramework {fx} was specified but is not part of the Framework list to use for validation.");
+                    Log.LogError($"SupportedFramework {fx} was specified but is not part of the Framework list to use for validation.");
                     continue;
                 }
 
@@ -571,7 +571,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 {
                     if (validationFramework.SupportedVersion != supportedVersion)
                     {
-                        _log.LogError($"Framework {fx} has been listed in SupportedFrameworks more than once with different versions {validationFramework.SupportedVersion} and {supportedVersion}.  Framework should only be listed once with the expected API version for that platform.");
+                        Log.LogError($"Framework {fx} has been listed in SupportedFrameworks more than once with different versions {validationFramework.SupportedVersion} and {supportedVersion}.  Framework should only be listed once with the expected API version for that platform.");
                     }
                     continue;
                 }
@@ -621,13 +621,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                                 (supportedVersion.Major == inboxVersion.Major && supportedVersion.Minor > inboxVersion.Minor)))
                             {
                                 // Higher major.minor
-                                _log.LogMessage(LogImportance.Low, $"Framework {fx} supported {ContractName} as inbox but the current supported version {supportedVersion} is higher in major.minor than inbox version {inboxVersion}.  Assuming out of box.");
+                                Log.LogMessage(LogImportance.Low, $"Framework {fx} supported {ContractName} as inbox but the current supported version {supportedVersion} is higher in major.minor than inbox version {inboxVersion}.  Assuming out of box.");
                                 continue;
                             }
                             else if (supportedVersion != null && supportedVersion < inboxVersion)
                             {
                                 // Lower version
-                                _log.LogError($"Framework {fx} supports {ContractName} as inbox but the current supported version {supportedVersion} is lower than the inbox version {inboxVersion}");
+                                Log.LogError($"Framework {fx} supports {ContractName} as inbox but the current supported version {supportedVersion} is lower than the inbox version {inboxVersion}");
                             }
 
                             // equal major.minor, build.revision difference is permitted, prefer the version listed by ContractSupport item
@@ -661,14 +661,14 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             foreach (var framework in portableFrameworks)
             {
                 NuGetFramework generation = new NuGetFramework(FrameworkConstants.FrameworkIdentifiers.NetPlatform, Generations.DetermineGenerationForFramework(framework.Framework));
-                _log.LogMessage(LogImportance.Low, $"Validating {generation} for {ContractName}, {framework.SupportedVersion} since it is supported by {framework.Framework}");
+                Log.LogMessage(LogImportance.Low, $"Validating {generation} for {ContractName}, {framework.SupportedVersion} since it is supported by {framework.Framework}");
 
                 ValidationFramework existingGeneration = null;
                 if (generationsToValidate.TryGetValue(generation, out existingGeneration))
                 {
                     if (!VersionUtility.IsCompatibleApiVersion(framework.SupportedVersion, existingGeneration.SupportedVersion) && !genVersionSuppression.Contains(framework.Framework.ToString()))
                     {
-                        _log.LogError($"Framework {framework.Framework} supports {ContractName} at {framework.SupportedVersion} which is lower than {existingGeneration.SupportedVersion} supported by generation {generation.GetShortFolderName()}");
+                        Log.LogError($"Framework {framework.Framework} supports {ContractName} at {framework.SupportedVersion} which is lower than {existingGeneration.SupportedVersion} supported by generation {generation.GetShortFolderName()}");
                     }
                 }
                 else
@@ -700,7 +700,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                     Version supportedVersion = generationalImplementation.Version;
 
-                    _log.LogMessage(LogImportance.Low, $"Validating {generation} for {ContractName}, {supportedVersion} since it is supported by {generationalImplementation.TargetPath}");
+                    Log.LogMessage(LogImportance.Low, $"Validating {generation} for {ContractName}, {supportedVersion} since it is supported by {generationalImplementation.TargetPath}");
 
                     _frameworks.Add(generation, new ValidationFramework(generation) { SupportedVersion = supportedVersion });
                 }
