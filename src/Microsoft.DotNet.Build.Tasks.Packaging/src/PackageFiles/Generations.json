@@ -146,7 +146,7 @@
         "System.Runtime.Serialization.Primitives": "4.1.0.0",
         "System.Runtime.Serialization.Xml": "4.1.0.0",
         "System.ServiceModel.Primitives": "4.1.0.0",
-        "System.ServiceModel.Http": "4.0.10.0",
+        "System.ServiceModel.Http": "4.1.0.0",
         "System.Text.Encoding": "4.0.10.0",
         "System.Text.Encoding.Extensions": "4.0.10.0",
         "System.Text.RegularExpressions": "4.0.10.0",

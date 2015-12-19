@@ -103,7 +103,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                 // Only add the lowest version for a particular inbox framework.  EG if both net45 and net46 are supported by this generation,
                 //        only add net45
-                inboxFrameworksList.RemoveWhere(fx => inboxFrameworksList.Any(otherFx => (otherFx.Framework == fx.Framework) && (otherFx.Version < fx.Version)));
+                inboxFrameworksList.RemoveWhere(fx => inboxFrameworksList.Any(otherFx => (otherFx.Framework.Equals(fx.Framework)) && (otherFx.Version < fx.Version)));
 
                 // Check for assets which have a ref, but not a lib asset. If we have any of these, then they are actually not supported frameworks 
                 // and we should not include them.                
@@ -123,6 +123,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                         if (string.IsNullOrEmpty(version))
                         {
                             version = dependency.GetMetadata("Version");
+
+                            int prereleaseIndex = version.IndexOf('-');
+                            if (prereleaseIndex != -1)
+                            {
+                                version = version.Substring(0, prereleaseIndex);
+                            }
                         }
                         if (!Frameworks.IsInbox(FrameworkListsPath, framework, dependency.ItemSpec, version))
                         {

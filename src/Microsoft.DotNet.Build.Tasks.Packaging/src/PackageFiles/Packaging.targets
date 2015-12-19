@@ -7,12 +7,20 @@
   -->
   
   <PropertyGroup>
+    <Version Condition="'$(StableVersion)' != ''">$(StableVersion)</Version>
+    
     <PreReleaseLabel Condition="'$(PreReleaseLabel)' == ''">rc2</PreReleaseLabel>
     <IncludeBuildNumberInPackageVersion Condition="'$(IncludeBuildNumberInPackageVersion)' == ''">true</IncludeBuildNumberInPackageVersion>
 
     <VersionSuffix Condition="'$(PreReleaseLabel)' != ''">-$(PreReleaseLabel)</VersionSuffix>
     <VersionSuffix Condition="'$(IncludeBuildNumberInPackageVersion)' == 'true'">$(VersionSuffix)-$(BuildNumberMajor)</VersionSuffix>
-    
+
+    <!-- 
+      Empty out the project properties because we want configuration and platform to come from the individual
+      projects instead of being overridden by the value the packages have.
+    -->
+    <ProjectProperties></ProjectProperties>
+
     <PackageRevStableToPrerelease Condition="'$(PackageRevStableToPrerelease)' == ''">false</PackageRevStableToPrerelease>
     <DependencyRevStableToPrerelease Condition="'$(PackageRevStableToPrerelease)' == ''">false</DependencyRevStableToPrerelease>
   </PropertyGroup>
@@ -66,6 +74,13 @@
   </PropertyGroup>
 
   <Import Project="stable.packages.targets" />
+
+  <!-- If this package explicitly sets the StableVersion then add it to the stable list -->
+  <ItemGroup Condition="'$(StableVersion)' != ''">
+    <StablePackage Include="$(MSBuildProjectName)">
+      <Version>$(StableVersion)</Version>
+    </StablePackage>
+  </ItemGroup>
 
   <UsingTask TaskName="ApplyPreReleaseSuffix" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="GetAssemblyReferences" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
@@ -387,7 +402,12 @@
       <!-- ensure that unconstrained dependencies are also expanded in constrained TFM groups -->
       <_PkgProjDependencyWithoutTFM Include="@(PkgProjDependency)" Condition="'%(PkgProjDependency.TargetFramework)' == '' AND '%(PkgProjDependency.DoNotExpand)' != 'true'" />
       <_AllPkgProjTFMs Include="%(PkgProjDependency.TargetFramework)" Condition="'%(PkgProjDependency.DependencyKind)' == 'Direct'" />
+      <!-- Include file TFMs -->
+      <_AllPkgProjTFMs Include="%(File.TargetFramework)" Condition="'%(File.TargetFramework)' != ''" />
 
+      <!-- Remove dependencies without a TFM so they can be replaced -->
+      <PkgProjDependency Remove="@(_PkgProjDependencyWithoutTFM)" />
+      <!-- operate on nuproj dependencies and file dependencies -->
       <PkgProjDependency Include="@(_PkgProjDependencyWithoutTFM)">
         <TargetFramework>%(_AllPkgProjTFMs.Identity)</TargetFramework>
       </PkgProjDependency>
@@ -534,6 +554,9 @@
     <!-- see if we have any runtime dependencies to write to runtime.json -->
     <ItemGroup>
       <RuntimeDependency Condition="'%(Dependency.TargetRuntime)' != ''" Include="@(Dependency)"/>
+      <RuntimeDependency>
+        <TargetPackage Condition="'%(RuntimeDependency.TargetPackage)' == ''">$(Id)</TargetPackage>
+      </RuntimeDependency>
       <!-- don't include runtime depdendencies in the dependency list, they'll be written to the runtime.json -->
       <Dependency Remove="@(RuntimeDependency)"/>
     </ItemGroup>
@@ -667,9 +690,12 @@
   <Target Name="GenerateRuntimeDependencies"
           DependsOnTargets="DetermineRuntimeDependencies"
           BeforeTargets="GenerateNuspec">
+    <ItemGroup>
+      <LineupProjectReference Include="@(ProjectReference)" />
+    </ItemGroup>
 
     <!-- Lineups need to have all runtime dependencies to ensure that they are part of the compile graph -->
-    <MSBuild Projects="@(ProjectReference)" Targets="DetermineRuntimeDependencies" Condition="'$(IsLineupPackage)' == 'true'" Properties="$(ProjectProperties)">
+    <MSBuild Projects="@(LineupProjectReference)" Targets="DetermineRuntimeDependencies" Condition="'$(IsLineupPackage)' == 'true'" Properties="$(ProjectProperties)">
       <Output TaskParameter="TargetOutputs" ItemName="_indirectRuntimeDependencies" />
     </MSBuild>
 
@@ -697,21 +723,27 @@
 
   <Target Name="GetPackageDescription"
           BeforeTargets="GenerateNuspec">
+    <PropertyGroup>
+      <UseRuntimePackageDescription Condition="'$(UseRuntimePackageDescription)' == '' AND $(BaseId.StartsWith('runtime.native'))">true</UseRuntimePackageDescription>
+    </PropertyGroup>
+
     <GetPackageDescription DescriptionFile="$(PackageDescriptionFile)"
+                           Condition="'$(UseRuntimePackageDescription)' != 'true'"
                            PackageId="$(BaseId)">
       <Output TaskParameter="Description"
               PropertyName="Description" />
     </GetPackageDescription>
     
     <GetPackageDescription DescriptionFile="$(PackageDescriptionFile)"
-                           Condition="'$(PackageTargetRuntime)' != ''"
+                           Condition="'$(PackageTargetRuntime)' != '' OR '$(UseRuntimePackageDescription)' == 'true'"
                            PackageId="RuntimePackage">
       <Output TaskParameter="Description"
               PropertyName="RuntimeDisclaimer" />
     </GetPackageDescription>
     
     <PropertyGroup>
-      <Description Condition="'$(RuntimeDisclaimer)' != ''">$(RuntimeDisclaimer) \r\n $(Description)</Description>
+      <Description Condition="'$(UseRuntimePackageDescription)' == 'true' AND '$(RuntimeDisclaimer)' != ''">$(RuntimeDisclaimer)</Description>
+      <Description Condition="'$(UseRuntimePackageDescription)' != 'true' AND '$(RuntimeDisclaimer)' != ''">$(RuntimeDisclaimer) \r\n $(Description)</Description>
       <Description Condition="'@(SyncInfoLines)' != ''">$(Description) \r\n %(SyncInfoLines.Identity)</Description>
     </PropertyGroup>
   </Target>
@@ -816,45 +848,25 @@
                      SuppressionFile="$(ValidationSuppressionFile)"
                      ContinueOnError="ErrorAndContinue"/>
   </Target>
-  
+
   <Target Name="ValidateMetaPackageFramework"
           Condition="'$(MetaPackageFramework)' != ''"
           BeforeTargets="GenerateNuspec">
-    
+
     <ItemGroup>
-      <_ExpectedMetaDependencies Include="@(ContractAssembly)" Condition="'%(ContractAssembly.Platform)' == '$(MetaPackageFramework)'">
-        <Version>$([System.Version]::Parse('%(Version)').ToString(3))</Version>
-      </_ExpectedMetaDependencies>
-      
+      <_ExpectedMetaDependencies Include="@(ContractAssembly)" Condition="'%(ContractAssembly.Platform)' == '$(MetaPackageFramework)'" />
+
       <_ExpectedMetaDependencies Remove="@(ExcludePackage);@(NoPackage)" />
 
       <_ActualMetaDependencies Include="@(Dependency);@(RuntimeDependency)"/>
-      <!-- also consider indirect dependencies that may come from the core package, 
-           TODO: right now this also picks up indirect dependencies other packages (eg: runtime pinning) -->
-      <_ActualMetaDependencies Include="@(PkgProjDependency)" Condition="'%(PkgProjDependency.DependencyKind)' == 'Indirect'" />
-      <_ActualMetaDependencies>
-        <Version>$([System.String]::new('%(Version)').Replace('$(VersionSuffix)', ''))</Version>
-      </_ActualMetaDependencies>
-      
-      <_MissingMetaDependencies Include="@(_ExpectedMetaDependencies)" Exclude="@(_ActualMetaDependencies)"/>
-      <_SatisfiedMetaDependencies Include="@(_ExpectedMetaDependencies)" Condition="'@(_ExpectedMetaDependencies)' == '@(_ActualMetaDependencies)' and '%(Identity)' != ''">
-        <!-- Use transform here because we don't want to effect the batching -->
-        <ActualVersion>@(_ActualMetaDependencies->'%(Version)')</ActualVersion>
-      </_SatisfiedMetaDependencies>
-      
-      <_SatisfiedMetaDependencies>
-        <!-- Compare and store the result in metadata -->
-        <!-- This cannot be done in a condition because MSBuild logical ops aren't short 
-             circuit and parse would throw on empty string as a result of empty _SatisfiedDependencies -->
-        <CompareResult>$([System.Version]::Parse('%(ActualVersion)').CompareTo( $([System.Version]::Parse('%(Version)')) ))</CompareResult>
-      </_SatisfiedMetaDependencies>
+      <!-- also consider indirect dependencies that may come from the core package -->
+      <_ActualMetaDependencies Include="@(NuProjDependency)" Condition="'%(NuProjDependency.DependencyKind)' == 'Indirect'" />
+
+      <_MissingMetaDependencies Include="@(_ExpectedMetaDependencies)" Exclude="@(_ActualMetaDependencies)" />
     </ItemGroup>
 
-    <Error Text="Packages @(_MissingMetaDependencies->'%(Identity)-%(Version)') should be included."
+    <Error Text="Packages @(_MissingMetaDependencies) should be included."
            Condition="'@(_MissingMetaDependencies)' != ''"
-           ContinueOnError="ErrorAndContinue" />
-    <Error Text="Package @(_SatisfiedMetaDependencies)-%(ActualVersion) is higher version than %(Version) expected." 
-           Condition="'@(_SatisfiedMetaDependencies)' != '' AND  %(CompareResult) &gt; 0"
            ContinueOnError="ErrorAndContinue" />
   </Target>
 
