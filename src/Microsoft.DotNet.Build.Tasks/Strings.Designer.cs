@@ -11,7 +11,7 @@
 namespace Microsoft.DotNet.Build.Tasks {
     using System;
     using System.Reflection;
-
+    
     
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
@@ -20,6 +20,7 @@ namespace Microsoft.DotNet.Build.Tasks {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Strings {
@@ -28,6 +29,7 @@ namespace Microsoft.DotNet.Build.Tasks {
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
+        [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal Strings() {
         }
         
@@ -83,6 +85,15 @@ namespace Microsoft.DotNet.Build.Tasks {
         internal static string MissingEntryInLockFile {
             get {
                 return ResourceManager.GetString("MissingEntryInLockFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &quot;The ProjectLanguage task parameter cannot be null.&quot;.
+        /// </summary>
+        internal static string NoProgrammingLanguageSpecified {
+            get {
+                return ResourceManager.GetString("NoProgrammingLanguageSpecified", resourceCulture);
             }
         }
         

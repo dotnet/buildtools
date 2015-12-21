@@ -138,4 +138,7 @@
   <data name="ResolvedReferencesFromPackage" xml:space="preserve">
     <value>Resolved references from {0}:</value>
   </data>
+  <data name="NoProgrammingLanguageSpecified" xml:space="preserve">
+    <value>"The ProjectLanguage task parameter cannot be null."</value>
+  </data>
 </root>
