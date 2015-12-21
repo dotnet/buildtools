@@ -407,7 +407,7 @@
 
       <!-- Remove dependencies without a TFM so they can be replaced -->
       <PkgProjDependency Remove="@(_PkgProjDependencyWithoutTFM)" />
-      <!-- operate on nuproj dependencies and file dependencies -->
+      <!-- operate on pkgproj dependencies and file dependencies -->
       <PkgProjDependency Include="@(_PkgProjDependencyWithoutTFM)">
         <TargetFramework>%(_AllPkgProjTFMs.Identity)</TargetFramework>
       </PkgProjDependency>
@@ -860,7 +860,7 @@
 
       <_ActualMetaDependencies Include="@(Dependency);@(RuntimeDependency)"/>
       <!-- also consider indirect dependencies that may come from the core package -->
-      <_ActualMetaDependencies Include="@(NuProjDependency)" Condition="'%(NuProjDependency.DependencyKind)' == 'Indirect'" />
+      <_ActualMetaDependencies Include="@(PkgProjDependency)" Condition="'%(PkgProjDependency.DependencyKind)' == 'Indirect'" />
 
       <_MissingMetaDependencies Include="@(_ExpectedMetaDependencies)" Exclude="@(_ActualMetaDependencies)" />
     </ItemGroup>
