@@ -581,14 +581,15 @@
   </Target>
   
   <Target Name="EnsureEmptyPackage"
-          BeforeTargets="GetPackageFiles">
+          DependsOnTargets="DetermineRuntimeDependencies"
+          BeforeTargets="GenerateNuSpec">
     <!-- Nuget will include all files when nuspec is empty, ensure we have at least one file to avoid that -->
-    <ItemGroup Condition="'@(File)' == ''">
-      <File Include="$(PlaceholderFile)">
+    <ItemGroup Condition="'@(PackageFile)' == ''">
+      <PackageFile Include="$(PlaceholderFile)">
         <PackageId>$(Id)</PackageId>
         <PackageVersion>$(Version)</PackageVersion>
         <IsLibrary>false</IsLibrary>
-      </File>
+      </PackageFile>
     </ItemGroup>
   </Target>
 
@@ -598,11 +599,11 @@
   <Target Name="PreventImplementationReference"
           BeforeTargets="EnsureEmptyPackage">
     <ItemGroup Condition="'$(PreventImplementationReference)' == 'true'">
-      <File Include="$(PlaceholderFile)">
+      <PackageFile Include="$(PlaceholderFile)">
         <PackageId>$(Id)</PackageId>
         <PackageVersion>$(Version)</PackageVersion>
         <TargetPath>ref/dotnet</TargetPath>
-      </File>
+      </PackageFile>
     </ItemGroup>
   </Target>
 
