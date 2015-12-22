@@ -818,7 +818,7 @@
 
     <ItemGroup>
       <!-- Allow for SupportedFramework to be defined as metadata on project references -->
-      <SupportedFramework Include="%(File.SupportedFramework)" Condition="'%(File.SupportedFramework)' != ''">
+      <SupportedFramework Include="%(File.SupportedFramework)" Condition="'%(File.SupportedFramework)' != '' AND '%(File.AssemblyVersion)' != ''">
         <Version>%(File.AssemblyVersion)</Version>
       </SupportedFramework>
     </ItemGroup>
