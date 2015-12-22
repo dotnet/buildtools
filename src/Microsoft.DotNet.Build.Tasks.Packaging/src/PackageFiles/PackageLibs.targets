@@ -14,6 +14,7 @@
     <PropertyGroup>
       <PackagePath Condition="'$(PackagePath)' == ''">$(TargetPath)</PackagePath>
       <PackageIncludeDocs Condition="'$(PackageIncludeDocs)' == '' AND '$(IsReferenceAssembly)' == 'true'">true</PackageIncludeDocs>
+      <PackageIncludeDocs Condition="'$(PackageIncludeDocs)' == '' AND '$(DocumentationFile)' != ''">true</PackageIncludeDocs>
     </PropertyGroup>
 
     <!-- XmlDocFileRoot should be defined externally since these are currently not
@@ -131,8 +132,8 @@
         <IsReferenceAsset>$(IsReferenceAsset)</IsReferenceAsset>
       </FilesToPackage>
 
-      <!-- Include doc output -->
-      <FilesToPackage Include="$(DocumentationFile)" Condition="'$(DocumentationFile)' != '' AND '$(PackageIncludeDocs)' == 'true'">
+      <!-- Include doc output if it isn't centrally authored -->
+      <FilesToPackage Include="$(DocumentationFile)" Condition="'$(DocumentationFile)' != '' AND '@(XmlDocFile)' == '' AND '$(PackageIncludeDocs)' == 'true'">
         <TargetPath>%(PackageDestination.Identity)</TargetPath>
         <IsReferenceAsset>$(IsReferenceAsset)</IsReferenceAsset>
         <!-- intentionally omit TargetFramework: no dependencies for docs -->
