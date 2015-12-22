@@ -184,12 +184,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                         Source = f.GetMetadata(Metadata.FileSource),
                         Target = f.GetMetadata(Metadata.FileTarget),
                         Exclude = f.GetMetadata(Metadata.FileExclude),
-                    }).ToList();
+                    }).OrderBy(f => f.Target, StringComparer.OrdinalIgnoreCase).ToList();
         }
 
         private List<ManifestFrameworkAssembly> GetFrameworkAssemblies()
         {
             return (from fr in FrameworkReferences.NullAsEmpty()
+                    orderby fr.ItemSpec, StringComparer.Ordinal
                     select new ManifestFrameworkAssembly
                     {
                         AssemblyName = fr.ItemSpec,
@@ -214,6 +215,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                         TargetFramework = dependenciesByFramework.Key.GetShortFrameworkName(),
                         Dependencies = (from dependency in dependenciesByFramework
                                         where dependency.Id != "_._"
+                                        orderby dependency.Id, StringComparer.Ordinal
                                         group dependency by dependency.Id into dependenciesById
                                         select new ManifestDependency
                                         {
@@ -222,7 +224,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                                                 .Aggregate(AggregateVersions)
                                                 .ToStringSafe()
                                         }).ToList()
-                    }).ToList();
+                    }
+                    )
+                    .OrderBy(s => s.TargetFramework, StringComparer.Ordinal).ToList();
         }
 
         private List<ManifestReferenceSet> GetReferenceSets()
@@ -240,6 +244,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     {
                         TargetFramework = referencesByFramework.Key.GetShortFrameworkName(),
                         References = (from reference in referencesByFramework
+                                      orderby reference.File, StringComparer.Ordinal
                                       select new ManifestReference
                                       {
                                           File = reference.File
