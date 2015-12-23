@@ -100,9 +100,9 @@
        If this is not done then the package will build if the target runtime contains the current
        architecture or if we're building for x86. -->
   <PropertyGroup>
-    <PackagePlatform>$(Platform)</PackagePlatform>
-    <PackagePlatform Condition="'$(Platform)' == 'amd64'">x64</PackagePlatform>
-    
+    <PackagePlatform Condition="'$(PackagePlatform)' == ''">$(Platform)</PackagePlatform>
+    <PackagePlatform Condition="'$(PackagePlatform)' == 'amd64'">x64</PackagePlatform>
+
     <!-- build if the package specifically requests current architecture via PackagePlatforms -->
     <ShouldGenerateNuSpec Condition="$(PackagePlatforms.Contains('$(PackagePlatform);'))">true</ShouldGenerateNuSpec>
     <!-- build if PackagePlatforms is not specified and the PackageTargetRuntime contains the current architecture -->
