@@ -4,9 +4,9 @@
     <PackagingTaskDir Condition="'$(PackagingTaskDir)' == ''">$(MSBuildThisFileDirectory)</PackagingTaskDir>
     <GenerationDefinitionFile Condition="'$(GenerationDefinitionFile)' == ''">$(MSBuildThisFileDirectory)Generations.json</GenerationDefinitionFile>
   </PropertyGroup>
-  
+
   <UsingTask TaskName="ValidatePackageTargetFramework" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-  
+
   <!-- Returns the set of files to be included in the nuget package
        with appropriate metadata.-->
   <Target Name="GetFilesToPackage"
@@ -84,24 +84,24 @@
       <PackageTargetRuntime Condition=" '$(TargetsWindows)' == 'true'">win7</PackageTargetRuntime>
       <PackageTargetRuntime Condition="'$(TargetsUnix)' == 'true'">unix</PackageTargetRuntime>
     </PropertyGroup>
-    
+
     <!-- *** determine destination path for assets *** -->
     <PropertyGroup>
       <_packageTargetRefLib>lib</_packageTargetRefLib>
       <_packageTargetRefLib Condition="'$(IsReferenceAssembly)' == 'true'">ref</_packageTargetRefLib>
-      
+
       <!-- no path or runtime, but framework: lib/{txm}-->
       <PackageTargetPath Condition="'$(PackageTargetPath)' == '' AND '$(PackageTargetRuntime)' == '' AND '$(PackageTargetFramework)' != ''">$(_packageTargetRefLib)/$(PackageTargetFramework)</PackageTargetPath>
 
       <!-- no path but runtime and framework: runtimes/{rid}/lib/{txm}-->
       <PackageTargetPath Condition="'$(PackageTargetPath)' == '' AND '$(PackageTargetFramework)' != '' AND '$(PackageTargetRuntime)' != ''">runtimes/$(PackageTargetRuntime)/lib/$(PackageTargetFramework)</PackageTargetPath>
     </PropertyGroup>
-    
+
     <!-- specifying $(PackageTargetPath) overrides defaults and project specific items -->
     <ItemGroup Condition="'$(PackageTargetPath)' != ''">
       <!-- remove anything specified by the project-->
       <PackageDestination Remove="@(PackageDestination)" />
-      
+
       <!-- only use $(PackageTargetPath) -->
       <PackageDestination Include="$(PackageTargetPath)">
         <TargetFramework Condition="'$(PackageTargetFramework)' != ''">$(PackageTargetFramework)</TargetFramework>
@@ -120,8 +120,8 @@
         <TargetFramework>dotnet</TargetFramework>
       </PackageDestination>
     </ItemGroup>
-    
-    
+
+
     <!-- *** include assets *** -->
     <ItemGroup>
       <!-- Include primary output -->
@@ -159,14 +159,14 @@
     <ItemGroup Condition="'@(ValidateIgnoreReference)' == ''">
       <ValidateIgnoreReference Include="mscorlib;System.Private.Uri;Windows" />
     </ItemGroup>
-    
+
     <ValidatePackageTargetFramework AssemblyName="$(AssemblyName)"
                                     AssemblyVersion="$(AssemblyVersion)"
                                     GenerationDefinitionsFile="$(GenerationDefinitionFile)"
                                     PackageTargetFramework="$(PackageTargetFramework)"
                                     DirectReferences="@(ReferencePath)"
-                                    CandidateReferences="@(ReferencePath);@(IndirectReference)" 
+                                    CandidateReferences="@(ReferencePath);@(IndirectReference)"
                                     IgnoredReferences="@(ValidateIgnoreReference)"/>
   </Target>
-  
+
 </Project>

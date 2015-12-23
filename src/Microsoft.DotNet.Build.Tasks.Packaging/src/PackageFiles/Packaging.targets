@@ -5,10 +5,10 @@
        Beta -> RC - RTM. We should set $(IncludeBuildNumberInPackageVersion)
        to false for the Beta/RC builds that get uploaded to NuGet.
   -->
-  
+
   <PropertyGroup>
     <Version Condition="'$(StableVersion)' != ''">$(StableVersion)</Version>
-    
+
     <PreReleaseLabel Condition="'$(PreReleaseLabel)' == ''">rc2</PreReleaseLabel>
     <IncludeBuildNumberInPackageVersion Condition="'$(IncludeBuildNumberInPackageVersion)' == ''">true</IncludeBuildNumberInPackageVersion>
 
@@ -27,7 +27,7 @@
     <!-- By default we'll build libraries referenced by packages -->
     <BuildPackageLibraryReferences Condition="'$(BuildPackageLibraryReferences)' == ''">true</BuildPackageLibraryReferences>
   </PropertyGroup>
-  
+
   <PropertyGroup Condition="'$(IsRuntimePackage)' == 'true' or '$(PackageTargetRuntime)' != ''">
     <IdPrefix>runtime.</IdPrefix>
     <IdPrefix Condition="'$(PackageTargetRuntime)' != ''">$(IdPrefix)$(PackageTargetRuntime).</IdPrefix>
@@ -119,13 +119,13 @@
   </PropertyGroup>
 
   <!-- Redefine build to just create the NuSpec only, we'll create the package during ArcProjects phase -->
-  <Target Name="Build" 
+  <Target Name="Build"
           DependsOnTargets="$(BuildDependsOn)">
-    
+
     <Message Condition="'$(ShouldGenerateNuSpec)' == 'true'"
              Text="$(MSBuildProjectName) -> $(NuSpecPath)"
              Importance="high" />
-    
+
     <Message Condition="'$(ShouldGenerateNuSpec)' != 'true'"
              Text="Skipping nuspec generation for this platform."
              Importance="high" />
@@ -137,7 +137,7 @@
                        Condition="Exists('$(NuSpecPath).pkgpath')">
       <Output TaskParameter="Lines" ItemName="_ToBeDeleted"/>
     </ReadLinesFromFile>
-                       
+
     <ItemGroup>
       <_ToBeDeleted Include="$(NuSpecPath)" />
       <_ToBeDeleted Include="$(NuSpecPath).pkgpath" />
@@ -148,7 +148,7 @@
 
   <Target Name="Rebuild"
           DependsOnTargets="Clean;Build" />
-  
+
   <Target Name="SplitProjectReferences"
           DependsOnTargets="_GetProjectClosure">
     <ItemGroup>
@@ -302,7 +302,7 @@
       </ProjectReference>
     </ItemGroup>
   </Target>
-  
+
   <PropertyGroup>
     <!-- exclude reference assets for runtime packages 
          these assets are only packaged in the reference packages.  Even
@@ -310,7 +310,7 @@
          for better compression.  -->
     <ExcludeReferenceAssets Condition="'$(ExcludeReferenceAssets)' == '' AND '$(PackageTargetRuntime)' != ''">true</ExcludeReferenceAssets>
   </PropertyGroup>
-  
+
   <!-- We define a custom target: GetFilesToPackage which does a minimal build of the project
        and passes all information in a single item group.
        This helps minimize the number of project evaluations and targets that build in order
@@ -351,7 +351,7 @@
            Text="Package $(ID) contains file with name %(File.FileName).  If this is expected you can disable this filename checking for this item or package by setting SkipPackageFileCheck = true"
            ContinueOnError="ErrorAndContinue" />
   </Target>
-  
+
   <!-- Permit setting TargetFramework and add our own metadata (TargetRuntime) -->
   <Target Name="GetPackageIdentity"
           Returns="@(_PackageIdentity)"
@@ -370,7 +370,7 @@
        strict about assets that are included in the package.  -->
   <Target Name="_GetProjectClosure"
           Returns="@(_ProjectReferenceClosure)">
-          
+
     <!-- Get closure of indirect references if they opt-in -->
     <MSBuild Projects="@(ProjectReference)"
              Targets="_GetProjectClosure"
@@ -422,7 +422,7 @@
       </PkgProjDependency>
     </ItemGroup>
   </Target>
-  
+
   <!-- Don't do any filtering of files. 
        We explicitly determine package content so we do not need to
        filter out files that come from dependent packages. -->
@@ -461,20 +461,20 @@
       <Output TaskParameter="ReferencedAssemblies"
               ItemName="_FileReferencedAssemblies"/>
     </GetAssemblyReferences>
-    
+
     <PropertyGroup>
       <_IsClassicAssembly>false</_IsClassicAssembly>
       <_IsClassicAssembly Condition="'%(_FileReferencedAssemblies.FileName)' == 'mscorlib'">true</_IsClassicAssembly>
       <_IsClassicAssembly Condition="'%(_FileReferencedAssemblies.FileName)' == 'System.Private.Corelib'">true</_IsClassicAssembly>
       <_TargetFramework>%(File.TargetFramework)</_TargetFramework>
     </PropertyGroup>
-    
+
     <ItemGroup Condition="'@(_FileReferencedAssemblies)' != ''">
-      <_FilePackageReference Include="@(_FileReferencedAssemblies)" 
+      <_FilePackageReference Include="@(_FileReferencedAssemblies)"
                              Exclude="corefx;mscorlib;System;System.Core;System.Xml;Windows">
         <AssemblyVersion>%(Version)</AssemblyVersion>
       </_FilePackageReference>
-      
+
       <_FilePackageReference Remove="@(_FilePackageReference)"
                              Condition="$([System.String]::new('%(Identity)').StartsWith('Internal.'))"/>
       <_FilePackageReference Remove="@(_FilePackageReference)"
@@ -527,7 +527,7 @@
     <Error Text="No version could be detected.  Either specify the Version property or provide at least one managed assembly."
            Condition="'$(Version)' == '' AND '$(_AssemblyVersion)' == ''"
            ContinueOnError="ErrorAndContinue" />
-    
+
     <ItemGroup>
       <_thisPackage Include="$(Id)">
         <Version Condition="'$(Version)' != ''">$(Version)</Version>
@@ -539,7 +539,7 @@
     <ApplyPreReleaseSuffix StablePackages="@(StablePackage)" OriginalPackages="@(_thisPackage)" PreReleaseSuffix="$(VersionSuffix)" RevStableToPrerelease="$(PackageRevStableToPrerelease)">
       <Output TaskParameter="UpdatedPackages" ItemName="_thisPackageFinal"/>
     </ApplyPreReleaseSuffix>
-    
+
     <PropertyGroup>
       <Version>%(_thisPackageFinal.Version)</Version>
     </PropertyGroup>
@@ -571,7 +571,7 @@
     </ItemGroup>
 
     <Error Text="Packages that are constrained by runtime should not have runtime dependencies.  They will be ignored by nuget"
-           Condition="'$(PackageTargetRuntime)' != '' AND '@(RuntimeDependency)' != ''" 
+           Condition="'$(PackageTargetRuntime)' != '' AND '@(RuntimeDependency)' != ''"
            ContinueOnError="ErrorAndContinue" />
 
     <!-- determine if there is a file to be updated, and setup the output file -->
@@ -589,7 +589,7 @@
       </PackageFile>
     </ItemGroup>
   </Target>
-  
+
   <Target Name="EnsureEmptyPackage"
           DependsOnTargets="DetermineRuntimeDependencies"
           BeforeTargets="GenerateNuSpec">
@@ -676,7 +676,7 @@
       <Output TaskParameter="AdditionalFiles" ItemName="File" />
     </EnsureOOBFramework>
   </Target>
-  
+
   <!-- We can reduce the number of dependencies listed for any framework that has
        inbox implementations since that framework doesn't need the packages for
        compile/runtime.  This reduces the noise when consuming our packages in 
@@ -690,12 +690,12 @@
                       Files="@(File)"
                       Condition="'@(Dependency)' != ''">
       <Output TaskParameter="TrimmedDependencies" ItemName="TrimmedDependency" />
-    </CreateTrimDependencyGroups>                    
+    </CreateTrimDependencyGroups>
     <ItemGroup>
-       <Dependency Include="@(TrimmedDependency)" />
-   </ItemGroup>                      
+      <Dependency Include="@(TrimmedDependency)" />
+    </ItemGroup>
   </Target>
-  
+
   <!-- Generates a runtime.json file containing all dependencies with TargetRuntime -->
   <Target Name="GenerateRuntimeDependencies"
           DependsOnTargets="DetermineRuntimeDependencies"
@@ -743,21 +743,21 @@
       <Output TaskParameter="Description"
               PropertyName="Description" />
     </GetPackageDescription>
-    
+
     <GetPackageDescription DescriptionFile="$(PackageDescriptionFile)"
                            Condition="'$(PackageTargetRuntime)' != '' OR '$(UseRuntimePackageDescription)' == 'true'"
                            PackageId="RuntimePackage">
       <Output TaskParameter="Description"
               PropertyName="RuntimeDisclaimer" />
     </GetPackageDescription>
-    
+
     <PropertyGroup>
       <Description Condition="'$(UseRuntimePackageDescription)' == 'true' AND '$(RuntimeDisclaimer)' != ''">$(RuntimeDisclaimer)</Description>
       <Description Condition="'$(UseRuntimePackageDescription)' != 'true' AND '$(RuntimeDisclaimer)' != ''">$(RuntimeDisclaimer) \r\n $(Description)</Description>
       <Description Condition="'@(SyncInfoLines)' != ''">$(Description) \r\n %(SyncInfoLines.Identity)</Description>
     </PropertyGroup>
   </Target>
-  
+
   <ItemGroup>
     <!-- Default validation frameworks : every framework that supports contracts -->
     <DefaultValidateFramework Include="dnxcore50">
