@@ -23,6 +23,9 @@
 
     <PackageRevStableToPrerelease Condition="'$(PackageRevStableToPrerelease)' == ''">false</PackageRevStableToPrerelease>
     <DependencyRevStableToPrerelease Condition="'$(PackageRevStableToPrerelease)' == ''">false</DependencyRevStableToPrerelease>
+
+    <!-- By default we'll build libraries referenced by packages -->
+    <BuildPackageLibraryReferences Condition="'$(BuildPackageLibraryReferences)' == ''">true</BuildPackageLibraryReferences>
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(IsRuntimePackage)' == 'true' or '$(PackageTargetRuntime)' != ''">
@@ -314,6 +317,13 @@
        to determine the contents of the package-->
   <Target Name="ExpandProjectReferences"
           DependsOnTargets="SplitProjectReferences">
+
+    <!-- Only rebuild project references when specified -->
+    <MSBuild Targets="Build"
+             Condition="'$(BuildPackageLibraryReferences)' == 'true'"
+             Projects="@(_NonPkgProjProjectReference)"
+             Properties="$(ProjectProperties)"
+             ContinueOnError="WarnAndContinue"/>
 
     <MSBuild Targets="GetFilesToPackage"
              BuildInParallel="$(BuildInParallel)"
