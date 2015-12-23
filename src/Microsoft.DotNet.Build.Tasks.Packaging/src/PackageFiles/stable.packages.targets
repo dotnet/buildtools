@@ -347,7 +347,7 @@
     <StablePackage Include="System.Numerics.Vectors.WindowsRuntime">
       <Version>4.0.0</Version>
     </StablePackage>
-    
+
     <!-- Dowlevel packages that shipped in a previous release -->
     <StablePackage Include="System.Collections.Concurrent">
       <Version>4.0.0</Version>

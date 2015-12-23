@@ -5,7 +5,7 @@
     "Contracts may be moved down in generations as a compatible change if every framework assigned",
     "to that generation either supports the contract at that API version or doesn't support the",
     "contract at all.  Support may mean an out of band implementation is provided in the package.",
-    
+
     "Contracts may be added to a generation as a compatible change, but higher versions of that contract",
     "need to be supported by all frameworks assigned to that generation or the higher version needs to be",
     "assigned to a new generation.",
@@ -103,7 +103,7 @@
         "System.Diagnostics.Tracing": "4.0.10.0",
         "System.Runtime": "4.0.10.0",
         "System.Runtime.InteropServices": "4.0.10.0",
-        "System.Runtime.WindowsRuntime":  "4.0.10.0",
+        "System.Runtime.WindowsRuntime": "4.0.10.0",
         "System.Threading.Timer": "4.0.0.0"
       }
     },
@@ -113,7 +113,7 @@
 
         "S.IO.Compression, S.R.Serialization.Primitives, S.R.Serialization.Xml, and S.ServiceModel.Primitives can",
         "only be OOB'ed in 5.4 since Windows Store and Windows Phone do not permit OOBing",
- 
+
         "System.ComponentModel.Annotations 4.1 needs to be in 5.5 but we cannot move it until NuGet/DNX are updated",
         "to make UAP support 5.5"
       ],
@@ -124,7 +124,7 @@
         "System.ComponentModel.Annotations": "4.1.0.0",
         "System.ComponentModel.EventBasedAsync": "4.0.10.0",
         "System.Diagnostics.Debug": "4.0.10.0",
-        "System.Diagnostics.Process":  "4.0.0.0",
+        "System.Diagnostics.Process": "4.0.0.0",
         "System.Diagnostics.Tracing": "4.0.20.0",
         "System.Dynamic.Runtime": "4.0.10.0",
         "System.Globalization": "4.0.10.0",
@@ -164,7 +164,7 @@
         "System.Diagnostics.Process is added here because it required changes to desktop in 4.6.1 that could not be OOBed"
       ],
       "assemblies": {
-        "System.Diagnostics.Process":  "4.1.0.0"
+        "System.Diagnostics.Process": "4.1.0.0"
       }
     }
   }
