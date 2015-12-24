@@ -35,11 +35,13 @@
       <ProjectReference Include="$(_versionReferenceAssemblyProject)" Condition="Exists('$(_versionReferenceAssemblyProject)')">
         <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
         <OutputItemType>ResolvedMatchingContract</OutputItemType>
+        <UndefineProperties>OSGroup;TargetGroup</UndefineProperties>
       </ProjectReference>
       <!-- fall back to 'current' version -->
       <ProjectReference Include="$(_referenceAssemblyProject)" Condition="!Exists('$(_versionReferenceAssemblyProject)') AND Exists('$(_referenceAssemblyProject)')">
         <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
         <OutputItemType>ResolvedMatchingContract</OutputItemType>
+        <UndefineProperties>OSGroup;TargetGroup</UndefineProperties>
       </ProjectReference>
     </ItemGroup>
   </Target>
