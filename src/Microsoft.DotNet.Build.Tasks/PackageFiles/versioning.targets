@@ -102,7 +102,7 @@
 
   </Target>
 
-  <ItemGroup Condition="'$(GenerateAssemblyInfo)'=='true' AND '$(StringResourcesPath)' != ''">
+  <ItemGroup Condition="'$(GenerateAssemblyInfo)'=='true' AND '$(StringResourcesPath)' != '' AND '$(ExcludeAssemblyInfoPartialFile)' != 'true'">
     <Compile Include="$(AssemblyInfoPartialFile)">
       <Visible>true</Visible>
       <Link>$(AssemblyInfoPartialFileLink)</Link>
