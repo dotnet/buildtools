@@ -883,13 +883,26 @@
   <Target Name="CreatePackage"
           Inputs="$(NuSpecPath)"
           Outputs="$(PackageOutputPath)$(Id).$(Version).nupkg">
+
+    <ItemGroup>
+      <_missingFiles Include="@(PackageFile)" Condition="!Exists(%(FullPath))"/>
+    </ItemGroup>
+
+    <PropertyGroup>
+      <_SkipCreatePackage Condition="'$(SkipCreatePackageOnMissingFiles)' == 'true' AND '@(_missingFiles)' != ''">true</_SkipCreatePackage>
+    </PropertyGroup>
+
+    <Warning Condition="'$(_SkipCreatePackage)' == 'true'" Text="Skipping package creation for $(NuSpecPath) because the following files do not exist: @(_missingFiles)" />
+
     <NugetPack Nuspecs="$(NuSpecPath)"
                OutputDirectory="$(PackageOutputPath)"
                Properties="$(PackageProperties)"
-               ExcludeEmptyDirectories="true" />
+               ExcludeEmptyDirectories="true"
+               Condition="'$(_SkipCreatePackage)' != 'true'"/>
     <!-- Create a marker that records the path to the generated package -->
     <WriteLinesToFile Lines="$(PackageOutputPath)$(Id).$(Version).nupkg"
                       File="$(NuSpecPath).pkgpath"
-                      Overwrite="true"/>
+                      Overwrite="true"
+                      Condition="'$(_SkipCreatePackage)' != 'true'"/>
   </Target>
 </Project>
