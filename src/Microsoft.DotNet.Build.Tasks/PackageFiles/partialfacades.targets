@@ -27,8 +27,8 @@
   
   <Target Name="FindPartialFacadeProjectReference">
     <PropertyGroup>
-      <_referenceAssemblyProject>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'ref\$(AssemblyName).csproj'))\ref\$(AssemblyName).csproj</_referenceAssemblyProject>
-      <_versionReferenceAssemblyProject>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'ref\$(APIVersion)\$(AssemblyName).csproj'))\ref\$(APIVersion)\$(AssemblyName).csproj</_versionReferenceAssemblyProject>
+      <_referenceAssemblyProject>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'ref/$(AssemblyName).csproj'))/ref/$(AssemblyName).csproj</_referenceAssemblyProject>
+      <_versionReferenceAssemblyProject>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'ref/$(APIVersion)/$(AssemblyName).csproj'))/ref/$(APIVersion)/$(AssemblyName).csproj</_versionReferenceAssemblyProject>
     </PropertyGroup>
     <ItemGroup>
       <!-- first check for a specific version -->
