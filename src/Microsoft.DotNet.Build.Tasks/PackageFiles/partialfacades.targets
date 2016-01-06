@@ -9,7 +9,7 @@
   -->
   <PropertyGroup>
     <TargetsTriggeredByCompilation Condition="'$(IsPartialFacadeAssembly)' == 'true'">
-      $(TargetsTriggeredByCompilation);FindPartialFacadeContractReference;FillPartialFacade
+      $(TargetsTriggeredByCompilation);FillPartialFacade
     </TargetsTriggeredByCompilation>
   </PropertyGroup>
   
@@ -44,52 +44,6 @@
         <UndefineProperties>OSGroup;TargetGroup</UndefineProperties>
       </ProjectReference>
     </ItemGroup>
-  </Target>
-
-  <!-- FindPartialFacadeContractReference
-         Generates a special project.json file to restore the NuGet package containing the partial facade's contract assembly.
-         Filters the list of references returned by the PrereleaseResolveNuGetPackageAssets task to just the contract assembly and stores it.
-         The identity of the NuGet package is constructed from the assembly's name and version number.
-  -->
-  <Target Name="FindPartialFacadeContractReference" Condition="'@(ResolvedMatchingContract)' == ''">
-    <PropertyGroup>
-      <CustomPartialFacadeDirectory>$(IntermediateOutputPath)partial-facade-packages</CustomPartialFacadeDirectory>
-      <CustomPartialFacadeJsonFile>$(CustomPartialFacadeDirectory)/project.json</CustomPartialFacadeJsonFile>
-      <CustomPartialFacadeLockJsonFile>$(CustomPartialFacadeDirectory)/project.lock.json</CustomPartialFacadeLockJsonFile>
-      <!-- Construct the Major.Minor.Build AssemblyVersion (NuGet package version) -->
-      <_AssemblyMajor>$([System.Version]::new($(AssemblyVersion)).Major)</_AssemblyMajor>
-      <_AssemblyMinor>$([System.Version]::new($(AssemblyVersion)).Minor)</_AssemblyMinor>
-      <_AssemblyBuild>$([System.Version]::new($(AssemblyVersion)).Build)</_AssemblyBuild>
-      <AssemblyVersionString>$(_AssemblyMajor).$(_AssemblyMinor).$(_AssemblyBuild)</AssemblyVersionString>
-    </PropertyGroup>
-
-    <MakeDir Directories="$(CustomPartialFacadeDirectory)" />
-    <WriteLinesToFile File="$(CustomPartialFacadeJsonFile)" Overwrite="true"
-                      Lines="{&quot;dependencies&quot;:{&quot;$(AssemblyName)&quot;: &quot;$(AssemblyVersionString)-*&quot;},&quot;frameworks&quot;:{&quot;$(NuGetTargetMoniker)&quot;: { }}}"
-    />
-
-    <!-- Restore the special partial facade json file, which must contain the contract package to use in GenFacades -->
-    <Exec Command="$(DnuRestoreCommand) &quot;$(CustomPartialFacadeJsonFile)&quot;" StandardOutputImportance="Low" CustomErrorRegularExpression="^Unable to locate .*" />
-    
-    <!-- Resolve the references using this task, store them in @(PossibleContractRefs) -->
-    <PrereleaseResolveNuGetPackageAssets
-                               AllowFallbackOnTargetSelection="true"
-                               IncludeFrameworkReferences="false"
-                               NuGetPackagesDirectory="$(PackagesDir)"
-                               RuntimeIdentifier=""
-                               ProjectLanguage="$(Language)"
-                               ProjectLockFile="$(CustomPartialFacadeLockJsonFile)"
-                               TargetMonikers="$(NuGetTargetMoniker)">
-      <Output TaskParameter="ResolvedReferences" ItemName="PossibleContractRefs" />
-    </PrereleaseResolveNuGetPackageAssets>
-
-    <ItemGroup>
-      <!-- Match the contract by assembly name -->
-      <ResolvedMatchingContract Include="@(PossibleContractRefs)" Condition="'%(FileName)' == '$(AssemblyName)'" />
-      <FileWrites Include="$(CustomPartialFacadeJsonFile)" />
-      <FileWrites Include="$(CustomPartialFacadeLockJsonFile)" />
-    </ItemGroup>
-
   </Target>
 
   <!-- Inputs and outputs of FillPartialFacade -->
