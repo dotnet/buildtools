@@ -12,7 +12,6 @@
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <CLSCompliant>false</CLSCompliant>
     <SkipSigning>true</SkipSigning>
-    <CopyNuGetImplementations>true</CopyNuGetImplementations>
   </PropertyGroup>
   <!-- Default configurations to help VS understand the options -->
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

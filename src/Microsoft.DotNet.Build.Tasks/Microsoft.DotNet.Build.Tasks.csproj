@@ -8,7 +8,6 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.DotNet.Build.Tasks</RootNamespace>
     <AssemblyName>Microsoft.DotNet.Build.Tasks</AssemblyName>
-    <CopyNuGetImplementations>true</CopyNuGetImplementations>
     <CLSCompliant>false</CLSCompliant>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <SkipSigning>true</SkipSigning>

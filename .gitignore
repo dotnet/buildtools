@@ -2,6 +2,9 @@ syntax: glob
 
 ### VisualStudio ###
 
+# NuGet package restore lockfiles
+project.lock.json
+
 # User-specific files
 *.suo
 *.user

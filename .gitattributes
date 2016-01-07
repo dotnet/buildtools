@@ -2,6 +2,9 @@
 # Set default behavior to automatically normalize line endings.
 ###############################################################################
 * text=auto
+# Force bash scripts to always use lf line endings so that if a repro is accessed
+# in Unix via a file share from Windows, the scripts will work.
+*.sh text eol=lf
 
 ###############################################################################
 # Set default behavior for command prompt diff.
