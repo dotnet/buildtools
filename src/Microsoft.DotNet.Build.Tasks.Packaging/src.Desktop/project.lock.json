@@ -921,7 +921,7 @@
     },
     "NuGet.Packaging.Core/3.3.0": {
       "type": "package",
-      "sha512": "6gfzKM6uk/e44iuLS2KglZPs3JiZmLL9lCTBUhDtet8gjmKrHa5RbNctaKNotpQl3NbihSo3F+iDM/SnRO7E/Q==",
+      "sha512": "Ix5M5F7eYIduNIFWQeYgzSo0HKs4Y4ZrLi7TjZC/tMSL5ioiuIF56r2AwLPy98g6J2HWP6j/M6bjkO1vRgIZxA==",
       "files": [
         "lib/dnxcore50/NuGet.Packaging.Core.dll",
         "lib/dnxcore50/NuGet.Packaging.Core.xml",
@@ -934,7 +934,7 @@
     },
     "NuGet.Packaging.Core.Types/3.3.0": {
       "type": "package",
-      "sha512": "J23niUhKIG/J8yDakRwc9UieQvcgTaknYeUsOCxaDb4DrXVDnZ+5GNQMsEyQohNr+4I0b4lEQJvpjoPaxR3+cw==",
+      "sha512": "HjmbxDHozO9DMczF8Iyw2WPpbXHebfxFN18WBPpEabLEK9gNEAqyHS02wd5I8VS2VMBOzRljo24UIVb9yJEimA==",
       "files": [
         "lib/dnxcore50/NuGet.Packaging.Core.Types.dll",
         "lib/dnxcore50/NuGet.Packaging.Core.Types.xml",
@@ -947,7 +947,7 @@
     },
     "NuGet.Repositories/3.3.0": {
       "type": "package",
-      "sha512": "p8OG6CkIVr1wu27J11bVympOhiS5CLL4yhdrq8EkH4NhC7cNCYx9wcsbWMcVIM5JsLIMPkDf53fHVSr1dmF8YQ==",
+      "sha512": "mX7wcpFKH9/Awu+pTJTV5MtSNk2OSQeEg/gwZ6y5dmfL9lmOIpWXSHZJnIzcgFfoHBXiduuaeoCstayUobud8Q==",
       "files": [
         "lib/dnxcore50/NuGet.Repositories.dll",
         "lib/dnxcore50/NuGet.Repositories.xml",
@@ -960,7 +960,7 @@
     },
     "NuGet.RuntimeModel/3.3.0": {
       "type": "package",
-      "sha512": "5TxZt0NJEA1kOA/rXyo8b26BgktJO64yaDAPiyuBBvMuGTpqbq2uDVYE/dKL/D/yCOawPEIawY955Rn+V7JyRA==",
+      "sha512": "+sQzErPT7g7lU8jiKpjZ8JBEhFu9ohxfLZZOiB+E9gjR9rcur+MmtKAyX5Dm1OI90qsHSCSShdB5Xyt5rNFz1A==",
       "files": [
         "lib/dnxcore50/NuGet.RuntimeModel.dll",
         "lib/dnxcore50/NuGet.RuntimeModel.xml",
@@ -973,7 +973,7 @@
     },
     "NuGet.Versioning/3.3.0": {
       "type": "package",
-      "sha512": "/dR3pxThkahpSuYvWUiq0KdBetg8F64WulokAPI7+3z+SsmPh57IXUbhkFdRxxRf9P3fdWkkcDabTwq5YoGr5A==",
+      "sha512": "90wrt/mbOApvWYz/skYYS9w2Y1YdGrHp7irAflAWEW4C1NKzFX80XB3h8BaGKJPcZ6gWNZhh+zZ21MdZ8rJETg==",
       "files": [
         "lib/dnxcore50/NuGet.Versioning.dll",
         "lib/dnxcore50/NuGet.Versioning.xml",
