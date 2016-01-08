@@ -172,7 +172,8 @@
   <Target Name="CreateAssemblyListTxt" DependsOnTargets="CopyTestToTestDirectory">
     <Message Text="Generating $(OutDir)AssemblyList.txt" />
     <ItemGroup>
-      <AssemblyPaths Include="$([MSBuild]::MakeRelative($(PackagesDir), %(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)))" Condition="'%(_TestCopyLocalByFileNameWithoutDuplicates.NugetPackageId)' != ''" />
+      <!-- Using String.Replace instead of MSBuild MakeRelativePath since there is a bug in NetCore MSBuild where it doesn't recognize paths in linux -->
+      <AssemblyPaths Include="$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').Replace('$(PackagesDir)',''))" Condition="'%(_TestCopyLocalByFileNameWithoutDuplicates.NugetPackageId)' != ''" />
     </ItemGroup>
     <WriteLinesToFile
       File="$(OutDir)AssemblyList.flat.txt"
