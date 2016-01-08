@@ -218,10 +218,10 @@
           "ref/dotnet5.4/Microsoft.Win32.Primitives.dll": {}
         }
       },
-      "OpenCover/4.6.166": {
+      "OpenCover/4.6.261-rc": {
         "type": "package"
       },
-      "ReportGenerator/2.3.4": {
+      "ReportGenerator/2.4.0-beta1": {
         "type": "package"
       },
       "System.AppContext/4.0.1-rc2-23530": {
@@ -2134,10 +2134,10 @@
           "lib/DNXCore50/Microsoft.Win32.Registry.dll": {}
         }
       },
-      "OpenCover/4.6.166": {
+      "OpenCover/4.6.261-rc": {
         "type": "package"
       },
-      "ReportGenerator/2.3.4": {
+      "ReportGenerator/2.4.0-beta1": {
         "type": "package"
       },
       "runtime.any.System.Linq.Expressions/4.0.11-rc2-23530": {
@@ -2829,8 +2829,8 @@
         "native": {
           "runtimes/win7-x64/native/API-MS-Win-Base-Util-L1-1-0.dll": {},
           "runtimes/win7-x64/native/api-ms-win-core-com-l1-1-0.dll": {},
-          "runtimes/win7-x64/native/api-ms-win-core-com-private-l1-1-0.dll": {},
           "runtimes/win7-x64/native/api-ms-win-core-comm-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-com-private-l1-1-0.dll": {},
           "runtimes/win7-x64/native/api-ms-win-core-console-l1-1-0.dll": {},
           "runtimes/win7-x64/native/api-ms-win-core-console-l2-1-0.dll": {},
           "runtimes/win7-x64/native/api-ms-win-core-datetime-l1-1-0.dll": {},
@@ -2893,13 +2893,13 @@
           "runtimes/win7-x64/native/api-ms-win-core-shlwapi-obsolete-l1-1-0.dll": {},
           "runtimes/win7-x64/native/api-ms-win-core-shutdown-l1-1-0.dll": {},
           "runtimes/win7-x64/native/api-ms-win-core-shutdown-l1-1-1.dll": {},
+          "runtimes/win7-x64/native/API-MS-Win-Core-StringAnsi-L1-1-0.dll": {},
           "runtimes/win7-x64/native/api-ms-win-core-string-l1-1-0.dll": {},
           "runtimes/win7-x64/native/API-MS-Win-Core-String-L2-1-0.dll": {},
-          "runtimes/win7-x64/native/api-ms-win-core-string-obsolete-l1-1-0.dll": {},
-          "runtimes/win7-x64/native/api-ms-win-core-string-obsolete-l1-1-1.dll": {},
-          "runtimes/win7-x64/native/API-MS-Win-Core-StringAnsi-L1-1-0.dll": {},
           "runtimes/win7-x64/native/api-ms-win-core-stringloader-l1-1-0.dll": {},
           "runtimes/win7-x64/native/api-ms-win-core-stringloader-l1-1-1.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-string-obsolete-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-string-obsolete-l1-1-1.dll": {},
           "runtimes/win7-x64/native/api-ms-win-core-synch-l1-1-0.dll": {},
           "runtimes/win7-x64/native/api-ms-win-core-synch-l1-2-0.dll": {},
           "runtimes/win7-x64/native/api-ms-win-core-sysinfo-l1-1-0.dll": {},
@@ -4941,10 +4941,10 @@
           "lib/DNXCore50/Microsoft.Win32.Registry.dll": {}
         }
       },
-      "OpenCover/4.6.166": {
+      "OpenCover/4.6.261-rc": {
         "type": "package"
       },
-      "ReportGenerator/2.3.4": {
+      "ReportGenerator/2.4.0-beta1": {
         "type": "package"
       },
       "runtime.any.System.Linq.Expressions/4.0.11-rc2-23530": {
@@ -5636,8 +5636,8 @@
         "native": {
           "runtimes/win7-x86/native/API-MS-Win-Base-Util-L1-1-0.dll": {},
           "runtimes/win7-x86/native/api-ms-win-core-com-l1-1-0.dll": {},
-          "runtimes/win7-x86/native/api-ms-win-core-com-private-l1-1-0.dll": {},
           "runtimes/win7-x86/native/api-ms-win-core-comm-l1-1-0.dll": {},
+          "runtimes/win7-x86/native/api-ms-win-core-com-private-l1-1-0.dll": {},
           "runtimes/win7-x86/native/api-ms-win-core-console-l1-1-0.dll": {},
           "runtimes/win7-x86/native/api-ms-win-core-console-l2-1-0.dll": {},
           "runtimes/win7-x86/native/api-ms-win-core-datetime-l1-1-0.dll": {},
@@ -5700,13 +5700,13 @@
           "runtimes/win7-x86/native/api-ms-win-core-shlwapi-obsolete-l1-1-0.dll": {},
           "runtimes/win7-x86/native/api-ms-win-core-shutdown-l1-1-0.dll": {},
           "runtimes/win7-x86/native/api-ms-win-core-shutdown-l1-1-1.dll": {},
+          "runtimes/win7-x86/native/API-MS-Win-Core-StringAnsi-L1-1-0.dll": {},
           "runtimes/win7-x86/native/api-ms-win-core-string-l1-1-0.dll": {},
           "runtimes/win7-x86/native/API-MS-Win-Core-String-L2-1-0.dll": {},
-          "runtimes/win7-x86/native/api-ms-win-core-string-obsolete-l1-1-0.dll": {},
-          "runtimes/win7-x86/native/api-ms-win-core-string-obsolete-l1-1-1.dll": {},
-          "runtimes/win7-x86/native/API-MS-Win-Core-StringAnsi-L1-1-0.dll": {},
           "runtimes/win7-x86/native/api-ms-win-core-stringloader-l1-1-0.dll": {},
           "runtimes/win7-x86/native/api-ms-win-core-stringloader-l1-1-1.dll": {},
+          "runtimes/win7-x86/native/api-ms-win-core-string-obsolete-l1-1-0.dll": {},
+          "runtimes/win7-x86/native/api-ms-win-core-string-obsolete-l1-1-1.dll": {},
           "runtimes/win7-x86/native/api-ms-win-core-synch-l1-1-0.dll": {},
           "runtimes/win7-x86/native/api-ms-win-core-synch-l1-2-0.dll": {},
           "runtimes/win7-x86/native/api-ms-win-core-sysinfo-l1-1-0.dll": {},
@@ -7821,17 +7821,17 @@
         "ref/net46/Microsoft.Win32.Registry.dll"
       ]
     },
-    "OpenCover/4.6.166": {
+    "OpenCover/4.6.261-rc": {
       "type": "package",
-      "sha512": "bor8lEgWH0upmsYg4/aj0CMOsczSwwGy6tBZRC26T1pBs1D2IkVQ/EHU/Shn5SjQ8M04cp8N4xiLFMzF8GzT6g==",
+      "sha512": "kTwzuRlHSuJjEPmadvsFobh8ky7H1rbrkt70mgwv5I+9iMegr2/m8VQTW90iWSXJBjFhH5JC8DCLQ6doY1B6Lg==",
       "files": [
         "docs/ReleaseNotes.txt",
         "docs/Usage.rtf",
         "License.rtf",
         "MSBuild/OpenCover.MSBuild.dll",
         "MSBuild/OpenCover.targets",
-        "OpenCover.4.6.166.nupkg",
-        "OpenCover.4.6.166.nupkg.sha512",
+        "OpenCover.4.6.261-rc.nupkg",
+        "OpenCover.4.6.261-rc.nupkg.sha512",
         "OpenCover.nuspec",
         "readme.txt",
         "Samples/x64/OpenCover.Simple.Target.exe",
@@ -7851,6 +7851,7 @@
         "SampleSln/packages/repositories.config",
         "tools/Autofac.Configuration.dll",
         "tools/Autofac.dll",
+        "tools/CrashReporter.NET.dll",
         "tools/Gendarme.Framework.dll",
         "tools/Gendarme.Rules.Maintainability.dll",
         "tools/log4net.config",
@@ -7871,14 +7872,14 @@
         "transform/transform.ps1"
       ]
     },
-    "ReportGenerator/2.3.4": {
+    "ReportGenerator/2.4.0-beta1": {
       "type": "package",
-      "sha512": "2H+u2UyswSd/ZFU76/OOK+KkWCqaBIFeot82CRD+08WPknUYVYZ2ujSx0nNYId0dkhCq4pSGa7TaXRvXDgdsMg==",
+      "sha512": "MhjaDe4adUDXJDu0CRosY5Hg/9V3Hnkovi1dhvXNMOTgAE5GpFBC7AsrVhOV7TjZQtuIZjKiHfYx4Mc6bnPTuA==",
       "files": [
         "LICENSE.txt",
         "Readme.txt",
-        "ReportGenerator.2.3.4.nupkg",
-        "ReportGenerator.2.3.4.nupkg.sha512",
+        "ReportGenerator.2.4.0-beta1.nupkg",
+        "ReportGenerator.2.4.0-beta1.nupkg.sha512",
         "ReportGenerator.nuspec",
         "tools/ICSharpCode.NRefactory.CSharp.dll",
         "tools/ICSharpCode.NRefactory.dll",
@@ -13388,8 +13389,8 @@
       "Microsoft.NETCore.TestHost >= 1.0.0-rc2-23530",
       "Microsoft.NETCore.Console >= 1.0.0-rc2-23530",
       "coveralls.io >= 1.4.0",
-      "OpenCover >= 4.6.166",
-      "ReportGenerator >= 2.3.4",
+      "OpenCover >= 4.6.261-rc",
+      "ReportGenerator >= 2.4.0-beta1",
       "Microsoft.DotNet.xunit.performance.analysis >= 1.0.0-alpha-build0025",
       "Microsoft.DotNet.xunit.performance.runner.Windows >= 1.0.0-alpha-build0025",
       "xunit >= 2.1.0",
