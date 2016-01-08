@@ -169,8 +169,9 @@
           AfterTargets="Test"
           Condition="'$(TestDisabled)'!='true'">
     <PropertyGroup>
-      <IsWindowsAssembly Condition="'$(OS)'=='Windows_NT' And '%(UnsupportedPlatformsItems.Identity)'=='Windows_NT'">false</IsWindowsAssembly>
-      <TestDisabled Condition="'$(IsWindowsAssembly)'=='false'">true</TestDisabled>
+      <TestDisabled Condition="'%(UnsupportedPlatformsItems.Identity)' == '$(OSGroup)'">true</TestDisabled>
     </PropertyGroup>
+    <Message Condition="'%(UnsupportedPlatformsItems.Identity)' == '$(OSGroup)'"
+      Text="Skipping tests in $(AssemblyName) because it is not supported on $(OSGroup)" />
   </Target>
 </Project>
