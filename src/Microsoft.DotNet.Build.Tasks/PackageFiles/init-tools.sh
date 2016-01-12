@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 __PROJECT_DIR=$1
 __DOTNET_CMD=$2
 __TOOLRUNTIME_DIR=$3
@@ -20,13 +22,27 @@ if [ ! -e "$__DOTNET_CMD" ]; then
    exit 1
 fi
 
+OSName=$(uname -s)
+case $OSName in
+    Darwin)
+        __PUBLISH_RID=osx.10.10-x64
+        ;;
 
+    Linux)
+        __PUBLISH_RID=ubuntu.14.04-x64
+        ;;
+
+    *)
+        echo "Unsupported OS $OSName detected. Downloading ubuntu-x64 tools"
+        __PUBLISH_RID=ubuntu.14.04-x64
+        ;;
+esac
 
 cp -R $__TOOLS_DIR/* $__TOOLRUNTIME_DIR
 chmod a+x $__TOOLRUNTIME_DIR/corerun
 
 cd $__TOOLS_DIR/tool-runtime/
 $__DOTNET_CMD restore --source https://www.myget.org/F/dotnet-core/ --source https://www.myget.org/F/dotnet-buildtools/ --source https://www.nuget.org/api/v2/
-$__DOTNET_CMD publish -f dnxcore50 -r ubuntu.14.04-x64 -o $__TOOLRUNTIME_DIR
+$__DOTNET_CMD publish -f dnxcore50 -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR
 
 exit $__BUILDERRORLEVEL
