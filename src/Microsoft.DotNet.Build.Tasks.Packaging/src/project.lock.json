@@ -191,14 +191,14 @@
           "lib/portable-net45+wp80+win8+wpa81+dnxcore50/Newtonsoft.Json.dll": {}
         }
       },
-      "NuGet.Client/3.3.0": {
+      "NuGet.Client/3.4.0": {
         "type": "package",
         "dependencies": {
-          "NuGet.ContentModel": "3.3.0",
-          "NuGet.Packaging": "3.3.0",
-          "NuGet.Repositories": "3.3.0",
-          "NuGet.RuntimeModel": "3.3.0",
-          "NuGet.Versioning": "3.3.0"
+          "NuGet.ContentModel": "3.4.0",
+          "NuGet.Packaging": "3.4.0",
+          "NuGet.Repositories": "3.4.0",
+          "NuGet.RuntimeModel": "3.4.0",
+          "NuGet.Versioning": "3.4.0"
         },
         "compile": {
           "lib/dnxcore50/NuGet.Client.dll": {}
@@ -207,7 +207,34 @@
           "lib/dnxcore50/NuGet.Client.dll": {}
         }
       },
-      "NuGet.ContentModel/3.3.0": {
+      "NuGet.Common/3.4.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Collections": "4.0.0-beta-23109",
+          "System.Diagnostics.Process": "4.0.0-beta-23109",
+          "System.IO.Compression": "4.0.0-beta-23109",
+          "System.IO.FileSystem": "4.0.0-beta-23109",
+          "System.IO.FileSystem.Primitives": "4.0.0-beta-23109",
+          "System.Runtime.Extensions": "4.0.10-beta-23109",
+          "System.Runtime.InteropServices.RuntimeInformation": "4.0.0-beta-23225",
+          "System.Security.Cryptography.Cng": "4.0.0-beta-23516",
+          "System.Threading": "4.0.10-beta-23109",
+          "System.Threading.Thread": "4.0.0-beta-23109"
+        },
+        "compile": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {}
+        },
+        "runtime": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {}
+        }
+      },
+      "NuGet.ContentModel/3.4.0": {
         "type": "package",
         "dependencies": {
           "System.Collections": "4.0.10-beta-23109",
@@ -218,16 +245,26 @@
           "System.Runtime.Extensions": "4.0.10-beta-23109"
         },
         "compile": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
           "lib/dnxcore50/NuGet.ContentModel.dll": {}
         },
         "runtime": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
           "lib/dnxcore50/NuGet.ContentModel.dll": {}
         }
       },
-      "NuGet.Frameworks/3.3.0": {
+      "NuGet.Frameworks/3.4.0": {
         "type": "package",
         "dependencies": {
-          "NuGet.Versioning": "3.3.0",
+          "NuGet.Versioning": "3.4.0",
           "System.Collections": "4.0.10-beta-23109",
           "System.Collections.Concurrent": "4.0.10-beta-23109",
           "System.Diagnostics.Debug": "4.0.10-beta-23109",
@@ -242,102 +279,295 @@
           "System.Threading.Tasks": "4.0.10-beta-23109"
         },
         "compile": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
           "lib/dnxcore50/NuGet.Frameworks.dll": {}
         },
         "runtime": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
           "lib/dnxcore50/NuGet.Frameworks.dll": {}
         }
       },
-      "NuGet.Logging/3.3.0": {
+      "NuGet.Logging/3.4.0": {
         "type": "package",
         "dependencies": {
           "System.Runtime": "4.0.20-beta-23109"
         },
         "compile": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
           "lib/dnxcore50/NuGet.Logging.dll": {}
         },
         "runtime": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
           "lib/dnxcore50/NuGet.Logging.dll": {}
         }
       },
-      "NuGet.Packaging/3.3.0": {
+      "NuGet.Packaging/3.4.0": {
         "type": "package",
         "dependencies": {
-          "NuGet.Logging": "3.3.0",
-          "NuGet.Packaging.Core": "3.3.0",
+          "NuGet.Common": "3.4.0",
+          "NuGet.Logging": "3.4.0",
+          "NuGet.Packaging.Core": "3.4.0",
           "System.IO.Compression": "4.0.0-beta-23109",
           "System.IO.FileSystem": "4.0.0-beta-23109",
           "System.Security.Cryptography.Hashing.Algorithms": "4.0.0-beta-23225",
           "System.Xml.XDocument": "4.0.10-beta-23109"
         },
         "compile": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
           "lib/dnxcore50/NuGet.Packaging.dll": {}
         },
         "runtime": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
           "lib/dnxcore50/NuGet.Packaging.dll": {}
         }
       },
-      "NuGet.Packaging.Core/3.3.0": {
+      "NuGet.Packaging.Core/3.4.0": {
         "type": "package",
         "dependencies": {
-          "NuGet.Packaging.Core.Types": "3.3.0",
+          "NuGet.Packaging.Core.Types": "3.4.0",
           "System.IO": "4.0.10-beta-23109",
           "System.IO.Compression": "4.0.0-beta-23109",
           "System.Xml.XDocument": "4.0.10-beta-23109"
         },
         "compile": {
-          "lib/dnxcore50/NuGet.Packaging.Core.dll": {}
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {}
         },
         "runtime": {
-          "lib/dnxcore50/NuGet.Packaging.Core.dll": {}
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {}
         }
       },
-      "NuGet.Packaging.Core.Types/3.3.0": {
+      "NuGet.Packaging.Core.Types/3.4.0": {
         "type": "package",
         "dependencies": {
-          "NuGet.Frameworks": "3.3.0"
+          "NuGet.Frameworks": "3.4.0"
         },
         "compile": {
-          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {}
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {}
         },
         "runtime": {
-          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {}
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {}
         }
       },
-      "NuGet.Repositories/3.3.0": {
+      "NuGet.Repositories/3.4.0": {
         "type": "package",
         "dependencies": {
-          "NuGet.Versioning": "3.3.0",
+          "NuGet.Versioning": "3.4.0",
           "System.IO.FileSystem": "4.0.0-beta-23109",
           "System.Threading": "4.0.10-beta-23109"
         },
         "compile": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {},
+          "lib/dnxcore50/NuGet.ProjectModel.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.v3.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Test.Utility.dll": {},
           "lib/dnxcore50/NuGet.Repositories.dll": {}
         },
         "runtime": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {},
+          "lib/dnxcore50/NuGet.ProjectModel.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.v3.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Test.Utility.dll": {},
           "lib/dnxcore50/NuGet.Repositories.dll": {}
         }
       },
-      "NuGet.RuntimeModel/3.3.0": {
+      "NuGet.RuntimeModel/3.4.0": {
         "type": "package",
         "dependencies": {
           "Microsoft.CSharp": "4.0.0-beta-23109",
           "Newtonsoft.Json": "6.0.4",
-          "NuGet.Frameworks": "3.3.0",
-          "NuGet.Versioning": "3.3.0",
+          "NuGet.Frameworks": "3.4.0",
+          "NuGet.Versioning": "3.4.0",
           "System.Collections": "4.0.10-beta-23109",
           "System.IO.FileSystem": "4.0.0-beta-23109",
           "System.Linq": "4.0.0-beta-23109",
           "System.Threading": "4.0.10-beta-23109"
         },
         "compile": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {},
+          "lib/dnxcore50/NuGet.ProjectModel.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.v3.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Test.Utility.dll": {},
+          "lib/dnxcore50/NuGet.Repositories.dll": {},
+          "lib/dnxcore50/NuGet.Resolver.dll": {},
           "lib/dnxcore50/NuGet.RuntimeModel.dll": {}
         },
         "runtime": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {},
+          "lib/dnxcore50/NuGet.ProjectModel.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.v3.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Test.Utility.dll": {},
+          "lib/dnxcore50/NuGet.Repositories.dll": {},
+          "lib/dnxcore50/NuGet.Resolver.dll": {},
           "lib/dnxcore50/NuGet.RuntimeModel.dll": {}
         }
       },
-      "NuGet.Versioning/3.3.0": {
+      "NuGet.Versioning/3.4.0": {
         "type": "package",
         "dependencies": {
           "System.Diagnostics.Debug": "4.0.10-beta-23109",
@@ -348,9 +578,57 @@
           "System.Runtime.Extensions": "4.0.10-beta-23109"
         },
         "compile": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {},
+          "lib/dnxcore50/NuGet.ProjectModel.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.v3.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Test.Utility.dll": {},
+          "lib/dnxcore50/NuGet.Repositories.dll": {},
+          "lib/dnxcore50/NuGet.Resolver.dll": {},
+          "lib/dnxcore50/NuGet.RuntimeModel.dll": {},
+          "lib/dnxcore50/NuGet.Shared.dll": {},
+          "lib/dnxcore50/NuGet.Test.Utility.dll": {},
           "lib/dnxcore50/NuGet.Versioning.dll": {}
         },
         "runtime": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {},
+          "lib/dnxcore50/NuGet.ProjectModel.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.v3.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Test.Utility.dll": {},
+          "lib/dnxcore50/NuGet.Repositories.dll": {},
+          "lib/dnxcore50/NuGet.Resolver.dll": {},
+          "lib/dnxcore50/NuGet.RuntimeModel.dll": {},
+          "lib/dnxcore50/NuGet.Shared.dll": {},
+          "lib/dnxcore50/NuGet.Test.Utility.dll": {},
           "lib/dnxcore50/NuGet.Versioning.dll": {}
         }
       },
@@ -830,7 +1108,7 @@
           "lib/DNXCore50/System.Runtime.InteropServices.dll": {}
         }
       },
-      "System.Runtime.InteropServices.RuntimeInformation/4.0.0-beta-23213": {
+      "System.Runtime.InteropServices.RuntimeInformation/4.0.0-beta-23225": {
         "type": "package",
         "dependencies": {
           "System.Resources.ResourceManager": "4.0.0",
@@ -843,15 +1121,35 @@
           "lib/dotnet/System.Runtime.InteropServices.RuntimeInformation.dll": {}
         }
       },
-      "System.Security.Cryptography.Algorithms/4.0.0-beta-23328": {
+      "System.Security.Cryptography.Algorithms/4.0.0-beta-23516": {
         "type": "package",
         "dependencies": {
           "System.IO": "4.0.0",
           "System.Runtime": "4.0.0",
-          "System.Security.Cryptography.Primitives": "4.0.0-beta-23328"
+          "System.Security.Cryptography.Primitives": "4.0.0-beta-23516"
         },
         "compile": {
-          "ref/dotnet/System.Security.Cryptography.Algorithms.dll": {}
+          "ref/dotnet5.1/System.Security.Cryptography.Algorithms.dll": {}
+        }
+      },
+      "System.Security.Cryptography.Cng/4.0.0-beta-23516": {
+        "type": "package",
+        "dependencies": {
+          "System.IO": "4.0.10",
+          "System.Resources.ResourceManager": "4.0.0",
+          "System.Runtime": "4.0.20",
+          "System.Runtime.Extensions": "4.0.0",
+          "System.Runtime.Handles": "4.0.0",
+          "System.Runtime.InteropServices": "4.0.20",
+          "System.Security.Cryptography.Algorithms": "4.0.0-beta-23516",
+          "System.Security.Cryptography.Primitives": "4.0.0-beta-23516",
+          "System.Text.Encoding": "4.0.0"
+        },
+        "compile": {
+          "ref/dotnet5.2/System.Security.Cryptography.Cng.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet5.4/System.Security.Cryptography.Cng.dll": {}
         }
       },
       "System.Security.Cryptography.Encoding/4.0.0-beta-23328": {
@@ -876,7 +1174,7 @@
           "lib/DNXCore50/System.Security.Cryptography.Hashing.Algorithms.dll": {}
         }
       },
-      "System.Security.Cryptography.Primitives/4.0.0-beta-23328": {
+      "System.Security.Cryptography.Primitives/4.0.0-beta-23516": {
         "type": "package",
         "dependencies": {
           "System.Diagnostics.Debug": "4.0.0",
@@ -888,10 +1186,10 @@
           "System.Threading.Tasks": "4.0.0"
         },
         "compile": {
-          "ref/dotnet/System.Security.Cryptography.Primitives.dll": {}
+          "ref/dotnet5.1/System.Security.Cryptography.Primitives.dll": {}
         },
         "runtime": {
-          "lib/dotnet/System.Security.Cryptography.Primitives.dll": {}
+          "lib/dotnet5.4/System.Security.Cryptography.Primitives.dll": {}
         }
       },
       "System.Security.Cryptography.X509Certificates/4.0.0-beta-23328": {
@@ -1313,14 +1611,14 @@
           "lib/portable-net45+wp80+win8+wpa81+dnxcore50/Newtonsoft.Json.dll": {}
         }
       },
-      "NuGet.Client/3.3.0": {
+      "NuGet.Client/3.4.0": {
         "type": "package",
         "dependencies": {
-          "NuGet.ContentModel": "3.3.0",
-          "NuGet.Packaging": "3.3.0",
-          "NuGet.Repositories": "3.3.0",
-          "NuGet.RuntimeModel": "3.3.0",
-          "NuGet.Versioning": "3.3.0"
+          "NuGet.ContentModel": "3.4.0",
+          "NuGet.Packaging": "3.4.0",
+          "NuGet.Repositories": "3.4.0",
+          "NuGet.RuntimeModel": "3.4.0",
+          "NuGet.Versioning": "3.4.0"
         },
         "compile": {
           "lib/dnxcore50/NuGet.Client.dll": {}
@@ -1329,7 +1627,34 @@
           "lib/dnxcore50/NuGet.Client.dll": {}
         }
       },
-      "NuGet.ContentModel/3.3.0": {
+      "NuGet.Common/3.4.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Collections": "4.0.0-beta-23109",
+          "System.Diagnostics.Process": "4.0.0-beta-23109",
+          "System.IO.Compression": "4.0.0-beta-23109",
+          "System.IO.FileSystem": "4.0.0-beta-23109",
+          "System.IO.FileSystem.Primitives": "4.0.0-beta-23109",
+          "System.Runtime.Extensions": "4.0.10-beta-23109",
+          "System.Runtime.InteropServices.RuntimeInformation": "4.0.0-beta-23225",
+          "System.Security.Cryptography.Cng": "4.0.0-beta-23516",
+          "System.Threading": "4.0.10-beta-23109",
+          "System.Threading.Thread": "4.0.0-beta-23109"
+        },
+        "compile": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {}
+        },
+        "runtime": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {}
+        }
+      },
+      "NuGet.ContentModel/3.4.0": {
         "type": "package",
         "dependencies": {
           "System.Collections": "4.0.10-beta-23109",
@@ -1340,16 +1665,26 @@
           "System.Runtime.Extensions": "4.0.10-beta-23109"
         },
         "compile": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
           "lib/dnxcore50/NuGet.ContentModel.dll": {}
         },
         "runtime": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
           "lib/dnxcore50/NuGet.ContentModel.dll": {}
         }
       },
-      "NuGet.Frameworks/3.3.0": {
+      "NuGet.Frameworks/3.4.0": {
         "type": "package",
         "dependencies": {
-          "NuGet.Versioning": "3.3.0",
+          "NuGet.Versioning": "3.4.0",
           "System.Collections": "4.0.10-beta-23109",
           "System.Collections.Concurrent": "4.0.10-beta-23109",
           "System.Diagnostics.Debug": "4.0.10-beta-23109",
@@ -1364,102 +1699,295 @@
           "System.Threading.Tasks": "4.0.10-beta-23109"
         },
         "compile": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
           "lib/dnxcore50/NuGet.Frameworks.dll": {}
         },
         "runtime": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
           "lib/dnxcore50/NuGet.Frameworks.dll": {}
         }
       },
-      "NuGet.Logging/3.3.0": {
+      "NuGet.Logging/3.4.0": {
         "type": "package",
         "dependencies": {
           "System.Runtime": "4.0.20-beta-23109"
         },
         "compile": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
           "lib/dnxcore50/NuGet.Logging.dll": {}
         },
         "runtime": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
           "lib/dnxcore50/NuGet.Logging.dll": {}
         }
       },
-      "NuGet.Packaging/3.3.0": {
+      "NuGet.Packaging/3.4.0": {
         "type": "package",
         "dependencies": {
-          "NuGet.Logging": "3.3.0",
-          "NuGet.Packaging.Core": "3.3.0",
+          "NuGet.Common": "3.4.0",
+          "NuGet.Logging": "3.4.0",
+          "NuGet.Packaging.Core": "3.4.0",
           "System.IO.Compression": "4.0.0-beta-23109",
           "System.IO.FileSystem": "4.0.0-beta-23109",
           "System.Security.Cryptography.Hashing.Algorithms": "4.0.0-beta-23225",
           "System.Xml.XDocument": "4.0.10-beta-23109"
         },
         "compile": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
           "lib/dnxcore50/NuGet.Packaging.dll": {}
         },
         "runtime": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
           "lib/dnxcore50/NuGet.Packaging.dll": {}
         }
       },
-      "NuGet.Packaging.Core/3.3.0": {
+      "NuGet.Packaging.Core/3.4.0": {
         "type": "package",
         "dependencies": {
-          "NuGet.Packaging.Core.Types": "3.3.0",
+          "NuGet.Packaging.Core.Types": "3.4.0",
           "System.IO": "4.0.10-beta-23109",
           "System.IO.Compression": "4.0.0-beta-23109",
           "System.Xml.XDocument": "4.0.10-beta-23109"
         },
         "compile": {
-          "lib/dnxcore50/NuGet.Packaging.Core.dll": {}
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {}
         },
         "runtime": {
-          "lib/dnxcore50/NuGet.Packaging.Core.dll": {}
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {}
         }
       },
-      "NuGet.Packaging.Core.Types/3.3.0": {
+      "NuGet.Packaging.Core.Types/3.4.0": {
         "type": "package",
         "dependencies": {
-          "NuGet.Frameworks": "3.3.0"
+          "NuGet.Frameworks": "3.4.0"
         },
         "compile": {
-          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {}
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {}
         },
         "runtime": {
-          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {}
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {}
         }
       },
-      "NuGet.Repositories/3.3.0": {
+      "NuGet.Repositories/3.4.0": {
         "type": "package",
         "dependencies": {
-          "NuGet.Versioning": "3.3.0",
+          "NuGet.Versioning": "3.4.0",
           "System.IO.FileSystem": "4.0.0-beta-23109",
           "System.Threading": "4.0.10-beta-23109"
         },
         "compile": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {},
+          "lib/dnxcore50/NuGet.ProjectModel.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.v3.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Test.Utility.dll": {},
           "lib/dnxcore50/NuGet.Repositories.dll": {}
         },
         "runtime": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {},
+          "lib/dnxcore50/NuGet.ProjectModel.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.v3.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Test.Utility.dll": {},
           "lib/dnxcore50/NuGet.Repositories.dll": {}
         }
       },
-      "NuGet.RuntimeModel/3.3.0": {
+      "NuGet.RuntimeModel/3.4.0": {
         "type": "package",
         "dependencies": {
           "Microsoft.CSharp": "4.0.0-beta-23109",
           "Newtonsoft.Json": "6.0.4",
-          "NuGet.Frameworks": "3.3.0",
-          "NuGet.Versioning": "3.3.0",
+          "NuGet.Frameworks": "3.4.0",
+          "NuGet.Versioning": "3.4.0",
           "System.Collections": "4.0.10-beta-23109",
           "System.IO.FileSystem": "4.0.0-beta-23109",
           "System.Linq": "4.0.0-beta-23109",
           "System.Threading": "4.0.10-beta-23109"
         },
         "compile": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {},
+          "lib/dnxcore50/NuGet.ProjectModel.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.v3.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Test.Utility.dll": {},
+          "lib/dnxcore50/NuGet.Repositories.dll": {},
+          "lib/dnxcore50/NuGet.Resolver.dll": {},
           "lib/dnxcore50/NuGet.RuntimeModel.dll": {}
         },
         "runtime": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {},
+          "lib/dnxcore50/NuGet.ProjectModel.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.v3.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Test.Utility.dll": {},
+          "lib/dnxcore50/NuGet.Repositories.dll": {},
+          "lib/dnxcore50/NuGet.Resolver.dll": {},
           "lib/dnxcore50/NuGet.RuntimeModel.dll": {}
         }
       },
-      "NuGet.Versioning/3.3.0": {
+      "NuGet.Versioning/3.4.0": {
         "type": "package",
         "dependencies": {
           "System.Diagnostics.Debug": "4.0.10-beta-23109",
@@ -1470,9 +1998,57 @@
           "System.Runtime.Extensions": "4.0.10-beta-23109"
         },
         "compile": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {},
+          "lib/dnxcore50/NuGet.ProjectModel.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.v3.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Test.Utility.dll": {},
+          "lib/dnxcore50/NuGet.Repositories.dll": {},
+          "lib/dnxcore50/NuGet.Resolver.dll": {},
+          "lib/dnxcore50/NuGet.RuntimeModel.dll": {},
+          "lib/dnxcore50/NuGet.Shared.dll": {},
+          "lib/dnxcore50/NuGet.Test.Utility.dll": {},
           "lib/dnxcore50/NuGet.Versioning.dll": {}
         },
         "runtime": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {},
+          "lib/dnxcore50/NuGet.ProjectModel.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.v3.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Test.Utility.dll": {},
+          "lib/dnxcore50/NuGet.Repositories.dll": {},
+          "lib/dnxcore50/NuGet.Resolver.dll": {},
+          "lib/dnxcore50/NuGet.RuntimeModel.dll": {},
+          "lib/dnxcore50/NuGet.Shared.dll": {},
+          "lib/dnxcore50/NuGet.Test.Utility.dll": {},
           "lib/dnxcore50/NuGet.Versioning.dll": {}
         }
       },
@@ -2257,15 +2833,15 @@
           "lib/dotnet5.4/System.Runtime.Numerics.dll": {}
         }
       },
-      "System.Security.Cryptography.Algorithms/4.0.0-beta-23328": {
+      "System.Security.Cryptography.Algorithms/4.0.0-rc2-23530": {
         "type": "package",
         "dependencies": {
           "System.IO": "4.0.0",
           "System.Runtime": "4.0.0",
-          "System.Security.Cryptography.Primitives": "4.0.0-beta-23328"
+          "System.Security.Cryptography.Primitives": "4.0.0-rc2-23530"
         },
         "compile": {
-          "ref/dotnet/System.Security.Cryptography.Algorithms.dll": {}
+          "ref/dotnet5.4/System.Security.Cryptography.Algorithms.dll": {}
         }
       },
       "System.Security.Cryptography.Cng/4.0.0-rc2-23530": {
@@ -2751,14 +3327,14 @@
           "lib/portable-net45+wp80+win8+wpa81+dnxcore50/Newtonsoft.Json.dll": {}
         }
       },
-      "NuGet.Client/3.3.0": {
+      "NuGet.Client/3.4.0": {
         "type": "package",
         "dependencies": {
-          "NuGet.ContentModel": "3.3.0",
-          "NuGet.Packaging": "3.3.0",
-          "NuGet.Repositories": "3.3.0",
-          "NuGet.RuntimeModel": "3.3.0",
-          "NuGet.Versioning": "3.3.0"
+          "NuGet.ContentModel": "3.4.0",
+          "NuGet.Packaging": "3.4.0",
+          "NuGet.Repositories": "3.4.0",
+          "NuGet.RuntimeModel": "3.4.0",
+          "NuGet.Versioning": "3.4.0"
         },
         "compile": {
           "lib/dnxcore50/NuGet.Client.dll": {}
@@ -2767,7 +3343,34 @@
           "lib/dnxcore50/NuGet.Client.dll": {}
         }
       },
-      "NuGet.ContentModel/3.3.0": {
+      "NuGet.Common/3.4.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Collections": "4.0.0-beta-23109",
+          "System.Diagnostics.Process": "4.0.0-beta-23109",
+          "System.IO.Compression": "4.0.0-beta-23109",
+          "System.IO.FileSystem": "4.0.0-beta-23109",
+          "System.IO.FileSystem.Primitives": "4.0.0-beta-23109",
+          "System.Runtime.Extensions": "4.0.10-beta-23109",
+          "System.Runtime.InteropServices.RuntimeInformation": "4.0.0-beta-23225",
+          "System.Security.Cryptography.Cng": "4.0.0-beta-23516",
+          "System.Threading": "4.0.10-beta-23109",
+          "System.Threading.Thread": "4.0.0-beta-23109"
+        },
+        "compile": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {}
+        },
+        "runtime": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {}
+        }
+      },
+      "NuGet.ContentModel/3.4.0": {
         "type": "package",
         "dependencies": {
           "System.Collections": "4.0.10-beta-23109",
@@ -2778,16 +3381,26 @@
           "System.Runtime.Extensions": "4.0.10-beta-23109"
         },
         "compile": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
           "lib/dnxcore50/NuGet.ContentModel.dll": {}
         },
         "runtime": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
           "lib/dnxcore50/NuGet.ContentModel.dll": {}
         }
       },
-      "NuGet.Frameworks/3.3.0": {
+      "NuGet.Frameworks/3.4.0": {
         "type": "package",
         "dependencies": {
-          "NuGet.Versioning": "3.3.0",
+          "NuGet.Versioning": "3.4.0",
           "System.Collections": "4.0.10-beta-23109",
           "System.Collections.Concurrent": "4.0.10-beta-23109",
           "System.Diagnostics.Debug": "4.0.10-beta-23109",
@@ -2802,102 +3415,295 @@
           "System.Threading.Tasks": "4.0.10-beta-23109"
         },
         "compile": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
           "lib/dnxcore50/NuGet.Frameworks.dll": {}
         },
         "runtime": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
           "lib/dnxcore50/NuGet.Frameworks.dll": {}
         }
       },
-      "NuGet.Logging/3.3.0": {
+      "NuGet.Logging/3.4.0": {
         "type": "package",
         "dependencies": {
           "System.Runtime": "4.0.20-beta-23109"
         },
         "compile": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
           "lib/dnxcore50/NuGet.Logging.dll": {}
         },
         "runtime": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
           "lib/dnxcore50/NuGet.Logging.dll": {}
         }
       },
-      "NuGet.Packaging/3.3.0": {
+      "NuGet.Packaging/3.4.0": {
         "type": "package",
         "dependencies": {
-          "NuGet.Logging": "3.3.0",
-          "NuGet.Packaging.Core": "3.3.0",
+          "NuGet.Common": "3.4.0",
+          "NuGet.Logging": "3.4.0",
+          "NuGet.Packaging.Core": "3.4.0",
           "System.IO.Compression": "4.0.0-beta-23109",
           "System.IO.FileSystem": "4.0.0-beta-23109",
           "System.Security.Cryptography.Hashing.Algorithms": "4.0.0-beta-23225",
           "System.Xml.XDocument": "4.0.10-beta-23109"
         },
         "compile": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
           "lib/dnxcore50/NuGet.Packaging.dll": {}
         },
         "runtime": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
           "lib/dnxcore50/NuGet.Packaging.dll": {}
         }
       },
-      "NuGet.Packaging.Core/3.3.0": {
+      "NuGet.Packaging.Core/3.4.0": {
         "type": "package",
         "dependencies": {
-          "NuGet.Packaging.Core.Types": "3.3.0",
+          "NuGet.Packaging.Core.Types": "3.4.0",
           "System.IO": "4.0.10-beta-23109",
           "System.IO.Compression": "4.0.0-beta-23109",
           "System.Xml.XDocument": "4.0.10-beta-23109"
         },
         "compile": {
-          "lib/dnxcore50/NuGet.Packaging.Core.dll": {}
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {}
         },
         "runtime": {
-          "lib/dnxcore50/NuGet.Packaging.Core.dll": {}
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {}
         }
       },
-      "NuGet.Packaging.Core.Types/3.3.0": {
+      "NuGet.Packaging.Core.Types/3.4.0": {
         "type": "package",
         "dependencies": {
-          "NuGet.Frameworks": "3.3.0"
+          "NuGet.Frameworks": "3.4.0"
         },
         "compile": {
-          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {}
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {}
         },
         "runtime": {
-          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {}
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {}
         }
       },
-      "NuGet.Repositories/3.3.0": {
+      "NuGet.Repositories/3.4.0": {
         "type": "package",
         "dependencies": {
-          "NuGet.Versioning": "3.3.0",
+          "NuGet.Versioning": "3.4.0",
           "System.IO.FileSystem": "4.0.0-beta-23109",
           "System.Threading": "4.0.10-beta-23109"
         },
         "compile": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {},
+          "lib/dnxcore50/NuGet.ProjectModel.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.v3.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Test.Utility.dll": {},
           "lib/dnxcore50/NuGet.Repositories.dll": {}
         },
         "runtime": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {},
+          "lib/dnxcore50/NuGet.ProjectModel.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.v3.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Test.Utility.dll": {},
           "lib/dnxcore50/NuGet.Repositories.dll": {}
         }
       },
-      "NuGet.RuntimeModel/3.3.0": {
+      "NuGet.RuntimeModel/3.4.0": {
         "type": "package",
         "dependencies": {
           "Microsoft.CSharp": "4.0.0-beta-23109",
           "Newtonsoft.Json": "6.0.4",
-          "NuGet.Frameworks": "3.3.0",
-          "NuGet.Versioning": "3.3.0",
+          "NuGet.Frameworks": "3.4.0",
+          "NuGet.Versioning": "3.4.0",
           "System.Collections": "4.0.10-beta-23109",
           "System.IO.FileSystem": "4.0.0-beta-23109",
           "System.Linq": "4.0.0-beta-23109",
           "System.Threading": "4.0.10-beta-23109"
         },
         "compile": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {},
+          "lib/dnxcore50/NuGet.ProjectModel.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.v3.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Test.Utility.dll": {},
+          "lib/dnxcore50/NuGet.Repositories.dll": {},
+          "lib/dnxcore50/NuGet.Resolver.dll": {},
           "lib/dnxcore50/NuGet.RuntimeModel.dll": {}
         },
         "runtime": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {},
+          "lib/dnxcore50/NuGet.ProjectModel.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.v3.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Test.Utility.dll": {},
+          "lib/dnxcore50/NuGet.Repositories.dll": {},
+          "lib/dnxcore50/NuGet.Resolver.dll": {},
           "lib/dnxcore50/NuGet.RuntimeModel.dll": {}
         }
       },
-      "NuGet.Versioning/3.3.0": {
+      "NuGet.Versioning/3.4.0": {
         "type": "package",
         "dependencies": {
           "System.Diagnostics.Debug": "4.0.10-beta-23109",
@@ -2908,9 +3714,57 @@
           "System.Runtime.Extensions": "4.0.10-beta-23109"
         },
         "compile": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {},
+          "lib/dnxcore50/NuGet.ProjectModel.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.v3.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Test.Utility.dll": {},
+          "lib/dnxcore50/NuGet.Repositories.dll": {},
+          "lib/dnxcore50/NuGet.Resolver.dll": {},
+          "lib/dnxcore50/NuGet.RuntimeModel.dll": {},
+          "lib/dnxcore50/NuGet.Shared.dll": {},
+          "lib/dnxcore50/NuGet.Test.Utility.dll": {},
           "lib/dnxcore50/NuGet.Versioning.dll": {}
         },
         "runtime": {
+          "lib/dnxcore50/NuGet.Client.dll": {},
+          "lib/dnxcore50/NuGet.CommandLine.XPlat.dll": {},
+          "lib/dnxcore50/NuGet.Commands.dll": {},
+          "lib/dnxcore50/NuGet.Common.dll": {},
+          "lib/dnxcore50/NuGet.Configuration.dll": {},
+          "lib/dnxcore50/NuGet.ContentModel.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.Core.dll": {},
+          "lib/dnxcore50/NuGet.DependencyResolver.dll": {},
+          "lib/dnxcore50/NuGet.Frameworks.dll": {},
+          "lib/dnxcore50/NuGet.LibraryModel.dll": {},
+          "lib/dnxcore50/NuGet.Logging.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Build.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Packaging.dll": {},
+          "lib/dnxcore50/NuGet.ProjectModel.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.Types.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Core.v3.dll": {},
+          "lib/dnxcore50/NuGet.Protocol.Test.Utility.dll": {},
+          "lib/dnxcore50/NuGet.Repositories.dll": {},
+          "lib/dnxcore50/NuGet.Resolver.dll": {},
+          "lib/dnxcore50/NuGet.RuntimeModel.dll": {},
+          "lib/dnxcore50/NuGet.Shared.dll": {},
+          "lib/dnxcore50/NuGet.Test.Utility.dll": {},
           "lib/dnxcore50/NuGet.Versioning.dll": {}
         }
       },
@@ -3695,15 +4549,15 @@
           "lib/dotnet5.4/System.Runtime.Numerics.dll": {}
         }
       },
-      "System.Security.Cryptography.Algorithms/4.0.0-beta-23328": {
+      "System.Security.Cryptography.Algorithms/4.0.0-rc2-23530": {
         "type": "package",
         "dependencies": {
           "System.IO": "4.0.0",
           "System.Runtime": "4.0.0",
-          "System.Security.Cryptography.Primitives": "4.0.0-beta-23328"
+          "System.Security.Cryptography.Primitives": "4.0.0-rc2-23530"
         },
         "compile": {
-          "ref/dotnet/System.Security.Cryptography.Algorithms.dll": {}
+          "ref/dotnet5.4/System.Security.Cryptography.Algorithms.dll": {}
         }
       },
       "System.Security.Cryptography.Cng/4.0.0-rc2-23530": {
@@ -4286,133 +5140,662 @@
         "tools/install.ps1"
       ]
     },
-    "NuGet.Client/3.3.0": {
+    "NuGet.Client/3.4.0": {
       "type": "package",
-      "sha512": "x9I1yLJp3YmVo8nSlS5ddqpXKQfpjkRBBUiQCiCmI50kw5voCSpB+2BnaGF8FdXg7ItO4cpSu/+0+2kmNSVK6g==",
+      "sha512": "3loD4xtdM3J9zm2R+ITwJAvd70Fmosn4eTUgfTXZpv9YWB2mUdMMPhV92E7RdW0UTW3f6wHUrQgidWHkjQufTA==",
       "files": [
         "lib/dnxcore50/NuGet.Client.dll",
         "lib/dnxcore50/NuGet.Client.xml",
         "lib/net45/NuGet.Client.dll",
         "lib/net45/NuGet.Client.xml",
-        "NuGet.Client.3.3.0.nupkg",
-        "NuGet.Client.3.3.0.nupkg.sha512",
+        "NuGet.Client.3.4.0.nupkg",
+        "NuGet.Client.3.4.0.nupkg.sha512",
         "NuGet.Client.nuspec"
       ]
     },
-    "NuGet.ContentModel/3.3.0": {
+    "NuGet.Common/3.4.0": {
       "type": "package",
-      "sha512": "fVCmP89av9QPEnkw9R0PvtOc7Xg7iMbjVtx16aUl7crWjWIBOFQaV5Q3gW9tS2hkx3IW/2f1TpEoheep6v1cQA==",
+      "sha512": "YYePoqZOaXziL07IvH2PtLJDT7zaPfTG9wLtyF/lUOiArecjlTtSDgvvcg8sOpzPADtT4kgD0lFcMb8mpA/pew==",
       "files": [
+        "lib/dnxcore50/NuGet.Client.dll",
+        "lib/dnxcore50/NuGet.Client.xml",
+        "lib/dnxcore50/NuGet.CommandLine.XPlat.dll",
+        "lib/dnxcore50/NuGet.CommandLine.XPlat.xml",
+        "lib/dnxcore50/NuGet.Commands.dll",
+        "lib/dnxcore50/NuGet.Commands.xml",
+        "lib/dnxcore50/NuGet.Common.dll",
+        "lib/dnxcore50/NuGet.Common.xml",
+        "lib/net45/NuGet.Client.dll",
+        "lib/net45/NuGet.Client.xml",
+        "lib/net45/NuGet.Commands.dll",
+        "lib/net45/NuGet.Commands.xml",
+        "lib/net45/NuGet.Common.dll",
+        "lib/net45/NuGet.Common.xml",
+        "NuGet.Common.3.4.0.nupkg",
+        "NuGet.Common.3.4.0.nupkg.sha512",
+        "NuGet.Common.nuspec"
+      ]
+    },
+    "NuGet.ContentModel/3.4.0": {
+      "type": "package",
+      "sha512": "7SChszAxsxjDbKxKCCe+ZHGWMI13XwNQcT2023Pzy0IZCRbsHxnj0GT+XWEy1R1RbNiPRLKifn/2sOkfK7fs4w==",
+      "files": [
+        "lib/dnxcore50/NuGet.Client.dll",
+        "lib/dnxcore50/NuGet.Client.xml",
+        "lib/dnxcore50/NuGet.CommandLine.XPlat.dll",
+        "lib/dnxcore50/NuGet.CommandLine.XPlat.xml",
+        "lib/dnxcore50/NuGet.Commands.dll",
+        "lib/dnxcore50/NuGet.Commands.xml",
+        "lib/dnxcore50/NuGet.Common.dll",
+        "lib/dnxcore50/NuGet.Common.xml",
+        "lib/dnxcore50/NuGet.Configuration.dll",
+        "lib/dnxcore50/NuGet.Configuration.xml",
         "lib/dnxcore50/NuGet.ContentModel.dll",
         "lib/dnxcore50/NuGet.ContentModel.xml",
+        "lib/net45/NuGet.Client.dll",
+        "lib/net45/NuGet.Client.xml",
+        "lib/net45/NuGet.Commands.dll",
+        "lib/net45/NuGet.Commands.xml",
+        "lib/net45/NuGet.Common.dll",
+        "lib/net45/NuGet.Common.xml",
+        "lib/net45/NuGet.Configuration.dll",
+        "lib/net45/NuGet.Configuration.xml",
         "lib/net45/NuGet.ContentModel.dll",
         "lib/net45/NuGet.ContentModel.xml",
-        "NuGet.ContentModel.3.3.0.nupkg",
-        "NuGet.ContentModel.3.3.0.nupkg.sha512",
+        "NuGet.ContentModel.3.4.0.nupkg",
+        "NuGet.ContentModel.3.4.0.nupkg.sha512",
         "NuGet.ContentModel.nuspec"
       ]
     },
-    "NuGet.Frameworks/3.3.0": {
+    "NuGet.Frameworks/3.4.0": {
       "type": "package",
-      "sha512": "kOS9FTJqFvCQR3z8C3VhnvXM4Wgi2aGDZREK+gqpnQXdCvkBPgD1PKFjGDckQLqao38DijWPppaanVGiV5Vjxw==",
+      "sha512": "xj98Qq5egIGk1Vb1hrWsWBZzG8C1Ic0o8KKB+XN3kU1GT3ASydKE0/n1A4YHGQLAvhTjQdbC2rpCXE7NSh6gQQ==",
       "files": [
+        "lib/dnxcore50/NuGet.Client.dll",
+        "lib/dnxcore50/NuGet.Client.xml",
+        "lib/dnxcore50/NuGet.CommandLine.XPlat.dll",
+        "lib/dnxcore50/NuGet.CommandLine.XPlat.xml",
+        "lib/dnxcore50/NuGet.Commands.dll",
+        "lib/dnxcore50/NuGet.Commands.xml",
+        "lib/dnxcore50/NuGet.Common.dll",
+        "lib/dnxcore50/NuGet.Common.xml",
+        "lib/dnxcore50/NuGet.Configuration.dll",
+        "lib/dnxcore50/NuGet.Configuration.xml",
+        "lib/dnxcore50/NuGet.ContentModel.dll",
+        "lib/dnxcore50/NuGet.ContentModel.xml",
+        "lib/dnxcore50/NuGet.DependencyResolver.Core.dll",
+        "lib/dnxcore50/NuGet.DependencyResolver.Core.xml",
+        "lib/dnxcore50/NuGet.DependencyResolver.dll",
+        "lib/dnxcore50/NuGet.DependencyResolver.xml",
         "lib/dnxcore50/NuGet.Frameworks.dll",
         "lib/dnxcore50/NuGet.Frameworks.xml",
+        "lib/net45/NuGet.Client.dll",
+        "lib/net45/NuGet.Client.xml",
+        "lib/net45/NuGet.Commands.dll",
+        "lib/net45/NuGet.Commands.xml",
+        "lib/net45/NuGet.Common.dll",
+        "lib/net45/NuGet.Common.xml",
+        "lib/net45/NuGet.Configuration.dll",
+        "lib/net45/NuGet.Configuration.xml",
+        "lib/net45/NuGet.ContentModel.dll",
+        "lib/net45/NuGet.ContentModel.xml",
+        "lib/net45/NuGet.DependencyResolver.Core.dll",
+        "lib/net45/NuGet.DependencyResolver.Core.xml",
+        "lib/net45/NuGet.DependencyResolver.dll",
+        "lib/net45/NuGet.DependencyResolver.xml",
         "lib/net45/NuGet.Frameworks.dll",
         "lib/net45/NuGet.Frameworks.xml",
-        "NuGet.Frameworks.3.3.0.nupkg",
-        "NuGet.Frameworks.3.3.0.nupkg.sha512",
+        "NuGet.Frameworks.3.4.0.nupkg",
+        "NuGet.Frameworks.3.4.0.nupkg.sha512",
         "NuGet.Frameworks.nuspec"
       ]
     },
-    "NuGet.Logging/3.3.0": {
+    "NuGet.Logging/3.4.0": {
       "type": "package",
-      "sha512": "cnMsgbWx3a9sl4WoYSu03/zrOfmSK9ZQVghTwX0WPNW7LsHYRx2INhtxhcgHV14XUpxLvqJ8xTTSLhS/QEgpBA==",
+      "sha512": "9kF4dVMQxTEYSTTUmrUfEllyXNmogTl9xQ0er3TpP5KHPMIrwKbZ9L6n/jDKwwl3NDRjAXutr3MbXL56S9jt9A==",
       "files": [
+        "lib/dnxcore50/NuGet.Client.dll",
+        "lib/dnxcore50/NuGet.Client.xml",
+        "lib/dnxcore50/NuGet.CommandLine.XPlat.dll",
+        "lib/dnxcore50/NuGet.CommandLine.XPlat.xml",
+        "lib/dnxcore50/NuGet.Commands.dll",
+        "lib/dnxcore50/NuGet.Commands.xml",
+        "lib/dnxcore50/NuGet.Common.dll",
+        "lib/dnxcore50/NuGet.Common.xml",
+        "lib/dnxcore50/NuGet.Configuration.dll",
+        "lib/dnxcore50/NuGet.Configuration.xml",
+        "lib/dnxcore50/NuGet.ContentModel.dll",
+        "lib/dnxcore50/NuGet.ContentModel.xml",
+        "lib/dnxcore50/NuGet.DependencyResolver.Core.dll",
+        "lib/dnxcore50/NuGet.DependencyResolver.Core.xml",
+        "lib/dnxcore50/NuGet.DependencyResolver.dll",
+        "lib/dnxcore50/NuGet.DependencyResolver.xml",
+        "lib/dnxcore50/NuGet.Frameworks.dll",
+        "lib/dnxcore50/NuGet.Frameworks.xml",
+        "lib/dnxcore50/NuGet.LibraryModel.dll",
+        "lib/dnxcore50/NuGet.LibraryModel.xml",
         "lib/dnxcore50/NuGet.Logging.dll",
         "lib/dnxcore50/NuGet.Logging.xml",
+        "lib/net45/NuGet.Client.dll",
+        "lib/net45/NuGet.Client.xml",
+        "lib/net45/NuGet.Commands.dll",
+        "lib/net45/NuGet.Commands.xml",
+        "lib/net45/NuGet.Common.dll",
+        "lib/net45/NuGet.Common.xml",
+        "lib/net45/NuGet.Configuration.dll",
+        "lib/net45/NuGet.Configuration.xml",
+        "lib/net45/NuGet.ContentModel.dll",
+        "lib/net45/NuGet.ContentModel.xml",
+        "lib/net45/NuGet.DependencyResolver.Core.dll",
+        "lib/net45/NuGet.DependencyResolver.Core.xml",
+        "lib/net45/NuGet.DependencyResolver.dll",
+        "lib/net45/NuGet.DependencyResolver.xml",
+        "lib/net45/NuGet.Frameworks.dll",
+        "lib/net45/NuGet.Frameworks.xml",
+        "lib/net45/NuGet.LibraryModel.dll",
+        "lib/net45/NuGet.LibraryModel.xml",
         "lib/net45/NuGet.Logging.dll",
         "lib/net45/NuGet.Logging.xml",
-        "NuGet.Logging.3.3.0.nupkg",
-        "NuGet.Logging.3.3.0.nupkg.sha512",
+        "NuGet.Logging.3.4.0.nupkg",
+        "NuGet.Logging.3.4.0.nupkg.sha512",
         "NuGet.Logging.nuspec"
       ]
     },
-    "NuGet.Packaging/3.3.0": {
+    "NuGet.Packaging/3.4.0": {
       "type": "package",
-      "sha512": "8ZmxGaRSyuAg4tn+o2AtRrp5fs+hJRALTlIEPakPWSL/FMkg+2aQxce1hbNjAdpCh2LtxMdJBkbzpHevOnrb5A==",
+      "sha512": "0qbeN+B0QZ7G3jjyQRTmSj3Xwq3HAvzC1cKaap8K1/b5lv6625+k+4XLB2WasV4tJopEQBYtbZgoJgbEtX2mcQ==",
       "files": [
+        "lib/dnxcore50/NuGet.Client.dll",
+        "lib/dnxcore50/NuGet.Client.xml",
+        "lib/dnxcore50/NuGet.CommandLine.XPlat.dll",
+        "lib/dnxcore50/NuGet.CommandLine.XPlat.xml",
+        "lib/dnxcore50/NuGet.Commands.dll",
+        "lib/dnxcore50/NuGet.Commands.xml",
+        "lib/dnxcore50/NuGet.Common.dll",
+        "lib/dnxcore50/NuGet.Common.xml",
+        "lib/dnxcore50/NuGet.Configuration.dll",
+        "lib/dnxcore50/NuGet.Configuration.xml",
+        "lib/dnxcore50/NuGet.ContentModel.dll",
+        "lib/dnxcore50/NuGet.ContentModel.xml",
+        "lib/dnxcore50/NuGet.DependencyResolver.Core.dll",
+        "lib/dnxcore50/NuGet.DependencyResolver.Core.xml",
+        "lib/dnxcore50/NuGet.DependencyResolver.dll",
+        "lib/dnxcore50/NuGet.DependencyResolver.xml",
+        "lib/dnxcore50/NuGet.Frameworks.dll",
+        "lib/dnxcore50/NuGet.Frameworks.xml",
+        "lib/dnxcore50/NuGet.LibraryModel.dll",
+        "lib/dnxcore50/NuGet.LibraryModel.xml",
+        "lib/dnxcore50/NuGet.Logging.dll",
+        "lib/dnxcore50/NuGet.Logging.xml",
         "lib/dnxcore50/NuGet.Packaging.dll",
         "lib/dnxcore50/NuGet.Packaging.xml",
+        "lib/net45/NuGet.Client.dll",
+        "lib/net45/NuGet.Client.xml",
+        "lib/net45/NuGet.Commands.dll",
+        "lib/net45/NuGet.Commands.xml",
+        "lib/net45/NuGet.Common.dll",
+        "lib/net45/NuGet.Common.xml",
+        "lib/net45/NuGet.Configuration.dll",
+        "lib/net45/NuGet.Configuration.xml",
+        "lib/net45/NuGet.ContentModel.dll",
+        "lib/net45/NuGet.ContentModel.xml",
+        "lib/net45/NuGet.DependencyResolver.Core.dll",
+        "lib/net45/NuGet.DependencyResolver.Core.xml",
+        "lib/net45/NuGet.DependencyResolver.dll",
+        "lib/net45/NuGet.DependencyResolver.xml",
+        "lib/net45/NuGet.Frameworks.dll",
+        "lib/net45/NuGet.Frameworks.xml",
+        "lib/net45/NuGet.LibraryModel.dll",
+        "lib/net45/NuGet.LibraryModel.xml",
+        "lib/net45/NuGet.Logging.dll",
+        "lib/net45/NuGet.Logging.xml",
+        "lib/net45/NuGet.PackageManagement.dll",
+        "lib/net45/NuGet.PackageManagement.xml",
         "lib/net45/NuGet.Packaging.dll",
         "lib/net45/NuGet.Packaging.xml",
-        "NuGet.Packaging.3.3.0.nupkg",
-        "NuGet.Packaging.3.3.0.nupkg.sha512",
+        "NuGet.Packaging.3.4.0.nupkg",
+        "NuGet.Packaging.3.4.0.nupkg.sha512",
         "NuGet.Packaging.nuspec"
       ]
     },
-    "NuGet.Packaging.Core/3.3.0": {
+    "NuGet.Packaging.Core/3.4.0": {
       "type": "package",
-      "sha512": "6gfzKM6uk/e44iuLS2KglZPs3JiZmLL9lCTBUhDtet8gjmKrHa5RbNctaKNotpQl3NbihSo3F+iDM/SnRO7E/Q==",
+      "sha512": "bw8sA9k5sw1D50sCOEVgsmO15vEjoEQxnR00w2nA8rxZVpu2Ahr46yMvJoKmoUveqFQiFzCi0UuiKexCrp++8Q==",
       "files": [
+        "lib/dnxcore50/NuGet.Client.dll",
+        "lib/dnxcore50/NuGet.Client.xml",
+        "lib/dnxcore50/NuGet.CommandLine.XPlat.dll",
+        "lib/dnxcore50/NuGet.CommandLine.XPlat.xml",
+        "lib/dnxcore50/NuGet.Commands.dll",
+        "lib/dnxcore50/NuGet.Commands.xml",
+        "lib/dnxcore50/NuGet.Common.dll",
+        "lib/dnxcore50/NuGet.Common.xml",
+        "lib/dnxcore50/NuGet.Configuration.dll",
+        "lib/dnxcore50/NuGet.Configuration.xml",
+        "lib/dnxcore50/NuGet.ContentModel.dll",
+        "lib/dnxcore50/NuGet.ContentModel.xml",
+        "lib/dnxcore50/NuGet.DependencyResolver.Core.dll",
+        "lib/dnxcore50/NuGet.DependencyResolver.Core.xml",
+        "lib/dnxcore50/NuGet.DependencyResolver.dll",
+        "lib/dnxcore50/NuGet.DependencyResolver.xml",
+        "lib/dnxcore50/NuGet.Frameworks.dll",
+        "lib/dnxcore50/NuGet.Frameworks.xml",
+        "lib/dnxcore50/NuGet.LibraryModel.dll",
+        "lib/dnxcore50/NuGet.LibraryModel.xml",
+        "lib/dnxcore50/NuGet.Logging.dll",
+        "lib/dnxcore50/NuGet.Logging.xml",
+        "lib/dnxcore50/NuGet.Packaging.Build.dll",
+        "lib/dnxcore50/NuGet.Packaging.Build.xml",
         "lib/dnxcore50/NuGet.Packaging.Core.dll",
         "lib/dnxcore50/NuGet.Packaging.Core.xml",
+        "lib/dnxcore50/NuGet.Packaging.dll",
+        "lib/dnxcore50/NuGet.Packaging.xml",
+        "lib/net45/NuGet.Client.dll",
+        "lib/net45/NuGet.Client.xml",
+        "lib/net45/NuGet.Commands.dll",
+        "lib/net45/NuGet.Commands.xml",
+        "lib/net45/NuGet.Common.dll",
+        "lib/net45/NuGet.Common.xml",
+        "lib/net45/NuGet.Configuration.dll",
+        "lib/net45/NuGet.Configuration.xml",
+        "lib/net45/NuGet.ContentModel.dll",
+        "lib/net45/NuGet.ContentModel.xml",
+        "lib/net45/NuGet.DependencyResolver.Core.dll",
+        "lib/net45/NuGet.DependencyResolver.Core.xml",
+        "lib/net45/NuGet.DependencyResolver.dll",
+        "lib/net45/NuGet.DependencyResolver.xml",
+        "lib/net45/NuGet.Frameworks.dll",
+        "lib/net45/NuGet.Frameworks.xml",
+        "lib/net45/NuGet.LibraryModel.dll",
+        "lib/net45/NuGet.LibraryModel.xml",
+        "lib/net45/NuGet.Logging.dll",
+        "lib/net45/NuGet.Logging.xml",
+        "lib/net45/NuGet.PackageManagement.dll",
+        "lib/net45/NuGet.PackageManagement.xml",
+        "lib/net45/NuGet.Packaging.Build.dll",
+        "lib/net45/NuGet.Packaging.Build.xml",
         "lib/net45/NuGet.Packaging.Core.dll",
         "lib/net45/NuGet.Packaging.Core.xml",
-        "NuGet.Packaging.Core.3.3.0.nupkg",
-        "NuGet.Packaging.Core.3.3.0.nupkg.sha512",
+        "lib/net45/NuGet.Packaging.dll",
+        "lib/net45/NuGet.Packaging.xml",
+        "NuGet.Packaging.Core.3.4.0.nupkg",
+        "NuGet.Packaging.Core.3.4.0.nupkg.sha512",
         "NuGet.Packaging.Core.nuspec"
       ]
     },
-    "NuGet.Packaging.Core.Types/3.3.0": {
+    "NuGet.Packaging.Core.Types/3.4.0": {
       "type": "package",
-      "sha512": "J23niUhKIG/J8yDakRwc9UieQvcgTaknYeUsOCxaDb4DrXVDnZ+5GNQMsEyQohNr+4I0b4lEQJvpjoPaxR3+cw==",
+      "sha512": "gXLuEvYF81rxw0mxFrLiIbDwTnP4BVEdetYLmJjEOK0qtW5OBNHPb2eGwWHbUCLLaU7ulVyt9TWTcUGtOkViFw==",
       "files": [
+        "lib/dnxcore50/NuGet.Client.dll",
+        "lib/dnxcore50/NuGet.Client.xml",
+        "lib/dnxcore50/NuGet.CommandLine.XPlat.dll",
+        "lib/dnxcore50/NuGet.CommandLine.XPlat.xml",
+        "lib/dnxcore50/NuGet.Commands.dll",
+        "lib/dnxcore50/NuGet.Commands.xml",
+        "lib/dnxcore50/NuGet.Common.dll",
+        "lib/dnxcore50/NuGet.Common.xml",
+        "lib/dnxcore50/NuGet.Configuration.dll",
+        "lib/dnxcore50/NuGet.Configuration.xml",
+        "lib/dnxcore50/NuGet.ContentModel.dll",
+        "lib/dnxcore50/NuGet.ContentModel.xml",
+        "lib/dnxcore50/NuGet.DependencyResolver.Core.dll",
+        "lib/dnxcore50/NuGet.DependencyResolver.Core.xml",
+        "lib/dnxcore50/NuGet.DependencyResolver.dll",
+        "lib/dnxcore50/NuGet.DependencyResolver.xml",
+        "lib/dnxcore50/NuGet.Frameworks.dll",
+        "lib/dnxcore50/NuGet.Frameworks.xml",
+        "lib/dnxcore50/NuGet.LibraryModel.dll",
+        "lib/dnxcore50/NuGet.LibraryModel.xml",
+        "lib/dnxcore50/NuGet.Logging.dll",
+        "lib/dnxcore50/NuGet.Logging.xml",
+        "lib/dnxcore50/NuGet.Packaging.Build.dll",
+        "lib/dnxcore50/NuGet.Packaging.Build.xml",
+        "lib/dnxcore50/NuGet.Packaging.Core.dll",
         "lib/dnxcore50/NuGet.Packaging.Core.Types.dll",
         "lib/dnxcore50/NuGet.Packaging.Core.Types.xml",
+        "lib/dnxcore50/NuGet.Packaging.Core.xml",
+        "lib/dnxcore50/NuGet.Packaging.dll",
+        "lib/dnxcore50/NuGet.Packaging.xml",
+        "lib/net45/NuGet.Client.dll",
+        "lib/net45/NuGet.Client.xml",
+        "lib/net45/NuGet.Commands.dll",
+        "lib/net45/NuGet.Commands.xml",
+        "lib/net45/NuGet.Common.dll",
+        "lib/net45/NuGet.Common.xml",
+        "lib/net45/NuGet.Configuration.dll",
+        "lib/net45/NuGet.Configuration.xml",
+        "lib/net45/NuGet.ContentModel.dll",
+        "lib/net45/NuGet.ContentModel.xml",
+        "lib/net45/NuGet.DependencyResolver.Core.dll",
+        "lib/net45/NuGet.DependencyResolver.Core.xml",
+        "lib/net45/NuGet.DependencyResolver.dll",
+        "lib/net45/NuGet.DependencyResolver.xml",
+        "lib/net45/NuGet.Frameworks.dll",
+        "lib/net45/NuGet.Frameworks.xml",
+        "lib/net45/NuGet.LibraryModel.dll",
+        "lib/net45/NuGet.LibraryModel.xml",
+        "lib/net45/NuGet.Logging.dll",
+        "lib/net45/NuGet.Logging.xml",
+        "lib/net45/NuGet.PackageManagement.dll",
+        "lib/net45/NuGet.PackageManagement.xml",
+        "lib/net45/NuGet.Packaging.Build.dll",
+        "lib/net45/NuGet.Packaging.Build.xml",
+        "lib/net45/NuGet.Packaging.Core.dll",
         "lib/net45/NuGet.Packaging.Core.Types.dll",
         "lib/net45/NuGet.Packaging.Core.Types.xml",
-        "NuGet.Packaging.Core.Types.3.3.0.nupkg",
-        "NuGet.Packaging.Core.Types.3.3.0.nupkg.sha512",
+        "lib/net45/NuGet.Packaging.Core.xml",
+        "lib/net45/NuGet.Packaging.dll",
+        "lib/net45/NuGet.Packaging.xml",
+        "NuGet.Packaging.Core.Types.3.4.0.nupkg",
+        "NuGet.Packaging.Core.Types.3.4.0.nupkg.sha512",
         "NuGet.Packaging.Core.Types.nuspec"
       ]
     },
-    "NuGet.Repositories/3.3.0": {
+    "NuGet.Repositories/3.4.0": {
       "type": "package",
-      "sha512": "p8OG6CkIVr1wu27J11bVympOhiS5CLL4yhdrq8EkH4NhC7cNCYx9wcsbWMcVIM5JsLIMPkDf53fHVSr1dmF8YQ==",
+      "sha512": "oH4TZl7f9cM8PmtUIIIj+YnCd/D8DOG/nKKtDXkERQgXeRvLyokW3u610u/sus9CTPM0OKxzjGKUJtmHK2wFiw==",
       "files": [
+        "lib/dnxcore50/NuGet.Client.dll",
+        "lib/dnxcore50/NuGet.Client.xml",
+        "lib/dnxcore50/NuGet.CommandLine.XPlat.dll",
+        "lib/dnxcore50/NuGet.CommandLine.XPlat.xml",
+        "lib/dnxcore50/NuGet.Commands.dll",
+        "lib/dnxcore50/NuGet.Commands.xml",
+        "lib/dnxcore50/NuGet.Common.dll",
+        "lib/dnxcore50/NuGet.Common.xml",
+        "lib/dnxcore50/NuGet.Configuration.dll",
+        "lib/dnxcore50/NuGet.Configuration.xml",
+        "lib/dnxcore50/NuGet.ContentModel.dll",
+        "lib/dnxcore50/NuGet.ContentModel.xml",
+        "lib/dnxcore50/NuGet.DependencyResolver.Core.dll",
+        "lib/dnxcore50/NuGet.DependencyResolver.Core.xml",
+        "lib/dnxcore50/NuGet.DependencyResolver.dll",
+        "lib/dnxcore50/NuGet.DependencyResolver.xml",
+        "lib/dnxcore50/NuGet.Frameworks.dll",
+        "lib/dnxcore50/NuGet.Frameworks.xml",
+        "lib/dnxcore50/NuGet.LibraryModel.dll",
+        "lib/dnxcore50/NuGet.LibraryModel.xml",
+        "lib/dnxcore50/NuGet.Logging.dll",
+        "lib/dnxcore50/NuGet.Logging.xml",
+        "lib/dnxcore50/NuGet.Packaging.Build.dll",
+        "lib/dnxcore50/NuGet.Packaging.Build.xml",
+        "lib/dnxcore50/NuGet.Packaging.Core.dll",
+        "lib/dnxcore50/NuGet.Packaging.Core.Types.dll",
+        "lib/dnxcore50/NuGet.Packaging.Core.Types.xml",
+        "lib/dnxcore50/NuGet.Packaging.Core.xml",
+        "lib/dnxcore50/NuGet.Packaging.dll",
+        "lib/dnxcore50/NuGet.Packaging.xml",
+        "lib/dnxcore50/NuGet.ProjectModel.dll",
+        "lib/dnxcore50/NuGet.ProjectModel.xml",
+        "lib/dnxcore50/NuGet.Protocol.Core.Types.dll",
+        "lib/dnxcore50/NuGet.Protocol.Core.Types.xml",
+        "lib/dnxcore50/NuGet.Protocol.Core.v3.dll",
+        "lib/dnxcore50/NuGet.Protocol.Core.v3.xml",
+        "lib/dnxcore50/NuGet.Protocol.Test.Utility.dll",
+        "lib/dnxcore50/NuGet.Protocol.Test.Utility.xml",
         "lib/dnxcore50/NuGet.Repositories.dll",
         "lib/dnxcore50/NuGet.Repositories.xml",
+        "lib/net45/NuGet.Client.dll",
+        "lib/net45/NuGet.Client.xml",
+        "lib/net45/NuGet.Commands.dll",
+        "lib/net45/NuGet.Commands.xml",
+        "lib/net45/NuGet.Common.dll",
+        "lib/net45/NuGet.Common.xml",
+        "lib/net45/NuGet.Configuration.dll",
+        "lib/net45/NuGet.Configuration.xml",
+        "lib/net45/NuGet.ContentModel.dll",
+        "lib/net45/NuGet.ContentModel.xml",
+        "lib/net45/NuGet.DependencyResolver.Core.dll",
+        "lib/net45/NuGet.DependencyResolver.Core.xml",
+        "lib/net45/NuGet.DependencyResolver.dll",
+        "lib/net45/NuGet.DependencyResolver.xml",
+        "lib/net45/NuGet.Frameworks.dll",
+        "lib/net45/NuGet.Frameworks.xml",
+        "lib/net45/NuGet.LibraryModel.dll",
+        "lib/net45/NuGet.LibraryModel.xml",
+        "lib/net45/NuGet.Logging.dll",
+        "lib/net45/NuGet.Logging.xml",
+        "lib/net45/NuGet.PackageManagement.dll",
+        "lib/net45/NuGet.PackageManagement.xml",
+        "lib/net45/NuGet.Packaging.Build.dll",
+        "lib/net45/NuGet.Packaging.Build.xml",
+        "lib/net45/NuGet.Packaging.Core.dll",
+        "lib/net45/NuGet.Packaging.Core.Types.dll",
+        "lib/net45/NuGet.Packaging.Core.Types.xml",
+        "lib/net45/NuGet.Packaging.Core.xml",
+        "lib/net45/NuGet.Packaging.dll",
+        "lib/net45/NuGet.Packaging.xml",
+        "lib/net45/NuGet.ProjectManagement.dll",
+        "lib/net45/NuGet.ProjectManagement.xml",
+        "lib/net45/NuGet.ProjectModel.dll",
+        "lib/net45/NuGet.ProjectModel.xml",
+        "lib/net45/NuGet.Protocol.Core.Types.dll",
+        "lib/net45/NuGet.Protocol.Core.Types.xml",
+        "lib/net45/NuGet.Protocol.Core.v2.dll",
+        "lib/net45/NuGet.Protocol.Core.v2.xml",
+        "lib/net45/NuGet.Protocol.Core.v3.dll",
+        "lib/net45/NuGet.Protocol.Core.v3.xml",
+        "lib/net45/NuGet.Protocol.VisualStudio.dll",
+        "lib/net45/NuGet.Protocol.VisualStudio.xml",
         "lib/net45/NuGet.Repositories.dll",
         "lib/net45/NuGet.Repositories.xml",
-        "NuGet.Repositories.3.3.0.nupkg",
-        "NuGet.Repositories.3.3.0.nupkg.sha512",
+        "NuGet.Repositories.3.4.0.nupkg",
+        "NuGet.Repositories.3.4.0.nupkg.sha512",
         "NuGet.Repositories.nuspec"
       ]
     },
-    "NuGet.RuntimeModel/3.3.0": {
+    "NuGet.RuntimeModel/3.4.0": {
       "type": "package",
-      "sha512": "5TxZt0NJEA1kOA/rXyo8b26BgktJO64yaDAPiyuBBvMuGTpqbq2uDVYE/dKL/D/yCOawPEIawY955Rn+V7JyRA==",
+      "sha512": "g+T5IOHwwpW/XTrp+AvqsM/Gx4jqtzu3l0R0lHP3NL7K7kM2hEOl4RieT8iMVWruiCqeIrGsz5EUcdMAKryiSQ==",
       "files": [
+        "lib/dnxcore50/NuGet.Client.dll",
+        "lib/dnxcore50/NuGet.Client.xml",
+        "lib/dnxcore50/NuGet.CommandLine.XPlat.dll",
+        "lib/dnxcore50/NuGet.CommandLine.XPlat.xml",
+        "lib/dnxcore50/NuGet.Commands.dll",
+        "lib/dnxcore50/NuGet.Commands.xml",
+        "lib/dnxcore50/NuGet.Common.dll",
+        "lib/dnxcore50/NuGet.Common.xml",
+        "lib/dnxcore50/NuGet.Configuration.dll",
+        "lib/dnxcore50/NuGet.Configuration.xml",
+        "lib/dnxcore50/NuGet.ContentModel.dll",
+        "lib/dnxcore50/NuGet.ContentModel.xml",
+        "lib/dnxcore50/NuGet.DependencyResolver.Core.dll",
+        "lib/dnxcore50/NuGet.DependencyResolver.Core.xml",
+        "lib/dnxcore50/NuGet.DependencyResolver.dll",
+        "lib/dnxcore50/NuGet.DependencyResolver.xml",
+        "lib/dnxcore50/NuGet.Frameworks.dll",
+        "lib/dnxcore50/NuGet.Frameworks.xml",
+        "lib/dnxcore50/NuGet.LibraryModel.dll",
+        "lib/dnxcore50/NuGet.LibraryModel.xml",
+        "lib/dnxcore50/NuGet.Logging.dll",
+        "lib/dnxcore50/NuGet.Logging.xml",
+        "lib/dnxcore50/NuGet.Packaging.Build.dll",
+        "lib/dnxcore50/NuGet.Packaging.Build.xml",
+        "lib/dnxcore50/NuGet.Packaging.Core.dll",
+        "lib/dnxcore50/NuGet.Packaging.Core.Types.dll",
+        "lib/dnxcore50/NuGet.Packaging.Core.Types.xml",
+        "lib/dnxcore50/NuGet.Packaging.Core.xml",
+        "lib/dnxcore50/NuGet.Packaging.dll",
+        "lib/dnxcore50/NuGet.Packaging.xml",
+        "lib/dnxcore50/NuGet.ProjectModel.dll",
+        "lib/dnxcore50/NuGet.ProjectModel.xml",
+        "lib/dnxcore50/NuGet.Protocol.Core.Types.dll",
+        "lib/dnxcore50/NuGet.Protocol.Core.Types.xml",
+        "lib/dnxcore50/NuGet.Protocol.Core.v3.dll",
+        "lib/dnxcore50/NuGet.Protocol.Core.v3.xml",
+        "lib/dnxcore50/NuGet.Protocol.Test.Utility.dll",
+        "lib/dnxcore50/NuGet.Protocol.Test.Utility.xml",
+        "lib/dnxcore50/NuGet.Repositories.dll",
+        "lib/dnxcore50/NuGet.Repositories.xml",
+        "lib/dnxcore50/NuGet.Resolver.dll",
+        "lib/dnxcore50/NuGet.Resolver.xml",
         "lib/dnxcore50/NuGet.RuntimeModel.dll",
         "lib/dnxcore50/NuGet.RuntimeModel.xml",
+        "lib/net45/NuGet.Client.dll",
+        "lib/net45/NuGet.Client.xml",
+        "lib/net45/NuGet.Commands.dll",
+        "lib/net45/NuGet.Commands.xml",
+        "lib/net45/NuGet.Common.dll",
+        "lib/net45/NuGet.Common.xml",
+        "lib/net45/NuGet.Configuration.dll",
+        "lib/net45/NuGet.Configuration.xml",
+        "lib/net45/NuGet.ContentModel.dll",
+        "lib/net45/NuGet.ContentModel.xml",
+        "lib/net45/NuGet.DependencyResolver.Core.dll",
+        "lib/net45/NuGet.DependencyResolver.Core.xml",
+        "lib/net45/NuGet.DependencyResolver.dll",
+        "lib/net45/NuGet.DependencyResolver.xml",
+        "lib/net45/NuGet.Frameworks.dll",
+        "lib/net45/NuGet.Frameworks.xml",
+        "lib/net45/NuGet.LibraryModel.dll",
+        "lib/net45/NuGet.LibraryModel.xml",
+        "lib/net45/NuGet.Logging.dll",
+        "lib/net45/NuGet.Logging.xml",
+        "lib/net45/NuGet.PackageManagement.dll",
+        "lib/net45/NuGet.PackageManagement.xml",
+        "lib/net45/NuGet.Packaging.Build.dll",
+        "lib/net45/NuGet.Packaging.Build.xml",
+        "lib/net45/NuGet.Packaging.Core.dll",
+        "lib/net45/NuGet.Packaging.Core.Types.dll",
+        "lib/net45/NuGet.Packaging.Core.Types.xml",
+        "lib/net45/NuGet.Packaging.Core.xml",
+        "lib/net45/NuGet.Packaging.dll",
+        "lib/net45/NuGet.Packaging.xml",
+        "lib/net45/NuGet.ProjectManagement.dll",
+        "lib/net45/NuGet.ProjectManagement.xml",
+        "lib/net45/NuGet.ProjectModel.dll",
+        "lib/net45/NuGet.ProjectModel.xml",
+        "lib/net45/NuGet.Protocol.Core.Types.dll",
+        "lib/net45/NuGet.Protocol.Core.Types.xml",
+        "lib/net45/NuGet.Protocol.Core.v2.dll",
+        "lib/net45/NuGet.Protocol.Core.v2.xml",
+        "lib/net45/NuGet.Protocol.Core.v3.dll",
+        "lib/net45/NuGet.Protocol.Core.v3.xml",
+        "lib/net45/NuGet.Protocol.VisualStudio.dll",
+        "lib/net45/NuGet.Protocol.VisualStudio.xml",
+        "lib/net45/NuGet.Repositories.dll",
+        "lib/net45/NuGet.Repositories.xml",
+        "lib/net45/NuGet.Resolver.dll",
+        "lib/net45/NuGet.Resolver.xml",
         "lib/net45/NuGet.RuntimeModel.dll",
         "lib/net45/NuGet.RuntimeModel.xml",
-        "NuGet.RuntimeModel.3.3.0.nupkg",
-        "NuGet.RuntimeModel.3.3.0.nupkg.sha512",
+        "NuGet.RuntimeModel.3.4.0.nupkg",
+        "NuGet.RuntimeModel.3.4.0.nupkg.sha512",
         "NuGet.RuntimeModel.nuspec"
       ]
     },
-    "NuGet.Versioning/3.3.0": {
+    "NuGet.Versioning/3.4.0": {
       "type": "package",
-      "sha512": "/dR3pxThkahpSuYvWUiq0KdBetg8F64WulokAPI7+3z+SsmPh57IXUbhkFdRxxRf9P3fdWkkcDabTwq5YoGr5A==",
+      "sha512": "9W/osWO/ruUWhwgtDGO18OXT9c/loNrNw7hiqptuYyJ3H/7msIDC1Vv71OBUmUfe6m+xf8sQFXuWk7etTZjRYw==",
       "files": [
+        "lib/dnxcore50/NuGet.Client.dll",
+        "lib/dnxcore50/NuGet.Client.xml",
+        "lib/dnxcore50/NuGet.CommandLine.XPlat.dll",
+        "lib/dnxcore50/NuGet.CommandLine.XPlat.xml",
+        "lib/dnxcore50/NuGet.Commands.dll",
+        "lib/dnxcore50/NuGet.Commands.xml",
+        "lib/dnxcore50/NuGet.Common.dll",
+        "lib/dnxcore50/NuGet.Common.xml",
+        "lib/dnxcore50/NuGet.Configuration.dll",
+        "lib/dnxcore50/NuGet.Configuration.xml",
+        "lib/dnxcore50/NuGet.ContentModel.dll",
+        "lib/dnxcore50/NuGet.ContentModel.xml",
+        "lib/dnxcore50/NuGet.DependencyResolver.Core.dll",
+        "lib/dnxcore50/NuGet.DependencyResolver.Core.xml",
+        "lib/dnxcore50/NuGet.DependencyResolver.dll",
+        "lib/dnxcore50/NuGet.DependencyResolver.xml",
+        "lib/dnxcore50/NuGet.Frameworks.dll",
+        "lib/dnxcore50/NuGet.Frameworks.xml",
+        "lib/dnxcore50/NuGet.LibraryModel.dll",
+        "lib/dnxcore50/NuGet.LibraryModel.xml",
+        "lib/dnxcore50/NuGet.Logging.dll",
+        "lib/dnxcore50/NuGet.Logging.xml",
+        "lib/dnxcore50/NuGet.Packaging.Build.dll",
+        "lib/dnxcore50/NuGet.Packaging.Build.xml",
+        "lib/dnxcore50/NuGet.Packaging.Core.dll",
+        "lib/dnxcore50/NuGet.Packaging.Core.Types.dll",
+        "lib/dnxcore50/NuGet.Packaging.Core.Types.xml",
+        "lib/dnxcore50/NuGet.Packaging.Core.xml",
+        "lib/dnxcore50/NuGet.Packaging.dll",
+        "lib/dnxcore50/NuGet.Packaging.xml",
+        "lib/dnxcore50/NuGet.ProjectModel.dll",
+        "lib/dnxcore50/NuGet.ProjectModel.xml",
+        "lib/dnxcore50/NuGet.Protocol.Core.Types.dll",
+        "lib/dnxcore50/NuGet.Protocol.Core.Types.xml",
+        "lib/dnxcore50/NuGet.Protocol.Core.v3.dll",
+        "lib/dnxcore50/NuGet.Protocol.Core.v3.xml",
+        "lib/dnxcore50/NuGet.Protocol.Test.Utility.dll",
+        "lib/dnxcore50/NuGet.Protocol.Test.Utility.xml",
+        "lib/dnxcore50/NuGet.Repositories.dll",
+        "lib/dnxcore50/NuGet.Repositories.xml",
+        "lib/dnxcore50/NuGet.Resolver.dll",
+        "lib/dnxcore50/NuGet.Resolver.xml",
+        "lib/dnxcore50/NuGet.RuntimeModel.dll",
+        "lib/dnxcore50/NuGet.RuntimeModel.xml",
+        "lib/dnxcore50/NuGet.Shared.dll",
+        "lib/dnxcore50/NuGet.Shared.xml",
+        "lib/dnxcore50/NuGet.Test.Utility.dll",
+        "lib/dnxcore50/NuGet.Test.Utility.xml",
         "lib/dnxcore50/NuGet.Versioning.dll",
         "lib/dnxcore50/NuGet.Versioning.xml",
+        "lib/net45/NuGet.Client.dll",
+        "lib/net45/NuGet.Client.xml",
+        "lib/net45/NuGet.Commands.dll",
+        "lib/net45/NuGet.Commands.xml",
+        "lib/net45/NuGet.Common.dll",
+        "lib/net45/NuGet.Common.xml",
+        "lib/net45/NuGet.Configuration.dll",
+        "lib/net45/NuGet.Configuration.xml",
+        "lib/net45/NuGet.ContentModel.dll",
+        "lib/net45/NuGet.ContentModel.xml",
+        "lib/net45/NuGet.DependencyResolver.Core.dll",
+        "lib/net45/NuGet.DependencyResolver.Core.xml",
+        "lib/net45/NuGet.DependencyResolver.dll",
+        "lib/net45/NuGet.DependencyResolver.xml",
+        "lib/net45/NuGet.Frameworks.dll",
+        "lib/net45/NuGet.Frameworks.xml",
+        "lib/net45/NuGet.LibraryModel.dll",
+        "lib/net45/NuGet.LibraryModel.xml",
+        "lib/net45/NuGet.Logging.dll",
+        "lib/net45/NuGet.Logging.xml",
+        "lib/net45/NuGet.PackageManagement.dll",
+        "lib/net45/NuGet.PackageManagement.xml",
+        "lib/net45/NuGet.Packaging.Build.dll",
+        "lib/net45/NuGet.Packaging.Build.xml",
+        "lib/net45/NuGet.Packaging.Core.dll",
+        "lib/net45/NuGet.Packaging.Core.Types.dll",
+        "lib/net45/NuGet.Packaging.Core.Types.xml",
+        "lib/net45/NuGet.Packaging.Core.xml",
+        "lib/net45/NuGet.Packaging.dll",
+        "lib/net45/NuGet.Packaging.xml",
+        "lib/net45/NuGet.ProjectManagement.dll",
+        "lib/net45/NuGet.ProjectManagement.xml",
+        "lib/net45/NuGet.ProjectModel.dll",
+        "lib/net45/NuGet.ProjectModel.xml",
+        "lib/net45/NuGet.Protocol.Core.Types.dll",
+        "lib/net45/NuGet.Protocol.Core.Types.xml",
+        "lib/net45/NuGet.Protocol.Core.v2.dll",
+        "lib/net45/NuGet.Protocol.Core.v2.xml",
+        "lib/net45/NuGet.Protocol.Core.v3.dll",
+        "lib/net45/NuGet.Protocol.Core.v3.xml",
+        "lib/net45/NuGet.Protocol.VisualStudio.dll",
+        "lib/net45/NuGet.Protocol.VisualStudio.xml",
+        "lib/net45/NuGet.Repositories.dll",
+        "lib/net45/NuGet.Repositories.xml",
+        "lib/net45/NuGet.Resolver.dll",
+        "lib/net45/NuGet.Resolver.xml",
+        "lib/net45/NuGet.RuntimeModel.dll",
+        "lib/net45/NuGet.RuntimeModel.xml",
+        "lib/net45/NuGet.Shared.dll",
+        "lib/net45/NuGet.Shared.xml",
+        "lib/net45/NuGet.Test.Utility.dll",
+        "lib/net45/NuGet.Test.Utility.xml",
         "lib/net45/NuGet.Versioning.dll",
         "lib/net45/NuGet.Versioning.xml",
-        "NuGet.Versioning.3.3.0.nupkg",
-        "NuGet.Versioning.3.3.0.nupkg.sha512",
+        "NuGet.Versioning.3.4.0.nupkg",
+        "NuGet.Versioning.3.4.0.nupkg.sha512",
         "NuGet.Versioning.nuspec"
       ]
     },
@@ -7143,10 +8526,10 @@
         "System.Runtime.InteropServices.nuspec"
       ]
     },
-    "System.Runtime.InteropServices.RuntimeInformation/4.0.0-beta-23213": {
+    "System.Runtime.InteropServices.RuntimeInformation/4.0.0-beta-23225": {
       "type": "package",
       "serviceable": true,
-      "sha512": "yzVJM7dF6XqnGTkv2IRufKs8AiqDpfdfBvMT5sVgY2fCtUXdkcjxiIWzaVIau8IYrJUlQDmSpeQ8NV6l1vz0Lg==",
+      "sha512": "l/lm50Ue66d/AQwAFbCPVpWMYpKbeLYAUN9Uh5VXKWk5POuSeKryG9qvHPX4W+QU4N1Hp1xdn7eD2jd7pbVZ6g==",
       "files": [
         "lib/dotnet/System.Runtime.InteropServices.RuntimeInformation.dll",
         "lib/MonoAndroid10/_._",
@@ -7158,8 +8541,8 @@
         "ref/MonoTouch10/_._",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
-        "System.Runtime.InteropServices.RuntimeInformation.4.0.0-beta-23213.nupkg",
-        "System.Runtime.InteropServices.RuntimeInformation.4.0.0-beta-23213.nupkg.sha512",
+        "System.Runtime.InteropServices.RuntimeInformation.4.0.0-beta-23225.nupkg",
+        "System.Runtime.InteropServices.RuntimeInformation.4.0.0-beta-23225.nupkg.sha512",
         "System.Runtime.InteropServices.RuntimeInformation.nuspec"
       ]
     },
@@ -7223,26 +8606,62 @@
         "System.Runtime.Numerics.nuspec"
       ]
     },
-    "System.Security.Cryptography.Algorithms/4.0.0-beta-23328": {
+    "System.Security.Cryptography.Algorithms/4.0.0-beta-23516": {
       "type": "package",
       "serviceable": true,
-      "sha512": "25LZE9MSAs9/S2JxL3r0B7NmeGitGN++zCUvW/TAqsO5CMl/Ysse/q6F2783EHczGdCo+RJSkLgcxOJ6KGj1Qg==",
+      "sha512": "h0t6XvR47THFihonJfk2aC3m2YQ94hzF0bFBE9Zgs4td+G+NgIuRmIdGQMFKv3sH7jX5ItOLq/K7uX9M6dvlgQ==",
       "files": [
         "lib/MonoAndroid10/_._",
         "lib/MonoTouch10/_._",
         "lib/net46/System.Security.Cryptography.Algorithms.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "ref/dotnet/System.Security.Cryptography.Algorithms.dll",
+        "ref/dotnet5.1/System.Security.Cryptography.Algorithms.dll",
         "ref/MonoAndroid10/_._",
         "ref/MonoTouch10/_._",
         "ref/net46/System.Security.Cryptography.Algorithms.dll",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
         "runtime.json",
-        "System.Security.Cryptography.Algorithms.4.0.0-beta-23328.nupkg",
-        "System.Security.Cryptography.Algorithms.4.0.0-beta-23328.nupkg.sha512",
+        "System.Security.Cryptography.Algorithms.4.0.0-beta-23516.nupkg",
+        "System.Security.Cryptography.Algorithms.4.0.0-beta-23516.nupkg.sha512",
         "System.Security.Cryptography.Algorithms.nuspec"
+      ]
+    },
+    "System.Security.Cryptography.Algorithms/4.0.0-rc2-23530": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "QGh3i0WzmNjgkoc42yDbl/RWBhBmLr84l9vDDtiaRnNhLrSBAq6VQTau9Qkjh1jsgbceBXW66Q2O4T/FyJnmWw==",
+      "files": [
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/System.Security.Cryptography.Algorithms.dll",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "ref/dotnet5.4/System.Security.Cryptography.Algorithms.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net46/System.Security.Cryptography.Algorithms.dll",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "runtime.json",
+        "System.Security.Cryptography.Algorithms.4.0.0-rc2-23530.nupkg",
+        "System.Security.Cryptography.Algorithms.4.0.0-rc2-23530.nupkg.sha512",
+        "System.Security.Cryptography.Algorithms.nuspec"
+      ]
+    },
+    "System.Security.Cryptography.Cng/4.0.0-beta-23516": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "jO7ya0a+ll3rD2Ig2gO8vigkOZZkcXRgpJhTLLX7+76deAYNlSmTeepBbIjp2y7CRb5t2V0ZkCfe5ssNRonFmQ==",
+      "files": [
+        "lib/dotnet5.4/System.Security.Cryptography.Cng.dll",
+        "lib/net46/System.Security.Cryptography.Cng.dll",
+        "ref/dotnet5.2/System.Security.Cryptography.Cng.dll",
+        "ref/net46/System.Security.Cryptography.Cng.dll",
+        "System.Security.Cryptography.Cng.4.0.0-beta-23516.nupkg",
+        "System.Security.Cryptography.Cng.4.0.0-beta-23516.nupkg.sha512",
+        "System.Security.Cryptography.Cng.nuspec"
       ]
     },
     "System.Security.Cryptography.Cng/4.0.0-rc2-23530": {
@@ -7314,25 +8733,25 @@
         "System.Security.Cryptography.Hashing.Algorithms.nuspec"
       ]
     },
-    "System.Security.Cryptography.Primitives/4.0.0-beta-23328": {
+    "System.Security.Cryptography.Primitives/4.0.0-beta-23516": {
       "type": "package",
       "serviceable": true,
-      "sha512": "qfy2ZTRu7Xd0zlh/4dnpbPm38zZLcE8e1/e+Go3P9L9iPZARSOJWEja60ceIIrfSOS9wUGQwbdHetIjIq0rjkw==",
+      "sha512": "ztiLIQf2hl0ljLzaUeCx5tk+TU8TrHwrEatuKgSl2KoZXxeOCeXnB+oE07xQO7RnnMlPLtX7/ucHQtteh9du7A==",
       "files": [
-        "lib/dotnet/System.Security.Cryptography.Primitives.dll",
+        "lib/dotnet5.4/System.Security.Cryptography.Primitives.dll",
         "lib/MonoAndroid10/_._",
         "lib/MonoTouch10/_._",
         "lib/net46/System.Security.Cryptography.Primitives.dll",
         "lib/xamarinios10/_._",
         "lib/xamarinmac20/_._",
-        "ref/dotnet/System.Security.Cryptography.Primitives.dll",
+        "ref/dotnet5.1/System.Security.Cryptography.Primitives.dll",
         "ref/MonoAndroid10/_._",
         "ref/MonoTouch10/_._",
         "ref/net46/System.Security.Cryptography.Primitives.dll",
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
-        "System.Security.Cryptography.Primitives.4.0.0-beta-23328.nupkg",
-        "System.Security.Cryptography.Primitives.4.0.0-beta-23328.nupkg.sha512",
+        "System.Security.Cryptography.Primitives.4.0.0-beta-23516.nupkg",
+        "System.Security.Cryptography.Primitives.4.0.0-beta-23516.nupkg.sha512",
         "System.Security.Cryptography.Primitives.nuspec"
       ]
     },
@@ -8462,7 +9881,7 @@
       "Microsoft.Build.Utilities.Core >= 0.1.0-preview-00005",
       "Microsoft.NETCore.Platforms >= 1.0.1-rc2-23530",
       "Newtonsoft.Json >= 7.0.1",
-      "NuGet.Client >= 3.3.0",
+      "NuGet.Client >= 3.4.0",
       "System.Collections >= 4.0.10",
       "System.Diagnostics.Debug >= 4.0.10",
       "System.IO >= 4.0.10",
