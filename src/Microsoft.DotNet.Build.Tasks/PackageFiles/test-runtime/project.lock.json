@@ -221,7 +221,7 @@
       "OpenCover/4.6.261-rc": {
         "type": "package"
       },
-      "ReportGenerator/2.4.0-beta1": {
+      "ReportGenerator/2.4.0-beta2": {
         "type": "package"
       },
       "System.AppContext/4.0.1-rc2-23530": {
@@ -2137,7 +2137,7 @@
       "OpenCover/4.6.261-rc": {
         "type": "package"
       },
-      "ReportGenerator/2.4.0-beta1": {
+      "ReportGenerator/2.4.0-beta2": {
         "type": "package"
       },
       "runtime.any.System.Linq.Expressions/4.0.11-rc2-23530": {
@@ -4944,7 +4944,7 @@
       "OpenCover/4.6.261-rc": {
         "type": "package"
       },
-      "ReportGenerator/2.4.0-beta1": {
+      "ReportGenerator/2.4.0-beta2": {
         "type": "package"
       },
       "runtime.any.System.Linq.Expressions/4.0.11-rc2-23530": {
@@ -7872,14 +7872,14 @@
         "transform/transform.ps1"
       ]
     },
-    "ReportGenerator/2.4.0-beta1": {
+    "ReportGenerator/2.4.0-beta2": {
       "type": "package",
-      "sha512": "MhjaDe4adUDXJDu0CRosY5Hg/9V3Hnkovi1dhvXNMOTgAE5GpFBC7AsrVhOV7TjZQtuIZjKiHfYx4Mc6bnPTuA==",
+      "sha512": "cH9JGugRHyVauSFAj3JtpEymMpPI5kjZibXS1eLdxAcQFBldk2XDcYHbjrBuuSGtCn6xXexf1PVOwehMm5M8NQ==",
       "files": [
         "LICENSE.txt",
         "Readme.txt",
-        "ReportGenerator.2.4.0-beta1.nupkg",
-        "ReportGenerator.2.4.0-beta1.nupkg.sha512",
+        "ReportGenerator.2.4.0-beta2.nupkg",
+        "ReportGenerator.2.4.0-beta2.nupkg.sha512",
         "ReportGenerator.nuspec",
         "tools/ICSharpCode.NRefactory.CSharp.dll",
         "tools/ICSharpCode.NRefactory.dll",
@@ -13390,7 +13390,7 @@
       "Microsoft.NETCore.Console >= 1.0.0-rc2-23530",
       "coveralls.io >= 1.4.0",
       "OpenCover >= 4.6.261-rc",
-      "ReportGenerator >= 2.4.0-beta1",
+      "ReportGenerator >= 2.4.0-beta2",
       "Microsoft.DotNet.xunit.performance.analysis >= 1.0.0-alpha-build0025",
       "Microsoft.DotNet.xunit.performance.runner.Windows >= 1.0.0-alpha-build0025",
       "xunit >= 2.1.0",
