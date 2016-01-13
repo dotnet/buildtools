@@ -218,7 +218,7 @@
           "ref/dotnet5.4/Microsoft.Win32.Primitives.dll": {}
         }
       },
-      "OpenCover/4.6.261-rc": {
+      "OpenCover/4.6.401-rc": {
         "type": "package"
       },
       "ReportGenerator/2.4.0-beta2": {
@@ -2134,7 +2134,7 @@
           "lib/DNXCore50/Microsoft.Win32.Registry.dll": {}
         }
       },
-      "OpenCover/4.6.261-rc": {
+      "OpenCover/4.6.401-rc": {
         "type": "package"
       },
       "ReportGenerator/2.4.0-beta2": {
@@ -4941,7 +4941,7 @@
           "lib/DNXCore50/Microsoft.Win32.Registry.dll": {}
         }
       },
-      "OpenCover/4.6.261-rc": {
+      "OpenCover/4.6.401-rc": {
         "type": "package"
       },
       "ReportGenerator/2.4.0-beta2": {
@@ -7821,17 +7821,17 @@
         "ref/net46/Microsoft.Win32.Registry.dll"
       ]
     },
-    "OpenCover/4.6.261-rc": {
+    "OpenCover/4.6.401-rc": {
       "type": "package",
-      "sha512": "kTwzuRlHSuJjEPmadvsFobh8ky7H1rbrkt70mgwv5I+9iMegr2/m8VQTW90iWSXJBjFhH5JC8DCLQ6doY1B6Lg==",
+      "sha512": "x5j0hVOhW8FiTMhrsmvqxAewP/gfnhnVZuRS9un+rUC2EY8pC5YkC/xrXpqFQlo9Cfw0myAisEw9MYVABsI+Cg==",
       "files": [
         "docs/ReleaseNotes.txt",
         "docs/Usage.rtf",
         "License.rtf",
         "MSBuild/OpenCover.MSBuild.dll",
         "MSBuild/OpenCover.targets",
-        "OpenCover.4.6.261-rc.nupkg",
-        "OpenCover.4.6.261-rc.nupkg.sha512",
+        "OpenCover.4.6.401-rc.nupkg",
+        "OpenCover.4.6.401-rc.nupkg.sha512",
         "OpenCover.nuspec",
         "readme.txt",
         "Samples/x64/OpenCover.Simple.Target.exe",
@@ -13389,7 +13389,7 @@
       "Microsoft.NETCore.TestHost >= 1.0.0-rc2-23530",
       "Microsoft.NETCore.Console >= 1.0.0-rc2-23530",
       "coveralls.io >= 1.4.0",
-      "OpenCover >= 4.6.261-rc",
+      "OpenCover >= 4.6.401-rc",
       "ReportGenerator >= 2.4.0-beta2",
       "Microsoft.DotNet.xunit.performance.analysis >= 1.0.0-alpha-build0025",
       "Microsoft.DotNet.xunit.performance.runner.Windows >= 1.0.0-alpha-build0025",
