@@ -185,4 +185,25 @@
       <VSDesignTimeBuild Condition="'$(BuildingInsideVisualStudio)'=='true' and '$(BuildingOutOfProcess)'=='false'">true</VSDesignTimeBuild>
     </PropertyGroup>
   </Target>
+  
+  <!--
+    Providing a definition for __BlockReflectionAttribute in an assembly is a signal to the .NET Native toolchain 
+    to remove the metadata for all non-public APIs. This both reduces size and disables private reflection on those 
+    APIs in libraries that include this. The attribute can also be applied to individual public APIs to similarly block them.
+  -->
+  <PropertyGroup>
+    <BlockReflectionAttribute Condition="'$(BlockReflectionAttribute)'=='' and ('$(TargetGroup)'=='netcore50' or '$(TargetGroup)'=='netcore50aot')">true</BlockReflectionAttribute>
+    <BlockReflectionAttribute Condition="'$(MSBuildProjectExtension)' == '.vbproj'">false</BlockReflectionAttribute>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(BlockReflectionAttribute)'=='true'">
+    <CoreCompileDependsOn>$(CoreCompileDependsOn);AddBlockReflectionAttribute</CoreCompileDependsOn>
+    <BlockReflectionAtributeFile>$(MSBuildThisFileDirectory)\BlockReflectionAttribute.cs</BlockReflectionAtributeFile>
+  </PropertyGroup>
+
+  <Target Name="AddBlockReflectionAttribute" >
+    <ItemGroup>
+      <Compile Include="$(BlockReflectionAtributeFile)" />  
+    </ItemGroup>
+  </Target>
 </Project>
