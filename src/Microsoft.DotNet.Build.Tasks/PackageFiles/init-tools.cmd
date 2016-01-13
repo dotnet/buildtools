@@ -4,6 +4,7 @@ setlocal
 set PROJECT_DIR=%~1
 set DOTNET_CMD=%~2
 set TOOLRUNTIME_DIR=%~3
+IF [%BUILDTOOLS_TARGET_RUNTIME%]==[] set BUILDTOOLS_TARGET_RUNTIME=win7-x64
 set BUILDTOOLS_PACKAGE_DIR=%~dp0
 
 if not exist "%PROJECT_DIR%" (
@@ -20,6 +21,6 @@ ROBOCOPY "%BUILDTOOLS_PACKAGE_DIR%\." "%TOOLRUNTIME_DIR%" /E
 
 cd "%BUILDTOOLS_PACKAGE_DIR%\tool-runtime\"
 call "%DOTNET_CMD%" restore --source https://www.myget.org/F/dotnet-core/ --source https://www.myget.org/F/dotnet-buildtools/ --source https://www.nuget.org/api/v2/
-call "%DOTNET_CMD%" publish -f dnxcore50 -r win7-x64 -o "%TOOLRUNTIME_DIR%"
+call "%DOTNET_CMD%" publish -f dnxcore50 -r %BUILDTOOLS_TARGET_RUNTIME% -o "%TOOLRUNTIME_DIR%"
 
 exit /b %ERRORLEVEL%
