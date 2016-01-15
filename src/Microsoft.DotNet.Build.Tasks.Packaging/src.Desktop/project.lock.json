@@ -1,19 +1,10 @@
 {
-  "locked": true,
+  "locked": false,
   "version": 2,
   "targets": {
     ".NETFramework,Version=v4.5": {
       "Microsoft.NETCore.Platforms/1.0.0": {
         "type": "package"
-      },
-      "Microsoft.Web.Xdt/2.1.0": {
-        "type": "package",
-        "compile": {
-          "lib/net40/Microsoft.Web.XmlTransform.dll": {}
-        },
-        "runtime": {
-          "lib/net40/Microsoft.Web.XmlTransform.dll": {}
-        }
       },
       "Newtonsoft.Json/7.0.1": {
         "type": "package",
@@ -87,18 +78,6 @@
           "lib/net45/NuGet.Common.dll": {},
           "lib/net45/NuGet.Configuration.dll": {},
           "lib/net45/NuGet.ContentModel.dll": {}
-        }
-      },
-      "NuGet.Core/2.10.1": {
-        "type": "package",
-        "dependencies": {
-          "Microsoft.Web.Xdt": "2.1.0"
-        },
-        "compile": {
-          "lib/net40-Client/NuGet.Core.dll": {}
-        },
-        "runtime": {
-          "lib/net40-Client/NuGet.Core.dll": {}
         }
       },
       "NuGet.Frameworks/3.4.0": {
@@ -648,6 +627,15 @@
         },
         "runtime": {
           "lib/net45/_._": {}
+        }
+      },
+      "System.Runtime.InteropServices.RuntimeInformation/4.0.0-rc2-23704": {
+        "type": "package",
+        "dependencies": {
+          "System.Runtime": "4.0.0"
+        },
+        "compile": {
+          "ref/dotnet5.2/System.Runtime.InteropServices.RuntimeInformation.dll": {}
         }
       },
       "System.Text.Encoding/4.0.0": {
@@ -682,15 +670,6 @@
       "Microsoft.NETCore.Platforms/1.0.0": {
         "type": "package"
       },
-      "Microsoft.Web.Xdt/2.1.0": {
-        "type": "package",
-        "compile": {
-          "lib/net40/Microsoft.Web.XmlTransform.dll": {}
-        },
-        "runtime": {
-          "lib/net40/Microsoft.Web.XmlTransform.dll": {}
-        }
-      },
       "Newtonsoft.Json/7.0.1": {
         "type": "package",
         "compile": {
@@ -763,18 +742,6 @@
           "lib/net45/NuGet.Common.dll": {},
           "lib/net45/NuGet.Configuration.dll": {},
           "lib/net45/NuGet.ContentModel.dll": {}
-        }
-      },
-      "NuGet.Core/2.10.1": {
-        "type": "package",
-        "dependencies": {
-          "Microsoft.Web.Xdt": "2.1.0"
-        },
-        "compile": {
-          "lib/net40-Client/NuGet.Core.dll": {}
-        },
-        "runtime": {
-          "lib/net40-Client/NuGet.Core.dll": {}
         }
       },
       "NuGet.Frameworks/3.4.0": {
@@ -1174,6 +1141,21 @@
           "lib/net45/NuGet.Versioning.dll": {}
         }
       },
+      "runtime.win.System.Runtime.InteropServices.RuntimeInformation/4.0.0-rc2-23704": {
+        "type": "package",
+        "dependencies": {
+          "System.Resources.ResourceManager": "4.0.0",
+          "System.Runtime": "4.0.0",
+          "System.Runtime.InteropServices": "4.0.0",
+          "System.Threading": "4.0.0"
+        },
+        "compile": {
+          "ref/dotnet/_._": {}
+        },
+        "runtime": {
+          "runtimes/win/lib/dotnet5.2/System.Runtime.InteropServices.RuntimeInformation.dll": {}
+        }
+      },
       "System.Collections/4.0.0": {
         "type": "package",
         "compile": {
@@ -1324,6 +1306,15 @@
         },
         "runtime": {
           "lib/net45/_._": {}
+        }
+      },
+      "System.Runtime.InteropServices.RuntimeInformation/4.0.0-rc2-23704": {
+        "type": "package",
+        "dependencies": {
+          "System.Runtime": "4.0.0"
+        },
+        "compile": {
+          "ref/dotnet5.2/System.Runtime.InteropServices.RuntimeInformation.dll": {}
         }
       },
       "System.Text.Encoding/4.0.0": {
@@ -1364,16 +1355,6 @@
         "Microsoft.NETCore.Platforms.1.0.0.nupkg.sha512",
         "Microsoft.NETCore.Platforms.nuspec",
         "runtime.json"
-      ]
-    },
-    "Microsoft.Web.Xdt/2.1.0": {
-      "type": "package",
-      "sha512": "/ieJ02r4MEJM21Eyl+c5kwoJWPhy+qEEcN68JaqDoamabgxJI1jGi/kNLuKvHUCl6tU7E0rMvaR6FmEnDWtS4A==",
-      "files": [
-        "lib/net40/Microsoft.Web.XmlTransform.dll",
-        "Microsoft.Web.Xdt.2.1.0.nupkg",
-        "Microsoft.Web.Xdt.2.1.0.nupkg.sha512",
-        "Microsoft.Web.Xdt.nuspec"
       ]
     },
     "Newtonsoft.Json/7.0.1": {
@@ -1463,16 +1444,6 @@
         "NuGet.ContentModel.3.4.0.nupkg",
         "NuGet.ContentModel.3.4.0.nupkg.sha512",
         "NuGet.ContentModel.nuspec"
-      ]
-    },
-    "NuGet.Core/2.10.1": {
-      "type": "package",
-      "sha512": "HaC8ng2xlmQQ2p2MoALmn+0OZnNGsdfOriGNhWc2xwuJLJZOVfyI3Eki2ybSa9K+cNjptASEsgejWvQbfiPtZQ==",
-      "files": [
-        "lib/net40-Client/NuGet.Core.dll",
-        "NuGet.Core.2.10.1.nupkg",
-        "NuGet.Core.2.10.1.nupkg.sha512",
-        "NuGet.Core.nuspec"
       ]
     },
     "NuGet.Frameworks/3.4.0": {
@@ -2067,6 +2038,21 @@
         "NuGet.Versioning.nuspec"
       ]
     },
+    "runtime.win.System.Runtime.InteropServices.RuntimeInformation/4.0.0-rc2-23704": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "2Sd6eyJQ+UY9IFVgbsMDAl/lsJzcUTvpJx5OsAygOXqfKXQ8cwbFA+ZS2GgNnjTWIGp6AMrUQEmoYkOHvxLghw==",
+      "files": [
+        "ref/dotnet/_._",
+        "runtime.win.System.Runtime.InteropServices.RuntimeInformation.4.0.0-rc2-23704.nupkg",
+        "runtime.win.System.Runtime.InteropServices.RuntimeInformation.4.0.0-rc2-23704.nupkg.sha512",
+        "runtime.win.System.Runtime.InteropServices.RuntimeInformation.nuspec",
+        "runtimes/win/lib/dotnet5.2/System.Runtime.InteropServices.RuntimeInformation.dll",
+        "runtimes/win7/lib/net45/System.Runtime.InteropServices.RuntimeInformation.dll",
+        "runtimes/win7/lib/netcore50/System.Runtime.InteropServices.RuntimeInformation.dll",
+        "runtimes/win8-aot/lib/netcore50/System.Runtime.InteropServices.RuntimeInformation.dll"
+      ]
+    },
     "System.Collections/4.0.0": {
       "type": "package",
       "sha512": "i2vsGDIEbWdHcUSNDPKZP/ZWod6o740el7mGTCy0dqbCxQh74W4QoC+klUwPEtGEFuvzJ7bJgvwJqscosVNyZQ==",
@@ -2612,6 +2598,26 @@
         "System.Runtime.InteropServices.nuspec"
       ]
     },
+    "System.Runtime.InteropServices.RuntimeInformation/4.0.0-rc2-23704": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "I7qVpX4UG8iiK5o11HJlQmUOGt3esDdxpkvUzW21Vw1+sVILRuME4bx+RzyJzqjQg7TLU2LB53qKHEuLdtwZpQ==",
+      "files": [
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "ref/dotnet5.2/System.Runtime.InteropServices.RuntimeInformation.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "runtime.json",
+        "System.Runtime.InteropServices.RuntimeInformation.4.0.0-rc2-23704.nupkg",
+        "System.Runtime.InteropServices.RuntimeInformation.4.0.0-rc2-23704.nupkg.sha512",
+        "System.Runtime.InteropServices.RuntimeInformation.nuspec"
+      ]
+    },
     "System.Text.Encoding/4.0.0": {
       "type": "package",
       "sha512": "AMxFNOXpA6Ab8swULbXuJmoT2K5w6TnV3ObF5wsmEcIHQUJghoZtDVfVHb08O2wW15mOSI1i9Wg0Dx0pY13o8g==",
@@ -2762,8 +2768,8 @@
       "Microsoft.NETCore.Platforms >= 1.0.0",
       "Newtonsoft.Json >= 7.0.1",
       "NuGet.Client >= 3.4.0",
-      "NuGet.Core >= 2.10.1",
-      "System.Reflection.Metadata >= 1.0.22"
+      "System.Reflection.Metadata >= 1.0.22",
+      "System.Runtime.InteropServices.RuntimeInformation >= 4.0.0-rc2-23704"
     ],
     ".NETFramework,Version=v4.5": []
   }

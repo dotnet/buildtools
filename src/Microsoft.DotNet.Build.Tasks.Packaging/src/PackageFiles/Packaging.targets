@@ -896,7 +896,6 @@
 
     <NugetPack Nuspecs="$(NuSpecPath)"
                OutputDirectory="$(PackageOutputPath)"
-               Properties="$(PackageProperties)"
                ExcludeEmptyDirectories="true"
                Condition="'$(_SkipCreatePackage)' != 'true'"/>
     <!-- Create a marker that records the path to the generated package -->
