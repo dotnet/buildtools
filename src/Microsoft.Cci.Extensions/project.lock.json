@@ -3,7 +3,7 @@
   "version": 2,
   "targets": {
     "DNXCore,Version=v5.0": {
-      "Microsoft.Cci/4.0.0-beta-23420": {
+      "Microsoft.Cci/4.0.0-beta-23516": {
         "type": "package",
         "dependencies": {
           "System.Collections": "4.0.10",
@@ -74,7 +74,7 @@
           "lib/dotnet/System.Collections.NonGeneric.dll": {}
         }
       },
-      "System.Console/4.0.0-beta-23420": {
+      "System.Console/4.0.0-beta-23516": {
         "type": "package",
         "dependencies": {
           "System.IO": "4.0.0",
@@ -108,7 +108,7 @@
           "lib/DNXCore50/System.Diagnostics.Debug.dll": {}
         }
       },
-      "System.Diagnostics.TraceSource/4.0.0-beta-23420": {
+      "System.Diagnostics.TraceSource/4.0.0-beta-23516": {
         "type": "package",
         "dependencies": {
           "System.Runtime": "4.0.0"
@@ -375,13 +375,13 @@
           "lib/DNXCore50/System.Threading.Tasks.dll": {}
         }
       },
-      "System.Xml.ReaderWriter/4.0.10-beta-22703": {
+      "System.Xml.ReaderWriter/4.0.10-beta-22816": {
         "type": "package",
         "dependencies": {
-          "System.IO": "4.0.0-beta-22703",
-          "System.Runtime": "4.0.0-beta-22703",
-          "System.Text.Encoding": "4.0.0-beta-22703",
-          "System.Threading.Tasks": "4.0.0-beta-22703"
+          "System.IO": "4.0.10-beta-22816",
+          "System.Runtime": "4.0.20-beta-22816",
+          "System.Text.Encoding": "4.0.10-beta-22816",
+          "System.Threading.Tasks": "4.0.10-beta-22816"
         },
         "compile": {
           "lib/contract/System.Xml.ReaderWriter.dll": {}
@@ -390,12 +390,12 @@
           "lib/portable-wpa81+wp80+win80+net45+aspnetcore50/System.Xml.ReaderWriter.dll": {}
         }
       },
-      "System.Xml.XDocument/4.0.10-beta-22703": {
+      "System.Xml.XDocument/4.0.10-beta-22816": {
         "type": "package",
         "dependencies": {
-          "System.IO": "4.0.0-beta-22703",
-          "System.Runtime": "4.0.0-beta-22703",
-          "System.Xml.ReaderWriter": "4.0.10-beta-22703"
+          "System.IO": "4.0.10-beta-22816",
+          "System.Runtime": "4.0.20-beta-22816",
+          "System.Xml.ReaderWriter": "4.0.10-beta-22816"
         },
         "compile": {
           "lib/contract/System.Xml.XDocument.dll": {}
@@ -406,7 +406,7 @@
       }
     },
     "DNXCore,Version=v5.0/win7-x86": {
-      "Microsoft.Cci/4.0.0-beta-23420": {
+      "Microsoft.Cci/4.0.0-beta-23516": {
         "type": "package",
         "dependencies": {
           "System.Collections": "4.0.10",
@@ -448,7 +448,7 @@
           "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll": {}
         }
       },
-      "runtime.win7.System.Console/4.0.0-beta-23420": {
+      "runtime.win7.System.Console/4.0.0-beta-23516": {
         "type": "package",
         "dependencies": {
           "System.IO": "4.0.10",
@@ -468,7 +468,7 @@
           "runtimes/win7/lib/dotnet5.4/System.Console.dll": {}
         }
       },
-      "runtime.win7.System.Diagnostics.TraceSource/4.0.0-beta-23420": {
+      "runtime.win7.System.Diagnostics.TraceSource/4.0.0-beta-23516": {
         "type": "package",
         "dependencies": {
           "System.Collections": "4.0.10",
@@ -515,7 +515,7 @@
           "lib/dotnet/System.Collections.NonGeneric.dll": {}
         }
       },
-      "System.Console/4.0.0-beta-23420": {
+      "System.Console/4.0.0-beta-23516": {
         "type": "package",
         "dependencies": {
           "System.IO": "4.0.0",
@@ -549,7 +549,7 @@
           "lib/DNXCore50/System.Diagnostics.Debug.dll": {}
         }
       },
-      "System.Diagnostics.TraceSource/4.0.0-beta-23420": {
+      "System.Diagnostics.TraceSource/4.0.0-beta-23516": {
         "type": "package",
         "dependencies": {
           "System.Runtime": "4.0.0"
@@ -816,13 +816,13 @@
           "lib/DNXCore50/System.Threading.Tasks.dll": {}
         }
       },
-      "System.Xml.ReaderWriter/4.0.10-beta-22703": {
+      "System.Xml.ReaderWriter/4.0.10-beta-22816": {
         "type": "package",
         "dependencies": {
-          "System.IO": "4.0.0-beta-22703",
-          "System.Runtime": "4.0.0-beta-22703",
-          "System.Text.Encoding": "4.0.0-beta-22703",
-          "System.Threading.Tasks": "4.0.0-beta-22703"
+          "System.IO": "4.0.10-beta-22816",
+          "System.Runtime": "4.0.20-beta-22816",
+          "System.Text.Encoding": "4.0.10-beta-22816",
+          "System.Threading.Tasks": "4.0.10-beta-22816"
         },
         "compile": {
           "lib/contract/System.Xml.ReaderWriter.dll": {}
@@ -831,12 +831,12 @@
           "lib/portable-wpa81+wp80+win80+net45+aspnetcore50/System.Xml.ReaderWriter.dll": {}
         }
       },
-      "System.Xml.XDocument/4.0.10-beta-22703": {
+      "System.Xml.XDocument/4.0.10-beta-22816": {
         "type": "package",
         "dependencies": {
-          "System.IO": "4.0.0-beta-22703",
-          "System.Runtime": "4.0.0-beta-22703",
-          "System.Xml.ReaderWriter": "4.0.10-beta-22703"
+          "System.IO": "4.0.10-beta-22816",
+          "System.Runtime": "4.0.20-beta-22816",
+          "System.Xml.ReaderWriter": "4.0.10-beta-22816"
         },
         "compile": {
           "lib/contract/System.Xml.XDocument.dll": {}
@@ -847,7 +847,7 @@
       }
     },
     "DNXCore,Version=v5.0/win7-x64": {
-      "Microsoft.Cci/4.0.0-beta-23420": {
+      "Microsoft.Cci/4.0.0-beta-23516": {
         "type": "package",
         "dependencies": {
           "System.Collections": "4.0.10",
@@ -889,7 +889,7 @@
           "lib/portable-net45+win8+wp8+wpa81/System.Composition.TypedParts.dll": {}
         }
       },
-      "runtime.win7.System.Console/4.0.0-beta-23420": {
+      "runtime.win7.System.Console/4.0.0-beta-23516": {
         "type": "package",
         "dependencies": {
           "System.IO": "4.0.10",
@@ -909,7 +909,7 @@
           "runtimes/win7/lib/dotnet5.4/System.Console.dll": {}
         }
       },
-      "runtime.win7.System.Diagnostics.TraceSource/4.0.0-beta-23420": {
+      "runtime.win7.System.Diagnostics.TraceSource/4.0.0-beta-23516": {
         "type": "package",
         "dependencies": {
           "System.Collections": "4.0.10",
@@ -956,7 +956,7 @@
           "lib/dotnet/System.Collections.NonGeneric.dll": {}
         }
       },
-      "System.Console/4.0.0-beta-23420": {
+      "System.Console/4.0.0-beta-23516": {
         "type": "package",
         "dependencies": {
           "System.IO": "4.0.0",
@@ -990,7 +990,7 @@
           "lib/DNXCore50/System.Diagnostics.Debug.dll": {}
         }
       },
-      "System.Diagnostics.TraceSource/4.0.0-beta-23420": {
+      "System.Diagnostics.TraceSource/4.0.0-beta-23516": {
         "type": "package",
         "dependencies": {
           "System.Runtime": "4.0.0"
@@ -1257,13 +1257,13 @@
           "lib/DNXCore50/System.Threading.Tasks.dll": {}
         }
       },
-      "System.Xml.ReaderWriter/4.0.10-beta-22703": {
+      "System.Xml.ReaderWriter/4.0.10-beta-22816": {
         "type": "package",
         "dependencies": {
-          "System.IO": "4.0.0-beta-22703",
-          "System.Runtime": "4.0.0-beta-22703",
-          "System.Text.Encoding": "4.0.0-beta-22703",
-          "System.Threading.Tasks": "4.0.0-beta-22703"
+          "System.IO": "4.0.10-beta-22816",
+          "System.Runtime": "4.0.20-beta-22816",
+          "System.Text.Encoding": "4.0.10-beta-22816",
+          "System.Threading.Tasks": "4.0.10-beta-22816"
         },
         "compile": {
           "lib/contract/System.Xml.ReaderWriter.dll": {}
@@ -1272,12 +1272,12 @@
           "lib/portable-wpa81+wp80+win80+net45+aspnetcore50/System.Xml.ReaderWriter.dll": {}
         }
       },
-      "System.Xml.XDocument/4.0.10-beta-22703": {
+      "System.Xml.XDocument/4.0.10-beta-22816": {
         "type": "package",
         "dependencies": {
-          "System.IO": "4.0.0-beta-22703",
-          "System.Runtime": "4.0.0-beta-22703",
-          "System.Xml.ReaderWriter": "4.0.10-beta-22703"
+          "System.IO": "4.0.10-beta-22816",
+          "System.Runtime": "4.0.20-beta-22816",
+          "System.Xml.ReaderWriter": "4.0.10-beta-22816"
         },
         "compile": {
           "lib/contract/System.Xml.XDocument.dll": {}
@@ -1289,14 +1289,14 @@
     }
   },
   "libraries": {
-    "Microsoft.Cci/4.0.0-beta-23420": {
+    "Microsoft.Cci/4.0.0-beta-23516": {
       "type": "package",
       "serviceable": true,
-      "sha512": "OHXmMgmJY2uuRUhIcvQisBe6h2vkX7B4xuV91BPKtJL/WiSeu0t0Tnqr3CM8kF3U2SWatEUoK7sZpCl7qSzdEA==",
+      "sha512": "xdISUYvhEZNFAdHCgt/CRvKhjRgTJFqk0Z8/xNi52Q+iDurqrcbd6eV/m5+foPjvuHucgYEfSa5FFSJSY2YP+A==",
       "files": [
         "lib/dotnet5.4/Microsoft.Cci.dll",
-        "Microsoft.Cci.4.0.0-beta-23420.nupkg",
-        "Microsoft.Cci.4.0.0-beta-23420.nupkg.sha512",
+        "Microsoft.Cci.4.0.0-beta-23516.nupkg",
+        "Microsoft.Cci.4.0.0-beta-23516.nupkg.sha512",
         "Microsoft.Cci.nuspec"
       ]
     },
@@ -1321,27 +1321,27 @@
         "Microsoft.Composition.nuspec"
       ]
     },
-    "runtime.win7.System.Console/4.0.0-beta-23420": {
+    "runtime.win7.System.Console/4.0.0-beta-23516": {
       "type": "package",
       "serviceable": true,
-      "sha512": "lW/nQAzE+15qR8y4btjxAdBUI8FH9iA9PQ2B4XzxBNq5E2UbXU5s9w6B7jTV3twEklJtT1R0MoS/9HRL1qp1kw==",
+      "sha512": "TJZhrw44Bf7sYqne+CX5II/PaNf5L7oKVfl0FLkr4pj76KS8hSsJzsKL0IvxC+bi4d51+wTbv91kF1kgPyHMVw==",
       "files": [
         "ref/dotnet/_._",
-        "runtime.win7.System.Console.4.0.0-beta-23420.nupkg",
-        "runtime.win7.System.Console.4.0.0-beta-23420.nupkg.sha512",
+        "runtime.win7.System.Console.4.0.0-beta-23516.nupkg",
+        "runtime.win7.System.Console.4.0.0-beta-23516.nupkg.sha512",
         "runtime.win7.System.Console.nuspec",
         "runtimes/win7/lib/dotnet5.4/System.Console.dll",
         "runtimes/win7/lib/net/_._"
       ]
     },
-    "runtime.win7.System.Diagnostics.TraceSource/4.0.0-beta-23420": {
+    "runtime.win7.System.Diagnostics.TraceSource/4.0.0-beta-23516": {
       "type": "package",
       "serviceable": true,
-      "sha512": "YRavz3qFwJYt3ugbh8d4Wdmwo8VGKNpYaAa6lshHaRh0XAkrAO6zO8/KaccaavskE+tIKcrlZTzhf0QgwXBc9A==",
+      "sha512": "6YSh7+vRI2ptFNPTWE100MNz0sRAVuBjwU0znK3kzd5GYQgLjvtWn8rT9DvJQA4R6OmC5Q+OgXzb/nibxcbtbA==",
       "files": [
         "ref/dotnet/_._",
-        "runtime.win7.System.Diagnostics.TraceSource.4.0.0-beta-23420.nupkg",
-        "runtime.win7.System.Diagnostics.TraceSource.4.0.0-beta-23420.nupkg.sha512",
+        "runtime.win7.System.Diagnostics.TraceSource.4.0.0-beta-23516.nupkg",
+        "runtime.win7.System.Diagnostics.TraceSource.4.0.0-beta-23516.nupkg.sha512",
         "runtime.win7.System.Diagnostics.TraceSource.nuspec",
         "runtimes/win7/lib/dotnet5.4/System.Diagnostics.TraceSource.dll",
         "runtimes/win7/lib/net/_._",
@@ -1417,10 +1417,10 @@
         "System.Collections.NonGeneric.nuspec"
       ]
     },
-    "System.Console/4.0.0-beta-23420": {
+    "System.Console/4.0.0-beta-23516": {
       "type": "package",
       "serviceable": true,
-      "sha512": "2dxC8xRy9QRE1kt+7zXeceAKIqWK+T3SghGNjY9Sk/hC+WOYRQo4x3Zci6sz2a17WHXDoTPjO1rBrEPMG/e2jQ==",
+      "sha512": "tzF4Dbbv+5bcbQ7GHuuKafkaDZThiUiwxqCc1ngewnMWZ5YmIgjQZjs+E1DNhoMVAvkH0tSmLJvsDlx9dFg+Aw==",
       "files": [
         "lib/MonoAndroid10/_._",
         "lib/MonoTouch10/_._",
@@ -1444,8 +1444,8 @@
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
         "runtime.json",
-        "System.Console.4.0.0-beta-23420.nupkg",
-        "System.Console.4.0.0-beta-23420.nupkg.sha512",
+        "System.Console.4.0.0-beta-23516.nupkg",
+        "System.Console.4.0.0-beta-23516.nupkg.sha512",
         "System.Console.nuspec"
       ]
     },
@@ -1516,10 +1516,10 @@
         "System.Diagnostics.Debug.nuspec"
       ]
     },
-    "System.Diagnostics.TraceSource/4.0.0-beta-23420": {
+    "System.Diagnostics.TraceSource/4.0.0-beta-23516": {
       "type": "package",
       "serviceable": true,
-      "sha512": "e2XemTtwIDh+C1xOMk7eU/0XeFaAXe9XkvzWKQZ5xZ5FYV89ALV85sQqgyiaxfE6+VJfe+YVWzyXq/8FeqcglQ==",
+      "sha512": "gvJNxObthiaV07AKZYjQV69xRBKRR7gTpEVe4qXF4Mta/2zD7sI+Zm//rRCQenLYBuL8nBxVzomtYJ4eT7w8QQ==",
       "files": [
         "lib/MonoAndroid10/_._",
         "lib/MonoTouch10/_._",
@@ -1543,8 +1543,8 @@
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
         "runtime.json",
-        "System.Diagnostics.TraceSource.4.0.0-beta-23420.nupkg",
-        "System.Diagnostics.TraceSource.4.0.0-beta-23420.nupkg.sha512",
+        "System.Diagnostics.TraceSource.4.0.0-beta-23516.nupkg",
+        "System.Diagnostics.TraceSource.4.0.0-beta-23516.nupkg.sha512",
         "System.Diagnostics.TraceSource.nuspec"
       ]
     },
@@ -2156,31 +2156,31 @@
         "System.Threading.Tasks.nuspec"
       ]
     },
-    "System.Xml.ReaderWriter/4.0.10-beta-22703": {
+    "System.Xml.ReaderWriter/4.0.10-beta-22816": {
       "type": "package",
-      "sha512": "o/ERRhJR+5jNw698WfL3PO/JXLJmnN74JBzY5vhxtmOs0wuVJTC8TDeDP0JnVwP+ADP/IQmZuUtK3pgZp6UB3g==",
+      "sha512": "Mx4PY22Xvz4u6h6A3yDNi8S7yvIh7yHSE9v0QM21d4cha2HMP5pwPdaKqCNkRytCQwKrBUFdMGQAmysF6n0K7w==",
       "files": [
         "lib/aspnetcore50/System.Xml.ReaderWriter.dll",
         "lib/contract/System.Xml.ReaderWriter.dll",
         "lib/net45/System.Xml.ReaderWriter.dll",
         "lib/portable-wpa81+wp80+win80+net45+aspnetcore50/System.Xml.ReaderWriter.dll",
         "License.rtf",
-        "System.Xml.ReaderWriter.4.0.10-beta-22703.nupkg",
-        "System.Xml.ReaderWriter.4.0.10-beta-22703.nupkg.sha512",
+        "System.Xml.ReaderWriter.4.0.10-beta-22816.nupkg",
+        "System.Xml.ReaderWriter.4.0.10-beta-22816.nupkg.sha512",
         "System.Xml.ReaderWriter.nuspec"
       ]
     },
-    "System.Xml.XDocument/4.0.10-beta-22703": {
+    "System.Xml.XDocument/4.0.10-beta-22816": {
       "type": "package",
-      "sha512": "VfVx/WJa6U9fBI/1VVlTWP2iqfCMwRn1kEoRjMJBNR3Nn7uSKKB4ZXGEfl8cQ8uHHcEf31OgGl+fLje4w6H7vw==",
+      "sha512": "6NwAYXuYtZtS6LSqXsMjafbVUnNWeqClza4qkfCehd2T0OdcwseTAN23IBL6ogumrjHFRdoomTFXTau4TVQCXg==",
       "files": [
         "lib/aspnetcore50/System.Xml.XDocument.dll",
         "lib/contract/System.Xml.XDocument.dll",
         "lib/net45/System.Xml.XDocument.dll",
         "lib/portable-wpa81+wp80+win80+net45+aspnetcore50/System.Xml.XDocument.dll",
         "License.rtf",
-        "System.Xml.XDocument.4.0.10-beta-22703.nupkg",
-        "System.Xml.XDocument.4.0.10-beta-22703.nupkg.sha512",
+        "System.Xml.XDocument.4.0.10-beta-22816.nupkg",
+        "System.Xml.XDocument.4.0.10-beta-22816.nupkg.sha512",
         "System.Xml.XDocument.nuspec"
       ]
     }
