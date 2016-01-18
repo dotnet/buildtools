@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" TreatAsLocalProperty="BuildProjectReferences" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <!-- The following properties are expected to change as we transition from 
+  <!-- The following properties are expected to change as we transition from
        Beta -> RC - RTM. We should set $(IncludeBuildNumberInPackageVersion)
        to false for the Beta/RC builds that get uploaded to NuGet.
   -->
@@ -15,7 +15,7 @@
     <VersionSuffix Condition="'$(PreReleaseLabel)' != ''">-$(PreReleaseLabel)</VersionSuffix>
     <VersionSuffix Condition="'$(IncludeBuildNumberInPackageVersion)' == 'true'">$(VersionSuffix)-$(BuildNumberMajor)</VersionSuffix>
 
-    <!-- 
+    <!--
       Empty out the project properties because we want configuration and platform to come from the individual
       projects instead of being overridden by the value the packages have.
     -->
@@ -34,11 +34,11 @@
     <IdPrefix Condition="'$(PackageTargetFramework)' != ''">$(IdPrefix)$(PackageTargetFramework).</IdPrefix>
   </PropertyGroup>
 
-  <!-- 
+  <!--
        NuSpec configuration.
-       
+
        NOTE: It's by design that these properties override the project. We don't
-       want projects to specify any metadata, most of the metadata should be 
+       want projects to specify any metadata, most of the metadata should be
        the same for all packages, and the rest will be centralized.
   -->
   <PropertyGroup>
@@ -98,7 +98,7 @@
   <UsingTask TaskName="NuGetPack" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
 
   <!-- Determine if we actually need to build for this architecture -->
-  <!-- Packages can specifically control their architecture by specifying the PackagePlatforms 
+  <!-- Packages can specifically control their architecture by specifying the PackagePlatforms
        property as a semi-colon delimited list.
        If this is not done then the package will build if the target runtime contains the current
        architecture or if we're building for x86. -->
@@ -279,32 +279,8 @@
                     Files="@(PackageFile)"/>
   </Target>
 
-  <!-- We support the following metadata on ProjectReferences as shortcuts to passing the property 
-         PackageTargetFramework
-         PackageTargetPath
-         PackageTargetRuntime
-         Platform -->
-  <Target Name="AddProjectReferenceProperties"
-          BeforeTargets="_GetProjectClosure">
-    <ItemGroup>
-      <!-- list each append as a seperate item to force re-evaluation of AdditionalProperties metadata -->
-      <ProjectReference>
-        <AdditionalProperties Condition="'%(ProjectReference.PackageTargetFramework)' != ''">PackageTargetFramework=%(ProjectReference.PackageTargetFramework);%(ProjectReference.AdditionalProperties)</AdditionalProperties>
-      </ProjectReference>
-      <ProjectReference>
-        <AdditionalProperties Condition="'%(ProjectReference.PackageTargetPath)' != ''">PackageTargetPath=%(ProjectReference.PackageTargetPath);%(ProjectReference.AdditionalProperties)</AdditionalProperties>
-      </ProjectReference>
-      <ProjectReference>
-        <AdditionalProperties Condition="'%(ProjectReference.PackageTargetRuntime)' != ''">PackageTargetRuntime=%(ProjectReference.PackageTargetRuntime);%(ProjectReference.AdditionalProperties)</AdditionalProperties>
-      </ProjectReference>
-      <ProjectReference>
-        <AdditionalProperties Condition="'%(ProjectReference.Platform)' != ''">Platform=%(ProjectReference.Platform);%(ProjectReference.AdditionalProperties)</AdditionalProperties>
-      </ProjectReference>
-    </ItemGroup>
-  </Target>
-
   <PropertyGroup>
-    <!-- exclude reference assets for runtime packages 
+    <!-- exclude reference assets for runtime packages
          these assets are only packaged in the reference packages.  Even
          if they have a runtime asset we package it in the reference package
          for better compression.  -->
@@ -368,7 +344,7 @@
   <!-- Don't actually walk the closure all the time, conditioned on GetClosure metadata on ProjectReference.
        Walking the closure is very expensive for many of our packages and is unecessary since we are very
        strict about assets that are included in the package.  -->
-  <Target Name="_GetProjectClosure"
+  <Target Name="_GetProjectClosure" DependsOnTargets="ConvertCommonMetadataToAdditionalProperties"
           Returns="@(_ProjectReferenceClosure)">
 
     <!-- Get closure of indirect references if they opt-in -->
@@ -423,7 +399,7 @@
     </ItemGroup>
   </Target>
 
-  <!-- Don't do any filtering of files. 
+  <!-- Don't do any filtering of files.
        We explicitly determine package content so we do not need to
        filter out files that come from dependent packages. -->
   <Target Name="GetPackageFiles"
@@ -481,7 +457,7 @@
                              Condition="$([System.String]::new('%(Identity)').StartsWith('System.Private.'))"/>
       <_FilePackageReference Remove="@(PackageDependencyExclude)"/>
 
-      <!-- Projects may specify additional references by assembly name & identity that we'll process 
+      <!-- Projects may specify additional references by assembly name & identity that we'll process
            applying pre-release logic -->
       <_FilePackageReference Include="@(AdditionalAssemblyReference)"/>
 
@@ -603,7 +579,7 @@
     </ItemGroup>
   </Target>
 
-  <!-- If the "PreventImplementationReference" property is true, then don't permit references to the 
+  <!-- If the "PreventImplementationReference" property is true, then don't permit references to the
     package implementation from lib.  This is used in the platform specific packages which should
     not be directly referenced by projects for implemtation dependencies. -->
   <Target Name="PreventImplementationReference"
@@ -618,7 +594,7 @@
   </Target>
 
 
-  <!-- 
+  <!--
       InboxOnTargetFramework: contract implementation and reference are inbox, use placeholders for both
       NotSupportedOnTargetFramework: contract should not be supported, use place holder for lib
       ExternalOnTargetFramework: contract implementation is provided by another package, use placeholders for both
@@ -664,8 +640,8 @@
   </Target>
 
   <!-- Ensures that OOB frameworks aren't obscured by placeholders for inbox frameworks
-       This is needed because nuget treats portable implementations as having less 
-       precedence than platform specific implementations of any version and we 
+       This is needed because nuget treats portable implementations as having less
+       precedence than platform specific implementations of any version and we
        put a place-holder in the platform specific folder when an asset is inbox. -->
   <ItemGroup>
     <OutOfBoxFramework Include="netcore50"/>
@@ -679,7 +655,7 @@
 
   <!-- We can reduce the number of dependencies listed for any framework that has
        inbox implementations since that framework doesn't need the packages for
-       compile/runtime.  This reduces the noise when consuming our packages in 
+       compile/runtime.  This reduces the noise when consuming our packages in
        packages.config based projects.  -->
   <Target Name="TrimInboxDependencies"
           BeforeTargets="GenerateNuSpec"
@@ -819,7 +795,7 @@
 
     <ItemGroup>
       <!-- Validation framework metadata can be sepecified in multiple ways.
-           By default we have a set of frameworks that we validate for.  If a package includes SupportedFramework items it will 
+           By default we have a set of frameworks that we validate for.  If a package includes SupportedFramework items it will
            be tested for support of those frameworks, and not support of any thing in the default set and not the supported set.
            The default set may be completely replaced by setting IncludeDefaultValidateFramework=false and populating
            the ValidateFramework item yourself (eg: at the repo level), or by excluding individual frameworks by setting
