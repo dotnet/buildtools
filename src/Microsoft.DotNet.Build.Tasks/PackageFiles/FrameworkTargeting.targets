@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <PropertyGroup Condition=" '$(TargetFrameworkIdentifier)' == '' 
-                         and '$(TargetFrameworkVersion)'    == '' 
+  <PropertyGroup Condition=" '$(TargetFrameworkIdentifier)' == ''
+                         and '$(TargetFrameworkVersion)'    == ''
                          and '$(TargetFrameworkProfile)'    == '' ">
     <TargetingDefaultPlatform>true</TargetingDefaultPlatform>
   </PropertyGroup>
@@ -52,7 +52,7 @@
 
     <ItemGroup>
       <PossibleTargetFrameworks Include="$(_TargetFrameworkDirectories)" />
-      <ReferencePath Include="%(PossibleTargetFrameworks.Identity)mscorlib.dll" 
+      <ReferencePath Include="%(PossibleTargetFrameworks.Identity)mscorlib.dll"
                      Condition="'$(_resolvedMscorlib)' != 'true' and '%(PossibleTargetFrameworks.Identity)' != '' and Exists('%(PossibleTargetFrameworks.Identity)mscorlib.dll')" />
     </ItemGroup>
   </Target>
@@ -60,7 +60,7 @@
   <Import Project="depProj.targets"
           Condition="'$(MSBuildProjectExtension)' == '.depproj'" />
 
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" 
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets"
           Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' and '$(MSBuildProjectExtension)' == '.csproj'" />
 
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"
@@ -77,10 +77,10 @@
     <AutoUnifyAssemblyReferences>true</AutoUnifyAssemblyReferences>
     <GenerateBindingRedirectsOutputType>false</GenerateBindingRedirectsOutputType>
   </PropertyGroup>
-  
+
   <!-- We need to point $(FrameworkPathOverride) to the directory that contains explicitly referenced System.Runtime.dll, if any.
-       Otherwise, if $(FrameworkPathOverride)\System.Runtime.dll is not the same file as the one referenced explicitly, 
-       VS2013 VB compiler would load it and then it would complain about ambiguous type declarations. 
+       Otherwise, if $(FrameworkPathOverride)\System.Runtime.dll is not the same file as the one referenced explicitly,
+       VS2013 VB compiler would load it and then it would complain about ambiguous type declarations.
   -->
   <PropertyGroup Condition="'$(MSBuildProjectExtension)' == '.vbproj'">
     <CoreCompileDependsOn>$(CoreCompileDependsOn);OverrideFrameworkPathForVisualBasic</CoreCompileDependsOn>
@@ -96,6 +96,41 @@
     <PropertyGroup Condition="'@(FrameworkPathOverrideCandidate->Count())' == '1'">
       <FrameworkPathOverride>@(FrameworkPathOverrideCandidate)</FrameworkPathOverride>
     </PropertyGroup>
+  </Target>
+
+  <Target Name="ConvertCommonMetadataToAdditionalProperties" BeforeTargets="AssignProjectConfiguration">
+    <!-- list each append as a seperate item to force re-evaluation of AdditionalProperties metadata -->
+    <ItemGroup>
+      <!-- Set some basic configuration properties and pass them along to ProjectReference's -->
+      <ProjectReference>
+        <OSGroup Condition="'%(ProjectReference.OSGroup)'=='' and '$(OSGroup)'!='' and '$(OSGroup)'!='AnyOS'">$(OSGroup)</OSGroup>
+      </ProjectReference>
+      <ProjectReference>
+        <TargetGroup Condition="'%(ProjectReference.TargetGroup)'=='' and '$(TargetGroup)'!=''">$(TargetGroup)</TargetGroup>
+      </ProjectReference>
+
+      <!-- Configuration property shortcuts -->
+      <ProjectReference>
+        <AdditionalProperties Condition="'%(ProjectReference.TargetGroup)'!=''">TargetGroup=%(ProjectReference.TargetGroup);%(ProjectReference.AdditionalProperties)</AdditionalProperties>
+      </ProjectReference>
+      <ProjectReference>
+        <AdditionalProperties Condition="'%(ProjectReference.OSGroup)'!=''">OSGroup=%(ProjectReference.OSGroup);%(ProjectReference.AdditionalProperties)</AdditionalProperties>
+      </ProjectReference>
+
+      <!-- Packaging property shortcuts -->
+      <ProjectReference>
+        <AdditionalProperties Condition="'%(ProjectReference.PackageTargetFramework)' != ''">PackageTargetFramework=%(ProjectReference.PackageTargetFramework);%(ProjectReference.AdditionalProperties)</AdditionalProperties>
+      </ProjectReference>
+      <ProjectReference>
+        <AdditionalProperties Condition="'%(ProjectReference.PackageTargetPath)' != ''">PackageTargetPath=%(ProjectReference.PackageTargetPath);%(ProjectReference.AdditionalProperties)</AdditionalProperties>
+      </ProjectReference>
+      <ProjectReference>
+        <AdditionalProperties Condition="'%(ProjectReference.PackageTargetRuntime)' != ''">PackageTargetRuntime=%(ProjectReference.PackageTargetRuntime);%(ProjectReference.AdditionalProperties)</AdditionalProperties>
+      </ProjectReference>
+      <ProjectReference>
+        <AdditionalProperties Condition="'%(ProjectReference.Platform)' != ''">Platform=%(ProjectReference.Platform);%(ProjectReference.AdditionalProperties)</AdditionalProperties>
+      </ProjectReference>
+    </ItemGroup>
   </Target>
 
 </Project>
