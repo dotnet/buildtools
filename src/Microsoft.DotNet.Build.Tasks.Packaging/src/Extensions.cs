@@ -3,6 +3,8 @@
 
 using Microsoft.Build.Framework;
 using NuGet;
+using NuGet.Frameworks;
+using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,7 +17,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
     public static class Extensions
     {
-        private static readonly FrameworkName NullFramework = new FrameworkName("Null,Version=v1.0");
+        private static readonly NuGetFramework NullFramework = new NuGetFramework("Null,Version=v1.0");
 
         public static bool GetBoolean(this ITaskItem taskItem, string metadataName, bool defaultValue = false)
         {
@@ -25,33 +27,25 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             return result;
         }
 
-        public static FrameworkName GetTargetFramework(this ITaskItem taskItem)
+        public static NuGetFramework GetTargetFramework(this ITaskItem taskItem)
         {
-            FrameworkName result = null;
+            NuGetFramework result = null;
             var metadataValue = taskItem.GetMetadata(Metadata.TargetFramework);
             if (!string.IsNullOrEmpty(metadataValue))
             {
-                result = NuGet.VersionUtility.ParseFrameworkName(metadataValue);
-            }
-            else
-            {
-                result = NullFramework;
+                result = NuGetFramework.Parse(metadataValue);
             }
 
             return result;
         }
 
-        public static FrameworkName GetTargetFrameworkMoniker(this ITaskItem taskItem)
+        public static NuGetFramework GetTargetFrameworkMoniker(this ITaskItem taskItem)
         {
-            FrameworkName result = null;
+            NuGetFramework result = null;
             var metadataValue = taskItem.GetMetadata(Metadata.TargetFrameworkMoniker);
             if (!string.IsNullOrEmpty(metadataValue))
             {
-                result = new FrameworkName(metadataValue);
-            }
-            else
-            {
-                result = NullFramework;
+                result = new NuGetFramework(metadataValue);
             }
 
             return result;
@@ -70,13 +64,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             return result;
         }
 
-        public static IVersionSpec GetVersion(this ITaskItem taskItem)
+        public static VersionRange GetVersion(this ITaskItem taskItem)
         {
-            IVersionSpec result = null;
+            VersionRange result = null;
             var metadataValue = taskItem.GetMetadata(Metadata.Version);
             if (!string.IsNullOrEmpty(metadataValue))
             {
-                NuGet.VersionUtility.TryParseVersionSpec(metadataValue, out result);
+                VersionRange.TryParse(metadataValue, out result);
             }
 
             return result;
@@ -92,16 +86,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             return source;
         }
 
-        public static string GetShortFrameworkName(this FrameworkName frameworkName)
-        {
-            if (frameworkName == null || frameworkName == NullFramework)
-            {
-                return null;
-            }
-
-            return NuGet.VersionUtility.GetShortFrameworkName(frameworkName);
-        }
-
         public static string ToStringSafe(this object value)
         {
             if (value == null)
@@ -112,9 +96,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             return value.ToString();
         }
 
-        public static void UpdateMember<T>(this T target, Expression<Func<T, string>> memberLamda, string value)
+        public static void UpdateMember<T1, T2>(this T1 target, Expression<Func<T1, T2>> memberLamda, T2 value)
         {
-            if (string.IsNullOrEmpty(value))
+            if (value == null)
             {
                 return;
             }
@@ -124,23 +108,23 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             {
                 throw new InvalidOperationException("Invalid member expression.");
             }
-            
+
             var property = memberSelectorExpression.Member as PropertyInfo;
             if (property == null)
             {
                 throw new InvalidOperationException("Invalid member expression.");
             }
-            
+
             property.SetValue(target, value, null);
         }
 
-        public static void AddRangeToMember<T, TItem>(this T target, Expression<Func<T, List<TItem>>> memberLamda, IEnumerable<TItem> value)
+        public static void AddRangeToMember<T, TItem>(this T target, Expression<Func<T, ICollection<TItem>>> memberLamda, IEnumerable<TItem> value)
         {
             if (value == null || value.Count() == 0)
             {
                 return;
             }
-            
+
             var memberSelectorExpression = memberLamda.Body as MemberExpression;
             if (memberSelectorExpression == null)
             {
@@ -155,8 +139,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             var list = (List<TItem>)property.GetValue(target) ?? new List<TItem>();
             list.AddRange(value);
-            
-            property.SetValue(target, list, null);
+
+            //property.SetValue(target, list, null);
         }
 
         public static string Combine(this PackageDirectory packageDirectory, string targetFramework, string fileName)
@@ -176,6 +160,26 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 default:
                     return fileName;
             }
+        }
+
+    }
+}
+
+namespace NuGet
+{
+    internal static class NuGetFrameworkExtensions
+    { 
+        // NuGet.Frameworks doesn't have the equivalent of the old VersionUtility.GetFrameworkString
+        // which is relevant for building packages
+        public static string GetFrameworkString(this NuGetFramework self)
+        {
+            var frameworkName = new FrameworkName(self.DotNetFrameworkName);
+            string name = frameworkName.Identifier + frameworkName.Version;
+            if (string.IsNullOrEmpty(frameworkName.Profile))
+            {
+                return name;
+            }
+            return name + "-" + frameworkName.Profile;
         }
     }
 }

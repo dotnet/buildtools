@@ -26,12 +26,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             set;
         }
 
-        public string[] Properties
-        {
-            get;
-            set;
-        }
-
         public bool ExcludeEmptyDirectories
         {
             get;
@@ -57,28 +51,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 Directory.CreateDirectory(OutputDirectory);
             }
 
-            IPropertyProvider properties = null;
-
-            if (Properties != null && Properties.Length > 0)
-            {
-                Dictionary<string, string> propertyDictionary = new Dictionary<string, string>();
-                foreach (string property in Properties)
-                {
-                    var propertyPair = property.Split(new[] { '=' }, 2);
-
-                    if (propertyPair.Length < 2)
-                    {
-                        Log.LogError($"Invalid property pair {property}.  Properties should be of the form name=value.");
-                        continue;
-                    }
-
-                    propertyDictionary[propertyPair[0]] = propertyPair[1];
-                }
-
-                properties = new DictionaryPropertyProvider(propertyDictionary);
-            }
-
-
             foreach (var nuspec in Nuspecs)
             {
                 string nuspecPath = nuspec.GetMetadata("FullPath");
@@ -91,7 +63,14 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                 try
                 {
-                    PackageBuilder builder = new PackageBuilder(nuspecPath, properties, !ExcludeEmptyDirectories);
+                    PackageBuilder builder = new PackageBuilder();
+
+                    using (var nuspecFile = File.Open(nuspecPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+                    {
+                        Manifest manifest = Manifest.ReadFrom(nuspecFile);
+                        builder.Populate(manifest.Metadata);
+                        builder.PopulateFiles(Path.GetDirectoryName(nuspecPath), manifest.Files);
+                    }
 
                     string id = builder.Id, version = builder.Version.ToString();
 
@@ -123,26 +102,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
 
             return !Log.HasLoggedErrors;
-        }
-
-        private class DictionaryPropertyProvider : IPropertyProvider
-        {
-            private readonly IDictionary<string, string> _properties;
-
-            public DictionaryPropertyProvider(IDictionary<string, string> properties)
-            {
-                _properties = properties;
-            }
-
-            public dynamic GetPropertyValue(string propertyName)
-            {
-                string value;
-                if (_properties.TryGetValue(propertyName, out value))
-                {
-                    return value;
-                }
-                return null;
-            }
         }
     }
 }
