@@ -45,7 +45,7 @@ cd $__TOOLS_DIR/tool-runtime/
 $__DOTNET_CMD restore --source https://www.myget.org/F/dotnet-core/ --source https://www.myget.org/F/dotnet-buildtools/ --source https://www.nuget.org/api/v2/
 $__DOTNET_CMD publish -f dnxcore50 -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR
 
-if [ -n $BUILDTOOLS_OVERRIDE_RUNTIME ]; then
+if [ -n "$BUILDTOOLS_OVERRIDE_RUNTIME" ]; then
     find $__TOOLRUNTIME_DIR -name *.ni.* | xargs rm 2>/dev/null
     cp -R $BUILDTOOLS_OVERRIDE_RUNTIME/* $__TOOLRUNTIME_DIR
 fi
