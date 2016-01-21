@@ -16,9 +16,41 @@
     <tags></tags>
     <dependencies>
      <!-- Do not add any dependencies to this package as we want to install it versionless (i.e. -ExcludeVersion) and we don't want the dependencies to be installed that way -->
+      <group targetFramework="dnxcore50">
+        <dependency id="Microsoft.Build.Framework" version="0.1.0-preview-00017" />
+        <dependency id="Microsoft.Build.Tasks.Core" version="0.1.0-preview-00017" />
+        <dependency id="Microsoft.Build.Utilities.Core" version="0.1.0-preview-00017" />
+        <dependency id="Microsoft.Build.Targets" version="0.1.0-preview-00017" />
+        <dependency id="Microsoft.Build" version="0.1.0-preview-00017" />
+        <dependency id="Microsoft.Net.Compilers.NetCore" version="1.2.0-beta1-20160202-02" />
+        <dependency id="Microsoft.Net.Compilers.Targets.NetCore" version="0.1.4-dev" />
+        <dependency id="Microsoft.NETCore.TestHost" version="1.0.0-rc2-23816" />
+        <dependency id="Microsoft.NETCore.Console" version="1.0.0-rc2-23816" />
+        <dependency id="Microsoft.NETCore.Platforms" version="1.0.1-rc2-23816" />
+        <dependency id="Microsoft.NETCore.Runtime" version="1.0.1-rc2-23816" />
+        <dependency id="Microsoft.Portable.Targets" version="0.1.1-dev" include="all" />
+        <dependency id="Microsoft.Cci" version="4.0.0-rc3-23811" />
+        <dependency id="MSBuild" version="0.1.0-preview-00017" />
+        <dependency id="Newtonsoft.Json" version="7.0.1" />
+        <dependency id="NuGet.Versioning" version="3.4.0-beta-488" />
+        <dependency id="NuGet.Client" version="3.4.0-beta-488" />
+        <dependency id="System.Diagnostics.TextWriterTraceListener" version="4.0.0-rc2-23816" />
+        <dependency id="System.Dynamic.Runtime" version="4.0.11-rc2-23816" />
+        <dependency id="System.IO.Compression" version="4.1.0-rc2-23816" />
+        <dependency id="System.IO.FileSystem" version="4.0.1-rc2-23816" />
+        <dependency id="System.Linq.Expressions" version="4.0.11-rc2-23816" />
+        <dependency id="System.Runtime.Extensions" version="4.1.0-rc2-23816" />
+        <dependency id="System.Security.Cryptography.Algorithms" version="4.0.0-rc2-23816" />
+      </group>
+      <group targetFramework="net45">
+      </group>
     </dependencies>
+    <contentFiles> 
+      <files include="**\*" buildAction="None" copyToOutput="true" />
+    </contentFiles>
   </metadata>
   <files>
+    <file src="Microsoft.DotNet.Build.Tasks.Packaging.Desktop\_._" target="lib\dnxcore50" />
     <file src="Microsoft.DotNet.Build.Tasks.net45\*.dll" exclude="Microsoft.DotNet.Build.Tasks.net45\Nuget.*.dll" target="lib\net45" />
     <file src="Microsoft.DotNet.Build.CloudTestTasks\Microsoft.Azure.Documents.Client.dll" target="lib\net45" />
     <file src="Microsoft.DotNet.Build.CloudTestTasks\Microsoft.DotNet.Build.CloudTestTasks.dll" target="lib\net45" />
@@ -30,17 +62,17 @@
     <file src="Microsoft.DotNet.Build.CloudTestTasks\Microsoft.WindowsAzure.Configuration.dll" target="lib\net45" />
     <file src="Microsoft.DotNet.Build.CloudTestTasks\Microsoft.WindowsAzure.Storage.dll" target="lib\net45" />
     <file src="Microsoft.DotNet.Build.CloudTestTasks\System.Spatial.dll" target="lib\net45" />
-    <file src="Microsoft.Dotnet.Build.CloudTestTasks\PackageFiles\**\*.*" target="lib" />
-    <file src="Microsoft.Dotnet.Build.CloudTestTasks\RunnerScripts\**\*.*" target="lib\RunnerScripts" />
-    <file src="Microsoft.DotNet.Build.Tasks\PackageFiles\**\*.*" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks\*.dll" exclude="Microsoft.DotNet.Build.Tasks\Nuget.*.dll" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks\NuProj\**\*.*" target="lib\NuProj" />
-    <file src="BclRewriter\BclRewriter.exe" target="lib" />
-    <file src="GenFacades\GenFacades.exe" target="lib" />
-    <file src="Microsoft.Cci.Extensions\Microsoft.Cci.Extensions.dll" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks.Packaging\Microsoft.DotNet.Build.Tasks.Packaging.dll" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks.Packaging\FrameworkLists\**\*.*" target="lib\FrameworkLists" />
-    <file src="Microsoft.DotNet.Build.Tasks.Packaging\PackageFiles\**\*.*" target="lib" />
+    <file src="Microsoft.Dotnet.Build.CloudTestTasks\PackageFiles\**\*.*" target="runtimes\any\native" />
+    <file src="Microsoft.Dotnet.Build.CloudTestTasks\RunnerScripts\**\*.*" target="contentFiles\any\dnxcore50\RunnerScripts" />
+    <file src="Microsoft.DotNet.Build.Tasks\PackageFiles\**\*.*" exclude="Microsoft.DotNet.Build.Tasks\PackageFiles\test-runtime\*" target="runtimes\any\native" />
+    <file src="Microsoft.DotNet.Build.Tasks.Packaging\FrameworkLists\**\*.*" target="contentFiles\any\dnxcore50\FrameworkLists" />
+    <file src="Microsoft.DotNet.Build.Tasks\PackageFiles\test-runtime\*" target="contentFiles\any\dnxcore50\test-runtime" />
+    <file src="Microsoft.DotNet.Build.Tasks\*.dll" exclude="Microsoft.DotNet.Build.Tasks\Nuget.*.dll" target="lib\dnxcore50" />
+    <file src="BclRewriter\BclRewriter.exe" target="lib\dnxcore50" />
+    <file src="GenFacades\GenFacades.exe" target="lib\dnxcore50" />
+    <file src="Microsoft.Cci.Extensions\Microsoft.Cci.Extensions.dll" target="lib\dnxcore50" />
+    <file src="Microsoft.DotNet.Build.Tasks.Packaging\Microsoft.DotNet.Build.Tasks.Packaging.dll" target="lib\dnxcore50" />
+    <file src="Microsoft.DotNet.Build.Tasks.Packaging\PackageFiles\**\*.*" target="runtimes\any\native" />
     <file src="Microsoft.DotNet.Build.Tasks.Packaging.Desktop\Microsoft.DotNet.Build.Tasks.Packaging.dll" target="lib\net45" />
     <file src="Microsoft.DotNet.Build.Tasks.Packaging.Desktop\NuGet.*.dll" target="lib\net45" />
   </files>
