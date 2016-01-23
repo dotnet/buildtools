@@ -10,17 +10,19 @@
   </ItemGroup>
 
   <UsingTask AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" TaskName="OpenSourceSign" />
-  
+
   <PropertyGroup Condition="'$(SkipSigning)'!='true'">
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>$(ToolsDir)MSFT.snk</AssemblyOriginatorKeyFile>
     <AssemblyOriginatorKeyFile Condition="'$(UseECMAKey)' == 'true'">$(ToolsDir)ECMA.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile Condition="'$(UseOpenKey)' == 'true'">$(ToolsDir)Open.snk</AssemblyOriginatorKeyFile>
     <DelaySign>true</DelaySign>
+    <DelaySign Condition="'$(UseOpenKey)' == 'true'">false</DelaySign>
     <DefineConstants>$(DefineConstants);SIGNED</DefineConstants>
     <UseOpenSourceSign Condition="'$(UseOpenSourceSign)' == ''">true</UseOpenSourceSign>
   </PropertyGroup>
 
-  <!-- 
+  <!--
     NOTE: This mechanism for wiring in the OpenSourceSign target can't be changed to any of the following:
 
         * AfterTargets=Compile -> hit by intellisense builds while @(IntermediateAssembly) doesn't exist yet.
