@@ -1,20 +1,20 @@
 ﻿{
     "dependencies": {
-        "Microsoft.Cci": "4.0.0-beta-*",
+        "Microsoft.Cci": "4.0.0-rc2-23712",
         "System.Collections": "4.0.10",
-        "System.Console": "4.0.0-beta-*",
+        "System.Console": "4.0.0-rc2-23712",
         "System.Diagnostics.Debug": "4.0.10",
-        "System.Diagnostics.FileVersionInfo": "4.0.0-beta-*",
-        "System.Diagnostics.TextWriterTraceListener": "4.0.0-beta-*",
-        "System.Diagnostics.TraceSource": "4.0.0-beta-*",
+        "System.Diagnostics.FileVersionInfo": "4.0.0-rc2-23712",
+        "System.Diagnostics.TextWriterTraceListener": "4.0.0-rc2-23712",
+        "System.Diagnostics.TraceSource": "4.0.0-rc2-23712",
         "System.IO.FileSystem": "4.0.0",
         "System.Linq": "4.0.0",
         "System.Reflection": "4.0.10",
         "System.Reflection.Extensions": "4.0.0",
         "System.Reflection.TypeExtensions": "4.0.0",
         "System.Text.Encoding": "4.0.10",
-        "Microsoft.NETCore.Runtime": "1.0.1-beta-*",
-        "Microsoft.NETCore.Runtime.CoreCLR.ConsoleHost-x64": "1.0.0-beta-*"
+        "Microsoft.NETCore.Runtime": "1.0.1-rc2-23712",
+        "Microsoft.NETCore.ConsoleHost": "1.0.0-rc2-23712"
     },
     "frameworks": {
        "dnxcore50": { }

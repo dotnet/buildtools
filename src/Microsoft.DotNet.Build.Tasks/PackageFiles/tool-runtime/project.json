@@ -7,15 +7,15 @@
     "Microsoft.Build.Framework": "0.1.0-preview-00005",
     "Microsoft.Build.Tasks.Core": "0.1.0-preview-00005",
     "Microsoft.Build.Utilities.Core": "0.1.0-preview-00005",
-    "Microsoft.NETCore.TestHost": "1.0.0-beta-23328",
-    "Microsoft.NETCore.Console": "1.0.0-beta-23328",
-    "Microsoft.NETCore.Platforms": "1.0.1-beta-23328",
-    "Microsoft.Cci": "4.0.0-beta-23328",
+    "Microsoft.NETCore.TestHost": "1.0.0-rc2-23712",
+    "Microsoft.NETCore.Console": "1.0.0-rc2-23712",
+    "Microsoft.NETCore.Platforms": "1.0.1-rc2-23712",
+    "Microsoft.Cci": "4.0.0-rc2-23712",
     "Newtonsoft.Json": "7.0.1",
     "NuGet.Versioning": "3.4.0-beta-488",
     "NuGet.Client": "3.4.0-beta-488",
     "System.Xml.XPath.XmlDocument": "4.0.0",
-    "System.Diagnostics.TextWriterTraceListener": "4.0.0-beta-23328"
+    "System.Diagnostics.TextWriterTraceListener": "4.0.0-rc2-23712"
   },
   "frameworks": {
     "dnxcore50": { },
