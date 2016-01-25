@@ -109,6 +109,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             set;
         }
 
+        public bool UseNetPlatform
+        {
+            get { return _generationIdentifier == FrameworkConstants.FrameworkIdentifiers.NetPlatform; }
+            set { _generationIdentifier = value ? FrameworkConstants.FrameworkIdentifiers.NetPlatform : FrameworkConstants.FrameworkIdentifiers.NetStandard; }
+        }
+
         /// <summary>
         /// property bag of error suppressions
         /// </summary>
@@ -117,6 +123,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         private Dictionary<NuGetFramework, ValidationFramework> _frameworks;
         private AggregateNuGetAssetResolver _resolver;
         private Dictionary<string, PackageItem> _targetPathToPackageItem;
+        private string _generationIdentifier = FrameworkConstants.FrameworkIdentifiers.NetStandard;
 
         public override bool Execute()
         {
@@ -145,12 +152,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             // get the generation of all portable implementation dlls.
             var allRuntimeGenerations = _resolver.GetAllRuntimeItems().Values
                 .SelectMany(groups => groups.Select(group => group.Properties[PropertyNames.TargetFrameworkMoniker] as NuGetFramework))
-                .Where(fx => fx != null && fx.Framework == FrameworkConstants.FrameworkIdentifiers.NetPlatform)
+                .Where(fx => fx != null && fx.Framework == _generationIdentifier)
                 .Select(fx => fx.Version);
 
             // get the generation of all supported frameworks (some may have framework specific implementations
             // or placeholders).
-            var allSupportedGenerations = _frameworks.Values.Where(vf => vf.SupportedVersion != null && IsGeneration(vf.Framework))
+            var allSupportedGenerations = _frameworks.Values.Where(vf => vf.SupportedVersion != null && FrameworkUtilities.IsGenerationMoniker(vf.Framework))
                 .Select(vf => vf.Framework.Version);
 
             // find the minimum supported version as the minimum of any generation explicitly implemented 
@@ -160,7 +167,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             // validate API version against generation for all files
             foreach (var validateFile in _validateFiles.SelectMany(packageFileSet => packageFileSet.Value)
-                .Where(f => IsDll(f.SourcePath) && IsGeneration(f.TargetFramework)))
+                .Where(f => IsDll(f.SourcePath) && FrameworkUtilities.IsGenerationMoniker(f.TargetFramework)))
             {
                 if (validateFile.TargetFramework.Version < minSupportedGeneration)
                 {
@@ -257,7 +264,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                                 }
                             }
 
-                            if (!hasRuntimeAsset && !IsGeneration(validateFramework.Framework))
+                            if (!hasRuntimeAsset && !FrameworkUtilities.IsGenerationMoniker(validateFramework.Framework))
                             {
                                 Log.LogError($"{ContractName} should be supported on {target} but has no runtime assets.");
                             }
@@ -661,7 +668,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             Dictionary<NuGetFramework, ValidationFramework> generationsToValidate = new Dictionary<NuGetFramework, ValidationFramework>();
             foreach (var framework in portableFrameworks)
             {
-                NuGetFramework generation = new NuGetFramework(FrameworkConstants.FrameworkIdentifiers.NetPlatform, Generations.DetermineGenerationForFramework(framework.Framework));
+                NuGetFramework generation = new NuGetFramework(_generationIdentifier, Generations.DetermineGenerationForFramework(framework.Framework, UseNetPlatform));
                 Log.LogMessage(LogImportance.Low, $"Validating {generation} for {ContractName}, {framework.SupportedVersion} since it is supported by {framework.Framework}");
 
                 ValidationFramework existingGeneration = null;
@@ -688,7 +695,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             foreach (var packageGroup in _resolver.GetAllRuntimeItems())
             {
                 var allGenerationalImplementations = packageGroup.Value
-                    .Where(contentGroup => IsGeneration(contentGroup.Properties[PropertyNames.TargetFrameworkMoniker] as NuGetFramework))
+                    .Where(contentGroup => FrameworkUtilities.IsGenerationMoniker(contentGroup.Properties[PropertyNames.TargetFrameworkMoniker] as NuGetFramework))
                     .SelectMany(contentGroup => contentGroup.Items.Select(item => _targetPathToPackageItem[AggregateNuGetAssetResolver.AsPackageSpecificTargetPath(packageGroup.Key, item.Path)]));
 
                 foreach (var generationalImplementation in allGenerationalImplementations)
@@ -707,12 +714,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 }
             }
         }
-
-        private static bool IsGeneration(NuGetFramework framework)
-        {
-            return framework != null && framework.Framework == FrameworkConstants.FrameworkIdentifiers.NetPlatform;
-        }
-
 
         private class ValidationFramework
         {

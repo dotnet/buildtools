@@ -26,6 +26,9 @@
 
     <!-- By default we'll build libraries referenced by packages -->
     <BuildPackageLibraryReferences Condition="'$(BuildPackageLibraryReferences)' == ''">true</BuildPackageLibraryReferences>
+    
+    <!-- turn off dotnet > netstandard rename until ready -->
+    <UseNetPlatform Condition="'$(UseNetPlatform)' == ''">true</UseNetPlatform>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(IsRuntimePackage)' == 'true' or '$(PackageTargetRuntime)' != ''">
@@ -56,8 +59,8 @@
     <Copyright>&#169; Microsoft Corporation.  All rights reserved.</Copyright>
     <Tags></Tags>
     <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
-    <!-- we depend on nuget v3 behavior -->
-    <MinClientVersion Condition="'$(MinClientVersion)' == ''">3.0</MinClientVersion>
+    <!-- we depend on nuget v3.4 behavior -->
+    <MinClientVersion Condition="'$(MinClientVersion)' == ''">3.4</MinClientVersion>
   </PropertyGroup>
 
   <!-- Shared properties -->
@@ -480,6 +483,31 @@
     </ItemGroup>
   </Target>
 
+  <Target Name="GetNuGetPackageDependencies"
+          DependsOnTargets="GetFilePackageReferences">
+   <!-- We can reduce the number of dependencies listed for any framework that has
+        inbox implementations since that framework doesn't need the packages for
+        compile/runtime.  This reduces the noise when consuming our packages in
+        packages.config based projects.  -->
+    <CreateTrimDependencyGroups Dependencies="@(FilePackageDependency);@(Dependency)"
+                      FrameworkListsPath="$(FrameworkListsPath)"
+                      TrimFrameworks="@(InboxOnTargetFramework);@(NotSupportedOnTargetFramework);@(ExternalOnTargetFramework)"
+                      Files="@(File)"
+                      UseNetPlatform="$(UseNetPlatform)"
+                      Condition="'@(FilePackageDependency)' != '' AND '$(PackageTargetRuntime)' == ''">
+      <Output TaskParameter="TrimmedDependencies" ItemName="FilePackageDependency" />
+    </CreateTrimDependencyGroups>
+
+    <ApplyBaseLine OriginalDependencies="@(FilePackageDependency)" BaseLinePackages="@(BaseLinePackage)">
+      <Output TaskParameter="BaseLinedDependencies" ItemName="_BaseLinedDependencies" />
+    </ApplyBaseLine>
+
+    <ApplyPreReleaseSuffix Condition="'@(_BaseLinedDependencies)' != ''" StablePackages="@(StablePackage)" OriginalPackages="@(_BaseLinedDependencies)" PreReleaseSuffix="$(VersionSuffix)" RevStableToPrerelease="$(DependencyRevStableToPrerelease)">
+      <Output TaskParameter="UpdatedPackages" ItemName="Dependency"/>
+    </ApplyPreReleaseSuffix>
+
+  </Target>
+
   <!-- Walks every project gathering its AssemblyVersion, choosing the highest -->
   <!-- Skipped if the package explicitly defines a version -->
   <Target Name="GetAssemblyVersionFromProjects"
@@ -588,7 +616,8 @@
       <PackageFile Include="$(PlaceholderFile)">
         <PackageId>$(Id)</PackageId>
         <PackageVersion>$(Version)</PackageVersion>
-        <TargetPath>ref/dotnet</TargetPath>
+        <TargetPath Condition="'$(UseNetPlatform)' != 'true'">ref/netstandard</TargetPath>
+        <TargetPath Condition="'$(UseNetPlatform)' == 'true'">ref/dotnet</TargetPath>
       </PackageFile>
     </ItemGroup>
   </Target>
@@ -832,6 +861,7 @@
                      SkipGenerationCheck="$(SkipGenerationCheck)"
                      SkipSupportCheck="$(SkipSupportCheck)"
                      SuppressionFile="$(ValidationSuppressionFile)"
+                     UseNetPlatform="$(UseNetPlatform)"
                      ContinueOnError="ErrorAndContinue"/>
   </Target>
 

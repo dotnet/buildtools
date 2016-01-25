@@ -31,7 +31,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         }
         public static bool IsGenerationMoniker(NuGetFramework dependencyGroup)
         {
-            return dependencyGroup.Framework == FrameworkConstants.FrameworkIdentifiers.NetPlatform;
+            return dependencyGroup.Framework == FrameworkConstants.FrameworkIdentifiers.NetPlatform ||
+                dependencyGroup.Framework == FrameworkConstants.FrameworkIdentifiers.NetStandard;
         }
         public static bool IsPortableMoniker(NuGetFramework nuGetFramework)
         {

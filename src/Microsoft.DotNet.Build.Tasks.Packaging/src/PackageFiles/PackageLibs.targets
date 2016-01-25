@@ -3,6 +3,8 @@
   <PropertyGroup>
     <PackagingTaskDir Condition="'$(PackagingTaskDir)' == ''">$(MSBuildThisFileDirectory)</PackagingTaskDir>
     <GenerationDefinitionFile Condition="'$(GenerationDefinitionFile)' == ''">$(MSBuildThisFileDirectory)Generations.json</GenerationDefinitionFile>
+    <!-- turn off dotnet > netstandard rename until ready -->
+    <UseNetPlatform Condition="'$(UseNetPlatform)' == ''">true</UseNetPlatform>
   </PropertyGroup>
 
   <UsingTask TaskName="ValidatePackageTargetFramework" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
@@ -111,16 +113,8 @@
       </PackageDestination>
     </ItemGroup>
 
-    <!-- default to dotnet if not specified by the project  -->
-    <ItemGroup Condition="'@(PackageDestination)' == ''">
-      <PackageDestination Include="$(_packageTargetRefLib)/dotnet">
-        <TargetFramework>dotnet</TargetFramework>
-      </PackageDestination>
-      <PackageDestination Condition="'$(PackageAsRefAndLib)' == 'true'" Include="ref/dotnet">
-        <TargetFramework>dotnet</TargetFramework>
-      </PackageDestination>
-    </ItemGroup>
-
+    <!-- fail if not specified by the project  -->
+    <Error Condition="'@(PackageDestination)' == ''" Text="Error could not determine packaging destination.  Please set either PackageTargetFramework property or PackageDestination item." />
 
     <!-- *** include assets *** -->
     <ItemGroup>
@@ -166,7 +160,8 @@
                                     PackageTargetFramework="$(PackageTargetFramework)"
                                     DirectReferences="@(ReferencePath)"
                                     CandidateReferences="@(ReferencePath);@(IndirectReference)"
-                                    IgnoredReferences="@(ValidateIgnoreReference)"/>
+                                    IgnoredReferences="@(ValidateIgnoreReference)"
+                                    UseNetPlatform="$(UseNetPlatform)"/>
   </Target>
 
 </Project>

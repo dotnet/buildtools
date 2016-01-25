@@ -23,21 +23,25 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         private static Dictionary<string, Generations> s_generationsCache = new Dictionary<string, Generations>(StringComparer.OrdinalIgnoreCase); // file paths are case insensitive
 
         private readonly List<Generation> _generations = new List<Generation>();
+        private readonly string _generationIdentifier;
 
-        private Generations()
+        private Generations(bool useNetPlatform)
         {
             ReferencePaths = new string[0];
+            _generationIdentifier = useNetPlatform ? "dotnet" : "netstandard";
         }
 
         public string[] ReferencePaths { get; set; }
 
-        public static Generations Load(string generationsPath)
+        public static Generations Load(string generationsPath, bool useNetPlatform)
         {
             Generations result;
-            if (s_generationsCache.TryGetValue(generationsPath, out result))
+            string cachePath = $"{generationsPath}:{useNetPlatform}";
+
+            if (s_generationsCache.TryGetValue(cachePath, out result))
                 return result;
 
-            result = new Generations();
+            result = new Generations(useNetPlatform);
 
             using (var fileStream = File.OpenRead(generationsPath))
             using (var streamReader = new StreamReader(fileStream))
@@ -47,6 +51,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                 foreach (var generation in EachProperty(json["generations"]).Select(ReadGeneration))
                 {
+                    if (useNetPlatform)
+                    {
+                        // net platform, dotnet, is 4.1 ahead of netstandard.  EG: netstandard1.0 = dotnet5.1, and so on.
+                        generation.Version = new Version(generation.Version.Major + 4, generation.Version.Minor + 1, 0, 0);
+                    }
+
                     result._generations.Add(generation);
                 }
             }
@@ -67,7 +77,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             if (_generationCache.TryGetValue(assemblyPath, out maxGeneration))
             {
-                log.LogMessage(LogImportance.Low, $"Generation of {assemblyPath} is dotnet{maxGeneration} from cache.");
+                log.LogMessage(LogImportance.Low, $"Generation of {assemblyPath} is {_generationIdentifier}{maxGeneration} from cache.");
                 return maxGeneration;
             }
 
@@ -151,7 +161,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 }
             }
 
-            log.LogMessage(LogImportance.Low, $"Generation of {assemblyPath} is dotnet{maxGeneration}.");
+            log.LogMessage(LogImportance.Low, $"Generation of {assemblyPath} is {_generationIdentifier}{maxGeneration}.");
             _generationCache.Add(assemblyPath, maxGeneration);
             _cycleStack.RemoveAt(_cycleStack.Count - 1);
 
@@ -185,29 +195,29 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             if (lowerGeneration == null && upperGeneration == null)
             {
-                log.LogMessage(LogImportance.Low, "Assembly {0} is not tracked by generations.", assemblyName);
+                log.LogMessage(LogImportance.Low, $"Assembly {assemblyName} is not tracked by generations.");
             }
             else if (lowerGeneration == null && upperGeneration != null)
             {
-                log.LogError("Could not determine generation of assembly {0}.  It is lower than the lowest version of the contract supported by any generation.  {1} <= {2}(dotnet{3}).", assemblyName, assemblyVersion, upperGeneration.Assemblies[assemblyName], upperGeneration.Version);
+                log.LogError($"Could not determine generation of assembly {assemblyName}.  It is lower than the lowest version of the contract supported by any generation.  {assemblyVersion} <= {upperGeneration.Assemblies[assemblyName]}({_generationIdentifier}{upperGeneration.Version}).");
             }
             else if (lowerGeneration != null && upperGeneration == null)
             {
-                log.LogMessage(LogImportance.Low, "Assembly {0}, {1} is supported by dotnet{2}. {3}(dotnet{2}) <= {1}", assemblyName, assemblyVersion, lowerGeneration.Version, lowerGeneration.Assemblies[assemblyName]);
+                log.LogMessage(LogImportance.Low, $"Assembly {assemblyName}, {assemblyVersion} is supported by {_generationIdentifier}{lowerGeneration.Version}. {lowerGeneration.Assemblies[assemblyName]}({_generationIdentifier}{lowerGeneration.Version}) <= {assemblyVersion}");
             }
             else
             {
-                log.LogMessage(LogImportance.Low, "Assembly {0}, {1} is supported by dotnet{2}. {3}(dotnet{2}) <= {1} < {4}(dotnet{5})", assemblyName, assemblyVersion, lowerGeneration.Version, lowerGeneration.Assemblies[assemblyName], upperGeneration.Assemblies[assemblyName], upperGeneration.Version);
+                log.LogMessage(LogImportance.Low, $"Assembly {assemblyName}, {assemblyVersion} is supported by {_generationIdentifier}{lowerGeneration.Version}. {lowerGeneration.Assemblies[assemblyName]}({_generationIdentifier}{lowerGeneration.Version}) <= {assemblyVersion} < { upperGeneration.Assemblies[assemblyName]}({_generationIdentifier}{upperGeneration.Version})");
             }
 
             return result;
         }
 
-        public static Version DetermineGenerationForFramework(NuGetFramework framework)
+        public static Version DetermineGenerationForFramework(NuGetFramework framework, bool useNetPlatform)
         {
             FrameworkExpander expander = new FrameworkExpander();
-
-            var generationFxs = expander.Expand(framework).Where(fx => fx.Framework == FrameworkConstants.FrameworkIdentifiers.NetPlatform).Select(fx => fx.Version);
+            var generationFramework = useNetPlatform ? FrameworkConstants.FrameworkIdentifiers.NetPlatform : FrameworkConstants.FrameworkIdentifiers.NetStandard;
+            var generationFxs = expander.Expand(framework).Where(fx => fx.Framework == generationFramework).Select(fx => fx.Version);
 
             return generationFxs.Max();
         }
@@ -226,75 +236,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
 
             return result;
-        }
-
-        private string LocateReference(string assemblyName, Version assemblyVersion)
-        {
-            string contractPath = null;
-            string fileName = assemblyName + ".dll";
-
-            foreach (string referencePath in ReferencePaths)
-            {
-                string contractNamePath = Path.Combine(referencePath, assemblyName);
-
-                if (!Directory.Exists(contractNamePath))
-                {
-                    continue;
-                }
-
-                // <path>/<name>/<version>/<name>.dll
-                if (File.Exists(contractPath = Path.Combine(contractNamePath, assemblyVersion.ToString(), fileName)))
-                {
-                    break;
-                }
-
-                // bugfix version
-                string versionDir = Directory.EnumerateDirectories(contractNamePath, $"{assemblyVersion.ToString(2)}.*.0").LastOrDefault();
-                if (versionDir != null && File.Exists(contractPath = Path.Combine(versionDir, fileName)))
-                {
-                    break;
-                }
-
-                // nuget paths, just a heuristic.  Could do better here by actually using NugetAPI.
-                versionDir = Path.Combine(contractNamePath, assemblyVersion.ToString(3));
-                if (!Directory.Exists(versionDir))
-                {
-                    versionDir = Directory.EnumerateDirectories(contractNamePath, $"{assemblyVersion.ToString(3)}-*").LastOrDefault();
-                }
-
-                if (!Directory.Exists(versionDir))
-                {
-                    versionDir = Directory.EnumerateDirectories(contractNamePath, $"{assemblyVersion.ToString(2)}.*-*").LastOrDefault();
-                }
-
-                if (versionDir != null)
-                {
-                    string libDir = null;
-
-                    if (Directory.Exists(Path.Combine(versionDir, "ref")))
-                    {
-                        libDir = Directory.EnumerateDirectories(Path.Combine(versionDir, "ref"), "dotnet*").FirstOrDefault();
-                    }
-
-                    if (libDir == null && Directory.Exists(Path.Combine(versionDir, "lib")))
-                    {
-                        libDir = Directory.EnumerateDirectories(Path.Combine(versionDir, "lib"), "dotnet*").FirstOrDefault();
-                    }
-
-                    if (libDir != null)
-                    {
-                        if (File.Exists(contractPath = Path.Combine(libDir, fileName)))
-                        {
-                            break;
-                        }
-                    }
-                }
-
-
-                contractPath = null;
-            }
-
-            return contractPath;
         }
 
         private static Generation ReadGeneration(KeyValuePair<string, JToken> json)
