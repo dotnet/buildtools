@@ -32,8 +32,8 @@
     <AssemblyInfoFile Condition="'$(MSBuildProjectExtension)' == '.vbproj'">$(IntermediateOutputPath)_AssemblyInfo.vb</AssemblyInfoFile>
     <AssemblyInfoPartialFile Condition="'$(MSBuildProjectExtension)' == '.csproj'">$(MSBuildThisFileDirectory)AssemblyInfoPartial.cs</AssemblyInfoPartialFile>
     <AssemblyInfoPartialFile Condition="'$(MSBuildProjectExtension)' == '.vbproj'">$(MSBuildThisFileDirectory)AssemblyInfoPartial.vb</AssemblyInfoPartialFile>
-    <AssemblyInfoPartialFileLink Condition="'$(MSBuildProjectExtension)' == '.csproj'">Properties\_AssemblyInfo.cs</AssemblyInfoPartialFileLink>
-    <AssemblyInfoPartialFileLink Condition="'$(MSBuildProjectExtension)' == '.vbproj'">My Project\_AssemblyInfo.vb</AssemblyInfoPartialFileLink>
+    <AssemblyInfoPartialFileLink Condition="'$(MSBuildProjectExtension)' == '.csproj'">Properties/_AssemblyInfo.cs</AssemblyInfoPartialFileLink>
+    <AssemblyInfoPartialFileLink Condition="'$(MSBuildProjectExtension)' == '.vbproj'">My Project/_AssemblyInfo.vb</AssemblyInfoPartialFileLink>
     <CoreCompileDependsOn>$(CoreCompileDependsOn);GenerateAssemblyInfo</CoreCompileDependsOn>
   </PropertyGroup>
 
@@ -117,7 +117,7 @@
     <NativeVersionHeaderFile>$(IntermediateOutputPath)_version.h</NativeVersionHeaderFile>
     <BeforeResourceCompileTargets>$(BeforeResourceCompileTargets);GenerateVersionHeader</BeforeResourceCompileTargets>
     <GenerateVersionHeader>true</GenerateVersionHeader>
-    <Win32Resource>$(IntermediateOutputPath)\Native.res</Win32Resource>
+    <Win32Resource>$(IntermediateOutputPath)/Native.res</Win32Resource>
     <CoreCompileDependsOn>$(CoreCompileDependsOn);NativeResourceCompile</CoreCompileDependsOn>
   </PropertyGroup>
 

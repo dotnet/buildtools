@@ -1,13 +1,13 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <UsingTask TaskName="CreateAzureContainer" AssemblyFile="$(ToolsDir)net45\Microsoft.DotNet.Build.CloudTestTasks.dll"/>
-  <UsingTask TaskName="CreateAzureFileShare" AssemblyFile="$(ToolsDir)net45\Microsoft.DotNet.Build.CloudTestTasks.dll"/>
-  <UsingTask TaskName="GetPerfTestAssemblies" AssemblyFile="$(ToolsDir)net45\Microsoft.DotNet.Build.CloudTestTasks.dll"/>
-  <UsingTask TaskName="SendJsonToDocumentDb" AssemblyFile="$(ToolsDir)net45\Microsoft.DotNet.Build.CloudTestTasks.dll"/>
-  <UsingTask TaskName="SendToEventHub" AssemblyFile="$(ToolsDir)net45\Microsoft.DotNet.Build.CloudTestTasks.dll"/>
-  <UsingTask TaskName="UploadToAzure" AssemblyFile="$(ToolsDir)net45\Microsoft.DotNet.Build.CloudTestTasks.dll"/>
-  <UsingTask TaskName="WriteItemsToJson" AssemblyFile="$(ToolsDir)net45\Microsoft.DotNet.Build.CloudTestTasks.dll"/>
-  <UsingTask TaskName="WriteTestBuildStatsJson" AssemblyFile="$(ToolsDir)net45\Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="CreateAzureContainer" AssemblyFile="$(ToolsDir)net45/Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="CreateAzureFileShare" AssemblyFile="$(ToolsDir)net45/Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="GetPerfTestAssemblies" AssemblyFile="$(ToolsDir)net45/Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="SendJsonToDocumentDb" AssemblyFile="$(ToolsDir)net45/Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="SendToEventHub" AssemblyFile="$(ToolsDir)net45/Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="UploadToAzure" AssemblyFile="$(ToolsDir)net45/Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="WriteItemsToJson" AssemblyFile="$(ToolsDir)net45/Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="WriteTestBuildStatsJson" AssemblyFile="$(ToolsDir)net45/Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="ZipFileCreateFromDirectory" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
   <PropertyGroup>
@@ -15,13 +15,13 @@
     <ContainerName>$(ContainerName.ToLower())</ContainerName>
     <FuncTestListFilename>FuncTests.$(OSGroup).$(Platform)$(ConfigurationGroup).json</FuncTestListFilename>
     <PerfTestListFilename>PerfTests.$(OSGroup).$(Platform)$(ConfigurationGroup).json</PerfTestListFilename>
-    <ArchivesRoot>$(TestWorkingDir)$(OSPlatformConfig)\archive\</ArchivesRoot>
-    <TestArchivesRoot>$(ArchivesRoot)Tests\</TestArchivesRoot>
+    <ArchivesRoot>$(TestWorkingDir)$(OSPlatformConfig)/archive/</ArchivesRoot>
+    <TestArchivesRoot>$(ArchivesRoot)Tests/</TestArchivesRoot>
     <PackagesArchiveFilename>Packages.zip</PackagesArchiveFilename>
     <PackagesArchiveFile>$(ArchivesRoot)$(PackagesArchiveFilename)</PackagesArchiveFile>
-    <FuncTestListFile>$(TestWorkingDir)$(OSPlatformConfig)\$(FuncTestListFilename)</FuncTestListFile>
-    <PerfTestListFile>$(TestWorkingDir)$(OSPlatformConfig)\$(PerfTestListFilename)</PerfTestListFile>
-    <BuildStatsJsonFile>$(TestWorkingDir)$(OSPlatformConfig)\BuildStats.json</BuildStatsJsonFile>
+    <FuncTestListFile>$(TestWorkingDir)$(OSPlatformConfig)/$(FuncTestListFilename)</FuncTestListFile>
+    <PerfTestListFile>$(TestWorkingDir)$(OSPlatformConfig)/$(PerfTestListFilename)</PerfTestListFile>
+    <BuildStatsJsonFile>$(TestWorkingDir)$(OSPlatformConfig)/BuildStats.json</BuildStatsJsonFile>
   </PropertyGroup>
 
   <!-- main entrypoint -->
@@ -54,7 +54,7 @@
     <!-- add relative blob path metadata -->
     <ItemGroup>
       <ForUpload>
-        <RelativeBlobPath>$(Platform)$(ConfigurationGroup)\Tests\%(Filename)%(Extension)</RelativeBlobPath>
+        <RelativeBlobPath>$(Platform)$(ConfigurationGroup)/Tests/%(Filename)%(Extension)</RelativeBlobPath>
       </ForUpload>
     </ItemGroup>
   </Target>
@@ -98,7 +98,7 @@
     </ItemGroup>
     <ItemGroup>
       <FunctionalTest>
-        <Command>%HELIX_PYTHONPATH% %HELIX_SCRIPT_ROOT%\xunitrunner.py --dll %(Filename).dll -- $(XunitArgs)</Command>
+        <Command>%HELIX_PYTHONPATH% %HELIX_SCRIPT_ROOT%/xunitrunner.py --dll %(Filename).dll -- $(XunitArgs)</Command>
         <CorrelationPayloadUris>[$(DropUri)$(Platform)$(ConfigurationGroup)/Packages.zip$(DropUriReadOnlyToken)]</CorrelationPayloadUris>
         <PayloadUri>$(DropUri)$(Platform)$(ConfigurationGroup)/Tests/%(Filename)%(Extension)$(DropUriReadOnlyToken)</PayloadUri>
         <WorkItemId>FunctionalTest.%(Filename)</WorkItemId>
@@ -115,8 +115,8 @@
     <ItemGroup>
       <TestListFile Include="$(FuncTestListFile)">
         <CorrelationId>$([System.Guid]::NewGuid())</CorrelationId>
-        <BuildCompleteJson>$(TestWorkingDir)$(OSPlatformConfig)\FuncBuildComplete.json</BuildCompleteJson>
-        <OfficialBuildJson>$(TestWorkingDir)$(OSPlatformConfig)\FuncOfficialBuild.json</OfficialBuildJson>
+        <BuildCompleteJson>$(TestWorkingDir)$(OSPlatformConfig)/FuncBuildComplete.json</BuildCompleteJson>
+        <OfficialBuildJson>$(TestWorkingDir)$(OSPlatformConfig)/FuncOfficialBuild.json</OfficialBuildJson>
       </TestListFile>
     </ItemGroup>
   </Target>
@@ -124,7 +124,7 @@
   <Target Name="CreatePerfTestListJson" DependsOnTargets="CreateAzureStorage" Condition="'$(Performance)' == 'true'">
     <!-- now gather the perf tests -->
     <ItemGroup>
-      <TestBinary Include="$(BinDir)$(OSPlatformConfig)\**\*Tests.dll" />
+      <TestBinary Include="$(BinDir)$(OSPlatformConfig)/**/*Tests.dll" />
     </ItemGroup>
     <GetPerfTestAssemblies TestBinaries="@(TestBinary)">
       <Output TaskParameter="PerfTestAssemblies" ItemName="PerfTestAssembly" />
@@ -135,7 +135,7 @@
     </ItemGroup>
     <ItemGroup Condition="'@(PerfTestAssembly->Count())' != '0'">
       <PerfTest>
-        <Command>%HELIX_PYTHONPATH% %HELIX_SCRIPT_ROOT%\xunitrunner.py --dll %(Filename).dll --perf-runner Microsoft.DotNet.xunit.performance.runner.Windows -- $(XunitArgs)</Command>
+        <Command>%HELIX_PYTHONPATH% %HELIX_SCRIPT_ROOT%/xunitrunner.py --dll %(Filename).dll --perf-runner Microsoft.DotNet.xunit.performance.runner.Windows -- $(XunitArgs)</Command>
         <CorrelationPayloadUris>[$(DropUri)$(Platform)$(ConfigurationGroup)/Packages.zip$(DropUriReadOnlyToken)]</CorrelationPayloadUris>
         <PayloadUri>$(DropUri)$(Platform)$(ConfigurationGroup)/Tests/%(Filename)%(Extension)$(DropUriReadOnlyToken)</PayloadUri>
         <WorkItemId>PerfTest.%(Filename)</WorkItemId>
@@ -153,8 +153,8 @@
     <ItemGroup>
       <TestListFile Include="$(PerfTestListFile)">
         <CorrelationId>$([System.Guid]::NewGuid())</CorrelationId>
-        <BuildCompleteJson>$(TestWorkingDir)$(OSPlatformConfig)\PerfBuildComplete.json</BuildCompleteJson>
-        <OfficialBuildJson>$(TestWorkingDir)$(OSPlatformConfig)\PerfOfficialBuild.json</OfficialBuildJson>
+        <BuildCompleteJson>$(TestWorkingDir)$(OSPlatformConfig)/PerfBuildComplete.json</BuildCompleteJson>
+        <OfficialBuildJson>$(TestWorkingDir)$(OSPlatformConfig)/PerfOfficialBuild.json</OfficialBuildJson>
       </TestListFile>
     </ItemGroup>
   </Target>
@@ -174,7 +174,7 @@
     <!-- add to the list of uploads -->
     <ItemGroup>
       <ForUpload Include="$(PackagesArchiveFile)">
-        <RelativeBlobPath>$(Platform)$(ConfigurationGroup)\$(PackagesArchiveFilename)</RelativeBlobPath>
+        <RelativeBlobPath>$(Platform)$(ConfigurationGroup)/$(PackagesArchiveFilename)</RelativeBlobPath>
       </ForUpload>
     </ItemGroup>
   </Target>

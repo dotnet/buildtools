@@ -28,7 +28,7 @@
       <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/*/*.*" />
     </ItemGroup>
     <Copy SourceFiles="@(PerfRunners)"
-          DestinationFiles="@(PerfRunners->'$(TestPath)$(DebugTestFrameworkFolder)\%(RecursiveDir)%(Filename)%(Extension)')"
+          DestinationFiles="@(PerfRunners->'$(TestPath)$(DebugTestFrameworkFolder)/%(RecursiveDir)%(Filename)%(Extension)')"
           SkipUnchangedFiles="true" />
   </Target>
 

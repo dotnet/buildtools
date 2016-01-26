@@ -15,7 +15,7 @@
     <ToolArchitecture Condition="'$(ToolArchitecture)' == ''">x64</ToolArchitecture>
     <ToolNugetRuntimeId Condition="'$(ToolNugetRuntimeId)' == ''">win7-$(ToolArchitecture)</ToolNugetRuntimeId>
 
-    <ToolRuntimePath Condition="'$(ToolRuntimePath)' == ''">$(ProjectDir)Tools\</ToolRuntimePath>
+    <ToolRuntimePath Condition="'$(ToolRuntimePath)' == ''">$(ProjectDir)Tools/</ToolRuntimePath>
     <ToolHostCmd>"$(ToolRuntimePath)$(ToolHost)"</ToolHostCmd>
     <!-- If COMPLUS_InstallRoot is set clear it before calling the ToolHost otherwise some root activations like PDB COM activation will fail -->
     <ToolHostCmd Condition="'$(COMPLUS_InstallRoot)' != ''">(set COMPLUS_InstallRoot=) &amp; $(ToolHostCmd)</ToolHostCmd>

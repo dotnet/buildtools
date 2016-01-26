@@ -15,7 +15,7 @@
       Check if the project has been localized by looking for the existence of the .de.xlf file.  By convention, we assume that if 
       a project is localized in German, then it is localized in all languages.
     -->
-    <ExcludeLocalizationImport Condition="'$(ExcludeLocalizationImport)'=='' And !Exists('$(MSBuildProjectDirectory)\MultilingualResources\$(MSBuildProjectName).de.xlf')">true</ExcludeLocalizationImport>
+    <ExcludeLocalizationImport Condition="'$(ExcludeLocalizationImport)'=='' And !Exists('$(MSBuildProjectDirectory)/MultilingualResources/$(MSBuildProjectName).de.xlf')">true</ExcludeLocalizationImport>
   </PropertyGroup>
 
   <!--
@@ -198,7 +198,7 @@
   
   <PropertyGroup Condition="'$(BlockReflectionAttribute)'=='true'">
     <CoreCompileDependsOn>$(CoreCompileDependsOn);AddBlockReflectionAttribute</CoreCompileDependsOn>
-    <BlockReflectionAtributeFile>$(MSBuildThisFileDirectory)\BlockReflectionAttribute.cs</BlockReflectionAtributeFile>
+    <BlockReflectionAtributeFile>$(MSBuildThisFileDirectory)/BlockReflectionAttribute.cs</BlockReflectionAtributeFile>
   </PropertyGroup>
 
   <Target Name="AddBlockReflectionAttribute" >

@@ -22,6 +22,8 @@
           Inputs="$(StringResourcesPath)"
           Outputs="$(IntermediateResOutputFileFullPath)">
     
+    
+
     <GenerateResourcesCode
         ResxFilePath="$(StringResourcesPath)" 
         OutputSourceFilePath="$(IntermediateResOutputFileFullPath)" 
@@ -45,13 +47,13 @@
   </ItemGroup>
   
   <ItemGroup Condition="Exists('$(StringResourcesPath)') And '$(SkipCommonResourcesIncludes)'==''">
-    <Compile Condition="'$(MSBuildProjectExtension)' == '.csproj'" Include="$(CommonPath)\System\SR.cs">
+    <Compile Condition="'$(MSBuildProjectExtension)' == '.csproj'" Include="$(CommonPath)/System/SR.cs">
       <Visible>true</Visible>
-      <Link>Resources\Common\SR.cs</Link>
+      <Link>Resources/Common/SR.cs</Link>
     </Compile>
-    <Compile Condition="'$(MSBuildProjectExtension)' == '.vbproj'" Include="$(CommonPath)\System\SR.vb">
+    <Compile Condition="'$(MSBuildProjectExtension)' == '.vbproj'" Include="$(CommonPath)/System/SR.vb">
       <Visible>true</Visible>
-      <Link>Resources\Common\SR.vb</Link>
+      <Link>Resources/Common/SR.vb</Link>
     </Compile>
   </ItemGroup>
 </Project>

@@ -23,35 +23,35 @@
          There are special cases for en-US and zh-* so we manually list
          the mapping.-->
     <ItemGroup>
-      <XmlDocFile Include="$(XmlDocFileRoot)\1028\$(TargetName).xml">
+      <XmlDocFile Include="$(XmlDocFileRoot)/1028/$(TargetName).xml">
         <SubFolder>/zh-hant</SubFolder>
       </XmlDocFile>
-      <XmlDocFile Include="$(XmlDocFileRoot)\1031\$(TargetName).xml">
+      <XmlDocFile Include="$(XmlDocFileRoot)/1031/$(TargetName).xml">
         <SubFolder>/de</SubFolder>
       </XmlDocFile>
-      <XmlDocFile Include="$(XmlDocFileRoot)\1033\$(TargetName).xml">
+      <XmlDocFile Include="$(XmlDocFileRoot)/1033/$(TargetName).xml">
         <SubFolder />
         <!-- en docs go in root as neutral fall back -->
       </XmlDocFile>
-      <XmlDocFile Include="$(XmlDocFileRoot)\1036\$(TargetName).xml">
+      <XmlDocFile Include="$(XmlDocFileRoot)/1036/$(TargetName).xml">
         <SubFolder>/fr</SubFolder>
       </XmlDocFile>
-      <XmlDocFile Include="$(XmlDocFileRoot)\1040\$(TargetName).xml">
+      <XmlDocFile Include="$(XmlDocFileRoot)/1040/$(TargetName).xml">
         <SubFolder>/it</SubFolder>
       </XmlDocFile>
-      <XmlDocFile Include="$(XmlDocFileRoot)\1041\$(TargetName).xml">
+      <XmlDocFile Include="$(XmlDocFileRoot)/1041/$(TargetName).xml">
         <SubFolder>/ja</SubFolder>
       </XmlDocFile>
-      <XmlDocFile Include="$(XmlDocFileRoot)\1042\$(TargetName).xml">
+      <XmlDocFile Include="$(XmlDocFileRoot)/1042/$(TargetName).xml">
         <SubFolder>/ko</SubFolder>
       </XmlDocFile>
-      <XmlDocFile Include="$(XmlDocFileRoot)\1049\$(TargetName).xml">
+      <XmlDocFile Include="$(XmlDocFileRoot)/1049/$(TargetName).xml">
         <SubFolder>/ru</SubFolder>
       </XmlDocFile>
-      <XmlDocFile Include="$(XmlDocFileRoot)\2052\$(TargetName).xml">
+      <XmlDocFile Include="$(XmlDocFileRoot)/2052/$(TargetName).xml">
         <SubFolder>/zh-hans</SubFolder>
       </XmlDocFile>
-      <XmlDocFile Include="$(XmlDocFileRoot)\3082\$(TargetName).xml">
+      <XmlDocFile Include="$(XmlDocFileRoot)/3082/$(TargetName).xml">
         <SubFolder>/es</SubFolder>
       </XmlDocFile>
     </ItemGroup>

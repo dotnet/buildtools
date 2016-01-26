@@ -32,7 +32,7 @@
       <TestPackageBuild Condition="'$(TestPackageBuild)'==''">000000</TestPackageBuild>
       <TestPackageVersion Condition="'$(TestPackageVersion)'==''">1.0.0-prerelease-$(TestPackageBuild)</TestPackageVersion>
       
-      <NuProjDir Condition="'$(NuProjDir)'==''">$(MSBuildThisFileDirectory)\NuProj\</NuProjDir>
+      <NuProjDir Condition="'$(NuProjDir)'==''">$(MSBuildThisFileDirectory)/NuProj/</NuProjDir>
     </PropertyGroup>
     <MSBuild Projects="$(MSBuildThisFileDirectory)testpackage.nuproj"
       Properties="
@@ -81,16 +81,16 @@
     <ItemGroup Condition="'$(TestWithLocalLibraries)'=='true'">
       <!-- Replace some of the resolved libraries that came from nuget by exploring the list of files that we are going to copy
            and replacing them with local copies that were just built -->
-      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(LocalLibrariesPath)\%(filename)\%(filename).dll')" />
-      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(LocalLibrariesPath)\%(filename)\%(filename).pdb')" />
-      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(LocalLibrariesPath)\%(filename).CoreCLR\%(filename).dll')" />
-      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(LocalLibrariesPath)\%(filename).CoreCLR\%(filename).pdb')" />
+      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(LocalLibrariesPath)/%(filename)/%(filename).dll')" />
+      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(LocalLibrariesPath)/%(filename)/%(filename).pdb')" />
+      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(LocalLibrariesPath)/%(filename).CoreCLR/%(filename).dll')" />
+      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(LocalLibrariesPath)/%(filename).CoreCLR/%(filename).pdb')" />
       <_ExistingReplacementCandidate Include="@(_ReplacementCandidates)" Condition="Exists('%(_ReplacementCandidates.FullPath)')" />
       <TestCopyLocal Include="@(_ExistingReplacementCandidate)" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(BUILDTOOLS_OVERRIDE_RUNTIME)' != ''">
-      <TestCopyLocal Include="$(BUILDTOOLS_OVERRIDE_RUNTIME)\*.*" />
+      <TestCopyLocal Include="$(BUILDTOOLS_OVERRIDE_RUNTIME)/*.*" />
     </ItemGroup>
 
     <!-- Remove duplicates. Note that we musn't just copy in sequence and let 
@@ -142,8 +142,8 @@
       <TestTargetFrameworkFolder>%(TestTargetFramework.Folder)</TestTargetFrameworkFolder>
     </PropertyGroup>
     <ItemGroup>
-      <SupplementalTestDataTestDir Include="@(SupplementalTestData->'$(TestPath)$(TestTargetFrameworkFolder)\%(RecursiveDir)%(Filename)%(Extension)')" />
-      <SupplementalTestDataOutDir Include="@(SupplementalTestData->'$(OutDir)\%(RecursiveDir)%(Filename)%(Extension)')" />
+      <SupplementalTestDataTestDir Include="@(SupplementalTestData->'$(TestPath)$(TestTargetFrameworkFolder)/%(RecursiveDir)%(Filename)%(Extension)')" />
+      <SupplementalTestDataOutDir Include="@(SupplementalTestData->'$(OutDir)/%(RecursiveDir)%(Filename)%(Extension)')" />
     </ItemGroup>
     <Copy
       SourceFiles="@(SupplementalTestData)"
@@ -189,7 +189,7 @@
   <!-- archive the test binaries along with some supporting files -->
   <Target Name="ArchiveTestBuild" AfterTargets="CreateAssemblyListTxt" Condition="'$(ArchiveTests)' == 'true'">
     <PropertyGroup>
-      <TestArchiveDir>$(TestWorkingDir)$(OSPlatformConfig)\archive\tests\</TestArchiveDir>
+      <TestArchiveDir>$(TestWorkingDir)$(OSPlatformConfig)/archive/tests/</TestArchiveDir>
     </PropertyGroup>
     <!-- the project json files need to be included in the archive -->
     <Copy SourceFiles="$(ProjectJson);$(ProjectLockJson)" DestinationFolder="$(OutDir)" />
