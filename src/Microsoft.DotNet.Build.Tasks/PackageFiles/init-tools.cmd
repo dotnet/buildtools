@@ -21,14 +21,14 @@ if not exist "%DOTNET_CMD%" (
 ROBOCOPY "%BUILDTOOLS_PACKAGE_DIR%\." "%TOOLRUNTIME_DIR%" /E
 
 cd "%BUILDTOOLS_PACKAGE_DIR%\tool-runtime\"
-call "%DOTNET_CMD%" restore --source C:\NuGet\msbuild-netcore\ --source https://www.myget.org/F/dotnet-core/ --source https://www.myget.org/F/dotnet-buildtools/ --source https://www.nuget.org/api/v2/
+call "%DOTNET_CMD%" restore --source https://www.myget.org/F/dotnet-core/ --source https://www.myget.org/F/dotnet-buildtools/ --source https://www.nuget.org/api/v2/
 call "%DOTNET_CMD%" publish -f dnxcore50 -r %BUILDTOOLS_TARGET_RUNTIME% -o "%TOOLRUNTIME_DIR%"
 
 :: Copy Portable Targets Over to ToolRuntime
 mkdir "%BUILDTOOLS_PACKAGE_DIR%\portableTargets"
 echo %MSBUILD_CONTENT_JSON% > "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\project.json"
 cd "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\"
-call "%DOTNET_CMD%" restore --source "C:\NuGet\msbuild-netcore\" --packages "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\packages\"
+call "%DOTNET_CMD%" restore --source https://www.myget.org/F/dotnet-buildtools/ --packages "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\packages\"
 Robocopy "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\packages\Microsoft.Portable.Targets\0.1.1-dev\contentFiles\any\any\." "%TOOLRUNTIME_DIR%\." /E
 
 exit /b %ERRORLEVEL%

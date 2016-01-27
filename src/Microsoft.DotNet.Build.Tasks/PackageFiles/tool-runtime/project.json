@@ -9,7 +9,7 @@
     "Microsoft.Build.Utilities.Core": "0.1.0-preview-00015",
     "Microsoft.Build.Targets": "0.1.0-preview-00015",
     "Microsoft.Build": "0.1.0-preview-00015",
-    "Microsoft.Net.Compilers.NetCore": "1.2.0-beta-20151118-02",
+    "Microsoft.Net.Compilers.NetCore": "1.2.0-beta1-20160122-02",
     "Microsoft.Net.Compilers.Targets.NetCore": "0.1.4-dev",
     "Microsoft.NETCore.TestHost": "1.0.0-rc2-23712",
     "Microsoft.NETCore.Console": "1.0.0-rc2-23712",
