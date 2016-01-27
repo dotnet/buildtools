@@ -78,7 +78,7 @@
   </Target>
 
   <PropertyGroup>
-    <LocalPublishPropsFile Condition="'$(LocalPublishPropsFile)'==''">$(PackagesDir)\localpublish.props</LocalPublishPropsFile>
+    <LocalPublishPropsFile Condition="'$(LocalPublishPropsFile)'==''">$(PackagesDir)/localpublish.props</LocalPublishPropsFile>
     <NugetPackageBuildTargets Condition="'$(NugetPackageBuildTargets)'==''">BuildPackages</NugetPackageBuildTargets>
   </PropertyGroup>
 
@@ -86,8 +86,8 @@
   
   <!-- Publish the packages locally -->
   <Target Name="LocalPackagePublish" Condition="'@(LocalPackages)'!=''"
-          Inputs="%(LocalPackages.Identity)\%(LocalPackages.PackageName).%(LocalPackages.PackageVersion).nupkg;%(LocalPackages.InstallLocation)\%(LocalPackages.PackageName).%(LocalPackages.PackageVersion)" 
-          Outputs="%(LocalPackages.InstallLocation)\%(LocalPackages.PackageName).%(LocalPackages.PackageVersion)\MODIFIED.txt"
+          Inputs="%(LocalPackages.Identity)/%(LocalPackages.PackageName).%(LocalPackages.PackageVersion).nupkg;%(LocalPackages.InstallLocation)/%(LocalPackages.PackageName).%(LocalPackages.PackageVersion)" 
+          Outputs="%(LocalPackages.InstallLocation)/%(LocalPackages.PackageName).%(LocalPackages.PackageVersion)/MODIFIED.txt"
           AfterTargets="$(NugetPackageBuildTargets)">
     
     <!-- Generate the packages.config -->
@@ -99,7 +99,7 @@
     </ItemGroup>
 
     <PropertyGroup>
-      <RestoreConfig>%(LocalPackages.InstallLocation)\packages.%(LocalPackages.PackageName).config</RestoreConfig>
+      <RestoreConfig>%(LocalPackages.InstallLocation)/packages.%(LocalPackages.PackageName).config</RestoreConfig>
     </PropertyGroup>
     
     <WriteLinesToFile File="$(RestoreConfig)" Lines="@(LocalPackageConfigLine)" Overwrite="true" />
@@ -111,7 +111,7 @@
     <Message Text="Generated package install sources: '$(LocalPackages)'"/>
 
     <!-- Remove existing directories -->
-    <RemoveDir Directories="%(LocalPackages.InstallLocation)\%(LocalPackages.PackageName).%(LocalPackages.PackageVersion)" />
+    <RemoveDir Directories="%(LocalPackages.InstallLocation)/%(LocalPackages.PackageName).%(LocalPackages.PackageVersion)" />
 
     <!-- Restoring the packages -->
     <Exec Command="$(NuGetExe) install &quot;$(RestoreConfig)&quot; -Source $(LocalPackagesSources) -NoCache -Prerelease -OutputDirectory &quot;%(LocalPackages.InstallLocation)&quot;" />
@@ -120,6 +120,6 @@
     <ItemGroup>
       <NotOriginalPackages Include="The package was restored from $(LocalPackagesSources)" />
     </ItemGroup>
-    <WriteLinesToFile File="%(LocalPackages.InstallLocation)\%(LocalPackages.PackageName).%(LocalPackages.PackageVersion)\MODIFIED.txt" Lines="@(NotOriginalPackages)" Overwrite="true" />
+    <WriteLinesToFile File="%(LocalPackages.InstallLocation)/%(LocalPackages.PackageName).%(LocalPackages.PackageVersion)/MODIFIED.txt" Lines="@(NotOriginalPackages)" Overwrite="true" />
   </Target>
 </Project>
