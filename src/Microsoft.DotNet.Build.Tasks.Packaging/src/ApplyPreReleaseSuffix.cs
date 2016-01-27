@@ -87,8 +87,15 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             foreach (var originalPackage in OriginalPackages)
             {
-                TaskItem updatedPackage = new TaskItem(originalPackage);
                 string packageId = originalPackage.ItemSpec;
+
+                if (packageId == "_._")
+                {
+                    updatedPackages.Add(originalPackage);
+                    continue;
+                }
+
+                TaskItem updatedPackage = new TaskItem(originalPackage);
                 Version packageVersion = ParseAs3PartVersion(originalPackage.GetMetadata("Version"));
                 Version stableVersion = null;
 
