@@ -16,7 +16,6 @@
           Returns="$(DocumentationFile)"/>
 
   <Import Project="Microsoft.DotNet.Build.Tasks\Targets\Build.Common.targets" Condition="'$(UseLiveBuildTools)' == 'true'" />
-  <Import Project="$(ToolsDir)Build.Common.targets" Condition="'$(UseLiveBuildTools)' != 'true' AND Exists('$(ToolsDir)Build.Common.targets')" />
   <Import Project="..\override.targets" Condition="Exists('..\override.targets')"/>
 
   <PropertyGroup Condition="'$(ImportedProjectRelativePath)' != ''">
