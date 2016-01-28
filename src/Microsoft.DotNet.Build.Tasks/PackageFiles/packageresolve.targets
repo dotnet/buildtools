@@ -11,7 +11,7 @@
     <RestorePackages Condition="'$(RestorePackages)'!='false' and Exists('$(ProjectJson)') and '$(DesignTimeBuild)' != 'true'">true</RestorePackages>
     <PrereleaseResolveNuGetPackages Condition="'$(PrereleaseResolveNuGetPackages)'!='false' and Exists('$(ProjectJson)')">true</PrereleaseResolveNuGetPackages>
 
-    <!-- 
+    <!--
         For now, prevent built-in task (if available) from running.
         More changes are needed to light up on their availability
         and use them instead of what we have here. See buildtools
@@ -25,8 +25,8 @@
           BeforeTargets="ResolveNuGetPackages;ValidatePackageVersions"
           Condition="'$(RestorePackages)'=='true' and !('$(VSDesignTimeBuild)'=='true' and '$(VisualStudioVersion)' >= '14.0')">
 
-    <Error Condition="'$(DnuRestoreCommand)'=='' and Exists('$(ProjectJson)')" Text="RestorePackages target needs a predefined DnuRestoreCommand property set in order to restore $(ProjectJson)" /> 
-    
+    <Error Condition="'$(DnuRestoreCommand)'=='' and Exists('$(ProjectJson)')" Text="RestorePackages target needs a predefined DnuRestoreCommand property set in order to restore $(ProjectJson)" />
+
     <Exec Condition="Exists('$(ProjectJson)')" Command="$(DnuRestoreCommand) &quot;$(ProjectJson)&quot;" StandardOutputImportance="Low" CustomErrorRegularExpression="^Unable to locate .*" />
   </Target>
 
@@ -40,10 +40,10 @@
       ResolveNuGetPackages;
       ValidatePackageVersions;
     </ResolveAssemblyReferencesDependsOn>
-    
+
     <!-- temporarily accept the old name NuGetTargetFrameworkMoniker until all projects are moved forward -->
     <NuGetTargetMoniker Condition="'$(NuGetTargetMoniker)' == ''">$(NuGetTargetFrameworkMoniker)</NuGetTargetMoniker>
-    <!-- We use dotnet as the framework for our reference assemblies, in the future we'll move to 
+    <!-- We use dotnet as the framework for our reference assemblies, in the future we'll move to
          targets that are closer to what shipped in Dev14 and we won't need to special case this.-->
     <NuGetTargetMoniker Condition="'$(NuGetTargetMoniker)' == '' and '$(IsReferenceAssembly)' == 'true'">.NETPlatform,Version=v5.0</NuGetTargetMoniker>
     <UseTargetPlatformAsNuGetTargetMoniker Condition="'$(UseTargetPlatformAsNuGetTargetMoniker)' == '' AND '$(TargetFrameworkMoniker)' == '.NETCore,Version=v5.0'">true</UseTargetPlatformAsNuGetTargetMoniker>
@@ -116,7 +116,7 @@
       <Reference Remove="@(IndirectReference)"/>
     </ItemGroup>
   </Target>
-  
+
   <Target Name="ValidatePackageVersions"
           Condition="'$(RestorePackages)'=='true' and '$(ValidatePackageVersions)'=='true' and Exists('$(ProjectJson)')">
     <ValidateProjectDependencyVersions ProjectJsons="$(ProjectJson)"
@@ -124,18 +124,35 @@
                                        ValidationPatterns="@(ValidationPattern)" />
   </Target>
 
-  <Target Name="FilterTargetingPackResolvedNugetPackages" AfterTargets="ResolveNuGetPackages"
-          Condition="'$(TargetingPackNugetPackageId)' != ''">
+  <Target Name="FilterTargetingPackResolvedNugetPackages" AfterTargets="ResolveNuGetPackages" >
+    <PropertyGroup>
+      <_TargetingPackPrefix>Microsoft.TargetingPack</_TargetingPackPrefix>
+    </PropertyGroup>
+
+    <!--
+      Add the mscorlib and windows to the reference set by default to avoid a lot of duplication in projects
+      They only act as a filter so if they aren't present in the packages references it will not impact anything.
+    -->
+    <ItemGroup Condition="'$(ExcludeDefaultTargetingPackReferences)' != 'true'">
+      <TargetingPackReference Include="mscorlib" />
+      <TargetingPackReference Include="Windows" />
+    </ItemGroup>
 
     <ItemGroup>
-      <ResolvedTargetingPackReference Include="@(Reference)" Condition="'%(Reference.NuGetPackageId)' == '$(TargetingPackNugetPackageId)'"  />
+      <!-- Filter out all references coming out of the targeting pack packages except for TargetingPackReferences -->
+      <ResolvedTargetingPackReference Include="@(Reference)"
+        Condition="$([System.String]::new('%(Reference.NuGetPackageId)').StartsWith('$(_TargetingPackPrefix)'))" />
       <ResolvedTargetingPackReferenceFilename Include="@(ResolvedTargetingPackReference -> '%(Filename)')">
         <OriginalIdentity>%(Identity)</OriginalIdentity>
       </ResolvedTargetingPackReferenceFilename>
-      <ResolvedTargetingPackReferenceFilename Remove="@(TargetingPackReference)"  /> 
-
+      <ResolvedTargetingPackReferenceFilename Remove="@(TargetingPackReference)" />
       <PackageReferencesToRemove Include="@(ResolvedTargetingPackReferenceFilename -> '%(OriginalIdentity)')" />
       <Reference Remove="@(PackageReferencesToRemove)" />
+
+      <!-- Filter out the copy-local set of references coming from the targeting pack packages -->
+      <PackageCopyLocalToRemove Include="@(ReferenceCopyLocalPaths)"
+        Condition="$([System.String]::new('%(ReferenceCopyLocalPaths.NuGetPackageId)').StartsWith('$(_TargetingPackPrefix)'))" />
+      <ReferenceCopyLocalPaths Remove="@(PackageCopyLocalToRemove)" />
     </ItemGroup>
 
     <Message Importance="Low" 
