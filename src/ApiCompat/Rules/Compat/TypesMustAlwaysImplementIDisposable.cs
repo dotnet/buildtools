@@ -1,0 +1,35 @@
+﻿using Microsoft.Cci.Extensions;
+
+namespace Microsoft.Cci.Differs.Rules
+{
+    // Candidate for strict mode
+    //[ExportDifferenceRule]
+    internal class TypesMustAlwaysImplementIDisposable : DifferenceRule
+    {
+        public override DifferenceType Diff(IDifferences differences, ITypeDefinition impl, ITypeDefinition contract)
+        {
+            if (impl == null || contract == null)
+                return DifferenceType.Unknown;
+
+            if (ImplementsIDisposable(impl) && !ImplementsIDisposable(contract))
+            {
+                differences.AddIncompatibleDifference(this,
+                    "Type '{0}' implements IDisposable in the implementation but not the contract.",
+                    impl.FullName());
+                return DifferenceType.Changed;
+            }
+
+            return DifferenceType.Unknown;
+        }
+
+        private bool ImplementsIDisposable(ITypeDefinition type)
+        {
+            foreach(ITypeReference iface in type.Interfaces)
+            {
+                if (iface.AreEquivalent("System.IDisposable"))
+                    return true;
+            }
+            return false;
+        }
+    }
+}
