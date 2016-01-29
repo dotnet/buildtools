@@ -22,6 +22,7 @@
     <FuncTestListFile>$(TestWorkingDir)$(OSPlatformConfig)/$(FuncTestListFilename)</FuncTestListFile>
     <PerfTestListFile>$(TestWorkingDir)$(OSPlatformConfig)/$(PerfTestListFilename)</PerfTestListFile>
     <BuildStatsJsonFile>$(TestWorkingDir)$(OSPlatformConfig)/BuildStats.json</BuildStatsJsonFile>
+    <RunnerScript Condition="'$(RunnerScript)' == ''">%HELIX_SCRIPT_ROOT%/xunitrunner.py</RunnerScript>
   </PropertyGroup>
 
   <!-- main entrypoint -->
@@ -32,6 +33,11 @@
   <!-- gather the test archives for upload -->
   <ItemGroup>
     <ForUpload Include="$(TestArchivesRoot)*.zip" />
+  </ItemGroup>
+
+  <!-- gather any supplemental correlation payloads -->
+  <ItemGroup>
+    <SupplementalPayload Include="$(SupplementalPayloadDir)*" />
   </ItemGroup>
 
   <Target Name="VerifyInputs">
@@ -73,6 +79,15 @@
     <CreateProperty Value="$(DropUriRoot)/$(BuildArch)$(BuildType)">
       <Output TaskParameter="Value" PropertyName="DropUri" />
     </CreateProperty>
+    <!-- now that we have a drop URI create the list of correlation payloads -->
+    <ItemGroup>
+      <CorrelationPayloadUri Include="$(DropUri)$(Platform)$(ConfigurationGroup)/Packages.zip$(DropUriReadOnlyToken)" />
+      <CorrelationPayloadUri Include="@(SupplementalPayload->'$(DropUri)%(Filename)%(Extension)$(DropUriReadOnlyToken)')" />
+    </ItemGroup>
+    <!-- flatten it into a property as msbuild chokes on @(CorrelationPayloadUri) in FunctionalTest.CorrelationPayloadUris :( -->
+    <PropertyGroup>
+      <CorrelationPayloadUris>@(CorrelationPayloadUri)</CorrelationPayloadUris>
+    </PropertyGroup>
     <CreateAzureContainer
       AccountKey="$(CloudResultsAccessToken)"
       AccountName="$(CloudResultsAccountName)"
@@ -98,8 +113,8 @@
     </ItemGroup>
     <ItemGroup>
       <FunctionalTest>
-        <Command>%HELIX_PYTHONPATH% %HELIX_SCRIPT_ROOT%/xunitrunner.py --dll %(Filename).dll -- $(XunitArgs)</Command>
-        <CorrelationPayloadUris>[$(DropUri)$(Platform)$(ConfigurationGroup)/Packages.zip$(DropUriReadOnlyToken)]</CorrelationPayloadUris>
+        <Command>%HELIX_PYTHONPATH% $(RunnerScript) --dll %(Filename).dll -- $(XunitArgs)</Command>
+        <CorrelationPayloadUris>[$(CorrelationPayloadUris)]</CorrelationPayloadUris>
         <PayloadUri>$(DropUri)$(Platform)$(ConfigurationGroup)/Tests/%(Filename)%(Extension)$(DropUriReadOnlyToken)</PayloadUri>
         <WorkItemId>FunctionalTest.%(Filename)</WorkItemId>
       </FunctionalTest>
@@ -135,8 +150,8 @@
     </ItemGroup>
     <ItemGroup Condition="'@(PerfTestAssembly->Count())' != '0'">
       <PerfTest>
-        <Command>%HELIX_PYTHONPATH% %HELIX_SCRIPT_ROOT%/xunitrunner.py --dll %(Filename).dll --perf-runner Microsoft.DotNet.xunit.performance.runner.Windows -- $(XunitArgs)</Command>
-        <CorrelationPayloadUris>[$(DropUri)$(Platform)$(ConfigurationGroup)/Packages.zip$(DropUriReadOnlyToken)]</CorrelationPayloadUris>
+        <Command>%HELIX_PYTHONPATH% $(RunnerScript) --dll %(Filename).dll --perf-runner Microsoft.DotNet.xunit.performance.runner.Windows -- $(XunitArgs)</Command>
+        <CorrelationPayloadUris>[$(CorrelationPayloadUris)]</CorrelationPayloadUris>
         <PayloadUri>$(DropUri)$(Platform)$(ConfigurationGroup)/Tests/%(Filename)%(Extension)$(DropUriReadOnlyToken)</PayloadUri>
         <WorkItemId>PerfTest.%(Filename)</WorkItemId>
         <TimeoutInSeconds>600</TimeoutInSeconds>
@@ -187,6 +202,19 @@
       ContainerName="$(ContainerName)"
       Items="@(ForUpload)"
       Overwrite="true" />
+    <!-- create supplemental payload items for upload, placing the payload in the root of the container -->
+    <ItemGroup>
+      <SupplementalPayloadData Include="@(SupplementalPayload)">
+        <RelativeBlobPath>%(Filename)%(Extension)</RelativeBlobPath>
+      </SupplementalPayloadData>
+    </ItemGroup>
+    <UploadToAzure
+      AccountKey="$(CloudDropAccessToken)"
+      AccountName="$(CloudDropAccountName)"
+      ContainerName="$(ContainerName)"
+      Items="@(SupplementalPayloadData)"
+      Overwrite="true"
+      Condition="'@(SupplementalPayloadData)' != ''" />
   </Target>
 
   <!-- write event hub notification JSON files -->

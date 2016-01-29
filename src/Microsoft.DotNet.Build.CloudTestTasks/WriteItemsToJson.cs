@@ -65,7 +65,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                                 mdValue = mdValue.Substring(1, mdValue.Length - 2);
                                 jsonWriter.WriteStartArray();
 
-                                var parts = mdValue.Split(new string[] { ";;" }, StringSplitOptions.RemoveEmptyEntries);
+                                var parts = mdValue.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
                                 foreach (var part in parts)
                                     jsonWriter.WriteValue(part);
 
