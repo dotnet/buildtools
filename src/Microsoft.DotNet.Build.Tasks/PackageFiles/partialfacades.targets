@@ -79,7 +79,7 @@
       <GenFacadesArgs>$(GenFacadesArgs) -contracts:"%(ResolvedMatchingContract.Identity)"</GenFacadesArgs>
       <GenFacadesArgs>$(GenFacadesArgs) -seeds:"@(GenFacadesSeeds, ';')"</GenFacadesArgs>
       <GenFacadesArgs>$(GenFacadesArgs) -facadePath:"$(GenFacadesOutputPath.TrimEnd('/'))"</GenFacadesArgs>
-      <GenFacadesArgs Condition="'$(DebugSymbols)' == 'false'">$(GenFacadesArgs) -producePdb:false</GenFacadesArgs>
+      <GenFacadesArgs Condition="'$(DebugSymbols)' == 'false' OR '$(DebugType)'=='Portable'">$(GenFacadesArgs) -producePdb:false</GenFacadesArgs>
       <GenFacadesArgs Condition="'@(SeedTypePreference)' != ''">$(GenFacadesArgs) -preferSeedType:"@(SeedTypePreference->'%(Identity)=%(Assembly)', ',')"</GenFacadesArgs>
     </PropertyGroup>
 
@@ -91,7 +91,7 @@
     <!-- Move the PDB into a subdirectory for GenFacades if we are producing PDBs -->
     <Move SourceFiles="$(PartialFacadeSymbols)"
           DestinationFolder="$(GenFacadesInputPath)"
-          Condition="'$(DebugSymbols)' != 'false'"
+          Condition="'$(DebugSymbols)' != 'false' AND '$(DebugType)'!='Portable'"
     />
 
     <PropertyGroup>
