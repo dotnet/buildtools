@@ -25,6 +25,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             get;
             set;
         }
+        
+        public string BaseDirectory
+        {
+            get;
+            set;
+        }
 
         public bool ExcludeEmptyDirectories
         {
@@ -67,9 +73,10 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                     using (var nuspecFile = File.Open(nuspecPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
                     {
+                        string baseDirectoryPath = (string.IsNullOrEmpty(BaseDirectory)) ? Path.GetDirectoryName(nuspecPath) : BaseDirectory;
                         Manifest manifest = Manifest.ReadFrom(nuspecFile);
                         builder.Populate(manifest.Metadata);
-                        builder.PopulateFiles(Path.GetDirectoryName(nuspecPath), manifest.Files);
+                        builder.PopulateFiles(baseDirectoryPath, manifest.Files);
                     }
 
                     string id = builder.Id, version = builder.Version.ToString();
