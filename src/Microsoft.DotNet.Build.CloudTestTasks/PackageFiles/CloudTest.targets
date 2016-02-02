@@ -22,22 +22,20 @@
     <FuncTestListFile>$(TestWorkingDir)$(OSPlatformConfig)/$(FuncTestListFilename)</FuncTestListFile>
     <PerfTestListFile>$(TestWorkingDir)$(OSPlatformConfig)/$(PerfTestListFilename)</PerfTestListFile>
     <BuildStatsJsonFile>$(TestWorkingDir)$(OSPlatformConfig)/BuildStats.json</BuildStatsJsonFile>
-    <RunnerScript Condition="'$(RunnerScript)' == ''">%HELIX_SCRIPT_ROOT%/xunitrunner.py</RunnerScript>
+    <RunnerScript Condition="'$(RunnerScript)' == ''">%HELIX_SCRIPT_ROOT%\xunitrunner.py</RunnerScript>
+    <SupplementalPayloadDir Condition="'$(SupplementalPayloadDir)' == ''">$(TestWorkingDir)SupplementalPayload/</SupplementalPayloadDir>
   </PropertyGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)CloudTest.Perf.targets" Condition="'$(Performance)' == 'true'" />
 
   <!-- main entrypoint -->
   <Target Name="CloudBuild"
           AfterTargets="Build"
-          DependsOnTargets="VerifyInputs;CreateTestListJson;UploadContent" />
+          DependsOnTargets="VerifyInputs;PreCloudBuild;CreateTestListJson;UploadContent" />
 
   <!-- gather the test archives for upload -->
   <ItemGroup>
     <ForUpload Include="$(TestArchivesRoot)*.zip" />
-  </ItemGroup>
-
-  <!-- gather any supplemental correlation payloads -->
-  <ItemGroup>
-    <SupplementalPayload Include="$(SupplementalPayloadDir)*" />
   </ItemGroup>
 
   <Target Name="VerifyInputs">
@@ -65,6 +63,27 @@
     </ItemGroup>
   </Target>
 
+  <!-- provided as an extensibility point for targets to run before the real work begins -->
+  <Target Name="PreCloudBuild">
+    <!-- copy runner scripts so they can be uploaded as supplemental payload -->
+    <ItemGroup>
+      <RunnerScripts Include="$(ToolsDir)RunnerScripts/**/*.py" />
+    </ItemGroup>
+    <Copy SourceFiles="@(RunnerScripts)"
+          DestinationFiles="@(RunnerScripts->'$(SupplementalPayloadDir)RunnerScripts/%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+    <!-- gather any supplemental correlation payloads -->
+    <ItemGroup>
+      <SupplementalPayload Include="$(SupplementalPayloadDir)**" />
+    </ItemGroup>
+    <!-- calculate relative path using normalized directory separators -->
+    <ItemGroup>
+      <SupplementalPayload>
+        <RelativeBlobPath>$([System.String]::Copy('%(RecursiveDir)').Replace('\', '/'))%(Filename)%(Extension)</RelativeBlobPath>
+      </SupplementalPayload>
+    </ItemGroup>
+  </Target>
+
   <!-- create Azure containers and file shares -->
   <Target Name="CreateAzureStorage">
     <CreateAzureContainer
@@ -82,7 +101,7 @@
     <!-- now that we have a drop URI create the list of correlation payloads -->
     <ItemGroup>
       <CorrelationPayloadUri Include="$(DropUri)$(Platform)$(ConfigurationGroup)/Packages.zip$(DropUriReadOnlyToken)" />
-      <CorrelationPayloadUri Include="@(SupplementalPayload->'$(DropUri)%(Filename)%(Extension)$(DropUriReadOnlyToken)')" />
+      <CorrelationPayloadUri Include="@(SupplementalPayload->'$(DropUri)%(RelativeBlobPath)$(DropUriReadOnlyToken)')" />
     </ItemGroup>
     <!-- flatten it into a property as msbuild chokes on @(CorrelationPayloadUri) in FunctionalTest.CorrelationPayloadUris :( -->
     <PropertyGroup>
@@ -202,19 +221,13 @@
       ContainerName="$(ContainerName)"
       Items="@(ForUpload)"
       Overwrite="true" />
-    <!-- create supplemental payload items for upload, placing the payload in the root of the container -->
-    <ItemGroup>
-      <SupplementalPayloadData Include="@(SupplementalPayload)">
-        <RelativeBlobPath>%(Filename)%(Extension)</RelativeBlobPath>
-      </SupplementalPayloadData>
-    </ItemGroup>
     <UploadToAzure
       AccountKey="$(CloudDropAccessToken)"
       AccountName="$(CloudDropAccountName)"
       ContainerName="$(ContainerName)"
-      Items="@(SupplementalPayloadData)"
+      Items="@(SupplementalPayload)"
       Overwrite="true"
-      Condition="'@(SupplementalPayloadData)' != ''" />
+      Condition="'@(SupplementalPayload)' != ''" />
   </Target>
 
   <!-- write event hub notification JSON files -->
