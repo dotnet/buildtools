@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- run before PreCloudBuild so it can consume the output -->
+  <Target Name="PrepareForCloudBuild"
+          BeforeTargets="PreCloudBuild"
+          DependsOnTargets="CreatePerfJson" />
+
+  <PropertyGroup>
+    <PerfResultsContainer>perf-jobs-result-jsons</PerfResultsContainer>
+    <PerfRunnerJsonFileName>xunitrunner-perf.json</PerfRunnerJsonFileName>
+    <!-- place the JSON file in the same directory as the runner script -->
+    <PerfRunnerJsonFile>$(SupplementalPayloadDir)RunnerScripts/xunitrunner-perf/$(PerfRunnerJsonFileName)</PerfRunnerJsonFile>
+    <RunnerScript>%HELIX_CORRELATION_PAYLOAD%\RunnerScripts\xunitrunner-perf\xunitrunner-perf.py</RunnerScript>
+  </PropertyGroup>
+
+  <!-- creates a JSON file to be uploaded as supplemental payload -->
+  <Target Name="CreatePerfJson">
+    <CreateAzureContainer
+      AccountKey="$(CloudResultsAccessToken)"
+      AccountName="$(CloudResultsAccountName)"
+      ContainerName="$(PerfResultsContainer)"
+      ReadOnlyTokenDaysValid="30"
+      WriteOnlyTokenDaysValid="1">
+        <Output TaskParameter="StorageUri" PropertyName="RootURI" />
+        <Output TaskParameter="ReadOnlyToken" PropertyName="ReadOnlyToken" />
+        <Output TaskParameter="WriteOnlyToken" PropertyName="WriteOnlyToken" />
+    </CreateAzureContainer>
+    <ItemGroup>
+      <PerfRunnerJson Include="dummy">
+        <RootURI>$(RootURI)</RootURI>
+        <ReadToken>$(ReadOnlyToken)</ReadToken>
+        <WriteToken>$(WriteOnlyToken)</WriteToken>
+      </PerfRunnerJson>
+    </ItemGroup>
+    <WriteItemsToJson JsonFileName="$(PerfRunnerJsonFile)" Items="@(PerfRunnerJson)" />
+  </Target>
+
+</Project>
