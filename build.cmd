@@ -24,6 +24,8 @@ if not defined VisualStudioVersion (
 
 :EnvSet
 
+call %~dp0init-tools.cmd
+
 :: Log build command line
 set _buildproj=%~dp0build.proj
 set _buildlog=%~dp0msbuild.log
