@@ -1,11 +1,13 @@
-﻿using Microsoft.Build.Framework;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.Build.Framework;
 using NuGet.Frameworks;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
@@ -49,6 +51,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
         public ITaskItem[] IgnoredReferences { get; set; }
 
+        public bool UseNetPlatform { get; set; }
+
         public override bool Execute()
         {
             if (String.IsNullOrEmpty(PackageTargetFramework))
@@ -75,13 +79,47 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 return false;
             }
 
-            if (fx.Framework != FrameworkConstants.FrameworkIdentifiers.NetPlatform)
+            if (UseNetPlatform)
             {
-                Log.LogMessage(LogImportance.Low, $"Skipping validation since PackageTargetFramework {fx} is not {FrameworkConstants.FrameworkIdentifiers.NetPlatform}");
-                return true;
+                if (fx.Framework == FrameworkConstants.FrameworkIdentifiers.NetStandard)
+                {
+                    Log.LogError($"Validating for legacy 'dotnet' moniker but package targets new 'netstandard' moniker.");
+                    return false;
+                }
+                else if (fx.Framework != FrameworkConstants.FrameworkIdentifiers.NetPlatform)
+                {
+                    Log.LogMessage(LogImportance.Low, $"Skipping validation since PackageTargetFramework {fx} is not {FrameworkConstants.FrameworkIdentifiers.NetPlatform}");
+                    return true;
+                }
+            }
+            else
+            {
+                if (fx.Framework == FrameworkConstants.FrameworkIdentifiers.NetPlatform)
+                {
+                    if (fx.Version > new Version(5, 0))
+                    {
+                        NuGetFramework netstandardFx = new NuGetFramework(FrameworkConstants.FrameworkIdentifiers.NetStandard, new Version(fx.Version.Major - 4, fx.Version.Minor - 1));
+                        Log.LogError($"{fx.GetShortFolderName()} is no longer supported please update to {netstandardFx.GetShortFolderName()}.  Validating as {netstandardFx.GetShortFolderName()}.");
+                        // update to netstandard so that we can get the right number of errors
+                        fx = netstandardFx;
+                    }
+                    else
+                    {
+                        Log.LogError($"Invalid framework version {fx.GetShortFolderName()} please update to appropriate netstandard version.");
+                        // update to nestandard so that we'll do the actual calculation
+                        fx = FrameworkConstants.CommonFrameworks.NetStandard;
+                    }
+                }
+
+
+                if (fx.Framework != FrameworkConstants.FrameworkIdentifiers.NetStandard)
+                {
+                    Log.LogMessage(LogImportance.Low, $"Skipping validation since PackageTargetFramework {fx} is not {FrameworkConstants.FrameworkIdentifiers.NetStandard}");
+                    return true;
+                }
             }
 
-            _generations = Generations.Load(GenerationDefinitionsFile);
+            _generations = Generations.Load(GenerationDefinitionsFile, UseNetPlatform);
 
             Dictionary<string, string> candidateRefs = CandidateReferences.ToDictionary(r => r.GetMetadata("FileName"), r => r.GetMetadata("FullPath"));
 
@@ -97,6 +135,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             {
                 ignoredRefs = new HashSet<string>(IgnoredReferences.Select(ir => ir.ItemSpec), StringComparer.OrdinalIgnoreCase);
             }
+
+            Version defaultGeneration = UseNetPlatform ? FrameworkConstants.CommonFrameworks.DotNet.Version : FrameworkConstants.CommonFrameworks.NetStandard.Version;
 
             foreach (var reference in DirectReferences)
             {
@@ -122,7 +162,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     continue;
                 }
 
-                var dependencyGeneration = _generations.DetermineGenerationFromFile(path, Log, candidateRefs: candidateRefs, ignoredRefs: ignoredRefs) ?? FrameworkConstants.CommonFrameworks.DotNet.Version;
+                var dependencyGeneration = _generations.DetermineGenerationFromFile(path, Log, candidateRefs: candidateRefs, ignoredRefs: ignoredRefs) ?? defaultGeneration;
 
                 if (dependencyGeneration > fx.Version)
                 {

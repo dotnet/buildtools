@@ -146,18 +146,19 @@
   <!-- 
     Import the PackageLibs.targets which exposes targets from library projects to report what
     assets they contribute to nuget packages.
-      
+      Inputs:
+        PackageTargetFramework - Target moniker to use for harvested dependencies.
+                                 If PackageTargetPath is not set, PackageTargetPath will be constructed 
+                                 based on PackageTargetFramework.
+
       Optional Inputs:
         PackageSourcePath - Source path to the built output to be packaged, default is $(TargetPath)
                             Can be overridden.
         IsReferenceAssembly - true if this project is a reference assembly.
         PackageTargetPath - Destination subpath in the package at which all assets from this project
-                            should be located.  Default is lib\dotnet for implementation assemblies,
-                            ref\dotnet for reference assemblies.  Can be overridden.  When overridding
-                            also override PackageTargetFramework.
-        PackageTargetFramework - Target moniker to use for harvested dependencies, default is 'dotnet'.
-                                 Can be overridden.  If PackageTargetFramework is overridden and PackageTargetPath
-                                 is not, PackageTargetPath will be constructed based on PackageTargetFramework.
+                            should be located.  Default is lib\$(PackageTargetFramework) for implementation 
+                            assemblies, ref\$(PackageTargetFramework) for reference assemblies.  Can be 
+                            overridden.  When overridding also override PackageTargetFramework.
         PackageTargetRuntime - Runtime id to use for harvested dependencies, default is none.
                                Can be overridden.  If PackageTargetRuntime is overridden and PackageTargetPath
                                is not, PackageTargetPath will be constructed based on PackageTargetRuntime.

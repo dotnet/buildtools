@@ -26,6 +26,9 @@
 
     <!-- By default we'll build libraries referenced by packages -->
     <BuildPackageLibraryReferences Condition="'$(BuildPackageLibraryReferences)' == ''">true</BuildPackageLibraryReferences>
+    
+    <!-- turn off dotnet > netstandard rename until ready -->
+    <UseNetPlatform Condition="'$(UseNetPlatform)' == ''">true</UseNetPlatform>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(IsRuntimePackage)' == 'true' or '$(PackageTargetRuntime)' != ''">
@@ -56,8 +59,8 @@
     <Copyright>&#169; Microsoft Corporation.  All rights reserved.</Copyright>
     <Tags></Tags>
     <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
-    <!-- we depend on nuget v3 behavior -->
-    <MinClientVersion Condition="'$(MinClientVersion)' == ''">3.0</MinClientVersion>
+    <!-- we depend on nuget v3.4 behavior -->
+    <MinClientVersion Condition="'$(MinClientVersion)' == ''">3.4</MinClientVersion>
   </PropertyGroup>
 
   <!-- Shared properties -->
@@ -77,6 +80,7 @@
   </PropertyGroup>
 
   <Import Project="stable.packages.targets" />
+  <Import Condition="'$(BaseLinePackageDependencies)' == 'true'" Project="baseline.packages.targets" />
 
   <!-- If this package explicitly sets the StableVersion then add it to the stable list -->
   <ItemGroup Condition="'$(StableVersion)' != ''">
@@ -96,6 +100,7 @@
   <UsingTask TaskName="CreateTrimDependencyGroups" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="GenerateNuSpec" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="NuGetPack" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  <UsingTask TaskName="ApplyBaseLine" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
 
   <!-- Determine if we actually need to build for this architecture -->
   <!-- Packages can specifically control their architecture by specifying the PackagePlatforms
@@ -425,9 +430,7 @@
   <!-- Harvest dependencies from assembly references.
        Assume version of package dependency == assembly version of dependency (3-part).
        For prerelease (not stable) packages apply a pre-release suffix to the dependency -->
-
-  <Target Name="GetNuGetPackageDependencies"
-          Returns="@(NuGetDependency)"
+  <Target Name="GetFilePackageReferences"
           DependsOnTargets="EnsureOOBFramework"
           Condition="'$(OmitDependencies)' != 'true'"
           Inputs="%(File.Identity);%(File.TargetFramework)"
@@ -465,19 +468,64 @@
         <TargetRuntime>@(FileRuntimeDependency->'%(TargetRuntime)')</TargetRuntime>
       </_FilePackageReference>
     </ItemGroup>
-
-    <ApplyPreReleaseSuffix Condition="'@(_FilePackageReference)' != ''" StablePackages="@(StablePackage)" OriginalPackages="@(_FilePackageReference)" PreReleaseSuffix="$(VersionSuffix)" RevStableToPrerelease="$(DependencyRevStableToPrerelease)">
-      <Output TaskParameter="UpdatedPackages" ItemName="_FilePackageReferenceFinal"/>
-    </ApplyPreReleaseSuffix>
-
+    
     <ItemGroup>
-      <Dependency Condition="'$(_IsClassicAssembly)' != 'true' OR !$(_TargetFramework.StartsWith('net4'))"  Include="@(_FilePackageReferenceFinal)">
+      <FilePackageDependency Condition="'$(_IsClassicAssembly)' != 'true' OR !$(_TargetFramework.StartsWith('net4'))"  Include="@(_FilePackageReference)">
         <TargetFramework Condition="'$(_TargetFramework)' != ''" >$(_TargetFramework)</TargetFramework>
-      </Dependency>
+      </FilePackageDependency>
       <FrameworkReference Condition="'$(_IsClassicAssembly)' == 'true' AND $(_TargetFramework.StartsWith('net4'))" Include="%(_FileReferencedAssemblies.Identity)">
         <TargetFramework>$(_TargetFramework)</TargetFramework>
       </FrameworkReference>
     </ItemGroup>
+  </Target>
+  
+  <Target Name="GetNuGetPackageDependencies"
+          DependsOnTargets="GetFilePackageReferences">
+   <!-- We can reduce the number of dependencies listed for any framework that has
+        inbox implementations since that framework doesn't need the packages for
+        compile/runtime.  This reduces the noise when consuming our packages in
+        packages.config based projects.  -->
+    <CreateTrimDependencyGroups Dependencies="@(FilePackageDependency);@(Dependency)"
+                      FrameworkListsPath="$(FrameworkListsPath)"
+                      TrimFrameworks="@(InboxOnTargetFramework);@(NotSupportedOnTargetFramework);@(ExternalOnTargetFramework)"
+                      Files="@(File)"
+                      Condition="'@(FilePackageDependency)' != '' AND '$(PackageTargetRuntime)' == ''">
+      <Output TaskParameter="TrimmedDependencies" ItemName="FilePackageDependency" />
+    </CreateTrimDependencyGroups>
+
+    <ApplyBaseLine OriginalDependencies="@(FilePackageDependency)" BaseLinePackages="@(BaseLinePackage)">
+      <Output TaskParameter="BaseLinedDependencies" ItemName="_BaseLinedDependencies" />
+    </ApplyBaseLine>
+
+    <ApplyPreReleaseSuffix Condition="'@(_BaseLinedDependencies)' != ''" StablePackages="@(StablePackage)" OriginalPackages="@(_BaseLinedDependencies)" PreReleaseSuffix="$(VersionSuffix)" RevStableToPrerelease="$(DependencyRevStableToPrerelease)">
+      <Output TaskParameter="UpdatedPackages" ItemName="Dependency"/>
+    </ApplyPreReleaseSuffix>
+
+  </Target>
+
+  <Target Name="GetNuGetPackageDependencies"
+          DependsOnTargets="GetFilePackageReferences">
+   <!-- We can reduce the number of dependencies listed for any framework that has
+        inbox implementations since that framework doesn't need the packages for
+        compile/runtime.  This reduces the noise when consuming our packages in
+        packages.config based projects.  -->
+    <CreateTrimDependencyGroups Dependencies="@(FilePackageDependency);@(Dependency)"
+                      FrameworkListsPath="$(FrameworkListsPath)"
+                      TrimFrameworks="@(InboxOnTargetFramework);@(NotSupportedOnTargetFramework);@(ExternalOnTargetFramework)"
+                      Files="@(File)"
+                      UseNetPlatform="$(UseNetPlatform)"
+                      Condition="'@(FilePackageDependency)' != '' AND '$(PackageTargetRuntime)' == ''">
+      <Output TaskParameter="TrimmedDependencies" ItemName="FilePackageDependency" />
+    </CreateTrimDependencyGroups>
+
+    <ApplyBaseLine OriginalDependencies="@(FilePackageDependency)" BaseLinePackages="@(BaseLinePackage)">
+      <Output TaskParameter="BaseLinedDependencies" ItemName="_BaseLinedDependencies" />
+    </ApplyBaseLine>
+
+    <ApplyPreReleaseSuffix Condition="'@(_BaseLinedDependencies)' != ''" StablePackages="@(StablePackage)" OriginalPackages="@(_BaseLinedDependencies)" PreReleaseSuffix="$(VersionSuffix)" RevStableToPrerelease="$(DependencyRevStableToPrerelease)">
+      <Output TaskParameter="UpdatedPackages" ItemName="Dependency"/>
+    </ApplyPreReleaseSuffix>
+
   </Target>
 
   <!-- Walks every project gathering its AssemblyVersion, choosing the highest -->
@@ -521,20 +569,8 @@
     </PropertyGroup>
   </Target>
 
-  <!-- Updates version metadata of a pinned dependency to be a fixed version -->
-  <Target Name="PinDependencies"
-          DependsOnTargets="GetPackageDependencies">
-    <ItemGroup>
-      <DependenciesToPin Include="@(Dependency)" Condition="'@(PinDependency)' == '%(Identity)'"  />
-      <Dependency Remove="@(DependenciesToPin)"/>
-      <Dependency Include="@(DependenciesToPin)">
-        <Version>[%(DependenciesToPin.Version)]</Version>
-      </Dependency>
-    </ItemGroup>
-  </Target>
-
   <Target Name="DetermineRuntimeDependencies"
-          DependsOnTargets="PinDependencies"
+          DependsOnTargets="GetPackageDependencies"
           Returns="@(RuntimeDependency)">
     <!-- see if we have any runtime dependencies to write to runtime.json -->
     <ItemGroup>
@@ -555,7 +591,7 @@
       <RuntimeFileSource Condition="'%(File.FileName)%(File.Extension)' == 'runtime.json'">%(File.Identity)</RuntimeFileSource>
     </PropertyGroup>
 
-    <ItemGroup Condition="'@(RuntimeDependency)' != ''">
+    <ItemGroup Condition="'@(RuntimeDependency)' != '' AND '$(ExcludeRuntimeJson)' != 'true'">
       <!-- if we are updating, remove it from the file group, we'll replace it with the generated version -->
       <PackageFile Condition="'$(RuntimeFileSource)' != ''" Remove="$(RuntimeFileSource)"/>
       <PackageFile Include="$(RuntimeFilePath)">
@@ -588,7 +624,8 @@
       <PackageFile Include="$(PlaceholderFile)">
         <PackageId>$(Id)</PackageId>
         <PackageVersion>$(Version)</PackageVersion>
-        <TargetPath>ref/dotnet</TargetPath>
+        <TargetPath Condition="'$(UseNetPlatform)' != 'true'">ref/netstandard</TargetPath>
+        <TargetPath Condition="'$(UseNetPlatform)' == 'true'">ref/dotnet</TargetPath>
       </PackageFile>
     </ItemGroup>
   </Target>
@@ -651,25 +688,6 @@
     <EnsureOOBFramework Condition="'@(OutOfBoxFramework)' != ''" OOBFrameworks="@(OutOfBoxFramework)" Files="@(File)" RuntimeJson="$(RuntimeIdGraphDefinitionFile)" RuntimeId="$(PackageTargetRuntime)">
       <Output TaskParameter="AdditionalFiles" ItemName="File" />
     </EnsureOOBFramework>
-  </Target>
-
-  <!-- We can reduce the number of dependencies listed for any framework that has
-       inbox implementations since that framework doesn't need the packages for
-       compile/runtime.  This reduces the noise when consuming our packages in
-       packages.config based projects.  -->
-  <Target Name="TrimInboxDependencies"
-          BeforeTargets="GenerateNuSpec"
-          Condition="'$(PackageTargetRuntime)' == ''">
-    <CreateTrimDependencyGroups Dependencies="@(Dependency)"
-                      FrameworkListsPath="$(FrameworkListsPath)"
-                      TrimFrameworks="@(InboxOnTargetFramework);@(NotSupportedOnTargetFramework);@(ExternalOnTargetFramework)"
-                      Files="@(File)"
-                      Condition="'@(Dependency)' != ''">
-      <Output TaskParameter="TrimmedDependencies" ItemName="TrimmedDependency" />
-    </CreateTrimDependencyGroups>
-    <ItemGroup>
-      <Dependency Include="@(TrimmedDependency)" />
-    </ItemGroup>
   </Target>
 
   <!-- Generates a runtime.json file containing all dependencies with TargetRuntime -->
@@ -832,6 +850,7 @@
                      SkipGenerationCheck="$(SkipGenerationCheck)"
                      SkipSupportCheck="$(SkipSupportCheck)"
                      SuppressionFile="$(ValidationSuppressionFile)"
+                     UseNetPlatform="$(UseNetPlatform)"
                      ContinueOnError="ErrorAndContinue"/>
   </Target>
 

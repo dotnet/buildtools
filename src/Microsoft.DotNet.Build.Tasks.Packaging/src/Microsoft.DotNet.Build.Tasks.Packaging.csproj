@@ -20,6 +20,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="CreateTrimDependencyGroups.cs" />
+    <Compile Include="ApplyBaseLine.cs" />
     <Compile Include="EnsureOOBFramework.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Framework.cs" />
@@ -72,6 +73,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="PackageFiles\PackageLibs.targets">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="PackageFiles\baseline.packages.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="PackageFiles\_._">

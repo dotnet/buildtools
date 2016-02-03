@@ -1,11 +1,10 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using NuGet.Frameworks;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Runtime.Versioning;
 using Xunit;
@@ -21,7 +20,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
 
         public GenerationsTests(ITestOutputHelper output)
         {
-            _generations = Generations.Load("generations.json");
+            _generations = Generations.Load("generations.json", false);
             _log = new Log(output);
         }
 
@@ -30,7 +29,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
         {
             _log.Reset();
             var generation = _generations.DetermineGenerationFromSeeds("System.Runtime", new Version(4, 0, 30, 0), _log);
-            Assert.Equal(new Version(5, 4, 0, 0), generation);
+            Assert.Equal(new Version(1, 3, 0, 0), generation);
             _log.AssertNoErrorsOrWarnings();
         }
 
@@ -39,7 +38,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
         {
             _log.Reset();
             var generation = _generations.DetermineGenerationFromSeeds("System.Runtime", new Version(4, 0, 15, 0), _log);
-            Assert.Equal(new Version(5, 3, 0, 0), generation);
+            Assert.Equal(new Version(1, 2, 0, 0), generation);
             _log.AssertNoErrorsOrWarnings();
         }
 
@@ -74,7 +73,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 foreach (var fx in fxGroup.Value)
                 {
                     var thisFx = new NuGetFramework(fx.FrameworkName.Identifier, fx.FrameworkName.Version);
-                    var fxGeneration = Generations.DetermineGenerationForFramework(thisFx);
+                    var fxGeneration = Generations.DetermineGenerationForFramework(thisFx, false);
 
                     foreach (var assembly in fx.Assemblies.Where(a => !s_classicAssemblies.Contains(a.Key) && a.Value != maxVersion))
                     {
@@ -90,7 +89,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                         Assert.Equal(0, _log.ErrorsLogged);
                         Assert.Equal(0, _log.WarningsLogged);
                         Assert.True(null != assmGeneration, $"{assembly.Key},{assembly.Value} should be tracked by generations");
-                        Assert.True(assmGeneration.Major >= 5 && assmGeneration.Minor >= 1);
+                        Assert.True(assmGeneration.Major >= 1 && assmGeneration.Minor >= 0);
                         Assert.True(assmGeneration <= effectiveFxGeneration, $"Generation {assmGeneration} of {assembly.Key}, {assembly.Value} must be less than or equal to {fxGeneration} since this assembly is inbox in {fx.FrameworkName} which is mapped to generation {effectiveFxGeneration}.");
                     }
                 }
@@ -98,13 +97,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
         }       
 
         private static readonly FrameworkName s_net46 = new FrameworkName(".NETFramework,Version=v4.6");
-        private static readonly Version s_v55 = new Version(5, 5, 0, 0);
+        private static readonly Version s_v14 = new Version(1, 4, 0, 0);
 
         private static Dictionary<Tuple<FrameworkName, string>, Version> s_generationException = new Dictionary<Tuple<FrameworkName, string>, Version>()
         {
-            // NetworkInformation 4.0.10 was supported in 4.6, but not yet on UWP, for now we are restricting 4.0.10 to dotnet5.5
+            // NetworkInformation 4.0.10 was supported in 4.6, but not yet on UWP, for now we are restricting 4.0.10 to netstandard1.4
             // (hiding the new surface area from PCLs targeting net46) until 
-            { Tuple.Create(s_net46, "System.Net.NetworkInformation"), s_v55 }
+            { Tuple.Create(s_net46, "System.Net.NetworkInformation"), s_v14 }
         };
 
         private static HashSet<string> s_classicAssemblies = new HashSet<string>()

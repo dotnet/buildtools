@@ -48,6 +48,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             set;
         }
 
+        public bool UseNetPlatform { get; set; }
+
         /* Given a set of available frameworks ("InboxOnTargetFrameworks"), and a list of desired frameworks,
         reduce the set of frameworks to the minimum set of frameworks which is compatible (preferring inbox frameworks. */
         public override bool Execute()
@@ -95,7 +97,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                 foreach (NuGetFramework inboxFramework in Frameworks.GetAlllInboxFrameworks(FrameworkListsPath))
                 {
-                    if (Generations.DetermineGenerationForFramework(inboxFramework) >= portableDependencyFramework.Version &&
+                    if (Generations.DetermineGenerationForFramework(inboxFramework, UseNetPlatform) >= portableDependencyFramework.Version &&
                         !frameworksToExclude.Contains(inboxFramework))
                     {
                         inboxFrameworksList.Add(inboxFramework);
