@@ -4,6 +4,7 @@
 
 using Microsoft.Build.Framework;
 using NuGet;
+using NuGet.Versioning;
 using System;
 using System.IO;
 
@@ -27,6 +28,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         }
         
         public string BaseDirectory
+        {
+            get;
+            set;
+        }
+
+        public string PackageVersion
         {
             get;
             set;
@@ -77,6 +84,21 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                         Manifest manifest = Manifest.ReadFrom(nuspecFile);
                         builder.Populate(manifest.Metadata);
                         builder.PopulateFiles(baseDirectoryPath, manifest.Files);
+                    }
+
+                    // Overriding the Version from the Metadata if one gets passed in.
+                    if (!string.IsNullOrEmpty(PackageVersion))
+                    {
+                        NuGetVersion overrideVersion;
+                        if (NuGetVersion.TryParse(PackageVersion,out overrideVersion))
+                        {
+                            builder.Version = overrideVersion;
+                        }
+                        else
+                        {
+                            Log.LogError($"Failed to parse Package Version: '{PackageVersion}' is not a valid version.");
+                            continue;
+                        }
                     }
 
                     string id = builder.Id, version = builder.Version.ToString();
