@@ -31,7 +31,9 @@
   <Import Project="$(ToolsDir)CodeCoverage.targets" Condition="Exists('$(ToolsDir)CodeCoverage.targets')" />
   <Import Project="$(ToolsDir)PerfTesting.targets" Condition="Exists('$(ToolsDir)PerfTesting.targets')" />
 
-  <!-- Overriding BuildPackages Target to use NuGet-independent version instead -->
+<!--  Temporary Removing this since NugetPack doesn't support passing in a version number, so falling back to Nuget.exe temporarily.
+      Issue: https://github.com/dotnet/buildtools/issues/430
+  Overriding BuildPackages Target to use NuGet-independent version instead
   <UsingTask TaskName="NuGetPack" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
 
   <Target Name="BuildPackages">
@@ -43,5 +45,6 @@
              ExcludeEmptyDirectories="true"
              Condition="'$(_SkipCreatePackage)' != 'true'"/>
   </Target>
+-->
 
 </Project>

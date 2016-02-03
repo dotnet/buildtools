@@ -29,6 +29,12 @@ if exist "%BUILD_TOOLS_SEMAPHORE%" (
   goto :EOF
 )
 
+:: Download nuget
+if NOT exist "%PACKAGES_DIR%\NuGet.exe" (
+  if NOT exist "PACKAGES_DIR" mkdir "%PACKAGES_DIR%"
+  powershell -NoProfile -ExecutionPolicy unrestricted -Command "(New-Object Net.WebClient).DownloadFile('https://www.nuget.org/nuget.exe', '%PACKAGES_DIR%\NuGet.exe')
+)
+
 if NOT exist "%PROJECT_JSON_PATH%" mkdir "%PROJECT_JSON_PATH%"
 echo %PROJECT_JSON_CONTENTS% > %PROJECT_JSON_FILE%
 echo Running %0 > %INIT_TOOLS_LOG%
