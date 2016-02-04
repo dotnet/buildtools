@@ -1,5 +1,9 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.Composition;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Collections.Generic;
+using System.Composition;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using Microsoft.Cci.Extensions;
@@ -11,7 +15,7 @@ namespace Microsoft.Cci.Differs.Rules
     internal class DelegatesMustMatch : DifferenceRule
     {
         [Import]
-        private IEqualityComparer<ITypeReference> _typeComparer = null;
+        public IEqualityComparer<ITypeReference> _typeComparer { get; set; } = null;
 
         public override DifferenceType Diff(IDifferences differences, ITypeDefinition impl, ITypeDefinition contract)
         {
@@ -41,7 +45,7 @@ namespace Microsoft.Cci.Differs.Rules
             if (implReturnType == null || contractReturnType == null)
                 return true;
 
-            if(!_typeComparer.Equals(implReturnType, contractReturnType))
+            if (!_typeComparer.Equals(implReturnType, contractReturnType))
             {
                 differences.AddTypeMismatchDifference("DelegateReturnTypesMustMatch", implReturnType, contractReturnType,
                     "Return type on delegate '{0}' is '{1}' in the implementation but '{2}' in the contract.",
@@ -70,7 +74,7 @@ namespace Microsoft.Cci.Differs.Rules
                 if (!implParam.Name.Value.Equals(contractParam.Name.Value))
                 {
                     differences.AddIncompatibleDifference("DelegateParamNameMustMatch",
-                        "Parameter name on delegate '{0}' is '{1}' in the implementation but '{2}' in the contract.", 
+                        "Parameter name on delegate '{0}' is '{1}' in the implementation but '{2}' in the contract.",
                         implMethod.ContainingType.FullName(), implParam.Name.Value, contractParam.Name.Value);
                     match = false;
                 }
@@ -78,13 +82,12 @@ namespace Microsoft.Cci.Differs.Rules
                 if (!_typeComparer.Equals(implParam.Type, contractParam.Type))
                 {
                     differences.AddTypeMismatchDifference("DelegateParamTypeMustMatch", implParam.Type, contractParam.Type,
-                        "Type for parameter '{0}' on delegate '{1}' is '{2}' in the implementation but '{3}' in the contract.", 
+                        "Type for parameter '{0}' on delegate '{1}' is '{2}' in the implementation but '{3}' in the contract.",
                         implParam.Name.Value, implMethod.ContainingType.FullName(), implParam.Type.FullName(), contractParam.Type.FullName());
                     match = false;
                 }
             }
             return match;
         }
-
     }
 }

@@ -1,4 +1,8 @@
-﻿using Microsoft.Cci.Extensions;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.Cci.Extensions;
 using Microsoft.Cci.Writers.CSharp;
 using System.Linq;
 using System.Collections.Generic;
@@ -11,7 +15,7 @@ namespace Microsoft.Cci.Differs.Rules
     // [ExportDifferenceRule]
     internal class CannotAddAttributes : DifferenceRule
     {
-        private MappingSettings settings = new MappingSettings();
+        private MappingSettings _settings = new MappingSettings();
 
         public override DifferenceType Diff(IDifferences differences, IAssembly impl, IAssembly contract)
         {
@@ -86,13 +90,13 @@ namespace Microsoft.Cci.Differs.Rules
         {
             bool added = false;
 
-            AttributesMapping<IEnumerable<ICustomAttribute>> attributeMapping = new AttributesMapping<IEnumerable<ICustomAttribute>>(settings);
+            AttributesMapping<IEnumerable<ICustomAttribute>> attributeMapping = new AttributesMapping<IEnumerable<ICustomAttribute>>(_settings);
             attributeMapping.AddMapping(0, implAttributes);
             attributeMapping.AddMapping(1, contractAttributes);
 
             foreach (var group in attributeMapping.Attributes)
             {
-                switch(group.Difference)
+                switch (group.Difference)
                 {
                     case DifferenceType.Added:
                         ITypeReference type = group.Representative.Attributes.First().Type;
@@ -123,7 +127,7 @@ namespace Microsoft.Cci.Differs.Rules
         }
 
         // Ignore list copied from ApiConformance tool
-        private static HashSet<string> s_IgnorableAttributes = new HashSet<string> { 
+        private static HashSet<string> s_IgnorableAttributes = new HashSet<string> {
             "System.Reflection.AssemblyFileVersionAttribute",
             "System.Reflection.AssemblyInformationalVersionAttribute",
             "System.Reflection.AssemblyKeyFileAttribute",

@@ -1,4 +1,8 @@
-﻿using Microsoft.Cci.Extensions;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.Cci.Extensions;
 using Microsoft.Cci.Extensions.CSharp;
 using System;
 using System.Diagnostics.Contracts;
@@ -29,10 +33,10 @@ namespace Microsoft.Cci.Differs.Rules
             {
                 ITypeReference implValType = impl.ContainingTypeDefinition.GetEnumType();
                 ITypeReference contractValType = contract.ContainingTypeDefinition.GetEnumType();
-                
+
                 differences.AddIncompatibleDifference(this,
                     "Enum value '{0}' is ({1}){2} in the implementation but ({3}){4} in the contract.",
-                    implField.FullName(), implValType.FullName(), implField.Constant.Value, 
+                    implField.FullName(), implValType.FullName(), implField.Constant.Value,
                     contractValType.FullName(), contractField.Constant.Value);
                 return DifferenceType.Changed;
             }

@@ -1,6 +1,10 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using Microsoft.Cci;
@@ -21,7 +25,7 @@ namespace ApiCompat.Rules
     internal class InheritanceHierarchyChangeTracker : DifferenceRule
     {
         [Import]
-        private IEqualityComparer<ITypeReference> _typeComparer = null;
+        private IEqualityComparer<ITypeReference> _typeComparer { get; set; } = null;
 
         // Consider the following object hierarchy.  Remember we are not enforcing a subset relationship
         // on both types.  Our goal is to build a third API that is a subset of both, with versioning rules
@@ -58,7 +62,7 @@ namespace ApiCompat.Rules
             // However there are more pathologically complicated inheritance hierarchies that are linear but where we 
             // add one type & remove another.  If both additions & removals occur, they're only legal if one of those 
             // added or removed types subclasses the other one.  We do not currently check for that.
-            if (added && removed) 
+            if (added && removed)
             {
                 // Special case for DependencyObject and its derived types
                 if (item1BaseClassChain.Any((type) => TypeHelper.GetTypeName(type) == "System.Windows.DependencyObject") &&
@@ -86,7 +90,8 @@ namespace ApiCompat.Rules
         {
             List<ITypeDefinition> bases = new List<ITypeDefinition>();
             ITypeDefinition t = type;
-            while (t != null) {
+            while (t != null)
+            {
                 t = t.BaseClasses.SingleOrDefault().GetDefinitionOrNull();   // If there are multiple base classes, update rule to handle multiple inheritance.
                 if (t != null)
                     bases.Add(t);

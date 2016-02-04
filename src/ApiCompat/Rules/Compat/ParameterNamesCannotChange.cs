@@ -1,4 +1,8 @@
-﻿using System.Diagnostics.Contracts;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Diagnostics.Contracts;
 using System.Linq;
 using Microsoft.Cci.Extensions;
 
@@ -43,7 +47,7 @@ namespace Microsoft.Cci.Differs.Rules
                 if (!implParam.Name.Value.Equals(contractParam.Name.Value))
                 {
                     differences.AddIncompatibleDifference(this,
-                        "Parameter name on member '{0}' is '{1}' in the implementation but '{2}' in the contract.", 
+                        "Parameter name on member '{0}' is '{1}' in the implementation but '{2}' in the contract.",
                         implMethod.FullName(), implParam.Name.Value, contractParam.Name.Value);
                     match = false;
                 }

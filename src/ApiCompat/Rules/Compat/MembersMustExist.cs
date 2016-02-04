@@ -1,5 +1,9 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.Composition;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Collections.Generic;
+using System.Composition;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using Microsoft.Cci.Extensions;
@@ -12,7 +16,7 @@ namespace Microsoft.Cci.Differs.Rules
     internal class MembersMustExist : DifferenceRule
     {
         [Import]
-        private IEqualityComparer<ITypeReference> _typeComparer = null;
+        private IEqualityComparer<ITypeReference> _typeComparer { get; set; } = null;
 
         public enum FindMethodResult
         {
@@ -92,7 +96,7 @@ namespace Microsoft.Cci.Differs.Rules
             string targetMethodName = (removeExplicitName) ? targetMethod.GetNameWithoutExplicitType() : targetMethod.Name.Value;
             bool foundDifferentReturntype = false;
             foundMethod = null;
-            foreach(IMethodDefinition potentialMatch in collectionOfMethods)
+            foreach (IMethodDefinition potentialMatch in collectionOfMethods)
             {
                 if (removeExplicitName && potentialMatch.IsExplicitInterfaceMethod()) continue;
 
@@ -100,7 +104,7 @@ namespace Microsoft.Cci.Differs.Rules
                 {
                     if (ParameterTypesAreEqual(potentialMatch, targetMethod))
                     {
-                        if(!ReturnTypesMatch(potentialMatch, targetMethod))
+                        if (!ReturnTypesMatch(potentialMatch, targetMethod))
                         {
                             foundDifferentReturntype = true;
                             foundMethod = potentialMatch;

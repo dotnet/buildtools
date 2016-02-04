@@ -1,4 +1,8 @@
-﻿using Microsoft.Cci.Extensions;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.Cci.Extensions;
 using Microsoft.Cci.Writers.CSharp;
 using System.Linq;
 using System.Collections.Generic;
@@ -7,7 +11,6 @@ using Microsoft.Cci.Mappings;
 
 namespace Microsoft.Cci.Differs.Rules
 {
-
     internal class AssemblyAttributeDifferences : AttributeDifference
     {
         public override DifferenceType Diff(IDifferences differences, IAssembly impl, IAssembly contract)
@@ -29,13 +32,12 @@ namespace Microsoft.Cci.Differs.Rules
 
         protected override void AttributeAdded(IReference target, string attributeName)
         {
-            
         }
     }
 
     internal class AttributeDifference : DifferenceRule
     {
-        private MappingSettings settings = new MappingSettings();
+        private MappingSettings _settings = new MappingSettings();
 
         protected virtual void AttributeChanged(IReference target, string attributeName)
         {
@@ -71,8 +73,8 @@ namespace Microsoft.Cci.Differs.Rules
             if (impl == null || contract == null)
                 return DifferenceType.Unknown;
 
-//            if (AnyAttributeAdded(differences, impl, impl.Attributes, contract.Attributes))
-//                return DifferenceType.Changed;
+            //            if (AnyAttributeAdded(differences, impl, impl.Attributes, contract.Attributes))
+            //                return DifferenceType.Changed;
 
             return DifferenceType.Unknown;
         }
@@ -120,13 +122,13 @@ namespace Microsoft.Cci.Differs.Rules
 
         private void CheckAttributeDifferences(IDifferences differences, IReference target, IEnumerable<ICustomAttribute> implAttributes, IEnumerable<ICustomAttribute> contractAttributes)
         {
-            AttributesMapping<IEnumerable<ICustomAttribute>> attributeMapping = new AttributesMapping<IEnumerable<ICustomAttribute>>(settings);
+            AttributesMapping<IEnumerable<ICustomAttribute>> attributeMapping = new AttributesMapping<IEnumerable<ICustomAttribute>>(_settings);
             attributeMapping.AddMapping(0, contractAttributes);
             attributeMapping.AddMapping(1, implAttributes);
 
             foreach (var group in attributeMapping.Attributes)
             {
-                switch(group.Difference)
+                switch (group.Difference)
                 {
                     case DifferenceType.Added:
                         {
@@ -173,7 +175,7 @@ namespace Microsoft.Cci.Differs.Rules
         }
 
         // Ignore list copied from ApiConformance tool
-        private static HashSet<string> s_IgnorableAttributes = new HashSet<string> { 
+        private static HashSet<string> s_IgnorableAttributes = new HashSet<string> {
             "System.Reflection.AssemblyFileVersionAttribute",
             "System.Reflection.AssemblyInformationalVersionAttribute",
             "System.Reflection.AssemblyKeyFileAttribute",

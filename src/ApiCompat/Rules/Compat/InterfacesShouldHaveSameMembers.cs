@@ -1,8 +1,12 @@
-﻿using Microsoft.Cci.Extensions;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.Cci.Extensions;
 using Microsoft.Cci.Extensions.CSharp;
 using System.Linq;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
+using System.Composition;
 using Microsoft.Cci.Comparers;
 using System;
 
@@ -30,7 +34,7 @@ namespace Microsoft.Cci.Differs.Rules
                     return DifferenceType.Changed;
                 }
             }
-            
+
             return base.Diff(differences, impl, contract);
         }
     }

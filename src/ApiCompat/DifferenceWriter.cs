@@ -1,4 +1,8 @@
-﻿using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
 using Microsoft.Cci;
@@ -6,7 +10,9 @@ using Microsoft.Cci.Differs;
 using Microsoft.Cci.Filters;
 using Microsoft.Cci.Mappings;
 using Microsoft.Cci.Traversers;
- 
+using System;
+
+
 namespace Microsoft.Cci.Writers
 {
     public class DifferenceWriter : DifferenceTraverser, ICciDifferenceWriter
@@ -14,6 +20,7 @@ namespace Microsoft.Cci.Writers
         private readonly List<Difference> _differences;
         private readonly TextWriter _writer;
         private int _totalDifferences = 0;
+        public static int ExitCode { get; set; }
 
         public DifferenceWriter(TextWriter writer, MappingSettings settings, IDifferenceFilter filter)
             : base(settings, filter)
@@ -72,7 +79,7 @@ namespace Microsoft.Cci.Writers
             _differences.Add(difference);
 
             // For now use this to set the ExitCode to 2 if there are any differences
-            System.Environment.ExitCode = 2;
+            DifferenceWriter.ExitCode = 2;
         }
     }
 }

@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -74,7 +78,7 @@ namespace Microsoft.Cci.Comparers
         private static bool IsBadTypeNameMatch(String name, String mappingName)
         {
             // Check whether we have more characters afterwards
-            bool moreAfter = (name.StartsWith(mappingName) && !name.Equals(mappingName) && 
+            bool moreAfter = (name.StartsWith(mappingName) && !name.Equals(mappingName) &&
                 (name[mappingName.Length] != '.' && name[mappingName.Length] != ')' && name[mappingName.Length] != '<'));
             int indexOfName = name.IndexOf(mappingName);
             bool moreBefore = indexOfName > 0 && (name[indexOfName - 1] != '.' && name[indexOfName - 1] != '(' && name[indexOfName - 1] != ' ' && name[indexOfName - 1] != '<');

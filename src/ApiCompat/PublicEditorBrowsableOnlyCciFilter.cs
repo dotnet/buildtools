@@ -1,3 +1,7 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -12,7 +16,7 @@ namespace ApiCompat
     //
     internal class PublicEditorBrowsableOnlyCciFilter : PublicOnlyCciFilter
     {
-        private HashSet<string> typeExclusions = new HashSet<string>();
+        private HashSet<string> _typeExclusions = new HashSet<string>();
 
         public PublicEditorBrowsableOnlyCciFilter(bool excludeAttributes = true)
             : base(excludeAttributes)
@@ -26,7 +30,7 @@ namespace ApiCompat
                 return false;
             }
 
-            return !Exclude(type, this.typeExclusions);
+            return !Exclude(type, _typeExclusions);
         }
 
         private static bool Exclude(IReference reference, HashSet<string> exclusions, string alternateName = null)
