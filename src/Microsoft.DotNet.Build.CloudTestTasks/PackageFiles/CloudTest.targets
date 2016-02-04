@@ -24,6 +24,8 @@
     <BuildStatsJsonFile>$(TestWorkingDir)$(OSPlatformConfig)/BuildStats.json</BuildStatsJsonFile>
     <RunnerScript Condition="'$(RunnerScript)' == ''">%HELIX_SCRIPT_ROOT%\xunitrunner.py</RunnerScript>
     <SupplementalPayloadDir Condition="'$(SupplementalPayloadDir)' == ''">$(TestWorkingDir)SupplementalPayload/</SupplementalPayloadDir>
+    <SupplementalPayloadFilename>SupplementalPayload.zip</SupplementalPayloadFilename>
+    <SupplementalPayloadFile>$(ArchivesRoot)$(SupplementalPayloadFilename)</SupplementalPayloadFile>
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)CloudTest.Perf.targets" Condition="'$(Performance)' == 'true'" />
@@ -54,7 +56,7 @@
     <Error Condition="'$(BuildIsOfficial)' == 'true' and '$(DocumentDbKey)' == ''" Text="Missing required property DocumentDbKey." />
     <Error Condition="'$(BuildIsOfficial)' == 'true' and '$(DocumentDbUri)' == ''" Text="Missing required property DocumentDbUri." />
     <!-- verify the test archives were created -->
-    <Error Condition="'@(ForUpload->Count())' == '0'" Text="Didn't find any test archives in '$(ArchivesRoot)'." />
+    <Error Condition="'@(ForUpload->Count())' == '0'" Text="Didn't find any test archives in '$(TestArchivesRoot)'." />
     <!-- add relative blob path metadata -->
     <ItemGroup>
       <ForUpload>
@@ -72,14 +74,14 @@
     <Copy SourceFiles="@(RunnerScripts)"
           DestinationFiles="@(RunnerScripts->'$(SupplementalPayloadDir)RunnerScripts/%(RecursiveDir)%(Filename)%(Extension)')"
           SkipUnchangedFiles="true" />
-    <!-- gather any supplemental correlation payloads -->
+    <!-- compress the supplemental payload directory for upload -->
+    <ZipFileCreateFromDirectory
+        SourceDirectory="$(SupplementalPayloadDir)"
+        DestinationArchive="$(SupplementalPayloadFile)"
+        OverwriteDestination="true" />
     <ItemGroup>
-      <SupplementalPayload Include="$(SupplementalPayloadDir)**" />
-    </ItemGroup>
-    <!-- calculate relative path using normalized directory separators -->
-    <ItemGroup>
-      <SupplementalPayload>
-        <RelativeBlobPath>$([System.String]::Copy('%(RecursiveDir)').Replace('\', '/'))%(Filename)%(Extension)</RelativeBlobPath>
+      <SupplementalPayload Include="$(SupplementalPayloadFile)">
+        <RelativeBlobPath>$(SupplementalPayloadFilename)</RelativeBlobPath>
       </SupplementalPayload>
     </ItemGroup>
   </Target>
