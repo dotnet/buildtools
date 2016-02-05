@@ -26,6 +26,7 @@
     <SupplementalPayloadDir Condition="'$(SupplementalPayloadDir)' == ''">$(TestWorkingDir)SupplementalPayload/</SupplementalPayloadDir>
     <SupplementalPayloadFilename>SupplementalPayload.zip</SupplementalPayloadFilename>
     <SupplementalPayloadFile>$(ArchivesRoot)$(SupplementalPayloadFilename)</SupplementalPayloadFile>
+    <OverwriteOnUpload Condition="'$(OverwriteOnUpload)' == ''">false</OverwriteOnUpload>
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)CloudTest.Perf.targets" Condition="'$(Performance)' == 'true'" />
@@ -222,13 +223,13 @@
       AccountName="$(CloudDropAccountName)"
       ContainerName="$(ContainerName)"
       Items="@(ForUpload)"
-      Overwrite="true" />
+      Overwrite="$(OverwriteOnUpload)" />
     <UploadToAzure
       AccountKey="$(CloudDropAccessToken)"
       AccountName="$(CloudDropAccountName)"
       ContainerName="$(ContainerName)"
       Items="@(SupplementalPayload)"
-      Overwrite="true"
+      Overwrite="$(OverwriteOnUpload)"
       Condition="'@(SupplementalPayload)' != ''" />
   </Target>
 

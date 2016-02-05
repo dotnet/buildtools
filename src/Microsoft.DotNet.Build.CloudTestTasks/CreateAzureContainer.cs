@@ -59,6 +59,12 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         /// </summary>
         public int WriteOnlyTokenDaysValid { get; set; }
 
+        /// <summary>
+        /// When false, if the specified container already exists get a reference to it.
+        /// When true, if the specified container already exists the task will fail.
+        /// </summary>
+        public bool FailIfExists { get; set; }
+
         public override bool Execute()
         {
             Log.LogMessage(MessageImportance.High, "Creating container named '{0}' in storage account {1}.", ContainerName, AccountName);
@@ -66,7 +72,17 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(string.Format("DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}", AccountName, AccountKey));
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
             CloudBlobContainer newContainer = blobClient.GetContainerReference(ContainerName);
-            newContainer.CreateIfNotExists();
+
+            if (FailIfExists && newContainer.Exists())
+            {
+                Log.LogError("The container '{0}' already exists.", ContainerName);
+                return false;
+            }
+            else
+            {
+                newContainer.CreateIfNotExists();
+            }
+
             StorageUri = newContainer.Uri.ToString();
 
             if (ReadOnlyTokenDaysValid > 0)

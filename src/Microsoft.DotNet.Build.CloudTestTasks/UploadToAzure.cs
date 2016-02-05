@@ -60,16 +60,25 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
             CloudBlobContainer container = blobClient.GetContainerReference(ContainerName);
 
-            System.Threading.Tasks.Parallel.ForEach(Items, (item) =>
+            bool result = true;
+            System.Threading.Tasks.Parallel.ForEach(Items, (item, loopState) =>
             {
                 var relativeBlobPath = item.GetMetadata("RelativeBlobPath");
                 if (string.IsNullOrEmpty(relativeBlobPath))
-                    throw new ArgumentException(string.Format("Metadata 'RelativeBlobPath' is missing for item '{0}'.", item.ItemSpec));
+                {
+                    Log.LogError(string.Format("Metadata 'RelativeBlobPath' is missing for item '{0}'.", item.ItemSpec));
+                    result = false;
+                    loopState.Stop();
+                }
 
                 CloudBlockBlob blockBlob = container.GetBlockBlobReference(relativeBlobPath);
 
                 if (!Overwrite && blockBlob.Exists())
-                    throw new InvalidOperationException(string.Format("The blob '{0}' already exists.", blockBlob.Uri));
+                {
+                    Log.LogError(string.Format("The blob '{0}' already exists.", blockBlob.Uri));
+                    result = false;
+                    loopState.Stop();
+                }
 
                 using (var fileStream = File.OpenRead(item.ItemSpec))
                 {
@@ -78,8 +87,10 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 }
             });
 
-            Log.LogMessage(MessageImportance.High, "Upload to Azure is complete, a total of {0} items were uploaded.", Items.Length);
-            return true;
+            if (result)
+                Log.LogMessage(MessageImportance.High, "Upload to Azure is complete, a total of {0} items were uploaded.", Items.Length);
+
+            return result;
         }
     }
 }
