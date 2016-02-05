@@ -68,7 +68,7 @@
 
   <Target Name="WarnForDebugPerfConfiguration"
           BeforeTargets="RunTestsForProject"
-          Condition="'$(Performance)' == 'true' and !$(Configuration.ToLower().Contains('release'))">
+          Condition="'$(Performance)' == 'true' and !$(ConfigurationGroup.ToLower().Contains('release'))">
     <Warning Text="You are running performance tests in a configuration other than Release. Your results may be unreliable." />
   </Target>
 </Project>
