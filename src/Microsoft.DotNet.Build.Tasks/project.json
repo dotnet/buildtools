@@ -9,6 +9,7 @@
     "System.Xml.XDocument": "4.0.11-rc2-23712",
     "System.IO.Compression": "4.0.1-rc2-23712",
     "System.IO.Compression.ZipFile": "4.0.1-rc2-23712",
+    "System.IO.FileSystem": "4.0.1-rc2-23712",
     "System.Xml.ReaderWriter": "4.0.11-rc2-23712",
     "System.Xml.XPath.XmlDocument": "4.0.0",
     "System.Reflection": "4.1.0-rc2-23712",
