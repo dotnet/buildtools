@@ -48,6 +48,7 @@
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="RunnerScripts\**\*.*" />
     <None Include="PackageFiles\**\*.*" />
     <None Include="project.json" />
   </ItemGroup>
@@ -55,7 +56,9 @@
   <Target Name="AfterBuild">
     <ItemGroup>
       <PackageFiles Include="$(MSBuildThisProjectDirectory)PackageFiles\**\*.*" />
+      <RunnerScripts Include="$(MSBuildThisProjectDirectory)RunnerScripts\**\*.*" />
     </ItemGroup>
     <Copy SourceFiles="@(PackageFiles)" DestinationFolder="$(OutputPath)\PackageFiles\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(RunnerScripts)" DestinationFolder="$(OutputPath)\RunnerScripts\%(RecursiveDir)" SkipUnchangedFiles="true" />
   </Target>
 </Project>

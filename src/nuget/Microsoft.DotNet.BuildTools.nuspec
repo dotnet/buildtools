@@ -31,6 +31,7 @@
     <file src="Microsoft.DotNet.Build.CloudTestTasks\Microsoft.WindowsAzure.Storage.dll" target="lib\net45" />
     <file src="Microsoft.DotNet.Build.CloudTestTasks\System.Spatial.dll" target="lib\net45" />
     <file src="Microsoft.Dotnet.Build.CloudTestTasks\PackageFiles\**\*.*" target="lib" />
+    <file src="Microsoft.Dotnet.Build.CloudTestTasks\RunnerScripts\**\*.*" target="lib\RunnerScripts" />
     <file src="Microsoft.DotNet.Build.Tasks\PackageFiles\**\*.*" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\*.dll" exclude="Microsoft.DotNet.Build.Tasks\Nuget.*.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\NuProj\**\*.*" target="lib\NuProj" />
