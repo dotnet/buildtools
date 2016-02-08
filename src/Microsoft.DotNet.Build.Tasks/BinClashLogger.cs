@@ -6,6 +6,7 @@ using Microsoft.Build.Framework;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -15,14 +16,13 @@ namespace Microsoft.DotNet.Build.Tasks
     {
         internal class ProjectState
         {
-
             public ProjectState(ProjectStartedEventArgs args)
             {
-                this.GlobalProperties = args.GlobalProperties;
-                this.ProjectFile = args.ProjectFile;
-                this.ContextId = args.BuildEventContext.ProjectContextId;
-                this.ParentContextId = args.ParentProjectBuildEventContext.ProjectContextId;
-                this.TargetPath = (string)args.Properties?.Cast<DictionaryEntry>().FirstOrDefault(p => ((string)p.Key).Equals("TargetPath")).Value;
+                GlobalProperties = args.GlobalProperties;
+                ProjectFile = args.ProjectFile;
+                ContextId = args.BuildEventContext.ProjectContextId;
+                ParentContextId = args.ParentProjectBuildEventContext.ProjectContextId;
+                TargetPath = (string)args.Properties?.Cast<DictionaryEntry>().FirstOrDefault(p => ((string)p.Key).Equals("TargetPath")).Value;
             }
 
             public bool RanBuild { get; set; }
@@ -31,38 +31,19 @@ namespace Microsoft.DotNet.Build.Tasks
             public string ProjectFile { get; }
             public int ContextId { get; }
             public int ParentContextId { get; }
-
-            public string FormatProject(bool reference)
-            {
-                StringBuilder builder = new StringBuilder(ProjectFile);
-                if (reference)
-                {
-                    builder.AppendLine(" -->");
-                }
-                else
-                {
-                    builder.AppendLine();
-                }
-
-                if (GlobalProperties.Any())
-                {
-                    builder.AppendLine("  Global Properties:");
-
-                    foreach (var property in GlobalProperties)
-                    {
-                        builder.AppendLine($"    {property.Key} = {property.Value}");
-                    }
-                }
-
-                return builder.ToString();
-            }
-
         }
 
         /// <summary>
         /// All projects evaluations that built, indexed by context ID.
         /// </summary>
-        Dictionary<int, ProjectState> projectHistory = new Dictionary<int, ProjectState>();
+        private Dictionary<int, ProjectState> _projectHistory = new Dictionary<int, ProjectState>();
+        private string _logFile = null;
+        private StreamWriter _fileWriter = null;
+
+        private bool _append = false;
+        private bool _exceptionOnError = true;
+        private bool _outputToStdErr = true;
+
 
         /// <summary>
         /// This logger observes project builds to find projects that build more than once
@@ -79,25 +60,66 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public void Initialize(IEventSource eventSource)
         {
-            eventSource.ProjectStarted += EventSource_ProjectStarted;
-            eventSource.TargetStarted += EventSource_TargetStarted;
+            eventSource.ProjectStarted += ProjectStarted;
+            eventSource.TargetStarted += TargetStarted;
+
+            ParseParameters();
+
+            if (_logFile != null)
+            {
+                _fileWriter = new StreamWriter(new FileStream(_logFile, _append ? FileMode.Append : FileMode.Create, FileAccess.Write, FileShare.Read | FileShare.Delete, 4096, FileOptions.SequentialScan));
+            }
         }
 
-        private void EventSource_ProjectStarted(object sender, ProjectStartedEventArgs e)
+        private void ParseParameters()
+        {
+            if (!String.IsNullOrEmpty(Parameters))
+            {
+                string[] parameterPairs = Parameters.Split(';');
+                foreach(string parameterPair in parameterPairs)
+                {
+                    if (parameterPair.Length > 0)
+                    {
+                        string[] parameterNameValue = parameterPair.Split('=');
+
+                        ApplyParameter(parameterNameValue[0], parameterNameValue.Length > 1 ? parameterNameValue[1] : null);
+                    }
+                }
+            }
+        }
+
+        private void ApplyParameter(string name, string value)
+        {
+            switch(name.ToLower())
+            {
+                case "logfile":
+                    _logFile = value;
+                    break;
+                case "excptiononerror":
+                    _exceptionOnError = Boolean.Parse(value);
+                    break;
+                case "outputtostderr":
+                    _outputToStdErr = Boolean.Parse(value);
+                    break;
+                default:
+                    // ignore unrecognized parameters
+                    break;
+            }
+        }
+
+        private void ProjectStarted(object sender, ProjectStartedEventArgs e)
         {
             var state = new ProjectState(e);
-            projectHistory.Add(e.BuildEventContext.ProjectContextId, state);
-
+            _projectHistory.Add(e.BuildEventContext.ProjectContextId, state);
         }
 
-        private void EventSource_TargetStarted(object sender, TargetStartedEventArgs e)
+        private void TargetStarted(object sender, TargetStartedEventArgs e)
         {
             // we only care about the build target
             if (e.TargetName == "Build")
             {
-                var state = projectHistory[e.BuildEventContext.ProjectContextId];
+                var state = _projectHistory[e.BuildEventContext.ProjectContextId];
                 state.RanBuild = true;
-
             }
         }
 
@@ -105,7 +127,7 @@ namespace Microsoft.DotNet.Build.Tasks
         {
             bool failed = false;
             Dictionary<string, ProjectState> clashMap = new Dictionary<string, ProjectState>();
-            foreach (var state in projectHistory.Values.Where(s => s.RanBuild && !String.IsNullOrEmpty(s.TargetPath)))
+            foreach (var state in _projectHistory.Values.Where(s => s.RanBuild && !String.IsNullOrEmpty(s.TargetPath)))
             {
                 ProjectState clashingProject = null;
                 if (!clashMap.TryGetValue(state.TargetPath, out clashingProject))
@@ -114,20 +136,51 @@ namespace Microsoft.DotNet.Build.Tasks
                 }
                 else
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Error.WriteLine($"Error : Multiple projects built twice with the same target path {state.TargetPath}.");
-                    Console.Error.Write(GetProjectStack(state));
-                    Console.Error.WriteLine();
-                    Console.Error.Write(GetProjectStack(clashingProject));
-                    Console.ResetColor();
+                    StringBuilder errorMessage = new StringBuilder($"Error : Multiple projects built twice with the same target path {state.TargetPath}.");
+                    errorMessage.AppendLine();
+                    errorMessage.AppendLine(GetProjectStack(state));
+                    errorMessage.AppendLine(GetProjectStack(clashingProject));
+                    errorMessage.AppendLine();
+                    WriteError(errorMessage.ToString());
                     failed = true;
                 }
             }
 
-            if (failed)
+            if (_fileWriter != null)
             {
-                throw new Exception();
+                _fileWriter.Dispose();
             }
+
+            if (_exceptionOnError && failed)
+            {
+                throw new Exception("Bin clashes were detected during the build.");
+            }
+        }
+
+        private static void FormatProject(StringBuilder builder, ProjectState project, bool isReference)
+        {
+            builder.Append(project.ProjectFile);
+
+            if (isReference)
+            {
+                builder.AppendLine(" -->");
+            }
+            else
+            {
+                builder.AppendLine();
+            }
+
+            if (project.GlobalProperties.Any())
+            {
+                builder.AppendLine("  Global Properties:");
+
+                foreach (var property in project.GlobalProperties)
+                {
+                    builder.AppendLine($"    {property.Key} = {property.Value}");
+                }
+            }
+
+            return;
         }
 
         private string GetProjectStack(ProjectState state)
@@ -138,16 +191,31 @@ namespace Microsoft.DotNet.Build.Tasks
 
             for (var contextId = state.ParentContextId; contextId > -1; contextId = state.ParentContextId)
             {
-                state = projectHistory[contextId];
+                state = _projectHistory[contextId];
                 projectStack.Push(state);
             }
 
             while (projectStack.Count != 0)
             {
-                builder.Append(projectStack.Pop().FormatProject(projectStack.Count != 0));
+                FormatProject(builder, projectStack.Pop(), isReference: projectStack.Count != 0);
             }
 
             return builder.ToString();
+        }
+
+        private void WriteError(string errorText)
+        {
+            if (_fileWriter != null)
+            {
+                _fileWriter.Write(errorText);
+            }
+
+            if (_outputToStdErr)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Error.Write(errorText);
+                Console.ResetColor();
+            }
         }
 
     }
