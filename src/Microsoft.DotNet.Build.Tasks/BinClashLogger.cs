@@ -43,6 +43,7 @@ namespace Microsoft.DotNet.Build.Tasks
         private bool _append = false;
         private bool _exceptionOnError = true;
         private bool _outputToStdErr = true;
+        private bool _ignoreNonExistentTargetPaths = true;
 
 
         /// <summary>
@@ -101,6 +102,9 @@ namespace Microsoft.DotNet.Build.Tasks
                 case "outputtostderr":
                     _outputToStdErr = Boolean.Parse(value);
                     break;
+                case "ignorenonexistenttargetpaths":
+                    _ignoreNonExistentTargetPaths = Boolean.Parse(value);
+                    break;
                 default:
                     // ignore unrecognized parameters
                     break;
@@ -125,10 +129,15 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public void Shutdown()
         {
-            bool failed = false;
+            int clashes = 0;
             Dictionary<string, ProjectState> clashMap = new Dictionary<string, ProjectState>();
             foreach (var state in _projectHistory.Values.Where(s => s.RanBuild && !String.IsNullOrEmpty(s.TargetPath)))
             {
+                if (_ignoreNonExistentTargetPaths && !File.Exists(state.TargetPath))
+                {
+                    continue;
+                }
+
                 ProjectState clashingProject = null;
                 if (!clashMap.TryGetValue(state.TargetPath, out clashingProject))
                 {
@@ -142,7 +151,7 @@ namespace Microsoft.DotNet.Build.Tasks
                     errorMessage.AppendLine(GetProjectStack(clashingProject));
                     errorMessage.AppendLine();
                     WriteError(errorMessage.ToString());
-                    failed = true;
+                    clashes++;
                 }
             }
 
@@ -151,9 +160,9 @@ namespace Microsoft.DotNet.Build.Tasks
                 _fileWriter.Dispose();
             }
 
-            if (_exceptionOnError && failed)
+            if (_exceptionOnError && (clashes != 0))
             {
-                throw new Exception("Bin clashes were detected during the build.");
+                throw new Exception($"{clashes} bin clashes were detected during the build.");
             }
         }
 
