@@ -11,10 +11,6 @@
     <ToolHost Condition="'$(OS)' == 'Windows_NT'">CoreRun.exe</ToolHost>
     <ToolHost Condition="'$(OS)' != 'Windows_NT'">corerun</ToolHost>
 
-    <ToolTargetFramework Condition="'$(ToolTargetFramework)' == ''">DNXCore,Version=v5.0</ToolTargetFramework>
-    <ToolArchitecture Condition="'$(ToolArchitecture)' == ''">x64</ToolArchitecture>
-    <ToolNugetRuntimeId Condition="'$(ToolNugetRuntimeId)' == ''">win7-$(ToolArchitecture)</ToolNugetRuntimeId>
-
     <ToolRuntimePath Condition="'$(ToolRuntimePath)' == ''">$(ProjectDir)Tools/</ToolRuntimePath>
     <ToolHostCmd>"$(ToolRuntimePath)$(ToolHost)"</ToolHostCmd>
     <!-- If COMPLUS_InstallRoot is set clear it before calling the ToolHost otherwise some root activations like PDB COM activation will fail -->
