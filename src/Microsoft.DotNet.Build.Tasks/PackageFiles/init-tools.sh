@@ -9,18 +9,22 @@ __MSBUILD_CONTENT_JSON="{\"dependencies\": {\"Microsoft.Portable.Targets\": \"0.
 __BUILDERRORLEVEL=0
 
 if [ ! -d "$__PROJECT_DIR" ]; then
-   echo "ERROR: Cannot find project root path at '$__PROJECT_DIR'. Please pass in the source directory as the 1st parameter."
-   exit 1
-fi
-
-if [ ! -d "$__TOOLS_DIR" ]; then
-   echo "ERROR: Cannot find tools path at '$__TOOLS_DIR'. Please pass in the tools directory as the 2nd parameter."
-   exit 1
+    echo "ERROR: Cannot find project root path at '$__PROJECT_DIR'. Please pass in the source directory as the 1st parameter."
+    exit 1
 fi
 
 if [ ! -e "$__DOTNET_CMD" ]; then
-   echo "ERROR: Cannot find dotnet.exe at path '$__DOTNET_CMD'. Please pass in the path to dotnet.exe as the 3rd parameter."
-   exit 1
+    echo "ERROR: Cannot find dotnet.exe at path '$__DOTNET_CMD'. Please pass in the path to dotnet.exe as the 2nd parameter."
+    exit 1
+fi
+
+if [ -z "$__TOOLRUNTIME_DIR" ]; then
+    echo "ERROR: Please pass in the tools directory as the 3rd parameter."
+    exit 1
+fi
+
+if [ ! -d "$__TOOLRUNTIME_DIR" ]; then
+    mkdir $__TOOLRUNTIME_DIR
 fi
 
 OSName=$(uname -s)
@@ -30,11 +34,23 @@ case $OSName in
         ;;
 
     Linux)
-        __PUBLISH_RID=ubuntu.14.04-x64
+        source /etc/os-release
+        if [ "$ID" == "centos" ]; then
+            __PUBLISH_RID=centos.7-x64
+        elif [ "$ID" == "rhel" ]; then
+            __PUBLISH_RID=rhel.7-x64
+        elif [ "$ID" == "ubuntu" ]; then
+            __PUBLISH_RID=ubuntu.14.04-x64
+        elif [ "$ID" == "debian" ]; then
+            __PUBLISH_RID=debian.8.2-x64
+        else
+            echo "Unsupported Linux distribution '$ID' detected. Downloading ubuntu-x64 tools."
+            __PUBLISH_RID=ubuntu.14.04-x64
+        fi
         ;;
 
     *)
-        echo "Unsupported OS $OSName detected. Downloading ubuntu-x64 tools"
+        echo "Unsupported OS '$OSName' detected. Downloading ubuntu-x64 tools."
         __PUBLISH_RID=ubuntu.14.04-x64
         ;;
 esac
