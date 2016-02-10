@@ -91,6 +91,7 @@
 
   <UsingTask TaskName="ApplyPreReleaseSuffix" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="GetAssemblyReferences" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  <UsingTask TaskName="SplitReferences" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="GenerateRuntimeDependencies" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="GetPackageDescription" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="GetInboxFrameworks" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
@@ -442,18 +443,18 @@
     </GetAssemblyReferences>
 
     <PropertyGroup>
-      <_IsClassicAssembly>false</_IsClassicAssembly>
-      <_IsClassicAssembly Condition="'%(_FileReferencedAssemblies.FileName)' == 'mscorlib'">true</_IsClassicAssembly>
-      <_IsClassicAssembly Condition="'%(_FileReferencedAssemblies.FileName)' == 'System.Private.Corelib'">true</_IsClassicAssembly>
       <_TargetFramework>%(File.TargetFramework)</_TargetFramework>
     </PropertyGroup>
 
-    <ItemGroup Condition="'@(_FileReferencedAssemblies)' != ''">
-      <_FilePackageReference Include="@(_FileReferencedAssemblies)"
-                             Exclude="corefx;mscorlib;System;System.Core;System.Xml;Windows">
-        <AssemblyVersion>%(Version)</AssemblyVersion>
-      </_FilePackageReference>
-
+    <SplitReferences References="@(_FileReferencedAssemblies)"
+                     TargetFramework="$(_TargetFramework)"
+                     FrameworkListsPath="$(FrameworkListsPath)">
+      <Output TaskParameter="FrameworkReferences" ItemName="_FileFrameworkReference"/>
+      <Output TaskParameter="PackageReferences" ItemName="_FilePackageReference"/>
+    </SplitReferences>
+    
+    <ItemGroup Condition="'@(_FilePackageReference)' != ''">
+      <_FilePackageReference Remove="corefx;mscorlib;System;System.Core;System.Xml;Windows" />
       <_FilePackageReference Remove="@(_FilePackageReference)"
                              Condition="$([System.String]::new('%(Identity)').StartsWith('Internal.'))"/>
       <_FilePackageReference Remove="@(_FilePackageReference)"
@@ -470,12 +471,9 @@
     </ItemGroup>
     
     <ItemGroup>
-      <FilePackageDependency Condition="'$(_IsClassicAssembly)' != 'true' OR !$(_TargetFramework.StartsWith('net4'))"  Include="@(_FilePackageReference)">
-        <TargetFramework Condition="'$(_TargetFramework)' != ''" >$(_TargetFramework)</TargetFramework>
-      </FilePackageDependency>
-      <FrameworkReference Condition="'$(_IsClassicAssembly)' == 'true' AND $(_TargetFramework.StartsWith('net4'))" Include="%(_FileReferencedAssemblies.Identity)">
-        <TargetFramework>$(_TargetFramework)</TargetFramework>
-      </FrameworkReference>
+      <FilePackageDependency Include="@(_FilePackageReference)" />
+      <!-- Only add framework references for desktop frameworks -->
+      <FrameworkReference Condition="$(_TargetFramework.StartsWith('net4'))" Include="@(_FileFrameworkReference)" KeepDuplicates="false" />
     </ItemGroup>
   </Target>
   

@@ -55,6 +55,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                             TaskItem referenceItem = new TaskItem(reader.GetString(reference.Name));
                             assemblyItem.CopyMetadataTo(referenceItem);
                             referenceItem.SetMetadata("Version", reference.Version.ToString());
+                            referenceItem.SetMetadata("AssemblyVersion", reference.Version.ToString());
                             references.Add(referenceItem);
                         }
                     }
