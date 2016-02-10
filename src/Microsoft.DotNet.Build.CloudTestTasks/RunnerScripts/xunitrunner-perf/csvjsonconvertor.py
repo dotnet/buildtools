@@ -1,5 +1,6 @@
 import csv
 import getopt
+import helix.proc
 import json
 import os
 import os.path
@@ -11,6 +12,40 @@ from helix.cmdline import command_main
 
 log = helix.logs.get_logger()
 
+# read a row of csv data into dict
+def add_row(test, value, csvdict):
+    """
+        test names are of the form
+        System.ComponentModel.Tests.Perf_TypeDescriptorTests.GetConverter(typeToConvert: typeof(bool), expectedConverter: typeof(System.ComponentModel.BooleanConverter))
+        where the string before the first '(' are the identifiers for the test and the string after is function metadata
+        strip off the metadata when generating the namespace/function identifiers and combine them when again for function identifier
+        eg.: System.ComponentModel.Tests.Perf_TypeDescriptorTests.GetConverter(typeToConvert: typeof(bool), expectedConverter: typeof(System.ComponentModel.BooleanConverter))
+        will be converted to following identifiers
+        [System, ComponentModel, Tests, Perf_TypeDescriptorTests, GetConverter(typeToConvert: typeof(bool), expectedConverter: typeof(System.ComponentModel.BooleanConverter))]
+    """
+
+    funcMeta = test.split('(')
+    funcMeta = funcMeta[1:]
+    test = test.split('(')[0]
+    identifiers = test.split('.')
+    funcName = identifiers[-1]
+    for data in funcMeta:
+        funcName = funcName + '(' + data
+
+    identifiers[-1] = funcName
+    currdict = csvdict
+    for identifier in identifiers[:-2]:
+        if identifier not in currdict:
+            currdict[identifier] = dict()
+
+        currdict = currdict[identifier]
+
+    if identifiers[-1] not in currdict:
+        currdict[identifiers[-1]] = list()
+
+    currdict[identifiers[-1]].append(value)
+
+# read csv data into dict
 def read_csv(csvFile):
     log.info('Reading '+csvFile)
     if not os.path.exists(csvFile):
@@ -19,65 +54,55 @@ def read_csv(csvFile):
     csvdict = dict()
     with open(csvFile, 'rb') as csvfile:
         reader = csv.reader(csvfile)
-        # sample csv row looks like runName, suiteName, testCaseName, resultValue
         for row in reader:
-            if row[0] not in csvdict:
-                csvdict[row[0]] = dict()
-
-            if row[1] not in csvdict.get(row[0]):
-                csvdict.get(row[0])[row[1]] = dict()
-            if row[2] not in csvdict.get(row[0]).get(row[1]):
-                csvdict.get(row[0]).get(row[1])[row[2]] = list()
-
-                csvdict.get(row[0]).get(row[1]).get(row[2]).append(row[3])
+            add_row(row[2], row[3], csvdict)
 
     return csvdict
 
+# generate result object with raw values
+def generate_result_object(resultvalues):
+    result = serialobj.Result()
+    # generate measurement result test object per iteration
+    measurements = list()
+    measurement = serialobj.Measurement()
+    measurement.iterValues = resultvalues
+    measurement.measurementType = 'execution_time'
+    measurements.append(measurement)
+    result.measurements = measurements
+    return result
+
+# generate a test object per node; each node represents a namespace/function (recursively)
+def generate_test_object(opts, currdict, testName):
+    currTest = serialobj.Test()
+    currTest.testName = testName
+
+    for key, value in currdict.iteritems():
+        test = serialobj.Test()
+        if isinstance(value, dict):
+            test = generate_test_object(opts, value, key)
+        elif isinstance(value, list):
+            test.testName = key
+            test.results.append(generate_result_object(value))
+            test.machine.machineName = opts['--machineName']
+            test.machine.machineDescription = opts['--machineDescription']
+
+        currTest.tests.append(test)
+
+    return currTest
+
+
+# build json using csv data and meta data
 def generate_json(opts, csvdict):
-
     log.info('Attempting to generate '+opts['--jsonFile'])
-    runTests = list()
+    rootTests = list()
 
-    # iterate runs
-    for run, suites in csvdict.iteritems():
-        runTest = serialobj.Test()
-        runTest.testName = run
-        suiteTests = list()
-        # iterate suites
-        for suite, testcases in suites.iteritems():
-            suiteTest = serialobj.Test()
-            suiteTest.testName = suite
-            tests = list()
-            # iterate tests
-            for testcase, resultvalues in testcases.iteritems():
-                test = serialobj.Test()
-                results = list()
-                result = serialobj.Result()
+    # recursively build nodes from the csvdict
+    rootTest = generate_test_object(opts, csvdict, 'CoreFX Perf Test')
+    rootTests.append(rootTest)
 
-                # generate measurement result test object per iteration
-                measurements = list()
-                measurement = serialobj.Measurement()
-                measurement.iterValues = resultvalues
-                measurement.measurementType = 'execution_time'
-                measurements.append(measurement)
-                result.measurements = measurements
-                results.append(result)
-                test.results = results
-                test.testName = testcase
-                test.machine = serialobj.Machine()
-                test.machine.machineName = opts['--machineName']
-                test.machine.machineDescription = opts['--machineDescription']
-                tests.append(test)
-
-            suiteTest.tests = tests
-            suiteTests.append(suiteTest)
-
-        runTest.tests = suiteTests
-        runTest.machine = serialobj.Machine()
-        runTests.append(runTest)
-
+    # populate the root level meta info
     run = serialobj.Run()
-    run.testList = runTests
+    run.testList = rootTests
 
     machinepool = serialobj.MachinePool()
 
@@ -150,11 +175,13 @@ def generate_json(opts, csvdict):
 
     log.info('Conversion of csv to json successful')
 
+
 def run_json_conversion(opts):
     try:
         csvdict = read_csv(opts['--csvFile'])
         generate_json(opts, csvdict)
-    except:
+    except Exception as ex:
+        log.error(ex.args)
         return -1
 
     return 0
@@ -188,9 +215,9 @@ def main(args=None):
                     --osVersion "6.3.9600"
                     --machineName "PCNAME"
                     --machineDescription "Intel(R) Core(TM) i7-2600 CPU @ 3.40GHz"
-
-
         """
+
+
         opts = dict(optlist)
         return run_json_conversion(opts)
 

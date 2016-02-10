@@ -4,20 +4,28 @@ import os.path
 import sys
 sys.path.append(os.getenv('HELIX_WORK_ROOT'))
 import copy
+"""
+ This is a temporary solution to gather h/w info from machine
+ the package is installed on end machines running perf
+ However this runs on a limited number of platforms
+ (but supports all the flavors we currently use for testing)
+ moving forward we will need a truly cross-plat solution here
+"""
+from cpuinfo import cpuinfo
 import json
-import os
 import re
 import shutil
 import socket
 import subprocess
 import urllib
 import urlparse
-import sys
 import helix.azure_storage
 import helix.depcheck
 import helix.event
 import helix.logs
 import helix.saferequests
+import platform
+import psutil
 import xunit
 import zip_script
 from helix.cmdline import command_main
@@ -33,10 +41,15 @@ def _write_output_path(file_path, settings):
         shutil.copy2(file_path, output_path)
         return output_path
     else:
-        fc = helix.azure_storage.get_upload_client(settings)
-        return fc.upload(file_path, os.path.basename(file_path))
+        try:
+            fc = helix.azure_storage.get_upload_client(settings)
+            url = fc.upload(file_path, os.path.basename(file_path))
+            return url
+        except ValueError, e:
+            event_client = helix.event.create_from_uri(settings.event_uri)
+            event_client.error(settings, "FailedUpload", "Failed to upload " + file_path + "after retry", None)
 
-def _prepare_execution_environment(settings, framework_in_tpa):
+def _prepare_execution_environment(settings, framework_in_tpa, assembly_list_name):
     workitem_dir = fix_path(settings.workitem_working_dir)
     correlation_dir = fix_path(settings.correlation_payload_dir)
 
@@ -46,7 +59,7 @@ def _prepare_execution_environment(settings, framework_in_tpa):
 
     test_drop = os.path.join(workitem_dir)
 
-    assembly_list = os.path.join(test_drop, settings.assembly_list)
+    assembly_list = os.path.join(test_drop, assembly_list_name)
 
     test_location = os.path.join(workitem_dir, 'execution')
     core_root = os.path.join(workitem_dir, 'core_root')
@@ -126,31 +139,82 @@ def _copy_package_files(assembly_list, build_drop, test_location, coreroot_locat
             # this is a fatal error so let it propagate
             raise
     except:
-        # failure to find assemblylist
+        #failure to find assembly list
         raise
 
+# does perf-specific tasks; converts results xml to csv and then to json, populates machine information and uploads json
 def post_process_perf_results(settings, results_location, workitem_dir):
     # Use the xunit perf analysis exe from nuget package here
     log.info('Converting xml to csv')
     payload_dir = fix_path(os.getenv('HELIX_CORRELATION_PAYLOAD'))
     xmlconvertorpath = os.path.join(*[payload_dir, 'Microsoft.DotNet.xunit.performance.analysis', '1.0.0-alpha-build0028', 'tools', 'xunit.performance.analysis.exe'])
-    if os.system(xmlconvertorpath+' -csv '+os.path.join(workitem_dir, 'results.csv')+' '+results_location) != 0:
+    xmlCmd = xmlconvertorpath+' -csv '+os.path.join(workitem_dir, 'results.csv')+' '+results_location
+    if (helix.proc.run_and_log_output(xmlCmd.split(' '))) != 0:
         raise Exception('Failed to generate csv from result xml')
 
     perfscriptsdir = os.path.join(*[payload_dir, 'RunnerScripts', 'xunitrunner-perf'])
     # need to extract more properties from settings to pass to csvtojsonconvertor.py
     jsonPath = os.path.join(workitem_dir, settings.workitem_id+'.json')
-    if os.system('%HELIX_PYTHONPATH% '+os.path.join(perfscriptsdir, 'csvjsonconvertor.py')+' --csvFile \"'+os.path.join(workitem_dir, 'results.csv')+'\" --jsonFile \"'+jsonPath+'\" --jobName "..." --jobDescription "..." --configName "..." --jobGroupName "..." --jobTypeName "Private" --username "CoreFx-Perf" --userAlias "deshank" --branch "ProjectK" --buildInfoName "1390881" --buildNumber "1390881" --machinepoolName "HP Z210 Workstation" --machinepoolDescription "Intel64 Family 6 Model 42 Stepping 7" --architectureName "AMD64" --manufacturerName "Intel" --microarchName "SSE2" --numberOfCores "4" --numberOfLogicalProcessors "8" --totalPhysicalMemory "16342" --osInfoName "Microsoft Windows 8.1 Pro" --osVersion "6.3.9600" --machineName "PCNAME" --machineDescription "Intel(R) Core(TM) i7-2600 CPU @ 3.40GHz"') != 0:
+
+    log.info('Uploading the results.csv file')
+    _write_output_path(os.path.join(workitem_dir, 'results.csv'), settings)
+
+    perfsettingsjson = ''
+    with open(os.path.join(perfscriptsdir, 'xunitrunner-perf.json'), 'rb') as perfsettingsjson:
+        # read the perf-specific settings
+        perfsettingsjson = json.loads(perfsettingsjson.read())
+
+    jsonArgsDict = dict()
+    jsonArgsDict['--csvFile'] = os.path.join(workitem_dir, 'results.csv')
+    jsonArgsDict['--jsonFile'] = jsonPath
+    jsonArgsDict['--jobName'] =  settings.correlation_id
+    jsonArgsDict['--jobDescription'] = '...'
+    jsonArgsDict['--configName'] = perfsettingsjson['TargetQueue']
+    jsonArgsDict['--jobGroupName'] = perfsettingsjson['TestProduct']+'-Master-Perf'
+    jsonArgsDict['--jobTypeName'] = 'Private'
+    jsonArgsDict['--username'] = perfsettingsjson['Creator']
+    jsonArgsDict['--userAlias'] = perfsettingsjson['Creator']
+    jsonArgsDict['--branch'] = perfsettingsjson['TestProduct']
+    jsonArgsDict['--buildInfoName'] = perfsettingsjson['BuildMoniker']
+
+    # extract build number from buildmoniker if official build
+    buildtokens = perfsettingsjson['BuildMoniker'].split('-')
+    if len(buildtokens) < 3:
+        jsonArgsDict['--buildNumber'] = perfsettingsjson['BuildMoniker']
+    else:
+        jsonArgsDict['--buildNumber'] = buildtokens[-2] +'.'+buildtokens[-1]
+
+    jsonArgsDict['--machinepoolName'] = perfsettingsjson['TargetQueue']
+    jsonArgsDict['--machinepoolDescription'] = '...'
+    jsonArgsDict['--microarchName'] = 'SSE2' # cannot be obtained by cpu-info; need to figure out some other way
+    jsonArgsDict['--numberOfCores'] = psutil.cpu_count(logical=False)
+    jsonArgsDict['--numberOfLogicalProcessors'] = psutil.cpu_count(logical=True)
+    # psutil returns mem in bytes, convert it to MB for readability
+    jsonArgsDict['--totalPhysicalMemory'] = psutil.virtual_memory().total/1024
+    jsonArgsDict['--osInfoName'] = platform.system()
+    jsonArgsDict['--osVersion'] = platform.version()
+    jsonArgsDict['--machineName'] = platform.node()
+
+    info = cpuinfo.get_cpu_info()
+    jsonArgsDict['--architectureName'] = format(info['arch'])
+    jsonArgsDict['--machineDescription'] = format(info['brand'])
+    jsonArgsDict['--manufacturerName'] = format(info['vendor_id'])
+
+    jsonArgs = [sys.executable, os.path.join(perfscriptsdir, 'csvjsonconvertor.py')]
+    for key, value in jsonArgsDict.iteritems():
+        jsonArgs.append(key)
+        jsonArgs.append(str(value))
+
+    if (helix.proc.run_and_log_output(jsonArgs)) != 0:
         raise Exception('Failed to generate json from csv file')
 
+    # set info to upload result to perf-specific json container
+    log.info('Uploading the results json')
     perfsettings = copy.deepcopy(settings)
-    with open(os.path.join(perfscriptsdir, 'xunitrunner-perf.json'), 'rb') as perfsettingsjson:
-        # upload the json using perf-specific details
-        perfsettingsjson = json.loads(perfsettingsjson.read())
-        perfsettings.output_uri = perfsettingsjson['RootURI']
-        perfsettings.output_write_token = perfsettingsjson['WriteToken']
-        perfsettings.output_read_token = perfsettingsjson['ReadToken']
-        _write_output_path(jsonPath, perfsettings)
+    perfsettings.output_uri = perfsettingsjson['RootURI']
+    perfsettings.output_write_token = perfsettingsjson['WriteToken']
+    perfsettings.output_read_token = perfsettingsjson['ReadToken']
+    _write_output_path(jsonPath, perfsettings)
 
 
 def _run_xunit_from_execution(settings, test_dll, xunit_test_type, args):
@@ -248,11 +312,11 @@ def _report_error(settings):
 
 
 
-def run_tests(settings, test_dll, framework_in_tpa, perf_runner, args):
+def run_tests(settings, test_dll, framework_in_tpa, assembly_list, perf_runner, args):
     try:
         log.info("Running on '{}'".format(socket.gethostname()))
         xunit_test_type = xunit.XUNIT_CONFIG_NETCORE
-        _prepare_execution_environment(settings, framework_in_tpa)
+        _prepare_execution_environment(settings, framework_in_tpa, assembly_list)
 
         # perform perf test prep if required
         if perf_runner is not None:
@@ -278,11 +342,19 @@ def main(args=None):
         optdict = dict(optlist)
         # check if a perf runner has been specified
         perf_runner = None
+        assembly_list = None
+
         if '--perf-runner' in optdict:
             perf_runner = optdict['--perf-runner']
-        return run_tests(settings, optdict['--dll'], '--tpaframework' in optdict, perf_runner, args)
+        if '--assemblylist' in optdict:
+            assembly_list = optdict['--assemblylist']
+            log.info("Using assemblylist parameter:"+assembly_list)
+        else:
+            assembly_list = os.getenv('HELIX_ASSEMBLY_LIST')
+            log.info('Using assemblylist environment variable:'+assembly_list)
+        return run_tests(settings, optdict['--dll'], '--tpaframework' in optdict, assembly_list, perf_runner, args)
 
-    return command_main(_main, ['dll=', 'tpaframework', 'perf-runner='], args)
+    return command_main(_main, ['dll=', 'tpaframework', 'perf-runner=', 'assemblylist='], args)
 
 if __name__ == '__main__':
     import sys
