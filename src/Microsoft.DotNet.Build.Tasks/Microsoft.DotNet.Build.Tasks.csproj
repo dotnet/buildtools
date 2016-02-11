@@ -17,6 +17,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="BinClashLogger.cs" />
     <Compile Include="Delegates.cs" />
     <Compile Include="ExecWithMutex.cs" />
     <Compile Include="GatherFoldersToRestore.cs" />
