@@ -11,19 +11,19 @@
     "Microsoft.Build": "0.1.0-preview-00017",
     "Microsoft.Net.Compilers.NetCore": "1.2.0-beta1-20160122-02",
     "Microsoft.Net.Compilers.Targets.NetCore": "0.1.4-dev",
-    "Microsoft.NETCore.TestHost": "1.0.0-rc2-23712",
-    "Microsoft.NETCore.Console": "1.0.0-rc2-23712",
-    "Microsoft.NETCore.Platforms": "1.0.1-rc2-23712",
-    "Microsoft.NETCore.Runtime": "1.0.1-rc2-23712",
-    "Microsoft.Cci": "4.0.0-rc2-23712",
+    "Microsoft.NETCore.TestHost": "1.0.0-rc3-23811",
+    "Microsoft.NETCore.Console": "1.0.0-rc3-23811",
+    "Microsoft.NETCore.Platforms": "1.0.1-rc3-23811",
+    "Microsoft.NETCore.Runtime": "1.0.1-rc3-23811",
+    "Microsoft.Cci": "4.0.0-rc3-23811",
     "MSBuild": "0.1.0-preview-00017",
     "Newtonsoft.Json": "7.0.1",
     "NuGet.Versioning": "3.4.0-beta-488",
     "NuGet.Client": "3.4.0-beta-488",
-    "System.IO.Compression": "4.1.0-rc2-23712",
-    "System.Dynamic.Runtime": "4.0.11-rc2-23712",
-    "System.Linq.Expressions": "4.0.11-rc2-23712",
-    "System.Diagnostics.TextWriterTraceListener": "4.0.0-rc2-23712"
+    "System.IO.Compression": "4.1.0-rc3-23811",
+    "System.Dynamic.Runtime": "4.0.11-rc3-23811",
+    "System.Linq.Expressions": "4.0.11-rc3-23811",
+    "System.Diagnostics.TextWriterTraceListener": "4.0.0-rc3-23811"
   },
   "frameworks": {
     "dnxcore50": { 
