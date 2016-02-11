@@ -4,12 +4,12 @@
     "Newtonsoft.Json": "7.0.1",
     "NuGet.Client": "3.4.0-beta-488",
     "System.Reflection.Metadata": "1.0.22",
-    "System.Runtime.InteropServices.RuntimeInformation": "4.0.0-rc2-23712"
+    "System.Runtime.InteropServices.RuntimeInformation": "4.0.0-rc3-23811"
   },
   "frameworks": {
-    "net45": { }
+    "net45": {}
   },
   "runtimes": {
-    "win": { }
+    "win": {}
   }
 }
