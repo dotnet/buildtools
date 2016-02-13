@@ -105,6 +105,9 @@ namespace Microsoft.DotNet.Build.Tasks
                 case "ignorenonexistenttargetpaths":
                     _ignoreNonExistentTargetPaths = Boolean.Parse(value);
                     break;
+                case "append":
+                    _append = Boolean.Parse(value);
+                    break;
                 default:
                     // ignore unrecognized parameters
                     break;
