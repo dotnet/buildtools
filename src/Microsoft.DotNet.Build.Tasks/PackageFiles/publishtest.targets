@@ -102,7 +102,8 @@
         <NugetPackageId>%(TestCopyLocal.NugetPackageId)</NugetPackageId>
         <SourcePath>%(Identity)</SourcePath>
       </_TestCopyLocalByFileName>
-    </ItemGroup>      
+    </ItemGroup>
+
     <RemoveDuplicatesWithLastOneWinsPolicy Inputs="@(_TestCopyLocalByFileName)">
       <Output TaskParameter="Filtered" ItemName="_TestCopyLocalByFileNameWithoutDuplicates" />
     </RemoveDuplicatesWithLastOneWinsPolicy>
@@ -113,10 +114,21 @@
     <PropertyGroup>
       <CreateHardLinksForCopyTestToTestDirectoryIfPossible Condition="'$(CreateHardLinksForCopyTestToTestDirectoryIfPossible)'=='' and '$(OS)' == 'Windows_NT'">true</CreateHardLinksForCopyTestToTestDirectoryIfPossible>
       <CreateHardLinksForCopyTestToTestDirectoryIfPossible Condition="'$(CreateHardLinksForCopyTestToTestDirectoryIfPossible)'==''">$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)</CreateHardLinksForCopyTestToTestDirectoryIfPossible>
-   </PropertyGroup>
+    </PropertyGroup>
+    
+    <PropertyGroup>
+      <TestTargetFrameworkFolder>%(TestTargetFramework.Folder)</TestTargetFrameworkFolder>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <SourcesWithoutContent Include="@(_TestCopyLocalByFileNameWithoutDuplicates)" Exclude="@(ContentWithTargetPath->'%(FileName)%(Extension)')" />
+      <SourcesToCopyToTestDir Include="@(SourcesWithoutContent->'%(SourcePath)');@(ContentWithTargetPath)" />
+      <DestinationsForTestDir Include="@(SourcesWithoutContent->'$(TestPath)$(TestTargetFrameworkFolder)\%(Filename)%(Extension)');@(ContentWithTargetPath->'$(TestPath)$(TestTargetFrameworkFolder)\%(TargetPath)')" />
+    </ItemGroup>
+
     <Copy
-      SourceFiles="@(_TestCopyLocalByFileNameWithoutDuplicates->'%(SourcePath)')"
-      DestinationFolder="$(TestPath)%(TestTargetFramework.Folder)"
+      SourceFiles="@(SourcesToCopyToTestDir)"
+      DestinationFiles="@(DestinationsForTestDir)"
       SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
       OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
       Retries="$(CopyRetryCount)"
