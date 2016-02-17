@@ -15,7 +15,7 @@
     "Microsoft.NETCore.Console": "1.0.0-rc2-23923",
     "Microsoft.NETCore.Platforms": "1.0.1-rc2-23923",
     "Microsoft.NETCore.Runtime": "1.0.2-rc2-23923",
-    "Microsoft.Cci": "4.0.0-rc3-23811",
+    "Microsoft.Cci": "4.0.0-rc2-23923",
     "Microsoft.Win32.Registry": {
       "version": "4.0.0-rc2-23923",
       "exclude": "Compile"

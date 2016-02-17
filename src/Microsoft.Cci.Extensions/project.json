@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "Microsoft.Cci": "4.0.0-rc2-23712",
+    "Microsoft.Cci": "4.0.0-rc2-23923",
     "Microsoft.Composition": "1.0.30",
     "Microsoft.NETCore.Platforms": "1.0.1-rc2-23923",
     "System.Collections": "4.0.10",

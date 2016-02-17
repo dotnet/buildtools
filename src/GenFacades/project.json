@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "Microsoft.Cci": "4.0.0-rc2-23712",
+    "Microsoft.Cci": "4.0.0-rc2-23923",
     "Microsoft.NETCore.ConsoleHost": "1.0.0-rc2-23923",
     "Microsoft.NETCore.Platforms": "1.0.1-rc2-23923",
     "Microsoft.NETCore.Runtime": "1.0.2-rc2-23923",
