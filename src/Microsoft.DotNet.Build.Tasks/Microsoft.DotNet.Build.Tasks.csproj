@@ -31,6 +31,7 @@
     <Compile Include="GetDoItemsIntersect.cs" />
     <Compile Include="OpenSourceSign.cs" />
     <Compile Include="ParseTestCoverageInfo.cs" />
+    <Compile Include="PreprocessFile.cs" />
     <Compile Include="RemoveDuplicatesWithLastOneWinsPolicy.cs" />
     <Compile Include="PrereleaseResolveNuGetPackageAssets.cs" />
     <Compile Include="UpdatePackageDependencyVersion.cs" />
