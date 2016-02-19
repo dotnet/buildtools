@@ -10,6 +10,16 @@
   <UsingTask TaskName="WriteTestBuildStatsJson" AssemblyFile="$(ToolsDir)net45/Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="ZipFileCreateFromDirectory" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
+  <!-- set Helix environment vars based on target platform -->
+  <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
+    <HelixPythonPath>%HELIX_PYTHONPATH%</HelixPythonPath>
+    <HelixScriptRoot>%HELIX_SCRIPT_ROOT%\</HelixScriptRoot>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
+    <HelixPythonPath>$HELIX_PYTHONPATH</HelixPythonPath>
+    <HelixScriptRoot>$HELIX_SCRIPT_ROOT/</HelixScriptRoot>
+  </PropertyGroup>
+
   <PropertyGroup>
     <ContainerName>$(TestProduct)-$(Branch)-$(BuildMoniker)</ContainerName>
     <ContainerName>$(ContainerName.ToLower())</ContainerName>
@@ -22,7 +32,7 @@
     <FuncTestListFile>$(TestWorkingDir)$(OSPlatformConfig)/$(FuncTestListFilename)</FuncTestListFile>
     <PerfTestListFile>$(TestWorkingDir)$(OSPlatformConfig)/$(PerfTestListFilename)</PerfTestListFile>
     <BuildStatsJsonFile>$(TestWorkingDir)$(OSPlatformConfig)/BuildStats.json</BuildStatsJsonFile>
-    <RunnerScript Condition="'$(RunnerScript)' == ''">%HELIX_SCRIPT_ROOT%\xunitrunner.py</RunnerScript>
+    <RunnerScript Condition="'$(RunnerScript)' == ''">$(HelixScriptRoot)xunitrunner.py</RunnerScript>
     <SupplementalPayloadDir Condition="'$(SupplementalPayloadDir)' == ''">$(TestWorkingDir)SupplementalPayload/</SupplementalPayloadDir>
     <SupplementalPayloadFilename>SupplementalPayload.zip</SupplementalPayloadFilename>
     <SupplementalPayloadFile>$(ArchivesRoot)$(SupplementalPayloadFilename)</SupplementalPayloadFile>
@@ -131,7 +141,7 @@
     </ItemGroup>
     <ItemGroup>
       <FunctionalTest>
-        <Command>%HELIX_PYTHONPATH% $(RunnerScript) --dll %(Filename).dll -- $(XunitArgs)</Command>
+        <Command>$(HelixPythonPath) $(RunnerScript) --dll %(Filename).dll $(OtherRunnerScriptArgs) -- $(XunitArgs)</Command>
         <CorrelationPayloadUris>[$(CorrelationPayloadUris)]</CorrelationPayloadUris>
         <PayloadUri>$(DropUri)$(Platform)$(ConfigurationGroup)/Tests/%(Filename)%(Extension)$(DropUriReadOnlyToken)</PayloadUri>
         <WorkItemId>FunctionalTest.%(Filename)</WorkItemId>
@@ -155,6 +165,9 @@
   </Target>
 
   <Target Name="CreatePerfTestListJson" DependsOnTargets="CreateAzureStorage" Condition="'$(Performance)' == 'true'">
+    <PropertyGroup>
+      <OtherRunnerScriptArgs>--perf-runner Microsoft.DotNet.xunit.performance.runner.Windows $(OtherRunnerScriptArgs)</OtherRunnerScriptArgs>
+    </PropertyGroup>
     <!-- now gather the perf tests -->
     <ItemGroup>
       <TestBinary Include="$(BinDir)$(OSPlatformConfig)/**/*Tests.dll" />
@@ -168,7 +181,7 @@
     </ItemGroup>
     <ItemGroup Condition="'@(PerfTestAssembly->Count())' != '0'">
       <PerfTest>
-        <Command>%HELIX_PYTHONPATH% $(RunnerScript) --dll %(Filename).dll --perf-runner Microsoft.DotNet.xunit.performance.runner.Windows -- $(XunitArgs)</Command>
+        <Command>$(HelixPythonPath) $(RunnerScript) --dll %(Filename).dll $(OtherRunnerScriptArgs) -- $(XunitArgs)</Command>
         <CorrelationPayloadUris>[$(CorrelationPayloadUris)]</CorrelationPayloadUris>
         <PayloadUri>$(DropUri)$(Platform)$(ConfigurationGroup)/Tests/%(Filename)%(Extension)$(DropUriReadOnlyToken)</PayloadUri>
         <WorkItemId>PerfTest.%(Filename)</WorkItemId>
