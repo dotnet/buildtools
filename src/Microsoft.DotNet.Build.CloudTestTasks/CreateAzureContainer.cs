@@ -85,6 +85,11 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
             StorageUri = newContainer.Uri.ToString();
 
+            // to keep with the msbuild convention of having a path end with
+            // a directory separator char append a '/' to the end of the URI
+            if (!StorageUri.EndsWith("/"))
+                StorageUri = string.Format("{0}/", StorageUri);
+
             if (ReadOnlyTokenDaysValid > 0)
             {
                 var sasRO = new SharedAccessBlobPolicy();
