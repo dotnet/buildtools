@@ -1,6 +1,6 @@
 # .NET Core Build Tools
 
-[![Build status](http://dotnet-ci.cloudapp.net/job/dotnet_buildtools/job/innerloop/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_buildtools/job/innerloop/)
+[![Build status](http://dotnet-ci.cloudapp.net/job/dotnet_buildtools/job/master/job/innerloop/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_buildtools/job/innerloop/)
 
 This repository contains supporting build tools that are necessary for building
 the [.NET Core][dotnet-corefx] projects. These projects consume the build tools
