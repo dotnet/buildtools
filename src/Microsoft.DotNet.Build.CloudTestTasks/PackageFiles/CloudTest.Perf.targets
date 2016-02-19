@@ -31,6 +31,10 @@
         <RootURI>$(RootURI)</RootURI>
         <ReadToken>$(ReadOnlyToken)</ReadToken>
         <WriteToken>$(WriteOnlyToken)</WriteToken>
+        <Creator>$(Creator)</Creator>
+        <BuildMoniker>$(BuildMoniker)</BuildMoniker>
+        <TestProduct>$(TestProduct)</TestProduct>
+        <TargetQueue>$(TargetQueue)</TargetQueue>
       </PerfRunnerJson>
     </ItemGroup>
     <WriteItemsToJson JsonFileName="$(PerfRunnerJsonFile)" Items="@(PerfRunnerJson)" />
