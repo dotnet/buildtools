@@ -94,13 +94,9 @@
       AccountName="$(CloudDropAccountName)"
       ContainerName="$(ContainerName)"
       ReadOnlyTokenDaysValid="30">
-        <Output TaskParameter="StorageUri" PropertyName="DropUriRoot" />
+        <Output TaskParameter="StorageUri" PropertyName="DropUri" />
         <Output TaskParameter="ReadOnlyToken" PropertyName="DropUriReadOnlyToken" />
     </CreateAzureContainer>
-    <!-- append the build arch and type to the root URI -->
-    <CreateProperty Value="$(DropUriRoot)/$(BuildArch)$(BuildType)">
-      <Output TaskParameter="Value" PropertyName="DropUri" />
-    </CreateProperty>
     <!-- now that we have a drop URI create the list of correlation payloads -->
     <ItemGroup>
       <CorrelationPayloadUri Include="$(DropUri)$(Platform)$(ConfigurationGroup)/Packages.zip$(DropUriReadOnlyToken)" />
