@@ -170,7 +170,7 @@ def post_process_perf_results(settings, results_location, workitem_dir):
     jsonArgsDict['--jobName'] =  settings.correlation_id
     jsonArgsDict['--jobDescription'] = '...'
     jsonArgsDict['--configName'] = perfsettingsjson['TargetQueue']
-    jsonArgsDict['--jobGroupName'] = perfsettingsjson['TestProduct']+'-Master-Perf'
+    jsonArgsDict['--jobGroupName'] = perfsettingsjson['Creator']+'-'+perfsettingsjson['TestProduct']+'-'+perfsettingsjson['Branch']+'-Perf'
     jsonArgsDict['--jobTypeName'] = 'Private'
     jsonArgsDict['--username'] = perfsettingsjson['Creator']
     jsonArgsDict['--userAlias'] = perfsettingsjson['Creator']
