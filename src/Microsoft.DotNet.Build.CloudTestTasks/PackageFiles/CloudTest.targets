@@ -37,6 +37,7 @@
     <SupplementalPayloadFilename>SupplementalPayload.zip</SupplementalPayloadFilename>
     <SupplementalPayloadFile>$(ArchivesRoot)$(SupplementalPayloadFilename)</SupplementalPayloadFile>
     <OverwriteOnUpload Condition="'$(OverwriteOnUpload)' == ''">false</OverwriteOnUpload>
+    <TimeoutInSeconds Condition="'$(TimeoutInSeconds)' == ''">600</TimeoutInSeconds>
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)CloudTest.Perf.targets" Condition="'$(Performance)' == 'true'" />
@@ -45,11 +46,6 @@
   <Target Name="CloudBuild"
           AfterTargets="Build"
           DependsOnTargets="VerifyInputs;PreCloudBuild;CreateTestListJson;UploadContent" />
-
-  <!-- gather the test archives for upload -->
-  <ItemGroup>
-    <ForUpload Include="$(TestArchivesRoot)*.zip" />
-  </ItemGroup>
 
   <Target Name="VerifyInputs">
     <!-- verify all required properties have been specified -->
@@ -66,6 +62,10 @@
     <Error Condition="'$(BuildIsOfficial)' == 'true' and '$(BuildIsOfficialConnection)' == ''" Text="Missing required property BuildIsOfficialConnection." />
     <Error Condition="'$(BuildIsOfficial)' == 'true' and '$(DocumentDbKey)' == ''" Text="Missing required property DocumentDbKey." />
     <Error Condition="'$(BuildIsOfficial)' == 'true' and '$(DocumentDbUri)' == ''" Text="Missing required property DocumentDbUri." />
+    <!-- gather the test archives for upload -->
+    <ItemGroup>
+      <ForUpload Include="$(TestArchivesRoot)*.zip" />
+    </ItemGroup>
     <!-- verify the test archives were created -->
     <Error Condition="'@(ForUpload->Count())' == '0'" Text="Didn't find any test archives in '$(TestArchivesRoot)'." />
     <!-- add relative blob path metadata -->
@@ -145,6 +145,7 @@
         <CorrelationPayloadUris>[$(CorrelationPayloadUris)]</CorrelationPayloadUris>
         <PayloadUri>$(DropUri)$(Platform)$(ConfigurationGroup)/Tests/%(Filename)%(Extension)$(DropUriReadOnlyToken)</PayloadUri>
         <WorkItemId>FunctionalTest.%(Filename)</WorkItemId>
+        <TimeoutInSeconds>$(TimeoutInSeconds)</TimeoutInSeconds>
       </FunctionalTest>
     </ItemGroup> 
     <WriteItemsToJson JsonFileName="$(FuncTestListFile)" Items="@(FunctionalTest)" />
@@ -185,7 +186,7 @@
         <CorrelationPayloadUris>[$(CorrelationPayloadUris)]</CorrelationPayloadUris>
         <PayloadUri>$(DropUri)$(Platform)$(ConfigurationGroup)/Tests/%(Filename)%(Extension)$(DropUriReadOnlyToken)</PayloadUri>
         <WorkItemId>PerfTest.%(Filename)</WorkItemId>
-        <TimeoutInSeconds>600</TimeoutInSeconds>
+        <TimeoutInSeconds>$(TimeoutInSeconds)</TimeoutInSeconds>
       </PerfTest>
     </ItemGroup>
     <WriteItemsToJson JsonFileName="$(PerfTestListFile)" Items="@(PerfTest)" />
