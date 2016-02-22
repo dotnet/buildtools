@@ -46,6 +46,7 @@
   <File AssemblyName="System.Linq.Queryable" />
   <File AssemblyName="System.Net.AuthenticationManager" />
   <File AssemblyName="System.Net.Cache" />
+  <File AssemblyName="System.Net.Http" />
   <File AssemblyName="System.Net.Http.WebRequestHandler" />
   <File AssemblyName="System.Net.HttpListener" />
   <File AssemblyName="System.Net.Mail" />
