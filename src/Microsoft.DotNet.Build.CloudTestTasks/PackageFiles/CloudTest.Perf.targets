@@ -35,6 +35,7 @@
         <BuildMoniker>$(BuildMoniker)</BuildMoniker>
         <TestProduct>$(TestProduct)</TestProduct>
         <TargetQueue>$(TargetQueue)</TargetQueue>
+        <Branch>$(Branch)</Branch>
       </PerfRunnerJson>
     </ItemGroup>
     <WriteItemsToJson JsonFileName="$(PerfRunnerJsonFile)" Items="@(PerfRunnerJson)" />
