@@ -19,9 +19,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
 
   <ItemGroup>
-    <Compile Include="$(GenFacadesSrc)\FacadeGenerationException.cs" />
     <Compile Include="$(GenFacadesSrc)\Program.cs" />
-    <Compile Include="$(GenFacadesSrc)\VersionResourceSerializer.cs" />
   </ItemGroup>
 
   <!-- Common command-line helper sources -->
@@ -43,6 +41,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.CCI.Extensions\Microsoft.CCI.Extensions.csproj" />
+    <ProjectReference Include="..\GenFacades.Core.Desktop\GenFacades.Core.Desktop.csproj" />
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />

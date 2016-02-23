@@ -24,6 +24,7 @@
     <Compile Include="GenerateAssemblyList.cs" />
     <Compile Include="GenerateResourcesCode.cs" />
     <Compile Include="GenerateEncodingTable.cs" />
+    <Compile Include="GenFacadesTask.cs" />
     <Compile Include="GetPackageVersion.cs" />
     <Compile Include="GetPackageDependencies.cs" />
     <Compile Include="GetNextRevisionNumber.cs" />
@@ -54,6 +55,14 @@
   <ItemGroup>
     <None Include="project.json" />
     <None Include="PackageFiles\**\*.*" />
+    <ProjectReference Include="..\GenFacades.Core.Desktop\GenFacades.Core.Desktop.csproj">
+      <Project>{9F6677ED-B471-4C9D-A807-9A6865DC5C77}</Project>
+      <Name>GenFacades.Core.Desktop</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.Cci.Extensions\Microsoft.Cci.Extensions.csproj">
+      <Project>{2179F9B5-1DBA-4563-9402-A94DE75EA9FA}</Project>
+      <Name>Microsoft.Cci.Extensions</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
   <Target Name="AfterBuild">
