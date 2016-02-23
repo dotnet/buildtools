@@ -10,10 +10,12 @@
     "xunit": "2.1.0"
   },
   "frameworks": {
-    "dnxcore50": { }
+    "dnxcore50": {
+      "imports": "portable-net45+win8"
+    }
   },
   "runtimes": {
-    "win7-x64": { },
-    "win7-x86": { }
+    "win7-x64": {},
+    "win7-x86": {}
   }
 }
