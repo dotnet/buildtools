@@ -195,6 +195,7 @@
     <OSGroup Condition="'$(OSGroup)'=='' and $(Configuration.StartsWith('Linux'))">Linux</OSGroup>
     <OSGroup Condition="'$(OSGroup)'=='' and $(Configuration.StartsWith('OSX'))">OSX</OSGroup>
     <OSGroup Condition="'$(OSGroup)'=='' and $(Configuration.StartsWith('FreeBSD'))">FreeBSD</OSGroup>
+    <OSGroup Condition="'$(OSGroup)'=='' and $(Configuration.StartsWith('NetBSD'))">NetBSD</OSGroup>
     <OSGroup Condition="'$(OSGroup)'==''">AnyOS</OSGroup>
   </PropertyGroup>
 
@@ -253,8 +254,9 @@
     <TargetsLinux Condition="'$(OSGroup)' == 'Linux'">true</TargetsLinux>
     <TargetsOSX Condition="'$(OSGroup)' == 'OSX'">true</TargetsOSX>
     <TargetsFreeBSD Condition="'$(OSGroup)' == 'FreeBSD'">true</TargetsFreeBSD>
+    <TargetsNetBSD Condition="'$(OSGroup)' == 'NetBSD'">true</TargetsNetBSD>
 
-    <TargetsUnix Condition="'$(TargetsLinux)' == 'true' or '$(TargetsOSX)' == 'true' or '$(TargetsFreeBSD)' == 'true'">true</TargetsUnix>
+    <TargetsUnix Condition="'$(TargetsLinux)' == 'true' or '$(TargetsOSX)' == 'true' or '$(TargetsFreeBSD)' == 'true' or '$(TargetsNetBSD)' == 'true'">true</TargetsUnix>
   </PropertyGroup>
 
   <Import Project="$(RoslynPropsFile)"
