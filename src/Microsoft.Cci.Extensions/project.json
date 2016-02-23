@@ -14,5 +14,8 @@
     "System.Text.RegularExpressions": "4.0.10",
     "System.Threading": "4.0.10",
     "System.Xml.XDocument": "4.0.10"
+  },
+  "frameworks": {
+    "dnxcore50": {}
   }
 }
