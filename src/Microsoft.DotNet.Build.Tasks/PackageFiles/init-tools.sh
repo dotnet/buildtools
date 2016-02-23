@@ -68,12 +68,6 @@ if [ -n "$BUILDTOOLS_OVERRIDE_RUNTIME" ]; then
     cp -R $BUILDTOOLS_OVERRIDE_RUNTIME/* $__TOOLRUNTIME_DIR
 fi
 
-# Temporary workaround for CLI #1528: copy native artifacts that weren't during dotnet publish.
-__TOOL_RUNTIME_PACKAGE_DIR="$__TOOLS_DIR/tool-runtime/packages"
-"$__DOTNET_CMD" restore --source https://www.myget.org/F/dotnet-core/ --source https://www.myget.org/F/dotnet-buildtools/ --source https://www.nuget.org/api/v2/ --packages "$__TOOL_RUNTIME_PACKAGE_DIR"
-cp "${__TOOL_RUNTIME_PACKAGE_DIR}/Microsoft.Build.Targets/0.1.0-preview-00017/runtimes/any/native/"* "$__TOOLRUNTIME_DIR"
-cp "${__TOOL_RUNTIME_PACKAGE_DIR}/MSBuild/0.1.0-preview-00017/runtimes/any/native/"* "$__TOOLRUNTIME_DIR"
-
 # Copy Portable Targets Over to ToolRuntime
 mkdir "$__TOOLS_DIR/portableTargets"
 echo $__MSBUILD_CONTENT_JSON > "$__TOOLS_DIR/portableTargets/project.json"
