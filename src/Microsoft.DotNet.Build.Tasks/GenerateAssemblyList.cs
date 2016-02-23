@@ -23,7 +23,7 @@ namespace Microsoft.DotNet.Build.Tasks
             List<string> unmatched = new List<string>();
             bool foundDuplicates = false;
             Stream inputListLocationStream = File.OpenRead(InputListLocation);
-            Stream outputListLocationStream = File.OpenWrite(OutputListLocation);
+            Stream outputListLocationStream = new FileStream(OutputListLocation, FileMode.Create, FileAccess.Write, FileShare.None);
 
             using (StreamReader listReader = new StreamReader(inputListLocationStream))
             {
