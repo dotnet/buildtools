@@ -78,7 +78,7 @@ cp "${__TOOL_RUNTIME_PACKAGE_DIR}/MSBuild/0.1.0-preview-00017/runtimes/any/nativ
 mkdir "$__TOOLS_DIR/portableTargets"
 echo $__MSBUILD_CONTENT_JSON > "$__TOOLS_DIR/portableTargets/project.json"
 cd "$__TOOLS_DIR/portableTargets"
-"$__DOTNET_CMD" restore --source https://www.myget.org/F/dotnet-buildtools/ --packages "$__TOOLS_DIR/portableTargets/packages/"
+"$__DOTNET_CMD" restore --source https://www.myget.org/F/dotnet-buildtools/ --packages "$__TOOLS_DIR/portableTargets/packages"
 cp -R "$__TOOLS_DIR/portableTargets/packages/Microsoft.Portable.Targets/${__PORTABLETARGETS_VERSION}/contentFiles/any/any/." "$__TOOLRUNTIME_DIR/."
 
 # Temporary Hacks to fix couple of issues in the msbuild and roslyn nuget packages

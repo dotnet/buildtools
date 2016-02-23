@@ -36,7 +36,7 @@ copy "%TOOL_RUNTIME_PACKAGE_DIR%\MSBuild\0.1.0-preview-00017\runtimes\any\native
 mkdir "%BUILDTOOLS_PACKAGE_DIR%\portableTargets"
 echo %MSBUILD_CONTENT_JSON% > "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\project.json"
 cd "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\"
-call "%DOTNET_CMD%" restore --source https://www.myget.org/F/dotnet-buildtools/ --source http://www.nuget.org/api/v2/ --packages "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\packages\"
+call "%DOTNET_CMD%" restore --source https://www.myget.org/F/dotnet-buildtools/ --source http://www.nuget.org/api/v2/ --packages "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\packages"
 Robocopy "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\packages\Microsoft.Portable.Targets\%PORTABLETARGETS_VERSION%\contentFiles\any\any\." "%TOOLRUNTIME_DIR%\." /E
 
 :: Copy Roslyn Compilers Over to ToolRuntime
