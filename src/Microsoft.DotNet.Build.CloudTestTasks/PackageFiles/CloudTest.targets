@@ -14,10 +14,13 @@
   <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
     <HelixPythonPath>%HELIX_PYTHONPATH%</HelixPythonPath>
     <HelixScriptRoot>%HELIX_SCRIPT_ROOT%\</HelixScriptRoot>
+    <PerfRunnerVersion>Microsoft.DotNet.xunit.performance.runner.Windows</PerfRunnerVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
     <HelixPythonPath>$HELIX_PYTHONPATH</HelixPythonPath>
     <HelixScriptRoot>$HELIX_SCRIPT_ROOT/</HelixScriptRoot>
+    <!-- TODO: Replace with linux-based runner for perf tests here -->
+    <PerfRunnerVersion>Microsoft.DotNet.xunit.performance.runner.dnx</PerfRunnerVersion>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -147,7 +150,7 @@
         <WorkItemId>FunctionalTest.%(Filename)</WorkItemId>
         <TimeoutInSeconds>$(TimeoutInSeconds)</TimeoutInSeconds>
       </FunctionalTest>
-    </ItemGroup> 
+    </ItemGroup>
     <WriteItemsToJson JsonFileName="$(FuncTestListFile)" Items="@(FunctionalTest)" />
     <!-- add test lists to the list of items for upload -->
     <ItemGroup>
@@ -167,7 +170,7 @@
 
   <Target Name="CreatePerfTestListJson" DependsOnTargets="CreateAzureStorage" Condition="'$(Performance)' == 'true'">
     <PropertyGroup>
-      <OtherRunnerScriptArgs>--perf-runner Microsoft.DotNet.xunit.performance.runner.Windows $(OtherRunnerScriptArgs)</OtherRunnerScriptArgs>
+      <OtherRunnerScriptArgs>--perf-runner $(PerfRunnerVersion) $(OtherRunnerScriptArgs)</OtherRunnerScriptArgs>
     </PropertyGroup>
     <!-- now gather the perf tests -->
     <ItemGroup>
@@ -177,10 +180,11 @@
       <Output TaskParameter="PerfTestAssemblies" ItemName="PerfTestAssembly" />
     </GetPerfTestAssemblies>
     <!-- don't add any items to the group if no perf tests were found -->
-    <ItemGroup Condition="'@(PerfTestAssembly->Count())' != '0'">
+    <Warning Text="0 Perf tests were found for execution" Condition="'@(PerfTestAssembly->Count())' != '0'" />
+    <ItemGroup>
       <PerfTest Include="$(TestArchivesRoot)%(PerfTestAssembly.Identity).zip" />
     </ItemGroup>
-    <ItemGroup Condition="'@(PerfTestAssembly->Count())' != '0'">
+    <ItemGroup>
       <PerfTest>
         <Command>$(HelixPythonPath) $(RunnerScript) --dll %(Filename).dll $(OtherRunnerScriptArgs) -- $(XunitArgs)</Command>
         <CorrelationPayloadUris>[$(CorrelationPayloadUris)]</CorrelationPayloadUris>
