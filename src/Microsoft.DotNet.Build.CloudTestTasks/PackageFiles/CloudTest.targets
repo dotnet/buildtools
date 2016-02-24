@@ -24,7 +24,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <ContainerName>$(TestProduct)-$(Branch)-$(BuildMoniker)</ContainerName>
+    <ContainerName Condition="'$(ContainerName)' == ''">$(TestProduct)-$(Branch)-$(BuildMoniker)-$(TargetOS)</ContainerName>
     <ContainerName>$(ContainerName.ToLower())</ContainerName>
     <FuncTestListFilename>FuncTests.$(OSGroup).$(Platform)$(ConfigurationGroup).json</FuncTestListFilename>
     <PerfTestListFilename>PerfTests.$(OSGroup).$(Platform)$(ConfigurationGroup).json</PerfTestListFilename>
@@ -56,6 +56,7 @@
     <Error Condition="'$(TargetQueue)' == ''" Text="Missing required property TargetQueue." />
     <Error Condition="'$(TestProduct)' == ''" Text="Missing required property TestProduct." />
     <Error Condition="'$(BuildMoniker)' == ''" Text="Missing required property BuildMoniker." />
+    <Error Condition="'$(TargetOS)' == ''" Text="Missing required property TargetOS." />
     <Error Condition="'$(Branch)' == ''" Text="Missing required property Branch." />
     <Error Condition="'$(CloudDropAccountName)' == ''" Text="Missing required property CloudDropAccountName." />
     <Error Condition="'$(CloudResultsAccountName)' == ''" Text="Missing required property CloudResultsAccountName." />

@@ -30,7 +30,7 @@ call "%DOTNET_CMD%" publish -f dnxcore50 -r %BUILDTOOLS_TARGET_RUNTIME% -o "%TOO
 mkdir "%BUILDTOOLS_PACKAGE_DIR%\portableTargets"
 echo %MSBUILD_CONTENT_JSON% > "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\project.json"
 cd "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\"
-call "%DOTNET_CMD%" restore --source https://www.myget.org/F/dotnet-buildtools/ --source http://www.nuget.org/api/v2/ --packages "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\packages\"
+call "%DOTNET_CMD%" restore --source https://www.myget.org/F/dotnet-buildtools/ --source http://www.nuget.org/api/v2/ --packages "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\packages"
 Robocopy "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\packages\Microsoft.Portable.Targets\%PORTABLETARGETS_VERSION%\contentFiles\any\any\." "%TOOLRUNTIME_DIR%\." /E
 
 :: Copy Roslyn Compilers Over to ToolRuntime
