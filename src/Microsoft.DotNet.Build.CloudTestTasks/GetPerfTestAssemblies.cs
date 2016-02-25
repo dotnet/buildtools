@@ -39,21 +39,27 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 {
                     using (var peFile = new PEReader(stream))
                     {
-                        var mdReader = peFile.GetMetadataReader();
-                        foreach (var asmRefHandle in mdReader.AssemblyReferences)
+                        if (!peFile.HasMetadata)
                         {
-                            var asmRef = mdReader.GetAssemblyReference(asmRefHandle);
-                            var asmRefName = mdReader.GetString(asmRef.Name);
-
-                            // if an assembly contains a reference to xunit.performance.core
-                            // then it contains at least one performance test.
-
-                            if (string.Compare(asmRefName, "xunit.performance.core", StringComparison.OrdinalIgnoreCase) == 0)
+                            Log.LogMessage(MessageImportance.Low, "Could not read metadata for {0}.", testBinary.ItemSpec);
+                        }
+                        else {
+                            var mdReader = peFile.GetMetadataReader();
+                            foreach (var asmRefHandle in mdReader.AssemblyReferences)
                             {
-                                var fileNameShort = Path.GetFileNameWithoutExtension(testBinary.ItemSpec);
-                                perfTests.Add(new TaskItem(fileNameShort));
-                                Log.LogMessage("+ Assembly {0} contains one or more performance tests.", fileNameShort);
-                                break;
+                                var asmRef = mdReader.GetAssemblyReference(asmRefHandle);
+                                var asmRefName = mdReader.GetString(asmRef.Name);
+
+                                // if an assembly contains a reference to xunit.performance.core
+                                // then it contains at least one performance test.
+
+                                if (string.Compare(asmRefName, "xunit.performance.core", StringComparison.OrdinalIgnoreCase) == 0)
+                                {
+                                    var fileNameShort = Path.GetFileNameWithoutExtension(testBinary.ItemSpec);
+                                    perfTests.Add(new TaskItem(fileNameShort));
+                                    Log.LogMessage("+ Assembly {0} contains one or more performance tests.", fileNameShort);
+                                    break;
+                                }
                             }
                         }
                     }
