@@ -175,17 +175,16 @@
     </PropertyGroup>
     <!-- now gather the perf tests -->
     <ItemGroup>
-      <TestBinary Include="$(BinDir)$(OSPlatformConfig)/**/*Tests.dll" />
+      <TestBinary Include="$(BinDir)$(OSPlatformConfig)/**/*.dll; $(BinDir)$(OSPlatformConfig)/**/*.exe" />
     </ItemGroup>
     <GetPerfTestAssemblies TestBinaries="@(TestBinary)">
       <Output TaskParameter="PerfTestAssemblies" ItemName="PerfTestAssembly" />
     </GetPerfTestAssemblies>
     <!-- don't add any items to the group if no perf tests were found -->
-    <Warning Text="0 Perf tests were found for execution" Condition="'@(PerfTestAssembly->Count())' != '0'" />
-    <ItemGroup>
+    <ItemGroup Condition="'@(PerfTestAssembly->Count())' != '0'">
       <PerfTest Include="$(TestArchivesRoot)%(PerfTestAssembly.Identity).zip" />
     </ItemGroup>
-    <ItemGroup>
+    <ItemGroup Condition="'@(PerfTestAssembly->Count())' != '0'">
       <PerfTest>
         <Command>$(HelixPythonPath) $(RunnerScript) --dll %(Filename).dll $(OtherRunnerScriptArgs) -- $(XunitArgs)</Command>
         <CorrelationPayloadUris>[$(CorrelationPayloadUris)]</CorrelationPayloadUris>
