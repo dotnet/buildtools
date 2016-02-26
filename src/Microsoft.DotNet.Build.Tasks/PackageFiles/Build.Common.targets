@@ -25,7 +25,10 @@
     This must be imported before any tools that need to use it are imported.
   -->
   <Import Project="$(MSBuildThisFileDirectory)toolruntime.targets" Condition="'$(ExcludeToolRuntimeImport)' != 'true'"/>
-  
+
+  <!-- import the MicroBuild boot-strapper project (only relevant for shipping binaries) -->
+  <Import Project="$(MSBuildThisFileDirectory)MicroBuild.Core.targets" Condition="'$(IsTestProject)'!='true'" />
+
   <!--
     Import the reference assembly targets
     
