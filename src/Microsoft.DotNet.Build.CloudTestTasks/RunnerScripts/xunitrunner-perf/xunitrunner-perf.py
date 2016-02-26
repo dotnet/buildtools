@@ -346,6 +346,20 @@ def main(args=None):
 
         if '--perf-runner' in optdict:
             perf_runner = optdict['--perf-runner']
+            """
+             This is a temporary solution to check for exes if dlls are not found for the
+             corresponding test name
+             Ideally, the args received should be --dll or --exe based on the test binary built
+            """
+            if not os.path.isFile(optdict['--dll']):
+                exepath = optdict['--dll'].replace('.dll', '.exe')
+                if os.path.isFile(exepath):
+                    optdict['--dll'] = exepath
+                    log.info('DLL file not found. Checking for an exe instead')
+                else:
+                    log.error('Invalid dll path')
+                    return -1
+
         if '--assemblylist' in optdict:
             assembly_list = optdict['--assemblylist']
             log.info("Using assemblylist parameter:"+assembly_list)
