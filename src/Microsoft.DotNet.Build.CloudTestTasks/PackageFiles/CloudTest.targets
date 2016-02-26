@@ -19,7 +19,6 @@
   <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
     <HelixPythonPath>$HELIX_PYTHONPATH</HelixPythonPath>
     <HelixScriptRoot>$HELIX_SCRIPT_ROOT/</HelixScriptRoot>
-    <!-- TODO: Replace with linux-based runner for perf tests here -->
     <PerfRunnerVersion>Microsoft.DotNet.xunit.performance.runner.dnx</PerfRunnerVersion>
   </PropertyGroup>
 
