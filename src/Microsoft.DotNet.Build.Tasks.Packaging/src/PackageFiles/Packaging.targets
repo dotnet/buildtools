@@ -102,6 +102,7 @@
   <UsingTask TaskName="GenerateNuSpec" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="NuGetPack" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="ApplyBaseLine" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  <UsingTask TaskName="PromoteReferenceDependencies" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
 
   <!-- Determine if we actually need to build for this architecture -->
   <!-- Packages can specifically control their architecture by specifying the PackagePlatforms
@@ -503,6 +504,26 @@
 
   <Target Name="GetNuGetPackageDependencies"
           DependsOnTargets="GetFilePackageReferences">
+    <PropertyGroup>
+      <!-- determine if we have any reference assets in the package (files in the ref folder) -->
+      <_containsReferenceAsset Condition="'%(File.IsReferenceAsset)' == 'true'">true</_containsReferenceAsset>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(_containsReferenceAsset)' == 'true'">
+      <!-- If the package contains a reference asset, then make all non-reference dependencies
+           exclude compile assets, so as not to leak implementation dependencies into the compile
+           graph.-->
+      <FilePackageDependency>
+        <Exclude Condition="'%(FilePackageDependency.IsReferenceAsset)' != 'true'">Compile</Exclude>
+      </FilePackageDependency>
+    </ItemGroup>
+    
+    <!-- Promote reference dependencies to implementation TargetFrameworks -->
+    <PromoteReferenceDependencies Dependencies="@(FilePackageDependency)" Condition="'@(FilePackageDependency)' != ''">
+      <Output TaskParameter="PromotedDependencies" ItemName="FilePackageDependency" />
+    </PromoteReferenceDependencies>
+      
+    
    <!-- We can reduce the number of dependencies listed for any framework that has
         inbox implementations since that framework doesn't need the packages for
         compile/runtime.  This reduces the noise when consuming our packages in
