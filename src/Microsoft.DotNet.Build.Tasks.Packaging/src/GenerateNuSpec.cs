@@ -202,7 +202,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                                {
                                    Id = d.ItemSpec,
                                    Version = d.GetVersion(),
-                                   TargetFramework = d.GetTargetFramework()
+                                   TargetFramework = d.GetTargetFramework(),
+                                   Include = d.GetValueList("Include"),
+                                   Exclude = d.GetValueList("Exclude")
                                };
 
             return (from dependency in dependencies
@@ -218,7 +220,11 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                                             VersionRange.Parse(
                                                 dependenciesById.Select(x => x.Version)
                                                 .Aggregate(AggregateVersions)
-                                                .ToStringSafe())
+                                                .ToStringSafe()),
+                                            dependenciesById.Select(x => x.Include).Aggregate(AggregateInclude),
+                                            dependenciesById.Select(x => x.Exclude).Aggregate(AggregateExclude)
+
+
                     ))).OrderBy(s => s?.TargetFramework?.GetShortFolderName(), StringComparer.Ordinal)
                     .ToList();
         }
@@ -257,6 +263,33 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
 
             return versionRange;
+        }
+
+        private static IReadOnlyList<string> AggregateInclude(IReadOnlyList<string> aggregate, IReadOnlyList<string> next)
+        {
+            // include is a union
+            if (aggregate == null)
+            {
+                return next;
+            }
+
+            if (next == null)
+            {
+                return aggregate;
+            }
+
+            return aggregate.Union(next).ToArray();
+        }
+
+        private static IReadOnlyList<string> AggregateExclude(IReadOnlyList<string> aggregate, IReadOnlyList<string> next)
+        {
+            // exclude is an intersection
+            if (aggregate == null || next == null)
+            {
+                return null;
+            }
+
+            return aggregate.Intersect(next).ToArray();
         }
 
         private static void SetMinVersion(ref VersionRange target, VersionRange source)
@@ -340,6 +373,10 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             public NuGetFramework TargetFramework { get; set; }
 
             public VersionRange Version { get; set; }
+
+            public IReadOnlyList<string> Exclude { get; set; }
+
+            public IReadOnlyList<string> Include { get; set; }
         }
     }
 }
