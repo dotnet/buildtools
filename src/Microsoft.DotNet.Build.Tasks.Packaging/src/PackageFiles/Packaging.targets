@@ -780,6 +780,10 @@
       <!-- add additional win7 RIDs to validate up-level authoring -->
       <RuntimeIDs>win-x86;win-x64;win7-x86;win7-x64</RuntimeIDs>
     </DefaultValidateFramework>
+    <DefaultValidateFramework Include="net462" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
+      <!-- add additional win7 RIDs to validate up-level authoring -->
+      <RuntimeIDs>win-x86;win-x64;win7-x86;win7-x64</RuntimeIDs>
+    </DefaultValidateFramework>
 
     <DefaultValidateFramework Include="wpa81">
       <!-- Intentionally empty, no RIDs defined for phone-->
