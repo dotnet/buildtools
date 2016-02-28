@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<FileList Redist="Xamarin.TVOS Base Class Libraries" Name="Xamarin.TVOS">
+<FileList Redist="Xamarin.TVOS" Name="Xamarin.TVOS Base Class Libraries">
   <File AssemblyName="Microsoft.CSharp" />
   <File AssemblyName="Microsoft.Win32.Primitives" />
   <File AssemblyName="System.AppContext" />
