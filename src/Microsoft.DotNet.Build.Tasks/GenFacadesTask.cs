@@ -80,7 +80,7 @@ namespace Microsoft.DotNet.Build.Tasks
             catch (Exception e)
             {
                 Trace.Listeners.Remove(logger);
-                Log.LogErrorFromException(e, showStackTrace: true);
+                Log.LogErrorFromException(e, showStackTrace: false);
                 return false;
             }
         }
