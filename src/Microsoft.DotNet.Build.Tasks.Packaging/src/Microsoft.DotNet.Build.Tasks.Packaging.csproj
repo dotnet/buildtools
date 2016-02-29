@@ -90,7 +90,7 @@
     <None Include="PackageFiles\stable.packages.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="$(PackagesDir)Microsoft.NETCore.Platforms\1.0.1-rc2-23712\runtime.json">
+    <None Include="$(PackagesDir)Microsoft.NETCore.Platforms\1.0.1-rc2-23816\runtime.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

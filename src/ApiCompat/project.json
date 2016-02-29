@@ -21,7 +21,9 @@
         "Microsoft.NETCore.TestHost": "1.0.0-rc2-23816"
     },
     "frameworks": {
-       "dnxcore50": { }
+      "dnxcore50": {
+        "imports": "portable-net45+win8"
+      }
     },
     "runtimes": {
        "win7-x64": { }
