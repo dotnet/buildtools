@@ -19,7 +19,7 @@ namespace GenFacades
     {
         private const uint ReferenceAssemblyFlag = 0x70;
 
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
             string seeds = null;
             string contracts = null;
@@ -56,15 +56,25 @@ namespace GenFacades
 
             if (!parsingSucceeded)
             {
-                return;
+                return 1;
             }
 
             CommandLineTraceHandler.Enable();
 
-            Generator.GenerateFacades(
-                seeds, contracts, facadePath, assemblyFileVersion, clearBuildAndRevision, ignoreMissingTypes,
-                buildDesignTimeFacades, inclusionContracts, seedLoadErrorTreatment, contractLoadErrorTreatment,
-                seedTypePreferencesUnsplit, forceZeroVersionSeeds, producePdb, partialFacadeAssemblyPath);
+            try
+            {
+                Generator.GenerateFacades(
+                    seeds, contracts, facadePath, assemblyFileVersion, clearBuildAndRevision, ignoreMissingTypes,
+                    buildDesignTimeFacades, inclusionContracts, seedLoadErrorTreatment, contractLoadErrorTreatment,
+                    seedTypePreferencesUnsplit, forceZeroVersionSeeds, producePdb, partialFacadeAssemblyPath);
+
+                return 0;
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine("Error encountered generating facades: " + e.ToString());
+                return -1;
+            }
         }
     }
 }

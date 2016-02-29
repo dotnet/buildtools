@@ -40,106 +40,96 @@ namespace GenFacades
             var nameTable = new NameTable();
             var internFactory = new InternFactory();
 
-            try
+            Dictionary<string, string> seedTypePreferences = ParseSeedTypePreferences(seedTypePreferencesUnsplit);
+
+            using (var contractHost = new HostEnvironment(nameTable, internFactory))
+            using (var seedHost = new HostEnvironment(nameTable, internFactory))
             {
-                Dictionary<string, string> seedTypePreferences = ParseSeedTypePreferences(seedTypePreferencesUnsplit);
+                contractHost.LoadErrorTreatment = contractLoadErrorTreatment;
+                seedHost.LoadErrorTreatment = seedLoadErrorTreatment;
 
-                using (var contractHost = new HostEnvironment(nameTable, internFactory))
-                using (var seedHost = new HostEnvironment(nameTable, internFactory))
+                var contractAssemblies = LoadAssemblies(contractHost, contracts);
+                IReadOnlyDictionary<string, IEnumerable<string>> docIdTable = GenerateDocIdTable(contractAssemblies, inclusionContracts);
+
+                IAssembly[] seedAssemblies = LoadAssemblies(seedHost, seeds).ToArray();
+
+                IAssemblyReference seedCoreAssemblyRef = ((Microsoft.Cci.Immutable.PlatformType)seedHost.PlatformType).CoreAssemblyRef;
+
+                if (forceZeroVersionSeeds)
                 {
-                    contractHost.LoadErrorTreatment = contractLoadErrorTreatment;
-                    seedHost.LoadErrorTreatment = seedLoadErrorTreatment;
+                    // Create a deep copier, copy the seed assemblies, and zero out their versions.
+                    var copier = new MetadataDeepCopier(seedHost);
 
-                    var contractAssemblies = LoadAssemblies(contractHost, contracts);
-                    IReadOnlyDictionary<string, IEnumerable<string>> docIdTable = GenerateDocIdTable(contractAssemblies, inclusionContracts);
-
-                    IAssembly[] seedAssemblies = LoadAssemblies(seedHost, seeds).ToArray();
-
-                    IAssemblyReference seedCoreAssemblyRef = ((Microsoft.Cci.Immutable.PlatformType)seedHost.PlatformType).CoreAssemblyRef;
-
-                    if (forceZeroVersionSeeds)
+                    for (int i = 0; i < seedAssemblies.Length; i++)
                     {
-                        // Create a deep copier, copy the seed assemblies, and zero out their versions.
-                        var copier = new MetadataDeepCopier(seedHost);
+                        var mutableSeed = copier.Copy(seedAssemblies[i]);
+                        mutableSeed.Version = new Version(0, 0, 0, 0);
+                        // Copy the modified seed assembly back.
+                        seedAssemblies[i] = mutableSeed;
 
-                        for (int i = 0; i < seedAssemblies.Length; i++)
+                        if (mutableSeed.Name.UniqueKey == seedCoreAssemblyRef.Name.UniqueKey)
                         {
-                            var mutableSeed = copier.Copy(seedAssemblies[i]);
-                            mutableSeed.Version = new Version(0, 0, 0, 0);
-                            // Copy the modified seed assembly back.
-                            seedAssemblies[i] = mutableSeed;
-
-                            if (mutableSeed.Name.UniqueKey == seedCoreAssemblyRef.Name.UniqueKey)
-                            {
-                                seedCoreAssemblyRef = mutableSeed;
-                            }
-                        }
-                    }
-
-                    var typeTable = GenerateTypeTable(seedAssemblies);
-                    var facadeGenerator = new FacadeGenerator(seedHost, contractHost, docIdTable, typeTable, seedTypePreferences, clearBuildAndRevision, buildDesignTimeFacades, assemblyFileVersion);
-
-                    if (partialFacadeAssemblyPath != null)
-                    {
-                        if (contractAssemblies.Count() != 1)
-                        {
-                            throw new FacadeGenerationException(
-                                "When partialFacadeAssemblyPath is specified, only exactly one corresponding contract assembly can be specified.");
-                        }
-
-                        IAssembly contractAssembly = contractAssemblies.First();
-                        IAssembly partialFacadeAssembly = seedHost.LoadAssembly(partialFacadeAssemblyPath);
-                        if (contractAssembly.Name != partialFacadeAssembly.Name
-                            || contractAssembly.Version != partialFacadeAssembly.Version
-                            || contractAssembly.GetPublicKeyToken() != partialFacadeAssembly.GetPublicKeyToken())
-                        {
-                            throw new FacadeGenerationException(
-                                string.Format("The partial facade assembly's name, version, and public key token must exactly match the contract to be filled. Contract: {0}, Facade: {1}",
-                                    contractAssembly.AssemblyIdentity,
-                                    partialFacadeAssembly.AssemblyIdentity));
-                        }
-
-                        Assembly filledPartialFacade = facadeGenerator.GenerateFacade(contractAssembly, seedCoreAssemblyRef, ignoreMissingTypes, overrideContractAssembly: partialFacadeAssembly);
-
-                        string pdbLocation = null;
-
-                        if (producePdb)
-                        {
-                            string pdbFolder = Path.GetDirectoryName(partialFacadeAssemblyPath);
-                            pdbLocation = Path.Combine(pdbFolder, contractAssembly.Name + ".pdb");
-                            if (producePdb && !File.Exists(pdbLocation))
-                            {
-                                pdbLocation = null;
-                                Trace.TraceWarning("No PDB file present for un-transformed partial facade. No PDB will be generated.");
-                            }
-                        }
-
-                        OutputFacadeToFile(facadePath, seedHost, filledPartialFacade, contractAssembly, pdbLocation);
-                    }
-                    else
-                    {
-                        foreach (var contract in contractAssemblies)
-                        {
-                            Assembly facade = facadeGenerator.GenerateFacade(contract, seedCoreAssemblyRef, ignoreMissingTypes);
-                            if (facade == null)
-                            {
-#if !COREFX
-                                Debug.Assert(Environment.ExitCode != 0);
-#endif
-                                continue;
-                            }
-
-                            OutputFacadeToFile(facadePath, seedHost, facade, contract);
+                            seedCoreAssemblyRef = mutableSeed;
                         }
                     }
                 }
-            }
-            catch (FacadeGenerationException ex)
-            {
-                Trace.TraceError(ex.Message);
+
+                var typeTable = GenerateTypeTable(seedAssemblies);
+                var facadeGenerator = new FacadeGenerator(seedHost, contractHost, docIdTable, typeTable, seedTypePreferences, clearBuildAndRevision, buildDesignTimeFacades, assemblyFileVersion);
+
+                if (partialFacadeAssemblyPath != null)
+                {
+                    if (contractAssemblies.Count() != 1)
+                    {
+                        throw new FacadeGenerationException(
+                            "When partialFacadeAssemblyPath is specified, only exactly one corresponding contract assembly can be specified.");
+                    }
+
+                    IAssembly contractAssembly = contractAssemblies.First();
+                    IAssembly partialFacadeAssembly = seedHost.LoadAssembly(partialFacadeAssemblyPath);
+                    if (contractAssembly.Name != partialFacadeAssembly.Name
+                        || contractAssembly.Version != partialFacadeAssembly.Version
+                        || contractAssembly.GetPublicKeyToken() != partialFacadeAssembly.GetPublicKeyToken())
+                    {
+                        throw new FacadeGenerationException(
+                            string.Format("The partial facade assembly's name, version, and public key token must exactly match the contract to be filled. Contract: {0}, Facade: {1}",
+                                contractAssembly.AssemblyIdentity,
+                                partialFacadeAssembly.AssemblyIdentity));
+                    }
+
+                    Assembly filledPartialFacade = facadeGenerator.GenerateFacade(contractAssembly, seedCoreAssemblyRef, ignoreMissingTypes, overrideContractAssembly: partialFacadeAssembly);
+
+                    string pdbLocation = null;
+
+                    if (producePdb)
+                    {
+                        string pdbFolder = Path.GetDirectoryName(partialFacadeAssemblyPath);
+                        pdbLocation = Path.Combine(pdbFolder, contractAssembly.Name + ".pdb");
+                        if (producePdb && !File.Exists(pdbLocation))
+                        {
+                            pdbLocation = null;
+                            Trace.TraceWarning("No PDB file present for un-transformed partial facade. No PDB will be generated.");
+                        }
+                    }
+
+                    OutputFacadeToFile(facadePath, seedHost, filledPartialFacade, contractAssembly, pdbLocation);
+                }
+                else
+                {
+                    foreach (var contract in contractAssemblies)
+                    {
+                        Assembly facade = facadeGenerator.GenerateFacade(contract, seedCoreAssemblyRef, ignoreMissingTypes);
+                        if (facade == null)
+                        {
 #if !COREFX
-                Debug.Assert(Environment.ExitCode != 0);
+                                Debug.Assert(Environment.ExitCode != 0);
 #endif
+                            continue;
+                        }
+
+                        OutputFacadeToFile(facadePath, seedHost, facade, contract);
+                    }
+                }
             }
         }
 
@@ -425,7 +415,8 @@ namespace GenFacades
 
                 if (error)
                 {
-                    return null;
+                    throw new FacadeGenerationException(
+                        "Some type-forward targets were not found, or there were duplicates in the seed assemblies. View the log for more information.");
                 }
 
                 if (_assemblyFileVersion != null)

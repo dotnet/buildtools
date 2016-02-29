@@ -4,6 +4,7 @@ using Microsoft.Build.Framework;
 using GenFacades;
 using Microsoft.Cci.Extensions;
 using System.Linq;
+using System.Diagnostics;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
@@ -45,8 +46,11 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public override bool Execute()
         {
+            TraceLogger logger = new TraceLogger(Log);
+
             try
             {
+                Trace.Listeners.Add(logger);
                 ErrorTreatment seedLoadErrorTreatment = ErrorTreatment.Default;
                 ErrorTreatment contractLoadErrorTreatment = ErrorTreatment.Default;
 
@@ -75,9 +79,31 @@ namespace Microsoft.DotNet.Build.Tasks
             }
             catch (Exception e)
             {
+                Trace.Listeners.Remove(logger);
                 Log.LogErrorFromException(e, showStackTrace: true);
                 return false;
             }
+        }
+    }
+
+    // Trace listener which writes to the MSBuild log.
+    public class TraceLogger : TraceListener
+    {
+        private readonly TaskLoggingHelper _log;
+
+        public TraceLogger(TaskLoggingHelper log)
+        {
+            _log = log;
+        }
+
+        public override void Write(string message)
+        {
+            _log.LogMessage(message);
+        }
+
+        public override void WriteLine(string message)
+        {
+            _log.LogMessage(message + Environment.NewLine);
         }
     }
 }
