@@ -55,9 +55,9 @@
   <ItemGroup>
     <None Include="project.json" />
     <None Include="PackageFiles\**\*.*" />
-    <ProjectReference Include="..\GenFacades.Core.Desktop\GenFacades.Core.Desktop.csproj">
-      <Project>{9F6677ED-B471-4C9D-A807-9A6865DC5C77}</Project>
-      <Name>GenFacades.Core.Desktop</Name>
+    <ProjectReference Include="..\GenFacades.Core\GenFacades.Core.csproj">
+      <Project>{b1138d87-2882-4357-a469-719b82c3413e}</Project>
+      <Name>GenFacades.Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\Microsoft.Cci.Extensions\Microsoft.Cci.Extensions.csproj">
       <Project>{2179F9B5-1DBA-4563-9402-A94DE75EA9FA}</Project>

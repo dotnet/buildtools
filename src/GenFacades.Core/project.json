@@ -12,12 +12,9 @@
     "System.Reflection": "4.0.10",
     "System.Reflection.Extensions": "4.0.0",
     "System.Reflection.TypeExtensions": "4.0.0",
-    "System.Text.Encoding": "4.0.10",
+    "System.Text.Encoding": "4.0.10"
   },
   "frameworks": {
     "dnxcore50": {}
-  },
-  "runtimes": {
-    "win7-x64": {}
   }
 }
