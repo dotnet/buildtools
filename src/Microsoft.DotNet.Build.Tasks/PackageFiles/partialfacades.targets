@@ -97,6 +97,7 @@
       Seeds="@(GenFacadesSeeds, ';')"
       FacadePath="$(GenFacadesOutputPath.TrimEnd('/'))"
       SeedTypePreferencesUnsplit="@(SeedTypePreference)"
+      ProducePdb="$(ProducePdb)"
     />
 
     <ItemGroup>
