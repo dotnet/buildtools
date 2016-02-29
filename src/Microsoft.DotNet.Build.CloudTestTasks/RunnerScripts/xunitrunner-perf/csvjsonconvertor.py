@@ -52,8 +52,9 @@ def read_csv(csvFile):
         raise Exception(csvFile+' could not be found for conversion')
 
     csvdict = dict()
+    csv.register_dialect('results_dialect', delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
     with open(csvFile, 'rb') as csvfile:
-        reader = csv.reader(csvfile)
+        reader = csv.reader(csvfile, dialect='results_dialect')
         for row in reader:
             add_row(row[2], row[3], csvdict)
 
