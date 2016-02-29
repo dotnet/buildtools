@@ -47,6 +47,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 CreateFileItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "ref/wp8", "wp8"),
                 CreateFileItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "ref/wpa81", "wpa81"),
                 CreateFileItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "ref/xamarinios10", "xamarinios10"),
+                CreateFileItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "ref/xamarintvos10", "xamarintvos10"),
+                CreateFileItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "ref/xamarinwatchos10", "xamarinwatchos10"),
                 CreateFileItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "ref/xamarinmac20", "xamarinmac20")
             };
             ITaskItem[] dependencies = new[]
@@ -116,7 +118,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
             Assert.Equal(0, _log.WarningsLogged);
 
             // Assert that we're adding dependency groups for all 7 inbox tfm's we support
-            Assert.Equal(8, task.TrimmedDependencies.Length);
+            Assert.Equal(10, task.TrimmedDependencies.Length);
             Assert.Equal(1, task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Contains("win8")).Count());
             Assert.Equal(1, task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Contains("monoandroid1")).Count());
             Assert.Equal(1, task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Contains("monotouch1")).Count());
@@ -124,6 +126,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
             Assert.Equal(1, task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Contains("wp8")).Count());
             Assert.Equal(1, task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Contains("wpa81")).Count());
             Assert.Equal(1, task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Contains("xamarinios1")).Count());
+            Assert.Equal(1, task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Contains("xamarintvos1")).Count());
+            Assert.Equal(1, task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Contains("xamarinwatchos1")).Count());
             Assert.Equal(1, task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Contains("xamarinmac2")).Count());
             // Assert these are empty dependencygroups.
             Assert.All(task.TrimmedDependencies, f => f.ToString().Equals("_._"));
@@ -152,6 +156,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 CreateFileItem(@"E:\ProjectK\src\NDP\FxCore\src\Packages\_._", "ref/wp80", "wp80"),
                 CreateFileItem(@"E:\ProjectK\src\NDP\FxCore\src\Packages\_._", "ref/wpa81", "wpa81"),
                 CreateFileItem(@"E:\ProjectK\src\NDP\FxCore\src\Packages\_._", "ref/xamarinios10", "xamarinios10"),
+                CreateFileItem(@"E:\ProjectK\src\NDP\FxCore\src\Packages\_._", "ref/xamarintvos10", "xamarintvos10"),
+                CreateFileItem(@"E:\ProjectK\src\NDP\FxCore\src\Packages\_._", "ref/xamarinwatchos10", "xamarinwatchos10"),
                 CreateFileItem(@"E:\ProjectK\src\NDP\FxCore\src\Packages\_._", "ref/xamarinmac20", "xamarinmac20"),
                 CreateFileItem(@"E:\ProjectK\binaries\x86ret\Contracts\System.ComponentModel\4.0.1.0\System.ComponentModel.dll", "ref/netcore50/System.ComponentModel.dll", "netcore50")
             };
@@ -280,7 +286,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
             IEnumerable<string> tmp = task.TrimmedDependencies.Select(f => f.GetMetadata("TargetFramework"));
 
             // Assert that we're creating new dependency groups
-            Assert.Equal(7, task.TrimmedDependencies.Length);
+            Assert.Equal(9, task.TrimmedDependencies.Length);
 
             // System.Collections.Immutable is not inbox
             Assert.Equal(1, task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Equals("monoandroid10")).Count());
