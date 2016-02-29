@@ -87,14 +87,21 @@ def _prepare_perf_execution_environment(settings, perf_runner):
     # get the first subdir in the root and append it to xunit_perf_drop
     buildSubdir = os.listdir(xunit_perf_drop)
     xunit_perf_drop = os.path.join(xunit_perf_drop, buildSubdir[0])
-    xunit_perf_drop = os.path.join(xunit_perf_drop, "tools")
     log.info("Copying xunit perf drop from {} to {}.".format(xunit_perf_drop, test_location))
-    shutil.copy2(os.path.join(xunit_perf_drop, "xunit.performance.run.exe"), test_location)
-    shutil.copy2(os.path.join(xunit_perf_drop, "xunit.performance.metrics.dll"), test_location)
-    shutil.copy2(os.path.join(xunit_perf_drop, "xunit.performance.logger.exe"), test_location)
-    shutil.copy2(os.path.join(xunit_perf_drop, "xunit.runner.utility.desktop.dll"), test_location)
-    shutil.copy2(os.path.join(xunit_perf_drop, "ProcDomain.dll"), test_location)
-    shutil.copy2(os.path.join(xunit_perf_drop, "Microsoft.Diagnostics.Tracing.TraceEvent.dll"), test_location)
+    if perf_runner.endswith('.Windows'):
+        xunit_perf_drop = os.path.join(xunit_perf_drop, "tools")
+        shutil.copy2(os.path.join(xunit_perf_drop, "xunit.performance.run.exe"), test_location)
+        shutil.copy2(os.path.join(xunit_perf_drop, "xunit.performance.metrics.dll"), test_location)
+        shutil.copy2(os.path.join(xunit_perf_drop, "xunit.performance.logger.exe"), test_location)
+        shutil.copy2(os.path.join(xunit_perf_drop, "xunit.runner.utility.desktop.dll"), test_location)
+        shutil.copy2(os.path.join(xunit_perf_drop, "ProcDomain.dll"), test_location)
+        shutil.copy2(os.path.join(xunit_perf_drop, "Microsoft.Diagnostics.Tracing.TraceEvent.dll"), test_location)
+
+    if perf_runner.endswith('.dnx'):
+        # copy over dnx perf xunit test runner dependencies
+        xunit_perf_drop = os.path.join(xunit_perf_drop, *('lib,dnxcore50'.split(',')))
+        shutil.copy2(os.path.join(xunit_perf_drop, "Microsoft.DotNet.xunit.performance.runner.dnx.dll"), test_location)
+
     # copy the architecture specific subdirectories
     archSubdirs = os.listdir(xunit_perf_drop)
     for archSubdir in archSubdirs:
@@ -321,7 +328,10 @@ def run_tests(settings, test_dll, framework_in_tpa, assembly_list, perf_runner, 
         # perform perf test prep if required
         if perf_runner is not None:
             _prepare_perf_execution_environment(settings, perf_runner)
-            xunit_test_type = xunit.XUNIT_CONFIG_PERF
+            if perf_runner.endswith('.Windows'):
+                xunit_test_type = xunit.XUNIT_CONFIG_PERF
+            else:
+                xunit_test_type = xunit.XUNIT_CONFIG_NETCORE
 
         return _run_xunit_from_execution(settings, test_dll, xunit_test_type, args)
     except:
