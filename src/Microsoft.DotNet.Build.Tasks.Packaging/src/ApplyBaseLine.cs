@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.Build.Framework;
+using System;
 using System.Collections.Generic;
 
 namespace Microsoft.DotNet.Build.Tasks.Packaging
@@ -23,21 +24,25 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         
         public override bool Execute()
         {
-            Dictionary<string, string> baseLineVersions = new Dictionary<string, string>();
+            Dictionary<string, Version> baseLineVersions = new Dictionary<string, Version>();
             foreach(var baseLinePackage in BaseLinePackages)
             {
                 // last in wins
-                baseLineVersions[baseLinePackage.ItemSpec] = baseLinePackage.GetMetadata("Version");
+                baseLineVersions[baseLinePackage.ItemSpec] = new Version(baseLinePackage.GetMetadata("Version"));
             }
 
             List<ITaskItem> baseLinedDependencies = new List<ITaskItem>();
 
             foreach(var dependency in OriginalDependencies)
             {
-                string baseLineVersion = null;
-                if (baseLineVersions.TryGetValue(dependency.ItemSpec, out baseLineVersion))
+                Version baseLineVersion = null;
+                Version requestedVersion = null;
+                Version.TryParse(dependency.GetMetadata("Version"), out requestedVersion);
+
+                if (baseLineVersions.TryGetValue(dependency.ItemSpec, out baseLineVersion) &&
+                    (requestedVersion == null || baseLineVersion > requestedVersion))
                 {
-                    dependency.SetMetadata("Version", baseLineVersion);
+                    dependency.SetMetadata("Version", baseLineVersion.ToString(3));
                 }
                 baseLinedDependencies.Add(dependency);
             }
