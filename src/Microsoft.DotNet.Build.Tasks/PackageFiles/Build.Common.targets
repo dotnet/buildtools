@@ -119,7 +119,10 @@
         AssemblyVersion - Needed to determine which contract version to map to
   -->
   <Import Project="$(MSBuildThisFileDirectory)partialfacades.targets" Condition="'$(ExcludePartialFacadesImport)' != 'true'"/>
-
+  
+   <!-- Import the ApiCompat targets. -->
+  <Import Project="$(MSBuildThisFileDirectory)ApiCompat.targets" />
+  
   <!-- 
     Import the default signing targets which will setup the authenticode properties and do OpenSourceSigning
     
