@@ -14,12 +14,10 @@
   <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
     <HelixPythonPath>%HELIX_PYTHONPATH%</HelixPythonPath>
     <HelixScriptRoot>%HELIX_SCRIPT_ROOT%\</HelixScriptRoot>
-    <PerfRunnerVersion>Microsoft.DotNet.xunit.performance.runner.Windows</PerfRunnerVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
     <HelixPythonPath>$HELIX_PYTHONPATH</HelixPythonPath>
     <HelixScriptRoot>$HELIX_SCRIPT_ROOT/</HelixScriptRoot>
-    <PerfRunnerVersion>Microsoft.DotNet.xunit.performance.runner.dnx</PerfRunnerVersion>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -150,7 +148,7 @@
         <WorkItemId>FunctionalTest.%(Filename)</WorkItemId>
         <TimeoutInSeconds>$(TimeoutInSeconds)</TimeoutInSeconds>
       </FunctionalTest>
-    </ItemGroup>
+    </ItemGroup> 
     <WriteItemsToJson JsonFileName="$(FuncTestListFile)" Items="@(FunctionalTest)" />
     <!-- add test lists to the list of items for upload -->
     <ItemGroup>
@@ -170,11 +168,11 @@
 
   <Target Name="CreatePerfTestListJson" DependsOnTargets="CreateAzureStorage" Condition="'$(Performance)' == 'true'">
     <PropertyGroup>
-      <OtherRunnerScriptArgs>--perf-runner $(PerfRunnerVersion) $(OtherRunnerScriptArgs)</OtherRunnerScriptArgs>
+      <OtherRunnerScriptArgs>--perf-runner Microsoft.DotNet.xunit.performance.runner.Windows $(OtherRunnerScriptArgs)</OtherRunnerScriptArgs>
     </PropertyGroup>
     <!-- now gather the perf tests -->
     <ItemGroup>
-      <TestBinary Include="$(BinDir)$(OSPlatformConfig)/**/*.dll; $(BinDir)$(OSPlatformConfig)/**/*.exe" />
+      <TestBinary Include="$(BinDir)$(OSPlatformConfig)/**/*Tests.dll" />
     </ItemGroup>
     <GetPerfTestAssemblies TestBinaries="@(TestBinary)">
       <Output TaskParameter="PerfTestAssemblies" ItemName="PerfTestAssembly" />
