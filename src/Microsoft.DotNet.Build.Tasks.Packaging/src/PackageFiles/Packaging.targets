@@ -752,7 +752,7 @@
 
   <ItemGroup>
     <!-- Default validation frameworks : every framework that supports contracts -->
-    <DefaultValidateFramework Include="dnxcore50">
+    <DefaultValidateFramework Include="netstandardapp1.5">
       <RuntimeIDs>win7-x86;win7-x64;osx.10.11-x64;centos.7.1-x64;ubuntu.14.04-x64;linuxmint.17-x64</RuntimeIDs>
     </DefaultValidateFramework>
 
@@ -777,6 +777,10 @@
       <RuntimeIDs>win-x86;win-x64;win7-x86;win7-x64</RuntimeIDs>
     </DefaultValidateFramework>
     <DefaultValidateFramework Include="net461" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
+      <!-- add additional win7 RIDs to validate up-level authoring -->
+      <RuntimeIDs>win-x86;win-x64;win7-x86;win7-x64</RuntimeIDs>
+    </DefaultValidateFramework>
+    <DefaultValidateFramework Include="net462" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
       <!-- add additional win7 RIDs to validate up-level authoring -->
       <RuntimeIDs>win-x86;win-x64;win7-x86;win7-x64</RuntimeIDs>
     </DefaultValidateFramework>
