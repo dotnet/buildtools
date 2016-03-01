@@ -56,7 +56,7 @@ def read_csv(csvFile):
     with open(csvFile, 'rb') as csvfile:
         reader = csv.reader(csvfile, dialect='results_dialect')
         for row in reader:
-            add_row(row[2], row[3], csvdict)
+            add_row(row[2].strip('\"'), row[3], csvdict)
 
     return csvdict
 
