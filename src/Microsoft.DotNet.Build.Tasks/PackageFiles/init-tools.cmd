@@ -24,14 +24,14 @@ if not exist "%DOTNET_CMD%" (
 ROBOCOPY "%BUILDTOOLS_PACKAGE_DIR%\." "%TOOLRUNTIME_DIR%" /E
 
 cd "%BUILDTOOLS_PACKAGE_DIR%\tool-runtime\"
-call "%DOTNET_CMD%" restore --source https://www.myget.org/F/dotnet-core/ --source https://www.myget.org/F/dotnet-buildtools/ --source https://www.nuget.org/api/v2/
+call "%DOTNET_CMD%" restore --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://www.nuget.org/api/v2/
 call "%DOTNET_CMD%" publish -f dnxcore50 -r %BUILDTOOLS_TARGET_RUNTIME% -o "%TOOLRUNTIME_DIR%"
 
 :: Copy Portable Targets Over to ToolRuntime
 if not exist "%BUILDTOOLS_PACKAGE_DIR%\portableTargets" mkdir "%BUILDTOOLS_PACKAGE_DIR%\portableTargets"
 echo %MSBUILD_CONTENT_JSON% > "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\project.json"
 cd "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\"
-call "%DOTNET_CMD%" restore --source https://www.myget.org/F/dotnet-buildtools/ --source http://www.nuget.org/api/v2/ --packages "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\packages"
+call "%DOTNET_CMD%" restore --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source http://www.nuget.org/api/v2/ --packages "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\packages"
 Robocopy "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\packages\Microsoft.Portable.Targets\%PORTABLETARGETS_VERSION%\contentFiles\any\any\." "%TOOLRUNTIME_DIR%\." /E
 Robocopy "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\packages\MicroBuild.Core\%MICROBUILD_VERSION%\build\." "%TOOLRUNTIME_DIR%\." /E
 
