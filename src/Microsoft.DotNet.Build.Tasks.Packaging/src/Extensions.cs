@@ -77,6 +77,16 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             return result;
         }
 
+        public static IReadOnlyList<string> GetValueList(this ITaskItem taskItem, string metadataName)
+        {
+            var metadataValue = taskItem.GetMetadata(metadataName);
+            if (!string.IsNullOrEmpty(metadataValue))
+            {
+                return metadataValue.Split(';');
+            }
+            return null;
+        }
+
         public static IEnumerable<T> NullAsEmpty<T>(this IEnumerable<T> source)
         {
             if (source == null)
