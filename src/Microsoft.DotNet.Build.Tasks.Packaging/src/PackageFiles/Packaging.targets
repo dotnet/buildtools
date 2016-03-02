@@ -519,7 +519,9 @@
     </ItemGroup>
     
     <!-- Promote reference dependencies to implementation TargetFrameworks -->
-    <PromoteReferenceDependencies Dependencies="@(FilePackageDependency)" Condition="'@(FilePackageDependency)' != ''">
+    <PromoteReferenceDependencies Dependencies="@(FilePackageDependency)"
+                                  FrameworkListsPath="$(FrameworkListsPath)"
+                                  Condition="'@(FilePackageDependency)' != ''">
       <Output TaskParameter="PromotedDependencies" ItemName="FilePackageDependency" />
     </PromoteReferenceDependencies>
       
