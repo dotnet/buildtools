@@ -34,7 +34,7 @@ if exist "%TOOLRUNTIME_DIR%" rmdir /S /Q "%TOOLRUNTIME_DIR%"
 :: Download nuget
 if NOT exist "%PACKAGES_DIR%\NuGet.exe" (
   if NOT exist "PACKAGES_DIR" mkdir "%PACKAGES_DIR%"
-  powershell -NoProfile -ExecutionPolicy unrestricted -Command "(New-Object Net.WebClient).DownloadFile('https://www.nuget.org/nuget.exe', '%PACKAGES_DIR%\NuGet.exe')
+  powershell -NoProfile -ExecutionPolicy unrestricted -Command "(New-Object Net.WebClient).DownloadFile('https://dist.nuget.org/win-x86-commandline/v3.3.0/nuget.exe', '%PACKAGES_DIR%\NuGet.exe')
 )
 
 if NOT exist "%PROJECT_JSON_PATH%" mkdir "%PROJECT_JSON_PATH%"
