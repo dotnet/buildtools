@@ -60,7 +60,7 @@ esac
 cp -R $__TOOLS_DIR/* $__TOOLRUNTIME_DIR
 
 cd $__TOOLS_DIR/tool-runtime/
-$__DOTNET_CMD restore --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://www.nuget.org/api/v2/
+$__DOTNET_CMD restore --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json
 $__DOTNET_CMD publish -f dnxcore50 -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR
 chmod a+x $__TOOLRUNTIME_DIR/corerun
 
