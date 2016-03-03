@@ -36,6 +36,7 @@
     <file src="Microsoft.DotNet.Build.Tasks\*.dll" exclude="Microsoft.DotNet.Build.Tasks\Nuget.*.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\NuProj\**\*.*" target="lib\NuProj" />
     <file src="BclRewriter\BclRewriter.exe" target="lib" />
+    <file src="GenFacades\GenFacades.exe" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks.Packaging\Microsoft.DotNet.Build.Tasks.Packaging.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks.Packaging\FrameworkLists\**\*.*" target="lib\FrameworkLists" />
     <file src="Microsoft.DotNet.Build.Tasks.Packaging\PackageFiles\**\*.*" target="lib" />
