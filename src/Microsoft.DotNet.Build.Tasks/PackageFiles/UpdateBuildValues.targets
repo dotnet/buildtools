@@ -3,6 +3,7 @@
 
   <PropertyGroup>
     <GitWorkingBranch Condition="'$(GitWorkingBranch)' == ''">master</GitWorkingBranch>
+    <GitPushRemote Condition="'$(GitPushRemote)' == ''">origin</GitPushRemote>
   </PropertyGroup>
 
   <Target Name="GetNextRevisionNumber"
@@ -44,7 +45,7 @@
     <Exec
       WorkingDirectory="$(SourceDir)"
       StandardOutputImportance="Low"
-      Command="git push origin $(GitWorkingBranch)" />
+      Command="git push $(GitPushRemote) $(GitWorkingBranch)" />
 
   </Target>
 </Project>
