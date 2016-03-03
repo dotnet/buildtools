@@ -28,6 +28,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         [Required]
         public ITaskItem[] Dependencies { get; set; }
         
+        [Required]
+        public string FrameworkListsPath { get; set; }
+
         [Output]
         public ITaskItem[] PromotedDependencies { get; set; }
         
@@ -67,7 +70,10 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                         var promotedDependency = new TaskItem(reference.OriginalItem);
                         promotedDependency.SetMetadata(TargetFrameworkMetadataName, implementationFx);
 
-                        promotedDependencies.Add(promotedDependency);
+                        if (!Frameworks.IsInbox(FrameworkListsPath, implementationFx, reference.Id, reference.Version))
+                        {
+                            promotedDependencies.Add(promotedDependency);
+                        }
                     }
                 }
             }
@@ -82,6 +88,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             public Dependency(ITaskItem item)
             {
                 Id = item.ItemSpec;
+                Version = item.GetMetadata("Version");
                 bool isReference = false;
                 bool.TryParse(item.GetMetadata(IsReferenceMetadataName), out isReference);
                 IsReference = isReference;
@@ -90,6 +97,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
 
             public string Id { get; }
+            public string Version { get; }
+
             public bool IsReference { get; }
             public string TargetFramework { get; }
 
