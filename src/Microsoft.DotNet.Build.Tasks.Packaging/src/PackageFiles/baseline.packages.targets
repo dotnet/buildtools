@@ -261,7 +261,8 @@
       <Version>4.0.1</Version>
     </BaseLinePackage>
     <BaseLinePackage Include="System.Runtime.InteropServices">
-      <Version>4.1.0</Version>
+      <!-- intentionally lower than live to not lift up System.Runtime above baseline -->
+      <Version>4.0.21</Version>
     </BaseLinePackage>
     <BaseLinePackage Include="System.Runtime.InteropServices.PInvoke">
       <Version>4.0.0</Version>
