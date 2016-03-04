@@ -81,7 +81,7 @@
 
   <!-- If this package explicitly sets the StableVersion then add it to the stable list -->
   <ItemGroup Condition="'$(StableVersion)' != ''">
-    <StablePackage Include="$(MSBuildProjectName)">
+    <StablePackage Include="$(Id)">
       <Version>$(StableVersion)</Version>
     </StablePackage>
   </ItemGroup>
