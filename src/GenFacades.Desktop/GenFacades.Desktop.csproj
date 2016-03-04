@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.props))\dir.props" />
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -12,18 +11,14 @@
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <GenFacadesSrc>..\GenFacades</GenFacadesSrc>
+    <ProjectGuid>{5F0979EC-3117-4798-A76B-35BCA3758FD7}</ProjectGuid>
   </PropertyGroup>
-
   <!-- Default configurations to help VS understand the configurations -->
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
-
   <ItemGroup>
-    <Compile Include="$(GenFacadesSrc)\FacadeGenerationException.cs" />
     <Compile Include="$(GenFacadesSrc)\Program.cs" />
-    <Compile Include="$(GenFacadesSrc)\VersionResourceSerializer.cs" />
   </ItemGroup>
-
   <!-- Common command-line helper sources -->
   <ItemGroup>
     <Compile Include="$(CommonPath)\CommandLine.cs">
@@ -36,18 +31,19 @@
       <Link>Common\ConsoleTraceListener.cs</Link>
     </Compile>
   </ItemGroup>
-
   <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
-
   <ItemGroup>
+    <ProjectReference Include="..\GenFacades.Core\GenFacades.Core.csproj">
+      <Project>{b1138d87-2882-4357-a469-719b82c3413e}</Project>
+      <Name>GenFacades.Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Microsoft.CCI.Extensions\Microsoft.CCI.Extensions.csproj" />
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
   </ItemGroup>
-
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), publishexe.targets))\publishexe.targets" />
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
 </Project>

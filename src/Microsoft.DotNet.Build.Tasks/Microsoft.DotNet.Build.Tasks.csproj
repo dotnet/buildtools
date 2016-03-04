@@ -16,40 +16,11 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
+  <Import Project="SourceIncludes.props" />
+  <Import Project="SourceIncludes.net46.props" />
   <ItemGroup>
-    <Compile Include="BinClashLogger.cs" />
-    <Compile Include="Delegates.cs" />
-    <Compile Include="ExecWithMutex.cs" />
-    <Compile Include="GatherFoldersToRestore.cs" />
-    <Compile Include="GenerateAssemblyList.cs" />
-    <Compile Include="GenerateResourcesCode.cs" />
-    <Compile Include="GenerateEncodingTable.cs" />
-    <Compile Include="GetPackageVersion.cs" />
-    <Compile Include="GetPackageDependencies.cs" />
-    <Compile Include="GetNextRevisionNumber.cs" />
-    <Compile Include="NormalizePaths.cs" />
-    <Compile Include="GetDoItemsIntersect.cs" />
-    <Compile Include="OpenSourceSign.cs" />
-    <Compile Include="ParseTestCoverageInfo.cs" />
-    <Compile Include="PreprocessFile.cs" />
-    <Compile Include="RemoveDuplicatesWithLastOneWinsPolicy.cs" />
-    <Compile Include="PrereleaseResolveNuGetPackageAssets.cs" />
-    <Compile Include="UpdatePackageDependencyVersion.cs" />
-    <Compile Include="VisitProjectDependencies.cs" />
-    <Compile Include="ValidateProjectDependencyVersions.cs" />
-    <Compile Include="ZipFileCreateFromDirectory.cs" />
-    <Compile Include="Strings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Strings.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Strings.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
+    <Compile Include="@(CompileItem)" />
+    <ProjectReference Include="@(ProjectReferenceItem)" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
