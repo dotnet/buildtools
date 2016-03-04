@@ -1,6 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <!-- Metadata stable release 1.2 -->
+    <StablePackage Include="System.Reflection.Metadata">
+      <Version>1.2.0</Version>
+    </StablePackage>
+  
+    <!-- Packages shipped stable at VS 2015 Update 2 for UWP 5.1.0 meta-package -->
+    <StablePackage Include="Microsoft.NETCore.UniversalWindowsPlatform">
+      <Version>5.1.0</Version>
+    </StablePackage>
+    <StablePackage Include="Microsoft.NETCore.Runtime">
+      <Version>1.0.1</Version>
+    </StablePackage>
+    <StablePackage Include="Microsoft.NETCore.Runtime.CoreCLR">
+      <Version>1.0.1</Version>
+    </StablePackage>
+    <StablePackage Include="runtime.win8-arm.Microsoft.NETCore.Runtime.CoreCLR">
+      <Version>1.0.1</Version>
+    </StablePackage>
+    <StablePackage Include="runtime.win7-x64.Microsoft.NETCore.Runtime.CoreCLR">
+      <Version>1.0.1</Version>
+    </StablePackage>
+    <StablePackage Include="runtime.win7-x86.Microsoft.NETCore.Runtime.CoreCLR">
+      <Version>1.0.1</Version>
+    </StablePackage>
+    <StablePackage Include="Microsoft.NETCore.Runtime.Native">
+      <Version>1.0.1</Version>
+    </StablePackage>
+    <StablePackage Include="System.Runtime.Serialization.Json">
+      <Version>4.0.1</Version>
+    </StablePackage>
+    <StablePackage Include="System.Runtime.Serialization.Primitives">
+      <Version>4.1.0</Version>
+    </StablePackage>
+    <StablePackage Include="System.Runtime.Serialization.Xml">
+      <Version>4.1.0</Version>
+    </StablePackage>
+    <StablePackage Include="System.Private.DataContractSerialization">
+      <Version>4.1.0</Version>
+    </StablePackage>
+    <StablePackage Include="runtime.any.System.Private.DataContractSerialization">
+      <Version>4.1.0</Version>
+    </StablePackage>
+    <StablePackage Include="runtime.aot.System.Private.DataContractSerialization">
+      <Version>4.1.0</Version>
+    </StablePackage>
+    
     <!-- Packages shipped stable at Dev14 RTM -->
     <StablePackage Include="Microsoft.CSharp">
       <Version>4.0.0</Version>
