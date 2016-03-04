@@ -25,6 +25,8 @@ namespace Xunit.NetCore.Extensions
             PlatformID platform = (PlatformID)traitAttribute.GetConstructorArguments().First();
             if (!platform.HasFlag(PlatformID.Windows))
                 yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.NonWindowsTest);
+            if (!platform.HasFlag(PlatformID.WindowsNano))
+                yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.NonWindowsNanoTest);
             if (!platform.HasFlag(PlatformID.Linux))
                 yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.NonLinuxTest);
             if (!platform.HasFlag(PlatformID.OSX))

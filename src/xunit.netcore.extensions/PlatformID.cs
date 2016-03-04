@@ -15,6 +15,7 @@ namespace Xunit
         OSX = 4,
         FreeBSD = 8,
         NetBSD = 16,
+        WindowsNano = 32,
         AnyUnix = FreeBSD | Linux | NetBSD | OSX,
         Any = ~0
     }

@@ -14,6 +14,7 @@ namespace Xunit.NetCore.Extensions
         internal const string NonNetBSDTest = "nonnetbsdtests";
         internal const string NonOSXTest = "nonosxtests";
         internal const string NonWindowsTest = "nonwindowstests";
+        internal const string NonWindowsNanoTest = "nonwindowsnanotests";
         internal const string Failing = "failing";
         internal const string ActiveIssue = "activeissue";
         internal const string OuterLoop = "outerloop";
