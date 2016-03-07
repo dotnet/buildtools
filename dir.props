@@ -67,7 +67,7 @@
 
   <ItemGroup>
     <ValidationPattern Include="^((System\..%2A)|(Microsoft\.CSharp)|(Microsoft\.NETCore.%2A)|(Microsoft\.Win32\..%2A)|(Microsoft\.VisualBasic))(?&lt;!TestData)$">
-      <ExpectedPrerelease>rc2-23816</ExpectedPrerelease>
+      <ExpectedPrerelease>rc2-23907</ExpectedPrerelease>
     </ValidationPattern>
     <ValidationPattern Include="^xunit$">
       <ExpectedVersion>2.1.0</ExpectedVersion>
