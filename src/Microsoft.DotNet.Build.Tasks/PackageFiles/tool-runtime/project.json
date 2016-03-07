@@ -16,6 +16,10 @@
     "Microsoft.NETCore.Platforms": "1.0.1-rc2-23907",
     "Microsoft.NETCore.Runtime": "1.0.1-rc2-23907",
     "Microsoft.Cci": "4.0.0-rc3-23811",
+    "Microsoft.Win32.Registry": { 
+      "version": "4.0.0-rc2-23907",
+      "exclude": "Compile"
+    },
     "MSBuild": "0.1.0-preview-00017",
     "Newtonsoft.Json": "7.0.1",
     "NuGet.Versioning": "3.4.0-beta-488",

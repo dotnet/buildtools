@@ -1,13 +1,13 @@
 {
   "dependencies": {
-    "Microsoft.NETCore.Platforms": "1.0.0",
+    "Microsoft.NETCore.Platforms": "1.0.1-rc2-23907",
     "Newtonsoft.Json": "7.0.1",
     "NuGet.Client": "3.4.0-beta-488",
     "System.Reflection.Metadata": "1.0.22",
     "System.Runtime.InteropServices.RuntimeInformation": "4.0.0-rc2-23907"
   },
   "frameworks": {
-    "net45": {}
+    "net46": {}
   },
   "runtimes": {
     "win": {}
