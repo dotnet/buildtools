@@ -1,6 +1,7 @@
 ﻿using Microsoft.Build.Framework;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
@@ -18,7 +19,22 @@ namespace Microsoft.DotNet.Build.Tasks
         public override bool VisitPackage(JProperty package, string projectJsonPath)
         {
             var dependencyIdentifier = package.Name;
-            var dependencyVersion = package.Value.ToObject<string>();
+            string dependencyVersion;
+            if (package.Value is JObject)
+            {
+                dependencyVersion = package.Value["version"].Value<string>();
+            }
+            else if (package.Value is JValue)
+            {
+                dependencyVersion = package.Value.ToObject<string>();
+            }
+            else
+            {
+                throw new ArgumentException(string.Format(
+                    "Unrecognized dependency element for {0} in {1}",
+                    package.Name,
+                    projectJsonPath));
+            }
 
             if (dependencyIdentifier == PackageId && dependencyVersion == OldVersion)
             {
@@ -29,7 +45,14 @@ namespace Microsoft.DotNet.Build.Tasks
                     NewVersion,
                     projectJsonPath);
 
-                package.Value = NewVersion;
+                if (package.Value is JObject)
+                {
+                    package.Value["version"] = NewVersion;
+                }
+                else
+                {
+                    package.Value = NewVersion;
+                }
                 return true;
             }
             return false;
