@@ -60,7 +60,7 @@
       <Version>4.0.1</Version>
     </BaseLinePackage>
     <BaseLinePackage Include="System.Data.SqlClient">
-      <Version>4.0.0</Version>
+      <Version>4.1.0</Version>
     </BaseLinePackage>
     <BaseLinePackage Include="System.Diagnostics.Contracts">
       <Version>4.0.1</Version>
@@ -305,10 +305,10 @@
       <Version>4.0.1</Version>
     </BaseLinePackage>
     <BaseLinePackage Include="System.Security.Cryptography.Algorithms">
-      <Version>4.0.0</Version>
+      <Version>4.1.0</Version>
     </BaseLinePackage>
     <BaseLinePackage Include="System.Security.Cryptography.Cng">
-      <Version>4.0.0</Version>
+      <Version>4.1.0</Version>
     </BaseLinePackage>
     <BaseLinePackage Include="System.Security.Cryptography.Csp">
       <Version>4.0.0</Version>
@@ -323,7 +323,7 @@
       <Version>4.0.0</Version>
     </BaseLinePackage>
     <BaseLinePackage Include="System.Security.Cryptography.X509Certificates">
-      <Version>4.0.0</Version>
+      <Version>4.1.0</Version>
     </BaseLinePackage>
     <BaseLinePackage Include="System.Security.Principal">
       <Version>4.0.1</Version>
