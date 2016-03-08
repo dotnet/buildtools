@@ -515,6 +515,11 @@
     <ApplyBaseLine OriginalDependencies="@(FilePackageDependency)" BaseLinePackages="@(BaseLinePackage)" Condition="'$(BaseLinePackageDependencies)' != 'false'">
       <Output TaskParameter="BaseLinedDependencies" ItemName="_BaseLinedDependencies" />
     </ApplyBaseLine>
+    
+    <!-- if not baselining, flow the dependencies unmodified -->
+    <ItemGroup Condition="'$(BaseLinePackageDependencies)' == 'false'">
+      <_BaseLinedDependencies Include="@(FilePackageDependency)" />
+    </ItemGroup>
 
     <ApplyPreReleaseSuffix Condition="'@(_BaseLinedDependencies)' != ''" StablePackages="@(StablePackage)" OriginalPackages="@(_BaseLinedDependencies)" PreReleaseSuffix="$(VersionSuffix)" RevStableToPrerelease="$(DependencyRevStableToPrerelease)">
       <Output TaskParameter="UpdatedPackages" ItemName="Dependency"/>
