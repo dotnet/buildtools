@@ -13,19 +13,15 @@
   </PropertyGroup>
   
   <Target Name="ResolveMatchingContract">
-    <PropertyGroup>
-      <_referenceAssemblyProject>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'ref/$(AssemblyName).csproj'))/ref/$(AssemblyName).csproj</_referenceAssemblyProject>
-      <_versionReferenceAssemblyProject>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'ref/$(APIVersion)/$(AssemblyName).csproj'))/ref/$(APIVersion)/$(AssemblyName).csproj</_versionReferenceAssemblyProject>
+    <PropertyGroup Condition="`$(ContractProject)` == ''">
+      <ContractProject>$(SourceDir)/$(AssemblyName)/ref/$(APIVersion)/$(AssemblyName).csproj</ContractProject>
+      <!-- fall back to 'current' version if specific version does not exist -->
+      <ContractProject Condition="!(Exists('$(ContractProject)')">$(SourceDir)/$(AssemblyName)/ref/$(AssemblyName).csproj</ContractProject>
+      <!-- don't add a project if one can't be found-->
+      <ContractProject Condition="!(Exists('$(ContractProject)')"></ContractProject>
     </PropertyGroup>
     <ItemGroup>
-      <!-- first check for a specific version -->
-      <ProjectReference Include="$(_versionReferenceAssemblyProject)" Condition="Exists('$(_versionReferenceAssemblyProject)')">
-        <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-        <OutputItemType>ResolvedMatchingContract</OutputItemType>
-        <UndefineProperties>OSGroup;TargetGroup</UndefineProperties>
-      </ProjectReference>
-      <!-- fall back to 'current' version -->
-      <ProjectReference Include="$(_referenceAssemblyProject)" Condition="!Exists('$(_versionReferenceAssemblyProject)') AND Exists('$(_referenceAssemblyProject)')">
+      <ProjectReference Include="$(ContractProject)" Condition="'$(ContractProject)' != ''">
         <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
         <OutputItemType>ResolvedMatchingContract</OutputItemType>
         <UndefineProperties>OSGroup;TargetGroup</UndefineProperties>
