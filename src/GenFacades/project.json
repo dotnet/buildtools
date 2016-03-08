@@ -3,7 +3,7 @@
     "Microsoft.Cci": "4.0.0-rc2-23712",
     "Microsoft.NETCore.ConsoleHost": "1.0.0-rc2-23907",
     "Microsoft.NETCore.Platforms": "1.0.1-rc2-23907",
-    "Microsoft.NETCore.Runtime": "1.0.1-rc2-23907",
+    "Microsoft.NETCore.Runtime": "1.0.2-rc2-23907",
     "System.Collections": "4.0.10",
     "System.Console": "4.0.0-rc2-23907",
     "System.Diagnostics.Debug": "4.0.10",

@@ -14,7 +14,7 @@
     "Microsoft.NETCore.TestHost": "1.0.0-rc2-23907",
     "Microsoft.NETCore.Console": "1.0.0-rc2-23907",
     "Microsoft.NETCore.Platforms": "1.0.1-rc2-23907",
-    "Microsoft.NETCore.Runtime": "1.0.1-rc2-23907",
+    "Microsoft.NETCore.Runtime": "1.0.2-rc2-23907",
     "Microsoft.Cci": "4.0.0-rc3-23811",
     "Microsoft.Win32.Registry": { 
       "version": "4.0.0-rc2-23907",
