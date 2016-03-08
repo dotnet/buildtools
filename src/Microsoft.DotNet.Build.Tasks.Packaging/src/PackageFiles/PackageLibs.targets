@@ -3,8 +3,6 @@
   <PropertyGroup>
     <PackagingTaskDir Condition="'$(PackagingTaskDir)' == ''">$(MSBuildThisFileDirectory)</PackagingTaskDir>
     <GenerationDefinitionFile Condition="'$(GenerationDefinitionFile)' == ''">$(MSBuildThisFileDirectory)Generations.json</GenerationDefinitionFile>
-    <!-- turn off dotnet > netstandard rename until ready -->
-    <UseNetPlatform Condition="'$(UseNetPlatform)' == ''">true</UseNetPlatform>
   </PropertyGroup>
 
   <UsingTask TaskName="ValidatePackageTargetFramework" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>

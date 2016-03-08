@@ -15,6 +15,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="CreateTrimDependencyGroupsTests.cs" />
+    <Compile Include="ApplyBaseLineTests.cs" />
     <Compile Include="EnsureOOBFrameworkTests.cs" />
     <Compile Include="NuGetAssetResolverTests.cs" />
     <Compile Include="GenerationsTests.cs" />

@@ -2,17 +2,23 @@
   "dependencies": {
     "Microsoft.Cci": "4.0.0-rc2-23712",
     "Microsoft.Composition": "1.0.30",
+    "Microsoft.NETCore.Platforms": "1.0.1-rc2-23907",
     "System.Collections": "4.0.10",
     "System.Collections.NonGeneric": "4.0.0",
-    "System.Console": "4.0.0-rc2-23816",
+    "System.Console": "4.0.0-rc2-23907",
     "System.Diagnostics.Contracts": "4.0.0",
     "System.Diagnostics.Debug": "4.0.10",
-    "System.Diagnostics.TraceSource": "4.0.0-rc2-23816",
+    "System.Diagnostics.TraceSource": "4.0.0-rc2-23907",
     "System.IO.FileSystem": "4.0.0",
     "System.Linq": "4.0.0",
     "System.Reflection": "4.0.10",
     "System.Text.RegularExpressions": "4.0.10",
     "System.Threading": "4.0.10",
     "System.Xml.XDocument": "4.0.10"
+  },
+  "frameworks": {
+    "dnxcore50": {
+      "imports": "portable-net45+win8"
+    }
   }
 }

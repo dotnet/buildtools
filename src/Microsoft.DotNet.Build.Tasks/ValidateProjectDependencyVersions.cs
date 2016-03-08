@@ -2,6 +2,7 @@
 using Microsoft.Build.Utilities;
 using Newtonsoft.Json.Linq;
 using NuGet.Versioning;
+using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -50,6 +51,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 bool updateInvalidDependencies)
             {
                 bool updatedPackage = false;
+                string newVersion = version;
 
                 var dependencyVersionRange = VersionRange.Parse(version);
                 NuGetVersion dependencyVersion = dependencyVersionRange.MinVersion;
@@ -75,7 +77,7 @@ namespace Microsoft.DotNet.Build.Tasks
                     {
                         if (updateInvalidDependencies)
                         {
-                            package.Value = _expectedVersion;
+                            newVersion = _expectedVersion;
                             updatedPackage = true;
                         }
                         logAction(
@@ -91,7 +93,7 @@ namespace Microsoft.DotNet.Build.Tasks
                     {
                         if (updateInvalidDependencies)
                         {
-                            package.Value = new NuGetVersion(
+                            newVersion = new NuGetVersion(
                                 dependencyVersion.Major,
                                 dependencyVersion.Minor,
                                 dependencyVersion.Patch,
@@ -105,6 +107,17 @@ namespace Microsoft.DotNet.Build.Tasks
                             dependencyVersion.Release,
                             _expectedPrerelease,
                             _idPattern);
+                    }
+                }
+                if (updatedPackage)
+                {
+                    if (package.Value is JObject)
+                    {
+                        package.Value["version"] = newVersion;
+                    }
+                    else
+                    {
+                        package.Value = newVersion;
                     }
                 }
                 return updatedPackage;
@@ -139,7 +152,22 @@ namespace Microsoft.DotNet.Build.Tasks
             }
 
             string id = package.Name;
-            string version = package.Value.ToObject<string>();
+            string version;
+            if (package.Value is JObject)
+            {
+                version = package.Value["version"].Value<string>();
+            }
+            else if (package.Value is JValue)
+            {
+                version = package.Value.ToObject<string>();
+            }
+            else
+            {
+                throw new ArgumentException(string.Format(
+                    "Unrecognized dependency element for {0} in {1}",
+                    package.Name,
+                    projectJsonPath));
+            }
 
             string dependencyMessage = string.Format(
                 "{0} {1} in {2}",

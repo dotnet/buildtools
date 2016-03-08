@@ -26,9 +26,6 @@
 
     <!-- By default we'll build libraries referenced by packages -->
     <BuildPackageLibraryReferences Condition="'$(BuildPackageLibraryReferences)' == ''">true</BuildPackageLibraryReferences>
-    
-    <!-- turn off dotnet > netstandard rename until ready -->
-    <UseNetPlatform Condition="'$(UseNetPlatform)' == ''">true</UseNetPlatform>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(IsRuntimePackage)' == 'true' or '$(PackageTargetRuntime)' != ''">
@@ -80,11 +77,11 @@
   </PropertyGroup>
 
   <Import Project="stable.packages.targets" />
-  <Import Condition="'$(BaseLinePackageDependencies)' == 'true'" Project="baseline.packages.targets" />
+  <Import Project="baseline.packages.targets" />
 
   <!-- If this package explicitly sets the StableVersion then add it to the stable list -->
   <ItemGroup Condition="'$(StableVersion)' != ''">
-    <StablePackage Include="$(MSBuildProjectName)">
+    <StablePackage Include="$(Id)">
       <Version>$(StableVersion)</Version>
     </StablePackage>
   </ItemGroup>
@@ -102,6 +99,7 @@
   <UsingTask TaskName="GenerateNuSpec" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="NuGetPack" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="ApplyBaseLine" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  <UsingTask TaskName="PromoteReferenceDependencies" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
 
   <!-- Determine if we actually need to build for this architecture -->
   <!-- Packages can specifically control their architecture by specifying the PackagePlatforms
@@ -476,33 +474,31 @@
       <FrameworkReference Condition="$(_TargetFramework.StartsWith('net4'))" Include="@(_FileFrameworkReference)" KeepDuplicates="false" />
     </ItemGroup>
   </Target>
-  
-  <Target Name="GetNuGetPackageDependencies"
-          DependsOnTargets="GetFilePackageReferences">
-   <!-- We can reduce the number of dependencies listed for any framework that has
-        inbox implementations since that framework doesn't need the packages for
-        compile/runtime.  This reduces the noise when consuming our packages in
-        packages.config based projects.  -->
-    <CreateTrimDependencyGroups Dependencies="@(FilePackageDependency);@(Dependency)"
-                      FrameworkListsPath="$(FrameworkListsPath)"
-                      TrimFrameworks="@(InboxOnTargetFramework);@(NotSupportedOnTargetFramework);@(ExternalOnTargetFramework)"
-                      Files="@(File)"
-                      Condition="'@(FilePackageDependency)' != '' AND '$(PackageTargetRuntime)' == ''">
-      <Output TaskParameter="TrimmedDependencies" ItemName="FilePackageDependency" />
-    </CreateTrimDependencyGroups>
-
-    <ApplyBaseLine OriginalDependencies="@(FilePackageDependency)" BaseLinePackages="@(BaseLinePackage)">
-      <Output TaskParameter="BaseLinedDependencies" ItemName="_BaseLinedDependencies" />
-    </ApplyBaseLine>
-
-    <ApplyPreReleaseSuffix Condition="'@(_BaseLinedDependencies)' != ''" StablePackages="@(StablePackage)" OriginalPackages="@(_BaseLinedDependencies)" PreReleaseSuffix="$(VersionSuffix)" RevStableToPrerelease="$(DependencyRevStableToPrerelease)">
-      <Output TaskParameter="UpdatedPackages" ItemName="Dependency"/>
-    </ApplyPreReleaseSuffix>
-
-  </Target>
 
   <Target Name="GetNuGetPackageDependencies"
           DependsOnTargets="GetFilePackageReferences">
+    <PropertyGroup>
+      <!-- determine if we have any reference assets in the package (files in the ref folder) -->
+      <_containsReferenceAsset Condition="'%(File.IsReferenceAsset)' == 'true'">true</_containsReferenceAsset>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(_containsReferenceAsset)' == 'true'">
+      <!-- If the package contains a reference asset, then make all non-reference dependencies
+           exclude compile assets, so as not to leak implementation dependencies into the compile
+           graph.-->
+      <FilePackageDependency>
+        <Exclude Condition="'%(FilePackageDependency.IsReferenceAsset)' != 'true'">Compile</Exclude>
+      </FilePackageDependency>
+    </ItemGroup>
+    
+    <!-- Promote reference dependencies to implementation TargetFrameworks -->
+    <PromoteReferenceDependencies Dependencies="@(FilePackageDependency)"
+                                  FrameworkListsPath="$(FrameworkListsPath)"
+                                  Condition="'@(FilePackageDependency)' != ''">
+      <Output TaskParameter="PromotedDependencies" ItemName="FilePackageDependency" />
+    </PromoteReferenceDependencies>
+      
+    
    <!-- We can reduce the number of dependencies listed for any framework that has
         inbox implementations since that framework doesn't need the packages for
         compile/runtime.  This reduces the noise when consuming our packages in
@@ -516,7 +512,7 @@
       <Output TaskParameter="TrimmedDependencies" ItemName="FilePackageDependency" />
     </CreateTrimDependencyGroups>
 
-    <ApplyBaseLine OriginalDependencies="@(FilePackageDependency)" BaseLinePackages="@(BaseLinePackage)">
+    <ApplyBaseLine OriginalDependencies="@(FilePackageDependency)" BaseLinePackages="@(BaseLinePackage)" Condition="'$(BaseLinePackageDependencies)' != 'false'">
       <Output TaskParameter="BaseLinedDependencies" ItemName="_BaseLinedDependencies" />
     </ApplyBaseLine>
 
@@ -589,7 +585,8 @@
       <RuntimeFileSource Condition="'%(File.FileName)%(File.Extension)' == 'runtime.json'">%(File.Identity)</RuntimeFileSource>
     </PropertyGroup>
 
-    <ItemGroup Condition="'@(RuntimeDependency)' != '' AND '$(ExcludeRuntimeJson)' != 'true'">
+    <!-- only include runtime.json in lineup packages -->
+    <ItemGroup Condition="'$(IsLineupPackage)' == 'true' OR '$(IncludeRuntimeJson)' == 'true'">
       <!-- if we are updating, remove it from the file group, we'll replace it with the generated version -->
       <PackageFile Condition="'$(RuntimeFileSource)' != ''" Remove="$(RuntimeFileSource)"/>
       <PackageFile Include="$(RuntimeFilePath)">
@@ -752,7 +749,7 @@
 
   <ItemGroup>
     <!-- Default validation frameworks : every framework that supports contracts -->
-    <DefaultValidateFramework Include="dnxcore50">
+    <DefaultValidateFramework Include="netstandardapp1.5">
       <RuntimeIDs>win7-x86;win7-x64;osx.10.11-x64;centos.7.1-x64;ubuntu.14.04-x64;linuxmint.17-x64</RuntimeIDs>
     </DefaultValidateFramework>
 
@@ -777,6 +774,10 @@
       <RuntimeIDs>win-x86;win-x64;win7-x86;win7-x64</RuntimeIDs>
     </DefaultValidateFramework>
     <DefaultValidateFramework Include="net461" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
+      <!-- add additional win7 RIDs to validate up-level authoring -->
+      <RuntimeIDs>win-x86;win-x64;win7-x86;win7-x64</RuntimeIDs>
+    </DefaultValidateFramework>
+    <DefaultValidateFramework Include="net462" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
       <!-- add additional win7 RIDs to validate up-level authoring -->
       <RuntimeIDs>win-x86;win-x64;win7-x86;win7-x64</RuntimeIDs>
     </DefaultValidateFramework>
