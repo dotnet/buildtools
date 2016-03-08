@@ -12,7 +12,7 @@
     "Newtonsoft.Json": "7.0.1",
     "NuGet.Versioning": "3.4.0-beta-488",
     "NuProj": "0.10.4-beta-gf7fc34e7d8",
-    "System.IO.Compression": "4.0.1-rc2-23907",
+    "System.IO.Compression": "4.1.0-rc2-23907",
     "System.IO.Compression.ZipFile": "4.0.1-rc2-23907",
     "System.IO.FileSystem": "4.0.1-rc2-23907",
     "System.Linq": "4.0.1-rc2-23907",
