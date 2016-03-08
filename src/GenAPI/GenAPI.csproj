@@ -42,6 +42,5 @@
     <ProjectReference Include="..\Microsoft.CCI.Extensions\Microsoft.CCI.Extensions.csproj" />
   </ItemGroup>
 
-  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), publishexe.targets))\publishexe.targets" />
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
 </Project>

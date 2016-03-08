@@ -110,16 +110,30 @@
     Import the partial facade generation targets
     
       Inputs:
+        GeneratePlatformNotSupportedAssembly - Determines wether to generate not-supported API for this assembly
+  -->
+  <Import Project="$(MSBuildThisFileDirectory)notsupported.targets" Condition="'$(ExcludePartialFacadesImport)' != 'true'"/>
+  
+  <!-- 
+    Import the partial facade generation targets
+    
+      Inputs:
         IsPartialFacadeAssembly - Determines whether the partial facade generation targets will be as a post-processing step on the
           assembly. Also invokes special logic for determining References.
-        AssemblyName - Needed to determine which contract name to map to
-        AssemblyVersion - Needed to determine which contract version to map to
   -->
   <Import Project="$(MSBuildThisFileDirectory)partialfacades.targets" Condition="'$(ExcludePartialFacadesImport)' != 'true'"/>
   
    <!-- Import the ApiCompat targets. -->
   <Import Project="$(MSBuildThisFileDirectory)ApiCompat.targets" />
   
+  <!-- 
+    Import the contract resolution targets
+    
+      Inputs:
+        AssemblyName - Needed to determine which contract name to map to
+        AssemblyVersion - Needed to determine which contract version to map to
+  -->
+  <Import Project="$(MSBuildThisFileDirectory)resolveContract.targets" Condition="'$(ExcludeResolveContractImport)' != 'true'"/>
   <!-- 
     Import the default signing targets which will setup the authenticode properties and do OpenSourceSigning
     
