@@ -41,6 +41,9 @@ See the LICENSE file in the project root for more information.
 
     <!-- make sure we tell nuget targets to copy, even if output type would not by default -->
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
+
+    <!-- by default there shouldn't be any assets in depproj files that require signing -->
+    <SkipSigning Condition="'$(SkipSigning)' == ''">true</SkipSigning>
   </PropertyGroup>
   
   <Target Name="CoreCompile">

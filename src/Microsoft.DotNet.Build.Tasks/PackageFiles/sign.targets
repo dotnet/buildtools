@@ -2,10 +2,10 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <!-- metadata used for Authenticode and strong-name signing in official VSO builds -->
-  <ItemGroup Condition="'$(IsTestProject)' != 'true'">
+  <ItemGroup Condition="'$(SkipSigning)' != 'true' and '$(IsTestProject)' != 'true' and '$(SignType)' != 'oss'">
     <FilesToSign Include="$(TargetPath)">
       <Authenticode>Microsoft</Authenticode>
-      <StrongName Condition="'$(SkipSigning)' != 'true'">StrongName</StrongName>
+      <StrongName Condition="'$(SignType)' == 'real' and '$(UseOpenKey)' != 'true'">StrongName</StrongName>
     </FilesToSign>
   </ItemGroup>
 
@@ -19,7 +19,8 @@
     <DelaySign>true</DelaySign>
     <DelaySign Condition="'$(UseOpenKey)' == 'true'">false</DelaySign>
     <DefineConstants>$(DefineConstants);SIGNED</DefineConstants>
-    <UseOpenSourceSign Condition="'$(UseOpenSourceSign)' == ''">true</UseOpenSourceSign>
+    <!-- applicable values for SignType are oss, test or real -->
+    <SignType Condition="'$(SignType)' == ''">oss</SignType>
   </PropertyGroup>
 
   <!--
@@ -34,7 +35,7 @@
   </PropertyGroup>
 
   <Target Name="OpenSourceSign"
-          Condition="'$(DelaySign)' == 'true' and '@(IntermediateAssembly)' != '' and '$(SkipSigning)' != 'true' and '$(UseOpenSourceSign)' == 'true'"
+          Condition="'$(DelaySign)' == 'true' and '@(IntermediateAssembly)' != '' and '$(SkipSigning)' != 'true' and '$(SignType)' == 'oss'"
           Inputs="@(IntermediateAssembly)"
           Outputs="%(IntermediateAssembly.Identity).oss_signed"
           >
