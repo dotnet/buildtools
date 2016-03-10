@@ -148,10 +148,10 @@
     <DebugSymbols>false</DebugSymbols>
     <DebugType>none</DebugType>
     <!--
-      Delay signing with the ECMA key currently doesn't work.
-      https://github.com/dotnet/roslyn/issues/2444
+      Full signing with Open key doesn't work with Portable Csc.
+      https://github.com/dotnet/roslyn/issues/8210
     -->
-    <UseECMAKey>false</UseECMAKey>
+    <UseOpenKey>false</UseOpenKey>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(OsEnvironment)'=='Unix'">
@@ -166,6 +166,11 @@
       Second, we aren't yet building pdbs, which the nuspecs specify.
     -->
     <SkipBuildPackages>true</SkipBuildPackages>
+  </PropertyGroup>
+
+  <!-- Set the default strong name sig to use the "open" key -->
+  <PropertyGroup Condition="'$(UseOpenKey)' == ''">
+    <UseOpenKey>true</UseOpenKey>
   </PropertyGroup>
 
   <!-- 

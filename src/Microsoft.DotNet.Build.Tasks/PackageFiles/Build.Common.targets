@@ -26,9 +26,6 @@
   -->
   <Import Project="$(MSBuildThisFileDirectory)toolruntime.targets" Condition="'$(ExcludeToolRuntimeImport)' != 'true'"/>
 
-  <!-- import the MicroBuild boot-strapper project (only relevant for shipping binaries) -->
-  <Import Project="$(MSBuildThisFileDirectory)MicroBuild.Core.targets" Condition="'$(IsTestProject)'!='true'" />
-
   <!--
     Import the reference assembly targets
     
@@ -189,7 +186,13 @@
       <VSDesignTimeBuild Condition="'$(BuildingInsideVisualStudio)'=='true' and '$(BuildingOutOfProcess)'=='false'">true</VSDesignTimeBuild>
     </PropertyGroup>
   </Target>
-  
+
+  <!--
+    import the MicroBuild boot-strapper project (only relevant for shipping binaries)
+    NOTE: we import this at the end as it will override some dummy targets (e.g. SignFiles)
+  -->
+  <Import Project="$(MSBuildThisFileDirectory)MicroBuild.Core.targets" Condition="'$(IsTestProject)'!='true' and '$(SignType)' != 'oss'" />
+
   <!--
     Providing a definition for __BlockReflectionAttribute in an assembly is a signal to the .NET Native toolchain 
     to remove the metadata for all non-public APIs. This both reduces size and disables private reflection on those 

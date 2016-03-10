@@ -16,7 +16,6 @@
     <FileAlignment>512</FileAlignment>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <ResolveNuGetPackages>false</ResolveNuGetPackages>
-    <SkipSigning>true</SkipSigning>
     <ProjectGuid>{F01FAA6C-4EF1-4283-B9B5-4C1416FA7F50}</ProjectGuid>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
