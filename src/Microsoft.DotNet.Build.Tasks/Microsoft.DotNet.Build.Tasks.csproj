@@ -10,7 +10,6 @@
     <AssemblyName>Microsoft.DotNet.Build.Tasks</AssemblyName>
     <CLSCompliant>false</CLSCompliant>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <SkipSigning>true</SkipSigning>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>

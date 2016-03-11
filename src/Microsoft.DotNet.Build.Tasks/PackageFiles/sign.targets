@@ -23,6 +23,9 @@
     <SignType Condition="'$(SignType)' == ''">oss</SignType>
   </PropertyGroup>
 
+  <!-- stub for signing.  for official builds this is replaced with the real one -->
+  <Target Name="SignFiles" AfterTargets="AfterBuild" />
+
   <!--
     NOTE: This mechanism for wiring in the OpenSourceSign target can't be changed to any of the following:
 

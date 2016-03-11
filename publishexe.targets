@@ -9,7 +9,8 @@
     <BaseNuGetRuntimeIdentifier>win7</BaseNuGetRuntimeIdentifier>
   </PropertyGroup>
 
-  <Target Name="PublishFilesToRuntime" AfterTargets="CopyFilesToOutputDirectory"
+  <!-- this must happen after the binaries have been signed -->
+  <Target Name="PublishFilesToRuntime" AfterTargets="SignFiles"
           Condition="'$(OutputType)' == 'Exe' ">
 
     <ItemGroup>
