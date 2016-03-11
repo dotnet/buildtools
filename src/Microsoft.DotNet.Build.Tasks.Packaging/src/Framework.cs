@@ -192,6 +192,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
         public static bool IsInbox(string frameworkListsPath, string framework, string assemblyName, string assemblyVersion)
         {
+            NuGetFramework fx = NuGetFramework.Parse(framework);
+            return IsInbox(frameworkListsPath, fx, assemblyName, assemblyVersion);
+        }
+
+        public static bool IsInbox(string frameworkListsPath, NuGetFramework framework, string assemblyName, string assemblyVersion)
+        {
             // if no version is specified just use 0.0.0.0 to evaluate for any version of the contract
             Version version = FrameworkUtilities.Ensure4PartVersion(String.IsNullOrEmpty(assemblyVersion) ? new Version(0, 0, 0, 0) : new Version(assemblyVersion));
             FrameworkSet fxs = GetInboxFrameworks(frameworkListsPath);
@@ -202,15 +208,15 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             foreach (var fxVersions in fxs.Frameworks.Values)
             {
                 // Get the nearest compatible framework from this set of frameworks.
-                var nearest = FrameworkUtilities.GetNearest(NuGetFramework.Parse(framework), fxVersions.Select(fx => NuGetFramework.Parse(fx.ShortName)).ToArray());
+                var nearest = FrameworkUtilities.GetNearest(framework, fxVersions.Select(fx => NuGetFramework.Parse(fx.ShortName)).ToArray());
                 // If there are not compatible frameworks in the current framework set, there is not going to be a match.
                 if (nearest == null)
                 {
                     continue;
                 }
-                var origFramework = NuGetFramework.Parse(framework);
+
                 // if the nearest compatible frameworks version is greater than the version of the framework we are looking for, this is not going to be a match.
-                if (nearest.Version > origFramework.Version)
+                if (nearest.Version > framework.Version)
                 {
                     continue;
                 }

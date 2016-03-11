@@ -38,10 +38,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         {
             List<ITaskItem> promotedDependencies = new List<ITaskItem>();
 
+            var implementationFxs = Dependencies.Select(d => d.GetMetadata("TargetFramework")).Distinct();
+
             var actualDependencies = Dependencies.Where(d => d.ItemSpec != "_._").Select(d => new Dependency(d)).ToArray();
-
-            var implementationFxs = actualDependencies.Where(d => !d.IsReference).Select(d => d.TargetFramework).Distinct();
-
             var referenceSets = actualDependencies.Where(d => d.IsReference).GroupBy(d => d.TargetFramework).ToDictionary(g => NuGetFramework.Parse(g.Key), g => g.ToArray());
             var candidateFxs = referenceSets.Keys.ToArray();
 

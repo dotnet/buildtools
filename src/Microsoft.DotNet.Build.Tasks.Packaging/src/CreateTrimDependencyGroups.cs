@@ -27,12 +27,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             get;
             set;
         }
-        /* These are frameworks with placeholders (inbox, external, not supported) */
-        public string[] TrimFrameworks
-        {
-            get;
-            set;
-        }
 
         [Required]
         public ITaskItem[] Files
@@ -66,20 +60,16 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
 
             // Retrieve the list of generation dependency group TFM's
-            Dictionary<string, IEnumerable<ITaskItem>> portableDependencyGroups = new Dictionary<string, IEnumerable<ITaskItem>>();
-            foreach (ITaskItem dependency in Dependencies)
-            {
-                string framework = dependency.GetMetadata("TargetFramework");
-                if (framework != null && FrameworkUtilities.IsGenerationMoniker(framework) && !portableDependencyGroups.ContainsKey(framework))
+            var dependencyGroups = Dependencies.GroupBy(d => d.GetMetadata("TargetFramework")).Select(dg => new
                 {
-                    portableDependencyGroups.Add(framework, Dependencies.Where(d => d.GetMetadata("TargetFramework") == framework));
-                }
-            }
+                    Framework = NuGetFramework.Parse(dg.Key),
+                    Dependencies = dg.ToArray()
+                });
 
             List<ITaskItem> addedDependencies = new List<ITaskItem>();
-            List<string> placeHolderFrameworks = new List<string>();
 
-            var frameworksToExclude = TrimFrameworks?.Select(fx => NuGetFramework.Parse(fx))?.ToArray() ?? new NuGetFramework[0];
+            // Exclude any non-portable frameworks that already have specific dependency groups.
+            var frameworksToExclude = dependencyGroups.Select(dg => dg.Framework).Where(fx => !FrameworkUtilities.IsGenerationMoniker(fx));
 
             // Prepare a resolver for evaluating if candidate frameworks are actually supported by the package
             PackageItem[] packageItems = Files.Select(f => new PackageItem(f)).ToArray();
@@ -88,69 +78,39 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             NuGetAssetResolver resolver = new NuGetAssetResolver(null, packagePaths);
 
-            foreach (string portableDependency in portableDependencyGroups.Keys)
+            foreach (var portableDependencyGroup in dependencyGroups.Where(dg => FrameworkUtilities.IsGenerationMoniker(dg.Framework)))
             {
-                NuGetFramework portableDependencyFramework = NuGetFramework.Parse(portableDependency);
-
-                // Determine inbox frameworks for this generations dependencies as a whole
-                HashSet<NuGetFramework> inboxFrameworksList = new HashSet<NuGetFramework>();
-
-                foreach (NuGetFramework inboxFramework in Frameworks.GetAlllInboxFrameworks(FrameworkListsPath))
-                {
-                    if (Generations.DetermineGenerationForFramework(inboxFramework, UseNetPlatform) >= portableDependencyFramework.Version &&
-                        !frameworksToExclude.Contains(inboxFramework))
-                    {
-                        inboxFrameworksList.Add(inboxFramework);
-                    }
-                }
+                // Determine inbox frameworks for this generation that don't already have explicit groups
+                HashSet<NuGetFramework> inboxFrameworksList = new HashSet<NuGetFramework>(
+                    Frameworks.GetAlllInboxFrameworks(FrameworkListsPath)
+                    .Where(fx => Generations.DetermineGenerationForFramework(fx, UseNetPlatform) >= portableDependencyGroup.Framework.Version &&
+                        !frameworksToExclude.Any(exFx => exFx.Framework == fx.Framework && exFx.Version <= fx.Version)));
+                
+                // Check for assets which have a ref, but not a lib asset. If we have any of these, then they are actually not supported frameworks 
+                // and we should not include them.
+                inboxFrameworksList.RemoveWhere(inboxFx => !IsSupported(inboxFx, resolver));
 
                 // Only add the lowest version for a particular inbox framework.  EG if both net45 and net46 are supported by this generation,
                 //        only add net45
                 inboxFrameworksList.RemoveWhere(fx => inboxFrameworksList.Any(otherFx => (otherFx.Framework.Equals(fx.Framework)) && (otherFx.Version < fx.Version)));
-
-                // Check for assets which have a ref, but not a lib asset. If we have any of these, then they are actually not supported frameworks 
-                // and we should not include them.                
-                inboxFrameworksList.RemoveWhere(inboxFx => !IsSupported(inboxFx, resolver));
-
-                // Remove the frameworks which have placeholders.
-                inboxFrameworksList.RemoveWhere(fx => targetFrameworksWithPlaceHolders.Any(tfx => tfx != null && fx.DotNetFrameworkName == tfx.DotNetFrameworkName));
-
+                
                 // Create dependency items for each inbox framework.
-                foreach (string framework in inboxFrameworksList.Select(fx => fx.GetShortFolderName()))
+                foreach (var framework in inboxFrameworksList)
                 {
                     bool addedDependencyToFramework = false;
-                    foreach (ITaskItem dependency in portableDependencyGroups[portableDependency])
+                    foreach (ITaskItem dependency in portableDependencyGroup.Dependencies)
                     {
-                        // If we don't have the AssemblyVersion metadata (4 part version string), fall back and use Version (3 part version string)
-                        string version = dependency.GetMetadata("AssemblyVersion");
-                        if (string.IsNullOrEmpty(version))
-                        {
-                            version = dependency.GetMetadata("Version");
-
-                            int prereleaseIndex = version.IndexOf('-');
-                            if (prereleaseIndex != -1)
-                            {
-                                version = version.Substring(0, prereleaseIndex);
-                            }
-                        }
+                        string version = GetVersion(dependency);
+                        
                         if (!Frameworks.IsInbox(FrameworkListsPath, framework, dependency.ItemSpec, version))
                         {
                             addedDependencyToFramework = true;
-                            TaskItem dependencyItem = new TaskItem(dependency);
-                            dependencyItem.SetMetadata("TargetFramework", framework);
-                            // "Generation" is not required metadata, we just include it because it can be useful for debugging.
-                            dependencyItem.SetMetadata("Generation", portableDependency);
-                            addedDependencies.Add(dependencyItem);
+                            AddDependency(addedDependencies, new TaskItem(dependency), framework, portableDependencyGroup.Framework);
                         }
                     }
                     if (!addedDependencyToFramework)
                     {
-                        TaskItem dependencyItem = new TaskItem("_._");
-                        dependencyItem.SetMetadata("TargetFramework", framework);
-                        // "Generation" is not required metadata, we just include it because it can be useful for debugging.
-                        dependencyItem.SetMetadata("Generation", portableDependency);
-                        addedDependencies.Add(dependencyItem);
-                        placeHolderFrameworks.Add(framework);
+                        AddDependency(addedDependencies, new TaskItem("_._"), framework, portableDependencyGroup.Framework);
                     }
                 }
             }
@@ -247,6 +207,31 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             // Either all compile assets had matching runtime assets, or all were placeholders, make sure we have at
             // least one runtime asset to cover the placeholder case
             return runtimeAssets.Any();
+        }
+
+        private static string GetVersion(ITaskItem dependency)
+        {
+            // If we don't have the AssemblyVersion metadata (4 part version string), fall back and use Version (3 part version string)
+            string version = dependency.GetMetadata("AssemblyVersion");
+            if (string.IsNullOrEmpty(version))
+            {
+                version = dependency.GetMetadata("Version");
+
+                int prereleaseIndex = version.IndexOf('-');
+                if (prereleaseIndex != -1)
+                {
+                    version = version.Substring(0, prereleaseIndex);
+                }
+            }
+            return version;
+        }
+
+        private static void AddDependency(List<ITaskItem> dependencies, ITaskItem item, NuGetFramework targetFramework, NuGetFramework generation)
+        {
+            item.SetMetadata("TargetFramework", targetFramework.GetShortFolderName());
+            // "Generation" is not required metadata, we just include it because it can be useful for debugging.
+            item.SetMetadata("Generation", generation.GetShortFolderName());
+            dependencies.Add(item);
         }
     }
     public class DependencyITaskItemComparer : IEqualityComparer<ITaskItem>
