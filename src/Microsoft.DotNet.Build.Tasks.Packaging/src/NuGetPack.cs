@@ -5,6 +5,7 @@
 using Microsoft.Build.Framework;
 using NuGet;
 using NuGet.Versioning;
+using NuGet.Packaging;
 using System;
 using System.IO;
 
@@ -81,7 +82,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     using (var nuspecFile = File.Open(nuspecPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
                     {
                         string baseDirectoryPath = (string.IsNullOrEmpty(BaseDirectory)) ? Path.GetDirectoryName(nuspecPath) : BaseDirectory;
-                        Manifest manifest = Manifest.ReadFrom(nuspecFile);
+                        Manifest manifest = Manifest.ReadFrom(nuspecFile, false);
                         builder.Populate(manifest.Metadata);
                         builder.PopulateFiles(baseDirectoryPath, manifest.Files);
                     }

@@ -153,26 +153,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             //property.SetValue(target, list, null);
         }
-
-        public static string Combine(this PackageDirectory packageDirectory, string targetFramework, string fileName)
-        {
-            switch (packageDirectory)
-            {
-                case PackageDirectory.Root:
-                    return fileName;
-                case PackageDirectory.Content:
-                    return Path.Combine(Constants.ContentDirectory, fileName);
-                case PackageDirectory.Build:
-                    return Path.Combine(Constants.BuildDirectory, fileName);
-                case PackageDirectory.Lib:
-                    return Path.Combine(Constants.LibDirectory, targetFramework, fileName);
-                case PackageDirectory.Tools:
-                    return Path.Combine(Constants.ToolsDirectory, fileName);
-                default:
-                    return fileName;
-            }
-        }
-
     }
 }
 
