@@ -16,7 +16,7 @@ log = helix.logs.get_logger()
 
 def _create_package_file_list(assembly_list, execution_location, coreroot_location, framework_in_tpa=False):
     log.info("Opening assembly list from {}".format(assembly_list))
-    framework_target = core_root if framework_in_tpa else execution_location
+    framework_target = coreroot_location if framework_in_tpa else execution_location
 
     if framework_in_tpa:
         log.info("Framework assemblies will be copied to be in TPA list.")
