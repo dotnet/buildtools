@@ -490,13 +490,6 @@
         <Exclude Condition="'%(FilePackageDependency.IsReferenceAsset)' != 'true'">Compile</Exclude>
       </FilePackageDependency>
     </ItemGroup>
-    
-    <!-- Promote reference dependencies to implementation TargetFrameworks -->
-    <PromoteReferenceDependencies Dependencies="@(FilePackageDependency)"
-                                  FrameworkListsPath="$(FrameworkListsPath)"
-                                  Condition="'@(FilePackageDependency)' != ''">
-      <Output TaskParameter="PromotedDependencies" ItemName="FilePackageDependency" />
-    </PromoteReferenceDependencies>
       
     
    <!-- We can reduce the number of dependencies listed for any framework that has
@@ -505,12 +498,18 @@
         packages.config based projects.  -->
     <CreateTrimDependencyGroups Dependencies="@(FilePackageDependency);@(Dependency)"
                       FrameworkListsPath="$(FrameworkListsPath)"
-                      TrimFrameworks="@(InboxOnTargetFramework);@(NotSupportedOnTargetFramework);@(ExternalOnTargetFramework)"
                       Files="@(File)"
                       UseNetPlatform="$(UseNetPlatform)"
                       Condition="'@(FilePackageDependency)' != '' AND '$(PackageTargetRuntime)' == ''">
       <Output TaskParameter="TrimmedDependencies" ItemName="FilePackageDependency" />
     </CreateTrimDependencyGroups>
+
+    <!-- Promote reference dependencies to implementation TargetFrameworks -->
+    <PromoteReferenceDependencies Dependencies="@(FilePackageDependency)"
+                                  FrameworkListsPath="$(FrameworkListsPath)"
+                                  Condition="'@(FilePackageDependency)' != ''">
+      <Output TaskParameter="PromotedDependencies" ItemName="FilePackageDependency" />
+    </PromoteReferenceDependencies>
 
     <ApplyBaseLine OriginalDependencies="@(FilePackageDependency)" BaseLinePackages="@(BaseLinePackage)" Condition="'$(BaseLinePackageDependencies)' != 'false'">
       <Output TaskParameter="BaseLinedDependencies" ItemName="_BaseLinedDependencies" />

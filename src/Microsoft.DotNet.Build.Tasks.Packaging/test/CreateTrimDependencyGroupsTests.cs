@@ -36,6 +36,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 CreateFileItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "lib/wpa81", "wpa81"),
                 CreateFileItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "lib/xamarinios10", "xamarinios10"),
                 CreateFileItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "lib/xamarinmac20", "xamarinmac20"),
+                CreateFileItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "lib/xamarintvos10", "xamarintvos10"),
+                CreateFileItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "lib/xamarinwatchos10", "xamarinwatchos10"),
                 CreateFileItem(@"E:\ProjectK\binaries\x86ret\NETCore\Libraries\System.Collections.Immutable.dll", "lib/netstandard1.0", "netstandard1.0"),
                 CreateFileItem(@"E:\ProjectK\binaries\x86ret\Open\CoreFx\Windows_NT.x86.Release\System.Collections.Immutable\System.Collections.Immutable.xml", "lib/netstandard1.0", "netstandard1.0"),
                 CreateFileItem(@"E:\ProjectK\binaries\x86ret\Open\CoreFx\Windows_NT.x86.Release\System.Collections.Immutable\System.Collections.Immutable.xml", "lib/portable-net45+win8+wp8+wpa81", "portable-net45+win8+wp8+wpa81"),
@@ -53,6 +55,16 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
             };
             ITaskItem[] dependencies = new[]
             {
+                CreateDependencyItem(@"_._", null, "MonoAndroid10"),
+                CreateDependencyItem(@"_._", null, "MonoTouch10"),
+                CreateDependencyItem(@"_._", null, "net45"),
+                CreateDependencyItem(@"_._", null, "win8"),
+                CreateDependencyItem(@"_._", null, "wp8"),
+                CreateDependencyItem(@"_._", null, "wpa81"),
+                CreateDependencyItem(@"_._", null, "xamarinios10"),
+                CreateDependencyItem(@"_._", null, "xamarinmac20"),
+                CreateDependencyItem(@"_._", null, "xamarintvos10"),
+                CreateDependencyItem(@"_._", null, "xamarinwatchos10"),
                 CreateDependencyItem(@"System.Runtime", "4.0.0", "netstandard1.0"),
                 CreateDependencyItem(@"System.Resources.ResourceManager", "4.0.0", "netstandard1.0"),
                 CreateDependencyItem(@"System.Collections", "4.0.0", "netstandard1.0"),
@@ -138,31 +150,42 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
         {
             ITaskItem[] files = new[]
             {
-                CreateFileItem(@"E:\ProjectK\binaries\x86ret\NETCore\Libraries\System.ComponentModel.dll", "lib/netstandard1.3", "netstandard1.3"),
-                CreateFileItem(@"E:\ProjectK\src\NDP\FxCore\src\Packages\_._", "lib/MonoAndroid10", "MonoAndroid10"),
-                CreateFileItem(@"E:\ProjectK\src\NDP\FxCore\src\Packages\_._", "lib/MonoTouch10", "MonoTouch10"),
-                CreateFileItem(@"E:\ProjectK\src\NDP\FxCore\src\Packages\net45.dll", "lib/net45", "net45"),
-                CreateFileItem(@"E:\ProjectK\src\NDP\FxCore\src\Packages\_._", "lib/win8", "win8"),
-                CreateFileItem(@"E:\ProjectK\src\NDP\FxCore\src\Packages\_._", "lib/wp80", "wp80"),
-                CreateFileItem(@"E:\ProjectK\src\NDP\FxCore\src\Packages\_._", "lib/wpa81", "wpa81"),
-                CreateFileItem(@"E:\ProjectK\src\NDP\FxCore\src\Packages\_._", "lib/xamarinios10", "xamarinios10"),
-                CreateFileItem(@"E:\ProjectK\src\NDP\FxCore\src\Packages\_._", "lib/xamarinmac20", "xamarinmac20"),
-                CreateFileItem(@"E:\ProjectK\binaries\x86ret\NETCore\Libraries\System.ComponentModel.dll", "lib/netcore50/System.ComponentModel.dll", "netcore50"),
-                CreateFileItem(@"E:\ProjectK\binaries\x86ret\Contracts\System.ComponentModel\4.0.1.0\System.ComponentModel.dll", "lib/ref/netstandard1.0", "netstandard1.0"),
-                CreateFileItem(@"E:\ProjectK\src\NDP\FxCore\src\Packages\_._", "ref/MonoAndroid10", "MonoAndroid10"),
-                CreateFileItem(@"E:\ProjectK\src\NDP\FxCore\src\Packages\_._", "ref/MonoTouch10", "MonoTouch10"),
-                CreateFileItem(@"E:\ProjectK\src\NDP\FxCore\src\Packages\net45.dll", "ref/net45", "net45"),
-                CreateFileItem(@"E:\ProjectK\src\NDP\FxCore\src\Packages\_._", "ref/win8", "win8"),
-                CreateFileItem(@"E:\ProjectK\src\NDP\FxCore\src\Packages\_._", "ref/wp80", "wp80"),
-                CreateFileItem(@"E:\ProjectK\src\NDP\FxCore\src\Packages\_._", "ref/wpa81", "wpa81"),
-                CreateFileItem(@"E:\ProjectK\src\NDP\FxCore\src\Packages\_._", "ref/xamarinios10", "xamarinios10"),
-                CreateFileItem(@"E:\ProjectK\src\NDP\FxCore\src\Packages\_._", "ref/xamarintvos10", "xamarintvos10"),
-                CreateFileItem(@"E:\ProjectK\src\NDP\FxCore\src\Packages\_._", "ref/xamarinwatchos10", "xamarinwatchos10"),
-                CreateFileItem(@"E:\ProjectK\src\NDP\FxCore\src\Packages\_._", "ref/xamarinmac20", "xamarinmac20"),
-                CreateFileItem(@"E:\ProjectK\binaries\x86ret\Contracts\System.ComponentModel\4.0.1.0\System.ComponentModel.dll", "ref/netcore50/System.ComponentModel.dll", "netcore50")
+                CreateFileItem(@"C:\bin\System.ComponentModel.dll", "lib/netstandard1.3", "netstandard1.3"),
+                CreateFileItem(@"C:\bin\System.ComponentModel.dll", "lib/netcore50/System.ComponentModel.dll", "netcore50"),
+                CreateFileItem(@"C:\bin\ns10\System.ComponentModel.dll", "lib/netstandard1.0", "netstandard1.0"),
+                CreateFileItem(@"C:\bin\_._", "lib/MonoAndroid10", "MonoAndroid10"),
+                CreateFileItem(@"C:\bin\_._", "lib/MonoTouch10", "MonoTouch10"),
+                CreateFileItem(@"C:\bin\_._", "lib/win8", "win8"),
+                CreateFileItem(@"C:\bin\_._", "lib/wp80", "wp80"),
+                CreateFileItem(@"C:\bin\_._", "lib/wpa81", "wpa81"),
+                CreateFileItem(@"C:\bin\_._", "lib/xamarinios10", "xamarinios10"),
+                CreateFileItem(@"C:\bin\_._", "lib/xamarinmac20", "xamarinmac20"),
+                CreateFileItem(@"C:\bin\_._", "lib/xamarintvos10", "xamarintvos10"),
+                CreateFileItem(@"C:\bin\_._", "lib/xamarinwatchos10", "xamarinwatchos10"),
+                CreateFileItem(@"C:\bin\ref\System.ComponentModel.dll", "ref/netstandard1.3", "netstandard1.3"),
+                CreateFileItem(@"C:\bin\ref\System.ComponentModel.dll", "ref/netcore50/System.ComponentModel.dll", "netcore50"),
+                CreateFileItem(@"C:\bin\ref\ns10\System.ComponentModel.dll", "ref/netstandard1.0", "netstandard1.0"),
+                CreateFileItem(@"C:\bin\_._", "ref/MonoAndroid10", "MonoAndroid10"),
+                CreateFileItem(@"C:\bin\_._", "ref/MonoTouch10", "MonoTouch10"),
+                CreateFileItem(@"C:\bin\_._", "ref/win8", "win8"),
+                CreateFileItem(@"C:\bin\_._", "ref/wp80", "wp80"),
+                CreateFileItem(@"C:\bin\_._", "ref/wpa81", "wpa81"),
+                CreateFileItem(@"C:\bin\_._", "ref/xamarinios10", "xamarinios10"),
+                CreateFileItem(@"C:\bin\_._", "ref/xamarintvos10", "xamarintvos10"),
+                CreateFileItem(@"C:\bin\_._", "ref/xamarinwatchos10", "xamarinwatchos10"),
+                CreateFileItem(@"C:\bin\_._", "ref/xamarinmac20", "xamarinmac20"),
             };
             ITaskItem[] dependencies = new[]
             {
+                CreateDependencyItem(@"_._", null, "MonoAndroid10"),
+                CreateDependencyItem(@"_._", null, "MonoTouch10"),
+                CreateDependencyItem(@"_._", null, "win8"),
+                CreateDependencyItem(@"_._", null, "wp8"),
+                CreateDependencyItem(@"_._", null, "wpa81"),
+                CreateDependencyItem(@"_._", null, "xamarinios10"),
+                CreateDependencyItem(@"_._", null, "xamarinmac20"),
+                CreateDependencyItem(@"_._", null, "xamarintvos10"),
+                CreateDependencyItem(@"_._", null, "xamarinwatchos10"),
                 CreateDependencyItem(@"System.Runtime", "4.0.0", "netstandard1.0"),
                 CreateDependencyItem(@"System.Runtime", "4.0.20", "netstandard1.3"),
                 // Make up some dependencies which are not inbox on net45, net451, net46
@@ -188,7 +211,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
 
             // System.Collections.Immutable is not inbox and we've specified different versions for netstandard1.0 and netstandard1.3, so
             // we're expecting those dependencies to both be present for the net45 and net46 target frameworks.
-            Assert.Equal(3, task.TrimmedDependencies.Length);
+            Assert.Equal(2, task.TrimmedDependencies.Length);
             Assert.Equal(1, task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Equals("net45") && f.ItemSpec.Equals("System.Collections.Immutable", StringComparison.OrdinalIgnoreCase)).Count());
             Assert.Equal(1, task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Equals("net451") && f.ItemSpec.Equals("System.Collections.Immutable", StringComparison.OrdinalIgnoreCase)).Count());
         }
@@ -305,7 +328,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
         public static ITaskItem CreateDependencyItem(string sourcePath, string version, string targetFramework)
         {
             TaskItem item = new TaskItem(sourcePath);
-            item.SetMetadata("Version", version);
+
+            if (version != null)
+            {
+                item.SetMetadata("Version", version);
+            }
+
             item.SetMetadata("TargetFramework", targetFramework);
             return item;
         }
