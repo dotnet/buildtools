@@ -4,9 +4,9 @@
     "Microsoft.Build.Tasks.Core": "0.1.0-preview-00005",
     "Microsoft.Build.Utilities.Core": "0.1.0-preview-00005",
     "Microsoft.NETCore": "5.0.0",
-    "Microsoft.NETCore.Platforms": "1.0.0",
+    "Microsoft.NETCore.Platforms": "1.0.1-rc2-23907",
     "Newtonsoft.Json": "7.0.1",
-    "NuGet.Client": "3.4.0-beta-488",
+    "NuGet.Client": "3.4.0-rtm-0764",
     "xunit": "2.1.0"
   },
   "frameworks": {

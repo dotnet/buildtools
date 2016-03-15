@@ -7,6 +7,7 @@ using Microsoft.Build.Utilities;
 using NuGet;
 using NuGet.Frameworks;
 using NuGet.Packaging.Core;
+using NuGet.Packaging;
 using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
@@ -136,7 +137,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             {
                 using (var stream = File.OpenRead(InputFileName))
                 {
-                    manifest = Manifest.ReadFrom(stream);
+                    manifest = Manifest.ReadFrom(stream, false);
                 }
                 if (manifest.Metadata == null)
                 {
@@ -153,18 +154,27 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             manifestMetadata.UpdateMember(x => x.Authors, Authors?.Split(';'));
             manifestMetadata.UpdateMember(x => x.Copyright, Copyright);
-            manifestMetadata.UpdateMember(x => x.DependencySets, GetDependencySets());
+            manifestMetadata.UpdateMember(x => x.DependencyGroups, GetDependencySets());
             manifestMetadata.UpdateMember(x => x.Description, Description);
             manifestMetadata.DevelopmentDependency |= DevelopmentDependency;
-            manifestMetadata.UpdateMember(x => x.FrameworkAssemblies, GetFrameworkAssemblies());
-            manifestMetadata.UpdateMember(x => x.IconUrl, IconUrl != null ? new Uri(IconUrl) : null);
+            manifestMetadata.UpdateMember(x => x.FrameworkReferences, GetFrameworkAssemblies());
+            if (IconUrl != null)
+            {
+                manifestMetadata.SetIconUrl(IconUrl);
+            }
             manifestMetadata.UpdateMember(x => x.Id, Id);
             manifestMetadata.UpdateMember(x => x.Language, Language);
-            manifestMetadata.UpdateMember(x => x.LicenseUrl, new Uri(LicenseUrl));
+            if (LicenseUrl != null)
+            {
+                manifestMetadata.SetLicenseUrl(LicenseUrl);
+            }
             manifestMetadata.UpdateMember(x => x.MinClientVersionString, MinClientVersion);
             manifestMetadata.UpdateMember(x => x.Owners, Owners?.Split(';'));
-            manifestMetadata.UpdateMember(x => x.ProjectUrl, ProjectUrl != null ? new Uri(ProjectUrl) : null);
-            manifestMetadata.AddRangeToMember(x => x.PackageAssemblyReferences, GetReferenceSets());
+            if (ProjectUrl != null)
+            {
+                manifestMetadata.SetProjectUrl(ProjectUrl);
+            }
+            manifestMetadata.UpdateMember(x => x.PackageAssemblyReferences, GetReferenceSets());
             manifestMetadata.UpdateMember(x => x.ReleaseNotes, ReleaseNotes);
             manifestMetadata.RequireLicenseAcceptance |= RequireLicenseAcceptance;
             manifestMetadata.UpdateMember(x => x.Summary, Summary);
@@ -180,11 +190,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         private List<ManifestFile> GetManifestFiles()
         {
             return (from f in Files.NullAsEmpty()
-                    select new ManifestFile(
-                        f.GetMetadata(Metadata.FileSource),
-                        f.GetMetadata(Metadata.FileTarget),
-                        f.GetMetadata(Metadata.FileExclude)
-                        )).OrderBy(f => f.Target, StringComparer.OrdinalIgnoreCase).ToList();
+                    select new ManifestFile()
+                    {
+                        Source = f.GetMetadata(Metadata.FileSource),
+                        Target = f.GetMetadata(Metadata.FileTarget),
+                        Exclude = f.GetMetadata(Metadata.FileExclude)
+                    }).OrderBy(f => f.Target, StringComparer.OrdinalIgnoreCase).ToList();
         }
 
         private List<FrameworkAssemblyReference> GetFrameworkAssemblies()
@@ -195,7 +206,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     ).ToList();
         }
 
-        private List<PackageDependencySet> GetDependencySets()
+        private List<PackageDependencyGroup> GetDependencySets()
         {
             var dependencies = from d in Dependencies.NullAsEmpty()
                                select new Dependency
@@ -209,7 +220,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             return (from dependency in dependencies
                     group dependency by dependency.TargetFramework into dependenciesByFramework
-                    select new PackageDependencySet(
+                    select new PackageDependencyGroup(
                         dependenciesByFramework.Key,
                         from dependency in dependenciesByFramework
                                         where dependency.Id != "_._"
@@ -229,7 +240,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     .ToList();
         }
 
-        private ICollection<PackageReferenceSet> GetReferenceSets()
+        private IEnumerable<PackageReferenceSet> GetReferenceSets()
         {
             var references = from r in References.NullAsEmpty()
                              select new
