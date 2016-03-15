@@ -15,15 +15,7 @@
     <BuildToolsTaskDir>$(ToolsDir)</BuildToolsTaskDir>
   </PropertyGroup>
 
-  <Import Project="Microsoft.DotNet.Build.Tasks\PackageFiles\packages.targets" Condition="'$(ImportGetNuGetPackageVersions)' != 'false'" />
   <Import Project="$(ToolsDir)UpdateBuildValues.targets" Condition="Exists('$(ToolsDir)UpdateBuildValues.targets')" />
-
-  <PropertyGroup Condition="'$(ImportGetNuGetPackageVersions)' != 'false'">
-    <TraversalBuildDependsOn>
-      $(TraversalBuildDependsOn);
-      BuildPackages;
-    </TraversalBuildDependsOn>
-  </PropertyGroup>
 
   <PropertyGroup>
     <GenerateCodeCoverageReportForAll>true</GenerateCodeCoverageReportForAll>

@@ -10,6 +10,7 @@
   <ItemGroup>
     <Project Include="src\dirs.proj" />
     <Project Include="src\sign.builds" />
+    <Project Include="src\packages.builds" />
   </ItemGroup>
 
   <Import Project="dir.targets" />
