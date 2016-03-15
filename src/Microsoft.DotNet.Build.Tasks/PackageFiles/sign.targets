@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <!-- metadata used for Authenticode and strong-name signing in official VSO builds -->
-  <ItemGroup Condition="'$(SkipSigning)' != 'true' and '$(IsTestProject)' != 'true' and '$(SignType)' != 'oss'">
-    <FilesToSign Include="$(TargetPath)">
-      <Authenticode>Microsoft</Authenticode>
-      <StrongName Condition="'$(SignType)' == 'real' and '$(UseOpenKey)' != 'true'">StrongName</StrongName>
-    </FilesToSign>
-  </ItemGroup>
+  <PropertyGroup>
+    <AuthenticodeSig Condition="'$(AuthenticodeSig)' == ''">Microsoft</AuthenticodeSig>
+    <StrongNameSig Condition="'$(StrongNameSig)' == '' and '$(SignType)' == 'real' and '$(UseOpenKey)' != 'true'">StrongName</StrongNameSig>
+  </PropertyGroup>
 
   <UsingTask AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" TaskName="OpenSourceSign" />
+  <UsingTask AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" TaskName="WriteSigningRequired" />
 
   <PropertyGroup Condition="'$(SkipSigning)'!='true'">
     <SignAssembly>true</SignAssembly>
@@ -25,6 +23,20 @@
 
   <!-- stub for signing.  for official builds this is replaced with the real one -->
   <Target Name="SignFiles" AfterTargets="AfterBuild" />
+
+  <!-- writes a signing marker file containing the required signatures -->
+  <Target Name="WriteSigningRequired"
+          AfterTargets="AfterBuild"
+          Condition="'$(SkipSigning)' != 'true' and '$(IsTestProject)' != 'true' and '$(SignType)' != 'oss'"
+          Inputs="$(TargetPath)"
+          Outputs="$(TargetPath).requires_signing">
+    <WriteSigningRequired AuthenticodeSig="$(AuthenticodeSig)"
+                          StrongNameSig="$(StrongNameSig)"
+                          MarkerFile="$(TargetPath).requires_signing" />
+    <ItemGroup>
+      <FileWrites Include="%(IntermediateAssembly.Identity).requires_signing" />
+    </ItemGroup>
+  </Target>
 
   <!--
     NOTE: This mechanism for wiring in the OpenSourceSign target can't be changed to any of the following:
@@ -45,7 +57,7 @@
     <OpenSourceSign AssemblyPath="%(IntermediateAssembly.Identity)" />
     <Touch Files="%(IntermediateAssembly.Identity).oss_signed" AlwaysCreate="true" />
     <ItemGroup>
-       <FileWrites Include="%(IntermediateAssembly.Identity).oss_signed" />
+      <FileWrites Include="%(IntermediateAssembly.Identity).oss_signed" />
     </ItemGroup>
   </Target>
 

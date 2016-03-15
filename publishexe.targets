@@ -9,8 +9,7 @@
     <BaseNuGetRuntimeIdentifier>win7</BaseNuGetRuntimeIdentifier>
   </PropertyGroup>
 
-  <!-- this must happen after the binaries have been signed -->
-  <Target Name="PublishFilesToRuntime" AfterTargets="SignFiles"
+  <Target Name="PublishFilesToRuntime" AfterTargets="CopyFilesToOutputDirectory"
           Condition="'$(OutputType)' == 'Exe' ">
 
     <ItemGroup>
@@ -38,6 +37,10 @@
   <Target Name="FixUpCoreConsoleNames">
     <Move SourceFiles="$(Outdir)$(AssemblyName).exe" DestinationFiles="$(Outdir)$(AssemblyName).dll" />
     <Move SourceFiles="$(Outdir)CoreConsole.exe" DestinationFiles="$(Outdir)$(AssemblyName).exe" />
+    <!-- update TargetPath with the renamed file -->
+    <PropertyGroup>
+      <TargetPath>$(Outdir)$(AssemblyName).dll</TargetPath>
+    </PropertyGroup>
   </Target>
 
 </Project>
