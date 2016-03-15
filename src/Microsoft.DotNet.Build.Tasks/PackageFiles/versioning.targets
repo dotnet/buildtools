@@ -1,13 +1,15 @@
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-    <!-- Setup the default file version information -->
+  <UsingTask TaskName="GenerateCurrentVersion" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+
+  <!-- Setup the default file version information -->
   <PropertyGroup>
     <MajorVersion Condition="'$(MajorVersion)' == ''">1</MajorVersion>
     <MinorVersion Condition="'$(MinorVersion)' == ''">0</MinorVersion>
-    
+
     <!-- These should be set by importing the targets below but initializing to 0 for consistency -->
     <BuildNumberMajor Condition="'$(BuildNumberMajor)' == ''">0</BuildNumberMajor>
-    <BuildNumberMinor Condition="'$(BuildNumberMinor)' == ''">0</BuildNumberMinor>
+    <BuildNumberMinor Condition="'$(BuildNumberMinor)' == ''">00</BuildNumberMinor>
   </PropertyGroup>
 
   <!-- Import a build target that includes the build numbers -->
@@ -21,7 +23,7 @@
     <CLSCompliant Condition="'$(CLSCompliant)'==''">false</CLSCompliant>
     <AssemblyFileVersion Condition="'$(AssemblyFileVersion)'==''">$(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)</AssemblyFileVersion>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <GenerateAssemblyInfo Condition="'$(GenerateAssemblyInfo)'==''">true</GenerateAssemblyInfo>
     <BuiltByString Condition="'$(BuiltByString)'==''">%20built by: $(COMPUTERNAME)-$(USERNAME)</BuiltByString>
@@ -40,7 +42,8 @@
   <Target Name="GenerateAssemblyInfo"
       Inputs="$(MSBuildProjectFile)"
       Outputs="$(AssemblyInfoFile)"
-      Condition="'$(GenerateAssemblyInfo)'=='true'">
+      Condition="'$(GenerateAssemblyInfo)'=='true'"
+      DependsOnTargets="CreateVersionFileDuringBuild">
 
     <Error Condition="!Exists('$(IntermediateOutputPath)')" Text="GenerateAssemblyInfo failed because IntermediateOutputPath isn't set to a valid directory" />
 
@@ -58,7 +61,7 @@
       <AssemblyInfoLines Include="[assembly:AssemblyInformationalVersion(@&quot;$(AssemblyFileVersion)$(BuiltByString)&quot;)]" />
       <AssemblyInfoLines Condition="'$(CLSCompliant)'=='true'" Include="[assembly:CLSCompliant(true)]" />
       <AssemblyInfoLines Condition="'$(AssemblyComVisible)'!=''" Include="[assembly:System.Runtime.InteropServices.ComVisible($(AssemblyComVisible))]" />
-      <AssemblyInfoLines Condition="'$(SkipFrameworkAssemblyMetadata)' != 'true'" 
+      <AssemblyInfoLines Condition="'$(SkipFrameworkAssemblyMetadata)' != 'true'"
         Include="[assembly:System.Reflection.AssemblyMetadata(&quot;%(AssemblyMetadata.Identity)&quot;, &quot;%(AssemblyMetadata.Value)&quot;)]" />
     </ItemGroup>
 
@@ -76,7 +79,7 @@
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyInformationalVersion(&quot;$(AssemblyFileVersion)$(BuiltByString)&quot;)&gt;" />
       <AssemblyInfoLines Condition="'$(CLSCompliant)'=='true'" Include="&lt;Assembly:CLSCompliant(True)&gt;" />
       <AssemblyInfoLines Condition="'$(AssemblyComVisible)'!=''" Include="&lt;Assembly:System.Runtime.InteropServices.ComVisible($(AssemblyComVisible))&gt;" />
-      <AssemblyInfoLines Condition="'$(SkipFrameworkAssemblyMetadata)' != 'true'" 
+      <AssemblyInfoLines Condition="'$(SkipFrameworkAssemblyMetadata)' != 'true'"
           Include="&lt;assembly:System.Reflection.AssemblyMetadata(&quot;%(AssemblyMetadata.Identity)&quot;, &quot;%(AssemblyMetadata.Value)&quot;)&gt;" />
     </ItemGroup>
 
@@ -95,10 +98,10 @@
       Lines="@(AssemblyInfoUsings);@(AssemblyInfoLines)"
       Overwrite="true" />
 
-    <ItemGroup>  
-      <Compile Include="$(AssemblyInfoFile)" />  
-      <FileWrites Include="$(AssemblyInfoFile)" />  
-    </ItemGroup>  
+    <ItemGroup>
+      <Compile Include="$(AssemblyInfoFile)" />
+      <FileWrites Include="$(AssemblyInfoFile)" />
+    </ItemGroup>
 
   </Target>
 
@@ -125,7 +128,7 @@
       Inputs="$(MSBuildProjectFile)"
       Outputs="$(NativeVersionHeaderFile)"
       Condition="'$(NativeVersionHeaderFile)'!='' and '$(GenerateVersionHeader)'=='true'">
-      
+
     <ItemGroup>
       <NativeVersionLines Include="#define VER_COMPANYNAME_STR         &quot;Microsoft Corporation&quot;" />
       <NativeVersionLines Include="#define VER_FILEDESCRIPTION_STR     &quot;$(AssemblyName)&quot;" />
@@ -149,6 +152,92 @@
     <ItemGroup>
       <FileWrites Include="$(NativeVersionHeaderFile)" />
     </ItemGroup>
+  </Target>
+
+  <!-- #################################### -->
+  <!-- Generate BuildVersion.props -->
+  <!-- #################################### -->
+  <Target Name="CreateOrUpdateCurrentVersionFile" Condition="'$(SkipVersionGeneration)'!='true'" DependsOnTargets="GenerateCurrentVersion">
+    <!-- Error out if GeneratedBuildNumberMajor is empty since GenerateCurrentVersion should have calculated it already. -->
+    <Error Condition="'$(GeneratedBuildNumberMajor)'==''" Text="Error when generating current version." />
+
+    <PropertyGroup>
+      <VersionSeedSourceComment Condition="'$(VersionSeedSourceComment)'==''">VersionSeedData was produced by taking the timestamp of the last git commit.</VersionSeedSourceComment>
+    </PropertyGroup>
+      
+    <ItemGroup>
+      <CurrentVersionLines Include="%3C%3Fxml version=%221.0%22 encoding=%22utf-8%22%3F%3E" />
+      <CurrentVersionLines Include="%3C!-- This is a generated file. $(VersionSeedSourceComment) Seed Date is $(VersionSeedDate). --%3E" />
+      <CurrentVersionLines Include="%3CProject xmlns=%22http://schemas.microsoft.com/developer/msbuild/2003%22%3E" />
+      <CurrentVersionLines Include="%3CPropertyGroup%3E" />
+      <CurrentVersionLines Include="%3CBuildNumberMajor Condition=%22%27%24(BuildNumberMajor)%27==%27%27%22%3E$(GeneratedBuildNumberMajor)%3C/BuildNumberMajor%3E" />
+      <CurrentVersionLines Include="%3C/PropertyGroup%3E" />
+      <CurrentVersionLines Include="%3C/Project%3E" />
+    </ItemGroup>
+    
+    <!-- Since by default the file will get dropped at the obj dir, make sure that the dir is created already or else WriteLinesToFile will error. -->
+    <MakeDir Condition="!Exists('$(BuildVersionFilePath)')" Directories="$(BuildVersionFilePath)" />
+      
+    <WriteLinesToFile
+      ContinueOnError="WarnAndContinue"
+      Condition="!Exists('$(BuildVersionFile)')"
+      File="$(BuildVersionFile)"
+      Lines="@(CurrentVersionLines)"
+      Overwrite="true" />
+    
+    <!-- Delete old BuildVersion.props files -->
+    <ItemGroup>
+      <OldBuildVersionFiles Include="$(BuildVersionFilePath)BuildVersions-*.props" Exclude="$(BuildVersionFilePath)%(BuildVersionFileItem.Filename).props" />
+    </ItemGroup>
+    <Delete Files="@(OldBuildVersionFiles)" TreatErrorsAsWarnings="true"/>
+
+  </Target>
+
+  <Target Name="GenerateCurrentVersion" DependsOnTargets="GetVersionSeedDate">
+    <Error Condition="'$(VersionSeedDate)'==''" Text="A date is needed to Generate the current version." />
+
+    <!-- Setting default parameters in case that they are not set before. -->
+    <PropertyGroup>
+      <!-- Padding should be equal or greater to 5. Using 5 to align with internal build system. -->
+      <VersionPadding Condition="'$(VersionPadding)'==''">5</VersionPadding>
+      <!-- Using the following default comparison date will produce versions that align with our internal build system. -->
+      <VersionComparisonDate Condition="'$(VersionComparisonDate)'==''">1996-04-01 00:00:00 Z</VersionComparisonDate>
+    </PropertyGroup>
+      
+    <GenerateCurrentVersion SeedDate="$(VersionSeedDate)">
+      <Output PropertyName="GeneratedBuildNumberMajor" TaskParameter="GeneratedVersion" />
+    </GenerateCurrentVersion>
+  </Target>
+
+  <Target Name="GetVersionSeedDate" Condition="'$(VersionSeedDate)'==''">
+    <ItemGroup>
+      <VersionTargetsFile Include="$(MSBuildThisFileFullPath)" />
+    </ItemGroup>
+      
+    <!-- Windows Exec command requires DOS escaping for the percent sign since it secretly runs the process in a shell instead of calling createprocess. -->
+    <PropertyGroup>
+      <GitCommand Condition="'$(OsEnvironment)'=='Windows_NT'">git show -s --format=^%25%25cd --date=iso HEAD</GitCommand>
+      <GitCommand Condition="'$(OsEnvironment)'!='Windows_NT'">git show -s --format=%25cd --date=iso HEAD</GitCommand>
+    </PropertyGroup>
+      
+    <Exec Command="$(GitCommand)" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="VersionSeedDate" />
+      <Output TaskParameter="ExitCode" PropertyName="GitCommandExitCode" />
+    </Exec>
+    <PropertyGroup Condition="'$(GitCommandExitCode)'!='0'">
+      <VersionSeedDate>%(VersionTargetsFile.ModifiedTime)</VersionSeedDate>
+      <VersionSeedSourceComment>VersionSeedDate was produced by getting the timestamp of versioning.targets.</VersionSeedSourceComment>
+    </PropertyGroup>
+  </Target>
+
+  <!-- This target will only be executed if BuildVersion.props doesn't exist yet -->
+  <Target Name="CreateVersionFileDuringBuild" Condition="'$(SkipVersionGeneration)'!='true' AND '$(ShouldCreateVersionFileDuringBuild)'=='true'" DependsOnTargets="CreateOrUpdateCurrentVersionFile">
+    <PropertyGroup>
+      <BuildNumberMajor>$(GeneratedBuildNumberMajor)</BuildNumberMajor>
+      <AssemblyFileVersion>$(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)</AssemblyFileVersion>
+      <VersionSuffix Condition="'$(PreReleaseLabel)' != ''">-$(PreReleaseLabel)</VersionSuffix>
+      <VersionSuffix Condition="'$(IncludeBuildNumberInPackageVersion)' == 'true'">$(VersionSuffix)-$(BuildNumberMajor).$(BuildNumberMinor)</VersionSuffix>
+    </PropertyGroup>
   </Target>
 
   <Target Name="NativeResourceCompile" DependsOnTargets="$(BeforeResourceCompileTargets)" Inputs="$(MsBuildThisFileDirectory)NativeVersion.rc" Outputs="$(Win32Resource)">
