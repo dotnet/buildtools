@@ -4,7 +4,7 @@
   <!-- Perf Runner NuGet package paths -->
   <PropertyGroup>
     <XunitPerfRunnerPackageId>Microsoft.DotNet.xunit.performance.runner.Windows</XunitPerfRunnerPackageId>
-    <XunitPerfRunnerPackageVersion Condition="'$(XunitPerfRunnerPackageVersion)' == ''">1.0.0-alpha-build0028</XunitPerfRunnerPackageVersion>
+    <XunitPerfRunnerPackageVersion Condition="'$(XunitPerfRunnerPackageVersion)' == ''">1.0.0-alpha-build0029</XunitPerfRunnerPackageVersion>
     <XunitPerfRunnerPackageDir>$(PackagesDir)$(XunitPerfRunnerPackageId)/$(XunitPerfRunnerPackageVersion)</XunitPerfRunnerPackageDir>
     <XunitPerfRunnerPath>$(TestPath)$(DebugTestFrameworkFolder)/xunit.performance.run.exe</XunitPerfRunnerPath>
   </PropertyGroup>
@@ -12,7 +12,7 @@
   <!-- Perf Analysis NuGet package paths -->
   <PropertyGroup>
     <XunitPerfAnalysisPackageId>Microsoft.DotNet.xunit.performance.analysis</XunitPerfAnalysisPackageId>
-    <XunitPerfAnalysisPackageVersion Condition="'$(XunitPerfAnalysisPackageVersion)' == ''">1.0.0-alpha-build0028</XunitPerfAnalysisPackageVersion>
+    <XunitPerfAnalysisPackageVersion Condition="'$(XunitPerfAnalysisPackageVersion)' == ''">1.0.0-alpha-build0029</XunitPerfAnalysisPackageVersion>
     <XunitPerfAnalysisPath>$(PackagesDir)$(XunitPerfAnalysisPackageId)/$(XunitPerfAnalysisPackageVersion)/tools/xunit.performance.analysis.exe</XunitPerfAnalysisPath>
   </PropertyGroup>
 

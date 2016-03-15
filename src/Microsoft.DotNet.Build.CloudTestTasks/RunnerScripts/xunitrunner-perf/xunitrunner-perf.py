@@ -147,7 +147,7 @@ def post_process_perf_results(settings, results_location, workitem_dir):
     # Use the xunit perf analysis exe from nuget package here
     log.info('Converting xml to csv')
     payload_dir = fix_path(os.getenv('HELIX_CORRELATION_PAYLOAD'))
-    xmlconvertorpath = os.path.join(*[payload_dir, 'Microsoft.DotNet.xunit.performance.analysis', '1.0.0-alpha-build0028', 'tools', 'xunit.performance.analysis.exe'])
+    xmlconvertorpath = os.path.join(*[payload_dir, 'Microsoft.DotNet.xunit.performance.analysis', '1.0.0-alpha-build0029', 'tools', 'xunit.performance.analysis.exe'])
     xmlCmd = xmlconvertorpath+' -csv '+os.path.join(workitem_dir, 'results.csv')+' '+results_location
     if (helix.proc.run_and_log_output(xmlCmd.split(' '))) != 0:
         raise Exception('Failed to generate csv from result xml')
