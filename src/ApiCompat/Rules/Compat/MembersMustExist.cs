@@ -16,7 +16,7 @@ namespace Microsoft.Cci.Differs.Rules
     internal class MembersMustExist : DifferenceRule
     {
         [Import]
-        private IEqualityComparer<ITypeReference> _typeComparer { get; set; } = null;
+        public IEqualityComparer<ITypeReference> _typeComparer { get; set; } = null;
 
         public enum FindMethodResult
         {
