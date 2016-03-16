@@ -1,0 +1,137 @@
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <UsingTask TaskName="PrereleaseResolveNuGetPackageAssets" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="LocatePreviousContract" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  
+  <PropertyGroup>
+    <ApiCompatBaseline Condition="'$(targetGroup)'!=''">$(MSBuildProjectDirectory)\ApiCompatBaseline.$(targetGroup).txt</ApiCompatBaseline>
+    <ApiCompatBaseline Condition="'$(targetGroup)'==''">$(MSBuildProjectDirectory)\ApiCompatBaseline.txt</ApiCompatBaseline>
+    <ReferenceProjectDirectory>$(MSBuildProjectDirectory)\..\ref</ReferenceProjectDirectory>
+    <ReferenceProject>$(ReferenceProjectDirectory)\$(MSBuildProjectFile)</ReferenceProject>
+    <ReferenceOutputPath>$(ReferenceAssemblyOutputPath)$(AssemblyName)/$(AssemblyVersion)</ReferenceOutputPath>
+    <ReferenceAssembly>$(ReferenceOutputPath)\$(AssemblyName).dll</ReferenceAssembly>
+    <ReferenceProjectJson Condition="'$(ReferenceProjectJson)'=='' and Exists('$(ReferenceProjectDirectory)/project.json')">$(ReferenceProjectDirectory)/project.json</ReferenceProjectJson>
+    <ReferenceProjectLockJson Condition="Exists('$(ReferenceProjectJson)') and '$(ReferenceProjectLockJson)'==''">$(ReferenceProjectDirectory)/project.lock.json</ReferenceProjectLockJson>    
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <RunApiCompatForSrc Condition="$(MSBuildProjectDirectory.EndsWith('src'))">true</RunApiCompatForSrc>
+    <RunApiCompatForRef Condition="$(MSBuildProjectDirectory.EndsWith('ref'))">true</RunApiCompatForRef>
+    <RunApiCompat Condition="'$(RunApiCompat)'==''">false</RunApiCompat>
+  </PropertyGroup>
+  
+  <!-- ApiCompat for Implementation Assemblies  -->
+  <Target Name="ValidateApiCompatForSrc"
+          AfterTargets="Build;CopyFilesToOutputDirectory"
+          DependsOnTargets="GetDependencyDirectories;GetContractDependencies" 
+          Condition="'$(RunApiCompatForSrc)' == 'true' AND '$(RunApiCompat)' == 'true'" >
+    <Warning Condition="!Exists('$(ReferenceProjectLockJson)') AND Exists('$(ReferenceProject)')" Text="The project.lock.json was not found for : $(ReferenceProject)" />    
+    <PropertyGroup Condition="Exists('$(ReferenceProjectLockJson)')">
+      <_ApiCompatCmd>"$(ToolsDir)CoreRun.exe" "$(ToolsDir)ApiCompat.exe" "$(ReferenceAssembly)" </_ApiCompatCmd>
+      <_ApiCompatCmd>$(_ApiCompatCmd) -contractDepends:"@(_ContractDependencies);"</_ApiCompatCmd>
+      <_ApiCompatCmd>$(_ApiCompatCmd) -implDirs:"$(OutputPath);@(_DependencyDirectories);"</_ApiCompatCmd>
+      <_ApiCompatCmd Condition="Exists('$(ApiCompatBaseline)')">$(_ApiCompatCmd) -baseline:"$(ApiCompatBaseline)"</_ApiCompatCmd>
+    </PropertyGroup>
+    <Exec Condition="Exists('$(ReferenceProjectLockJson)') and Exists('$(ReferenceAssembly)')"
+          Command="$(_ApiCompatCmd)"
+          CustomErrorRegularExpression="^[a-zA-Z]+ :" />
+  </Target>
+
+  <!-- Get the set of directories where the dependencies can be found -->
+  <Target Name="GetDependencyDirectories"
+          Returns="@(_DependencyDirectories)"
+          Condition="Exists('$(ReferenceProjectLockJson)')">
+    <ItemGroup>
+      <_DependencyDirectories Include="@(ReferencePath->'%(RootDir)%(Directory)')" />      
+    </ItemGroup>
+  </Target>
+  
+  <!-- We build the ref project and then get its dependencies -->
+  <Target Name="GetContractDependencies"
+          Returns="@(_ContractDependencies)"
+          Condition="Exists('$(ReferenceProjectLockJson)')">
+    <PrereleaseResolveNuGetPackageAssets
+                               AllowFallbackOnTargetSelection="true"
+                               IncludeFrameworkReferences="false"
+                               NuGetPackagesDirectory="$(PackagesDir)"
+                               ProjectLanguage="$(Language)"
+                               ProjectLockFile="$(ReferenceProjectLockJson)"
+                               TargetMonikers="$(NuGetTargetMoniker)">
+      <Output TaskParameter="ResolvedReferences" ItemName="ReferenceProjectReferences" />
+    </PrereleaseResolveNuGetPackageAssets>
+    <ItemGroup>
+      <_ContractDependencies Include="@(ReferenceProjectReferences->'%(RootDir)%(Directory)')" />      
+    </ItemGroup>    
+  </Target>
+  
+  <!-- ApiCompat for Contract Assemblies -->
+  <Target Name="ValidateApiCompatForRef"
+          AfterTargets="Build;CopyFilesToOutputDirectory"
+          DependsOnTargets="GetPreviousContractDependencyDirectories;GetPreviousContractAssembly;GetCurrentContractDependencies"
+          Condition="'$(RunApiCompatForRef)' == 'true' AND '$(RunApiCompat)' == 'true'" >
+    <PropertyGroup Condition="Exists('$(PreviousContractProjectLockJson)')">
+      <_ApiCompatCmd>"$(ToolsDir)CoreRun.exe" "$(ToolsDir)ApiCompat.exe" "$(_PreviousContractAssembly)"</_ApiCompatCmd>
+      <_ApiCompatCmd>$(_ApiCompatCmd) -contractDepends:"@(_PreviousContractDependencyDirectories);"</_ApiCompatCmd>
+      <_ApiCompatCmd>$(_ApiCompatCmd) -implDirs:"$(ReferenceOutputPath);@(_CurrentContractDependencies);"</_ApiCompatCmd>
+      <_ApiCompatCmd Condition="Exists('$(ApiCompatBaseline)')">$(_ApiCompatCmd) -baseline:"$(ApiCompatBaseline)"</_ApiCompatCmd>
+    </PropertyGroup>
+    <Exec Condition="Exists('$(PreviousContractProjectLockJson)') AND Exists('$(_PreviousContractAssembly)')"
+          Command="$(_ApiCompatCmd)"
+          CustomErrorRegularExpression="^[a-zA-Z]+ :"
+          />
+  </Target>
+  
+  <!-- Find the full path to the .csproj file of the previous version of the current contract -->
+  <Target Name="GetPreviousContractProjectPath">
+    <LocatePreviousContract CurrentContractProjectPath="$(MSBuildProjectFullPath)" AssemblyVersion="$(AssemblyVersion)">
+      <Output TaskParameter="PreviousContractVersion" PropertyName="_PreviousContractVersion" />
+    </LocatePreviousContract>
+    <PropertyGroup Condition="'$(PreviousContractVersion)'!=''">
+      <!-- The folder names are obtained by truncating the AssemblyVersion after the last '.' So we add it back -->
+      <_PreviousContractAssemblyVersion>$(_PreviousContractVersion).0</_PreviousContractAssemblyVersion>    
+      <_PreviousContractProjectPath>$(MSBuildProjectDirectory)/$(_PreviousContractVersion)</_PreviousContractProjectPath>
+      <_PreviousContractProject>$(_PreviousContractProjectPath)/$(AssemblyName).depproj</_PreviousContractProject>
+    </PropertyGroup>
+  </Target>
+
+  <!-- Get the set of directories where the current contract's dependencies can be found -->
+  <Target Name="GetCurrentContractDependencies"
+          Returns="@(_CurrentContractDependencies)">          
+    <ItemGroup>
+      <_CurrentContractDependencies Include="@(ReferencePath->'%(RootDir)%(Directory)')" />      
+    </ItemGroup>
+  </Target>
+    
+  <!-- Get the set of directories where the previous contract and its dependencies can be found -->
+  <Target Name="GetPreviousContractDependencyDirectories"
+          Returns="@(_PreviousContractDependencyDirectories)"
+          DependsOnTargets="GetPreviousContractProjectPath"
+           >
+    <PropertyGroup Condition="'$(PreviousContractVersion)'!=''">
+      <PreviousContractProjectJson Condition="'$(PreviousContractProjectJson)'=='' and Exists('$(_PreviousContractProjectPath)/project.json')">$(_PreviousContractProjectPath)/project.json</PreviousContractProjectJson>
+      <PreviousContractProjectLockJson Condition="Exists('$(PreviousContractProjectJson)') and '$(PreviousContractProjectLockJson)'==''">$(_PreviousContractProjectPath)/project.lock.json</PreviousContractProjectLockJson>    
+    </PropertyGroup>
+    <Warning Condition="!Exists('$(PreviousContractProjectLockJson)') AND '$(PreviousContractVersion)'!=''" Text=" The project.lock.json was not found for : $(_PreviousContractProjectPath)" />          
+    <PrereleaseResolveNuGetPackageAssets Condition="Exists('$(PreviousContractProjectLockJson)')"
+                               AllowFallbackOnTargetSelection="true"
+                               IncludeFrameworkReferences="false"
+                               NuGetPackagesDirectory="$(PackagesDir)"
+                               ProjectLanguage="$(Language)"
+                               ProjectLockFile="$(PreviousContractProjectLockJson)"
+                               TargetMonikers="$(NuGetTargetMoniker)">
+      <Output TaskParameter="ResolvedReferences" ItemName="PreviousContractReferences" />
+    </PrereleaseResolveNuGetPackageAssets>
+    <ItemGroup Condition="Exists('$(PreviousContractProjectLockJson)')">
+      <_PreviousContractDependencyDirectories Include="@(PreviousContractReferences->'%(RootDir)%(Directory)')" />      
+    </ItemGroup>    
+  </Target>
+
+  <!-- Get the full path to the previous contract build output -->
+  <Target Name="GetPreviousContractAssembly"
+          Returns="$(_PreviousContractAssembly)"
+          DependsOnTargets="GetPreviousContractProjectPath"
+          >
+    <PropertyGroup Condition="'$(_PreviousContractVersion)' != '' ">
+      <_PreviousContractAssembly>$(BaseOutputPath)ref\$(AssemblyName)\$(_PreviousContractAssemblyVersion)\$(AssemblyName).dll</_PreviousContractAssembly>
+    </PropertyGroup>
+  </Target>  
+</Project>

@@ -25,7 +25,7 @@ namespace ApiCompat.Rules
     internal class InheritanceHierarchyChangeTracker : DifferenceRule
     {
         [Import]
-        private IEqualityComparer<ITypeReference> _typeComparer { get; set; } = null;
+        public IEqualityComparer<ITypeReference> _typeComparer { get; set; } = null;
 
         // Consider the following object hierarchy.  Remember we are not enforcing a subset relationship
         // on both types.  Our goal is to build a third API that is a subset of both, with versioning rules
