@@ -145,7 +145,7 @@
 
     <!-- Default behavior is to disable OuterLoop and failing tests if not specified in WithCategories. -->
     <ItemGroup>
-      <DefaultNoCategories Include="OuterLoop" />
+      <DefaultNoCategories Condition="'$(Outerloop)'!='true'" Include="OuterLoop" />
       <DefaultNoCategories Include="failing" />
       <WithoutCategoriesItems Include="@(DefaultNoCategories)" Exclude="@(WithCategoriesItems)" />
       <WithoutCategoriesItemsDistinct Include="@(WithoutCategoriesItems->Distinct())" />
