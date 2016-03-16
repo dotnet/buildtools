@@ -264,7 +264,7 @@
         <Creator>$(Creator)</Creator>
         <Product>$(TestProduct)</Product>
         <Architecture>$(Platform)</Architecture>
-        <Configuration>$(ConfigurationGroup)</Configuration>
+        <Configuration>$(ConfigurationGroup)$(ConfigurationSuffix)</Configuration>
         <BuildNumber>$(BuildMoniker)</BuildNumber>
         <Branch>$(Branch)</Branch>
       </BuildComplete>
