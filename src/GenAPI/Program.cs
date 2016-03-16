@@ -93,6 +93,7 @@ namespace GenAPI
                         writer.HighlightBaseMembers = s_hightlightBaseMembers;
                         writer.HighlightInterfaceMembers = s_hightlightInterfaceMembers;
                         writer.PutBraceOnNewLine = true;
+                        writer.ThrowPlatformNotSupportedForCompilation = s_throw;
                         return writer;
                     }
             }
@@ -171,6 +172,7 @@ namespace GenAPI
         private static bool s_hightlightBaseMembers;
         private static bool s_hightlightInterfaceMembers;
         private static bool s_all;
+        private static bool s_throw;
 
         private static void ParseCommandLine(string[] args)
         {
@@ -197,6 +199,8 @@ namespace GenAPI
                 parser.DefineOptionalQualifier("hightlightBaseMembers", ref s_hightlightBaseMembers, "(-hbm) [CSDecl] Highlight overridden base members.");
                 parser.DefineAliases("hightlightInterfaceMembers", "him");
                 parser.DefineOptionalQualifier("hightlightInterfaceMembers", ref s_hightlightInterfaceMembers, "(-him) [CSDecl] Highlight interface implementation members.");
+                parser.DefineAliases("throw", "t");
+                parser.DefineOptionalQualifier("throw", ref s_throw, "(-t) Method bodies should throw PlatformNotSupportedException.");
                 parser.DefineParameter<string>("", ref s_assembly, "Path for an specific assembly or a directory to get all assemblies.");
             }, args);
         }

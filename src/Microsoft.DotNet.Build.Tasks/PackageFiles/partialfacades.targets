@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <UsingTask TaskName="PrereleaseResolveNuGetPackageAssets" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
-
   <!-- Hook both partial-facade-related targets into TargetsTriggeredByCompilation. This will cause them
           to only be invoked upon a successful compilation; they can conceptualized as an extension
           of the assembly compilation process.
@@ -12,39 +10,11 @@
       $(TargetsTriggeredByCompilation);FillPartialFacade
     </TargetsTriggeredByCompilation>
   </PropertyGroup>
-  
-  <!-- If a reference assembly project exists for the partial facade, prefer that over the package  -->
+
   <PropertyGroup Condition="'$(IsPartialFacadeAssembly)' == 'true'">
-    <ResolveReferencesDependsOn>
-      FindPartialFacadeProjectReference;
-      $(ResolveReferencesDependsOn)
-    </ResolveReferencesDependsOn>
-    <CleanDependsOn>
-      FindPartialFacadeProjectReference;
-      $(CleanDependsOn);
-    </CleanDependsOn>
+    <!-- Tell ResolveMatchingContract to run and resolve contract to project reference -->
+    <ResolveMatchingContract>true</ResolveMatchingContract>
   </PropertyGroup>
-  
-  <Target Name="FindPartialFacadeProjectReference">
-    <PropertyGroup>
-      <_referenceAssemblyProject>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'ref/$(AssemblyName).csproj'))/ref/$(AssemblyName).csproj</_referenceAssemblyProject>
-      <_versionReferenceAssemblyProject>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'ref/$(APIVersion)/$(AssemblyName).csproj'))/ref/$(APIVersion)/$(AssemblyName).csproj</_versionReferenceAssemblyProject>
-    </PropertyGroup>
-    <ItemGroup>
-      <!-- first check for a specific version -->
-      <ProjectReference Include="$(_versionReferenceAssemblyProject)" Condition="Exists('$(_versionReferenceAssemblyProject)')">
-        <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-        <OutputItemType>ResolvedMatchingContract</OutputItemType>
-        <UndefineProperties>OSGroup;TargetGroup</UndefineProperties>
-      </ProjectReference>
-      <!-- fall back to 'current' version -->
-      <ProjectReference Include="$(_referenceAssemblyProject)" Condition="!Exists('$(_versionReferenceAssemblyProject)') AND Exists('$(_referenceAssemblyProject)')">
-        <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-        <OutputItemType>ResolvedMatchingContract</OutputItemType>
-        <UndefineProperties>OSGroup;TargetGroup</UndefineProperties>
-      </ProjectReference>
-    </ItemGroup>
-  </Target>
 
   <!-- Inputs and outputs of FillPartialFacade -->
   <PropertyGroup Condition="'$(IsPartialFacadeAssembly)' == 'true'">
@@ -65,7 +35,7 @@
        Fills the "input assembly" by finding types in the contract assembly that are missing from it, and adding type-forwards
          to those matching types in the seed assemblies.
   -->
-  <Target Name="FillPartialFacade" DependsOnTargets="EnsureBuildToolsRuntime">
+  <Target Name="FillPartialFacade" DependsOnTargets="EnsureBuildToolsRuntime;ResolveMatchingContract">
 
     <ItemGroup>
       <!-- References used for compilation are automatically included as seed assemblies -->

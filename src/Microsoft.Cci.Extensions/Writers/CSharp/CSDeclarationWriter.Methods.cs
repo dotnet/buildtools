@@ -186,9 +186,16 @@ namespace Microsoft.Cci.Writers.CSharp
 
             WriteOutParameterInitializations(method);
 
-            // Structs cannot have empty constructors so we need to output this dummy body
-            if (method.ContainingTypeDefinition.IsValueType && method.IsConstructor)
+            if (_forCompilationThrowPlatformNotSupported)
             {
+                Write("throw new ");
+                if (_forCompilationIncludeGlobalprefix)
+                    Write("global::");
+                Write("System.PlatformNotSupportedException(); ");
+            }
+            else if (method.ContainingTypeDefinition.IsValueType && method.IsConstructor)
+            {
+                // Structs cannot have empty constructors so we need to output this dummy body
                 Write("throw new ");
                 if (_forCompilationIncludeGlobalprefix)
                     Write("global::");
