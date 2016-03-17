@@ -18,7 +18,7 @@
   </PropertyGroup>
 
   <Target Name="GenerateResourcesSource"
-          Condition="'$(StringResourcesPath)'!=''"
+          Condition="'$(StringResourcesPath)'!='' AND '$(OmitResources)'!='true'"
           Inputs="$(StringResourcesPath)"
           Outputs="$(IntermediateResOutputFileFullPath)">
     
@@ -39,14 +39,14 @@
     </ItemGroup>
   </Target>
   
-  <ItemGroup Condition="'$(StringResourcesPath)'!=''">
+  <ItemGroup Condition="'$(StringResourcesPath)'!='' AND '$(OmitResources)'!='true'">
     <EmbeddedResource Include="$(StringResourcesPath)">
       <Visible>true</Visible>
       <LogicalName>FxResources.$(AssemblyName).SR.resources</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
   
-  <ItemGroup Condition="Exists('$(StringResourcesPath)') And '$(SkipCommonResourcesIncludes)'==''">
+  <ItemGroup Condition="Exists('$(StringResourcesPath)') And '$(SkipCommonResourcesIncludes)'=='' AND '$(OmitResources)'!='true'">
     <Compile Condition="'$(MSBuildProjectExtension)' == '.csproj'" Include="$(CommonPath)/System/SR.cs">
       <Visible>true</Visible>
       <Link>Resources/Common/SR.cs</Link>

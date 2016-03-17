@@ -73,12 +73,21 @@
   <Import Project="$(MSBuildThisFileDirectory)packageresolve.targets" Condition="'$(ExcludePackageResolveImport)'!='true'" />
 
   <!-- 
+    Import the partial facade generation targets
+    
+      Inputs:
+        GeneratePlatformNotSupportedAssembly - Determines wether to generate not-supported API for this assembly
+  -->
+  <Import Project="$(MSBuildThisFileDirectory)notsupported.targets" Condition="'$(ExcludePartialFacadesImport)' != 'true'"/>
+
+  <!-- 
     Import the default SR resource generation targets 
   
       Inputs:
         ResourcesSourceOutputDirectory - If not set defaults to $(MSBuildProjectDirectory)\Resources.
         StringResourcesPath - If not set defaults to $(ResourcesSourceOutputDirectory\Strings.resx if it exists. If the file exists
           then the targets generates the strongly typed $(ResourcesSourceOutputDirectory)\SR.cs/vb file based on resource strings.  
+        OmitResources - If set to true will skip resource inclusion even if StringResourcesPath exists.
   -->
   <Import Project="$(MSBuildThisFileDirectory)resources.targets" Condition="'$(ExcludeResourcesImport)'!='true'" />
 
@@ -105,14 +114,6 @@
     Import the localization target
   -->
   <Import Project="$(MSBuildThisFileDirectory)localization.targets" Condition="'$(ExcludeLocalizationImport)'!='true'" />
-
-  <!-- 
-    Import the partial facade generation targets
-    
-      Inputs:
-        GeneratePlatformNotSupportedAssembly - Determines wether to generate not-supported API for this assembly
-  -->
-  <Import Project="$(MSBuildThisFileDirectory)notsupported.targets" Condition="'$(ExcludePartialFacadesImport)' != 'true'"/>
   
   <!-- 
     Import the partial facade generation targets
