@@ -36,14 +36,13 @@ case $OSName in
         ;;
 
     Linux)
-        source /etc/os-release
-        if [ "$ID" == "centos" ]; then
+        if [ "$(cat /etc/*-release | grep -cim1 centos)" -eq 1 ]; then
             __PUBLISH_RID=centos.7-x64
-        elif [ "$ID" == "rhel" ]; then
+        elif [ "$(cat /etc/*-release | grep -cim1 rhel)" -eq 1 ]; then
             __PUBLISH_RID=rhel.7-x64
-        elif [ "$ID" == "ubuntu" ]; then
+        elif [ "$(cat /etc/*-release | grep -cim1 ubuntu)" -eq 1 ]; then
             __PUBLISH_RID=ubuntu.14.04-x64
-        elif [ "$ID" == "debian" ]; then
+        elif [ "$(cat /etc/*-release | grep -cim1 debian)" -eq 1 ]; then
             __PUBLISH_RID=debian.8.2-x64
         else
             echo "Unsupported Linux distribution '$ID' detected. Downloading ubuntu-x64 tools."
