@@ -9,6 +9,12 @@
     <CoreCompileDependsOn>$(CoreCompileDependsOn);GenerateNotSupportedSource</CoreCompileDependsOn>
   </PropertyGroup>
 
+  <ItemGroup Condition="'$(GeneratePlatformNotSupportedAssembly)' == 'true'">
+    <AssemblyMetadata Include="NotSupported">
+      <Value>True</Value>
+    </AssemblyMetadata>
+  </ItemGroup>
+
   <!-- GenerateNotSupportedSource
        Inputs:
          * A contract assembly
