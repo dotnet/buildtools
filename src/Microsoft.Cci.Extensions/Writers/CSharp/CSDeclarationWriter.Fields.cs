@@ -28,7 +28,12 @@ namespace Microsoft.Cci.Writers.CSharp
                     WriteKeyword("unsafe");
 
                 if (field.IsCompileTimeConstant)
+                {
+                    if (field.GetHiddenBaseField(_filter) != Dummy.Field)
+                        WriteKeyword("new");
+
                     WriteKeyword("const");
+                }
                 else
                 {
                     if (field.IsStatic)

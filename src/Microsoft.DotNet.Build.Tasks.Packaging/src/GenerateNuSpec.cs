@@ -213,7 +213,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                                {
                                    Id = d.ItemSpec,
                                    Version = d.GetVersion(),
-                                   TargetFramework = d.GetTargetFramework(),
+                                   TargetFramework = d.GetTargetFramework() ?? NuGetFramework.AnyFramework,
                                    Include = d.GetValueList("Include"),
                                    Exclude = d.GetValueList("Exclude")
                                };
