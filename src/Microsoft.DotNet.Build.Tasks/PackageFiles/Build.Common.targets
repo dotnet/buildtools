@@ -16,7 +16,19 @@
       a project is localized in German, then it is localized in all languages.
     -->
     <ExcludeLocalizationImport Condition="'$(ExcludeLocalizationImport)'=='' And !Exists('$(MSBuildProjectDirectory)/MultilingualResources/$(MSBuildProjectName).de.xlf')">true</ExcludeLocalizationImport>
+    
   </PropertyGroup>
+
+  <!-- Assembly metadata indicating that an assembly is a framework (as opposed to user) assembly:
+       Test projects need to not have this because of the way "IsFrameworkAssembly" APIs work to check this. -->
+  <ItemGroup Condition="'$(IsDotNetFrameworkProductAssembly)' == 'true' AND '$(IsTestProject)' != 'true'" >
+    <AssemblyMetadata Include=".NETFrameworkAssembly">
+      <Value></Value>
+    </AssemblyMetadata>
+    <AssemblyMetadata Include="Serviceable">
+      <Value>True</Value>
+    </AssemblyMetadata>
+  </ItemGroup>  
 
   <!--
     Import the provides support for EnsureBuildToolsRuntime target which will restore a .NET Core based 
