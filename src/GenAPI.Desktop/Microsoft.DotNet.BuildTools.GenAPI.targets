@@ -24,7 +24,7 @@
       <_referencePathDirectories Include="%(_referencePathDirectoriesWithDuplicates.Identity)" />
     </ItemGroup>
 
-    <Exec Command="&quot;$(_GenAPIPath)&quot; &quot;$(TargetPath)&quot; -libPath:&quot;@(_referencePathDirectories)&quot; -out:&quot;$(GenAPITargetPath)&quot; $(GenAPIAdditionalParameters)" />
+    <Exec Command="&quot;$(_GenAPIPath)&quot; -assembly:&quot;$(TargetPath)&quot; -libPath:&quot;@(_referencePathDirectories)&quot; -out:&quot;$(GenAPITargetPath)&quot; $(GenAPIAdditionalParameters)" />
 
     <ItemGroup>
       <FileWrites Include="$(GenAPITargetPath)"/>
