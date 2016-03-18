@@ -37,7 +37,7 @@
     <Error Text="No single matching contract found." Condition="'@(ResolvedMatchingContract->Count())' != '1'" />
 
     <PropertyGroup>
-      <GenAPIArgs>"%(ResolvedMatchingContract.Identity)"</GenAPIArgs>
+      <GenAPIArgs>-assembly:"%(ResolvedMatchingContract.Identity)"</GenAPIArgs>
       <GenAPIArgs>$(GenAPIArgs) -libPath:"@(_referencePathDirectories)"</GenAPIArgs>
       <GenAPIArgs>$(GenAPIArgs) -out:"$(NotSupportedSourceFile)"</GenAPIArgs>
       <GenAPIArgs>$(GenAPIArgs) -throw</GenAPIArgs>
