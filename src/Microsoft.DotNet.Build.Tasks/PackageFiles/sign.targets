@@ -8,6 +8,11 @@
 
   <UsingTask AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" TaskName="OpenSourceSign" />
   <UsingTask AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" TaskName="WriteSigningRequired" />
+  
+  <!-- Don't sign test assemblies -->
+  <PropertyGroup Condition="'$(IsTestProject)' == 'true'" >
+    <SkipSigning>true</SkipSigning>
+  </PropertyGroup>
 
   <PropertyGroup Condition="'$(SkipSigning)'!='true'">
     <SignAssembly>true</SignAssembly>

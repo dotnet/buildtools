@@ -10,6 +10,15 @@
   <Target Name="BuildAndTest" DependsOnTargets="Build;Test" />
   <Target Name="RebuildAndTest" DependsOnTargets="Rebuild;Test" />
   <Target Name="Test" />
+  
+  <ItemGroup Condition="'$(IsTestProject)' == 'true'" >
+    <AssemblyMetadata Include=".NETFrameworkAssembly">
+      <Value></Value>
+    </AssemblyMetadata>
+    <AssemblyMetadata Include="Serviceable">
+      <Value>True</Value>
+    </AssemblyMetadata>
+  </ItemGroup>  
 
   <Import Project="$(ToolsDir)/Build.Common.targets" Condition="'$(UseLiveBuildTools)' != 'true'" />
 
