@@ -746,8 +746,8 @@
 
     <PropertyGroup>
       <Description Condition="'$(UseRuntimePackageDescription)' == 'true' AND '$(RuntimeDisclaimer)' != ''">$(RuntimeDisclaimer)</Description>
-      <Description Condition="'$(UseRuntimePackageDescription)' != 'true' AND '$(RuntimeDisclaimer)' != ''">$(RuntimeDisclaimer) \r\n $(Description)</Description>
-      <Description Condition="'@(SyncInfoLines)' != ''">$(Description) \r\n %(SyncInfoLines.Identity)</Description>
+      <Description Condition="'$(UseRuntimePackageDescription)' != 'true' AND '$(RuntimeDisclaimer)' != ''">$(RuntimeDisclaimer) %0A$(Description)</Description>
+      <Description Condition="'@(SyncInfoLines)' != ''">$(Description) %0A%(SyncInfoLines.Identity)</Description>
     </PropertyGroup>
   </Target>
 
