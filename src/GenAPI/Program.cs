@@ -201,7 +201,7 @@ namespace GenAPI
                 parser.DefineOptionalQualifier("hightlightInterfaceMembers", ref s_hightlightInterfaceMembers, "(-him) [CSDecl] Highlight interface implementation members.");
                 parser.DefineAliases("throw", "t");
                 parser.DefineOptionalQualifier("throw", ref s_throw, "(-t) Method bodies should throw PlatformNotSupportedException.");
-                parser.DefineParameter<string>("", ref s_assembly, "Path for an specific assembly or a directory to get all assemblies.");
+                parser.DefineQualifier("assembly", ref s_assembly, "Path for an specific assembly or a directory to get all assemblies.");
             }, args);
         }
     }
