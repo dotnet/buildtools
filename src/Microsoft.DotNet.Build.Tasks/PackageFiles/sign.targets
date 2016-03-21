@@ -9,16 +9,15 @@
   <UsingTask AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" TaskName="OpenSourceSign" />
   <UsingTask AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" TaskName="WriteSigningRequired" />
   
-  <!-- Don't sign test assemblies -->
-  <PropertyGroup Condition="'$(IsTestProject)' == 'true'" >
-    <SkipSigning>true</SkipSigning>
-  </PropertyGroup>
-
   <PropertyGroup Condition="'$(SkipSigning)'!='true'">
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>$(ToolsDir)MSFT.snk</AssemblyOriginatorKeyFile>
     <AssemblyOriginatorKeyFile Condition="'$(UseECMAKey)' == 'true'">$(ToolsDir)ECMA.snk</AssemblyOriginatorKeyFile>
     <AssemblyOriginatorKeyFile Condition="'$(UseOpenKey)' == 'true'">$(ToolsDir)Open.snk</AssemblyOriginatorKeyFile>
+
+    <!-- Don't sign test assemblies with the Microsoft Key, as this affects APIs checking if the test assembly is an MS Key -->
+    <AssemblyOriginatorKeyFile Condition="'$(IsTestProject)' == 'true'">$(ToolsDir)Test.snk</AssemblyOriginatorKeyFile>
+
     <DelaySign>true</DelaySign>
     <DelaySign Condition="'$(UseOpenKey)' == 'true'">false</DelaySign>
     <DefineConstants>$(DefineConstants);SIGNED</DefineConstants>
