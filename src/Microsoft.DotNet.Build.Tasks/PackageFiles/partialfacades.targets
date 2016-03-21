@@ -45,7 +45,7 @@
     <Error Text="No single matching contract found." Condition="'@(ResolvedMatchingContract->Count())' != '1'" />
 
     <PropertyGroup>
-      <GenFacadesArgs>-partialFacadeAssemblyPath:"$(GenFacadesInputAssembly)"</GenFacadesArgs>
+      <GenFacadesArgs>$(GenFacadesArgs) -partialFacadeAssemblyPath:"$(GenFacadesInputAssembly)"</GenFacadesArgs>
       <GenFacadesArgs>$(GenFacadesArgs) -contracts:"%(ResolvedMatchingContract.Identity)"</GenFacadesArgs>
       <GenFacadesArgs>$(GenFacadesArgs) -seeds:"@(GenFacadesSeeds, ';')"</GenFacadesArgs>
       <GenFacadesArgs>$(GenFacadesArgs) -facadePath:"$(GenFacadesOutputPath.TrimEnd('/'))"</GenFacadesArgs>
