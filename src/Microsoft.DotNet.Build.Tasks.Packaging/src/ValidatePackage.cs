@@ -282,7 +282,10 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                                         Log.LogError($"{ContractName} should support API version {supportedVersion} on {target} but {implementationAssembly} was found to support {implementationVersion?.ToString() ?? "<unknown version>"}.");
                                     }
 
-                                    if (referenceAssemblyVersion != null && implementationVersion != referenceAssemblyVersion)
+                                    if (referenceAssemblyVersion != null &&
+                                        HasSuppression(Suppression.PermitHigherCompatibleImplementationVersion) ? 
+                                            !VersionUtility.IsCompatibleApiVersion(referenceAssemblyVersion, implementationVersion) :
+                                            (implementationVersion != referenceAssemblyVersion))
                                     {
                                         Log.LogError($"{ContractName} has mismatched compile ({referenceAssemblyVersion}) and runtime ({implementationVersion}) versions on {target}.");
                                     }
@@ -385,7 +388,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     var parts = suppression.Split(new[] { '=' }, 2);
                     string keyString = null;
                     Suppression key;
-                    string[] values = null;
+                    HashSet<string> values = null;
 
                     if (parts.Length != 2)
                     {
@@ -395,12 +398,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     else
                     {
                         keyString = parts[0];
-                        values = parts[1].Split(';');
+                        values = new HashSet<string>(parts[1].Split(';'));
                     }
 
                     if (Enum.TryParse<Suppression>(keyString, out key))
                     {
-                        _suppressions[key] = new HashSet<string>(values);
+                        _suppressions[key] = values;
                     }
                     else
                     {
@@ -741,6 +744,10 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// <summary>
         /// Permits a lower version on specified frameworks, semicolon delimitied, than the generation supported by that framework
         /// </summary>
-        PermitPortableVersionMismatch
+        PermitPortableVersionMismatch,
+        /// <summary>
+        /// Permits a compatible API version match between ref and impl, rather than exact match
+        /// </summary>
+        PermitHigherCompatibleImplementationVersion
     }
 }
