@@ -14,20 +14,39 @@
     <description>This package provides things like various traits and discovers like OuterLoop/ActiveIssue that are used by .NET Core framework test projects.</description>
     <copyright>Copyright © Microsoft Corporation</copyright>
     <dependencies>
-      <dependency id="System.Diagnostics.Debug" version="4.0.10" />
-      <dependency id="System.IO" version="4.0.10" />
-      <dependency id="System.Linq" version="4.0.0" />
-      <dependency id="System.Reflection" version="4.0.10" />
-      <dependency id="System.Reflection.Primitives" version="4.0.0" />
-      <dependency id="System.Runtime" version="4.0.20" />
-      <dependency id="System.Runtime.Extensions" version="4.0.10" />
-      <dependency id="System.Runtime.Handles" version="4.0.0" />
-      <dependency id="System.Runtime.InteropServices" version="4.0.20" />
-      <dependency id="System.Runtime.InteropServices.RuntimeInformation" version="4.0.0-beta-23213" />
-      <dependency id="System.Text.Encoding" version="4.0.10" />
-      <dependency id="System.Threading" version="4.0.10" />
-      <dependency id="System.Threading.Tasks" version="4.0.10" />
-      <dependency id="xunit" version="2.1.0" />
+      <group>
+        <!-- kept around temporarily for compatibility with old nuget clients that don't understand NETStandard. -->
+        <dependency id="System.Diagnostics.Debug" version="4.0.10" />
+        <dependency id="System.IO" version="4.0.10" />
+        <dependency id="System.Linq" version="4.0.0" />
+        <dependency id="System.Reflection" version="4.0.10" />
+        <dependency id="System.Reflection.Primitives" version="4.0.0" />
+        <dependency id="System.Runtime" version="4.0.20" />
+        <dependency id="System.Runtime.Extensions" version="4.0.10" />
+        <dependency id="System.Runtime.Handles" version="4.0.0" />
+        <dependency id="System.Runtime.InteropServices" version="4.0.20" />
+        <dependency id="System.Runtime.InteropServices.RuntimeInformation" version="4.0.0-beta-23213" />
+        <dependency id="System.Text.Encoding" version="4.0.10" />
+        <dependency id="System.Threading" version="4.0.10" />
+        <dependency id="System.Threading.Tasks" version="4.0.10" />
+        <dependency id="xunit" version="2.1.0" />
+      </group>
+      <group targetFramework="netstandard1.3">
+        <dependency id="System.Diagnostics.Debug" version="4.0.11-rc2-23921" />
+        <dependency id="System.IO" version="4.1.0-rc2-23921" />
+        <dependency id="System.Linq" version="4.1.0-rc2-23921" />
+        <dependency id="System.Reflection" version="4.1.0-rc2-23921" />
+        <dependency id="System.Reflection.Primitives" version="4.0.1-rc2-23921" />
+        <dependency id="System.Runtime" version="4.1.0-rc2-23921" />
+        <dependency id="System.Runtime.Extensions" version="4.1.0-rc2-23921" />
+        <dependency id="System.Runtime.Handles" version="4.0.1-rc2-23921" />
+        <dependency id="System.Runtime.InteropServices" version="4.1.0-rc2-23921" />
+        <dependency id="System.Runtime.InteropServices.RuntimeInformation" version="4.0.0-rc2-23921" />
+        <dependency id="System.Text.Encoding" version="4.0.11-rc2-23921" />
+        <dependency id="System.Threading" version="4.0.11-rc2-23921" />
+        <dependency id="System.Threading.Tasks" version="4.0.11-rc2-23921" />
+        <dependency id="xunit" version="2.1.0" />
+      </group>
     </dependencies>
   </metadata>
   <files>
