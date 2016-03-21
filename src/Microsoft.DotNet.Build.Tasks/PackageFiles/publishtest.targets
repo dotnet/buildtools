@@ -72,8 +72,8 @@
       <TestCopyLocal Include="@(RunTestsForProjectInputs)" Exclude="@(PackagesConfigs)" />
     </ItemGroup>
 
-    <!-- Test using locally built shim libraries by default. -->
-    <ItemGroup>
+    <!-- Test using locally built shim libraries. -->
+    <ItemGroup Condition="'$(TestWithLocalLibraries)'=='true'">
       <TestCopyLocal Include="$(BaseOutputPath)$(OSGroup).$(Platform).$(ConfigurationGroup)/Native/*.*" />
     </ItemGroup>
 
