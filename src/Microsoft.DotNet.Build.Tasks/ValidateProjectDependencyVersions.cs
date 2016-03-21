@@ -21,7 +21,15 @@ namespace Microsoft.DotNet.Build.Tasks
 
             public ValidationPattern(ITaskItem item, TaskLoggingHelper log)
             {
-                _idPattern = new Regex(item.ItemSpec);
+                string idRegex = item.GetMetadata("IdentityRegex");
+                if (string.IsNullOrEmpty(idRegex))
+                {
+                    // Temporarily support reading the regex from the Include/ItemSpec for backwards compatibility
+                    // when the IdentityRegex isn't specified. This can be removed once all consumers are using IdentityRegex.
+                    idRegex = item.ItemSpec;
+                }
+
+                _idPattern = new Regex(idRegex);
                 _expectedVersion = item.GetMetadata("ExpectedVersion");
                 _expectedPrerelease = item.GetMetadata("ExpectedPrerelease");
                 _log = log;
