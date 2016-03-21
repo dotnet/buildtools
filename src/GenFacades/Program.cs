@@ -27,6 +27,7 @@ namespace GenFacades
             Version assemblyFileVersion = null;
             bool clearBuildAndRevision = false;
             bool ignoreMissingTypes = false;
+            bool ignoreBuildAndRevisionMismatch = false;
             bool buildDesignTimeFacades = false;
             string inclusionContracts = null;
             ErrorTreatment seedLoadErrorTreatment = ErrorTreatment.Default;
@@ -43,6 +44,7 @@ namespace GenFacades
                 parser.DefineQualifier("contracts", ref contracts, "Path to the contract assemblies. Can contain multiple assemblies or directories delimited by ',' or ';'.");
                 parser.DefineOptionalQualifier("assemblyFileVersion", ref assemblyFileVersion, "Override the AssemblyFileVersion attribute from the contract with the given version for the generated facade.");
                 parser.DefineOptionalQualifier("clearBuildAndRevision", ref clearBuildAndRevision, "Generate facade assembly version x.y.0.0 for contract version x.y.z.w");
+                parser.DefineOptionalQualifier("ignoreBuildAndRevisionMismatch", ref ignoreBuildAndRevisionMismatch, "Ignore a mismatch in revision and build for partial facade.");
                 parser.DefineOptionalQualifier("ignoreMissingTypes", ref ignoreMissingTypes, "Ignore types that cannot be found in the seed assemblies. This is not recommended but is sometimes helpful while hacking around or trying to produce partial facades.");
                 parser.DefineOptionalQualifier("designTime", ref buildDesignTimeFacades, "Enable design-time facade generation (marks facades with reference assembly flag and attribute).");
                 parser.DefineOptionalQualifier("include", ref inclusionContracts, "Add types from these contracts to the facades. Can contain multiple assemblies or directories delimited by ',' or ';'.");
@@ -117,7 +119,10 @@ namespace GenFacades
                         IAssembly contractAssembly = contractAssemblies.First();
                         IAssembly partialFacadeAssembly = seedHost.LoadAssembly(partialFacadeAssemblyPath);
                         if (contractAssembly.Name != partialFacadeAssembly.Name
-                            || contractAssembly.Version != partialFacadeAssembly.Version
+                            || contractAssembly.Version.Major != partialFacadeAssembly.Version.Major
+                            || contractAssembly.Version.Minor != partialFacadeAssembly.Version.Minor
+                            || (!ignoreBuildAndRevisionMismatch && contractAssembly.Version.Build != partialFacadeAssembly.Version.Build)
+                            || (!ignoreBuildAndRevisionMismatch && contractAssembly.Version.Revision != partialFacadeAssembly.Version.Revision)
                             || contractAssembly.GetPublicKeyToken() != partialFacadeAssembly.GetPublicKeyToken())
                         {
                             throw new FacadeGenerationException(
