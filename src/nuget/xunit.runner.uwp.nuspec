@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata minClientVersion="2.8.1">
+    <id>microsoft.xunit.runner.uwp</id>
+    <version>1.0.2-prerelease</version>
+    <title>xUnit UWP Runner</title>
+    <authors>Chris Rummel</authors>
+    <owners>Microsoft</owners>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <licenseUrl>http://go.microsoft.com/fwlink/?LinkId=329770</licenseUrl>
+    <projectUrl>http://go.microsoft.com/fwlink/?LinkId=518631</projectUrl>
+    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
+    <summary>Universal Windows Platform Test Host</summary>
+    <description>
+      UWP runner for the xUnit.net framework.
+      Supported platforms: .NET Core.
+      Based on xunit.runners - https://github.com/xunit/xunit
+    </description>
+    <copyright>Copyright © Microsoft Corporation</copyright>
+    <dependencies>
+      <dependency id="xunit" version="2.1.0" />
+      <dependency id="xunit.runner.utility" version="2.1.0" />
+    </dependencies>
+  </metadata>
+  <files>
+    <!-- xunit runner for UWP -->
+    <file src="xunit.runner.uwp\**\*.*" target="app" />
+    <file src="xunit.console.uwp\**\*.*" target="" />
+  </files>
+  
+</package>
