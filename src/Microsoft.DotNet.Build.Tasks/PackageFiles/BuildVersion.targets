@@ -1,0 +1,16 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  
+  <PropertyGroup>
+    <TodayTimeStamp>$([System.DateTime]::Now.ToString(yyyyMMdd))</TodayTimeStamp>
+    <BuildVersionFilePath>$(BaseIntermediateOutputPath)</BuildVersionFilePath>
+    <BuildVersionFile Condition="'$(BuildVersionFile)'==''">$(BuildVersionFilePath)BuildVersion-$(TodayTimeStamp).props</BuildVersionFile>
+  </PropertyGroup>
+
+  <!-- If BuildVersion.props exists already then import it to get BuildNumberMajor, else generate it and override props values. -->
+  <Import Condition="Exists('$(BuildVersionFile)')" Project="$(BuildVersionFile)" />
+
+  <PropertyGroup Condition="!Exists('$(BuildVersionFile)')">
+    <ShouldCreateVersionFileDuringBuild>true</ShouldCreateVersionFileDuringBuild>
+  </PropertyGroup>
+
+</Project>
