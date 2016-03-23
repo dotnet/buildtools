@@ -273,10 +273,30 @@ namespace Xunit
             value = Escape(value);
             var escapedValue = new StringBuilder(value.Length);
             for (var idx = 0; idx < value.Length; ++idx)
-                if (value[idx] < 32)
-                    escapedValue.Append($"\\x{((byte)value[idx]).ToString("x2")}");
+            {
+                char ch = value[idx];
+                if (ch < 32)
+                {
+                    escapedValue.AppendFormat(@"\x{0}", (+ch).ToString("x2"));
+                }
+                else if (char.IsSurrogatePair(value, idx)) // handles the case when ch is the last char
+                {
+                    // Append the chars like normal if
+                    // they're valid surrogates
+                    escapedValue.Append(ch);
+                    escapedValue.Append(value[++idx]);
+                }
+                // Check for invalid chars, including
+                // stray surrogates, U+FFFE, and U+FFFF
+                else if (char.IsSurrogate(ch) || ch == '\uFFFE' || ch == '\uFFFF')
+                {
+                    escapedValue.AppendFormat(@"\x{0}", (+ch).ToString("x4"));
+                }
                 else
-                    escapedValue.Append(value[idx]);
+                {
+                    escapedValue.Append(ch);
+                }
+            }
 
             return escapedValue.ToString();
         }
