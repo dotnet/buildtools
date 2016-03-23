@@ -12,12 +12,8 @@
     <PackagesBasePath Condition="'$(PackagesBasePath)' == ''">$(OutDir)</PackagesBasePath>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <NuGetExe>&quot;$(NuGetToolPath)&quot;</NuGetExe>
-    <NuGetBasePath>&quot;$(PackagesBasePath.TrimEnd('\'))&quot;</NuGetBasePath>
-    <NuGetOutputDirectory>&quot;$(PackagesOutDir.TrimEnd('\'))&quot;</NuGetOutputDirectory>
-  </PropertyGroup>
-
+  <UsingTask TaskName="NuGetPack" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  
   <Target Name="BuildPackages"
     DependsOnTargets="GetNuGetPackageVersions"
     Condition="'$(SkipBuildPackages)' != 'true'">
@@ -26,17 +22,13 @@
     <MakeDir Directories="$(PackagesOutDir)" />
 
     <!-- Make package -->
-    <!-- We ignore warnings because NuGet will warn when libraries are not placed
-         in framework specific subfolders.  Our build tools do this because the
-         libraries are used during build, and do not depend on the framework being
-         targeted by the build -->
-    <!-- We trim the last backslash from properties which could end with one,
-         to prevent it from escaping the closing quote -->
-    <Exec
+    <NugetPack
       Condition="'@(PackagesNuSpecFiles)'!=''"
-      IgnoreStandardErrorWarningFormat="true"
-      StandardOutputImportance="Low"
-      Command="$(NuGetExe) pack &quot;%(PackagesNuSpecFiles.FullPath)&quot; -BasePath $(NuGetBasePath) -OutputDirectory $(NuGetOutputDirectory) %(PackagesNuSpecFiles.PackageVersion) -NoPackageAnalysis -NoDefaultExcludes -ExcludeEmptyDirectories" />
+      Nuspecs="%(PackagesNuSpecFiles.FullPath)"
+      OutputDirectory="$(PackagesOutDir)"
+      BaseDirectory="$(PackagesBasePath)"
+      PackageVersion="%(PackagesNuSpecFiles.PackageVersion)"
+      ExcludeEmptyDirectories="true"/>
 
     <Message
       Condition="'@(PackagesNuSpecFiles)'!=''"
@@ -68,7 +60,7 @@
     
     <ItemGroup>
       <PackagesNuSpecFiles Condition="'%(PackagesNuSpecFiles.Identity)' == '%(Identity)'">
-        <PackageVersion>-Version $(_TempPackageVersion)</PackageVersion>
+        <PackageVersion>$(_TempPackageVersion)</PackageVersion>
       </PackagesNuSpecFiles>
     </ItemGroup>
 
