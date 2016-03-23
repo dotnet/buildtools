@@ -5,7 +5,7 @@
     "Microsoft.Build.Utilities.Core": "0.1.0-preview-00005",
     "Microsoft.CSharp": "4.0.1-rc2-23907",
     "Microsoft.NETCore.Platforms": "1.0.1-rc2-23907",
-    "Microsoft.Win32.Registry": { 
+    "Microsoft.Win32.Registry": {
       "version": "4.0.0-rc2-23907",
       "exclude": "Compile"
     },
@@ -21,7 +21,8 @@
     "System.Reflection.Metadata": "1.1.0",
     "System.Xml.ReaderWriter": "4.0.11-rc2-23907",
     "System.Xml.XDocument": "4.0.11-rc2-23907",
-    "System.Xml.XPath.XmlDocument": "4.0.0"
+    "System.Xml.XPath.XmlDocument": "4.0.0",
+    "System.Runtime.InteropServices.RuntimeInformation": "4.0.0-rc2-23907"
   },
   "frameworks": {
     "dnxcore50": {}

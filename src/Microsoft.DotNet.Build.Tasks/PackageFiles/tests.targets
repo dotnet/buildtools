@@ -3,7 +3,7 @@
 
   <!-- This is the target that copies the test assets to the test output -->
   <Import Project="$(MSBuildThisFileDirectory)publishtest.targets" />
-
+  <UsingTask TaskName="GetTargetOS" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <!-- Which categories of tests to run by default -->
   <PropertyGroup>
     <TestDisabled>false</TestDisabled>
@@ -59,11 +59,7 @@
   <PropertyGroup>
     <XunitResultsFileName>testResults.xml</XunitResultsFileName>
     <XunitOptions>$(XunitOptions) -xml $(XunitResultsFileName)</XunitOptions>
-    <XunitOptions Condition="'$(OSGroup)'=='Windows_NT'">$(XunitOptions) -notrait category=nonwindowstests</XunitOptions>
-    <XunitOptions Condition="'$(OSGroup)'=='Linux'">$(XunitOptions) -notrait category=nonlinuxtests</XunitOptions>
-    <XunitOptions Condition="'$(OSGroup)'=='OSX'">$(XunitOptions) -notrait category=nonosxtests</XunitOptions>
-    <XunitOptions Condition="'$(OSGroup)'=='FreeBSD'">$(XunitOptions) -notrait category=nonfreebsdtests</XunitOptions>
-    <XunitOptions Condition="'$(OSGroup)'=='NetBSD'">$(XunitOptions) -notrait category=nonnetbsdtests</XunitOptions>
+
     <XunitOptions Condition="'$(Performance)'!='true'">$(XunitOptions) -notrait Benchmark=true</XunitOptions>
 
     <XunitOptions Condition="'$(XunitMaxThreads)'!=''">$(XunitOptions) -maxthreads $(XunitMaxThreads)</XunitOptions>
@@ -113,6 +109,14 @@
           Outputs="$(TestsSuccessfulSemaphore);$(TestPath)%(TestTargetFramework.Folder)/$(XunitResultsFileName);$(CoverageOutputFilePath)"
           Condition="'$(TestDisabled)'!='true'">
 
+    <ItemGroup>
+      <RunWithoutTraits Condition="'$(TargetOS)'=='Windows_NT'" Include="nonwindowstests" />
+      <RunWithoutTraits Condition="'$(TargetOS)'=='Linux'" Include="nonlinuxtests" />
+      <RunWithoutTraits Condition="'$(TargetOS)'=='OSX'" Include="nonosxtests"/>
+      <RunWithoutTraits Condition="'$(TargetOS)'=='FreeBSD'" Include="nonfreebsdtests"/>
+      <RunWithoutTraits Condition="'$(TargetOS)'=='NetBSD'" Include="nonnetbsdtests"/>
+    </ItemGroup>
+    
     <PropertyGroup>
       <XunitTraitOptions Condition="'@(RunWithTraits)'!=''">$(XunitTraitOptions) -trait category=@(RunWithTraits, ' -trait category=') </XunitTraitOptions>
       <XunitTraitOptions Condition="'@(RunWithoutTraits)'!=''">$(XunitTraitOptions) -notrait category=@(RunWithoutTraits, ' -notrait category=') </XunitTraitOptions>
@@ -169,10 +173,13 @@
   <Target Name="CheckTestPlatforms"
           AfterTargets="Test"
           Condition="'$(TestDisabled)'!='true'">
+    <GetTargetOS>
+      <Output TaskParameter="TargetOS" PropertyName="TargetOS" />
+    </GetTargetOS>
     <PropertyGroup>
-      <TestDisabled Condition="'%(UnsupportedPlatformsItems.Identity)' == '$(OSGroup)'">true</TestDisabled>
+      <TestDisabled Condition="'%(UnsupportedPlatformsItems.Identity)' == '$(TargetOS)'">true</TestDisabled>
     </PropertyGroup>
-    <Message Condition="'%(UnsupportedPlatformsItems.Identity)' == '$(OSGroup)'"
-      Text="Skipping tests in $(AssemblyName) because it is not supported on $(OSGroup)" />
+    <Message Condition="'%(UnsupportedPlatformsItems.Identity)' == '$(TargetOS)'"
+      Text="Skipping tests in $(AssemblyName) because it is not supported on $(TargetOS)" />
   </Target>
 </Project>
