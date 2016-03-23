@@ -890,7 +890,7 @@
       <_SkipCreatePackage Condition="'$(SkipCreatePackageOnMissingFiles)' == 'true' AND '@(_missingFiles)' != ''">true</_SkipCreatePackage>
     </PropertyGroup>
 
-    <Warning Condition="'$(_SkipCreatePackage)' == 'true'" Text="Skipping package creation for $(NuSpecPath) because the following files do not exist: @(_missingFiles)" />
+    <Message Condition="'$(_SkipCreatePackage)' == 'true'" Text="Skipping package creation for $(NuSpecPath) because the following files do not exist: @(_missingFiles)" />
 
     <NugetPack Nuspecs="$(NuSpecPath)"
                OutputDirectory="$(PackageOutputPath)"
