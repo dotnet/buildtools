@@ -1,12 +1,12 @@
 {
   "dependencies": {
     "Microsoft.Cci": "4.0.0-rc2-23712",
-    "Microsoft.NETCore.ConsoleHost": "1.0.0-rc2-23907",
-    "Microsoft.NETCore.Platforms": "1.0.1-rc2-23907",
-    "Microsoft.NETCore.Runtime": "1.0.2-rc2-23907",
-    "System.Console": "4.0.0-rc2-23907",
-    "System.Diagnostics.TextWriterTraceListener": "4.0.0-rc2-23907",
-    "System.Diagnostics.TraceSource": "4.0.0-rc2-23907",
+    "Microsoft.NETCore.ConsoleHost": "1.0.0-rc2-23923",
+    "Microsoft.NETCore.Platforms": "1.0.1-rc2-23923",
+    "Microsoft.NETCore.Runtime": "1.0.2-rc2-23923",
+    "System.Console": "4.0.0-rc2-23923",
+    "System.Diagnostics.TextWriterTraceListener": "4.0.0-rc2-23923",
+    "System.Diagnostics.TraceSource": "4.0.0-rc2-23923",
     "System.Linq": "4.0.0",
     "System.Reflection": "4.0.10",
     "System.Reflection.Extensions": "4.0.0",
