@@ -1,13 +1,13 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <UsingTask TaskName="CreateAzureContainer" AssemblyFile="$(ToolsDir)net45/Microsoft.DotNet.Build.CloudTestTasks.dll"/>
-  <UsingTask TaskName="CreateAzureFileShare" AssemblyFile="$(ToolsDir)net45/Microsoft.DotNet.Build.CloudTestTasks.dll"/>
-  <UsingTask TaskName="GetPerfTestAssemblies" AssemblyFile="$(ToolsDir)net45/Microsoft.DotNet.Build.CloudTestTasks.dll"/>
-  <UsingTask TaskName="SendJsonToDocumentDb" AssemblyFile="$(ToolsDir)net45/Microsoft.DotNet.Build.CloudTestTasks.dll"/>
-  <UsingTask TaskName="SendToEventHub" AssemblyFile="$(ToolsDir)net45/Microsoft.DotNet.Build.CloudTestTasks.dll"/>
-  <UsingTask TaskName="UploadToAzure" AssemblyFile="$(ToolsDir)net45/Microsoft.DotNet.Build.CloudTestTasks.dll"/>
-  <UsingTask TaskName="WriteItemsToJson" AssemblyFile="$(ToolsDir)net45/Microsoft.DotNet.Build.CloudTestTasks.dll"/>
-  <UsingTask TaskName="WriteTestBuildStatsJson" AssemblyFile="$(ToolsDir)net45/Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="CreateAzureContainer" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="CreateAzureFileShare" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="GetPerfTestAssemblies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="SendJsonToDocumentDb" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="SendToEventHub" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="UploadToAzure" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="WriteItemsToJson" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="WriteTestBuildStatsJson" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="ZipFileCreateFromDirectory" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
   <!-- set Helix environment vars based on target platform -->
@@ -28,7 +28,7 @@
     <FuncTestListFilename>FuncTests.$(OSGroup).$(Platform)$(ConfigurationGroup).json</FuncTestListFilename>
     <PerfTestListFilename>PerfTests.$(OSGroup).$(Platform)$(ConfigurationGroup).json</PerfTestListFilename>
     <ArchivesRoot>$(TestWorkingDir)$(OSPlatformConfig)/archive/</ArchivesRoot>
-    <TestArchivesRoot>$(ArchivesRoot)Tests/</TestArchivesRoot>
+    <TestArchivesRoot>$(ArchivesRoot)tests/</TestArchivesRoot>
     <PackagesArchiveFilename>Packages.zip</PackagesArchiveFilename>
     <PackagesArchiveFile>$(ArchivesRoot)$(PackagesArchiveFilename)</PackagesArchiveFile>
     <FuncTestListFile>$(TestWorkingDir)$(OSPlatformConfig)/$(FuncTestListFilename)</FuncTestListFile>
@@ -61,7 +61,9 @@
     <Error Condition="'$(CloudResultsAccountName)' == ''" Text="Missing required property CloudResultsAccountName." />
     <Error Condition="'$(CloudDropAccessToken)' == ''" Text="Missing required property CloudDropAccessToken." />
     <Error Condition="'$(CloudResultsAccessToken)' == ''" Text="Missing required property CloudResultsAccessToken." />
-    <Error Condition="'$(BuildCompleteConnection)' == ''" Text="Missing required property BuildCompleteConnection." />
+    <Error Condition="'$(EventHubPath)' == ''" Text="Missing required property EventHubPath." />
+    <Error Condition="'$(EventHubSharedAccessKey)' == ''" Text="Missing required property EventHubSharedAccessKey." />
+    <Error Condition="'$(EventHubSharedAccessKeyName)' == ''" Text="Missing required property EventHubSharedAccessKeyName." />
     <Error Condition="'$(BuildIsOfficial)' == 'true' and '$(BuildIsOfficialConnection)' == ''" Text="Missing required property BuildIsOfficialConnection." />
     <Error Condition="'$(BuildIsOfficial)' == 'true' and '$(DocumentDbKey)' == ''" Text="Missing required property DocumentDbKey." />
     <Error Condition="'$(BuildIsOfficial)' == 'true' and '$(DocumentDbUri)' == ''" Text="Missing required property DocumentDbUri." />
@@ -298,23 +300,17 @@
           Outputs="%(TestListFile.CorrelationId)"
           Condition="'$(SkipNotifyEvent)' != 'true'">
     <SendToEventHub
-      ConnectionString="$(BuildCompleteConnection)"
-      EventHubPath="controler"
-      EventData="%(TestListFile.BuildCompleteJson)" />
+      EventHubPath="$(EventHubPath)"
+      EventData="%(TestListFile.BuildCompleteJson)" 
+      EventHubSharedAccessKeyName="$(EventHubSharedAccessKeyName)"
+      EventHubSharedAccessKey="$(EventHubSharedAccessKey)"/>
     <SendToEventHub
       Condition="'$(BuildIsOfficial)' == 'true'"
-      ConnectionString="$(BuildIsOfficialConnection)"
-      EventHubPath="clrstats-events"
+      EventHubPath="$(BuildIsOfficialEventHubPath)"
+      EventHubSharedAccessKeyName="$(BuildIsOfficialEventHubSharedAccessKeyName)"
+      EventHubSharedAccessKey="$(BuildIsOfficialEventHubSharedAccessKey)"
       EventData="%(TestListFile.OfficialBuildJson)"
       PartitionKey="%(TestListFile.CorrelationId)"/>
-    <SendJsonToDocumentDb
-      Condition="'$(BuildIsOfficial)' == 'true'"
-      AccountKey="$(DocumentDbKey)"
-      Collection="ExecutionSummary"
-      Database="HelixMonitoringService"
-      DocumentId="Build|%(TestListFile.CorrelationId)"
-      EndpointUri="$(DocumentDbUri)"
-      JsonFile="$(BuildStatsJsonFile)" />
   </Target>
 
 </Project>

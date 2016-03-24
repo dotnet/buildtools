@@ -3,107 +3,159 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Globalization;
+using System.IO;
+using System.Net;
+using System.Threading.Tasks;
+using System.Net.Http;
 using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
+
+using Task = Microsoft.Build.Utilities.Task;
 
 namespace Microsoft.DotNet.Build.CloudTestTasks
 {
+
     public sealed class CreateAzureContainer : Task
     {
         /// <summary>
-        /// The Azure account name used when creating the connection string.
-        /// </summary>
-        [Required]
-        public string AccountName { get; set; }
-
-        /// <summary>
-        /// The Azure account key used when creating the connection string.
+        ///     The Azure account key used when creating the connection string.
         /// </summary>
         [Required]
         public string AccountKey { get; set; }
 
         /// <summary>
-        /// The name of the container to create.  The specified name must be in the correct format, see the
-        /// following page for more info.  https://msdn.microsoft.com/en-us/library/azure/dd135715.aspx
+        ///     The Azure account name used when creating the connection string.
+        /// </summary>
+        [Required]
+        public string AccountName { get; set; }
+
+        /// <summary>
+        ///     The name of the container to create.  The specified name must be in the correct format, see the
+        ///     following page for more info.  https://msdn.microsoft.com/en-us/library/azure/dd135715.aspx
         /// </summary>
         [Required]
         public string ContainerName { get; set; }
 
         /// <summary>
-        /// The read-only SAS token created when ReadOnlyTokenDaysValid is greater than zero.
+        ///     When false, if the specified container already exists get a reference to it.
+        ///     When true, if the specified container already exists the task will fail.
+        /// </summary>
+        public bool FailIfExists { get; set; }
+
+        /// <summary>
+        ///     The read-only SAS token created when ReadOnlyTokenDaysValid is greater than zero.
         /// </summary>
         [Output]
         public string ReadOnlyToken { get; set; }
 
         /// <summary>
-        /// The number of days for which the read-only token should be valid.
+        ///     The number of days for which the read-only token should be valid.
         /// </summary>
         public int ReadOnlyTokenDaysValid { get; set; }
 
         /// <summary>
-        /// The URI of the created container.
+        ///     The URI of the created container.
         /// </summary>
         [Output]
         public string StorageUri { get; set; }
 
         /// <summary>
-        /// The write-only SAS token create when WriteOnlyTokenDaysValid is greater than zero.
+        ///     The write-only SAS token create when WriteOnlyTokenDaysValid is greater than zero.
         /// </summary>
         [Output]
         public string WriteOnlyToken { get; set; }
 
         /// <summary>
-        /// The number of days for which the write-only token should be valid.
+        ///     The number of days for which the write-only token should be valid.
         /// </summary>
         public int WriteOnlyTokenDaysValid { get; set; }
 
-        /// <summary>
-        /// When false, if the specified container already exists get a reference to it.
-        /// When true, if the specified container already exists the task will fail.
-        /// </summary>
-        public bool FailIfExists { get; set; }
-
         public override bool Execute()
         {
-            Log.LogMessage(MessageImportance.High, "Creating container named '{0}' in storage account {1}.", ContainerName, AccountName);
+            return ExecuteAsync().GetAwaiter().GetResult();
+        }
 
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(string.Format("DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}", AccountName, AccountKey));
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-            CloudBlobContainer newContainer = blobClient.GetContainerReference(ContainerName);
+        public async Task<bool> ExecuteAsync()
+        {
+            Log.LogMessage(
+                MessageImportance.High, 
+                "Creating container named '{0}' in storage account {1}.", 
+                ContainerName, 
+                AccountName);
+            DateTime dt = DateTime.UtcNow;
+            string url = string.Format(
+                "https://{0}.blob.core.windows.net/{1}?restype=container", 
+                AccountName, 
+                ContainerName);
+            StorageUri = string.Format(
+                "https://{0}.blob.core.windows.net/{1}/", 
+                AccountName, 
+                ContainerName);
 
-            if (FailIfExists && newContainer.Exists())
+            Log.LogMessage(MessageImportance.Normal, "Sending request to create Container");
+            using (HttpClient client = new HttpClient())
             {
-                Log.LogError("The container '{0}' already exists.", ContainerName);
+                using (HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Put, url))
+                {
+                    req.Headers.Add(AzureHelper.DateHeaderString, dt.ToString("R", CultureInfo.InvariantCulture));
+                    req.Headers.Add(AzureHelper.VersionHeaderString, AzureHelper.StorageApiVersion);
+                    req.Headers.Add(AzureHelper.AuthorizationHeaderString, AzureHelper.AuthorizationHeader(
+                            AccountName,
+                            AccountKey,
+                            "PUT",
+                            dt,
+                            req));
+                    byte[] bytestoWrite = new byte[0];
+                    int bytesToWriteLength = 0;
+
+                    Stream postStream = new MemoryStream();
+                    postStream.Write(bytestoWrite, 0, bytesToWriteLength);
+                    req.Content = new StreamContent(postStream);
+
+                    using (HttpResponseMessage response = await client.SendAsync(req))
+                    {
+                        this.Log.LogMessage(
+                            MessageImportance.Normal,
+                            "Received response to create Container {0}: Status Code: {1} {2}",
+                            this.ContainerName, response.StatusCode, response.Content);
+                    }
+                }
+            }
+
+            try
+            {
+                if (ReadOnlyTokenDaysValid > 0)
+                {
+                    ReadOnlyToken = AzureHelper.CreateContainerSasToken(
+                        AccountName,
+                        ContainerName,
+                        AccountKey,
+                        AzureHelper.SasAccessType.Read,
+                        ReadOnlyTokenDaysValid);
+                }
+                else
+                {
+                    Log.LogWarning("{0} will not allow read permissions - ReadOnlyTokenDaysValid must be greater than 0.", StorageUri);
+                }
+
+                if (WriteOnlyTokenDaysValid > 0)
+                {
+                    WriteOnlyToken = AzureHelper.CreateContainerSasToken(
+                        AccountName,
+                        ContainerName,
+                        AccountKey,
+                        AzureHelper.SasAccessType.Write,
+                        WriteOnlyTokenDaysValid);
+                }
+                else
+                {
+                    Log.LogWarning("{0} will not allow write permissions - WriteOnlyTokenDaysValid must be greater than 0.", StorageUri);
+                }
+            }
+            catch (ArgumentOutOfRangeException e)
+            {
+                Log.LogError("ArgumentOutOfRangeException: Invalid AzureHelper.SasAccessType :"+e.Message);
                 return false;
-            }
-            else
-            {
-                newContainer.CreateIfNotExists();
-            }
-
-            StorageUri = newContainer.Uri.ToString();
-
-            // to keep with the msbuild convention of having a path end with
-            // a directory separator char append a '/' to the end of the URI
-            if (!StorageUri.EndsWith("/"))
-                StorageUri = string.Format("{0}/", StorageUri);
-
-            if (ReadOnlyTokenDaysValid > 0)
-            {
-                var sasRO = new SharedAccessBlobPolicy();
-                sasRO.SharedAccessExpiryTime = DateTime.UtcNow.AddDays(ReadOnlyTokenDaysValid);
-                sasRO.Permissions = SharedAccessBlobPermissions.Read;
-                ReadOnlyToken = newContainer.GetSharedAccessSignature(sasRO);
-            }
-
-            if (WriteOnlyTokenDaysValid > 0)
-            {
-                var sasWO = new SharedAccessBlobPolicy();
-                sasWO.SharedAccessExpiryTime = DateTime.UtcNow.AddDays(WriteOnlyTokenDaysValid);
-                sasWO.Permissions = SharedAccessBlobPermissions.Write;
-                WriteOnlyToken = newContainer.GetSharedAccessSignature(sasWO);
             }
 
             return true;

@@ -1,19 +1,46 @@
 {
   "dependencies": {
-    "Microsoft.Azure.DocumentDB": "1.5.1",
-    "Microsoft.Azure.KeyVault.Core": "1.0.0",
-    "Microsoft.Data.Edm": "5.6.4",
-    "Microsoft.Data.OData": "5.6.4",
-    "Microsoft.Data.Services.Client": "5.6.4",
-    "Microsoft.WindowsAzure.ConfigurationManager": "1.7.0.0",
-    "Newtonsoft.Json": "7.0.1",
-    "System.Collections.Immutable": "1.1.37",
-    "System.Reflection.Metadata": "1.1.0",
-    "System.Spatial": "5.6.4",
-    "WindowsAzure.ServiceBus": "3.0.4",
-    "WindowsAzure.Storage": "5.0.2"
+    "Microsoft.Build.Framework": "0.1.0-preview-00017",
+    "Microsoft.Build.Tasks.Core": "0.1.0-preview-00017",
+    "Microsoft.Build.Utilities.Core": "0.1.0-preview-00017",
+    "Microsoft.NETCore.Platforms": "1.0.1-rc2-23923",
+    "Microsoft.Win32.Registry": { 
+      "version": "4.0.0-rc2-23923",
+      "exclude": "Compile"
+    },
+    "Microsoft.CSharp": "4.0.1-rc2-23923",
+    "System.Linq": "4.0.1-rc2-23923",
+    "System.Collections": "4.0.11-rc2-23923",
+    "System.Globalization": "4.0.11-rc2-23923",
+    "System.Globalization.Extensions": "4.0.1-rc2-23923",
+    "System.Diagnostics.Debug": "4.0.11-rc2-23923",
+    "System.IO": "4.1.0-rc2-23923",
+    "System.Security.Cryptography.Algorithms": "4.0.0-rc2-23923",
+    "System.Collections.Specialized": "4.0.1-rc2-23923",
+    "System.Net.Requests": "4.0.11-rc2-23923",
+    "System.Net.Http": "4.0.1-rc2-23923",
+    "System.Text.Encoding": "4.0.11-rc2-23923",
+    "System.Text.RegularExpressions": "4.0.12-rc2-23923",
+    "System.Threading.Tasks": "4.0.11-rc2-23923",
+    "System.Threading.Tasks.Parallel": "4.0.1-rc2-23923",
+    "System.Reflection.Metadata": "1.2.0-rc2-23923",
+    "System.Xml.XmlDocument": "4.0.1-rc2-23923",
+    "System.IO.Compression": "4.0.1-rc2-23923",
+    "System.IO.Compression.ZipFile": "4.0.1-rc2-23923",
+    "System.IO.FileSystem": "4.0.1-rc2-23923",
+    "System.Reflection": "4.1.0-rc2-23923",
+    "Newtonsoft.Json": "7.0.1"
   },
   "frameworks": {
-    "net45": { }
+        "dnxcore50": {}
+    },
+  "runtimes": {
+    "win7-x64": {},
+    "win7-x86": {},
+    "ubuntu.14.04-x64": {},
+    "osx.10.11-x64": {},
+    "debian.8.2-x64": {},
+    "centos.7.1-x64": {},
+    "rhel.7.2-x64": {}
   }
 }
