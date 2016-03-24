@@ -7,7 +7,7 @@
 
   <!-- packages.targets requires build values -->
   <Import Project="BuildValues.props" />
-  <Import Project="Microsoft.DotNet.Build.Tasks\PackageFiles\packages.targets" Condition="'$(ImportGetNuGetPackageVersions)' != 'false'" />
+  <Import Project="$(ToolsDir)packages.targets" Condition="'$(ImportGetNuGetPackageVersions)' != 'false'" />
   
   <Target Name="Build" DependsOnTargets="BuildPackages" />
 </Project>

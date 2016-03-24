@@ -49,11 +49,17 @@
   <Target
     Name="GetNuGetPackageVersions"
     Condition="'@(PackagesNuSpecFiles)'!='' and '$(RevisionNumber)' != ''"
-    Outputs="%(PackagesNuSpecFiles.Identity)">
+    Outputs="%(PackagesNuSpecFiles.Identity)"
+    DependsOnTargets="CreateVersionFileDuringBuild">
+
+    <PropertyGroup>
+      <SelectedPackageVersion Condition="'$(SkipVersionGeneration)'!='true'">$(BuildNumberMajor)-$(BuildNumberMinor)</SelectedPackageVersion>
+      <SelectedPackageVersion Condition="'$(SelectedPackageVersion)'==''">$(RevisionNumber)</SelectedPackageVersion>
+    </PropertyGroup>
 
     <GetPackageVersion
       Condition="Exists('$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll')"
-      RevisionNumber="$(RevisionNumber)"
+      RevisionNumber="$(SelectedPackageVersion)"
       NuSpecFile="%(PackagesNuSpecFiles.Identity)">
       <Output PropertyName="_TempPackageVersion" TaskParameter="PackageVersion" />
     </GetPackageVersion>
