@@ -15,6 +15,8 @@
     <HelixPythonPath>%HELIX_PYTHONPATH%</HelixPythonPath>
     <HelixScriptRoot>%HELIX_SCRIPT_ROOT%\</HelixScriptRoot>
     <FuncTestRunnerScript>%HELIX_CORRELATION_PAYLOAD%\RunnerScripts\xunitrunner-func\xunitrunner-func.py</FuncTestRunnerScript>
+    <!-- Native compilation is Windows-only currently -->
+    <FuncTestRunnerScript Condition="'$(EnableNativeCompilation)' == 'true'">%HELIX_CORRELATION_PAYLOAD%\RunnerScripts\xunitrunner-func\xunitrunner-func-ilc.py</FuncTestRunnerScript>    
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
     <HelixPythonPath>$HELIX_PYTHONPATH</HelixPythonPath>
@@ -117,6 +119,16 @@
         <RelativeBlobPath>$(SupplementalPayloadFilename)</RelativeBlobPath>
       </SupplementalPayload>
     </ItemGroup>
+
+    <ItemGroup Condition="'$(EnableNativeCompilation)' == 'true'" >
+      <SupplementalPayload Include="$(TestILCZipFile)">
+        <RelativeBlobPath>$([System.IO.Path]::GetFileName('$(TestILCZipFile)'))</RelativeBlobPath>
+      </SupplementalPayload>
+      <SupplementalPayload Include="$(EditBinZipFile)">
+        <RelativeBlobPath>$([System.IO.Path]::GetFileName('$(EditBinZipFile)'))</RelativeBlobPath>
+      </SupplementalPayload>
+    </ItemGroup>    
+    
   </Target>
 
   <!-- create Azure containers and file shares -->
