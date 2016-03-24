@@ -23,6 +23,7 @@
       <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/xunit.performance.metrics.dll" />
       <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/xunit.performance.logger.exe" />
       <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/xunit.performance.core.dll" />
+      <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/xunit.runner.utility.desktop.dll" >
       <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/ProcDomain.dll" />
       <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/Microsoft.Diagnostics.Tracing.TraceEvent.dll" />
       <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/*/*.*" />

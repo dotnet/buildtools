@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env py
+#!/usr/bin/env py
 import os
 import os.path
 import sys
@@ -147,7 +147,8 @@ def post_process_perf_results(settings, results_location, workitem_dir):
     # Use the xunit perf analysis exe from nuget package here
     log.info('Converting xml to csv')
     payload_dir = fix_path(os.getenv('HELIX_CORRELATION_PAYLOAD'))
-    xmlconvertorpath = os.path.join(*[payload_dir, 'Microsoft.DotNet.xunit.performance.analysis', '1.0.0-alpha-build0029', 'tools', 'xunit.performance.analysis.exe'])
+    perf_analysis_version = (next(os.walk(os.path.join(payload_dir, 'Microsoft.DotNet.xunit.performance.analysis')))[1])[0]
+    xmlconvertorpath = os.path.join(*[payload_dir, 'Microsoft.DotNet.xunit.performance.analysis', perf_analysis_version, 'tools', 'xunit.performance.analysis.exe'])
     xmlCmd = xmlconvertorpath+' -csv '+os.path.join(workitem_dir, 'results.csv')+' '+results_location
     if (helix.proc.run_and_log_output(xmlCmd.split(' '))) != 0:
         raise Exception('Failed to generate csv from result xml')
@@ -207,6 +208,9 @@ def post_process_perf_results(settings, results_location, workitem_dir):
 
     if (helix.proc.run_and_log_output(jsonArgs)) != 0:
         raise Exception('Failed to generate json from csv file')
+
+    # Upload json with rest of the results
+    _write_output_path(jsonPath, perfsettings)
 
     # set info to upload result to perf-specific json container
     log.info('Uploading the results json')
@@ -346,6 +350,15 @@ def main(args=None):
 
         if '--perf-runner' in optdict:
             perf_runner = optdict['--perf-runner']
+            if not os.path.exists(optdict['--dll']):
+                dllpath = optdict['--dll']
+                exepath = '.'.join(dllpath.split('.')[:-1])
+                exepath = exepath + '.exe'
+                if not os.path.exists(exepath):
+                    raise Exception('No valid test dll or exe found')
+                else:
+                    optdict['--dll'] = exepath
+
         if '--assemblylist' in optdict:
             assembly_list = optdict['--assemblylist']
             log.info("Using assemblylist parameter:"+assembly_list)

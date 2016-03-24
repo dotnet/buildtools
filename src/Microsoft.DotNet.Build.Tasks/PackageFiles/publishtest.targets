@@ -4,9 +4,9 @@
   <UsingTask TaskName="PrereleaseResolveNuGetPackageAssets" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="RemoveDuplicatesWithLastOneWinsPolicy" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ZipFileCreateFromDirectory" Condition="'$(ArchiveTests)' == 'true'" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
-  
+
   <UsingTask TaskName="GenerateAssemblyList" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
-  
+
   <PropertyGroup>
     <SerializeProjects Condition="'$(TestWithLocalLibraries)'=='true'">true</SerializeProjects>
   </PropertyGroup>
@@ -31,7 +31,7 @@
       <TestPackageBuild Condition="'$(TestPackageBuild)'==''">$(BuildNumberMajor)</TestPackageBuild>
       <TestPackageBuild Condition="'$(TestPackageBuild)'==''">000000</TestPackageBuild>
       <TestPackageVersion Condition="'$(TestPackageVersion)'==''">1.0.0-prerelease-$(TestPackageBuild)</TestPackageVersion>
-      
+
       <NuProjDir Condition="'$(NuProjDir)'==''">$(MSBuildThisFileDirectory)/NuProj/</NuProjDir>
     </PropertyGroup>
     <MSBuild Projects="$(MSBuildThisFileDirectory)testpackage.nuproj"
@@ -47,8 +47,9 @@
       Content=$(TestPackageContent)"/>
   </Target>
 
-  <Target Name="CopyTestToTestDirectory" 
-          DependsOnTargets="DiscoverTestInputs">
+  <Target Name="CopyTestToTestDirectory"
+          DependsOnTargets="DiscoverTestInputs" Condition="'$(DisableCopyTestToTestDirectory)'!='true'">
+
     <ItemGroup>
       <TestNugetProjectLockFile Include="$(ProjectLockJson)" Condition="Exists($(ProjectLockJson))"/>
       <TestNugetProjectLockFile Include="$(TestRuntimeProjectLockJson)" Condition="Exists($(TestRuntimeProjectLockJson))"/>
@@ -99,8 +100,8 @@
       <TestCopyLocal Include="$(BUILDTOOLS_OVERRIDE_RUNTIME)/*.*" />
     </ItemGroup>
 
-    <!-- Remove duplicates. Note that we musn't just copy in sequence and let 
-         the last one win that way because it will cause copies to occur on 
+    <!-- Remove duplicates. Note that we musn't just copy in sequence and let
+         the last one win that way because it will cause copies to occur on
          every incremental build. -->
     <ItemGroup>
       <_TestCopyLocalByFileName Include="@(TestCopyLocal->'%(FileName)%(Extension)')">
@@ -120,7 +121,7 @@
       <CreateHardLinksForCopyTestToTestDirectoryIfPossible Condition="'$(CreateHardLinksForCopyTestToTestDirectoryIfPossible)'=='' and '$(OS)' == 'Windows_NT'">true</CreateHardLinksForCopyTestToTestDirectoryIfPossible>
       <CreateHardLinksForCopyTestToTestDirectoryIfPossible Condition="'$(CreateHardLinksForCopyTestToTestDirectoryIfPossible)'==''">$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)</CreateHardLinksForCopyTestToTestDirectoryIfPossible>
     </PropertyGroup>
-    
+
     <PropertyGroup>
       <TestTargetFrameworkFolder>%(TestTargetFramework.Folder)</TestTargetFrameworkFolder>
     </PropertyGroup>
@@ -139,7 +140,7 @@
       Retries="$(CopyRetryCount)"
       RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
       UseHardlinksIfPossible="$(CreateHardLinksForCopyTestToTestDirectoryIfPossible)">
-      
+
       <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
     </Copy>
 
@@ -209,10 +210,14 @@
     <PropertyGroup>
       <TestArchiveDir>$(TestWorkingDir)$(OSPlatformConfig)/archive/tests/</TestArchiveDir>
     </PropertyGroup>
+    <PropertyGroup Condition="'$(TestProjectName)'==''">
+      <TestProjectName>$(MSBuildProjectName)</TestProjectName>
+    </PropertyGroup>
+
     <!-- the project json files need to be included in the archive -->
     <Copy SourceFiles="$(ProjectJson);$(ProjectLockJson)" DestinationFolder="$(OutDir)" />
     <MakeDir Directories="$(TestArchiveDir)" />
-    <ZipFileCreateFromDirectory SourceDirectory="$(OutDir)" DestinationArchive="$(TestArchiveDir)$(MSBuildProjectName).zip" OverwriteDestination="true" />
+    <ZipFileCreateFromDirectory SourceDirectory="$(OutDir)" DestinationArchive="$(TestArchiveDir)$(TestProjectName).zip" OverwriteDestination="true" />
   </Target>
 
 </Project>

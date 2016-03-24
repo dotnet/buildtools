@@ -14,7 +14,7 @@
   <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
     <HelixPythonPath>%HELIX_PYTHONPATH%</HelixPythonPath>
     <HelixScriptRoot>%HELIX_SCRIPT_ROOT%\</HelixScriptRoot>
-    <FuncTestRunnerScript>%HELIX_CORRELATION_PAYLOAD%\RunnerScripts\xunitrunner-func\xunitrunner-func.py</FuncTestRunnerScript>    
+    <FuncTestRunnerScript>%HELIX_CORRELATION_PAYLOAD%\RunnerScripts\xunitrunner-func\xunitrunner-func.py</FuncTestRunnerScript>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
     <HelixPythonPath>$HELIX_PYTHONPATH</HelixPythonPath>
@@ -150,7 +150,7 @@
         <WorkItemId>FunctionalTest.%(Filename)</WorkItemId>
         <TimeoutInSeconds>$(TimeoutInSeconds)</TimeoutInSeconds>
       </FunctionalTest>
-    </ItemGroup> 
+    </ItemGroup>
     <WriteItemsToJson JsonFileName="$(FuncTestListFile)" Items="@(FunctionalTest)" />
     <!-- add test lists to the list of items for upload -->
     <ItemGroup>
@@ -174,9 +174,10 @@
     </PropertyGroup>
     <!-- now gather the perf tests -->
     <ItemGroup>
-      <TestBinary Include="$(BinDir)$(OSPlatformConfig)/**/*Tests.dll" />
+      <TestBinary Include="$(BinDir)$(OSPlatformConfig)/**/*.dll" />
+      <TestBinary Include="$(BinDir)$(OSPlatformConfig)/**/*.exe" />
     </ItemGroup>
-    <GetPerfTestAssemblies TestBinaries="@(TestBinary)">
+    <GetPerfTestAssemblies TestBinaries="@(TestBinary)" GetFullPaths="false">
       <Output TaskParameter="PerfTestAssemblies" ItemName="PerfTestAssembly" />
     </GetPerfTestAssemblies>
     <!-- don't add any items to the group if no perf tests were found -->

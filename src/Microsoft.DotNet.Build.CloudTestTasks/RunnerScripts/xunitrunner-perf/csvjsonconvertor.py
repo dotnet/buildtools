@@ -24,6 +24,7 @@ def add_row(test, value, csvdict):
         [System, ComponentModel, Tests, Perf_TypeDescriptorTests, GetConverter(typeToConvert: typeof(bool), expectedConverter: typeof(System.ComponentModel.BooleanConverter))]
     """
 
+    test = test.strip('\"')
     funcMeta = test.split('(')
     funcMeta = funcMeta[1:]
     test = test.split('(')[0]
@@ -34,7 +35,7 @@ def add_row(test, value, csvdict):
 
     identifiers[-1] = funcName
     currdict = csvdict
-    for identifier in identifiers[:-2]:
+    for identifier in identifiers[:-1]:
         if identifier not in currdict:
             currdict[identifier] = dict()
 
