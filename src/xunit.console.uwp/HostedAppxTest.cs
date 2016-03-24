@@ -73,10 +73,11 @@ namespace Xunit.UwpClient
                 RecurseCopy(Path.GetDirectoryName(runnerAppxPath), tempDir);
                 foreach (var a in project.Assemblies)
                 {
-                    File.Copy(a.AssemblyFilename, Path.Combine(tempDir, Path.GetFileName(a.AssemblyFilename)));
+                    File.Copy(a.AssemblyFilename, Path.Combine(tempDir, Path.GetFileName(a.AssemblyFilename)), true);
                 }
                 manifestPath = Path.Combine(tempDir, "AppxManifest.xml");
                 GetManifestInfoFromFile(appxFactory, manifestPath);
+                argsToPass = string.Join("\x1F", originalArgs);
             }
             RegisterAppx(new Uri(manifestPath));
         }

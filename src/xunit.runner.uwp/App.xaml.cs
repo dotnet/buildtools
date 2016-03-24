@@ -28,6 +28,10 @@ namespace XunitUwpRunner
         {
             var reporters = await GetAvailableRunnerReporters();
             var commandLine = CommandLine.Parse(reporters, arguments.Split(new[] { '\x1F' }, StringSplitOptions.RemoveEmptyEntries));
+            if (commandLine.Debug)
+            {
+                Debugger.Launch();
+            }
             var reporterMessageHandler = commandLine.Reporter.CreateMessageHandler(new RunLogger());
             var completionMessages = new ConcurrentDictionary<string, ExecutionSummary>();
             var assembliesElement = new XElement("assemblies");
