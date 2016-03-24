@@ -201,10 +201,10 @@
       <!-- Padding should be equal or greater to 5. Using 5 to align with internal build system. -->
       <VersionPadding Condition="'$(VersionPadding)'==''">5</VersionPadding>
       <!-- Using the following default comparison date will produce versions that align with our internal build system. -->
-      <VersionComparisonDate Condition="'$(VersionComparisonDate)'==''">1996-04-01 00:00:00 Z</VersionComparisonDate>
+      <VersionComparisonDate Condition="'$(VersionComparisonDate)'==''">1996-04-01</VersionComparisonDate>
     </PropertyGroup>
       
-    <GenerateCurrentVersion SeedDate="$(VersionSeedDate)">
+    <GenerateCurrentVersion SeedDate="$(VersionSeedDate)" ComparisonDate="$(VersionComparisonDate)" Padding="$(VersionPadding)">
       <Output PropertyName="GeneratedBuildNumberMajor" TaskParameter="GeneratedVersion" />
     </GenerateCurrentVersion>
   </Target>
@@ -216,8 +216,8 @@
       
     <!-- Windows Exec command requires DOS escaping for the percent sign since it secretly runs the process in a shell instead of calling createprocess. -->
     <PropertyGroup>
-      <GitCommand Condition="'$(OsEnvironment)'=='Windows_NT'">git show -s --format=^%25%25cd --date=iso HEAD</GitCommand>
-      <GitCommand Condition="'$(OsEnvironment)'!='Windows_NT'">git show -s --format=%25cd --date=iso HEAD</GitCommand>
+      <GitCommand Condition="'$(OsEnvironment)'=='Windows_NT'">git show -s --format=^%25%25cd --date=short HEAD</GitCommand>
+      <GitCommand Condition="'$(OsEnvironment)'!='Windows_NT'">git show -s --format=%25cd --date=short HEAD</GitCommand>
     </PropertyGroup>
       
     <Exec Command="$(GitCommand)" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
