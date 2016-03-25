@@ -54,7 +54,7 @@ namespace Microsoft.DotNet.Build.Tasks
             // Calculating GeneratedRevision
             if (string.IsNullOrEmpty(OfficialBuildId))
             {
-                GeneratedRevision = "00";
+                GeneratedRevision = "0";
             }
             else
             {

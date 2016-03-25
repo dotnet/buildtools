@@ -9,7 +9,7 @@
 
     <!-- These should be set by importing the targets below but initializing to 0 for consistency -->
     <BuildNumberMajor Condition="'$(BuildNumberMajor)' == ''">0</BuildNumberMajor>
-    <BuildNumberMinor Condition="'$(BuildNumberMinor)' == ''">00</BuildNumberMinor>
+    <BuildNumberMinor Condition="'$(BuildNumberMinor)' == ''">0</BuildNumberMinor>
   </PropertyGroup>
 
   <!-- Import a build target that includes the build numbers -->
