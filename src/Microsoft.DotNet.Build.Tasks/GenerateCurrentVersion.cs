@@ -6,6 +6,7 @@ using System;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
@@ -16,6 +17,11 @@ namespace Microsoft.DotNet.Build.Tasks
         /// </summary>
         [Required]
         public string SeedDate { get; set; }
+
+        /// <summary>
+        /// Optional parameter containing the Official Build Id. We'll use this to get the revision number out and use it as BuildNumberMinor.
+        /// </summary>
+        public string OfficialBuildId { get; set; }
 
         /// <summary>
         /// Optional parameter that sets the Padding for the version number. Must be 5 or bigger.
@@ -33,12 +39,29 @@ namespace Microsoft.DotNet.Build.Tasks
         [Output]
         public string GeneratedVersion { get; set; }
 
+        /// <summary>
+        /// The Revision number that will be produced from the BuildNumber.
+        /// </summary>
+        [Output]
+        public string GeneratedRevision { get; set; }
+
         private const string DateFormat = "yyyy-MM-dd";
         private const string LastModifiedTimeDateFormat = "yyyy-MM-dd HH:mm:ss.FFFFFFF";
         private CultureInfo enUS = new CultureInfo("en-US");
 
         public override bool Execute()
         {
+            // Calculating GeneratedRevision
+            if (string.IsNullOrEmpty(OfficialBuildId))
+            {
+                GeneratedRevision = "00";
+            }
+            else
+            {
+                GeneratedRevision = GetCurrentRevisionForBuildName(OfficialBuildId);
+            }
+
+            // Calculating GeneratedVersion
             if (Padding == 0)
             {
                 Padding = 5;
@@ -68,6 +91,17 @@ namespace Microsoft.DotNet.Build.Tasks
                 return false;
             }
             return true;
+        }
+
+        public string GetCurrentRevisionForBuildName(string buildId)
+        {
+            Regex regex = new Regex(@"\.(\d+)$");
+            Match match = regex.Match(buildId);
+            if (match.Success && match.Groups.Count > 1)
+            {
+                return match.Groups[1].Value;
+            }
+            return "0";
         }
 
         public string GetCurrentVersionForDate(DateTime seedDate, string comparisonDate)

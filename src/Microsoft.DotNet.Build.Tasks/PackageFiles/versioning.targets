@@ -171,6 +171,7 @@
       <CurrentVersionLines Include="%3CProject xmlns=%22http://schemas.microsoft.com/developer/msbuild/2003%22%3E" />
       <CurrentVersionLines Include="%3CPropertyGroup%3E" />
       <CurrentVersionLines Include="%3CBuildNumberMajor Condition=%22%27%24(BuildNumberMajor)%27==%27%27%22%3E$(GeneratedBuildNumberMajor)%3C/BuildNumberMajor%3E" />
+      <CurrentVersionLines Include="%3CBuildNumberMinor Condition=%22%27%24(BuildNumberMinor)%27==%27%27%22%3E$(GeneratedBuildNumberMinor)%3C/BuildNumberMinor%3E" />
       <CurrentVersionLines Include="%3C/PropertyGroup%3E" />
       <CurrentVersionLines Include="%3C/Project%3E" />
     </ItemGroup>
@@ -204,8 +205,9 @@
       <VersionComparisonDate Condition="'$(VersionComparisonDate)'==''">1996-04-01</VersionComparisonDate>
     </PropertyGroup>
       
-    <GenerateCurrentVersion SeedDate="$(VersionSeedDate)" ComparisonDate="$(VersionComparisonDate)" Padding="$(VersionPadding)">
+    <GenerateCurrentVersion SeedDate="$(VersionSeedDate)" OfficialBuildId="$(OfficialBuildId)" ComparisonDate="$(VersionComparisonDate)" Padding="$(VersionPadding)">
       <Output PropertyName="GeneratedBuildNumberMajor" TaskParameter="GeneratedVersion" />
+      <Output PropertyName="GeneratedBuildNumberMinor" TaskParameter="GeneratedRevision" />
     </GenerateCurrentVersion>
   </Target>
 
@@ -232,8 +234,9 @@
 
   <!-- This target will only be executed if BuildVersion.props doesn't exist yet -->
   <Target Name="CreateVersionFileDuringBuild" Condition="'$(SkipVersionGeneration)'!='true' AND '$(ShouldCreateVersionFileDuringBuild)'=='true'" DependsOnTargets="CreateOrUpdateCurrentVersionFile">
-    <PropertyGroup>
-      <BuildNumberMajor>$(GeneratedBuildNumberMajor)</BuildNumberMajor>
+    <PropertyGroup Condition="'$(SkipVersionGeneration)'!='true'">
+      <BuildNumberMajor >$(GeneratedBuildNumberMajor)</BuildNumberMajor>
+      <BuildNumberMinor>$(GeneratedBuildNumberMinor)</BuildNumberMinor>
       <AssemblyFileVersion>$(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)</AssemblyFileVersion>
       <VersionSuffix Condition="'$(PreReleaseLabel)' != ''">-$(PreReleaseLabel)</VersionSuffix>
       <VersionSuffix Condition="'$(IncludeBuildNumberInPackageVersion)' == 'true'">$(VersionSuffix)-$(BuildNumberMajor).$(BuildNumberMinor)</VersionSuffix>
