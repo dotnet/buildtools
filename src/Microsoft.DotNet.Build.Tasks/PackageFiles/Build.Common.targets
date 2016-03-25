@@ -203,6 +203,11 @@
    -->
   <Import Project="$(MSBuildThisFileDirectory)PackageLibs.targets" Condition="'$(ExclduePackageLibsImport)'!='true'"/>
 
+  <!-- 
+    Import the codeAnalysis.targets file to enable analyzer support during build.
+  --> 
+  <Import Project="$(MSBuildThisFileDirectory)codeAnalysis.targets" />
+
   <Target Name="CheckDesignTime">
     <!--
       Visual Studio does a number of background builds to do a variety of tasks such as resolving references and preparing for intellisense.
