@@ -6,11 +6,11 @@
   <UsingTask TaskName="ZipFileCreateFromDirectory" Condition="'$(ArchiveTests)' == 'true'" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
   <UsingTask TaskName="GenerateAssemblyList" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
-  <UsingTask TaskName="GetTargetArchitecture" Condition="'$(TestWithLocalLibraries)'=='true'" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
-  <UsingTask TaskName="GetTargetOS" Condition="'$(TestWithLocalLibraries)'=='true' AND '$(OSGroup)'=='AnyOS'" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="GetTargetMachineInfo" Condition="'$(TestWithLocalLibraries)'=='true'" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
   <PropertyGroup>
     <SerializeProjects Condition="'$(TestWithLocalLibraries)'=='true'">true</SerializeProjects>
+    <TargetOS Condition="'$(OSGroup)'!='AnyOS'">$(OSGroup)</TargetOS>
   </PropertyGroup>
 
   <Target Name="RestoreTestRuntimePackage"
@@ -73,18 +73,15 @@
     <ItemGroup>
       <TestCopyLocal Include="@(RunTestsForProjectInputs)" Exclude="@(PackagesConfigs)" />
     </ItemGroup>
-
-    <GetTargetArchitecture Condition="'$(TestWithLocalLibraries)'=='true'">
-      <Output TaskParameter="TargetArch" PropertyName="TargetArch" />
-    </GetTargetArchitecture>
-    <GetTargetOS Condition="'$(TestWithLocalLibraries)'=='true' AND '$(OSGroup)'=='AnyOS'">
-      <Output TaskParameter="TargetOS" PropertyName="TargetOS" />
-    </GetTargetOS>
+    
+    <GetTargetMachineInfo Condition="'$(TestWithLocalLibraries)'=='true'">
+      <Output Condition="'$(TargetArch)'==''" TaskParameter="TargetArch" PropertyName="TargetArch" />
+      <Output Condition="'$(TargetOS)'==''" TaskParameter="TargetOS" PropertyName="TargetOS" />
+    </GetTargetMachineInfo>
 
     <!-- Test using locally built shim libraries. -->
     <ItemGroup Condition="'$(TestWithLocalLibraries)'=='true'">
-      <TestCopyLocal Condition="'$(OSGroup)'!='AnyOS'" Include="$(BaseOutputPath)$(OSGroup).$(TargetArch).$(ConfigurationGroup)/Native/*.*" />
-      <TestCopyLocal Condition="'$(OSGroup)'=='AnyOS'" Include="$(BaseOutputPath)$(TargetOS).$(TargetArch).$(ConfigurationGroup)/Native/*.*" />
+      <TestCopyLocal Include="$(BaseOutputPath)$(TargetOS).$(TargetArch).$(ConfigurationGroup)/Native/*.*" />
     </ItemGroup>
 
     <!-- Test using locally built libraries if requested. Again, later entries override earlier
