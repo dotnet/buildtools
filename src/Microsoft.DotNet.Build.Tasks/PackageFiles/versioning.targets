@@ -220,7 +220,7 @@
       <GitCommand Condition="'$(OsEnvironment)'!='Windows_NT'">git show -s --format=%25cd --date=short HEAD</GitCommand>
     </PropertyGroup>
       
-    <Exec Command="$(GitCommand)" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
+    <Exec Command="$(GitCommand)" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="VersionSeedDate" />
       <Output TaskParameter="ExitCode" PropertyName="GitCommandExitCode" />
     </Exec>
