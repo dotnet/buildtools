@@ -39,6 +39,9 @@
     <file src="GenFacades\GenFacades.exe" target="lib" />
     <file src="GenAPI\GenAPI.exe" target="lib" />
     <file src="ApiCompat\ApiCompat.exe" target="lib" />
+    <file src="Microsoft.DotNet.CodeAnalysis\Microsoft.DotNet.CodeAnalysis.dll" target="lib" />
+    <file src="Microsoft.DotNet.CodeAnalysis.net45\Microsoft.DotNet.CodeAnalysis.dll" target="lib\net45" />
+    <file src="Microsoft.DotNet.CodeAnalysis\PackageFiles\**\*.*" target="lib" />
     <file src="Microsoft.Cci.Extensions\Microsoft.Cci.Extensions.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks.Packaging\Microsoft.DotNet.Build.Tasks.Packaging.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks.Packaging\FrameworkLists\**\*.*" target="lib\FrameworkLists" />
