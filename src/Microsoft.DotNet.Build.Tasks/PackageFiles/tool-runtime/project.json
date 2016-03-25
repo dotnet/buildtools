@@ -4,11 +4,11 @@
   },
   "dependencies": {
     "NuProj": "0.10.4-beta-gf7fc34e7d8",
-    "Microsoft.Build.Framework": "0.1.0-preview-00017",
-    "Microsoft.Build.Tasks.Core": "0.1.0-preview-00017",
-    "Microsoft.Build.Utilities.Core": "0.1.0-preview-00017",
-    "Microsoft.Build.Targets": "0.1.0-preview-00017",
-    "Microsoft.Build": "0.1.0-preview-00017",
+    "Microsoft.Build.Framework": "0.1.0-preview-00022",
+    "Microsoft.Build.Tasks.Core": "0.1.0-preview-00022",
+    "Microsoft.Build.Utilities.Core": "0.1.0-preview-00022",
+    "Microsoft.Build.Targets": "0.1.0-preview-00022",
+    "Microsoft.Build": "0.1.0-preview-00022",
     "Microsoft.Net.Compilers.NetCore": "1.2.0-beta1-20160202-02",
     "Microsoft.Net.Compilers.Targets.NetCore": "0.1.4-dev",
     "Microsoft.NETCore.TestHost": "1.0.0-rc2-23923",
@@ -20,7 +20,7 @@
       "version": "4.0.0-rc2-23923",
       "exclude": "Compile"
     },
-    "MSBuild": "0.1.0-preview-00017",
+    "MSBuild": "0.1.0-preview-00022",
     "Newtonsoft.Json": "7.0.1",
     "NuGet.Versioning": "3.4.0-rtm-0764",
     "NuGet.Client": "3.4.0-rtm-0764",
@@ -33,8 +33,7 @@
     "System.Runtime.Extensions": "4.1.0-rc2-23923",
     "System.Security.Cryptography.Algorithms": "4.1.0-rc2-23923",
     "Microsoft.Composition": "1.0.30",
-    "System.Console": "4.0.0-rc2-23923",
-    "System.Diagnostics.Contracts": "4.0.0"
+    "System.Console": "4.0.0-rc2-23923"
   },
   "frameworks": {
     "dnxcore50": {
