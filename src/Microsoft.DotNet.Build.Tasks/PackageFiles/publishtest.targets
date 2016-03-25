@@ -4,11 +4,13 @@
   <UsingTask TaskName="PrereleaseResolveNuGetPackageAssets" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="RemoveDuplicatesWithLastOneWinsPolicy" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ZipFileCreateFromDirectory" Condition="'$(ArchiveTests)' == 'true'" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
-  
+
   <UsingTask TaskName="GenerateAssemblyList" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
-  
+  <UsingTask TaskName="GetTargetMachineInfo" Condition="'$(TestWithLocalLibraries)'=='true'" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+
   <PropertyGroup>
     <SerializeProjects Condition="'$(TestWithLocalLibraries)'=='true'">true</SerializeProjects>
+    <TargetOS Condition="'$(OSGroup)'!='AnyOS'">$(OSGroup)</TargetOS>
   </PropertyGroup>
 
   <Target Name="RestoreTestRuntimePackage"
@@ -31,7 +33,7 @@
       <TestPackageBuild Condition="'$(TestPackageBuild)'==''">$(BuildNumberMajor)</TestPackageBuild>
       <TestPackageBuild Condition="'$(TestPackageBuild)'==''">000000</TestPackageBuild>
       <TestPackageVersion Condition="'$(TestPackageVersion)'==''">1.0.0-prerelease-$(TestPackageBuild)</TestPackageVersion>
-      
+
       <NuProjDir Condition="'$(NuProjDir)'==''">$(MSBuildThisFileDirectory)/NuProj/</NuProjDir>
     </PropertyGroup>
     <MSBuild Projects="$(MSBuildThisFileDirectory)testpackage.nuproj"
@@ -47,7 +49,7 @@
       Content=$(TestPackageContent)"/>
   </Target>
 
-  <Target Name="CopyTestToTestDirectory" 
+  <Target Name="CopyTestToTestDirectory"
           DependsOnTargets="DiscoverTestInputs">
     <ItemGroup>
       <TestNugetProjectLockFile Include="$(ProjectLockJson)" Condition="Exists($(ProjectLockJson))"/>
@@ -65,16 +67,21 @@
       <Output TaskParameter="ResolvedCopyLocalItems" ItemName="TestCopyLocal" />
     </PrereleaseResolveNuGetPackageAssets>
 
-     <!-- We may have an indirect package reference that we want to replace with a project reference.
+    <!-- We may have an indirect package reference that we want to replace with a project reference.
           Those are part of RunTestsForProjectInputs. The order that we append to TestCopyLocal is
           significant, later entries override earlier entries. -->
     <ItemGroup>
       <TestCopyLocal Include="@(RunTestsForProjectInputs)" Exclude="@(PackagesConfigs)" />
     </ItemGroup>
+    
+    <GetTargetMachineInfo Condition="'$(TestWithLocalLibraries)'=='true'">
+      <Output Condition="'$(TargetArch)'==''" TaskParameter="TargetArch" PropertyName="TargetArch" />
+      <Output Condition="'$(TargetOS)'==''" TaskParameter="TargetOS" PropertyName="TargetOS" />
+    </GetTargetMachineInfo>
 
     <!-- Test using locally built shim libraries. -->
     <ItemGroup Condition="'$(TestWithLocalLibraries)'=='true'">
-      <TestCopyLocal Include="$(BaseOutputPath)$(OSGroup).$(Platform).$(ConfigurationGroup)/Native/*.*" />
+      <TestCopyLocal Include="$(BaseOutputPath)$(TargetOS).$(TargetArch).$(ConfigurationGroup)/Native/*.*" />
     </ItemGroup>
 
     <!-- Test using locally built libraries if requested. Again, later entries override earlier
@@ -120,7 +127,7 @@
       <CreateHardLinksForCopyTestToTestDirectoryIfPossible Condition="'$(CreateHardLinksForCopyTestToTestDirectoryIfPossible)'=='' and '$(OS)' == 'Windows_NT'">true</CreateHardLinksForCopyTestToTestDirectoryIfPossible>
       <CreateHardLinksForCopyTestToTestDirectoryIfPossible Condition="'$(CreateHardLinksForCopyTestToTestDirectoryIfPossible)'==''">$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)</CreateHardLinksForCopyTestToTestDirectoryIfPossible>
     </PropertyGroup>
-    
+
     <PropertyGroup>
       <TestTargetFrameworkFolder>%(TestTargetFramework.Folder)</TestTargetFrameworkFolder>
     </PropertyGroup>
@@ -139,7 +146,7 @@
       Retries="$(CopyRetryCount)"
       RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
       UseHardlinksIfPossible="$(CreateHardLinksForCopyTestToTestDirectoryIfPossible)">
-      
+
       <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
     </Copy>
 
