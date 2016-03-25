@@ -26,6 +26,7 @@
     <Compile Include="GetPackageVersion.cs" />
     <Compile Include="GetPackageDependencies.cs" />
     <Compile Include="GetNextRevisionNumber.cs" />
+    <Compile Include="GetTargetArchitecture.cs" />
     <Compile Include="GetTargetOS.cs" />
     <Compile Include="LocatePreviousContract.cs" />
     <Compile Include="NormalizePaths.cs" />
