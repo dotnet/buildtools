@@ -67,6 +67,15 @@
       <Output TaskParameter="ResolvedCopyLocalItems" ItemName="TestCopyLocal" />
     </PrereleaseResolveNuGetPackageAssets>
 
+    <ItemGroup Condition="'$(TestWithCore)' != 'true'">
+      <!-- Filter out the copy-local set of references coming from the targeting pack packages -->
+      <TestCopyLocalToRemove Include="@(TestCopyLocal)"
+        Condition="$([System.String]::new('%(TestCopyLocal.NuGetPackageId)').StartsWith('$(_TargetingPackPrefix)'))" />
+      <TestCopyLocal Remove="@(TestCopyLocalToRemove)" />
+      
+      <TestCopyLocal Include="$(PackagesDir)xunit.runner.console/2.1.0/tools/*.*" />
+    </ItemGroup>
+
     <!-- We may have an indirect package reference that we want to replace with a project reference.
           Those are part of RunTestsForProjectInputs. The order that we append to TestCopyLocal is
           significant, later entries override earlier entries. -->

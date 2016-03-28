@@ -20,6 +20,10 @@
   </ItemGroup>
 
   <PropertyGroup>
+    <TestWithCore Condition="'$(TestWithCore)' == '' And '$(TargetGroup)' == 'net45'">false</TestWithCore>
+    <TestWithCore Condition="'$(TestWithCore)' == '' And '$(TargetGroup)' == 'net46'">false</TestWithCore>
+    <TestWithCore Condition="'$(TestWithCore)' == '' And '$(TargetGroup)' == 'net461'">false</TestWithCore>
+    <TestWithCore Condition="'$(TestWithCore)' == '' And '$(TargetGroup)' == 'net462'">false</TestWithCore>
     <TestWithCore Condition="'$(TestWithCore)' == ''">true</TestWithCore>
   </PropertyGroup>
 
@@ -50,7 +54,16 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TestWithCore)' != 'true'">
-    <TestTargetFramework Include=".NETFramework,Version=v4.5">
+    <TestTargetFramework Include=".NETFramework,Version=v4.6.2" Condition="'$(TargetGroup)' == 'net462'">
+      <Folder>net462</Folder>
+    </TestTargetFramework>
+    <TestTargetFramework Include=".NETFramework,Version=v4.6.1" Condition="'$(TargetGroup)' == 'net461'">
+      <Folder>net461</Folder>
+    </TestTargetFramework>
+    <TestTargetFramework Include=".NETFramework,Version=v4.6" Condition="'$(TargetGroup)' == 'net46'">
+      <Folder>net46</Folder>
+    </TestTargetFramework>
+    <TestTargetFramework Include=".NETFramework,Version=v4.5" Condition="'$(TargetGroup)' == 'net45'">
       <Folder>net45</Folder>
     </TestTargetFramework>
   </ItemGroup>
