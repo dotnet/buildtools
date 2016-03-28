@@ -66,6 +66,8 @@
     <OutputPath>$(PackageOutputPath)</OutputPath>
     <NuSpecOutputPath Condition="'$(NuSpecOutputPath)' == ''">$(PackageOutputPath)specs/</NuSpecOutputPath>
     <NuSpecPath>$(NuSpecOutputPath)$(Id)$(NuspecSuffix).nuspec</NuSpecPath>
+    <PackageReportDir Condition="'$(PackageReportDir)' == ''">$(PackageOutputPath)reports/</PackageReportDir>
+    <PackageReportPath>$(PackageReportDir)$(Id)$(NuspecSuffix).json</PackageReportPath>
     <TargetPath>$(NuSpecPath)</TargetPath>
     <RuntimeFilePath Condition="'$(RuntimeFilePath)' == ''">$(NuSpecOutputPath)$(Id)$(NuspecSuffix)/runtime.json</RuntimeFilePath>
     <PlaceholderFile>$(MSBuildThisFileDirectory)_._</PlaceholderFile>
@@ -846,6 +848,7 @@
 
     <ValidatePackage ContractName="$(BaseId)"
                      PackageId="$(Id)"
+                     PackageVersion="$(Version)"
                      Files="@(PackageFile);@(RuntimeFile)"
                      SupportedFrameworks="@(SupportedFramework)"
                      Frameworks="@(ValidateFramework)"
@@ -855,6 +858,7 @@
                      SkipSupportCheck="$(SkipSupportCheck)"
                      SuppressionFile="$(ValidationSuppressionFile)"
                      UseNetPlatform="$(UseNetPlatform)"
+                     ValidationReport="$(PackageReportPath)"
                      ContinueOnError="ErrorAndContinue"/>
   </Target>
 
