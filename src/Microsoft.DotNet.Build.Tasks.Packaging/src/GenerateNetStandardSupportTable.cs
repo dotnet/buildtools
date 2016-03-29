@@ -11,11 +11,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
     public class GenerateNetStandardSupportTable : PackagingTask
     {
+        const string startMarker = "<!-- begin NetStandardSupportTable -->";
+        const string endMarker = "<!-- end NetStandardSupportTable -->";
+
         [Required]
         public ITaskItem[] Reports
         {
@@ -25,6 +29,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
         [Required]
         public string DocFilePath
+        {
+            get;
+            set;
+        }
+
+        public bool InsertIntoFile
         {
             get;
             set;
@@ -84,35 +94,76 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 rows.Add(row);
             }
 
-            using (var docFile = File.CreateText(DocFilePath))
+            StringBuilder table = new StringBuilder();
+            table.AppendLine($"| Contract | {String.Join(" | ", knownNetStandardVersions.Select(v => v.ToString(2)))} |");
+            table.AppendLine($"| -------- | {String.Join(" | ", Enumerable.Repeat("---", knownNetStandardVersions.Count))}");
+
+            foreach(var row in rows.OrderBy(r => r.Name))
             {
-                docFile.WriteLine($"| Contract | {String.Join(" | ", knownNetStandardVersions.Select(v => v.ToString(2)))} |");
-                docFile.WriteLine($"| -------- | {String.Join(" | ", Enumerable.Repeat("---", knownNetStandardVersions.Count))}");
-
-                foreach(var row in rows.OrderBy(r => r.Name))
+                if (row.SuportedVersions.Count == 0)
                 {
-                    if (row.SuportedVersions.Count == 0)
-                    {
-                        Log.LogMessage($"Skipping {row.Name} since it has no supported NETStandard versions");
-                        continue;
-                    }
-
-                    docFile.Write($"| {row.Name} |");
-                    
-                    foreach (var netStandardVersion in knownNetStandardVersions)
-                    {
-                        var apiVersion = row.SuportedVersions.LastOrDefault(a => a.NETStandardVersion <= netStandardVersion);
-
-                        docFile.Write(" ");
-                        if (apiVersion != null)
-                        {
-                                docFile.Write(apiVersion.APIVersion.ToString(3));
-                        }
-                        docFile.Write(" |");
-                    }
-                    docFile.WriteLine();
+                    Log.LogMessage($"Skipping {row.Name} since it has no supported NETStandard versions");
+                    continue;
                 }
+
+                table.Append($"| {row.Name} |");
+                    
+                foreach (var netStandardVersion in knownNetStandardVersions)
+                {
+                    var apiVersion = row.SuportedVersions.LastOrDefault(a => a.NETStandardVersion <= netStandardVersion);
+
+                    table.Append(" ");
+                    if (apiVersion != null)
+                    {
+                        table.Append(apiVersion.APIVersion.ToString(3));
+                    }
+                    table.Append(" |");
+                }
+                table.AppendLine();
             }
+
+            if (!InsertIntoFile)
+            {
+                File.WriteAllText(DocFilePath, table.ToString());
+            }
+            else
+            {
+                if (!File.Exists(DocFilePath))
+                {
+                    Log.LogError($"InsertIntoFile was specified as true but {DocFilePath} did not exist.");
+                    return false;
+                }
+
+                string originalText = File.ReadAllText(DocFilePath);
+                int startIndex = originalText.IndexOf(startMarker);
+
+                if (startIndex < 0)
+                {
+                    Log.LogError($"InsertIntoFile was specified as true but could not locate insertion start text \"{startMarker}\".");
+                    return false;
+                }
+                startIndex += startMarker.Length;
+                // skip any white-space / new line
+                while(startIndex < originalText.Length && Char.IsWhiteSpace(originalText[startIndex]))
+                {
+                    startIndex++;
+                }
+
+                int endIndex = originalText.IndexOf(endMarker, startIndex);
+
+                if (endIndex < 0)
+                {
+                    Log.LogError($"InsertIntoFile was specified as true but could not locate insertion end text \"{endMarker}\".");
+                    return false;
+                }
+                var docText = new StringBuilder(originalText);
+                docText.Remove(startIndex, endIndex - startIndex);
+                docText.Insert(startIndex, table.ToString());
+
+                File.WriteAllText(DocFilePath, docText.ToString(), Encoding.UTF8);
+            }
+
+
             return !Log.HasLoggedErrors;
         }
 
