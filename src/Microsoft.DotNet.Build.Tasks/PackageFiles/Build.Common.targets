@@ -54,6 +54,13 @@
   <Import Project="$(MSBuildThisFileDirectory)ReferenceAssemblies.targets" Condition="'$(ExcludeReferenceAssembliesImport)'!='true'" />
 
   <!-- 
+    Import the codeAnalysis.targets file to enable analyzer support during build. 
+    This should happen before we import the frameworkTargeting.targets because that import leads to computing a default
+    for the CodeAnalysisRuleset unless one is already specified
+  --> 
+  <Import Project="$(MSBuildThisFileDirectory)codeAnalysis.targets" />
+
+  <!-- 
     Import the default target framework targets.
     
     Inputs:
@@ -202,11 +209,6 @@
                              is true for reference assemblies, false for implementation.
    -->
   <Import Project="$(MSBuildThisFileDirectory)PackageLibs.targets" Condition="'$(ExclduePackageLibsImport)'!='true'"/>
-
-  <!-- 
-    Import the codeAnalysis.targets file to enable analyzer support during build.
-  --> 
-  <Import Project="$(MSBuildThisFileDirectory)codeAnalysis.targets" />
 
   <Target Name="CheckDesignTime">
     <!--
