@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env py
+#!/usr/bin/env py
 import os
 import os.path
 import sys
@@ -147,22 +147,24 @@ def post_process_perf_results(settings, results_location, workitem_dir):
     # Use the xunit perf analysis exe from nuget package here
     log.info('Converting xml to csv')
     payload_dir = fix_path(os.getenv('HELIX_CORRELATION_PAYLOAD'))
-    xmlconvertorpath = os.path.join(*[payload_dir, 'Microsoft.DotNet.xunit.performance.analysis', '1.0.0-alpha-build0029', 'tools', 'xunit.performance.analysis.exe'])
+    perf_analysis_version = (next(os.walk(os.path.join(payload_dir, 'Microsoft.DotNet.xunit.performance.analysis')))[1])[0]
+    xmlconvertorpath = os.path.join(*[payload_dir, 'Microsoft.DotNet.xunit.performance.analysis', perf_analysis_version, 'tools', 'xunit.performance.analysis.exe'])
     xmlCmd = xmlconvertorpath+' -csv '+os.path.join(workitem_dir, 'results.csv')+' '+results_location
     if (helix.proc.run_and_log_output(xmlCmd.split(' '))) != 0:
         raise Exception('Failed to generate csv from result xml')
 
-    perfscriptsdir = os.path.join(*[payload_dir, 'RunnerScripts', 'xunitrunner-perf'])
-    # need to extract more properties from settings to pass to csvtojsonconvertor.py
-    jsonPath = os.path.join(workitem_dir, settings.workitem_id+'.json')
-
     log.info('Uploading the results.csv file')
     _write_output_path(os.path.join(workitem_dir, 'results.csv'), settings)
 
+    perfscriptsdir = os.path.join(*[payload_dir, 'RunnerScripts', 'xunitrunner-perf'])
     perfsettingsjson = ''
     with open(os.path.join(perfscriptsdir, 'xunitrunner-perf.json'), 'rb') as perfsettingsjson:
         # read the perf-specific settings
         perfsettingsjson = json.loads(perfsettingsjson.read())
+
+    # need to extract more properties from settings to pass to csvtojsonconvertor.py
+    jsonFileName = perfsettingsjson['TestProduct']+'-'+settings.workitem_id+'.json'
+    jsonPath = os.path.join(workitem_dir, jsonFileName)
 
     jsonArgsDict = dict()
     jsonArgsDict['--csvFile'] = os.path.join(workitem_dir, 'results.csv')
@@ -214,6 +216,10 @@ def post_process_perf_results(settings, results_location, workitem_dir):
     perfsettings.output_uri = perfsettingsjson['RootURI']
     perfsettings.output_write_token = perfsettingsjson['WriteToken']
     perfsettings.output_read_token = perfsettingsjson['ReadToken']
+    jsonPath = str(jsonPath)
+    # Upload json with rest of the results
+    _write_output_path(jsonPath, settings)
+    # Upload json to the perf specific container
     _write_output_path(jsonPath, perfsettings)
 
 
@@ -346,6 +352,15 @@ def main(args=None):
 
         if '--perf-runner' in optdict:
             perf_runner = optdict['--perf-runner']
+            if not os.path.exists(optdict['--dll']):
+                dllpath = optdict['--dll']
+                exepath = '.'.join(dllpath.split('.')[:-1])
+                exepath = exepath + '.exe'
+                if not os.path.exists(exepath):
+                    raise Exception('No valid test dll or exe found')
+                else:
+                    optdict['--dll'] = exepath
+
         if '--assemblylist' in optdict:
             assembly_list = optdict['--assemblylist']
             log.info("Using assemblylist parameter:"+assembly_list)
