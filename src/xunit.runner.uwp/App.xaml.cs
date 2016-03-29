@@ -96,7 +96,8 @@ namespace XunitUwpRunner
                 }
                 catch (Exception e)
                 {
-                    Debug.WriteLine(e.ToString());
+                    assembliesElement = new XElement("error");
+                    assembliesElement.Add(e);
                 }
             }
             await WriteResults(assembliesElement);
