@@ -91,8 +91,45 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         public Dictionary<string, SortedSet<Framework>> Frameworks { get; private set; }
 
         public Dictionary<string, Version> LastNonSemanticVersions { get; private set; }
-    }
+        
+        /// <summary>
+        /// Determines the significant API version given an assembly version.
+        /// </summary>
+        /// <param name="assemblyName">Name of assembly</param>
+        /// <param name="assemblyVersion">Version of assembly</param>
+        /// <returns>Lowest version with the same API surface as assemblyVersion</returns>
+        public Version GetApiVersion(string assemblyName, Version assemblyVersion)
+        {
+            if (assemblyVersion == null)
+            {
+                return null;
+            }
 
+            if (assemblyVersion.Build == 0 && assemblyVersion.Revision == 0)
+            {
+                // fast path for X.Y.0.0
+                return assemblyVersion;
+            }
+
+            Version latestLegacyVersion = null;
+            LastNonSemanticVersions.TryGetValue(assemblyName, out latestLegacyVersion);
+
+            if (latestLegacyVersion == null)
+            {
+                return new Version(assemblyVersion.Major, assemblyVersion.Minor, 0, 0);
+            }
+            else if (assemblyVersion.Major <= latestLegacyVersion.Major && assemblyVersion.Minor <= latestLegacyVersion.Minor)
+            {
+                // legacy version round build to nearest 10
+                return new Version(assemblyVersion.Major, assemblyVersion.Minor, assemblyVersion.Build - assemblyVersion.Build % 10, 0);
+            }
+            else
+            {
+                // new version
+                return new Version(assemblyVersion.Major, assemblyVersion.Minor, 0, 0);
+            }
+        }
+    }
 
     public class Framework : IComparable<Framework>
     {

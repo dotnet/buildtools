@@ -3,6 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.Build.Framework;
+using Microsoft.Build.Utilities;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NuGet.Frameworks;
 using System;
 using System.Collections.Generic;
@@ -24,6 +27,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
         [Required]
         public string PackageId
+        {
+            get;
+            set;
+        }
+
+        [Required]
+        public string PackageVersion
         {
             get;
             set;
@@ -116,14 +126,39 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         }
 
         /// <summary>
+        /// List of frameworks which were validated and determined to be supported
+        ///   Identity: framework short name
+        ///   Framework: framework full name
+        ///   Version: assembly version of API that is supported
+        ///   Inbox: true if assembly is expected to come from targeting pack
+        ///   ValidatedRIDs: all RIDs that were scanned
+        /// </summary>
+        [Output]
+        public ITaskItem[] AllSupportedFrameworks
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// JSON file describing results of validation
+        /// </summary>
+        public string ValidationReport {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// property bag of error suppressions
         /// </summary>
         private Dictionary<Suppression, HashSet<string>> _suppressions;
         private Dictionary<string, List<PackageItem>> _validateFiles;
         private Dictionary<NuGetFramework, ValidationFramework> _frameworks;
+        private FrameworkSet _frameworkSet;
         private AggregateNuGetAssetResolver _resolver;
         private Dictionary<string, PackageItem> _targetPathToPackageItem;
         private string _generationIdentifier = FrameworkConstants.FrameworkIdentifiers.NetStandard;
+        private static Version s_maxVersion = new Version(int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue);
 
         public override bool Execute()
         {
@@ -305,6 +340,14 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                         }
                     }
                 }
+            }
+
+            // Set output items
+            AllSupportedFrameworks = _frameworks.Values.Where(fx => fx.SupportedVersion != null).Select(fx => fx.ToItem()).OrderBy(i => i.ItemSpec).ToArray();
+
+            if (!String.IsNullOrEmpty(ValidationReport))
+            {
+                WriteValidationReport(ValidationReport, _frameworks.Values);
             }
         }
 
@@ -610,8 +653,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
 
             // determine which Frameworks should support inbox
-            FrameworkSet inboxFrameworks = FrameworkSet.Load(FrameworkListsPath);
-            foreach (IEnumerable<Framework> inboxFxGroup in inboxFrameworks.Frameworks.Values)
+            _frameworkSet = FrameworkSet.Load(FrameworkListsPath);
+            foreach (IEnumerable<Framework> inboxFxGroup in _frameworkSet.Frameworks.Values)
             {
                 foreach (Framework inboxFx in inboxFxGroup)
                 {
@@ -664,8 +707,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             // their own implementation via a lineup/runtime.json.
 
             // only consider frameworks that support the contract at a specific version
-            Version maxVersion = new Version(int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue);
-            var portableFrameworks = _frameworks.Values.Where(fx => fx.SupportedVersion != null && fx.SupportedVersion != maxVersion).ToArray();
+            var portableFrameworks = _frameworks.Values.Where(fx => fx.SupportedVersion != null && fx.SupportedVersion != s_maxVersion).ToArray();
 
             var genVersionSuppression = GetSuppressionValues(Suppression.PermitPortableVersionMismatch) ?? new HashSet<string>();
             Dictionary<NuGetFramework, ValidationFramework> generationsToValidate = new Dictionary<NuGetFramework, ValidationFramework>();
@@ -718,6 +760,39 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
         }
 
+        private void WriteValidationReport(string reportPath, IEnumerable<ValidationFramework> frameworks)
+        {
+            JObject root = new JObject();
+            root["id"] = PackageId;
+            root["version"] = PackageVersion;
+
+            JObject supportedFrameworks = new JObject();
+            foreach (var framework in frameworks.OrderBy(fx => fx.Framework.ToString()). Where(fx => fx.SupportedVersion != null))
+            {
+                supportedFrameworks[framework.Framework.ToString()] = GetVersionString(framework.SupportedVersion);
+            }
+            root["supportedFrameworks"] = supportedFrameworks;
+
+            string directory = Path.GetDirectoryName(reportPath);
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            using (var jsonWriter = new JsonTextWriter(File.CreateText(reportPath)))
+            {
+                jsonWriter.Formatting = Formatting.Indented;
+                jsonWriter.Indentation = 2;
+                root.WriteTo(jsonWriter);
+            }
+        }
+
+        private string GetVersionString(Version version)
+        {
+            // normalize to API version
+            return version == s_maxVersion ? "Any" : _frameworkSet.GetApiVersion(ContractName, version)?.ToString();
+        }
+
         private class ValidationFramework
         {
             private static readonly string[] s_nullRidList = new string[] { null };
@@ -733,6 +808,17 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             // if null indicates the contract should not be supported.
             public Version SupportedVersion { get; set; }
             public bool IsInbox { get; set; }
+            public string ShortName { get { return Framework.GetShortFolderName(); } }
+
+            public ITaskItem ToItem()
+            {
+                ITaskItem item = new TaskItem(Framework.ToString());
+                item.SetMetadata("ShortName", ShortName);
+                item.SetMetadata("Version", SupportedVersion.ToString());
+                item.SetMetadata("Inbox", IsInbox.ToString());
+                item.SetMetadata("ValidatedRIDs", String.Join(";", RuntimeIds));
+                return item;
+            }
         }
     }
     public enum Suppression

@@ -18,6 +18,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="GenerateNetStandardSupportTable.cs" />
     <Compile Include="PromoteReferenceDependencies.cs" />
     <Compile Include="CreateTrimDependencyGroups.cs" />
     <Compile Include="ApplyBaseLine.cs" />
@@ -80,6 +81,7 @@
     <Folder Include="FrameworkLists\.NETFramework,Version=v4.5.1\" />
     <Folder Include="FrameworkLists\.NETFramework,Version=v4.5\" />
     <Folder Include="FrameworkLists\.NETFramework,Version=v4.6.1\" />
+    <Folder Include="FrameworkLists\.NETFramework,Version=v4.6.2\" />
     <Folder Include="FrameworkLists\.NETFramework,Version=v4.6\" />
     <Folder Include="FrameworkLists\MonoAndroid,Version=v1.0\" />
     <Folder Include="FrameworkLists\MonoTouch,Version=v1.0\" />
@@ -87,6 +89,8 @@
     <Folder Include="FrameworkLists\WindowsPhoneApp,Version=v8.1\" />
     <Folder Include="FrameworkLists\Xamarin.iOS,Version=v1.0\" />
     <Folder Include="FrameworkLists\Xamarin.Mac,Version=v2.0\" />
+    <Folder Include="FrameworkLists\Xamarin.TVOS,Version=v1.0\" />
+    <Folder Include="FrameworkLists\Xamarin.WatchOS,Version=v1.0\" />
   </ItemGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
 </Project>
