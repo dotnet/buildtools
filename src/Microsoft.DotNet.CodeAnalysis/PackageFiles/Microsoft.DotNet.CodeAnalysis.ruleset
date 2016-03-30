@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="Common diagnostic rules" Description="Enables/disable rules for all projects." ToolsVersion="14.0">
+  <Rules AnalyzerId="Microsoft.DotNet.CodeAnalysis" RuleNamespace="Microsoft.DotNet.CodeAnalysis.Analyzers">
+    <!-- 
+        Use this section to globaly disable analyzers using the pattern below
+            <Rule Id="<ruleId>" Action="<Error|Warning|None>" />
+     -->
+  </Rules>
+</RuleSet>
