@@ -18,6 +18,6 @@
   </ItemGroup>
 
   <PropertyGroup>
-  	<CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)Microsoft.DotNet.CodeAnalysis.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)'==''">$(MSBuildThisFileDirectory)Microsoft.DotNet.CodeAnalysis.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 </Project>
