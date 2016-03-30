@@ -20,16 +20,8 @@
   </metadata>
   <files>
     <file src="Microsoft.DotNet.Build.Tasks.net45\*.dll" exclude="Microsoft.DotNet.Build.Tasks.net45\Nuget.*.dll" target="lib\net45" />
-    <file src="Microsoft.DotNet.Build.CloudTestTasks\Microsoft.Azure.Documents.Client.dll" target="lib\net45" />
-    <file src="Microsoft.DotNet.Build.CloudTestTasks\Microsoft.DotNet.Build.CloudTestTasks.dll" target="lib\net45" />
-    <file src="Microsoft.DotNet.Build.CloudTestTasks\Microsoft.Azure.KeyVault.Core.dll" target="lib\net45" />
-    <file src="Microsoft.DotNet.Build.CloudTestTasks\Microsoft.Data.Edm.dll" target="lib\net45" />
-    <file src="Microsoft.DotNet.Build.CloudTestTasks\Microsoft.Data.OData.dll" target="lib\net45" />
-    <file src="Microsoft.DotNet.Build.CloudTestTasks\Microsoft.Data.Services.Client.dll" target="lib\net45" />
-    <file src="Microsoft.DotNet.Build.CloudTestTasks\Microsoft.ServiceBus.dll" target="lib\net45" />
-    <file src="Microsoft.DotNet.Build.CloudTestTasks\Microsoft.WindowsAzure.Configuration.dll" target="lib\net45" />
-    <file src="Microsoft.DotNet.Build.CloudTestTasks\Microsoft.WindowsAzure.Storage.dll" target="lib\net45" />
-    <file src="Microsoft.DotNet.Build.CloudTestTasks\System.Spatial.dll" target="lib\net45" />
+    <file src="Microsoft.DotNet.Build.CloudTestTasks\Microsoft.DotNet.Build.CloudTestTasks.dll" target="lib" />
+    <file src="Microsoft.DotNet.Build.CloudTestTasks.net45\Microsoft.DotNet.Build.CloudTestTasks.dll" target="lib\net45" />
     <file src="Microsoft.Dotnet.Build.CloudTestTasks\PackageFiles\**\*.*" target="lib" />
     <file src="Microsoft.Dotnet.Build.CloudTestTasks\RunnerScripts\**\*.*" target="lib\RunnerScripts" />
     <file src="Microsoft.DotNet.Build.Tasks\PackageFiles\**\*.*" target="lib" />

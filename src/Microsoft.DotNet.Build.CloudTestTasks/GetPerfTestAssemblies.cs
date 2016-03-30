@@ -12,7 +12,7 @@ using Microsoft.Build.Utilities;
 
 namespace Microsoft.DotNet.Build.CloudTestTasks
 {
-    public sealed class GetPerfTestAssemblies : Task
+    public sealed class GetPerfTestAssemblies : Microsoft.Build.Utilities.Task
     {
         /// <summary>
         /// An item group of test binaries to inspect for performance tests.

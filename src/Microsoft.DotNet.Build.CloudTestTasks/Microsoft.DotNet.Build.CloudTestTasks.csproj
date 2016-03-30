@@ -4,47 +4,29 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.DotNet.Build.CloudTestTasks</RootNamespace>
     <AssemblyName>Microsoft.DotNet.Build.CloudTestTasks</AssemblyName>
-    <CopyNuGetImplementations>true</CopyNuGetImplementations>
-    <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
+    <CLSCompliant>false</CLSCompliant>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <ResolveNuGetPackages>false</ResolveNuGetPackages>
     <ProjectGuid>{F01FAA6C-4EF1-4283-B9B5-4C1416FA7F50}</ProjectGuid>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\common\AssemblyResolver.cs" />
+    <Compile Include="AzureHelper.cs" />
     <Compile Include="CreateAzureContainer.cs" />
-    <Compile Include="CreateAzureFileShare.cs" />
     <Compile Include="GetPerfTestAssemblies.cs" />
-    <Compile Include="SendJsonToDocumentDb.cs" />
     <Compile Include="SendToEventHub.cs" />
+    <Compile Include="UploadClient.cs" />
     <Compile Include="UploadToAzure.cs" />
     <Compile Include="WriteBuildStatsJson.cs" />
     <Compile Include="WriteItemsToJson.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Microsoft.Build.Tasks.v4.0" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="mscorlib" />
-    <Reference Include="Microsoft.Build.Framework, Version=4.0.0.0" />
-    <Reference Include="Microsoft.Build.Utilities.v4.0" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.ServiceModel" />
   </ItemGroup>
   <ItemGroup>
     <None Include="RunnerScripts\**\*.*" />

@@ -3,8 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Text;
+using System.Threading;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Newtonsoft.Json;
@@ -36,9 +37,10 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
             if (!Directory.Exists(Path.GetDirectoryName(JsonFileName)))
                 Directory.CreateDirectory(Path.GetDirectoryName(JsonFileName));
-
+ 
             JsonSerializer jsonSerializer = new JsonSerializer();
-            using (StreamWriter streamWriter = new StreamWriter(JsonFileName))
+            using (FileStream fs = File.Create(JsonFileName))
+            using (StreamWriter streamWriter = new StreamWriter(fs))
             {
                 using (JsonTextWriter jsonWriter = new JsonTextWriter(streamWriter))
                 {

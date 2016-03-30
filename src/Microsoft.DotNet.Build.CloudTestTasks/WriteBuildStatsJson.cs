@@ -4,8 +4,10 @@
 
 using System.Collections.Generic;
 using System.IO;
+
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+
 using Newtonsoft.Json;
 
 namespace Microsoft.DotNet.Build.CloudTestTasks
@@ -35,10 +37,10 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 Aggregates = new List<string>();
                 ProjectsFailed = new List<FailedProject>();
 
-                foreach (var correlationId in correlationIDs)
+                foreach (ITaskItem correlationId in correlationIDs)
                     Aggregates.Add(correlationId.ItemSpec);
 
-                foreach (var buildFailure in buildFailures)
+                foreach (ITaskItem buildFailure in buildFailures)
                     ProjectsFailed.Add(new FailedProject(buildFailure.ItemSpec));
 
                 LogUri = logUri;
@@ -97,16 +99,18 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
         public override bool Execute()
         {
-            using (StreamWriter streamWriter = new StreamWriter(OutputFile))
+            using (FileStream fs = new FileStream(OutputFile, FileMode.Create, FileAccess.Read | FileAccess.Write | FileAccess.ReadWrite))
+            using (StreamWriter streamWriter = new StreamWriter(fs))
             using (JsonTextWriter jsonWriter = new JsonTextWriter(streamWriter))
             {
                 jsonWriter.Formatting = Formatting.Indented;
 
-                var buildStats = new TestBuildStatsJson(CorrelationIds, LogUri, ProjectsBuiltCount, ProjectsFailed, TestCount);
+                TestBuildStatsJson buildStats = new TestBuildStatsJson(CorrelationIds, LogUri, ProjectsBuiltCount, ProjectsFailed, TestCount);
 
-                var serializer = new JsonSerializer();
+                JsonSerializer serializer = new JsonSerializer();
                 serializer.Serialize(jsonWriter, buildStats);
             }
+
             return true;
         }
     }
