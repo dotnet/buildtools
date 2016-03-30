@@ -14,8 +14,6 @@
     <BuildToolsTaskDir>$(ToolsDir)</BuildToolsTaskDir>
   </PropertyGroup>
 
-  <Import Project="$(ToolsDir)UpdateBuildValues.targets" Condition="Exists('$(ToolsDir)UpdateBuildValues.targets')" />
-
   <PropertyGroup>
     <GenerateCodeCoverageReportForAll>true</GenerateCodeCoverageReportForAll>
   </PropertyGroup>

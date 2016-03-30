@@ -48,13 +48,12 @@
 
   <Target
     Name="GetNuGetPackageVersions"
-    Condition="'@(PackagesNuSpecFiles)'!='' and '$(RevisionNumber)' != ''"
+    Condition="'@(PackagesNuSpecFiles)'!=''"
     Outputs="%(PackagesNuSpecFiles.Identity)"
     DependsOnTargets="CreateVersionFileDuringBuild">
 
     <PropertyGroup>
-      <SelectedPackageVersion Condition="'$(SkipVersionGeneration)'!='true'">$(BuildNumberMajor)-$(BuildNumberMinor)</SelectedPackageVersion>
-      <SelectedPackageVersion Condition="'$(SelectedPackageVersion)'==''">$(RevisionNumber)</SelectedPackageVersion>
+      <SelectedPackageVersion>$(BuildNumberMajor)-$(BuildNumberMinor)</SelectedPackageVersion>
     </PropertyGroup>
 
     <GetPackageVersion
