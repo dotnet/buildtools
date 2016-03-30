@@ -5,6 +5,7 @@ set PROJECT_DIR=%~1
 set DOTNET_CMD=%~2
 set TOOLRUNTIME_DIR=%~3
 IF [%BUILDTOOLS_TARGET_RUNTIME%]==[] set BUILDTOOLS_TARGET_RUNTIME=win7-x64
+IF [%BUILDTOOLS_NET45_TARGET_RUNTIME%]==[] set BUILDTOOLS_NET45_TARGET_RUNTIME=win7-x86
 set BUILDTOOLS_PACKAGE_DIR=%~dp0
 set MICROBUILD_VERSION=0.2.0
 set PORTABLETARGETS_VERSION=0.1.1-dev
@@ -26,6 +27,7 @@ ROBOCOPY "%BUILDTOOLS_PACKAGE_DIR%\." "%TOOLRUNTIME_DIR%" /E
 cd "%BUILDTOOLS_PACKAGE_DIR%\tool-runtime\"
 call "%DOTNET_CMD%" restore --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json
 call "%DOTNET_CMD%" publish -f dnxcore50 -r %BUILDTOOLS_TARGET_RUNTIME% -o "%TOOLRUNTIME_DIR%"
+call "%DOTNET_CMD%" publish -f net45 -r %BUILDTOOLS_NET45_TARGET_RUNTIME% -o "%TOOLRUNTIME_DIR%\net45"
 
 :: Copy Portable Targets Over to ToolRuntime
 if not exist "%BUILDTOOLS_PACKAGE_DIR%\portableTargets" mkdir "%BUILDTOOLS_PACKAGE_DIR%\portableTargets"
