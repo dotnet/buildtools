@@ -2,7 +2,7 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Condition="'$(EnableDotnetAnalyzers)' == 'true'">
     <!-- Enable the Microsoft.Dotnet.CodeAnalysis.dll analyzer --> 
-    <Analyzer Include="$(BuildToolsTaskDir)Microsoft.Dotnet.CodeAnalysis.dll"/>
+    <Analyzer Include="$(BuildToolsTaskDir)analyzers\Microsoft.Dotnet.CodeAnalysis.dll"/>
 
     <AdditionalFiles Include="$(MSBuildProjectDirectory)\*.analyzerdata" />
     <AdditionalFiles Include="$(MSBuildProjectDirectory)\*.analyzerdata.$(Platform)" />

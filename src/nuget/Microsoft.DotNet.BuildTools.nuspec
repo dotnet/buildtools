@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <package>
   <metadata minClientVersion="2.8.1">
     <id>Microsoft.DotNet.BuildTools</id>
@@ -39,8 +39,8 @@
     <file src="GenFacades\GenFacades.exe" target="lib" />
     <file src="GenAPI\GenAPI.exe" target="lib" />
     <file src="ApiCompat\ApiCompat.exe" target="lib" />
-    <file src="Microsoft.DotNet.CodeAnalysis\Microsoft.DotNet.CodeAnalysis.dll" target="lib" />
-    <file src="Microsoft.DotNet.CodeAnalysis.net45\Microsoft.DotNet.CodeAnalysis.dll" target="lib\net45" />
+    <file src="Microsoft.DotNet.CodeAnalysis\Microsoft.DotNet.CodeAnalysis.dll" target="lib\analyzers" />
+    <file src="Microsoft.DotNet.CodeAnalysis.net45\Microsoft.DotNet.CodeAnalysis.dll" target="lib\net45\analyzers" />
     <file src="Microsoft.DotNet.CodeAnalysis\PackageFiles\**\*.*" target="lib" />
     <file src="Microsoft.Cci.Extensions\Microsoft.Cci.Extensions.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks.Packaging\Microsoft.DotNet.Build.Tasks.Packaging.dll" target="lib" />
