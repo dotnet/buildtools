@@ -17,7 +17,7 @@
     <AdditionalFiles Include="$(MSBuildProjectDirectory)/*.analyzerdata.$(Platform)" />
   </ItemGroup>
 
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(EnableDotnetAnalyzers)' == 'true'">
     <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)'==''">$(MSBuildThisFileDirectory)Microsoft.DotNet.CodeAnalysis.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 </Project>
