@@ -17,6 +17,14 @@
       <PackageIncludeDocs Condition="'$(PackageIncludeDocs)' == '' AND '$(DocumentationFile)' != ''">true</PackageIncludeDocs>
     </PropertyGroup>
 
+    <!-- Find a root directory that is an ancestor of every possible source file, including
+         ones in bin and Tools. Allow configuration, otherwise prefer TFS root. -->
+    <PropertyGroup>
+      <ProjectRoot Condition="'$(ProjectRoot)'==''">$(SourcesRootPath)</ProjectRoot>
+      <ProjectRoot Condition="'$(ProjectRoot)'==''">$(ProjectDir)</ProjectRoot>
+      <ProjectRootLength>$(ProjectRoot.Length)</ProjectRootLength>
+    </PropertyGroup>
+
     <!-- XmlDocFileRoot should be defined externally since these are currently not
          part of the corefx repo. -->
     <!-- This isn't a straight mapping to an algorithm using CultureInfo.
@@ -116,8 +124,13 @@
 
     <!-- *** include assets *** -->
     <ItemGroup>
+      <!-- Include symbols output -->
+      <SymbolFileToPackage Include="$(PackagePath.Replace('.dll', '.pdb'))" Condition="Exists($(PackagePath.Replace('.dll', '.pdb')))">
+        <IsSymbolFile>true</IsSymbolFile>
+      </SymbolFileToPackage>
+
       <!-- Include primary output -->
-      <FilesToPackage Include="$(PackagePath)">
+      <FilesToPackage Include="$(PackagePath);@(SymbolFileToPackage)">
         <AssemblyVersion>$(AssemblyVersion)</AssemblyVersion>
         <TargetFramework>%(PackageDestination.TargetFramework)</TargetFramework>
         <TargetPath>%(PackageDestination.Identity)</TargetPath>
@@ -139,6 +152,13 @@
       </FilesToPackage>
       <FilesToPackage Condition="'%(FilesToPackage.SubFolder)' != ''">
         <TargetPath>%(TargetPath)%(FilesToPackage.SubFolder)</TargetPath>
+      </FilesToPackage>
+
+      <!-- Include source files for symbol packages. -->
+      <FilesToPackage Include="@(Compile->'%(FullPath)')">
+        <TargetPath>src</TargetPath>
+        <TargetPath Condition="$([System.String]::new('%(FullPath)').StartsWith('$(ProjectRoot)'))">src\$([System.String]::new('%(FullPath)').Substring('$(ProjectRootLength)'))</TargetPath>
+        <IsSourceCodeFile>true</IsSourceCodeFile>
       </FilesToPackage>
     </ItemGroup>
   </Target>
