@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup Condition="'$(OSGroup)'=='Windows_NT'">
+    <!-- This file helps us choose the correct allowed pinvoke file.
+       1. In case we are building for windows and TargetGroup is Netcore50 or netcore50aot (Store profile) we use OneCoreUWPApis.txt
+       2. For all other windows configuration we use OneCoreAPIs.txt file.
+    -->
+    <ValidPinvokeMappings Condition="'$(TargetGroup)'==''">$(MSBuildThisFileDirectory)PinvokeAnalyzer_OneCoreApis.txt</ValidPinvokeMappings>
+    <ValidPinvokeMappings Condition="'$(TargetGroup)'=='netstandard13aot'">$(MSBuildThisFileDirectory)PinvokeAnalyzer_OneCoreApis.txt</ValidPinvokeMappings>
+    <ValidPinvokeMappings Condition="'$(TargetGroup)'=='netstandard15aot'">$(MSBuildThisFileDirectory)PinvokeAnalyzer_OneCoreApis.txt</ValidPinvokeMappings>
+    <ValidPinvokeMappings Condition="'$(TargetGroup)'=='netcore50' or '$(TargetGroup)'=='netcore50aot'">$(MSBuildThisFileDirectory)PinvokeAnalyzer_UWPApis.txt</ValidPinvokeMappings>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(CodeAnalysisRuleSet)'==''">
+    <CodeAnalysisRuleSet Condition="'$(IsTestProject)' == true or '$(TargetsUnix)' == 'true'">$(MSBuildThisFileDirectory)Microsoft.DotNet.CodeAnalysis_DisablePinvokeAnalyzer.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet Condition="'$(TargetsWindows)'=='true' and ($(TargetGroup.Contains('net46')) or $(TargetGroup.Contains('net45')))">$(MSBuildThisFileDirectory)Microsoft.DotNet.CodeAnalysis_DisablePinvokeAnalyzer.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Add the necessary valid Pinvoke mapping file -->
+    <AdditionalFiles Condition="'$(ValidPinvokeMappings)' != ''" Include="$(ValidPinvokeMappings)"/>
+  </ItemGroup>
+</Project>

@@ -18,6 +18,8 @@
   <ItemGroup>
     <Compile Include="Analyzers\AppContextDefaultsAnalyzer.cs" />
     <Compile Include="Analyzers\MembersMustExistAnalyzer.cs" />
+    <Compile Include="Analyzers\PinvokeAnalyzer.cs" />
+    <Compile Include="Analyzers\ResourceUsageAnalyzer.cs" />
     <Compile Include="DiagnosticIds.cs" />
     <Compile Include="Helpers.cs" />
   </ItemGroup>
