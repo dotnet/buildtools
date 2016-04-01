@@ -127,6 +127,7 @@
   <Target Name="GenerateVersionHeader"
       Inputs="$(MSBuildProjectFile)"
       Outputs="$(NativeVersionHeaderFile)"
+      DependsOnTargets="CreateVersionFileDuringBuild"
       Condition="'$(NativeVersionHeaderFile)'!='' and '$(GenerateVersionHeader)'=='true'">
 
     <ItemGroup>
