@@ -64,9 +64,9 @@
     <Error Condition="'$(EventHubPath)' == ''" Text="Missing required property EventHubPath." />
     <Error Condition="'$(EventHubSharedAccessKey)' == ''" Text="Missing required property EventHubSharedAccessKey." />
     <Error Condition="'$(EventHubSharedAccessKeyName)' == ''" Text="Missing required property EventHubSharedAccessKeyName." />
-    <Error Condition="'$(BuildIsOfficial)' == 'true' and '$(BuildIsOfficialConnection)' == ''" Text="Missing required property BuildIsOfficialConnection." />
-    <Error Condition="'$(BuildIsOfficial)' == 'true' and '$(DocumentDbKey)' == ''" Text="Missing required property DocumentDbKey." />
-    <Error Condition="'$(BuildIsOfficial)' == 'true' and '$(DocumentDbUri)' == ''" Text="Missing required property DocumentDbUri." />
+    <Error Condition="'$(BuildIsOfficial)' == 'true' and '$(BuildIsOfficialEventHubPath)' == ''" Text="Missing required property BuildIsOfficialEventHubPath." />
+    <Error Condition="'$(BuildIsOfficial)' == 'true' and '$(BuildIsOfficialEventHubSharedAccessKeyName)' == ''" Text="Missing required property BuildIsOfficialEventHubSharedAccessKeyName." />
+    <Error Condition="'$(BuildIsOfficial)' == 'true' and '$(BuildIsOfficialEventHubSharedAccessKey)' == ''" Text="Missing required property BuildIsOfficialEventHubSharedAccessKey." />
     <!-- gather the test archives for upload -->
     <ItemGroup>
       <ForUpload Include="$(TestArchivesRoot)*.zip" />
@@ -310,8 +310,7 @@
       EventHubPath="$(BuildIsOfficialEventHubPath)"
       EventHubSharedAccessKeyName="$(BuildIsOfficialEventHubSharedAccessKeyName)"
       EventHubSharedAccessKey="$(BuildIsOfficialEventHubSharedAccessKey)"
-      EventData="%(TestListFile.OfficialBuildJson)"
-      PartitionKey="%(TestListFile.CorrelationId)"/>
+      EventData="%(TestListFile.OfficialBuildJson)"/>
   </Target>
 
 </Project>
