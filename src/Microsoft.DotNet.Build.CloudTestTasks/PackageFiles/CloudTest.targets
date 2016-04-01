@@ -27,6 +27,11 @@
     <ContainerName>$(ContainerName.ToLower())</ContainerName>
     <FuncTestListFilename>FuncTests.$(OSGroup).$(Platform)$(ConfigurationGroup).json</FuncTestListFilename>
     <PerfTestListFilename>PerfTests.$(OSGroup).$(Platform)$(ConfigurationGroup).json</PerfTestListFilename>
+    <!-- Test builds consist of the tests that are platform specific in one root, plus others in AnyOS. -->
+    <AnyOSPlatformConfig>AnyOS.AnyCPU.$(ConfigurationGroup)</AnyOSPlatformConfig>    
+    <AnyOsArchivesRoot>$(TestWorkingDir)$(AnyOSPlatformConfig)/archive/</AnyOsArchivesRoot>
+    <AnyOSTestArchivesRoot>$(AnyOsArchivesRoot)tests/</AnyOSTestArchivesRoot>
+    <!-- These archives represent the zips of tests that are OSPlatform specific -->
     <ArchivesRoot>$(TestWorkingDir)$(OSPlatformConfig)/archive/</ArchivesRoot>
     <TestArchivesRoot>$(ArchivesRoot)tests/</TestArchivesRoot>
     <PackagesArchiveFilename>Packages.zip</PackagesArchiveFilename>
@@ -70,9 +75,12 @@
     <!-- gather the test archives for upload -->
     <ItemGroup>
       <ForUpload Include="$(TestArchivesRoot)*.zip" />
-    </ItemGroup>
+      <ForUpload Include="$(AnyOSTestArchivesRoot)*.zip" />
+    </ItemGroup>   
+    <Message Text="Using OS-Specific test archives from: $(TestArchivesRoot)" /> 
+    <Message Text="Using AnyOS test archives from: $(AnyOSTestArchivesRoot)" />
     <!-- verify the test archives were created -->
-    <Error Condition="'@(ForUpload->Count())' == '0'" Text="Didn't find any test archives in '$(TestArchivesRoot)'." />
+    <Error Condition="'@(ForUpload->Count())' == '0'" Text="Didn't find any test archives in '$(TestArchivesRoot)' or $(AnyOSTestArchivesRoot)." />
     <!-- add relative blob path metadata -->
     <ItemGroup>
       <ForUpload>
@@ -109,8 +117,8 @@
       AccountName="$(CloudDropAccountName)"
       ContainerName="$(ContainerName)"
       ReadOnlyTokenDaysValid="30">
-        <Output TaskParameter="StorageUri" PropertyName="DropUri" />
-        <Output TaskParameter="ReadOnlyToken" PropertyName="DropUriReadOnlyToken" />
+      <Output TaskParameter="StorageUri" PropertyName="DropUri" />
+      <Output TaskParameter="ReadOnlyToken" PropertyName="DropUriReadOnlyToken" />
     </CreateAzureContainer>
     <!-- now that we have a drop URI create the list of correlation payloads -->
     <ItemGroup>
@@ -127,9 +135,9 @@
       ContainerName="$(ContainerName)"
       ReadOnlyTokenDaysValid="30"
       WriteOnlyTokenDaysValid="1">
-        <Output TaskParameter="StorageUri" PropertyName="ResultsUri" />
-        <Output TaskParameter="ReadOnlyToken" PropertyName="ResultsReadOnlyToken" />
-        <Output TaskParameter="WriteOnlyToken" PropertyName="ResultsWriteOnlyToken" />
+      <Output TaskParameter="StorageUri" PropertyName="ResultsUri" />
+      <Output TaskParameter="ReadOnlyToken" PropertyName="ResultsReadOnlyToken" />
+      <Output TaskParameter="WriteOnlyToken" PropertyName="ResultsWriteOnlyToken" />
     </CreateAzureContainer>
   </Target>
 
@@ -143,6 +151,7 @@
     <!-- create item group of functional tests -->
     <ItemGroup>
       <FunctionalTest Include="$(TestArchivesRoot)*.zip" />
+      <FunctionalTest Include="$(AnyOSTestArchivesRoot)*.zip" />
     </ItemGroup>
     <ItemGroup>
       <FunctionalTest>
@@ -178,6 +187,8 @@
     <ItemGroup>
       <TestBinary Include="$(BinDir)$(OSPlatformConfig)/**/*.dll" />
       <TestBinary Include="$(BinDir)$(OSPlatformConfig)/**/*.exe" />
+      <TestBinary Include="$(BinDir)$(AnyOSPlatformConfig)/**/*.dll" />
+      <TestBinary Include="$(BinDir)$(AnyOSPlatformConfig)/**/*.exe" />
     </ItemGroup>
     <GetPerfTestAssemblies TestBinaries="@(TestBinary)" GetFullPaths="false">
       <Output TaskParameter="PerfTestAssemblies" ItemName="PerfTestAssembly" />
@@ -185,6 +196,7 @@
     <!-- don't add any items to the group if no perf tests were found -->
     <ItemGroup Condition="'@(PerfTestAssembly->Count())' != '0'">
       <PerfTest Include="$(TestArchivesRoot)%(PerfTestAssembly.Identity).zip" />
+      <PerfTest Include="$(AnyOSTestArchivesRoot)%(PerfTestAssembly.Identity).zip" />
     </ItemGroup>
     <ItemGroup Condition="'@(PerfTestAssembly->Count())' != '0'">
       <PerfTest>
@@ -284,6 +296,7 @@
     <!-- write out build statistics (only contains number of built projects at present) -->
     <ItemGroup>
       <BuiltSuccessfully Include="$(TestArchivesRoot)*.zip" />
+      <BuiltSuccessfully Include="$(AnyOSTestArchivesRoot)*.zip" />      
     </ItemGroup>
     <WriteTestBuildStatsJson
       CorrelationIds="@(TestListFile->'%(CorrelationId)')"
@@ -302,7 +315,7 @@
           Condition="'$(SkipNotifyEvent)' != 'true'">
     <SendToEventHub
       EventHubPath="$(EventHubPath)"
-      EventData="%(TestListFile.BuildCompleteJson)" 
+      EventData="%(TestListFile.BuildCompleteJson)"
       EventHubSharedAccessKeyName="$(EventHubSharedAccessKeyName)"
       EventHubSharedAccessKey="$(EventHubSharedAccessKey)"/>
     <SendToEventHub
