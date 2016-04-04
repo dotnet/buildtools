@@ -153,9 +153,14 @@
       <FunctionalTest Include="$(TestArchivesRoot)*.zip" />
       <FunctionalTest Include="$(AnyOSTestArchivesRoot)*.zip" />
     </ItemGroup>
+
+    <PropertyGroup>
+        <_DesktopParameter Condition="'$(TargetGroup)' == 'net46'">--xunit-test-type=desktop</_DesktopParameter>
+    </PropertyGroup>
+
     <ItemGroup>
       <FunctionalTest>
-        <Command>$(HelixPythonPath) $(RunnerScript) --dll %(Filename).dll $(OtherRunnerScriptArgs) -- $(XunitArgs)</Command>
+        <Command>$(HelixPythonPath) $(RunnerScript) $(_DesktopParameter) --dll %(Filename).dll $(OtherRunnerScriptArgs) -- $(XunitArgs)</Command>
         <CorrelationPayloadUris>[$(CorrelationPayloadUris)]</CorrelationPayloadUris>
         <PayloadUri>$(DropUri)$(Platform)$(ConfigurationGroup)/Tests/%(Filename)%(Extension)$(DropUriReadOnlyToken)</PayloadUri>
         <WorkItemId>FunctionalTest.%(Filename)</WorkItemId>
