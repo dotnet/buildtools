@@ -39,7 +39,7 @@ namespace Microsoft.DotNet.Build.Tasks
         {
             if (File.Exists(DestinationArchive) && OverwriteDestination == true)
             {
-                Log.LogMessage(MessageImportance.Low, "{0} already existed, deleting before zipping...", SourceDirectory, DestinationArchive);
+                Log.LogMessage(MessageImportance.Low, "{0} already existed, deleting before zipping...", DestinationArchive);
                 File.Delete(DestinationArchive);
             }
 
