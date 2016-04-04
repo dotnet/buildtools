@@ -73,7 +73,14 @@
         Condition="$([System.String]::new('%(TestCopyLocal.NuGetPackageId)').StartsWith('$(_TargetingPackPrefix)'))" />
       <TestCopyLocal Remove="@(TestCopyLocalToRemove)" />
       
-      <TestCopyLocal Include="$(PackagesDir)xunit.runner.console/2.1.0/tools/*.*" />
+      <_TestCopyLocalXunitFiles Include="$(PackagesDir)xunit.runner.console\2.1.0\tools\*.exe" />
+      <_TestCopyLocalXunitFiles Include="$(PackagesDir)xunit.runner.console\2.1.0\tools\*.dll" />
+
+      <TestCopyLocal Include="@(_TestCopyLocalXunitFiles)" >
+        <NuGetPackageId>%(FileName)</NuGetPackageId>
+        <NuGetPackageVersion>2.1.0</NuGetPackageVersion>
+        <Private>false</Private>
+      </TestCopyLocal>
     </ItemGroup>
 
     <!-- We may have an indirect package reference that we want to replace with a project reference.
