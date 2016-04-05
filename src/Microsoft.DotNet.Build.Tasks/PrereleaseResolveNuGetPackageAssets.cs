@@ -832,15 +832,28 @@ namespace Microsoft.DotNet.Build.Tasks
         private void GetReferencedPackages(JObject lockFile)
         {
             var projectFileDependencyGroups = (JObject)lockFile["projectFileDependencyGroups"];
-            var projectFileDependencies = (JArray)projectFileDependencyGroups[""];
 
-            foreach (var packageDependency in projectFileDependencies.Select(v => (string)v))
+            // find whichever target we will have selected
+            var actualTarget = GetTargetOrAttemptFallback(lockFile, needsRuntimeIdentifier: false)?.Parent as JProperty;
+            string targetMoniker = null;
+            if (actualTarget != null)
             {
-                int firstSpace = packageDependency.IndexOf(' ');
+                targetMoniker = actualTarget.Name.Split('/').FirstOrDefault();
+            }
 
-                if (firstSpace > -1)
+            foreach (var dependencyGroup in projectFileDependencyGroups.Values<JProperty>())
+            {
+                if (dependencyGroup.Name.Length == 0 || dependencyGroup.Name == targetMoniker)
                 {
-                    _referencedPackages.Add(new TaskItem(packageDependency.Substring(0, firstSpace)));
+                    foreach (var packageDependency in dependencyGroup.Value.Values<string>())
+                    {
+                        int firstSpace = packageDependency.IndexOf(' ');
+
+                        if (firstSpace > -1)
+                        {
+                            _referencedPackages.Add(new TaskItem(packageDependency.Substring(0, firstSpace)));
+                        }
+                    }
                 }
             }
         }
