@@ -35,19 +35,21 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <ResolveAssemblyReferencesDependsOn>
+    <ResolveAssemblyReferencesDependsOn Condition="'$(_BuildAgainstPackages)' != 'true'">
       $(ResolveAssemblyReferencesDependsOn);
       ResolveNuGetPackages;
       ValidatePackageVersions;
     </ResolveAssemblyReferencesDependsOn>
+ </PropertyGroup>
 
+ <Import Condition="'$(_BuildAgainstPackages)' == 'true'" Project="buildagainstpackages.targets" />
+
+ <PropertyGroup>
     <!-- temporarily accept the old name NuGetTargetFrameworkMoniker until all projects are moved forward -->
     <NuGetTargetMoniker Condition="'$(NuGetTargetMoniker)' == ''">$(NuGetTargetFrameworkMoniker)</NuGetTargetMoniker>
     <UseTargetPlatformAsNuGetTargetMoniker Condition="'$(UseTargetPlatformAsNuGetTargetMoniker)' == '' AND '$(TargetFrameworkMoniker)' == '.NETCore,Version=v5.0'">true</UseTargetPlatformAsNuGetTargetMoniker>
     <NuGetTargetMoniker Condition="'$(NuGetTargetMoniker)' == '' AND '$(UseTargetPlatformAsNuGetTargetMoniker)' == 'true'">$(TargetPlatformIdentifier),Version=v$([System.Version]::Parse('$(TargetPlatformMinVersion)').ToString(3))</NuGetTargetMoniker>
     <NuGetTargetMoniker Condition="'$(NuGetTargetMoniker)' == '' AND '$(UseTargetPlatformAsNuGetTargetMoniker)' != 'true'">$(TargetFrameworkMoniker)</NuGetTargetMoniker>
-
-
     <BaseNuGetRuntimeIdentifier Condition="'$(BaseNuGetRuntimeIdentifier)' == '' and '$(TargetPlatformIdentifier)' == 'UAP'">win10</BaseNuGetRuntimeIdentifier>
     <BaseNuGetRuntimeIdentifier Condition="'$(BaseNuGetRuntimeIdentifier)' == ''">win</BaseNuGetRuntimeIdentifier>
     <CopyNuGetImplementations Condition="'$(CopyNuGetImplementations)' == '' and '$(OutputType)' != 'library' and ('$(OutputType)' != 'winmdobj' or '$(AppxPackage)' == 'true')">true</CopyNuGetImplementations>
@@ -92,7 +94,7 @@
       <ReferenceCopyLocalPaths Remove="@(_ReferenceCopyLocalPathsFileNamesToRemove)"/>
     </ItemGroup>
 
-    <Message Text="Excluding @(_ReferenceFileNamesToRemove);@(_ReferenceCopyLocalPathsFileNamesToRemove) from package references since the same file is provided by a project refrence."
+    <Message Text="Excluding @(_ReferenceFileNamesToRemove);@(_ReferenceCopyLocalPathsFileNamesToRemove) from package references since the same file is provided by a project reference."
              Condition="'@(_ReferenceFileNamesToRemove)' != '' or '@(_ReferenceCopyLocalPathsFileNamesToRemove)' != ''"/>
   </Target>
 
@@ -115,7 +117,7 @@
   </Target>
 
   <Target Name="ValidatePackageVersions"
-          Condition="'$(RestorePackages)'=='true' and '$(ValidatePackageVersions)'=='true' and Exists('$(ProjectJson)')">
+          Condition="'$(_BuildAgainstPackages)' != 'true' and '$(RestorePackages)'=='true' and '$(ValidatePackageVersions)'=='true' and Exists('$(ProjectJson)')">
     <ValidateProjectDependencyVersions ProjectJsons="$(ProjectJson)"
                                        ProhibitFloatingDependencies="$(ProhibitFloatingDependencies)"
                                        ValidationPatterns="@(ValidationPattern)" />

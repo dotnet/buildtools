@@ -231,6 +231,7 @@
   <Target Name="ArchiveTestBuild" AfterTargets="CreateAssemblyListTxt" Condition="'$(ArchiveTests)' == 'true'">
     <PropertyGroup>
       <TestArchiveDir>$(TestWorkingDir)$(OSPlatformConfig)/archive/tests/</TestArchiveDir>
+      <ProjectJson Condition="!Exists('$(ProjectJson)')">$(OriginalProjectJson)</ProjectJson>
     </PropertyGroup>
     <PropertyGroup Condition="'$(TestProjectName)'==''">
       <TestProjectName>$(MSBuildProjectName)</TestProjectName>
