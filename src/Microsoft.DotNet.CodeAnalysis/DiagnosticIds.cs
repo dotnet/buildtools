@@ -12,5 +12,9 @@ namespace Microsoft.DotNet.CodeAnalysis
         BCL0010, // AppContextDefaultNotInitializedToTrueDiagnostic
         BCL0011, // AppContextDefaultUsedUnexpectedIfStatement
         BCL0012, // DefaultValueDefinedOutsideIfCondition
+
+        BCL0015, // PinvokeCallCheck
+
+        BCL0020, // ResourceUsageCheck
     }
 }

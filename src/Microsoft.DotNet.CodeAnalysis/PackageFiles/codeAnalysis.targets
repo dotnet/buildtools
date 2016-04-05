@@ -9,6 +9,8 @@
     <CodeAnalyzerDir Condition="'$(CodeAnalyzerDir)'=='' and '$(OSEnvironment)'!='Windows_NT'">$(ToolsDir)analyzers/</CodeAnalyzerDir>
   </PropertyGroup>
   
+  <Import Condition="'$(EnableDotnetAnalyzers)' == 'true'" Project="$(MSBuildThisFileDirectory)PinvokeAnalyzer.props"/>
+	
   <ItemGroup Condition="'$(EnableDotnetAnalyzers)' == 'true'">
     <!-- Enable the Microsoft.Dotnet.CodeAnalysis.dll analyzer --> 
     <Analyzer Include="$(CodeAnalyzerDir)Microsoft.DotNet.CodeAnalysis.dll"/>

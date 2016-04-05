@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="Common diagnostic rules" Description="Enables/disable rules for all projects." ToolsVersion="14.0">
+  <Include Path="$(MSBuildThisFileDirectory)\Microsoft.DotNet.CodeAnalysis.ruleset" Action="Default" />
+  <Rules AnalyzerId="Microsoft.DotNet.CodeAnalysis" RuleNamespace="Microsoft.DotNet.CodeAnalysis.Analyzers">
+    <!-- PinvokeChecker should only be enabled for AnyOS or Windows_NT configurations -->
+    <Rule Id="BCL0015" Action="None" />
+  </Rules>
+</RuleSet>
