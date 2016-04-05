@@ -18,6 +18,7 @@
   <ItemGroup>
     <Compile Include="BinClashLogger.cs" />
     <Compile Include="Delegates.cs" />
+    <Compile Include="ExceptionFromResource.cs" />
     <Compile Include="ExecWithMutex.cs" />
     <Compile Include="GatherFoldersToRestore.cs" />
     <Compile Include="GenerateAssemblyList.cs" />
@@ -33,9 +34,11 @@
     <Compile Include="LocatePreviousContract.cs" />
     <Compile Include="NormalizePaths.cs" />
     <Compile Include="GetDoItemsIntersect.cs" />
+    <Compile Include="NuGetPackageObject.cs" />
     <Compile Include="OpenSourceSign.cs" />
     <Compile Include="ParseTestCoverageInfo.cs" />
     <Compile Include="PreprocessFile.cs" />
+    <Compile Include="Preprocessor.cs" />
     <Compile Include="ReadSigningRequired.cs" />
     <Compile Include="RemoveDuplicatesWithLastOneWinsPolicy.cs" />
     <Compile Include="PrereleaseResolveNuGetPackageAssets.cs" />
