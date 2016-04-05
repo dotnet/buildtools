@@ -165,7 +165,7 @@
     </ItemGroup>
 
     <PropertyGroup>
-        <OtherRunnerScriptArgs Condition="'$(TargetGroup)' == 'net46'">$(OtherRunnerScriptArgs) --xunit-test-type=desktop </OtherRunnerScriptArgs>
+        <OtherRunnerScriptArgs Condition="'$(FilterToTargetGroup)' == 'net46'">$(OtherRunnerScriptArgs) --xunit-test-type=desktop </OtherRunnerScriptArgs>
     </PropertyGroup>
 
     <ItemGroup>
