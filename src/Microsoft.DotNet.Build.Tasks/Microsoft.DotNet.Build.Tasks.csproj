@@ -21,6 +21,8 @@
     <Compile Include="ExecWithMutex.cs" />
     <Compile Include="GatherFoldersToRestore.cs" />
     <Compile Include="GenerateAssemblyList.cs" />
+    <Compile Include="AddDependenciesToProjectJson.cs" />
+    <Compile Include="ParsePackageNames.cs" />
     <Compile Include="GenerateCurrentVersion.cs" />
     <Compile Include="GenerateResourcesCode.cs" />
     <Compile Include="GenerateEncodingTable.cs" />

@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <UsingTask TaskName="AddDependenciesToProjectJson" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="ParsePackageNames" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="GetPackageNumberFromPackageDrop" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+
+  <ItemGroup>
+    <_PackagesDrops Include="$(PackagesDrops)" />
+  </ItemGroup>
+  <PropertyGroup>
+    <!-- overridden in repo -->
+    <GeneratedProjectJsonDir Condition="'$(GeneratedProjectJsonDir)' == ''">$(ObjDir)generated</GeneratedProjectJsonDir>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- We have to add BeforeResolveReferences to CleanDependsOn otherwise CleanDependsOn will Call AssignProjectConfigurations before we get a chance
+         to swap out the ProjectReferences if we are swapping project references to package dependencies -->
+    <CleanDependsOn>
+      BeforeResolveReferences;
+      $(CleanDependsOn)
+    </CleanDependsOn>
+    <ResolveAssemblyReferencesDependsOn>
+      $(ResolveAssemblyReferencesDependsOn);
+      DetermineProjectJsonPath;
+      ResolveNuGetPackages;
+    </ResolveAssemblyReferencesDependsOn>
+  </PropertyGroup>
+
+  <Target Name="GenerateTestProjectJson" DependsOnTargets="ExtractProjectReferences;GatherAssemblyVersionsFromPackagesDrops;GatherProjectReferenceForProjectJson;DetermineProjectJsonPath;AddDependenciesToProjectJson" />
+
+  <!-- Override targets for building against packages -->
+  <Target Name="BuildAndTest" DependsOnTargets="GenerateTestProjectJson;Build;Test" />
+  <Target Name="RebuildAndTest" DependsOnTargets="GenerateTestProjectJson;Rebuild;Test" />
+
+  <Target Name="DetermineProjectJsonPath">
+    <PropertyGroup>
+      <OriginalProjectJson>$(ProjectJson)</OriginalProjectJson>
+      <!-- We can't put the generated project.json in the output path or NuGet will interpret Microsoft.Win32.Primitives as a "project"
+           type instead of a "package" type when generating the project.lock.json file, so we have to place our project.json in a different path location. -->
+      <ProjectJson>$(GeneratedProjectJsonDir)\$(MSBuildProjectName)\json\project.json</ProjectJson>
+      <GeneratedProjectLockJson>$(GeneratedProjectJsonDir)\$(MSBuildProjectName)\json\project.lock.json</GeneratedProjectLockJson>
+      <!-- Not all projects generate a new project.json, so only update the project.lock.json if it has been restored. -->
+      <ProjectLockJson Condition="Exists('$(GeneratedProjectLockJson)')">$(GeneratedProjectLockJson)</ProjectLockJson>
+    </PropertyGroup>
+    <Message Condition="Exists('$(ProjectLockJson)')" Text="Using '$(ProjectLockJson)'" Importance="Low"/>
+  </Target>
+
+  <!-- Before resolving references, separate out project references we are converting to package dependencies. -->
+  <Target Name="BeforeResolveReferences" DependsOnTargets="ExtractProjectReferences">
+    <ItemGroup>
+      <!-- These project references have been converted to package dependencies and a new project.json has been created.  -->
+      <ProjectReference Remove="@(_PackageProjectReference)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Before resolving references, separate out project references we are converting to package dependencies. -->
+  <Target Name="ExtractProjectReferences">
+    <ItemGroup Condition="'$(KeepAllProjectReferences)' != 'true'">
+        <!-- Don't alter the ProjectReference's from the project during the extraction phase -->
+        <_ClonedProjectReference Include="@(ProjectReference)" />
+        <_RemovePackageProjectReference Condition="'%(_ClonedProjectReference.KeepProjectReference)' != 'true' and !$([System.Text.RegularExpressions.Regex]::IsMatch('%(_ClonedProjectReference.FullPath)', '\\tests\\', System.Text.RegularExpressions.RegexOptions.IgnoreCase))"
+                                  Include="%(_ClonedProjectReference.Identity)" />
+        <!-- Populate items first with the project references so that we can trim them but keep the item metadata -->
+        <_PackageProjectReference Include="@(_ClonedProjectReference)" />
+        <_ClonedProjectReference Remove="@(_RemovePackageProjectReference)" />
+        <_PackageProjectReference Remove="@(_ClonedProjectReference)" />                                
+    </ItemGroup>
+  </Target>
+
+  <!-- Given a package drop, or list of package drops, retrieve a list of assembly names and their associated versions -->
+  <Target Name="GatherAssemblyVersionsFromPackagesDrops">
+    <ItemGroup>
+      <_PackageDropAssembly Condition="'%(_PackageDrops.Identity)' != ''"
+                            Include="%(_PackageDrops.Identity)\**">
+        <AssemblyName>%(Identity)</AssemblyName>
+        <AssemblyVersion>$([System.Text.RegularExpressions.Regex]::Match(%(Identity), (\d+\.\d+\.\d+)</AssemblyVersion>
+      </_PackageDropAssembly>
+    </ItemGroup>
+    <ParsePackageNames PackageDrops="@(_PackagesDrops)"
+                                           PackageNameRegex="([^\\]+)\.(\d+\.\d+\.\d+)-([^\.]+)">
+       <Output TaskParameter="PackageNames" ItemName="_PackageVersionList" />                                                  
+    </ParsePackageNames>                                           
+  </Target>
+
+  <Target Name="GatherProjectReferenceForProjectJson"
+          Condition="'$(KeepAllProjectReferences)' != 'true'"
+          Inputs="%(_PackageProjectReference.Identity)"
+          Outputs="fake">
+    <PropertyGroup>
+      <_PackageReferenceName>%(_PackageProjectReference.PackageReferenceName)</_PackageReferenceName>
+      <_InjectProjectReference>%(_PackageProjectReference.FileName)</_InjectProjectReference>
+
+      <!-- determine the version of the assembly in the project reference by looking at the packages in "PackagesDrops".  -->
+      <!-- If an alternate packagereferencename was specified, then look for that version number instead of the version number for the project reference. -->
+      <_AssemblyVersion Condition="'$(_PackageReferenceName)' != '' and '%(_PackageVersionList.PackageName)' == '$(_PackageReferenceName)'">%(_PackageVersionList.PackageVersion)</_AssemblyVersion>
+      <_AssemblyVersion Condition="'$(_AssemblyVersion)' == '' and '%(_PackageVersionList.AssemblyName)' == '$(_InjectProjectReference)'">%(_PackageVersionList.PackageVersion)</_AssemblyVersion>
+    </PropertyGroup>
+
+    <Message Condition="'$(_AssemblyVersion)' != ''" Text="Derived version number from packages drop." />   
+
+    <ItemGroup>
+      <_AdditionalProperties Condition="'$(AssemblyVersionTransition)' != ''" Include="AssemblyVersionTransition=$(AssemblyVersionTransition);" />
+    </ItemGroup>
+
+    <!-- Evaluate the project references to determine the assembly version for the package dependency.
+         Only evaluate the project reference if we were not able to find an assembly version in "PackageDrops" -->
+    <MSBuild Condition="'%(_PackageProjectReference.Identity)' != '' and '$(_AssemblyVersion)' == ''"
+             Projects="%(_PackageProjectReference.Identity)"
+             Targets="GetAssemblyVersion"
+             Properties="@(_AdditionalProperties)">
+      <Output TaskParameter="TargetOutputs"
+              PropertyName="_EvaluatedAssemblyVersion" />
+    </MSBuild>
+    <Message Condition="'$(_EvaluatedAssemblyVersion)' != ''" Text="Derived version number from project reference evaluation." />    
+    <PropertyGroup>
+      <_AssemblyVersion Condition="'$(_AssemblyVersion)' == ''">$(_EvaluatedAssemblyVersion)</_AssemblyVersion>
+    </PropertyGroup>
+
+    <Error Condition="'$(_AssemblyVersion)' == ''" Text="Unable to determine assembly version for project reference '%(_PackageProjectReference.Identity)'" />
+    
+    <PropertyGroup>
+        <!-- Use the alternative PackageReferenceName metadata if available -->
+        <_InjectProjectReferenceDependencyName Condition="'$(_PackageReferenceName)' == ''">%(_PackageProjectReference.FileName)</_InjectProjectReferenceDependencyName>
+        <_InjectProjectReferenceDependencyName Condition="'$(_PackageReferenceName)' != ''">$(_PackageReferenceName)</_InjectProjectReferenceDependencyName>
+    </PropertyGroup>
+    <ItemGroup>
+      <_InjectProjectReferenceDependency  Include="$(_InjectProjectReferenceDependencyName)">
+        <Name>$(_InjectProjectReferenceDependencyName)</Name>
+        <OriginalName>$(_InjectProjectReference)</OriginalName>
+        <Version>$(_AssemblyVersion)</Version>
+        <FilePath>%(_PackageProjectReference.Identity)</FilePath>
+        <MSBuildSourceProjectFile>%(_PackageProjectReference.MSBuildSourceProjectFile)</MSBuildSourceProjectFile>
+        <TargetGroup>%(_PackageProjectReference.TargetGroup)</TargetGroup>
+      </_InjectProjectReferenceDependency>
+    </ItemGroup>
+
+    <Message Condition="'@(_InjectProjectReferenceDependency)' != ''" Text="Converting project reference (%(_InjectProjectReferenceDependency.OriginalName)) to package dependency - %(_InjectProjectReferenceDependency.Name): %(_InjectProjectReferenceDependency.Version)" />
+    
+    <PropertyGroup>
+       <ErrorNoVersion Condition="'@(_InjectProjectReferenceDependency)' != '' and '$(_AssemblyVersion)' == ''">true</ErrorNoVersion>
+    </PropertyGroup>
+    <Error Condition="'$(ErrorNoVersion)' == 'true'" Text="Unable to determine version number for project reference dependency '%(_InjectProjectReferenceDependency.Name)'" />
+  </Target>
+  
+  <Target Name="AddDependenciesToProjectJson"
+          DependsOnTargets="GatherProjectReferenceForProjectJson;DetermineProjectJsonPath"
+          Condition="'@(_InjectProjectReferenceDependency)' != ''">
+    
+    <Message Condition="'$(PackageBuildNumberOverride)' != ''" Text="Setting package version to '$(PackageBuildNumberOverride)'" />
+    <GetPackageNumberFromPackageDrop Condition="'@(_PackagesDrops)' != ''"
+                                     PackageDrops="@(_PackagesDrops)">
+      <Output TaskParameter="PackageNumber" PropertyName="_DerivedPackageNumber" />
+    </GetPackageNumberFromPackageDrop>
+    
+    <Message Condition="'$(PackageBuildNumberOverride)' == '' and '$(_DerivedPackageNumber)' != ''" Text="Derived package version from packagedrops.  Setting package version to '$(_DerivedPackageNumber)'" />
+    <PropertyGroup>
+        <PackageBuildNumberOverride Condition="'$(PackageBuildNumberOverride)' == '' and '$(_DerivedPackageNumber)' != ''">$(_DerivedPackageNumber)</PackageBuildNumberOverride>
+        <VersionStructureRegex Condition="'$(VersionStructureRegex)' == ''">(\d+\.\d+\.\d+)-((beta|rc2|rc3)-?(\d+)?)</VersionStructureRegex>
+        <BuildNumberOverrideStructureRegex Condition="'$(BuildNumberOverrideStructureRegex)' == ''">([^-]+)?-?(\d+(-\d+)?)?</BuildNumberOverrideStructureRegex>
+    </PropertyGroup>
+    <AddDependenciesToProjectJson Condition="'$(ErrorNoVersion)' == ''"
+                                  VersionStructureRegex="$(VersionStructureRegex)"
+                                  AdditionalDependencies="@(_InjectProjectReferenceDependency)"
+                                  ProjectJson="$(OriginalProjectJson)"
+                                  OutputProjectJson="$(ProjectJson)" 
+                                  PackageBuildNumberOverride="$(PackageBuildNumberOverride)"
+                                  BuildNumberOverrideStructureRegex="$(BuildNumberOverrideStructureRegex)" />
+
+    <Message Condition="'$(ErrorNoVersion)' == ''" Text="Generated project.json file - '$(ProjectJson)'" />
+  </Target>
+
+  <Target Name="GenerateEvaluatedProjectFilePaths"
+          Inputs="%(_InjectProjectReferenceDependency.Identity)" 
+          Outputs="fake" >
+    <!-- Evaluate the injected project reference dependencies so that we can remove the paths from the contentwithtargetpath items. -->
+    <ItemGroup>
+       <_EvaluatedProjectFilePath Include="%(_InjectProjectReferenceDependency.Identity)\..\%(_InjectProjectReferenceDependency.FilePath)" />
+    </ItemGroup>
+  </Target>
+</Project>
