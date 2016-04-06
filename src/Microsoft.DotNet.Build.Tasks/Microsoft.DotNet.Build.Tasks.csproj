@@ -44,7 +44,7 @@
     <Compile Include="VisitProjectDependencies.cs" />
     <Compile Include="ValidateProjectDependencyVersions.cs" />
     <Compile Include="WriteSigningRequired.cs" />
-    <Compile Include="ExtractZipFile.cs" />
+    <Compile Include="ZipFileExtractToDirectory.cs" />
     <Compile Include="ZipFileCreateFromDirectory.cs" />
     <Compile Include="Strings.Designer.cs">
       <AutoGen>True</AutoGen>
