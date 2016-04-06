@@ -148,12 +148,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                     if (!pathHasMatches.Values.Any(i => i))
                     {
-                        Log.LogWarning($"Nuspec {nuspecPath} does not contain symbol or source files. Not creating symbol package.");
+                        Log.LogMessage(LogImportance.Low, $"Nuspec {nuspecPath} does not contain symbol or source files. Not creating symbol package.");
                         return;
                     }
                     foreach (var pathPair in pathHasMatches.Where(pathMatchPair => !pathMatchPair.Value))
                     {
-                        Log.LogWarning($"Nuspec {nuspecPath} does not contain any files matching {pathPair.Key}. Not creating symbol package.");
+                        Log.LogMessage(LogImportance.Low, $"Nuspec {nuspecPath} does not contain any files matching {pathPair.Key}. Not creating symbol package.");
                         return;
                     }
                 }
