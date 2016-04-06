@@ -3,23 +3,53 @@
   <!-- 
     We should be using $(BuildToolsTaskDir) for this, however we are currently forcing that property to 
     always be net45 (because we use Mono to run our tests and Mono needs to load the net45 version)
--->
+  -->
   <PropertyGroup>
     <CodeAnalyzerDir Condition="'$(CodeAnalyzerDir)'=='' and '$(OSEnvironment)'=='Windows_NT'">$(ToolsDir)net45/analyzers/</CodeAnalyzerDir>
     <CodeAnalyzerDir Condition="'$(CodeAnalyzerDir)'=='' and '$(OSEnvironment)'!='Windows_NT'">$(ToolsDir)analyzers/</CodeAnalyzerDir>
   </PropertyGroup>
-  
-  <Import Condition="'$(EnableDotnetAnalyzers)' == 'true'" Project="$(MSBuildThisFileDirectory)PinvokeAnalyzer.props"/>
-	
+
+  <!-- PInvokeChecker data files-->
+  <PropertyGroup Condition="'$(OSGroup)'=='Windows_NT' and '$(EnableDotnetAnalyzers)' == 'true'">
+    <!-- 
+       This file helps us choose the correct allowed pinvoke file.
+       1. In case we are building for windows and TargetGroup is Netcore50 or netcore50aot (Store profile) we use OneCoreUWPApis.txt
+       2. For all other windows configuration we use OneCoreAPIs.txt file.
+    -->
+
+    <ValidPinvokeMappings Condition="'$(TargetGroup)'==''">$(MSBuildThisFileDirectory)PinvokeAnalyzer_OneCoreApis.txt</ValidPinvokeMappings>
+    <ValidPinvokeMappings Condition="'$(TargetGroup)'=='netstandard13aot'">$(MSBuildThisFileDirectory)PinvokeAnalyzer_OneCoreApis.txt</ValidPinvokeMappings>
+    <ValidPinvokeMappings Condition="'$(TargetGroup)'=='netstandard15aot'">$(MSBuildThisFileDirectory)PinvokeAnalyzer_OneCoreApis.txt</ValidPinvokeMappings>
+    <ValidPinvokeMappings Condition="'$(TargetGroup)'=='netcore50' or '$(TargetGroup)'=='netcore50aot'">$(MSBuildThisFileDirectory)PinvokeAnalyzer_UWPApis.txt</ValidPinvokeMappings>
+  </PropertyGroup>
+
+  <!-- If we have enabled analyzers we need to populate the right item groups -->
   <ItemGroup Condition="'$(EnableDotnetAnalyzers)' == 'true'">
-    <!-- Enable the Microsoft.Dotnet.CodeAnalysis.dll analyzer --> 
+    <!-- Enable the Microsoft.Dotnet.CodeAnalysis.dll analyzer -->
     <Analyzer Include="$(CodeAnalyzerDir)Microsoft.DotNet.CodeAnalysis.dll"/>
 
     <AdditionalFiles Include="$(MSBuildProjectDirectory)/*.analyzerdata" />
     <AdditionalFiles Include="$(MSBuildProjectDirectory)/*.analyzerdata.$(Platform)" />
+
+    <!-- Add the necessary valid Pinvoke mapping file -->
+    <AdditionalFiles Condition="'$(ValidPinvokeMappings)' != ''" Include="$(ValidPinvokeMappings)"/>
+
+    <!-- Disable any analyzers that should not run -->
+    <DisabledAnalyzers Condition="'$(IsTestProject)' == true or '$(TargetsUnix)' == 'true'" Include="PinvokeAnalyzer"/>
+    <DisabledAnalyzers Condition="'$(TargetsWindows)'=='true' and ($(TargetGroup.Contains('net46')) or $(TargetGroup.Contains('net45')))" Include="PinvokeAnalyzer" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(EnableDotnetAnalyzers)' == 'true'">
     <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)'==''">$(MSBuildThisFileDirectory)Microsoft.DotNet.CodeAnalysis.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+
+  <!-- If we have specified any analyzers that need to be disabled write them into the file -->
+  <Target Name="GenerateAnalyzerConfigFile" BeforeTargets="CoreCompile" Condition="'@(DisabledAnalyzers)'!='' and '$(EnableDotnetAnalyzers)' == 'true'" >
+    <WriteLinesToFile File="$(IntermediateOutputPath)/disabledAnalyzers.config" Lines="@(DisabledAnalyzers)" Overwrite="true" />
+
+    <ItemGroup>
+      <AdditionalFiles Include="$(IntermediateOutputPath)/disabledAnalyzers.config"/>
+    </ItemGroup>
+  </Target>
+
 </Project>
