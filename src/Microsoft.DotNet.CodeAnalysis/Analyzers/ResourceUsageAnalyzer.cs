@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.DotNet.CodeAnalysis.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class ResourceUsageAnalyzer : DiagnosticAnalyzer
+    public class ResourceUsageAnalyzer : BaseAnalyzer
     {
         private const string Title = "Invalid SR.Format call";
         private const string Description = "The SR.Format call should be removed.";
@@ -22,13 +22,8 @@ namespace Microsoft.DotNet.CodeAnalysis.Analyzers
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(InvalidSRFormatCall); } }
 
         INamedTypeSymbol SRSymbol { get; set; }
-        public override void Initialize(AnalysisContext context)
-        {
-            context.RegisterCompilationStartAction(StartCompile);
-        }
 
-
-        private void StartCompile(CompilationStartAnalysisContext context)
+        public override void OnCompilationStart(CompilationStartAnalysisContext context)
         {
             SRSymbol = context.Compilation.GetTypeByMetadataName("System.SR");
             if (SRSymbol != null)

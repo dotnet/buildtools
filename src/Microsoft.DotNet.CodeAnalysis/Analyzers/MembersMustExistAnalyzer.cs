@@ -13,7 +13,7 @@ using System.Linq;
 namespace Microsoft.DotNet.CodeAnalysis.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class MembersMustExistAnalyzer : DiagnosticAnalyzer
+    public class MembersMustExistAnalyzer : BaseAnalyzer
     {
         private static string s_title = @"Ensure minimum API surface is respected";
         private static string s_analyzerName = "MembersMustExist";
@@ -27,12 +27,6 @@ namespace Microsoft.DotNet.CodeAnalysis.Analyzers
             new DiagnosticDescriptor(DiagnosticIds.BCL0001.ToString(), s_title, s_messageFormat, s_analyzerName, DiagnosticSeverity.Error, isEnabledByDefault: true, description: s_description);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(s_memberMustExistDiagnostic); } }
-
-        public override void Initialize(AnalysisContext context)
-        {
-            context.RegisterCompilationStartAction(OnCompilationStart);
-            context.RegisterCompilationAction(OnCompilationEnd);
-        }
 
         private void OnCompilationEnd(CompilationAnalysisContext context)
         {
@@ -49,7 +43,7 @@ namespace Microsoft.DotNet.CodeAnalysis.Analyzers
             }
         }
 
-        private void OnCompilationStart(CompilationStartAnalysisContext context)
+        public override void OnCompilationStart(CompilationStartAnalysisContext context)
         {
             // Read the file line-by-line to get the terms.
             var additionalAnalyzerFiles = context.Options.AdditionalFiles.Where(af => af.Path.IndexOf(s_analyzerName, 0, StringComparison.OrdinalIgnoreCase) >= 0);
@@ -65,6 +59,7 @@ namespace Microsoft.DotNet.CodeAnalysis.Analyzers
                 }
             }
 
+            context.RegisterCompilationEndAction(OnCompilationEnd);
             context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.Method, SymbolKind.Event);
         }
 

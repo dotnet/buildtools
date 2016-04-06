@@ -15,7 +15,7 @@ using System.Diagnostics;
 namespace Microsoft.DotNet.CodeAnalysis.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class PinvokeAnalyzer : DiagnosticAnalyzer
+    public class PinvokeAnalyzer : BaseAnalyzer
     {
         private const string Title = "Invalid Pinvoke call";
         private const string MessageFormat = @"{0} is not supported on one\more targeted platforms.{1}";
@@ -26,12 +26,7 @@ namespace Microsoft.DotNet.CodeAnalysis.Analyzers
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(InvalidPinvokeCall); } }
 
-        public override void Initialize(AnalysisContext context)
-        {
-            context.RegisterCompilationStartAction(OnCompilationStart);
-        }
-
-        private void OnCompilationStart(CompilationStartAnalysisContext obj)
+        public override void OnCompilationStart(CompilationStartAnalysisContext obj)
         {
             _allowedPinvokeFile = obj.Options.AdditionalFiles.FirstOrDefault(f => Path.GetFileName(f.Path).Contains("PinvokeAnalyzer_"));
             _exceptionFile = obj.Options.AdditionalFiles.FirstOrDefault(f => Path.GetFileName(f.Path).Contains("PinvokeAnalyzerExceptionList.analyzerdata"));

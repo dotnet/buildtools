@@ -16,6 +16,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Analyzers\BaseAnalyzer.cs" />
     <Compile Include="Analyzers\AppContextDefaultsAnalyzer.cs" />
     <Compile Include="Analyzers\MembersMustExistAnalyzer.cs" />
     <Compile Include="Analyzers\PinvokeAnalyzer.cs" />
