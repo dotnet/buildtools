@@ -61,6 +61,11 @@
   <Import Project="$(MSBuildThisFileDirectory)codeAnalysis.targets" />
 
   <!-- 
+    Import the codeOptimization.targets file to enable profile guided code optimization for managed assemblies.
+  -->
+  <Import Project="$(MSBuildThisFileDirectory)codeOptimization.targets" />
+
+  <!-- 
     Import the default target framework targets.
     
     Inputs:

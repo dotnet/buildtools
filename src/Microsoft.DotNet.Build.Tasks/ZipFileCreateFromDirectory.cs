@@ -29,7 +29,7 @@ namespace Microsoft.DotNet.Build.Tasks
         /// Indicates if the destination archive should be overwritten if it already exists.
         /// </summary>
         public bool OverwriteDestination { get; set; }
-        
+
         /// <summary>
         /// An item group of regular expressions for content to exclude from the archive.
         /// </summary>
@@ -37,57 +37,74 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public override bool Execute()
         {
-            if (File.Exists(DestinationArchive) && OverwriteDestination == true)
+            try
             {
-                Log.LogMessage(MessageImportance.Low, "{0} already existed, deleting before zipping...", SourceDirectory, DestinationArchive);
-                File.Delete(DestinationArchive);
-            }
-
-            Log.LogMessage(MessageImportance.High, "Compressing {0} into {1}...", SourceDirectory, DestinationArchive);
-            if (!Directory.Exists(Path.GetDirectoryName(DestinationArchive)))
-                Directory.CreateDirectory(Path.GetDirectoryName(DestinationArchive));
-
-            if (ExcludePatterns == null)
-            {
-                ZipFile.CreateFromDirectory(SourceDirectory, DestinationArchive);
-            }
-            else
-            {
-                // convert to regular expressions
-                Regex[] regexes = new Regex[ExcludePatterns.Length];
-                for (int i = 0; i < ExcludePatterns.Length; ++i)
-                    regexes[i] = new Regex(ExcludePatterns[i].ItemSpec, RegexOptions.IgnoreCase);
-
-                using (FileStream writer = new FileStream(DestinationArchive, FileMode.CreateNew))
+                if (File.Exists(DestinationArchive))
                 {
-                    using (ZipArchive zipFile = new ZipArchive(writer, ZipArchiveMode.Create))
+                    if (OverwriteDestination == true)
                     {
-                        var files = Directory.GetFiles(SourceDirectory, "*", SearchOption.AllDirectories);
+                        Log.LogMessage(MessageImportance.Low, "{0} already existed, deleting before zipping...", DestinationArchive);
+                        File.Delete(DestinationArchive);
+                    }
+                    else
+                    {
+                        Log.LogWarning("'{0}' already exists. Did you forget to set '{1}' to true?", DestinationArchive, nameof(OverwriteDestination));
+                    }
+                }
 
-                        foreach (var file in files)
+                Log.LogMessage(MessageImportance.High, "Compressing {0} into {1}...", SourceDirectory, DestinationArchive);
+                if (!Directory.Exists(Path.GetDirectoryName(DestinationArchive)))
+                    Directory.CreateDirectory(Path.GetDirectoryName(DestinationArchive));
+
+                if (ExcludePatterns == null)
+                {
+                    ZipFile.CreateFromDirectory(SourceDirectory, DestinationArchive);
+                }
+                else
+                {
+                    // convert to regular expressions
+                    Regex[] regexes = new Regex[ExcludePatterns.Length];
+                    for (int i = 0; i < ExcludePatterns.Length; ++i)
+                        regexes[i] = new Regex(ExcludePatterns[i].ItemSpec, RegexOptions.IgnoreCase);
+
+                    using (FileStream writer = new FileStream(DestinationArchive, FileMode.CreateNew))
+                    {
+                        using (ZipArchive zipFile = new ZipArchive(writer, ZipArchiveMode.Create))
                         {
-                            // look for a match
-                            bool foundMatch = false;
-                            foreach (var regex in regexes)
+                            var files = Directory.GetFiles(SourceDirectory, "*", SearchOption.AllDirectories);
+
+                            foreach (var file in files)
                             {
-                                if (regex.IsMatch(file))
+                                // look for a match
+                                bool foundMatch = false;
+                                foreach (var regex in regexes)
                                 {
-                                    foundMatch = true;
-                                    break;
+                                    if (regex.IsMatch(file))
+                                    {
+                                        foundMatch = true;
+                                        break;
+                                    }
                                 }
-                            }
 
-                            if (foundMatch)
-                            {
-                                Log.LogMessage(MessageImportance.Low, "Excluding {0} from archive.", file);
-                                continue;
-                            }
+                                if (foundMatch)
+                                {
+                                    Log.LogMessage(MessageImportance.Low, "Excluding {0} from archive.", file);
+                                    continue;
+                                }
 
-                            var relativePath = MakeRelativePath(SourceDirectory, file);
-                            zipFile.CreateEntryFromFile(file, relativePath, CompressionLevel.Optimal);
+                                var relativePath = MakeRelativePath(SourceDirectory, file);
+                                zipFile.CreateEntryFromFile(file, relativePath, CompressionLevel.Optimal);
+                            }
                         }
                     }
                 }
+            }
+            catch (Exception e)
+            {
+                // We have 2 log calls because we want a nice error message but we also want to capture the callstack in the log.
+                Log.LogError("An exception has occured while trying to compress '{0}' into '{1}'.", SourceDirectory, DestinationArchive);
+                Log.LogMessage(MessageImportance.Low, e.ToString());
+                return false;
             }
 
             return true;
