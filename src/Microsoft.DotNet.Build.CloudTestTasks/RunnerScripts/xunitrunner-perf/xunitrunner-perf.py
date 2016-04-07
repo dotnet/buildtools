@@ -79,7 +79,8 @@ def _prepare_execution_environment(settings, framework_in_tpa, assembly_list_nam
 def _prepare_perf_execution_environment(settings, perf_runner):
     correlation_dir = fix_path(settings.correlation_payload_dir)
     test_location = os.path.join(fix_path(settings.workitem_working_dir), 'execution')
-
+    core_root = os.path.join(settings.workitem_working_dir, 'core_root')
+    os.environ['CORE_ROOT'] = core_root
     xunit_perf_drop = os.path.join(correlation_dir, perf_runner)
     if not os.path.exists(xunit_perf_drop):
         raise Exception("Failed to find perf runner {} in directory {}.".format(perf_runner, correlation_dir))
