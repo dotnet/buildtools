@@ -24,7 +24,12 @@
   </metadata>
   <files>
     <!-- xunit runner for UWP -->
-    <file src="xunit.runner.uwp\**\*.*" target="app" />
+    <file src="xunit.runner.uwp\**\*.exe" target="app" />
+    <file src="xunit.runner.uwp\**\*.xml" target="app" />
+    <file src="xunit.runner.uwp\**\*.xbf" target="app" />
+    <file src="xunit.runner.uwp\**\*.pri" target="app" />
+    <file src="xunit.runner.uwp\**\*.pdb" target="app" />
+    <file src="xunit.runner.uwp\**\*.appxrecipe" target="app" />
     <file src="xunit.console.uwp\**\*.*" target="" />
   </files>
   
