@@ -18,19 +18,19 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
     {
         /// <summary>
         /// Target file paths to exclude when building the lib package for symbol server scenario
-        /// Copied from https://github.com/NuGet/NuGet.Client/blob/afc65ae26b6f79b85f7a8deddab18c2cc3182b70/src/NuGet.Clients/NuGet.CommandLine/Commands/PackCommand.cs#L24
+        /// Copied from https://github.com/NuGet/NuGet.Client/blob/59433c7bacaae435a2cfe343cd441ea710579304/src/NuGet.Core/NuGet.Commands/PackCommandRunner.cs#L48
         /// </summary>
         private static readonly string[] _libPackageExcludes = new[] {
-            @"**\*.pdb",
-            @"src\**\*"
+            @"**\*.pdb".Replace('\\', Path.DirectorySeparatorChar),
+            @"src\**\*".Replace('\\', Path.DirectorySeparatorChar)
         };
 
         /// <summary>
         /// Target file paths to exclude when building the symbols package for symbol server scenario
         /// </summary>
         private static readonly string[] _symbolPackageExcludes = new[] {
-            @"content\**\*",
-            @"tools\**\*.ps1"
+            @"content\**\*".Replace('\\', Path.DirectorySeparatorChar),
+            @"tools\**\*.ps1".Replace('\\', Path.DirectorySeparatorChar)
         };
 
         [Required]
@@ -66,6 +66,18 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         }
 
         public bool PackSymbolPackage
+        {
+            get;
+            set;
+        }
+
+        public ITaskItem[] AdditionalLibPackageExcludes
+        {
+            get;
+            set;
+        }
+
+        public ITaskItem[] AdditionalSymbolPackageExcludes
         {
             get;
             set;
@@ -136,13 +148,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     PathResolver.FilterPackageFiles(
                         builder.Files,
                         file => file.Path,
-                        packSymbols ? _symbolPackageExcludes : _libPackageExcludes);
+                        packSymbols ? SymbolPackageExcludes : LibPackageExcludes);
                 }
 
                 if (packSymbols)
                 {
                     // Symbol packages are only valid if they contain both symbols and sources.
-                    Dictionary<string, bool> pathHasMatches = _libPackageExcludes.ToDictionary(
+                    Dictionary<string, bool> pathHasMatches = LibPackageExcludes.ToDictionary(
                         path => path,
                         path => PathResolver.GetMatches(builder.Files, file => file.Path, new[] { path }).Any());
 
@@ -214,6 +226,24 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             {
                 string packageType = packSymbols ? "symbol" : "lib";
                 Log.LogError($"Error when creating nuget {packageType} package from {nuspecPath}. {e}");
+            }
+        }
+
+        private IEnumerable<string> LibPackageExcludes
+        {
+            get
+            {
+                return _libPackageExcludes
+                    .Concat(AdditionalLibPackageExcludes?.Select(item => item.ItemSpec) ?? Enumerable.Empty<string>());
+            }
+        }
+
+        private IEnumerable<string> SymbolPackageExcludes
+        {
+            get
+            {
+                return _symbolPackageExcludes
+                    .Concat(AdditionalSymbolPackageExcludes?.Select(item => item.ItemSpec) ?? Enumerable.Empty<string>());
             }
         }
     }
