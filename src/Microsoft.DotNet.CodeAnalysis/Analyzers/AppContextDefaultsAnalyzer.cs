@@ -13,7 +13,7 @@ using System.Linq;
 namespace Microsoft.DotNet.CodeAnalysis.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class AppContextDefaultsAnalyzer : DiagnosticAnalyzer
+    public class AppContextDefaultsAnalyzer : BaseAnalyzer
     {
         private const string HowToDisableWarning = "If this is intentional consider using '#pragma warning disable {0}' to suppress the warning.";
 
@@ -41,6 +41,7 @@ namespace Microsoft.DotNet.CodeAnalysis.Analyzers
             return string.Format("{0} {1}", diagnosticMessage, string.Format(HowToDisableWarning, diagnosticId));
         }
 
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
@@ -52,12 +53,7 @@ namespace Microsoft.DotNet.CodeAnalysis.Analyzers
             }
         }
 
-        public override void Initialize(AnalysisContext context)
-        {
-            context.RegisterCompilationStartAction(OnCompilationStart);
-        }
-
-        private void OnCompilationStart(CompilationStartAnalysisContext context)
+        public override void OnCompilationStart(CompilationStartAnalysisContext context)
         {
             context.RegisterSyntaxNodeAction(AnalyzeCodeBlock, SyntaxKind.InvocationExpression);
         }
