@@ -155,6 +155,30 @@
     </ItemGroup>
   </Target>
 
+  <!-- Non Windows versioning requires to generate a source file and include it on the compilation. -->
+  <Target Name="GenerateVersionSourceFile"
+      Inputs="$(MSBuildProjectFile)"
+      Outputs="$(NativeVersionSourceFile)"
+      DependsOnTargets="CreateVersionFileDuringBuild"
+      Condition="'$(NativeVersionSourceFile)'!='' and '$(GenerateVersionSourceFile)'=='true'">
+
+    <ItemGroup>
+      <SourceFileLines />
+      <SourceFileLines Include="static char sccsid%5B%5D %5F%5Fattribute%5F%5F%28%28used%29%29 %3D %22%40%28%23%29Version $(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)%22%3B" />
+      <!-- Since this is a source file, compiler will complain if there is no new line at end of file, so adding one bellow. -->
+      <SourceFileLines Include=" " />
+    </ItemGroup>
+
+    <WriteLinesToFile
+      File="$(NativeVersionSourceFile)"
+      Lines="@(SourceFileLines)"
+      Overwrite="true" />
+
+    <ItemGroup>
+      <FileWrites Include="$(NativeVersionSourceFile)" />
+    </ItemGroup>
+  </Target>
+
   <!-- #################################### -->
   <!-- Generate BuildVersion.props -->
   <!-- #################################### -->
