@@ -18,6 +18,8 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="GetMinimumNETStandard.cs" />
+    <Compile Include="SplitDependenciesBySupport.cs" />
     <Compile Include="GenerateNetStandardSupportTable.cs" />
     <Compile Include="PromoteReferenceDependencies.cs" />
     <Compile Include="CreateTrimDependencyGroups.cs" />

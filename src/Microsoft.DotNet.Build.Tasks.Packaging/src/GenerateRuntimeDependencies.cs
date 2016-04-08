@@ -314,9 +314,11 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         public RuntimeFile()
         {
             Runtimes = new Dictionary<string, RuntimeSpec>();
+            Supports = new Dictionary<string, SupportSpec>();
         }
 
         public Dictionary<string, RuntimeSpec> Runtimes { get; set; }
+        public Dictionary<string, SupportSpec> Supports { get; set; }
     }
 
     public class RuntimeSpec
@@ -330,6 +332,17 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         public string Name { get; set; }
         public List<string> Import { get; set; }
         public Dictionary<string, DependencySpec> Dependencies { get; set; }
+    }
+
+    public class SupportSpec
+    {
+        public SupportSpec()
+        {
+            FrameworkRuntimeTuples = new Dictionary<string, string[]>();
+        }
+
+        public string Name { get; set; }
+        public Dictionary<string, string[]> FrameworkRuntimeTuples { get; set; }
     }
 
     public class DependencySpec
@@ -394,6 +407,10 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             {
                 file.Runtimes.Add(runtimeSpec.Name, runtimeSpec);
             }
+            foreach (var supportSpec in EachProperty(json["supports"]).Select(ReadSupportSpec))
+            {
+                file.Supports.Add(supportSpec.Name, supportSpec);
+            }
             return file;
         }
 
@@ -404,6 +421,30 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             foreach (var x in runtimeFile.Runtimes.Values)
             {
                 WriteRuntimeSpec(runtimes, x);
+            }
+
+            if (runtimeFile.Supports.Count > 0)
+            {
+                var supports = new JObject();
+                json["supports"] = supports;
+                foreach(var s in runtimeFile.Supports.Values)
+                {
+                    WriteSupportSpec(supports, s);
+                }
+            }
+        }
+
+        private void WriteSupportSpec(JObject json, SupportSpec data)
+        {
+            var value = new JObject();
+            json[data.Name] = value;
+            
+            if (data.FrameworkRuntimeTuples.Count > 0)
+            {
+                foreach(var fr in data.FrameworkRuntimeTuples)
+                {
+                    value[fr.Key] = new JArray(fr.Value);
+                }
             }
         }
 
@@ -434,6 +475,17 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         private void WriteImplementationSpec(JObject json, ImplementationSpec data)
         {
             json[data.Name] = new JValue(data.Version);
+        }
+        private SupportSpec ReadSupportSpec(KeyValuePair<string, JToken> json)
+        {
+            var support = new SupportSpec();
+            support.Name = json.Key;
+            foreach(var property in EachProperty(json.Value))
+            {
+                support.FrameworkRuntimeTuples.Add(property.Key,
+                    EachArray(property.Value).Select(j => j.ToString()).ToArray());
+            }
+            return support;
         }
 
         private RuntimeSpec ReadRuntimeSpec(KeyValuePair<string, JToken> json)
