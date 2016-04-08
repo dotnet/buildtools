@@ -106,6 +106,8 @@
   <UsingTask TaskName="NuGetPack" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="ApplyBaseLine" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="PromoteReferenceDependencies" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  <UsingTask TaskName="GetMinimumNETStandard" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  <UsingTask TaskName="SplitDependenciesBySupport" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
 
   <!-- Determine if we actually need to build for this architecture -->
   <!-- Packages can specifically control their architecture by specifying the PackagePlatforms
@@ -346,11 +348,22 @@
   <Target Name="GetPackageIdentity"
           Returns="@(_PackageIdentity)"
           DependsOnTargets="$(VersionDependsOn)">
+
+    <ItemGroup>
+      <_referenceFrameworks Include="%(File.TargetFramework)" Condition="'%(File.IsReferenceAsset)' == 'true'" />
+    </ItemGroup>
+
+    <GetMinimumNETStandard Condition="'$(MinimumNETStandard)' == ''"
+                           Frameworks="@(_referenceFrameworks)">
+      <Output TaskParameter="MinimumNETStandard" PropertyName="MinimumNETStandard"/>
+    </GetMinimumNETStandard>
+    
     <ItemGroup>
       <_PackageIdentity Include="$(Id)">
         <Version>$(Version)</Version>
         <TargetFramework Condition="'$(PackageTargetFramework)' != ''">$(PackageTargetFramework)</TargetFramework>
         <TargetRuntime Condition="'$(PackageTargetRuntime)' != ''">$(PackageTargetRuntime)</TargetRuntime>
+        <MinimumNETStandard Condition="'$(MinimumNETStandard)' != ''">$(MinimumNETStandard)</MinimumNETStandard>
       </_PackageIdentity>
     </ItemGroup>
   </Target>
@@ -396,6 +409,16 @@
 
   <Target Name="AssignPkgProjPackageDependenciesTargetFramework"
           DependsOnTargets="GetPkgProjPackageDependencies;GetFiles;EnsureOOBFramework">
+
+    <SplitDependenciesBySupport Condition="'$(SplitDependenciesBySupport)' == 'true'"
+                                OriginalDependencies="@(PkgProjDependency)">
+      <Output TaskParameter="SplitDependencies" ItemName="_SplitPkgProjDependency" />
+    </SplitDependenciesBySupport>
+
+    <ItemGroup Condition="'@(_SplitPkgProjDependency)' != ''">
+      <PkgProjDependency Remove="@(PkgProjDependency)" />
+      <PkgProjDependency Include="@(_SplitPkgProjDependency)" />
+    </ItemGroup>
 
     <ItemGroup>
       <!-- ensure that unconstrained dependencies are also expanded in constrained TFM groups -->
