@@ -146,6 +146,7 @@
 
     <Exec Command="$(TestCommandLine)"
           WorkingDirectory="$(TestPath)%(TestTargetFramework.Folder)"
+          CustomErrorRegularExpression="Failed: [^0]"
           ContinueOnError="true">
       <Output PropertyName="TestRunExitCode" TaskParameter="ExitCode" />
     </Exec>
