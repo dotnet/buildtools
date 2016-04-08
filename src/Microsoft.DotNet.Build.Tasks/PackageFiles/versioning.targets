@@ -131,6 +131,20 @@
       Condition="'$(NativeVersionHeaderFile)'!='' and '$(GenerateVersionHeader)'=='true'">
 
     <ItemGroup>
+      <!-- Some of these variables might be defined by macros, so undefine them first to avoid build warnings. -->
+      <NativeVersionLines Include="#undef VER_COMPANYNAME_STR" />
+      <NativeVersionLines Include="#undef VER_FILEDESCRIPTION_STR" />
+      <NativeVersionLines Include="#undef VER_INTERNALNAME_STR" />
+      <NativeVersionLines Include="#undef VER_ORIGINALFILENAME_STR" />
+      <NativeVersionLines Include="#undef VER_PRODUCTNAME_STR" />
+      <NativeVersionLines Include="#undef VER_PRODUCTVERSION" />
+      <NativeVersionLines Include="#undef VER_PRODUCTVERSION_STR" />
+      <NativeVersionLines Include="#undef VER_FILEVERSION" />
+      <NativeVersionLines Include="#undef VER_FILEVERSION_STR" />
+      <NativeVersionLines Include="#undef VER_LEGALCOPYRIGHT_STR" />
+      <NativeVersionLines Include="#undef VER_DEBUG" />
+
+      <!-- Defining versioning variables -->
       <NativeVersionLines Include="#define VER_COMPANYNAME_STR         &quot;Microsoft Corporation&quot;" />
       <NativeVersionLines Include="#define VER_FILEDESCRIPTION_STR     &quot;$(AssemblyName)&quot;" />
       <NativeVersionLines Include="#define VER_INTERNALNAME_STR        VER_FILEDESCRIPTION_STR" />
