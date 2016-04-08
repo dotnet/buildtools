@@ -11,8 +11,6 @@ namespace Microsoft.DotNet.CodeAnalysis.Analyzers
 {
     public abstract class BaseAnalyzer : DiagnosticAnalyzer
     {
-        private static HashSet<string> s_disabledAnalyzers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        private static volatile bool s_disabledAnalyzersInitialized = false;
         private const string ConfigFileName = @"disabledAnalyzers.config";
 
         public sealed override void Initialize(AnalysisContext context)
@@ -22,12 +20,17 @@ namespace Microsoft.DotNet.CodeAnalysis.Analyzers
 
         private void InitializeAnalyzer(CompilationStartAnalysisContext context)
         {
-            EnsureConfigFileLoaded(context.Options);
+            var configFile = context.Options.AdditionalFiles.FirstOrDefault(file => file.Path.Contains(ConfigFileName));
 
-            // Disable analyzers if they are in that file
-            if (s_disabledAnalyzers.Contains(GetType().Name))
+            if (configFile != null)
             {
-                return;
+                foreach (var line in configFile.GetText().Lines)
+                {
+                    if (StringComparer.OrdinalIgnoreCase.Equals(line.ToString(), GetType().Name))
+                    {
+                        return;
+                    }
+                }
             }
 
             OnCompilationStart(context);
@@ -38,40 +41,5 @@ namespace Microsoft.DotNet.CodeAnalysis.Analyzers
         /// </summary>
         /// <param name="context"></param>
         public abstract void OnCompilationStart(CompilationStartAnalysisContext context);
-
-        /// <summary>
-        /// We should not have multiple analyzers process the same file. Instead, we store it in a hashset
-        /// </summary>
-        /// <param name="options"></param>
-        private static void EnsureConfigFileLoaded(AnalyzerOptions options)
-        {
-            if (s_disabledAnalyzersInitialized == false)
-            {
-                lock (s_disabledAnalyzers)
-                {
-                    if (s_disabledAnalyzersInitialized == false)
-                    {
-                        try
-                        {
-                            var configFile = options.AdditionalFiles.FirstOrDefault(file => file.Path.Contains(ConfigFileName));
-
-                            if (configFile == null)
-                            {
-                                return;
-                            }
-                            foreach (var line in configFile.GetText().Lines)
-                            {
-                                s_disabledAnalyzers.Add(line.ToString());
-                            }
-                        }
-                        finally
-                        {
-                            s_disabledAnalyzersInitialized = true;
-                        }
-                    }
-                }
-            }
-        }
-
     }
 }
