@@ -26,6 +26,8 @@
 
     <!-- By default we'll build libraries referenced by packages -->
     <BuildPackageLibraryReferences Condition="'$(BuildPackageLibraryReferences)' == ''">true</BuildPackageLibraryReferences>
+
+    <BuildInParallel Condition="'$(BuildInParallel)' == '' AND '$(MSBuildNodeCount)' > '1'">true</BuildInParallel>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(IsRuntimePackage)' == 'true' or '$(PackageTargetRuntime)' != ''">
@@ -182,6 +184,7 @@
           Outputs="fake"
           DependsOnTargets="SplitProjectReferences">
     <MSBuild Targets="GetPackageIdentity"
+             BuildInParallel="$(BuildInParallel)"
              Projects="@(_PkgProjProjectReferenceClosure)"
              Properties="%(_PkgProjProjectReferenceClosure.SetConfiguration); %(_PkgProjProjectReferenceClosure.SetPlatform)">
       <Output TaskParameter="TargetOutputs"
@@ -304,6 +307,7 @@
 
     <!-- Only rebuild project references when specified -->
     <MSBuild Targets="Build"
+             BuildInParallel="$(BuildInParallel)"
              Condition="'$(BuildPackageLibraryReferences)' == 'true'"
              Projects="@(_NonPkgProjProjectReference)"
              Properties="$(ProjectProperties)"
@@ -718,7 +722,11 @@
     </ItemGroup>
 
     <!-- Lineups need to have all runtime dependencies to ensure that they are part of the compile graph -->
-    <MSBuild Projects="@(LineupProjectReference)" Targets="DetermineRuntimeDependencies" Condition="'$(IsLineupPackage)' == 'true'" Properties="$(ProjectProperties)">
+    <MSBuild Projects="@(LineupProjectReference)" 
+             Targets="DetermineRuntimeDependencies" 
+             Condition="'$(IsLineupPackage)' == 'true'"
+             BuildInParallel="$(BuildInParallel)"
+             Properties="$(ProjectProperties)">
       <Output TaskParameter="TargetOutputs" ItemName="_indirectRuntimeDependencies" />
     </MSBuild>
 
@@ -859,7 +867,10 @@
     </ItemGroup>
 
     <!-- Get all the files from runtime implementation packages to include in reference path-->
-    <MSBuild Projects="@(RuntimeProjectReference)" Targets="GetPackageFiles" Properties="$(ProjectProperties)">
+    <MSBuild Projects="@(RuntimeProjectReference)" 
+             Targets="GetPackageFiles" 
+             BuildInParallel="$(BuildInParallel)"
+             Properties="$(ProjectProperties)">
       <Output TaskParameter="TargetOutputs" ItemName="RuntimeFile" />
     </MSBuild>
 
