@@ -368,6 +368,20 @@
     </ItemGroup>
   </Target>
 
+  <Target Name="FindProjectsForMetaPackages" BeforeTargets="ConvertCommonMetadataToAdditionalProperties">
+    <ItemGroup>
+      <_packageToProject Include="@(Package)" />
+      <_packageToProject Condition="'$(IsLineupPackage)' == 'true'" Include="@(LineupPackage)" />
+      
+      <!-- first try and find any open-source package that exists -->
+      <_projectForPackage Include="@(_packageToProject->'$(ProjectDir)src\%(Identity)\pkg\%(Version)\%(Identity).pkgproj')" />
+      <_projectForPackage Include="@(_packageToProject->'$(ProjectDir)src\Native\pkg\%(Identity)\%(Version)\%(Identity).pkgproj')" />
+      <_projectForPackageExists Include="@(_projectForPackage)" Condition="Exists('%(Identity)')" />
+
+      <LineupProjectReference Include="@(_projectForPackageExists)" Condition="'$(IsLineupPackage)' == 'true'" />
+    </ItemGroup>
+  </Target>
+
   <!-- Don't actually walk the closure all the time, conditioned on GetClosure metadata on ProjectReference.
        Walking the closure is very expensive for many of our packages and is unecessary since we are very
        strict about assets that are included in the package.  -->
