@@ -163,6 +163,12 @@ namespace Microsoft.DotNet.Build.Tasks
             string version;
             if (package.Value is JObject)
             {
+                JToken target = package.Value["target"];
+                if (target != null && target.Value<string>() == "project")
+                {
+                    return false;
+                }
+
                 version = package.Value["version"].Value<string>();
             }
             else if (package.Value is JValue)

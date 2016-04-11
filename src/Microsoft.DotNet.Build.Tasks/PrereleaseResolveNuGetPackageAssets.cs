@@ -8,11 +8,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata;
-using System.Reflection.PortableExecutable;
 using System.Text;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
+using System.Security.Cryptography;
+using System.Reflection.PortableExecutable;
+using System.Reflection.Metadata;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
@@ -23,6 +24,11 @@ namespace Microsoft.DotNet.Build.Tasks
     {
         internal const string NuGetPackageIdMetadata = "NuGetPackageId";
         internal const string NuGetPackageVersionMetadata = "NuGetPackageVersion";
+        internal const string NuGetIsFrameworkReference = "NuGetIsFrameworkReference";
+        internal const string NuGetSourceType = "NuGetSourceType";
+        internal const string NuGetSourceType_Project = "Project";
+        internal const string NuGetSourceType_Package = "Package";
+
         internal const string ReferenceImplementationMetadata = "Implementation";
         internal const string ReferenceImageRuntimeMetadata = "ImageRuntime";
         internal const string ReferenceWinMDFileMetadata = "WinMDFile";
@@ -34,16 +40,20 @@ namespace Microsoft.DotNet.Build.Tasks
         internal const string NuGetAssetTypeRuntime = "runtime";
         internal const string NuGetAssetTypeResource = "resource";
 
-
         private readonly List<ITaskItem> _analyzers = new List<ITaskItem>();
         private readonly List<ITaskItem> _copyLocalItems = new List<ITaskItem>();
         private readonly List<ITaskItem> _references = new List<ITaskItem>();
         private readonly List<ITaskItem> _referencedPackages = new List<ITaskItem>();
+        private readonly List<ITaskItem> _contentItems = new List<ITaskItem>();
+        private readonly List<ITaskItem> _fileWrites = new List<ITaskItem>();
+
+        private readonly Dictionary<string, string> _projectReferencesToOutputBasePaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         #region UnitTestSupport
         private readonly DirectoryExists _directoryExists = new DirectoryExists(Directory.Exists);
         private readonly FileExists _fileExists = new FileExists(File.Exists);
         private readonly TryGetRuntimeVersion _tryGetRuntimeVersion = new TryGetRuntimeVersion(TryGetRuntimeVersion);
+        private readonly bool _reportExceptionsToMSBuildLogger = true;
 
         internal PrereleaseResolveNuGetPackageAssets(DirectoryExists directoryExists, FileExists fileExists, TryGetRuntimeVersion tryGetRuntimeVersion)
             : this()
@@ -62,6 +72,8 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 _tryGetRuntimeVersion = tryGetRuntimeVersion;
             }
+
+            _reportExceptionsToMSBuildLogger = false;
         }
         #endregion
 
@@ -70,6 +82,7 @@ namespace Microsoft.DotNet.Build.Tasks
         /// </summary>
         public PrereleaseResolveNuGetPackageAssets()
         {
+            Log.TaskResources = Strings.ResourceManager;
         }
 
         /// <summary>
@@ -106,6 +119,44 @@ namespace Microsoft.DotNet.Build.Tasks
         public ITaskItem[] ReferencedPackages
         {
             get { return _referencedPackages.ToArray(); }
+        }
+
+        /// <summary>
+        /// Additional content items provided from NuGet packages.
+        /// </summary>
+        [Output]
+        public ITaskItem[] ContentItems => _contentItems.ToArray();
+
+        /// <summary>
+        /// Files written to during the generation process.
+        /// </summary>
+        [Output]
+        public ITaskItem[] FileWrites => _fileWrites.ToArray();
+
+        /// <summary>
+        /// Items specifying the tokens that can be substituted into preprocessed content files. The ItemSpec of each item is
+        /// the name of the token, without the surrounding $$, and the Value metadata should specify the replacement value.
+        /// </summary>
+        public ITaskItem[] ContentPreprocessorValues
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// A list of project references that are creating packages as listed in the lock file. The OutputPath metadata should
+        /// set on each of these items, which is used by the task to construct full output paths to assets.
+        /// </summary>
+        public ITaskItem[] ProjectReferencesCreatingPackages
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// The base output directory where the temporary, preprocessed files should be written to.
+        /// </summary>
+        public string ContentPreprocessorOutputDirectory
+        {
+            get; set;
         }
 
         /// <summary>
@@ -153,21 +204,21 @@ namespace Microsoft.DotNet.Build.Tasks
         /// </summary>
         public override bool Execute()
         {
-            Log.TaskResources = Strings.ResourceManager;
-
             try
             {
                 ExecuteCore();
                 return true;
             }
-            catch (ExceptionFromResource e)
+            catch (ExceptionFromResource e) when (_reportExceptionsToMSBuildLogger)
             {
                 Log.LogErrorFromResources(e.ResourceName, e.MessageArgs);
                 return false;
             }
-            catch (Exception e)
+            catch (Exception e) when (_reportExceptionsToMSBuildLogger)
             {
-                Log.LogErrorFromException(e);
+                // Any user-visible exceptions we throw should be ExceptionFromResource, so here we should dump stacks because
+                // something went very wrong.
+                Log.LogErrorFromException(e, showStackTrace: true);
                 return false;
             }
         }
@@ -176,7 +227,7 @@ namespace Microsoft.DotNet.Build.Tasks
         {
             if (!_fileExists(ProjectLockFile))
             {
-                throw new ExceptionFromResource("LockFileNotFound", ProjectLockFile);
+                throw new ExceptionFromResource(nameof(Strings.LockFileNotFound), ProjectLockFile);
             }
 
             JObject lockFile;
@@ -184,11 +235,30 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 lockFile = JObject.Load(new JsonTextReader(streamReader));
             }
-            
+
+            PopulateProjectReferenceMaps();
             GetReferences(lockFile);
             GetCopyLocalItems(lockFile);
             GetAnalyzers(lockFile);
             GetReferencedPackages(lockFile);
+            ProduceContentAssets(lockFile);
+        }
+
+        private void PopulateProjectReferenceMaps()
+        {
+            foreach (var projectReference in ProjectReferencesCreatingPackages ?? new ITaskItem[] { })
+            {
+                var fullPath = GetAbsolutePathFromProjectRelativePath(projectReference.ItemSpec);
+                if (_projectReferencesToOutputBasePaths.ContainsKey(fullPath))
+                {
+                    Log.LogWarningFromResources(nameof(Strings.DuplicateProjectReference), fullPath, nameof(ProjectReferencesCreatingPackages));
+                }
+                else
+                {
+                    var outputPath = projectReference.GetMetadata("OutputBasePath");
+                    _projectReferencesToOutputBasePaths.Add(fullPath, outputPath);
+                }
+            }
         }
 
         private void GetReferences(JObject lockFile)
@@ -197,16 +267,9 @@ namespace Microsoft.DotNet.Build.Tasks
             var frameworkReferences = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var fileNamesOfRegularReferences = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            foreach (var package in target)
+            foreach (var package in GetPackagesFromTarget(lockFile, target))
             {
-                var packageNameParts = package.Key.Split('/');
-                var packageName = packageNameParts[0];
-                var packageVersion = packageNameParts[1];
-
-
-                Log.LogMessageFromResources(MessageImportance.Low, "ResolvedReferencesFromPackage", packageName);
-
-                foreach (var referenceItem in CreateItems(packageName, packageVersion, package.Value, NuGetAssetTypeCompile))
+                foreach (var referenceItem in CreateItems(package, NuGetAssetTypeCompile, includePdbs: false))
                 {
                     _references.Add(referenceItem);
 
@@ -215,7 +278,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
                 if (IncludeFrameworkReferences)
                 {
-                    var frameworkAssembliesArray = package.Value["frameworkAssemblies"] as JArray;
+                    var frameworkAssembliesArray = package.TargetObject["frameworkAssemblies"] as JArray;
                     if (frameworkAssembliesArray != null)
                     {
                         foreach (var frameworkAssembly in frameworkAssembliesArray.OfType<JToken>())
@@ -228,7 +291,10 @@ namespace Microsoft.DotNet.Build.Tasks
 
             foreach (var frameworkReference in frameworkReferences.Except(fileNamesOfRegularReferences, StringComparer.OrdinalIgnoreCase))
             {
-                _references.Add(new TaskItem(frameworkReference));
+                var item = new TaskItem(frameworkReference);
+                item.SetMetadata(NuGetIsFrameworkReference, "true");
+                item.SetMetadata(NuGetSourceType, NuGetSourceType_Package);
+                _references.Add(item);
             }
         }
 
@@ -246,15 +312,9 @@ namespace Microsoft.DotNet.Build.Tasks
             HashSet<string> candidateNativeImplementations = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             List<ITaskItem> runtimeWinMDItems = new List<ITaskItem>();
 
-            foreach (var package in target)
+            foreach (var package in GetPackagesFromTarget(lockFile, target))
             {
-                var packageNameParts = package.Key.Split('/');
-                var packageName = packageNameParts[0];
-                var packageVersion = packageNameParts[1];
-
-                Log.LogMessageFromResources(MessageImportance.Low, "ResolvedReferencesFromPackage", packageName);
-
-                foreach(var nativeItem in CreateItems(packageName, packageVersion, package.Value, NuGetAssetTypeNative))
+                foreach (var nativeItem in CreateItems(package, NuGetAssetTypeNative))
                 {
                     if (Path.GetExtension(nativeItem.ItemSpec).Equals(".dll", StringComparison.OrdinalIgnoreCase))
                     {
@@ -264,7 +324,7 @@ namespace Microsoft.DotNet.Build.Tasks
                     _copyLocalItems.Add(nativeItem);
                 }
 
-                foreach (var runtimeItem in CreateItems(packageName, packageVersion, package.Value, NuGetAssetTypeRuntime))
+                foreach (var runtimeItem in CreateItems(package, NuGetAssetTypeRuntime))
                 {
                     if (Path.GetExtension(runtimeItem.ItemSpec).Equals(".winmd", StringComparison.OrdinalIgnoreCase))
                     {
@@ -274,7 +334,7 @@ namespace Microsoft.DotNet.Build.Tasks
                     _copyLocalItems.Add(runtimeItem);
                 }
 
-                foreach (var resourceItem in CreateItems(packageName, packageVersion, package.Value, NuGetAssetTypeResource))
+                foreach (var resourceItem in CreateItems(package, NuGetAssetTypeResource))
                 {
                     _copyLocalItems.Add(resourceItem);
                 }
@@ -289,37 +349,28 @@ namespace Microsoft.DotNet.Build.Tasks
             // scenario where somebody has a library but on .NET Native might have some specific restrictions that need to be enforced.
             var target = GetTargetOrAttemptFallback(lockFile, needsRuntimeIdentifier: !string.IsNullOrEmpty(RuntimeIdentifier));
 
-            var libraries = (JObject)lockFile["libraries"];
-
-            foreach (var package in target.Children())
+            foreach (var package in GetPackagesFromTarget(lockFile, target))
             {
-                var name = (package is JProperty) ? ((JProperty)package).Name : null;
-                var packageNameParts = name != null ? name.Split('/') : null;
-                if (packageNameParts == null)
+                var files = package.LibraryObject["files"];
+
+                if (files != null)
                 {
-                    continue;
-                }
-
-                var packageId = packageNameParts[0];
-                var packageVersion = packageNameParts[1];
-
-                var librariesPackage = libraries[name];
-
-                foreach (var file in librariesPackage["files"].Children()
-                                    .Select(x => x.ToString())
-                                    .Where(x => x.StartsWith("analyzers")))
-                {
-                    if (Path.GetExtension(file).Equals(".dll", StringComparison.OrdinalIgnoreCase))
+                    foreach (var file in files.Children()
+                                        .Select(x => x.ToString())
+                                        .Where(x => x.StartsWith("analyzers")))
                     {
-                        string path;
-                        if (TryGetFile(packageId, packageVersion, file, out path))
+                        if (Path.GetExtension(file).Equals(".dll", StringComparison.OrdinalIgnoreCase))
                         {
-                            var analyzer = new TaskItem(path);
+                            string path;
+                            if (TryGetFile(package.Id, package.Version, file, out path))
+                            {
+                                var analyzer = new TaskItem(path);
 
-                            analyzer.SetMetadata(NuGetPackageIdMetadata, packageId);
-                            analyzer.SetMetadata(NuGetPackageVersionMetadata, packageVersion);
+                                analyzer.SetMetadata(NuGetPackageIdMetadata, package.Id);
+                                analyzer.SetMetadata(NuGetPackageVersionMetadata, package.Version);
 
-                            _analyzers.Add(analyzer);
+                                _analyzers.Add(analyzer);
+                            }
                         }
                     }
                 }
@@ -328,7 +379,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
         private void SetWinMDMetadata(IEnumerable<ITaskItem> runtimeWinMDs, ICollection<string> candidateImplementations)
         {
-            foreach(var winMD in runtimeWinMDs.Where(w => _fileExists(w.ItemSpec)))
+            foreach (var winMD in runtimeWinMDs.Where(w => _fileExists(w.ItemSpec)))
             {
                 string imageRuntimeVersion = _tryGetRuntimeVersion(winMD.ItemSpec);
 
@@ -402,12 +453,6 @@ namespace Microsoft.DotNet.Build.Tasks
 
         private bool IsFileValid(string file, string expectedLanguage, string unExpectedLanguage)
         {
-
-            if(ProjectLanguage == null)
-            {
-                throw new ExceptionFromResource("NoProgrammingLanguageSpecified");
-            }
-
             var expectedProjectLanguage = expectedLanguage;
             expectedLanguage = expectedLanguage == "C#" ? "cs" : expectedLanguage;
             unExpectedLanguage = unExpectedLanguage == "C#" ? "cs" : unExpectedLanguage;
@@ -420,6 +465,175 @@ namespace Microsoft.DotNet.Build.Tasks
         private string GetPath(string packageName, string packageVersion, string file)
         {
             return Path.Combine(GetNuGetPackagePath(packageName, packageVersion), file.Replace('/', '\\'));
+        }
+
+        /// <summary>
+        /// Produces a string hash of the key/values in the dictionary. This hash is used to put all the
+        /// preprocessed files into a folder with the name so we know to regenerate when any of the
+        /// inputs change.
+        /// </summary>
+        private string BuildPreprocessedContentHash(IReadOnlyDictionary<string, string> values)
+        {
+            using (var stream = new MemoryStream())
+            {
+                using (var streamWriter = new StreamWriter(stream, Encoding.UTF8, bufferSize: 4096, leaveOpen: true))
+                {
+                    foreach (var pair in values.OrderBy(v => v.Key))
+                    {
+                        streamWriter.Write(pair.Key);
+                        streamWriter.Write('\0');
+                        streamWriter.Write(pair.Value);
+                        streamWriter.Write('\0');
+                    }
+                }
+
+                stream.Position = 0;
+
+                return SHA1.Create().ComputeHash(stream).Aggregate("", (s, b) => s + b.ToString("x2"));
+            }
+        }
+
+        private void ProduceContentAssets(JObject lockFile)
+        {
+            string valueSpecificPreprocessedOutputDirectory = null;
+            var preprocessorValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            // If a preprocessor directory isn't set, then we won't have a place to generate.
+            if (!string.IsNullOrEmpty(ContentPreprocessorOutputDirectory))
+            {
+                // Assemble the preprocessor values up-front
+                var duplicatedPreprocessorKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var preprocessorValueItem in ContentPreprocessorValues ?? Enumerable.Empty<ITaskItem>())
+                {
+                    if (preprocessorValues.ContainsKey(preprocessorValueItem.ItemSpec))
+                    {
+                        duplicatedPreprocessorKeys.Add(preprocessorValueItem.ItemSpec);
+                    }
+
+                    preprocessorValues[preprocessorValueItem.ItemSpec] = preprocessorValueItem.GetMetadata("Value");
+                }
+
+                foreach (var duplicatedPreprocessorKey in duplicatedPreprocessorKeys)
+                {
+                    Log.LogWarningFromResources(nameof(Strings.DuplicatePreprocessorToken), duplicatedPreprocessorKey, preprocessorValues[duplicatedPreprocessorKey]);
+                }
+
+                valueSpecificPreprocessedOutputDirectory = Path.Combine(ContentPreprocessorOutputDirectory, BuildPreprocessedContentHash(preprocessorValues));
+            }
+
+            // For shared content, it does not depend upon the RID so we should ignore it
+            var target = GetTargetOrAttemptFallback(lockFile, needsRuntimeIdentifier: false);
+
+            foreach (var package in GetPackagesFromTarget(lockFile, target))
+            {
+                var contentFiles = package.TargetObject["contentFiles"] as JObject;
+                if (contentFiles != null)
+                {
+                    // Is there an asset with our exact language? If so, we use that. Otherwise we'll simply collect "any" assets.
+                    string codeLanguageToSelect;
+
+                    if (string.IsNullOrEmpty(ProjectLanguage))
+                    {
+                        codeLanguageToSelect = "any";
+                    }
+                    else
+                    {
+                        string nuGetLanguageName = GetNuGetLanguageName(ProjectLanguage);
+                        if (contentFiles.Properties().Any(a => (string)a.Value["codeLanguage"] == nuGetLanguageName))
+                        {
+                            codeLanguageToSelect = nuGetLanguageName;
+                        }
+                        else
+                        {
+                            codeLanguageToSelect = "any";
+                        }
+                    }
+
+                    foreach (var contentFile in contentFiles.Properties())
+                    {
+                        // Ignore magic _._ placeholder files. We couldn't ignore them during the project language
+                        // selection, since you could imagine somebody might have a package that puts assets under
+                        // "any" but then uses _._ to opt some languages out of it
+                        if (Path.GetFileName(contentFile.Name) != "_._")
+                        {
+                            if ((string)contentFile.Value["codeLanguage"] == codeLanguageToSelect)
+                            {
+                                ProduceContentAsset(package, contentFile, preprocessorValues, valueSpecificPreprocessedOutputDirectory);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private static string GetNuGetLanguageName(string projectLanguage)
+        {
+            switch (projectLanguage)
+            {
+                case "C#": return "cs";
+                case "F#": return "fs";
+                default: return projectLanguage.ToLowerInvariant();
+            }
+        }
+
+        /// <summary>
+        /// Produces the asset for a single shared asset. All applicablility checks have already been completed.
+        /// </summary>
+        private void ProduceContentAsset(NuGetPackageObject package, JProperty sharedAsset, IReadOnlyDictionary<string, string> preprocessorValues, string preprocessedOutputDirectory)
+        {
+            string pathToFinalAsset = package.GetFullPathToFile(sharedAsset.Name);
+
+            if (sharedAsset.Value["ppOutputPath"] != null)
+            {
+                if (preprocessedOutputDirectory == null)
+                {
+                    throw new ExceptionFromResource(nameof(Strings.PreprocessedDirectoryNotSet), nameof(ContentPreprocessorOutputDirectory));
+                }
+
+                // We need the preprocessed output, so let's run the preprocessor here
+                pathToFinalAsset = Path.Combine(preprocessedOutputDirectory, package.Id, package.Version, (string)sharedAsset.Value["ppOutputPath"]);
+
+                if (!File.Exists(pathToFinalAsset))
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(pathToFinalAsset));
+
+                    using (var input = new StreamReader(new FileStream(package.GetFullPathToFile(sharedAsset.Name), FileMode.Open, FileAccess.Read, FileShare.Read), detectEncodingFromByteOrderMarks: true))
+                    using (var output = new StreamWriter(new FileStream(pathToFinalAsset, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Write), encoding: input.CurrentEncoding))
+                    {
+                        Preprocessor.Preprocess(input, output, preprocessorValues);
+                    }
+
+                    _fileWrites.Add(new TaskItem(pathToFinalAsset));
+                }
+            }
+
+            if ((bool)sharedAsset.Value["copyToOutput"])
+            {
+                string outputPath = (string)sharedAsset.Value["outputPath"] ?? (string)sharedAsset.Value["ppOutputPath"];
+
+                if (outputPath != null)
+                {
+                    var item = CreateItem(package, pathToFinalAsset, targetPath: outputPath);
+                    _copyLocalItems.Add(item);
+                }
+            }
+
+            string buildAction = (string)sharedAsset.Value["buildAction"];
+            if (!string.Equals(buildAction, "none", StringComparison.OrdinalIgnoreCase))
+            {
+                var item = CreateItem(package, pathToFinalAsset);
+
+                // We'll put additional metadata on the item so we can convert it back to the real item group in our targets
+                item.SetMetadata("NuGetItemType", buildAction);
+
+                // If this is XAML, the build targets expect Link metadata to construct the relative path
+                if (string.Equals(buildAction, "Page", StringComparison.OrdinalIgnoreCase))
+                {
+                    item.SetMetadata("Link", Path.Combine("NuGet", package.Id, package.Version, Path.GetFileName(sharedAsset.Name)));
+                }
+
+                _contentItems.Add(item);
+            }
         }
 
         /// <summary>
@@ -444,19 +658,33 @@ namespace Microsoft.DotNet.Build.Tasks
                 }
             }
 
-            var preferredForErrorMessages = GetTargetMonikerWithOptionalRuntimeIdentifier(TargetMonikers.First(), needsRuntimeIdentifier);
-            if (!AllowFallbackOnTargetSelection)
+            // If we need a runtime identifier, let's see if we have the framework targeted. If we do,
+            // then we can give a better error message.
+            bool onlyNeedsRuntimeInProjectJson = false;
+            if (needsRuntimeIdentifier)
             {
-                // If we're not falling back then abort the build
-                throw new ExceptionFromResource("MissingEntryInLockFile", preferredForErrorMessages);
+                foreach (var targetMoniker in TargetMonikers)
+                {
+                    var targetMonikerWithoutRuntimeIdentifier = GetTargetMonikerWithOptionalRuntimeIdentifier(targetMoniker, needsRuntimeIdentifier: false);
+                    if (targets[targetMonikerWithoutRuntimeIdentifier] != null)
+                    {
+                        // We do have a TXM being targeted, so we just are missing the runtime
+                        onlyNeedsRuntimeInProjectJson = true;
+                        break;
+                    }
+                }
             }
 
-            // We are allowing fallback, so we'll still give a warning but allow us to continue
-            // In production ResolveNuGetPackageAssets, this call is LogWarningFromResources.
-            // In our current use in dotnet\buildtools, we rely on the fallback behavior, so we just log
-            // this as a message.
-            Log.LogMessageFromResources("MissingEntryInLockFile", preferredForErrorMessages);
+            if (onlyNeedsRuntimeInProjectJson)
+            {
+                GiveErrorForMissingRuntimeIdentifier();
+            }
+            else
+            {
+                ThrowExceptionIfNotAllowingFallback(nameof(Strings.MissingFramework), TargetMonikers.First().ItemSpec);
+            }
 
+            // If we're still here, that means we're allowing fallback, so let's try
             foreach (var fallback in TargetMonikers)
             {
                 var target = (JObject)targets[GetTargetMonikerWithOptionalRuntimeIdentifier(fallback, needsRuntimeIdentifier: false)];
@@ -472,10 +700,53 @@ namespace Microsoft.DotNet.Build.Tasks
             var firstTarget = (JObject)enumerableTargets.FirstOrDefault().Value;
             if (firstTarget == null)
             {
-                throw new ExceptionFromResource("NoTargetsInLockFile");
+                throw new ExceptionFromResource(nameof(Strings.NoTargetsInLockFile));
             }
 
             return firstTarget;
+        }
+
+        private void GiveErrorForMissingRuntimeIdentifier()
+        {
+            string runtimePiece = '"' + RuntimeIdentifier + "\": { }";
+
+            bool hasRuntimesSection;
+            try
+            {
+                using (var streamReader = new StreamReader(new FileStream(ProjectLockFile.Replace(".lock.json", ".json"), FileMode.Open, FileAccess.Read, FileShare.Read)))
+                {
+                    var jsonFile = JObject.Load(new JsonTextReader(streamReader));
+                    hasRuntimesSection = jsonFile["runtimes"] != null;
+                }
+            }
+            catch
+            {
+                // User has a bad file, locked file, no file at all, etc. We'll just assume they have one.
+                hasRuntimesSection = true;
+            }
+
+            if (hasRuntimesSection)
+            {
+                ThrowExceptionIfNotAllowingFallback(nameof(Strings.MissingRuntimeInRuntimesSection), RuntimeIdentifier, runtimePiece);
+            }
+            else
+            {
+                var runtimesSection = "\"runtimes\": { " + runtimePiece + " }";
+                ThrowExceptionIfNotAllowingFallback(nameof(Strings.MissingRuntimesSection), runtimesSection);
+            }
+        }
+
+        private void ThrowExceptionIfNotAllowingFallback(string resourceName, params string[] messageArgs)
+        {
+            if (!AllowFallbackOnTargetSelection)
+            {
+                throw new ExceptionFromResource(resourceName, messageArgs);
+            }
+            else
+            {
+                // We are allowing fallback, so we'll still give a warning but allow us to continue
+                Log.LogWarningFromResources(resourceName, messageArgs);
+            }
         }
 
         private string GetTargetMonikerWithOptionalRuntimeIdentifier(ITaskItem preferredTargetMoniker, bool needsRuntimeIdentifier)
@@ -483,9 +754,9 @@ namespace Microsoft.DotNet.Build.Tasks
             return needsRuntimeIdentifier ? preferredTargetMoniker.ItemSpec + "/" + RuntimeIdentifier : preferredTargetMoniker.ItemSpec;
         }
 
-        private IEnumerable<ITaskItem> CreateItems(string packageId, string packageVersion, JToken packageObject, string key)
+        private IEnumerable<ITaskItem> CreateItems(NuGetPackageObject package, string key, bool includePdbs = true)
         {
-            var values = packageObject[key] as JObject;
+            var values = package.TargetObject[key] as JObject;
             var items = new List<ITaskItem>();
 
             if (values == null)
@@ -493,57 +764,69 @@ namespace Microsoft.DotNet.Build.Tasks
                 return items;
             }
 
-            var nugetPackage = GetNuGetPackagePath(packageId, packageVersion);
-
-            foreach (string file in values.Properties().Select(p => p.Name))
+            foreach (var file in values.Properties())
             {
-                if (Path.GetFileName(file) == "_._")
+                if (Path.GetFileName(file.Name) == "_._")
                 {
                     continue;
                 }
 
-                var sanitizedFile = file.Replace('/', '\\');
-                var nugetPath = Path.Combine(nugetPackage, sanitizedFile);
-                var item = new TaskItem(nugetPath);
+                string targetPath = null;
+                string culture = file.Value["locale"]?.ToString();
 
-                item.SetMetadata(NuGetPackageIdMetadata, packageId);
-                item.SetMetadata(NuGetPackageVersionMetadata, packageVersion);
-                item.SetMetadata("Private", "false");
-
-                string targetPath = TryGetTargetPath(sanitizedFile);
-
-                if (targetPath != null)
+                if (culture != null)
                 {
-                    var destinationSubDirectory = Path.GetDirectoryName(targetPath);
-
-                    if (!string.IsNullOrEmpty(destinationSubDirectory))
-                    {
-                        item.SetMetadata("DestinationSubDirectory", destinationSubDirectory + "\\");
-                    }
-
-                    item.SetMetadata("TargetPath", targetPath);
+                    targetPath = Path.Combine(culture, Path.GetFileName(file.Name));
                 }
 
+                var item = CreateItem(package, package.GetFullPathToFile(file.Name), targetPath);
+
+                item.SetMetadata("Private", "false");
+                item.SetMetadata(NuGetIsFrameworkReference, "false");
+                item.SetMetadata(NuGetSourceType, package.IsProject ? NuGetSourceType_Project : NuGetSourceType_Package);
+
                 items.Add(item);
+
+                // If there's a PDB alongside the implementation, we should copy that as well
+                if (includePdbs)
+                {
+                    var pdbFileName = Path.ChangeExtension(item.ItemSpec, ".pdb");
+
+                    if (_fileExists(pdbFileName))
+                    {
+                        var pdbItem = new TaskItem(pdbFileName);
+
+                        // CopyMetadataTo also includes an OriginalItemSpec that will point to our original item, as we want
+                        item.CopyMetadataTo(pdbItem);
+
+                        items.Add(pdbItem);
+                    }
+                }
             }
 
             return items;
         }
 
-        private static string TryGetTargetPath(string file)
+        private static ITaskItem CreateItem(NuGetPackageObject package, string itemSpec, string targetPath = null)
         {
-            var foldersAndFile = file.Split('\\').ToArray();
-#if TODO // Not sure if we support culture specific directories yet...
-            for (int i = foldersAndFile.Length - 1; i > -1; i--)
+            var item = new TaskItem(itemSpec);
+
+            item.SetMetadata(NuGetPackageIdMetadata, package.Id);
+            item.SetMetadata(NuGetPackageVersionMetadata, package.Version);
+
+            if (targetPath != null)
             {
-                if (CultureStringUtilities.IsValidCultureString(foldersAndFile[i]))
+                item.SetMetadata("TargetPath", targetPath);
+
+                var destinationSubDirectory = Path.GetDirectoryName(targetPath);
+
+                if (!string.IsNullOrEmpty(destinationSubDirectory))
                 {
-                    return Path.Combine(foldersAndFile.Skip(i).ToArray());
+                    item.SetMetadata("DestinationSubDirectory", destinationSubDirectory + "\\");
                 }
             }
-#endif
-            // There is no culture-specific directory, so it'll go in the root
-            return null;
+
+            return item;
         }
 
         private void GetReferencedPackages(JObject lockFile)
@@ -575,18 +858,6 @@ namespace Microsoft.DotNet.Build.Tasks
             }
         }
 
-        private sealed class ExceptionFromResource : Exception
-        {
-            public string ResourceName { get; private set; }
-            public object[] MessageArgs { get; private set; }
-
-            public ExceptionFromResource(string resourceName, params object[] messageArgs)
-            {
-                ResourceName = resourceName;
-                MessageArgs = messageArgs;
-            }
-        }
-
         private string GetNuGetPackagePath(string packageId, string packageVersion)
         {
             string packagesFolder = GetNuGetPackagesPath();
@@ -594,7 +865,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
             if (!_directoryExists(packagePath))
             {
-                throw new ExceptionFromResource("PackageFolderNotFound", packageId, packageVersion, packagesFolder);
+                throw new ExceptionFromResource(nameof(Strings.PackageFolderNotFound), packageId, packageVersion, packagesFolder);
             }
 
             return packagePath;
@@ -616,7 +887,58 @@ namespace Microsoft.DotNet.Build.Tasks
 
             return string.Empty;
         }
-        
+
+        private IEnumerable<NuGetPackageObject> GetPackagesFromTarget(JObject lockFile, JObject target)
+        {
+            foreach (var package in target)
+            {
+                var nameParts = package.Key.Split('/');
+                var id = nameParts[0];
+                var version = nameParts[1];
+                bool isProject = false;
+
+                var libraryObject = (JObject)lockFile["libraries"][package.Key];
+
+                Func<string> fullPackagePathGenerator;
+
+                // If this is a project then we need to figure out it's relative output path
+                if ((string)libraryObject["type"] == "project")
+                {
+                    isProject = true;
+
+                    fullPackagePathGenerator = () =>
+                    {
+                        var relativeMSBuildProjectPath = (string)libraryObject["msbuildProject"];
+
+                        if (string.IsNullOrEmpty(relativeMSBuildProjectPath))
+                        {
+                            throw new ExceptionFromResource(nameof(Strings.MissingMSBuildPathInProjectPackage), id);
+                        }
+
+                        var absoluteMSBuildProjectPath = GetAbsolutePathFromProjectRelativePath(relativeMSBuildProjectPath);
+                        string fullPackagePath;
+                        if (!_projectReferencesToOutputBasePaths.TryGetValue(absoluteMSBuildProjectPath, out fullPackagePath))
+                        {
+                            throw new ExceptionFromResource(nameof(Strings.MissingProjectReference), absoluteMSBuildProjectPath, nameof(ProjectReferencesCreatingPackages));
+                        }
+
+                        return fullPackagePath;
+                    };
+                }
+                else
+                {
+                    fullPackagePathGenerator = () => GetNuGetPackagePath(id, version);
+                }
+
+                yield return new NuGetPackageObject(id, version, isProject, fullPackagePathGenerator, (JObject)package.Value, libraryObject);
+            }
+        }
+
+        private string GetAbsolutePathFromProjectRelativePath(string path)
+        {
+            return Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Path.GetFullPath(ProjectLockFile)), path));
+        }
+
         /// <summary>
         /// Parse the imageRuntimeVersion from COR header
         /// </summary>

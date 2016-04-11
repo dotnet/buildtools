@@ -40,11 +40,11 @@
       ResolveNuGetPackages;
       ValidatePackageVersions;
     </ResolveAssemblyReferencesDependsOn>
- </PropertyGroup>
+  </PropertyGroup>
 
- <Import Condition="'$(_BuildAgainstPackages)' == 'true'" Project="buildagainstpackages.targets" />
+  <Import Condition="'$(_BuildAgainstPackages)' == 'true'" Project="buildagainstpackages.targets" />
 
- <PropertyGroup>
+  <PropertyGroup>
     <!-- temporarily accept the old name NuGetTargetFrameworkMoniker until all projects are moved forward -->
     <NuGetTargetMoniker Condition="'$(NuGetTargetMoniker)' == ''">$(NuGetTargetFrameworkMoniker)</NuGetTargetMoniker>
     <UseTargetPlatformAsNuGetTargetMoniker Condition="'$(UseTargetPlatformAsNuGetTargetMoniker)' == '' AND '$(TargetFrameworkMoniker)' == '.NETCore,Version=v5.0'">true</UseTargetPlatformAsNuGetTargetMoniker>
@@ -60,6 +60,11 @@
     <_NuGetRuntimeIdentifierWithoutAot>$(BaseNuGetRuntimeIdentifier)-$(PlatformTarget.ToLower())</_NuGetRuntimeIdentifierWithoutAot>
     <NuGetRuntimeIdentifier>$(_NuGetRuntimeIdentifierWithoutAot)</NuGetRuntimeIdentifier>
     <NuGetRuntimeIdentifier Condition="'$(UseDotNetNativeToolchain)' == 'true'">$(_NuGetRuntimeIdentifierWithoutAot)-aot</NuGetRuntimeIdentifier>
+  </PropertyGroup>
+
+  <!-- Some projects want to explicitly use no runtime identifier, and do not want to receive any default value provided by other targets. -->
+  <PropertyGroup Condition="'$(NuGetRuntimeIdentifier)' == 'None'">
+    <NuGetRuntimeIdentifier></NuGetRuntimeIdentifier>
   </PropertyGroup>
 
   <Target Name="ResolveNuGetPackages"
@@ -154,7 +159,7 @@
       <ReferenceCopyLocalPaths Remove="@(PackageCopyLocalToRemove)" />
     </ItemGroup>
 
-    <Message Importance="Low" 
+    <Message Importance="Low"
              Text="Removed all ResolvedTagetingPackReferences that were not specified explicitly as a TargetingPackReference=[@(TargetingPackReference)]. PackageReferencesToRemove=[@(PackageReferencesToRemove)]." />
   </Target>
 </Project>

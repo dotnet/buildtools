@@ -141,4 +141,31 @@
   <data name="NoProgrammingLanguageSpecified" xml:space="preserve">
     <value>"The ProjectLanguage task parameter cannot be null."</value>
   </data>
+  <data name="DuplicateProjectReference" xml:space="preserve">
+    <value>The project '{0}' was referenced more than once in the {1} property. Ignoring all but the first.</value>
+  </data>
+  <data name="DuplicatePreprocessorToken" xml:space="preserve">
+    <value>The preprocessor token '{0}' has been given more than one value. Choosing '{1}' as the value.</value>
+  </data>
+  <data name="MissingFramework" xml:space="preserve">
+    <value>Your project is not referencing the "{0}" framework. Add a reference to "{0}" in the "frameworks" section of your project.json, and then re-run NuGet restore.</value>
+  </data>
+  <data name="MissingMSBuildPathInProjectPackage" xml:space="preserve">
+    <value>Your project is consuming assets from the project '{0}' but no MSBuild project is found in the project.lock.json. Check the project references in your project file, and re-run NuGet restore.</value>
+  </data>
+  <data name="MissingProjectReference" xml:space="preserve">
+    <value>The project.json is referencing the project '{0}', but an output path was not specified on an item in the {1} property.</value>
+  </data>
+  <data name="MissingRuntimeInRuntimesSection" xml:space="preserve">
+    <value>Your project.json doesn't list '{0}' as a targeted runtime. You should add '{1}' inside your "runtimes" section in your project.json, and then re-run NuGet restore.</value>
+  </data>
+  <data name="MissingRuntimesSection" xml:space="preserve">
+    <value>Your project.json doesn't have a runtimes section. You should add '{0}' to your project.json and then re-run NuGet restore.</value>
+  </data>
+  <data name="PreprocessedDirectoryNotSet" xml:space="preserve">
+    <value>The {0} property must be set in order to consume preprocessed content.</value>
+  </data>
+  <data name="UnspecifiedToken" xml:space="preserve">
+    <value>The token '{0}' is unrecognized.</value>
+  </data>
 </root>

@@ -23,7 +23,7 @@ See the LICENSE file in the project root for more information.
        
        NuGetTargetMoniker - determined by the TargetFramework* and TargetPlatform* 
                             properties of the project, can be overidden.
-       NuGetRuntimeIdentifier - defaults to win-$(PlatformTarget), can be overidden
+       NuGetRuntimeIdentifier - defaults to <empty> (""), can be overidden.
        NuGetDeploySourceItem - defaults to ReferenceCopyLocalPaths, can be overidden to
                                specify Reference (for compile assets) or Analyzer(for
                                analyzer assets)
@@ -32,12 +32,16 @@ See the LICENSE file in the project root for more information.
        TargetName and TargetExt to match one of the files that will be copied
        from the packages.
   -->
-  
+
   <PropertyGroup>
     <NuGetDeploySourceItem Condition="'$(NuGetDeploySourceItem)' == ''">ReferenceCopyLocalPaths</NuGetDeploySourceItem>
 
     <!-- suppress the attempt to copy build output. -->
     <CopyBuildOutputToOutputDirectory>false</CopyBuildOutputToOutputDirectory>
+
+    <!-- Unless overridden, use no runtime identifier. This is transformed in packageresolve.targets. 
+         We specify "None" here to avoid being assigned the default runtime for projects which set CopyNuGetImplementations=true. -->
+    <NuGetRuntimeIdentifier Condition="'$(NuGetRuntimeIdentifier)' == ''">None</NuGetRuntimeIdentifier>
 
     <!-- make sure we tell nuget targets to copy, even if output type would not by default -->
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
@@ -45,7 +49,7 @@ See the LICENSE file in the project root for more information.
     <!-- by default there shouldn't be any assets in depproj files that require signing -->
     <SkipSigning Condition="'$(SkipSigning)' == ''">true</SkipSigning>
   </PropertyGroup>
-  
+
   <Target Name="CoreCompile">
 
     <Error Condition="'$(NuGetDeploySourceItem)' != 'ReferenceCopyLocalPaths' AND
@@ -56,13 +60,13 @@ See the LICENSE file in the project root for more information.
     <ItemGroup>
       <!-- Don't set IntermediateAssembly since this is not produced -->
       <IntermediateAssembly Remove="@(IntermediateAssembly)" />
-      
+
       <NuGetDeploy Include="@($(NuGetDeploySourceItem))" />
       <!-- filter to only items that came from packages -->
       <!-- the following condition must be applied after the include because msbuild doesn't seem
            to support property-defined-item-names in a metadata statement -->
       <NuGetDeploy Remove="@(NuGetDeploy)" Condition="'%(NugetDeploy.NuGetPackageId)' == ''" />
-      
+
       <!-- remove all existing items from NuGet packages we'll be defining these in our own item -->
       <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' != ''"/>
       <Reference Remove="@(Reference)" Condition="'%(Reference.NuGetPackageId)' != ''"/>
@@ -74,17 +78,17 @@ See the LICENSE file in the project root for more information.
 
     <Error Condition="'@(NuGetDeploy)' == ''" Text="Error no assets were resolved from NuGet packages." />
     <Message Importance="High" Text="%(FullPath) (%(NuGetPackageId).%(NuGetPackageVersion)) -&gt; @(NuGetDeploy->'%(FileName)%(Extension)')" />
-    
+
     <!-- Include marker files if an extension has been provided -->
     <!-- internal builds use this to distinguish files which have already been signed -->
     <Touch Condition="'$(DeployMarkerExtension)' != ''" Files="@(NuGetDeploy->'$(TargetDir)%(FileName)$(DeployMarkerExtension)')" AlwaysCreate="true">
       <Output TaskParameter="TouchedFiles" ItemName="FileWrites"/>
     </Touch>
   </Target>
-  
+
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
 
   <!-- Required by Common.Targets but not used for depproj -->
   <Target Name="CreateManifestResourceNames" />
-  
+
 </Project>

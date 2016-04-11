@@ -12,12 +12,6 @@
     <TargetOS Condition="'$(OSGroup)'!='AnyOS'">$(OSGroup)</TargetOS>
   </PropertyGroup>
 
-  <Target Name="RestoreTestRuntimePackage"
-          BeforeTargets="ResolveNuGetPackages"
-          Condition="'$(RestorePackages)'=='true' AND '$(IsTestProject)' == 'true' AND '$(TestRuntimeProjectJson)' != ''">
-    <Exec Command="$(DnuRestoreCommand) &quot;$(TestRuntimeProjectJson)&quot;" StandardOutputImportance="Low" CustomErrorRegularExpression="^Unable to locate .*" />
-  </Target>
-
   <PropertyGroup>
     <PrepareForRunDependsOn Condition="'$(IsTestProject)'=='true'">$(PrepareForRunDependsOn);CopyTestToTestDirectory;CreateTestNuGetPackage;CreateAssemblyListTxt</PrepareForRunDependsOn>
     <TestArchitecture Condition="'$(TestArchitecture)' == ''">x64</TestArchitecture>
@@ -51,18 +45,13 @@
   <Target Name="CopyTestToTestDirectory"
           DependsOnTargets="DiscoverTestInputs" Condition="'$(DisableCopyTestToTestDirectory)'!='true'">
 
-    <ItemGroup>
-      <TestNugetProjectLockFile Include="$(ProjectLockJson)" Condition="Exists($(ProjectLockJson))"/>
-      <TestNugetProjectLockFile Include="$(TestRuntimeProjectLockJson)" Condition="Exists($(TestRuntimeProjectLockJson))"/>
-    </ItemGroup>
-
-    <PrereleaseResolveNuGetPackageAssets Condition="'@(TestNugetProjectLockFile)' != ''"
+    <PrereleaseResolveNuGetPackageAssets Condition="Exists($(ProjectLockJson))"
                                AllowFallbackOnTargetSelection="true"
                                IncludeFrameworkReferences="false"
                                NuGetPackagesDirectory="$(PackagesDir)"
                                RuntimeIdentifier="$(TestNugetRuntimeId)"
                                ProjectLanguage="$(Language)"
-                               ProjectLockFile="%(TestNugetProjectLockFile.FullPath)"
+                               ProjectLockFile="$(ProjectLockJson)"
                                TargetMonikers="@(TestTargetFramework)">
       <Output TaskParameter="ResolvedCopyLocalItems" ItemName="TestCopyLocal" />
     </PrereleaseResolveNuGetPackageAssets>

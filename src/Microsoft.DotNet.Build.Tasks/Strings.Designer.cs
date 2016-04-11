@@ -62,6 +62,24 @@ namespace Microsoft.DotNet.Build.Tasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The preprocessor token &apos;{0}&apos; has been given more than one value. Choosing &apos;{1}&apos; as the value..
+        /// </summary>
+        internal static string DuplicatePreprocessorToken {
+            get {
+                return ResourceManager.GetString("DuplicatePreprocessorToken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The project &apos;{0}&apos; was referenced more than once in the {1} property. Ignoring all but the first..
+        /// </summary>
+        internal static string DuplicateProjectReference {
+            get {
+                return ResourceManager.GetString("DuplicateProjectReference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The dependency section {0} from the project.lock.json could not be parsed..
         /// </summary>
         internal static string InvalidDependencyFormat {
@@ -85,6 +103,51 @@ namespace Microsoft.DotNet.Build.Tasks {
         internal static string MissingEntryInLockFile {
             get {
                 return ResourceManager.GetString("MissingEntryInLockFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your project is not referencing the &quot;{0}&quot; framework. Add a reference to &quot;{0}&quot; in the &quot;frameworks&quot; section of your project.json, and then re-run NuGet restore..
+        /// </summary>
+        internal static string MissingFramework {
+            get {
+                return ResourceManager.GetString("MissingFramework", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your project is consuming assets from the project &apos;{0}&apos; but no MSBuild project is found in the project.lock.json. Check the project references in your project file, and re-run NuGet restore..
+        /// </summary>
+        internal static string MissingMSBuildPathInProjectPackage {
+            get {
+                return ResourceManager.GetString("MissingMSBuildPathInProjectPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The project.json is referencing the project &apos;{0}&apos;, but an output path was not specified on an item in the {1} property..
+        /// </summary>
+        internal static string MissingProjectReference {
+            get {
+                return ResourceManager.GetString("MissingProjectReference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your project.json doesn&apos;t list &apos;{0}&apos; as a targeted runtime. You should add &apos;{1}&apos; inside your &quot;runtimes&quot; section in your project.json, and then re-run NuGet restore..
+        /// </summary>
+        internal static string MissingRuntimeInRuntimesSection {
+            get {
+                return ResourceManager.GetString("MissingRuntimeInRuntimesSection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your project.json doesn&apos;t have a runtimes section. You should add &apos;{0}&apos; to your project.json and then re-run NuGet restore..
+        /// </summary>
+        internal static string MissingRuntimesSection {
+            get {
+                return ResourceManager.GetString("MissingRuntimesSection", resourceCulture);
             }
         }
         
@@ -125,11 +188,29 @@ namespace Microsoft.DotNet.Build.Tasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The {0} property must be set in order to consume preprocessed content..
+        /// </summary>
+        internal static string PreprocessedDirectoryNotSet {
+            get {
+                return ResourceManager.GetString("PreprocessedDirectoryNotSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Resolved references from {0}:.
         /// </summary>
         internal static string ResolvedReferencesFromPackage {
             get {
                 return ResourceManager.GetString("ResolvedReferencesFromPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The token &apos;{0}&apos; is unrecognized..
+        /// </summary>
+        internal static string UnspecifiedToken {
+            get {
+                return ResourceManager.GetString("UnspecifiedToken", resourceCulture);
             }
         }
     }
