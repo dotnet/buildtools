@@ -72,7 +72,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
             {
                 foreach (var fx in fxGroup.Value)
                 {
-                    var thisFx = new NuGetFramework(fx.FrameworkName.Identifier, fx.FrameworkName.Version);
+                    var thisFx = new NuGetFramework(fx.FrameworkName.Identifier, fx.FrameworkName.Version, fx.FrameworkName.Profile);
                     var fxGeneration = Generations.DetermineGenerationForFramework(thisFx, false);
 
                     foreach (var assembly in fx.Assemblies.Where(a => !s_classicAssemblies.Contains(a.Key) && a.Value != maxVersion))

@@ -83,6 +83,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 // Determine inbox frameworks for this generation that don't already have explicit groups
                 HashSet<NuGetFramework> inboxFrameworksList = new HashSet<NuGetFramework>(
                     Frameworks.GetAlllInboxFrameworks(FrameworkListsPath)
+                    .Where(fx => !fx.IsPCL)
                     .Where(fx => Generations.DetermineGenerationForFramework(fx, UseNetPlatform) >= portableDependencyGroup.Framework.Version &&
                         !frameworksToExclude.Any(exFx => exFx.Framework == fx.Framework && exFx.Version <= fx.Version)));
                 
