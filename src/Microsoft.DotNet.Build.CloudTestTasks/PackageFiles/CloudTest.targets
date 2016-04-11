@@ -199,24 +199,36 @@
       <OtherRunnerScriptArgs>--perf-runner Microsoft.DotNet.xunit.performance.runner.Windows $(OtherRunnerScriptArgs)</OtherRunnerScriptArgs>
     </PropertyGroup>
     <!-- now gather the perf tests -->
+    <!-- All built tests are under bin/tests dir -->
+    <PropertyGroup Condition="'$(IsTestsBinDirPath)'=='true'">
+      <OSPlatTestBinsLocation>$(BinDir)$(OSPlatformConfig)</OSPlatTestBinsLocation>
+      <AnyOSPlatTestBinsLocation>$(BinDir)$(AnyOSPlatformConfig)</AnyOSPlatTestBinsLocation>
+      <UnixPlatTestBinsLocation>$(BinDir)$(UnixPlatformConfig)</UnixPlatTestBinsLocation>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(IsTestsBinDirPath)'!='true'">
+      <OSPlatTestBinsLocation>$(BinDir)tests/$(OSPlatformConfig)</OSPlatTestBinsLocation>
+      <AnyOSPlatTestBinsLocation>$(BinDir)tests/$(AnyOSPlatformConfig)</AnyOSPlatTestBinsLocation>
+      <UnixPlatTestBinsLocation>$(BinDir)tests/$(UnixPlatformConfig)</UnixPlatTestBinsLocation>
+    </PropertyGroup>
+    <Message Text="looking under $(OSPlatTestBinsLocation)" Importance="High" />
     <ItemGroup>
-      <TestBinary Include="$(BinDir)$(OSPlatformConfig)/**/*.dll" />
-      <TestBinary Include="$(BinDir)$(OSPlatformConfig)/**/*.exe" />
-      <TestBinary Include="$(BinDir)$(AnyOSPlatformConfig)/**/*.dll" />
-      <TestBinary Include="$(BinDir)$(AnyOSPlatformConfig)/**/*.exe" />
+      <TestBinary Include="$(OSPlatTestBinsLocation)/**/*.dll" />
+      <TestBinary Include="$(OSPlatTestBinsLocation)/**/*.exe" />
+      <TestBinary Include="$(AnyOSPlatTestBinsLocation)/**/*.dll" />
+      <TestBinary Include="$(AnyOSPlatTestBinsLocation)/**/*.exe" />
     </ItemGroup>
     <ItemGroup Condition="'$(TargetsUnix)' == 'true'" >
-      <TestBinary Include="$(BinDir)$(UnixPlatformConfig)/**/*.dll" />
-      <TestBinary Include="$(BinDir)$(UnixPlatformConfig)/**/*.exe" />
+      <TestBinary Include="$(UnixPlatTestBinsLocation)/**/*.dll" />
+      <TestBinary Include="$(UnixPlatTestBinsLocation)/**/*.exe" />
     </ItemGroup>
     <GetPerfTestAssemblies TestBinaries="@(TestBinary)" GetFullPaths="false">
       <Output TaskParameter="PerfTestAssemblies" ItemName="PerfTestAssembly" />
     </GetPerfTestAssemblies>
     <!-- don't add any items to the group if no perf tests were found -->
     <ItemGroup Condition="'@(PerfTestAssembly->Count())' != '0'">
-      <PerfTest Include="$(TestArchivesRoot)%(PerfTestAssembly.Identity).zip" />
-      <PerfTest Include="$(AnyOSTestArchivesRoot)%(PerfTestAssembly.Identity).zip" />
-      <PerfTest Condition="'$(TargetsUnix)' == 'true'" Include="$(UnixTestArchivesRoot)%(PerfTestAssembly.Identity).zip" />
+      <PerfTest Include="$(TestArchivesRoot)%(PerfTestAssembly.Identity).zip" Condition="Exists('$(TestArchivesRoot)%(PerfTestAssembly.Identity).zip')"/>
+      <PerfTest Include="$(AnyOSTestArchivesRoot)%(PerfTestAssembly.Identity).zip" Condition="Exists('$(AnyOSTestArchivesRoot)%(PerfTestAssembly.Identity).zip')"/>
+      <PerfTest Condition="'$(TargetsUnix)' == 'true' AND Exists('$(UnixTestArchivesRoot)%(PerfTestAssembly.Identity).zip')" Include="$(UnixTestArchivesRoot)%(PerfTestAssembly.Identity).zip" />
     </ItemGroup>
     <ItemGroup Condition="'@(PerfTestAssembly->Count())' != '0'">
       <PerfTest>
