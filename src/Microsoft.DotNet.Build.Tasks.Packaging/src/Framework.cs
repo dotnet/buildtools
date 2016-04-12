@@ -46,6 +46,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 SortedSet<Framework> frameworkVersions = null;
                 string fxId = framework.FrameworkName.Identifier;
 
+                if (fxId == FrameworkConstants.FrameworkIdentifiers.Portable)
+                {
+                    // portable doesn't have version relationships, use the entire TFM
+                    fxId = framework.FrameworkName.ToString();
+                }
+
                 if (!result.Frameworks.TryGetValue(fxId, out frameworkVersions))
                 {
                     frameworkVersions = new SortedSet<Framework>();
@@ -137,7 +143,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         {
             Assemblies = new Dictionary<string, Version>();
             FrameworkName = new FrameworkName(targetName);
-            var nugetFramework = new NuGetFramework(FrameworkName.Identifier, FrameworkName.Version);
+            var nugetFramework = new NuGetFramework(FrameworkName.Identifier, FrameworkName.Version, FrameworkName.Profile);
             ShortName = nugetFramework.GetShortFolderName();
 
             if (ShortName.EndsWith(nugetFramework.Version.Major.ToString()) && nugetFramework.Version.Minor == 0)
@@ -251,12 +257,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 {
                     continue;
                 }
-
-                // if the nearest compatible frameworks version is greater than the version of the framework we are looking for, this is not going to be a match.
-                if (nearest.Version > framework.Version)
+                
+                // don't allow PCL to specify inbox for non-PCL framework.
+                if (nearest.IsPCL != framework.IsPCL)
                 {
                     continue;
                 }
+                
                 // find the first version (if any) that supports this contract
                 foreach (var fxVersion in fxVersions)
                 {
