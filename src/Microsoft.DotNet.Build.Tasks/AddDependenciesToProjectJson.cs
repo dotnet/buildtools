@@ -22,9 +22,11 @@ namespace Microsoft.DotNet.Build.Tasks
         // Additional Dependencies to add to the project.json. May Optionally contain a version.
         // Will Override dependencies present in the project if there is a conflict.
         // AdditionalDependencies required metadata:  Name, Version
-
         [Required]
         public ITaskItem[] AdditionalDependencies { get; set; }
+
+        // Framework section which the additional dependencies apply to.  Empty is the default dependencies section.
+        public string[] Frameworks { get; set; }
 
         public string BuildNumberOverrideStructureRegex { get; set; }
 
@@ -39,8 +41,8 @@ namespace Microsoft.DotNet.Build.Tasks
         [Required]
         public string OutputProjectJson { get; set; }
 
-        private Regex versionStructureRegex;
-        private Regex buildNumberOverrideStructureRegex;
+        private Regex _versionStructureRegex;
+        private Regex _buildNumberOverrideStructureRegex;
 
         public override bool Execute()
         {
@@ -55,8 +57,8 @@ namespace Microsoft.DotNet.Build.Tasks
                 {
                     Log.LogError("Missing required parameter.  BuildNumberOverrideStructureRegex must be provided if PackageBuildNumberOverride is provided.");
                 }
-                buildNumberOverrideStructureRegex = new Regex(BuildNumberOverrideStructureRegex);
-                if(!buildNumberOverrideStructureRegex.IsMatch(PackageBuildNumberOverride))
+                _buildNumberOverrideStructureRegex = new Regex(BuildNumberOverrideStructureRegex);
+                if(!_buildNumberOverrideStructureRegex.IsMatch(PackageBuildNumberOverride))
                 {
                     Log.LogError("Invalid package version format: '{0}'", PackageBuildNumberOverride);
                     return false;
@@ -64,13 +66,57 @@ namespace Microsoft.DotNet.Build.Tasks
             }
 
             JObject projectRoot = ReadProject(ProjectJson);
+            var invalidFramework = AreValidFrameworkPaths(projectRoot);
+            if(invalidFramework != string.Empty)
+            {
+                OutputProjectJson = ProjectJson;
+                Log.LogError("Unable to find framework section '{0}' in '{1}'", invalidFramework, ProjectJson);
+                return false;
+            }
+            _versionStructureRegex = new Regex(VersionStructureRegex);
 
-            versionStructureRegex = new Regex(VersionStructureRegex);
+            // No PackageBuildNumberOverride was specified, so try to find one to associate with our AdditionalDependencies
+            PackageBuildNumberOverride = PackageBuildNumberOverride ?? DeriveBuildNumber(projectRoot);
+
+            // No Frameworks were specified, apply AdditionalDependencies to all framework groups in the project.json
+            if (Frameworks == null || Frameworks.Length == 0)
+            {
+                Frameworks = projectRoot.SelectTokens("frameworks").SelectMany(f => f.Children().Select(c => ((JProperty)c).Name)).ToArray();
+            }
+
+            // Update default dependencies section
             JObject dependencies = GenerateDependencies(projectRoot);
-            projectRoot = UpdateProperty("dependencies", projectRoot, dependencies);
+            projectRoot = UpdateDependenciesProperty(projectRoot, dependencies);
+
+            // Update framework dependencies sections
+            for (int i = 0; i < Frameworks.Length; i++)
+            {
+                dependencies = GenerateDependencies(projectRoot, Frameworks[i]);
+                projectRoot = UpdateDependenciesProperty(projectRoot, dependencies, Frameworks[i]);
+            }
             WriteProject(projectRoot, OutputProjectJson);
 
             return true;
+        }
+
+        private string AreValidFrameworkPaths(JObject projectRoot)
+        {
+            if(Frameworks == null ||
+                Frameworks.Length == 0)
+            {
+                return string.Empty;
+            }
+            // Check for a valid path, if invalid, exit
+            for (int i = 0; i < Frameworks.Length; i++)
+            {
+                var _frameworkPath = "frameworks." + Frameworks[i];
+                var validFramework = projectRoot.SelectToken(_frameworkPath);
+                if (validFramework == null)
+                {
+                    return _frameworkPath;
+                }
+            }
+            return string.Empty;
         }
 
         private static JObject ReadProject(string projectJsonPath)
@@ -83,33 +129,43 @@ namespace Microsoft.DotNet.Build.Tasks
            } 
         }
 
+        private JToken GetFrameworkDependenciesSection(JObject projectJsonRoot, string framework = null)
+        {
+            if(string.IsNullOrWhiteSpace(framework))
+            {
+                return projectJsonRoot["dependencies"];
+            }
+            return projectJsonRoot.SelectToken("frameworks." + framework + ".dependencies");
+        }
+
         // Generate the combines dependencies from the projectjson jObject and from AdditionalDependencies
-        private JObject GenerateDependencies(JObject projectJsonRoot)
+        private JObject GenerateDependencies(JObject projectJsonRoot, string framework = null)
         {
             var originalDependenciesList = new List<JToken>();
             var returnDependenciesList = new List<JToken>();
-            originalDependenciesList = projectJsonRoot["dependencies"]?.Children().ToList();
-
-            // No PackageBuildNumberOverride was specified, so try to find one to associate with our AdditionalDependencies
-            PackageBuildNumberOverride = PackageBuildNumberOverride ?? DeriveBuildNumber(originalDependenciesList);
-
-            // Update versions in dependencies
-            foreach(JProperty property in originalDependenciesList.Select(od => od))
+            var frameworkDependencies = GetFrameworkDependenciesSection(projectJsonRoot, framework);
+            if (frameworkDependencies != null)
             {
-                string version = NuGetVersion.Parse(property.Value.ToString()).ToString();
-                Match m = versionStructureRegex.Match(version);
+                originalDependenciesList = frameworkDependencies.Children().ToList();
 
-                if (m.Success)
+                // Update versions in dependencies
+                foreach (JProperty property in originalDependenciesList.Select(od => od))
                 {
-                    NuGetVersion dependencyVersion = NuGetVersion.Parse(version);
-                    version = string.Join(".", dependencyVersion.Major, dependencyVersion.Minor, dependencyVersion.Patch) + "-" + PackageBuildNumberOverride;
-                }
+                    string version = NuGetVersion.Parse(property.Value.ToString()).ToString();
+                    Match m = _versionStructureRegex.Match(version);
 
-                // Only add the original dependency if it wasn't passed as an AdditionalDependency, ie. AdditionalDependencies may override dependencies in project.json
-                if (AdditionalDependencies?.Where(d => d.GetMetadata("Name").Equals(property.Name, StringComparison.OrdinalIgnoreCase)).Count() == 0)
-                {
-                    JProperty addProperty = new JProperty(property.Name, version);
-                    returnDependenciesList.Add(addProperty);
+                    if (m.Success)
+                    {
+                        NuGetVersion dependencyVersion = NuGetVersion.Parse(version);
+                        version = string.Join(".", dependencyVersion.Major, dependencyVersion.Minor, dependencyVersion.Patch) + "-" + PackageBuildNumberOverride;
+                    }
+
+                    // Only add the original dependency if it wasn't passed as an AdditionalDependency, ie. AdditionalDependencies may override dependencies in project.json
+                    if (AdditionalDependencies.FirstOrDefault(d => d.GetMetadata("Name").Equals(property.Name, StringComparison.OrdinalIgnoreCase)) == null)
+                    {
+                        JProperty addProperty = new JProperty(property.Name, version);
+                        returnDependenciesList.Add(addProperty);
+                    }
                 }
             }
 
@@ -117,7 +173,7 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 string name = dependency.GetMetadata("Name");
                 // Don't add a new dependency if one already exists.
-                if (returnDependenciesList.Count(rd => ((JProperty)rd).Name.Equals(name)) == 0)
+                if (returnDependenciesList.FirstOrDefault(rd => ((JProperty)rd).Name.Equals(name)) == null)
                 {
                     NuGetVersion dependencyVersion = NuGetVersion.Parse(dependency.GetMetadata("Version"));
 
@@ -139,12 +195,19 @@ namespace Microsoft.DotNet.Build.Tasks
         }
 
         /* No build number was specified, determine the build number by examining the other packages in the dependencies list */
-        private string DeriveBuildNumber(List<JToken> dependenciesList)
+        private string DeriveBuildNumber(JObject projectRoot)
         {
+            var dependenciesList = projectRoot
+                .DescendantsAndSelf()
+                .OfType<JProperty>()
+                .Where(property => property.Name == "dependencies")
+                .Select(property => property.Value)
+                .SelectMany(o => o.Children<JProperty>());
+
             foreach (JProperty property in dependenciesList.Select(dl => (JProperty)dl))
             {
                 string version = property.Value.ToString();
-                Match m = versionStructureRegex.Match(version);
+                Match m = _versionStructureRegex.Match(version);
                 if (m.Success)
                 {
                     string buildNumber = m.Groups[2].Value;
@@ -156,28 +219,15 @@ namespace Microsoft.DotNet.Build.Tasks
         }
 
         /* Given a project.json as a JObject, replace it's dependencies property with a new dependencies property. */
-        private JObject UpdateProperty(string propertyName, JObject projectJsonRoot, JObject updatedProperties)
+        private JObject UpdateDependenciesProperty(JObject projectJsonRoot, JObject updatedProperties, string framework = null)
         {
-            if (projectJsonRoot.Property(propertyName) != null)
+            var frameworkPath = string.Empty;
+            if(!string.IsNullOrWhiteSpace(framework))
             {
-                JObject returnJsonRoot = new JObject();
-                Dictionary<string, JToken> properties = new Dictionary<string, JToken>();
-
-                // Collect all properties from jObject which are not the dependencies property
-                foreach (var property in projectJsonRoot.Properties().Where(p => !p.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase)))
-                {
-                    properties.Add(property.Name, property.Value);
-                }
-                // Add new dependencies to our jObject
-                returnJsonRoot[propertyName] = updatedProperties;
-
-                // Add back all of the properties we collected from previous jObject
-                foreach (string property in properties.Keys)
-                {
-                    returnJsonRoot.Add(property, properties[property]);
-                }
-                return returnJsonRoot;
+                frameworkPath = "frameworks." + framework;
             }
+            var frameworkPathObject = projectJsonRoot.SelectToken(frameworkPath);
+            frameworkPathObject["dependencies"] = updatedProperties;
             return projectJsonRoot;
         }
 
