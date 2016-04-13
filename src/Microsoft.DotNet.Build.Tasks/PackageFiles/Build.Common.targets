@@ -16,7 +16,6 @@
       a project is localized in German, then it is localized in all languages.
     -->
     <ExcludeLocalizationImport Condition="'$(ExcludeLocalizationImport)'=='' And !Exists('$(MSBuildProjectDirectory)/MultilingualResources/$(MSBuildProjectName).de.xlf')">true</ExcludeLocalizationImport>
-    
   </PropertyGroup>
 
   <!-- Assembly metadata indicating that an assembly is a framework (as opposed to user) assembly:
@@ -98,6 +97,12 @@
 
   <Import Project="$(MSBuildThisFileDirectory)Packaging.targets" Condition="'$(ExcludePackagingImport)'!='true' AND '$(MSBuildProjectExtension)' == '.pkgproj'" />
 
+  <!-- Property which signals whether to import buildagainstpackages.targets.  This target contains 
+       the targets necessary to build tests with project references converted to package dependencies.
+  -->
+  <PropertyGroup>
+    <_BuildAgainstPackages Condition="'$(KeepAllProjectReferences)' != 'true' and '$(IsTestProject)' == 'true' and '$(MSBuildProjectExtension)' != '.builds'">$(BuildTestsAgainstPackages)</_BuildAgainstPackages>
+  </PropertyGroup>
   <!-- 
     Import the default package restore and resolve targets 
   

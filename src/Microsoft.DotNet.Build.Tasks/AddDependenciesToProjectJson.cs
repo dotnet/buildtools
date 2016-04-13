@@ -151,19 +151,29 @@ namespace Microsoft.DotNet.Build.Tasks
                 // Update versions in dependencies
                 foreach (JProperty property in originalDependenciesList.Select(od => od))
                 {
-                    string version = NuGetVersion.Parse(property.Value.ToString()).ToString();
-                    Match m = _versionStructureRegex.Match(version);
-
-                    if (m.Success)
+                    NuGetVersion nuGetVersion;
+                    if (NuGetVersion.TryParse(property.Value.ToString(), out nuGetVersion))
                     {
-                        NuGetVersion dependencyVersion = NuGetVersion.Parse(version);
-                        version = string.Join(".", dependencyVersion.Major, dependencyVersion.Minor, dependencyVersion.Patch) + "-" + PackageBuildNumberOverride;
-                    }
+                        Match m = _versionStructureRegex.Match(nuGetVersion.ToString());
 
+                        if (m.Success)
+                        {
+                            NuGetVersion dependencyVersion = nuGetVersion;
+                            nuGetVersion = NuGetVersion.Parse(string.Join(".", dependencyVersion.Major, dependencyVersion.Minor, dependencyVersion.Patch) + "-" + PackageBuildNumberOverride);
+                        }
+                    }
                     // Only add the original dependency if it wasn't passed as an AdditionalDependency, ie. AdditionalDependencies may override dependencies in project.json
                     if (AdditionalDependencies.FirstOrDefault(d => d.GetMetadata("Name").Equals(property.Name, StringComparison.OrdinalIgnoreCase)) == null)
                     {
-                        JProperty addProperty = new JProperty(property.Name, version);
+                        JProperty addProperty;
+                        if (nuGetVersion != null)
+                        {
+                            addProperty = new JProperty(property.Name, nuGetVersion.ToString());
+                        }
+                        else
+                        {
+                            addProperty = property;
+                        }
                         returnDependenciesList.Add(addProperty);
                     }
                 }

@@ -31,7 +31,7 @@ namespace Microsoft.DotNet.Build.Tasks
                     Log.LogWarning("PackageDrop does not exist - '{0}'", packageDrop);
                     continue;
                 }
-                IEnumerable<ITaskItem> packages = Directory.GetFiles(packageDrop)?.Select(f => new TaskItem(f));
+                IEnumerable<ITaskItem> packages = Directory.GetFiles(packageDrop).Select(f => new TaskItem(Path.GetFileNameWithoutExtension(f)));
 
 
                 foreach (ITaskItem package in packages)
