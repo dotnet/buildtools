@@ -1,0 +1,54 @@
+﻿@ECHO OFF
+SETLOCAL
+
+SET PACKAGE_DIR=%1
+SET EXECUTION_DIR=%2
+
+IF DEFINED PACKAGE_DIR ( echo Using %PACKAGE_DIR% as folder for resolving package dependencies.) ELSE (
+echo Please specify an package source directory using PACKAGEROOT parameter
+goto ShowUsage
+)
+if "%EXECUTION_DIR%" == "" (set EXECUTION_DIR=%~dp0)
+echo Executing in %EXECUTION_DIR% 
+
+:: ========================= BEGIN Copying files  =============================== 
+IF NOT EXIST %EXECUTION_DIR% ( md %EXECUTION_DIR%)
+IF /I "%~dp0" NEQ "%EXECUTION_DIR%" (
+xcopy /e /q /y %~dp0*.* %EXECUTION_DIR%
+)
+
+echo Hard linking dependent files... 
+:: Format here is: call :copyandcheck Path1 Path2 || GOTO EOF
+[[CopyFilesCommands]]
+
+echo Finished linking needed files, moving to running tests.
+:: ========================= END Copying files  =================================
+
+:: ========================= BEGIN Test Execution ============================= 
+echo Running tests... Start time: %TIME%
+echo Command(s):
+[[TestRunCommandsEcho]]
+pushd %EXECUTION_DIR%
+[[TestRunCommands]]
+echo Finished running tests.  End time=%TIME%, Exit code = %ERRORLEVEL%
+EXIT /B %ERRORLEVEL%
+:: ========================= END Test Execution =================================
+
+:: ======== CopyAndCheck subroutine ====
+:copyandcheck
+IF EXIST %2 (
+exit /b 0
+)
+mklink /H %2 %1 > NUL
+exit /b %ERRORLEVEL%
+:: =====================================
+:ShowUsage
+echo.
+echo Usage:
+echo.
+echo %0 {Package root} {execution directory} 
+echo.
+echo Parameters:
+echo Package Root :        (Mandatory) Root path containing unzipped Nuget Packages, such as c:\GIT\corefx\packages
+echo Execution Directory : (Optional)  Directory to link files into for execution.  Defaults to same directory RunTests.cmd is in.
+EXIT /B -1

@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PrepareForRunDependsOn Condition="'$(IsTestProject)'=='true'">$(PrepareForRunDependsOn);CopyTestToTestDirectory;CreateTestNuGetPackage;CreateAssemblyListTxt</PrepareForRunDependsOn>
+    <PrepareForRunDependsOn Condition="'$(IsTestProject)'=='true'">$(PrepareForRunDependsOn);CopyTestToTestDirectory;CreateTestNuGetPackage;ArchiveTestBuild</PrepareForRunDependsOn>
     <TestArchitecture Condition="'$(TestArchitecture)' == ''">x64</TestArchitecture>
     <TestNugetRuntimeId Condition="'$(TestNugetRuntimeId)' == ''">win7-$(TestArchitecture)</TestNugetRuntimeId>
   </PropertyGroup>
@@ -61,7 +61,7 @@
       <TestCopyLocalToRemove Include="@(TestCopyLocal)"
         Condition="$([System.String]::new('%(TestCopyLocal.NuGetPackageId)').StartsWith('$(_TargetingPackPrefix)'))" />
       <TestCopyLocal Remove="@(TestCopyLocalToRemove)" />
-      
+
       <_TestCopyLocalXunitFiles Include="$(PackagesDir)xunit.runner.console\2.1.0\tools\*.exe" />
       <_TestCopyLocalXunitFiles Include="$(PackagesDir)xunit.runner.console\2.1.0\tools\*.dll" />
 
@@ -111,7 +111,7 @@
       <TestCopyLocal Include="$(BUILDTOOLS_OVERRIDE_RUNTIME)/*.*" />
     </ItemGroup>
 
-    <!-- Remove duplicates. Note that we musn't just copy in sequence and let
+    <!-- Remove duplicates. Note that we mustn't just copy in sequence and let
          the last one win that way because it will cause copies to occur on
          every incremental build. -->
     <ItemGroup>
@@ -138,9 +138,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <SourcesWithoutContent Include="@(_TestCopyLocalByFileNameWithoutDuplicates)" Exclude="@(ContentWithTargetPath->'%(FileName)%(Extension)')" />
-      <SourcesToCopyToTestDir Include="@(SourcesWithoutContent->'%(SourcePath)');@(ContentWithTargetPath)" />
-      <DestinationsForTestDir Include="@(SourcesWithoutContent->'$(TestPath)$(TestTargetFrameworkFolder)\%(Filename)%(Extension)');@(ContentWithTargetPath->'$(TestPath)$(TestTargetFrameworkFolder)\%(TargetPath)')" />
+      <SourcesToCopyToTestDir Include="@(RunTestsForProjectInputs)" />
+      <DestinationsForTestDir Include="@(RunTestsForProjectInputs->'$(TestPath)$(TestTargetFrameworkFolder)\%(Filename)%(Extension)')" />
+
+      <SourcesToCopyToTestDir Include="@(ContentWithTargetPath)" />
+      <DestinationsForTestDir Include="@(ContentWithTargetPath->'$(TestPath)$(TestTargetFrameworkFolder)\%(TargetPath)')" />
     </ItemGroup>
 
     <Copy
@@ -199,25 +201,8 @@
     </Copy>
   </Target>
 
-  <Target Name="CreateAssemblyListTxt" DependsOnTargets="CopyTestToTestDirectory">
-    <Message Text="Generating $(OutDir)assemblylist.txt" />
-    <ItemGroup>
-      <!-- Using String.Replace instead of MSBuild MakeRelativePath since there is a bug in NetCore MSBuild where it doesn't recognize paths in linux -->
-      <AssemblyPaths Include="$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').Replace('$(PackagesDir)',''))" Condition="'%(_TestCopyLocalByFileNameWithoutDuplicates.NugetPackageId)' != ''" />
-    </ItemGroup>
-    <WriteLinesToFile
-      File="$(OutDir)assemblylist.flat.txt"
-      Lines="@(AssemblyPaths)"
-      Overwrite="true"
-      Encoding="Ascii" />
-    <GenerateAssemblyList
-      InputListLocation="$(OutDir)assemblylist.flat.txt"
-      OutputListLocation="$(OutDir)assemblylist.txt"
-     />
-  </Target>
-
   <!-- archive the test binaries along with some supporting files -->
-  <Target Name="ArchiveTestBuild" AfterTargets="CreateAssemblyListTxt" Condition="'$(ArchiveTests)' == 'true'">
+  <Target Name="ArchiveTestBuild" Condition="'$(ArchiveTests)' == 'true'"  DependsOnTargets="RunTestsForProject">
     <PropertyGroup>
       <TestArchiveDir>$(TestWorkingDir)$(OSPlatformConfig)/archive/tests/</TestArchiveDir>
       <ProjectJson Condition="!Exists('$(ProjectJson)')">$(OriginalProjectJson)</ProjectJson>
@@ -226,8 +211,10 @@
       <TestProjectName>$(MSBuildProjectName)</TestProjectName>
     </PropertyGroup>
 
-    <!-- the project json files need to be included in the archive -->
+
+    <!-- the project json and runner script files need to be included in the archive -->
     <Copy SourceFiles="$(ProjectJson);$(ProjectLockJson)" DestinationFolder="$(OutDir)" />
+    <Copy SourceFiles="$(OutputPathForScriptGenerator)" DestinationFolder="$(OutDir)" />
     <MakeDir Directories="$(TestArchiveDir)" />
     <ZipFileCreateFromDirectory SourceDirectory="$(OutDir)" DestinationArchive="$(TestArchiveDir)$(TestProjectName).zip" OverwriteDestination="true" />
   </Target>
