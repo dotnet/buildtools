@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 
 namespace Microsoft.DotNet.Build.Tasks.Packaging
@@ -21,9 +22,15 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             set;
         }
 
-
         [Output]
         public ITaskItem[] ReferencedAssemblies
+        {
+            get;
+            set;
+        }
+
+        [Output]
+        public ITaskItem[] ReferencedNativeLibraries
         {
             get;
             set;
@@ -35,6 +42,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 return true;
 
             List<ITaskItem> references = new List<ITaskItem>();
+            List<ITaskItem> nativeLibs = new List<ITaskItem>();
 
             foreach (var assemblyItem in Assemblies)
             {
@@ -58,6 +66,16 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                             referenceItem.SetMetadata("AssemblyVersion", reference.Version.ToString());
                             references.Add(referenceItem);
                         }
+
+                        for (int i = 1, count = reader.GetTableRowCount(TableIndex.ModuleRef); i <= count; i++)
+                        {
+                            var moduleRef = reader.GetModuleReference(MetadataTokens.ModuleReferenceHandle(i));
+                            var moduleName = reader.GetString(moduleRef.Name);
+
+                            TaskItem nativeLib = new TaskItem(moduleName);
+                            assemblyItem.CopyMetadataTo(nativeLib);
+                            nativeLibs.Add(nativeLib);
+                        }
                     }
                 }
                 catch (InvalidOperationException)
@@ -67,6 +85,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
 
             ReferencedAssemblies = references.ToArray();
+            ReferencedNativeLibraries = nativeLibs.ToArray();
 
             return true;
         }
