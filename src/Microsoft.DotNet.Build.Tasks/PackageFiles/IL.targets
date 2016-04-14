@@ -4,20 +4,32 @@
   <!-- Required by Microsoft.Common.targets -->
   <Target Name="CreateManifestResourceNames" Condition="'@(EmbeddedResource)' != ''" />
 
+  <Target Name="GetIlasmPath"
+          Condition="'$(BuildingInsideVisualStudio)' == 'true'">
+    <GetFrameworkPath>
+      <Output TaskParameter="Path" PropertyName="IlasmPath" />
+    </GetFrameworkPath>
+    <PropertyGroup>
+      <IlasmPath>$(IlasmPath)\</IlasmPath>
+    </PropertyGroup>
+  </Target>
+
   <Target Name="CoreCompile"
           Inputs="$(MSBuildAllProjects);
                   @(Compile)"
           Outputs="@(IntermediateAssembly);"
           Returns=""
-          DependsOnTargets="$(CoreCompileDependsOn)">
+          DependsOnTargets="GetIlasmPath;$(CoreCompileDependsOn)">
     <PropertyGroup>
       <_OutputTypeArgument Condition="'$(OutputType)' == 'Library'">/DLL</_OutputTypeArgument>
       <_OutputTypeArgument Condition="'$(OutputType)' == 'Exe'">/EXE</_OutputTypeArgument>
 
       <_KeyFileArgument Condition="'$(KeyOriginatorFile)' != ''">/KEY=$(KeyOriginatorFile)</_KeyFileArgument>
+
+      <IlasmExePath Condition="'$(IlasmExePath)' == ''">$(IlasmPath)ilasm</IlasmExePath>
     </PropertyGroup>
 
-    <Exec Command="ilasm /QUIET $(_OutputTypeArgument) $(IlasmFlags) /OUTPUT=@(IntermediateAssembly) $(_KeyFileArgument) @(Compile, ' ')">
+    <Exec Command="$(IlasmExePath) /QUIET $(_OutputTypeArgument) $(IlasmFlags) /OUTPUT=@(IntermediateAssembly) $(_KeyFileArgument) @(Compile, ' ')">
       <Output TaskParameter="ExitCode" PropertyName="_ILAsmExitCode" />
     </Exec>
     <Error Text="ILAsm failed" Condition="'$(_ILAsmExitCode)' != '0'" />
