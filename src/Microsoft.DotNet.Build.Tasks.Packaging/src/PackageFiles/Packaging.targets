@@ -84,6 +84,7 @@
 
   <Import Project="stable.packages.targets" />
   <Import Project="baseline.packages.targets" />
+  <Import Project="native.library.packages.targets" />
 
   <!-- If this package explicitly sets the StableVersion then add it to the stable list -->
   <ItemGroup Condition="'$(StableVersion)' != ''">
@@ -485,6 +486,8 @@
     <GetAssemblyReferences Assemblies="@(File)" Condition="'%(File.HarvestDependencies)' == 'true' and '%(File.Extension)' == '.dll'">
       <Output TaskParameter="ReferencedAssemblies"
               ItemName="_FileReferencedAssemblies"/>
+      <Output TaskParameter="ReferencedNativeLibraries"
+              ItemName="_FileReferencedNativeLibraries"/>
     </GetAssemblyReferences>
 
     <PropertyGroup>
@@ -500,10 +503,12 @@
     
     <ItemGroup Condition="'@(_FilePackageReference)' != ''">
       <_FilePackageReference Remove="corefx;mscorlib;System;System.Core;System.Xml;Windows" />
-      <_FilePackageReference Remove="@(_FilePackageReference)"
-                             Condition="$([System.String]::new('%(Identity)').StartsWith('Internal.'))"/>
-      <_FilePackageReference Remove="@(_FilePackageReference)"
-                             Condition="$([System.String]::new('%(Identity)').StartsWith('System.Private.'))"/>
+
+      <_FilePackageReferencePrivate Include="@(_FilePackageReference)"
+                                    Condition="$([System.String]::new('%(Identity)').StartsWith('System.Private.'))"/>
+
+      <!-- exclude any System.Private dependencies that aren't known packages, where known packages are in BaseLinePackage -->
+      <PackageDependencyExclude Include="@(_FilePackageReferencePrivate)" Exclude="@(BaseLinePackage)" />
       <_FilePackageReference Remove="@(PackageDependencyExclude)"/>
 
       <!-- Projects may specify additional references by assembly name & identity that we'll process
@@ -513,6 +518,17 @@
       <_FilePackageReference Condition="'%(Identity)' == '@(FileRuntimeDependency)'">
         <TargetRuntime>@(FileRuntimeDependency->'%(TargetRuntime)')</TargetRuntime>
       </_FilePackageReference>
+    </ItemGroup>
+
+    <ItemGroup Condition="'@(_FileReferencedNativeLibraries)' != ''">
+      <!-- intersect with NativeLibrary and add Package metadata from NativeLibrary, preserving native lib file name in metadata -->
+      <_FileReferencedNativeLibrariesWithPackage Include="@(_FileReferencedNativeLibraries)"
+                                                 Condition="'@(_FileReferencedNativeLibraries)' == '@(NativeLibrary)' AND '%(Identity)' != ''">
+        <Package>@(NativeLibrary->'%(Package)')</Package>
+        <NativeLibrary>%(Identity)</NativeLibrary>
+      </_FileReferencedNativeLibrariesWithPackage>
+
+      <_FilePackageReference Include="@(_FileReferencedNativeLibrariesWithPackage->'%(Package)')" />
     </ItemGroup>
     
     <ItemGroup>

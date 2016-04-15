@@ -50,6 +50,9 @@
     <Compile Include="VersionUtility.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="PackageFiles\native.library.packages.targets">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="PackageFiles\Generations.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
