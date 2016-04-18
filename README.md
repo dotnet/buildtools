@@ -2,6 +2,8 @@
 
 [![Build status](http://dotnet-ci.cloudapp.net/job/dotnet_buildtools/job/master/job/innerloop/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_buildtools/job/innerloop/)
 
+[![Package](https://img.shields.io/dotnet.myget/dotnet-buildtools/v/Microsoft.DotNet.BuildTools.svg?label=Package)](https://dotnet.myget.org/gallery/dotnet-buildtools/)
+
 This repository contains supporting build tools that are necessary for building
 the [.NET Core][dotnet-corefx] projects. These projects consume the build tools
 via the corresponding [Microsoft.DotNet.BuildTools][Microsoft.DotNet.BuildTools]
