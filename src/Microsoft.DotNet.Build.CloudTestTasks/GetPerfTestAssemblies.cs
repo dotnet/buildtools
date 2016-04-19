@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using Microsoft.Build.Framework;
@@ -68,7 +69,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
             if (perfTests.Count > 0)
             {
-                PerfTestAssemblies = perfTests.ToArray();
+                PerfTestAssemblies = perfTests.Distinct().ToArray();
                 Log.LogMessage(MessageImportance.High, "Found {0} assemblies containing performance tests.", perfTests.Count);
             }
             else
