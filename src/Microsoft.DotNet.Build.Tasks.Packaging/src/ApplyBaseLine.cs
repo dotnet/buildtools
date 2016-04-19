@@ -5,17 +5,24 @@
 using Microsoft.Build.Framework;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
     /// <summary>
-    /// Raises dependencies to a baseline version
+    /// Raises dependencies to a baseline version.
+    /// Dependencies specified without a version will be raised to the highest permitted version.
+    /// Dependencies with a version will be raised to the lowest baseline version that satisfies
+    /// the requested version.
     /// </summary>
     public class ApplyBaseLine : PackagingTask
     {
         [Required]
         public ITaskItem[] OriginalDependencies { get; set; }
 
+        /// <summary>
+        /// Permitted package baseline versions.
+        /// </summary>
         [Required]
         public ITaskItem[] BaseLinePackages { get; set; }
         
@@ -24,25 +31,37 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         
         public override bool Execute()
         {
-            Dictionary<string, Version> baseLineVersions = new Dictionary<string, Version>();
+            Dictionary<string, SortedSet<Version>> baseLineVersions = new Dictionary<string, SortedSet<Version>>();
             foreach(var baseLinePackage in BaseLinePackages)
             {
-                // last in wins
-                baseLineVersions[baseLinePackage.ItemSpec] = new Version(baseLinePackage.GetMetadata("Version"));
+                SortedSet<Version> versions = null;
+                if (!baseLineVersions.TryGetValue(baseLinePackage.ItemSpec, out versions))
+                {
+                    baseLineVersions[baseLinePackage.ItemSpec] = versions = new SortedSet<Version>();
+                }
+                versions.Add(new Version(baseLinePackage.GetMetadata("Version")));
             }
 
             List<ITaskItem> baseLinedDependencies = new List<ITaskItem>();
 
             foreach(var dependency in OriginalDependencies)
             {
-                Version baseLineVersion = null;
+                SortedSet<Version> dependencyBaseLineVersions = null;
                 Version requestedVersion = null;
                 Version.TryParse(dependency.GetMetadata("Version"), out requestedVersion);
 
-                if (baseLineVersions.TryGetValue(dependency.ItemSpec, out baseLineVersion) &&
-                    (requestedVersion == null || baseLineVersion > requestedVersion))
+                if (baseLineVersions.TryGetValue(dependency.ItemSpec, out dependencyBaseLineVersions))
                 {
-                    dependency.SetMetadata("Version", baseLineVersion.ToString(3));
+                    // if no version is requested, choose the highest.  Otherwise choose the first that is 
+                    // greater than or equal to the version requested.
+                    Version baseLineVersion = requestedVersion == null ?
+                        dependencyBaseLineVersions.Last() :
+                        dependencyBaseLineVersions.FirstOrDefault(v => v >= requestedVersion);
+
+                    if (baseLineVersion != null)
+                    {
+                        dependency.SetMetadata("Version", baseLineVersion.ToString(3));
+                    }
                 }
                 baseLinedDependencies.Add(dependency);
             }

@@ -50,9 +50,6 @@
     <Compile Include="VersionUtility.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="PackageFiles\native.library.packages.targets">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="PackageFiles\Generations.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -62,18 +59,12 @@
     <None Include="PackageFiles\PackageLibs.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="PackageFiles\baseline.packages.targets">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="PackageFiles\_._">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="project.json" />
     <None Include="$(MSBuildThisFileDirectory)FrameworkLists\**\*.xml">
       <Link>FrameworkLists\%(RecursiveDir)%(FileName)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PackageFiles\stable.packages.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="$(PackagesDir)Microsoft.NETCore.Platforms\1.0.1-rc2-23923\runtime.json">

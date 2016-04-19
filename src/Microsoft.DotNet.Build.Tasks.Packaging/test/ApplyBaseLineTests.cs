@@ -48,6 +48,35 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
             Assert.Equal("System.Runtime", task.BaseLinedDependencies[0].ItemSpec);
             Assert.Equal("4.0.21", task.BaseLinedDependencies[0].GetMetadata("Version"));
         }
+        [Fact]
+        public void ApplyBaseLineLiftToMinimumBaseLine()
+        {
+            ITaskItem[] baseLine = new[]
+            {
+                CreateItem("System.Runtime", "4.0.21"),
+                CreateItem("System.Runtime", "4.1.0")
+            };
+
+            ITaskItem[] dependencies = new[]
+            {
+                CreateItem("System.Runtime", "4.0.0")
+            };
+
+            ApplyBaseLine task = new ApplyBaseLine()
+            {
+                BuildEngine = _engine,
+                BaseLinePackages = baseLine,
+                OriginalDependencies = dependencies
+            };
+
+            _log.Reset();
+            task.Execute();
+            Assert.Equal(0, _log.ErrorsLogged);
+            Assert.Equal(0, _log.WarningsLogged);
+            Assert.Equal(task.OriginalDependencies.Length, task.BaseLinedDependencies.Length);
+            Assert.Equal("System.Runtime", task.BaseLinedDependencies[0].ItemSpec);
+            Assert.Equal("4.0.21", task.BaseLinedDependencies[0].GetMetadata("Version"));
+        }
 
         [Fact]
         public void DontApplyBaseLineIfGreater()
@@ -105,6 +134,36 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
             Assert.Equal(task.OriginalDependencies.Length, task.BaseLinedDependencies.Length);
             Assert.Equal("System.Runtime", task.BaseLinedDependencies[0].ItemSpec);
             Assert.Equal("4.0.21", task.BaseLinedDependencies[0].GetMetadata("Version"));
+        }
+
+        [Fact]
+        public void ApplyHighestBaselineToUnversionedDependency()
+        {
+            ITaskItem[] baseLine = new[]
+            {
+                CreateItem("System.Runtime", "4.0.21"),
+                CreateItem("System.Runtime", "4.1.0")
+            };
+
+            ITaskItem[] dependencies = new[]
+            {
+                CreateItem("System.Runtime", null)
+            };
+
+            ApplyBaseLine task = new ApplyBaseLine()
+            {
+                BuildEngine = _engine,
+                BaseLinePackages = baseLine,
+                OriginalDependencies = dependencies
+            };
+
+            _log.Reset();
+            task.Execute();
+            Assert.Equal(0, _log.ErrorsLogged);
+            Assert.Equal(0, _log.WarningsLogged);
+            Assert.Equal(task.OriginalDependencies.Length, task.BaseLinedDependencies.Length);
+            Assert.Equal("System.Runtime", task.BaseLinedDependencies[0].ItemSpec);
+            Assert.Equal("4.1.0", task.BaseLinedDependencies[0].GetMetadata("Version"));
         }
 
         [Fact]
