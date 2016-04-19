@@ -51,14 +51,15 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public override bool Execute()
         {
-            // Calculating GeneratedRevision
+            // If OfficialBuildId is passed in, then use that to calculate the version and revision.
             if (string.IsNullOrEmpty(OfficialBuildId))
             {
                 GeneratedRevision = "0";
             }
             else
             {
-                GeneratedRevision = GetCurrentRevisionForBuildName(OfficialBuildId);
+                bool success = SetVersionAndRevisionFromBuildId(OfficialBuildId);
+                return success;
             }
 
             // Calculating GeneratedVersion
@@ -93,15 +94,26 @@ namespace Microsoft.DotNet.Build.Tasks
             return true;
         }
 
-        public string GetCurrentRevisionForBuildName(string buildId)
+        public bool SetVersionAndRevisionFromBuildId(string buildId)
         {
-            Regex regex = new Regex(@"\.(\d+)$");
+            Regex regex = new Regex(@"(\d{8})\.(\d+)$");
+            string dateFormat = "yyyyMMdd";
             Match match = regex.Match(buildId);
-            if (match.Success && match.Groups.Count > 1)
+            if (match.Success && match.Groups.Count > 2)
             {
-                return match.Groups[1].Value;
+                DateTime buildIdDate;
+                if (!DateTime.TryParseExact(match.Groups[1].Value, dateFormat, enUS, DateTimeStyles.AssumeLocal, out buildIdDate))
+                {
+                    Log.LogError("The OfficialBuildId doesn't follow the expected({0}.rr) format: '{1}'", dateFormat, match.Groups[1].Value);
+                    return false;
+                }
+                buildIdDate = buildIdDate.ToUniversalTime();
+                GeneratedVersion = GetCurrentVersionForDate(buildIdDate, ComparisonDate);
+                GeneratedRevision = match.Groups[2].Value;
+                return true;
             }
-            return "0";
+            Log.LogError("Error: Invalid OfficialBuildId was passed: '{0}'", buildId);
+            return false;
         }
 
         public string GetCurrentVersionForDate(DateTime seedDate, string comparisonDate)
