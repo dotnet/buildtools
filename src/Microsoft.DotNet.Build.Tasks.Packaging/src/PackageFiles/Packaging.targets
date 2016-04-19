@@ -82,10 +82,6 @@
     <PackagingTaskDir Condition="'$(PackagingTaskDir)' == ''">$(MSBuildThisFileDirectory)</PackagingTaskDir>
   </PropertyGroup>
 
-  <Import Project="stable.packages.targets" />
-  <Import Project="baseline.packages.targets" />
-  <Import Project="native.library.packages.targets" />
-
   <!-- If this package explicitly sets the StableVersion then add it to the stable list -->
   <ItemGroup Condition="'$(StableVersion)' != ''">
     <StablePackage Include="$(Id)">
@@ -553,7 +549,10 @@
         <Exclude Condition="'%(FilePackageDependency.IsReferenceAsset)' != 'true'">Compile</Exclude>
       </FilePackageDependency>
     </ItemGroup>
-      
+    
+    <Error Condition="'@(BaseLinePackage)' == ''" Text="The BaseLinePackage item is not defined: ensure you have imported Microsoft.Private.PackageBaseLine.props from the Microsoft.Private.PackageBaseLine package" />
+    <Error Condition="'@(StablePackage)' == ''" Text="The StablePackage item is not defined: ensure you have imported Microsoft.Private.PackageBaseLine.props from the Microsoft.Private.PackageBaseLine package" />
+    <Error Condition="'$(BaseLinePropsFile)' == ''" Text="The BaseLinePropsFile property is not defined: ensure you have set this to your repositories props file that contains BaseLinePackage items." />
     
    <!-- We can reduce the number of dependencies listed for any framework that has
         inbox implementations since that framework doesn't need the packages for
@@ -942,6 +941,17 @@
                      UseNetPlatform="$(UseNetPlatform)"
                      ValidationReport="$(PackageReportPath)"
                      ContinueOnError="ErrorAndContinue"/>
+  
+    <!-- Validate that this package version is part of the baseline -->
+    <ItemGroup>
+      <_thisPackageBaseLine Include="@(BaseLinePackage)" Condition="'$(Id)' == '%(Identity)'" />
+    </ItemGroup>
+    <PropertyGroup>
+      <_VersionWithoutPreRelease>$(Version)</_VersionWithoutPreRelease>
+      <_VersionWithoutPreRelease Condition="$(Version.Contains('-'))">$(Version.SubString(0, $(Version.IndexOf('-'))))</_VersionWithoutPreRelease>
+    </PropertyGroup>
+    <Error Condition="'$(SkipBaseLineCheck)' != 'true' AND '@(_thisPackageBaseLine)' != '' AND '@(_thisPackageBaseLine->WithMetadataValue('Version', '$(_VersionWithoutPreRelease)'))' == ''"
+           Text="This package's version '$(_VersionWithoutPreRelease)' is not part of any BaseLine '@(_thisPackageBaseLine->'%(Version)')'.  Please update '$(BaseLinePropsFile)'." />
   </Target>
 
   <Target Name="ValidateMetaPackageFramework"
