@@ -221,9 +221,9 @@
     </GetPerfTestAssemblies>
     <!-- don't add any items to the group if no perf tests were found -->
     <ItemGroup Condition="'@(PerfTestAssembly->Count())' != '0'">
-      <PerfTest Include="$(TestArchivesRoot)%(PerfTestAssembly.Identity).zip" />
-      <PerfTest Include="$(AnyOSTestArchivesRoot)%(PerfTestAssembly.Identity).zip" />
-      <PerfTest Condition="'$(TargetsUnix)' == 'true'" Include="$(UnixTestArchivesRoot)%(PerfTestAssembly.Identity).zip" />
+      <PerfTest Condition="Exists('$(TestArchivesRoot)%(PerfTestAssembly.Identity).zip')" Include="$(TestArchivesRoot)%(PerfTestAssembly.Identity).zip" />
+      <PerfTest Condition="Exists('$(AnyOSTestArchivesRoot)%(PerfTestAssembly.Identity).zip')" Include="$(AnyOSTestArchivesRoot)%(PerfTestAssembly.Identity).zip" />
+      <PerfTest Condition="'$(TargetsUnix)' == 'true' And Exists('$(UnixTestArchivesRoot)%(PerfTestAssembly.Identity).zip')" Include="$(UnixTestArchivesRoot)%(PerfTestAssembly.Identity).zip" />
     </ItemGroup>
     <ItemGroup Condition="'@(PerfTestAssembly->Count())' != '0'">
       <PerfTest>
