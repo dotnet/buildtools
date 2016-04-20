@@ -20,6 +20,15 @@
 
     <DelaySign>true</DelaySign>
     <DelaySign Condition="'$(UseOpenKey)' == 'true'">false</DelaySign>
+    <!--
+      We enable the signing for the test projects only on Windows because Roslyn not supporting full signing on non-Windows platforms.
+      Issue: https://github.com/dotnet/roslyn/issues/8210
+    -->
+    <DelaySign Condition="'$(OSEnvironment)' == 'Windows_NT' And '$(IsTestProject)' == 'true'">false</DelaySign>
+
+    <SignType Condition="'$(SignType)'=='' And '$(UseOpenKey)' == 'true'">real</SignType>
+    <SignType Condition="'$(SignType)'=='' And '$(IsTestProject)' == 'true'">real</SignType>
+
     <DefineConstants>$(DefineConstants);SIGNED</DefineConstants>
     <!-- applicable values for SignType are oss, test or real -->
     <SignType Condition="'$(SignType)' == ''">oss</SignType>
