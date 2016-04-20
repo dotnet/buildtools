@@ -581,7 +581,7 @@
       <_BaseLinedDependencies Include="@(FilePackageDependency)" />
     </ItemGroup>
 
-    <Error Condition="@(_BaseLinedDependencies)' != '' AND '@(StablePackage)' == ''" Text="The StablePackage item is not defined: ensure you have imported Microsoft.Private.PackageBaseLine.props from the Microsoft.Private.PackageBaseLine package" />
+    <Error Condition="'@(_BaseLinedDependencies)' != '' AND '@(StablePackage)' == ''" Text="The StablePackage item is not defined: ensure you have imported Microsoft.Private.PackageBaseLine.props from the Microsoft.Private.PackageBaseLine package" />
     <ApplyPreReleaseSuffix Condition="'@(_BaseLinedDependencies)' != ''" StablePackages="@(StablePackage)" OriginalPackages="@(_BaseLinedDependencies)" PreReleaseSuffix="$(VersionSuffix)" RevStableToPrerelease="$(DependencyRevStableToPrerelease)">
       <Output TaskParameter="UpdatedPackages" ItemName="Dependency"/>
     </ApplyPreReleaseSuffix>
