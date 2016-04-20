@@ -75,6 +75,7 @@
     <RuntimeFilePath Condition="'$(RuntimeFilePath)' == ''">$(NuSpecOutputPath)$(Id)$(NuspecSuffix)/runtime.json</RuntimeFilePath>
     <PlaceholderFile>$(MSBuildThisFileDirectory)_._</PlaceholderFile>
     <PackageDescriptionFile Condition="'$(PackageDescriptionFile)' == ''">path to descriptions.json must be specified</PackageDescriptionFile>
+    <RuntimeIdGraphDefinitionFile Condition="'$(RuntimeIdGraphDefinitionFile)' == '' AND Exists('$(ProjectDir)pkg/Microsoft.NETCore.Platforms/runtime.json')">$(ProjectDir)pkg/Microsoft.NETCore.Platforms/runtime.json</RuntimeIdGraphDefinitionFile>
     <RuntimeIdGraphDefinitionFile Condition="'$(RuntimeIdGraphDefinitionFile)' == ''">$(MSBuildThisFileDirectory)runtime.json</RuntimeIdGraphDefinitionFile>
     <FrameworkListsPath Condition="'$(FrameworkListsPath)' == ''">$(MSBuildThisFileDirectory)FrameworkLists</FrameworkListsPath>
     <ValidationSuppressionFile Condition="'$(ValidationSuppressionFile)' == ''">ValidationSuppression.txt</ValidationSuppressionFile>
