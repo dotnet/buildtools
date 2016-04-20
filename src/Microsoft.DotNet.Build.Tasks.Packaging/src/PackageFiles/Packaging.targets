@@ -75,6 +75,7 @@
     <RuntimeFilePath Condition="'$(RuntimeFilePath)' == ''">$(NuSpecOutputPath)$(Id)$(NuspecSuffix)/runtime.json</RuntimeFilePath>
     <PlaceholderFile>$(MSBuildThisFileDirectory)_._</PlaceholderFile>
     <PackageDescriptionFile Condition="'$(PackageDescriptionFile)' == ''">path to descriptions.json must be specified</PackageDescriptionFile>
+    <RuntimeIdGraphDefinitionFile Condition="'$(RuntimeIdGraphDefinitionFile)' == '' AND Exists('$(ProjectDir)pkg/Microsoft.NETCore.Platforms/runtime.json')">$(ProjectDir)pkg/Microsoft.NETCore.Platforms/runtime.json</RuntimeIdGraphDefinitionFile>
     <RuntimeIdGraphDefinitionFile Condition="'$(RuntimeIdGraphDefinitionFile)' == ''">$(MSBuildThisFileDirectory)runtime.json</RuntimeIdGraphDefinitionFile>
     <FrameworkListsPath Condition="'$(FrameworkListsPath)' == ''">$(MSBuildThisFileDirectory)FrameworkLists</FrameworkListsPath>
     <ValidationSuppressionFile Condition="'$(ValidationSuppressionFile)' == ''">ValidationSuppression.txt</ValidationSuppressionFile>
@@ -549,15 +550,11 @@
         <Exclude Condition="'%(FilePackageDependency.IsReferenceAsset)' != 'true'">Compile</Exclude>
       </FilePackageDependency>
     </ItemGroup>
-    
-    <Error Condition="'@(BaseLinePackage)' == ''" Text="The BaseLinePackage item is not defined: ensure you have imported Microsoft.Private.PackageBaseLine.props from the Microsoft.Private.PackageBaseLine package" />
-    <Error Condition="'@(StablePackage)' == ''" Text="The StablePackage item is not defined: ensure you have imported Microsoft.Private.PackageBaseLine.props from the Microsoft.Private.PackageBaseLine package" />
-    <Error Condition="'$(BaseLinePropsFile)' == ''" Text="The BaseLinePropsFile property is not defined: ensure you have set this to your repositories props file that contains BaseLinePackage items." />
-    
-   <!-- We can reduce the number of dependencies listed for any framework that has
-        inbox implementations since that framework doesn't need the packages for
-        compile/runtime.  This reduces the noise when consuming our packages in
-        packages.config based projects.  -->
+
+    <!-- We can reduce the number of dependencies listed for any framework that has
+         inbox implementations since that framework doesn't need the packages for
+         compile/runtime.  This reduces the noise when consuming our packages in
+         packages.config based projects.  -->
     <CreateTrimDependencyGroups Dependencies="@(FilePackageDependency);@(Dependency)"
                       FrameworkListsPath="$(FrameworkListsPath)"
                       Files="@(File)"
@@ -572,7 +569,9 @@
                                   Condition="'@(FilePackageDependency)' != ''">
       <Output TaskParameter="PromotedDependencies" ItemName="FilePackageDependency" />
     </PromoteReferenceDependencies>
-
+    
+    <Error Condition="'@(BaseLinePackage)' == '' AND '@(FilePackageDependency)' != '' AND '$(BaseLinePackageDependencies)' != 'false'" 
+           Text="The BaseLinePackage item is not defined: ensure you have imported Microsoft.Private.PackageBaseLine.props from the Microsoft.Private.PackageBaseLine package" />
     <ApplyBaseLine OriginalDependencies="@(FilePackageDependency)" BaseLinePackages="@(BaseLinePackage)" Condition="'$(BaseLinePackageDependencies)' != 'false'">
       <Output TaskParameter="BaseLinedDependencies" ItemName="_BaseLinedDependencies" />
     </ApplyBaseLine>
@@ -582,10 +581,10 @@
       <_BaseLinedDependencies Include="@(FilePackageDependency)" />
     </ItemGroup>
 
+    <Error Condition="@(_BaseLinedDependencies)' != '' AND '@(StablePackage)' == ''" Text="The StablePackage item is not defined: ensure you have imported Microsoft.Private.PackageBaseLine.props from the Microsoft.Private.PackageBaseLine package" />
     <ApplyPreReleaseSuffix Condition="'@(_BaseLinedDependencies)' != ''" StablePackages="@(StablePackage)" OriginalPackages="@(_BaseLinedDependencies)" PreReleaseSuffix="$(VersionSuffix)" RevStableToPrerelease="$(DependencyRevStableToPrerelease)">
       <Output TaskParameter="UpdatedPackages" ItemName="Dependency"/>
     </ApplyPreReleaseSuffix>
-
   </Target>
 
   <!-- Walks every project gathering its AssemblyVersion, choosing the highest -->
@@ -949,9 +948,11 @@
     <PropertyGroup>
       <_VersionWithoutPreRelease>$(Version)</_VersionWithoutPreRelease>
       <_VersionWithoutPreRelease Condition="$(Version.Contains('-'))">$(Version.SubString(0, $(Version.IndexOf('-'))))</_VersionWithoutPreRelease>
+      <BaseLinePropsUpdateMessage Condition="'$(BaseLinePropsFile)' == ''">  Please update '$(BaseLinePropsFile)'.</BaseLinePropsUpdateMessage>
     </PropertyGroup>
+    
     <Error Condition="'$(SkipBaseLineCheck)' != 'true' AND '@(_thisPackageBaseLine)' != '' AND '@(_thisPackageBaseLine->WithMetadataValue('Version', '$(_VersionWithoutPreRelease)'))' == ''"
-           Text="This package's version '$(_VersionWithoutPreRelease)' is not part of any BaseLine '@(_thisPackageBaseLine->'%(Version)')'.  Please update '$(BaseLinePropsFile)'." />
+           Text="This package's version '$(_VersionWithoutPreRelease)' is not part of any BaseLine '@(_thisPackageBaseLine->'%(Version)')'.$(BaseLinePropsUpdateMessage)" />
   </Target>
 
   <Target Name="ValidateMetaPackageFramework"
