@@ -44,6 +44,7 @@
     <Compile Include="PrereleaseResolveNuGetPackageAssets.cs" />
     <Compile Include="SignTypeItem.cs" />
     <Compile Include="UpdatePackageDependencyVersion.cs" />
+    <Compile Include="ValidateExactRestore.cs" />
     <Compile Include="VisitProjectDependencies.cs" />
     <Compile Include="ValidateProjectDependencyVersions.cs" />
     <Compile Include="WriteSigningRequired.cs" />
