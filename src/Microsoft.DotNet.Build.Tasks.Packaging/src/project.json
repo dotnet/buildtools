@@ -21,9 +21,5 @@
   },
   "frameworks": {
     "dnxcore50": {}
-  },
-  "runtimes": {
-    "win7-x64": {},
-    "win7-x86": {}
   }
 }

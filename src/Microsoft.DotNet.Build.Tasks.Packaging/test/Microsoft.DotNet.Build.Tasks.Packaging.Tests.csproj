@@ -8,6 +8,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.DotNet.Build.Tasks.Packaging.Tests</RootNamespace>
     <AssemblyName>Microsoft.DotNet.Build.Tasks.Packaging.Tests</AssemblyName>
+    <NuGetRuntimeIdentifier>win7-x64</NuGetRuntimeIdentifier>
     <CLSCompliant>false</CLSCompliant>
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
     <TaskProject Condition="'$(TaskProject)' == ''">..\src\Microsoft.DotNet.Build.Tasks.Packaging.csproj</TaskProject>

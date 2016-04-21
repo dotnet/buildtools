@@ -12,6 +12,7 @@
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <GenFacadesSrc>..\GenFacades</GenFacadesSrc>
+    <NuGetRuntimeIdentifier>win7-x64</NuGetRuntimeIdentifier>
   </PropertyGroup>
 
   <!-- Default configurations to help VS understand the configurations -->
