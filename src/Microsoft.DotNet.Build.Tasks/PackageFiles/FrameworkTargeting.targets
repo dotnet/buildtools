@@ -60,6 +60,9 @@
   <Import Project="depProj.targets"
           Condition="'$(MSBuildProjectExtension)' == '.depproj'" />
 
+  <Import Project="IL.targets"
+           Condition="'$(MSBuildProjectExtension)' == '.ilproj'" />
+
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets"
           Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' and '$(MSBuildProjectExtension)' == '.csproj'" />
 
