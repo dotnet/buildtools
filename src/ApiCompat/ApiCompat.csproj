@@ -7,7 +7,6 @@
     <AssemblyName>ApiCompat</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <DefineConstants>$(DefineConstants);COREFX</DefineConstants>
-    <NuGetRuntimeIdentifier>win7-x64</NuGetRuntimeIdentifier>
     <CLSCompliant>false</CLSCompliant>
   </PropertyGroup>
   <!-- Default configurations to help VS understand the configurations -->

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <NuGetRuntimeIdentifier>win</NuGetRuntimeIdentifier>
+    <NuGetRuntimeIdentifier>win7-x64</NuGetRuntimeIdentifier>
     <!-- VS's msbuild nuget targets first used RuntimeIndentifier (sic) -->
     <RuntimeIndentifier>$(NuGetRuntimeIdentifier)</RuntimeIndentifier>
     <ImportedProjectRelativePath>..\src\</ImportedProjectRelativePath>

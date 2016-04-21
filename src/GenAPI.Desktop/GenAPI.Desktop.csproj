@@ -11,6 +11,7 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <NuGetRuntimeIdentifier>win7-x64</NuGetRuntimeIdentifier>
     <GenAPISrc>..\GenAPI</GenAPISrc>
     <ProjectGuid>{4B4EC885-56B7-4874-BDC1-BB67939166F1}</ProjectGuid>
   </PropertyGroup>

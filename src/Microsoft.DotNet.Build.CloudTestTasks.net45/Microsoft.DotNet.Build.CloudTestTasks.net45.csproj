@@ -3,7 +3,8 @@
   <PropertyGroup>
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <NuGetRuntimeIdentifier>win</NuGetRuntimeIdentifier>
+    <NuGetRuntimeIdentifier>win7-x64</NuGetRuntimeIdentifier>
+    <CopyNuGetImplementations>true</CopyNuGetImplementations>
     <ImportedProjectRelativePath>..\Microsoft.DotNet.Build.CloudTestTasks\</ImportedProjectRelativePath>
     <ProjectGuid>{17C66BCE-EB35-44CA-893C-8AAFB67708E9}</ProjectGuid>
   </PropertyGroup>
