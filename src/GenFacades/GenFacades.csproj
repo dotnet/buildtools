@@ -9,6 +9,7 @@
     <AssemblyName>GenFacades</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);COREFX</DefineConstants>
+    <NuGetRuntimeIdentifier>win7-x64</NuGetRuntimeIdentifier>
   </PropertyGroup>
 
   <!-- Default configurations to help VS understand the configurations -->

@@ -22,5 +22,8 @@
     "dnxcore50": {
       "imports": "portable-net45+win8"
     }
+  },
+  "runtimes": {
+    "win7-x64": {}
   }
 }

@@ -7,6 +7,7 @@
     <AssemblyName>BclRewriter</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <CLSCompliant>false</CLSCompliant>
+    <NuGetRuntimeIdentifier>win7-x64</NuGetRuntimeIdentifier>
   </PropertyGroup>
   
   <!-- Default configurations to help VS understand the configurations -->

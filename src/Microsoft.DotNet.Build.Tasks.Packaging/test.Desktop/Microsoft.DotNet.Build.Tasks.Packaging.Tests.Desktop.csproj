@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <NuGetRuntimeIdentifier>win</NuGetRuntimeIdentifier>
+    <NuGetRuntimeIdentifier>win7-x64</NuGetRuntimeIdentifier>
     <ImportedProjectRelativePath>..\test\</ImportedProjectRelativePath>
     <TaskProject>..\src.Desktop\Microsoft.DotNet.Build.Tasks.Packaging.Desktop.csproj</TaskProject>
   </PropertyGroup>
