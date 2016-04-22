@@ -259,7 +259,7 @@
   </Target>
 
   <Target Name="GenerateNuSpec"
-          DependsOnTargets="GetPackageDependencies;GenerateRuntimeDependencies;GetPackageFiles;$(VersionDependsOn)">
+          DependsOnTargets="GetPackageDependencies;GenerateRuntimeDependencies;GetPackageFiles;GetPackageIdentity">
     <!-- Please Note:
          In order to avoid incremental build issues this target will always run.
          However, the task will make sure that it doesn't touch the file if the
@@ -345,7 +345,7 @@
   <!-- Permit setting TargetFramework and add our own metadata (TargetRuntime) -->
   <Target Name="GetPackageIdentity"
           Returns="@(_PackageIdentity)"
-          DependsOnTargets="$(VersionDependsOn)">
+          DependsOnTargets="ExpandProjectReferences;CalculatePackageVersion">
 
     <ItemGroup>
       <_referenceFrameworks Include="%(File.TargetFramework)" Condition="'%(File.IsReferenceAsset)' == 'true'" />
@@ -439,7 +439,7 @@
        filter out files that come from dependent packages. -->
   <Target Name="GetPackageFiles"
           Returns="@(PackageFile)"
-          DependsOnTargets="GetFiles;EnsureOOBFramework;$(VersionDependsOn)">
+          DependsOnTargets="GetFiles;EnsureOOBFramework">
     <ItemGroup>
       <!-- Include all files except source files. Sources need to be deduplicated. -->
       <PackageFile Include="@(File)" Condition="'%(File.IsSourceCodeFile)'!='true'" />
@@ -604,7 +604,6 @@
 
   <!-- Calculates the package version including any prerelease suffix -->
   <Target Name="CalculatePackageVersion"
-        BeforeTargets="GenerateNuSpec;GetPackageIdentity"
         DependsOnTargets="CreateVersionFileDuringBuild;GetAssemblyVersionFromProjects">
 
     <Error Text="No version could be detected.  Either specify the Version property or provide at least one managed assembly."
