@@ -60,10 +60,10 @@ esac
 cp -R $__TOOLS_DIR/* $__TOOLRUNTIME_DIR
 
 __TOOLRUNTIME_PROJECTJSON=$__TOOLS_DIR/tool-runtime/project.json
-set -x # echo on
+echo "Running: $__DOTNET_CMD restore \"${__TOOLRUNTIME_PROJECTJSON}\" --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json"
 $__DOTNET_CMD restore "${__TOOLRUNTIME_PROJECTJSON}" --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json
+echo "Running: $__DOTNET_CMD publish \"${__TOOLRUNTIME_PROJECTJSON}\" -f dnxcore50 -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR"
 $__DOTNET_CMD publish "${__TOOLRUNTIME_PROJECTJSON}" -f dnxcore50 -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR
-set +x # echo off
 chmod a+x $__TOOLRUNTIME_DIR/corerun
 
 if [ -n "$BUILDTOOLS_OVERRIDE_RUNTIME" ]; then
@@ -75,9 +75,8 @@ fi
 mkdir "$__TOOLS_DIR/portableTargets"
 __PORTABLETARGETS_PROJECTJSON=$__TOOLS_DIR/portableTargets/project.json
 echo $__MSBUILD_CONTENT_JSON > "${__PORTABLETARGETS_PROJECTJSON}"
-set -x # echo on
-"$__DOTNET_CMD" restore "${__PORTABLETARGETS_PROJECTJSON}" --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --packages "$__TOOLS_DIR/portableTargets/packages"
-set +x # echo off
+echo "Running: \"$__DOTNET_CMD\" restore \"${__PORTABLETARGETS_PROJECTJSON}\" --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --packages \"$__TOOLS_DIR/portableTargets/packages\""
+$__DOTNET_CMD restore "${__PORTABLETARGETS_PROJECTJSON}" --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --packages "$__TOOLS_DIR/portableTargets/packages"
 cp -R "$__TOOLS_DIR/portableTargets/packages/Microsoft.Portable.Targets/${__PORTABLETARGETS_VERSION}/contentFiles/any/any/." "$__TOOLRUNTIME_DIR/."
 cp -R "$__TOOLS_DIR/portableTargets/packages/MicroBuild.Core/${__MICROBUILD_VERSION}/build/." "$__TOOLRUNTIME_DIR/."
 
