@@ -22,7 +22,7 @@ namespace Microsoft.DotNet.Build.Tasks
             string dependencyVersion;
             if (package.Value is JObject)
             {
-                dependencyVersion = package.Value["version"].Value<string>();
+                dependencyVersion = package.Value["version"]?.Value<string>();
             }
             else if (package.Value is JValue)
             {
@@ -34,6 +34,11 @@ namespace Microsoft.DotNet.Build.Tasks
                     "Unrecognized dependency element for {0} in {1}",
                     package.Name,
                     projectJsonPath));
+            }
+
+            if (dependencyVersion == null)
+            {
+                return false;
             }
 
             if (dependencyIdentifier == PackageId && dependencyVersion == OldVersion)
