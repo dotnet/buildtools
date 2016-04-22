@@ -3,6 +3,8 @@
 __PROJECT_DIR=$1
 __DOTNET_CMD=$2
 __TOOLRUNTIME_DIR=$3
+__PACKAGES_DIR=$4
+if [ "$__PACKAGES_DIR" == "" ]; then __PACKAGES_DIR=${__TOOLRUNTIME_DIR}; fi
 __TOOLS_DIR=$(cd "$(dirname "$0")"; pwd -P)
 __MICROBUILD_VERSION=0.2.0
 __PORTABLETARGETS_VERSION=0.1.1-dev
@@ -72,13 +74,13 @@ if [ -n "$BUILDTOOLS_OVERRIDE_RUNTIME" ]; then
 fi
 
 # Copy Portable Targets Over to ToolRuntime
-mkdir "$__TOOLS_DIR/portableTargets"
-__PORTABLETARGETS_PROJECTJSON=$__TOOLS_DIR/portableTargets/project.json
+if [ ! -d "${__PACKAGES_DIR}/generated" ]; then mkdir "${__PACKAGES_DIR}/generated"; fi
+__PORTABLETARGETS_PROJECTJSON=${__PACKAGES_DIR}/generated/project.json
 echo $__MSBUILD_CONTENT_JSON > "${__PORTABLETARGETS_PROJECTJSON}"
-echo "Running: \"$__DOTNET_CMD\" restore \"${__PORTABLETARGETS_PROJECTJSON}\" --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --packages \"$__TOOLS_DIR/portableTargets/packages\""
-$__DOTNET_CMD restore "${__PORTABLETARGETS_PROJECTJSON}" --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --packages "$__TOOLS_DIR/portableTargets/packages"
-cp -R "$__TOOLS_DIR/portableTargets/packages/Microsoft.Portable.Targets/${__PORTABLETARGETS_VERSION}/contentFiles/any/any/." "$__TOOLRUNTIME_DIR/."
-cp -R "$__TOOLS_DIR/portableTargets/packages/MicroBuild.Core/${__MICROBUILD_VERSION}/build/." "$__TOOLRUNTIME_DIR/."
+echo "Running: \"$__DOTNET_CMD\" restore \"${__PORTABLETARGETS_PROJECTJSON}\" --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --packages \"${__PACKAGES_DIR}/.\""
+$__DOTNET_CMD restore "${__PORTABLETARGETS_PROJECTJSON}" --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --packages "${__PACKAGES_DIR}/."
+cp -R "${__PACKAGES_DIR}/Microsoft.Portable.Targets/${__PORTABLETARGETS_VERSION}/contentFiles/any/any/." "$__TOOLRUNTIME_DIR/."
+cp -R "${__PACKAGES_DIR}/MicroBuild.Core/${__MICROBUILD_VERSION}/build/." "$__TOOLRUNTIME_DIR/."
 
 # Temporary Hacks to fix couple of issues in the msbuild and roslyn nuget packages
 cp "$__TOOLRUNTIME_DIR/corerun" "$__TOOLRUNTIME_DIR/corerun.exe"
