@@ -825,29 +825,31 @@
       <RuntimeIDs>win10-x86;win10-x86-aot;win10-x64;win10-x64-aot;win10-arm;win10-arm-aot</RuntimeIDs>
     </DefaultValidateFramework>
     <DefaultValidateFramework Include="netcore45">
-      <RuntimeIDs>win8-x86;win8-x64;win8-arm</RuntimeIDs>
+      <!-- Intentionally empty, no RIDs defined for Win8 as it must work with packages.config-->
+      <RuntimeIDs></RuntimeIDs>
     </DefaultValidateFramework>
     <DefaultValidateFramework Include="netcore451">
-      <RuntimeIDs>win81-x86;win81-x64;win81-arm</RuntimeIDs>
+      <!-- Intentionally empty, no RIDs defined for Win81 as it must work with packages.config-->
+      <RuntimeIDs></RuntimeIDs>
     </DefaultValidateFramework>
 
     <DefaultValidateFramework Include="net45" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
-      <RuntimeIDs>win-x86;win-x64</RuntimeIDs>
+      <RuntimeIDs>;win-x86;win-x64</RuntimeIDs>
     </DefaultValidateFramework>
     <DefaultValidateFramework Include="net451" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
-      <RuntimeIDs>win-x86;win-x64</RuntimeIDs>
+      <RuntimeIDs>;win-x86;win-x64</RuntimeIDs>
     </DefaultValidateFramework>
     <DefaultValidateFramework Include="net46" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
-      <!-- add additional win7 RIDs to validate up-level authoring -->
-      <RuntimeIDs>win-x86;win-x64;win7-x86;win7-x64</RuntimeIDs>
+      <!-- additional win7 RIDs to validate up-level authoring -->
+      <RuntimeIDs>;win-x86;win-x64;win7-x86;win7-x64</RuntimeIDs>
     </DefaultValidateFramework>
     <DefaultValidateFramework Include="net461" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
       <!-- add additional win7 RIDs to validate up-level authoring -->
-      <RuntimeIDs>win-x86;win-x64;win7-x86;win7-x64</RuntimeIDs>
+      <RuntimeIDs>;win-x86;win-x64;win7-x86;win7-x64</RuntimeIDs>
     </DefaultValidateFramework>
     <DefaultValidateFramework Include="net462" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
       <!-- add additional win7 RIDs to validate up-level authoring -->
-      <RuntimeIDs>win-x86;win-x64;win7-x86;win7-x64</RuntimeIDs>
+      <RuntimeIDs>;win-x86;win-x64;win7-x86;win7-x64</RuntimeIDs>
     </DefaultValidateFramework>
 
     <DefaultValidateFramework Include="wpa81">

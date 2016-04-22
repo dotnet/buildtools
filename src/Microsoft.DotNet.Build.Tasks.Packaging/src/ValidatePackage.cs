@@ -212,6 +212,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         }
         private void ValidateSupport()
         {
+            var runtimeFxSuppression = GetSuppressionValues(Suppression.PermitRuntimeTargetMonikerMismatch) ?? new HashSet<string>();
+
             // validate support for each TxM:RID
             foreach (var validateFramework in _frameworks.Values)
             {
@@ -310,7 +312,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                                 Dictionary<string, string> implementationFiles = new Dictionary<string, string>();
                                 foreach (var implementationAssembly in implementationAssemblies)
                                 {
-                                    Version implementationVersion = _targetPathToPackageItem[implementationAssembly].Version;
+                                    var packageItem = _targetPathToPackageItem[implementationAssembly];
+                                    Version implementationVersion = packageItem.Version;
 
                                     if (!VersionUtility.IsCompatibleApiVersion(supportedVersion, implementationVersion))
                                     {
@@ -326,7 +329,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                                     }
 
                                     string fileName = Path.GetFileName(implementationAssembly);
-
+                                    
                                     if (implementationFiles.ContainsKey(fileName))
                                     {
                                         Log.LogError($"{ContractName} includes both {implementationAssembly} and {implementationFiles[fileName]} an on {target} which have the same name and will clash when both packages are used.");
@@ -334,6 +337,23 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                                     else
                                     {
                                         implementationFiles[fileName] = implementationAssembly;
+                                    }
+
+                                    if (packageItem.TargetFramework != fx && !runtimeFxSuppression.Contains(fx.ToString()))
+                                    {
+                                        // the selected asset wasn't an exact framework match, let's see if we have an exact match in any other runtime asset.                                        
+                                        var matchingFxAssets = _targetPathToPackageItem.Values.Where(i => i.TargetFramework == fx &&  // exact framework
+                                                                                                         // Same file
+                                                                                                         Path.GetFileName(i.TargetPath).Equals(fileName, StringComparison.OrdinalIgnoreCase) &&
+                                                                                                         // Is implementation
+                                                                                                         (i.TargetPath.StartsWith("lib") || i.TargetPath.StartsWith("runtimes")) &&
+                                                                                                         // is not the same source file as was already selected
+                                                                                                         i.SourcePath != packageItem.SourcePath);
+
+                                        if (matchingFxAssets.Any())
+                                        {
+                                            Log.LogError($"When targeting {target} {ContractName} will use {implementationAssembly} which targets {packageItem.TargetFramework.GetShortFolderName()}  but {String.Join(";", matchingFxAssets.Select(i => i.TargetPath))} targets {fx.GetShortFolderName()} specifically.");
+                                        }
                                     }
                                 }
                             }
@@ -834,6 +854,10 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// <summary>
         /// Permits a compatible API version match between ref and impl, rather than exact match
         /// </summary>
-        PermitHigherCompatibleImplementationVersion
+        PermitHigherCompatibleImplementationVersion,
+        /// <summary>
+        /// Permits a non-matching targetFramework asset to be used even when a matching one exists.
+        /// </summary>
+        PermitRuntimeTargetMonikerMismatch
     }
 }
