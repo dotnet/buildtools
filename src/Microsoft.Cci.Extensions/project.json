@@ -17,8 +17,8 @@
     "System.Xml.XDocument": "4.0.10"
   },
   "frameworks": {
-    "dnxcore50": {
-      "imports": "portable-net45+win8"
+    "netstandard1.3": {
+      "imports": [ "dotnet5.4", "portable-net45+win8" ]
     }
   }
 }
