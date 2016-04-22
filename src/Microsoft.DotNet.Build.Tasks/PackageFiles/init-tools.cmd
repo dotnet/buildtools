@@ -37,7 +37,7 @@ set PORTABLETARGETS_PROJECTJSON="%BUILDTOOLS_PACKAGE_DIR%\portableTargets\projec
 echo %MSBUILD_CONTENT_JSON% > "%PORTABLETARGETS_PROJECTJSON%"
 @echo on
 call "%DOTNET_CMD%" restore "%PORTABLETARGETS_PROJECTJSON%" --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json --packages "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\packages"
-#echo off
+@echo off
 Robocopy "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\packages\Microsoft.Portable.Targets\%PORTABLETARGETS_VERSION%\contentFiles\any\any\." "%TOOLRUNTIME_DIR%\." /E
 Robocopy "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\packages\MicroBuild.Core\%MICROBUILD_VERSION%\build\." "%TOOLRUNTIME_DIR%\." /E
 
