@@ -24,16 +24,20 @@ if not exist "%DOTNET_CMD%" (
 
 ROBOCOPY "%BUILDTOOLS_PACKAGE_DIR%\." "%TOOLRUNTIME_DIR%" /E
 
-cd "%BUILDTOOLS_PACKAGE_DIR%\tool-runtime\"
-call "%DOTNET_CMD%" restore --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json
-call "%DOTNET_CMD%" publish -f dnxcore50 -r %BUILDTOOLS_TARGET_RUNTIME% -o "%TOOLRUNTIME_DIR%"
-call "%DOTNET_CMD%" publish -f net45 -r %BUILDTOOLS_NET45_TARGET_RUNTIME% -o "%TOOLRUNTIME_DIR%\net45"
+set TOOLRUNTIME_PROJECTJSON=%BUILDTOOLS_PACKAGE_DIR%\tool-runtime\project.json
+@echo on
+call "%DOTNET_CMD%" restore "%TOOLRUNTIME_PROJECTJSON%" --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json
+call "%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECTJSON%" -f dnxcore50 -r %BUILDTOOLS_TARGET_RUNTIME% -o "%TOOLRUNTIME_DIR%"
+call "%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECTJSON%" -f net45 -r %BUILDTOOLS_NET45_TARGET_RUNTIME% -o "%TOOLRUNTIME_DIR%\net45"
+@echo off
 
 :: Copy Portable Targets Over to ToolRuntime
 if not exist "%BUILDTOOLS_PACKAGE_DIR%\portableTargets" mkdir "%BUILDTOOLS_PACKAGE_DIR%\portableTargets"
-echo %MSBUILD_CONTENT_JSON% > "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\project.json"
-cd "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\"
-call "%DOTNET_CMD%" restore --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json --packages "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\packages"
+set PORTABLETARGETS_PROJECTJSON="%BUILDTOOLS_PACKAGE_DIR%\portableTargets\project.json"
+echo %MSBUILD_CONTENT_JSON% > "%PORTABLETARGETS_PROJECTJSON%"
+@echo on
+call "%DOTNET_CMD%" restore "%PORTABLETARGETS_PROJECTJSON%" --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json --packages "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\packages"
+@echo off
 Robocopy "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\packages\Microsoft.Portable.Targets\%PORTABLETARGETS_VERSION%\contentFiles\any\any\." "%TOOLRUNTIME_DIR%\." /E
 Robocopy "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\packages\MicroBuild.Core\%MICROBUILD_VERSION%\build\." "%TOOLRUNTIME_DIR%\." /E
 
