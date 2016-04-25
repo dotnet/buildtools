@@ -71,6 +71,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             set;
         }
 
+        public bool PackPrefixedSymbolPackage
+        {
+            get;
+            set;
+        }
+
         public ITaskItem[] AdditionalLibPackageExcludes
         {
             get;
@@ -87,6 +93,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// If set, the symbol package is placed in the given directory. Otherwise OutputDirectory is used.
         /// </summary>
         public string SymbolPackageOutputDirectory
+        {
+            get;
+            set;
+        }
+
+        public string PrefixedSymbolPackageOutputDirectory
         {
             get;
             set;
@@ -125,14 +137,18 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                 if (PackSymbolPackage)
                 {
-                    Pack(nuspecPath, true);
+                    Pack(nuspecPath, true, SymbolPackageOutputDirectory);
+                }
+                if (PackPrefixedSymbolPackage)
+                {
+                    Pack(nuspecPath, true, PrefixedSymbolPackageOutputDirectory, "symbols.");
                 }
             }
 
             return !Log.HasLoggedErrors;
         }
 
-        public void Pack(string nuspecPath, bool packSymbols)
+        public void Pack(string nuspecPath, bool packSymbols, string customOutputDirectory = null, string idPrefix = null)
         {
             try
             {
@@ -145,6 +161,11 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     builder.Populate(manifest.Metadata);
                     builder.PopulateFiles(baseDirectoryPath, manifest.Files);
 
+                    if (!string.IsNullOrEmpty(idPrefix))
+                    {
+                        builder.Id = idPrefix + builder.Id;
+                    }
+
                     PathResolver.FilterPackageFiles(
                         builder.Files,
                         file => file.Path,
@@ -154,9 +175,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 if (packSymbols)
                 {
                     // Symbol packages are only valid if they contain both symbols and sources.
+                    // Normalize the path because PackageLibs.targets may have added "src\".
                     Dictionary<string, bool> pathHasMatches = LibPackageExcludes.ToDictionary(
                         path => path,
-                        path => PathResolver.GetMatches(builder.Files, file => file.Path, new[] { path }).Any());
+                        path => PathResolver.GetMatches(
+                            builder.Files,
+                            file => file.Path.Replace('\\', Path.DirectorySeparatorChar),
+                            new[] { path }).Any());
 
                     if (!pathHasMatches.Values.Any(i => i))
                     {
@@ -199,11 +224,10 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     return;
                 }
 
-                string nupkgOutputDirectory = OutputDirectory;
-
-                if (packSymbols && !string.IsNullOrEmpty(SymbolPackageOutputDirectory))
+                string nupkgOutputDirectory = customOutputDirectory;
+                if (string.IsNullOrEmpty(customOutputDirectory))
                 {
-                    nupkgOutputDirectory = SymbolPackageOutputDirectory;
+                    nupkgOutputDirectory = OutputDirectory;
                 }
 
                 string nupkgExtension = packSymbols ? ".symbols.nupkg" : ".nupkg";
