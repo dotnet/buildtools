@@ -96,7 +96,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public bool SetVersionAndRevisionFromBuildId(string buildId)
         {
-            Regex regex = new Regex(@"(\d{8})\.(\d+)$");
+            Regex regex = new Regex(@"(\d{8})[\-\.](\d+)$");
             string dateFormat = "yyyyMMdd";
             Match match = regex.Match(buildId);
             if (match.Success && match.Groups.Count > 2)
