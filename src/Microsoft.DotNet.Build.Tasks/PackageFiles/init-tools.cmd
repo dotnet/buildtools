@@ -4,6 +4,10 @@ setlocal
 set PROJECT_DIR=%~1
 set DOTNET_CMD=%~2
 set TOOLRUNTIME_DIR=%~3
+set PACKAGES_DIR=%4
+if [%PACKAGES_DIR%] == [] set PACKAGES_DIR=%TOOLRUNTIME_DIR%
+:: Remove quotes to the packages directory
+set PACKAGES_DIR=%PACKAGES_DIR:"=%
 IF [%BUILDTOOLS_TARGET_RUNTIME%]==[] set BUILDTOOLS_TARGET_RUNTIME=win7-x64
 IF [%BUILDTOOLS_NET45_TARGET_RUNTIME%]==[] set BUILDTOOLS_NET45_TARGET_RUNTIME=win7-x86
 set BUILDTOOLS_PACKAGE_DIR=%~dp0
@@ -32,16 +36,16 @@ call "%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECTJSON%" -f net45 -r %BUILDTOOLS_
 @echo off
 
 :: Copy Portable Targets Over to ToolRuntime
-if not exist "%BUILDTOOLS_PACKAGE_DIR%\portableTargets" mkdir "%BUILDTOOLS_PACKAGE_DIR%\portableTargets"
-set PORTABLETARGETS_PROJECTJSON="%BUILDTOOLS_PACKAGE_DIR%\portableTargets\project.json"
+if not exist "%PACKAGES_DIR%\generated" mkdir "%PACKAGES_DIR%\generated"
+set PORTABLETARGETS_PROJECTJSON=%PACKAGES_DIR%\generated\project.json
 echo %MSBUILD_CONTENT_JSON% > "%PORTABLETARGETS_PROJECTJSON%"
 @echo on
-call "%DOTNET_CMD%" restore "%PORTABLETARGETS_PROJECTJSON%" --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json --packages "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\packages"
+call "%DOTNET_CMD%" restore "%PORTABLETARGETS_PROJECTJSON%" --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json --packages "%PACKAGES_DIR%\."
 @echo off
-Robocopy "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\packages\Microsoft.Portable.Targets\%PORTABLETARGETS_VERSION%\contentFiles\any\any\." "%TOOLRUNTIME_DIR%\." /E
-Robocopy "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\packages\MicroBuild.Core\%MICROBUILD_VERSION%\build\." "%TOOLRUNTIME_DIR%\." /E
+Robocopy "%PACKAGES_DIR%\Microsoft.Portable.Targets\%PORTABLETARGETS_VERSION%\contentFiles\any\any\." "%TOOLRUNTIME_DIR%\." /E
+Robocopy "%PACKAGES_DIR%\MicroBuild.Core\%MICROBUILD_VERSION%\build\." "%TOOLRUNTIME_DIR%\." /E
 
 :: Copy Roslyn Compilers Over to ToolRuntime
-Robocopy "%BUILDTOOLS_PACKAGE_DIR%\portableTargets\packages\Microsoft.Net.Compilers\%ROSLYNCOMPILERS_VERSION%\." "%TOOLRUNTIME_DIR%\net45\roslyn\." /E
+Robocopy "%PACKAGES_DIR%\Microsoft.Net.Compilers\%ROSLYNCOMPILERS_VERSION%\." "%TOOLRUNTIME_DIR%\net45\roslyn\." /E
 
 exit /b %ERRORLEVEL%
