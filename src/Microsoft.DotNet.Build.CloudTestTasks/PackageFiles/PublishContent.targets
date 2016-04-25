@@ -25,9 +25,7 @@
     <CreateAzureContainer
       AccountKey="$(CloudDropAccessToken)"
       AccountName="$(CloudDropAccountName)"
-      ContainerName="$(ContainerName)"
-      WriteOnlyTokenDaysValid="1"
-      ReadOnlyTokenDaysValid="1" />
+      ContainerName="$(ContainerName)" />
     <!-- add relative blob path metadata -->
     <ItemGroup>
       <ForPublishing>
