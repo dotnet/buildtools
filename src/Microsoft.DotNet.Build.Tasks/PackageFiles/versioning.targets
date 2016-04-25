@@ -233,17 +233,20 @@
 
   <Target Name="GenerateBuiltByString" Condition="'$(BuiltByString)'==''">
 
-    <!-- If building on Windows, default BuiltByString to use Computername and username -->
-    <BuiltByString Condition="'$(OSEnvironment)'=='Windows_NT'">%20built by: $(COMPUTERNAME)-$(USERNAME)</BuiltByString>
+    <PropertyGroup>
+      <VersionUserName Condition="'$(VersionUserName)'==''">$(USERNAME)</VersionUserName>
+      <VersionHostName Condition="'$(VersionHostName)'==''">$(COMPUTERNAME)</VersionHostName>
+    </PropertyGroup>
 
-    <Exec Command="whoami" Condition="'$(OSEnvironment)'!='Windows_NT'" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
+    <Exec Command="whoami" Condition="'$(OSEnvironment)'!='Windows_NT' AND '$(VersionUserName)'==''" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="VersionUserName" />
     </Exec>
-    <Exec Command="hostname" Condition="'$(OSEnvironment)'!='Windows_NT'" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
+    <Exec Command="hostname" Condition="'$(OSEnvironment)'!='Windows_NT' AND '$(VersionHostName)'==''" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="VersionHostName" />
     </Exec>
-    <PropertyGroup Condition="'$(BuiltByString)'==''">
-      <BuiltByString>%20built by: $(VersionUserName)-$(VersionHostName)</BuiltByString>
+
+    <PropertyGroup>
+      <BuiltByString Condition="'$(BuiltByString)'==''">%20built by: $(VersionUserName)-$(VersionHostName)</BuiltByString>
     </PropertyGroup>
   </Target>
 
