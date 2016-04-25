@@ -2,8 +2,6 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <IsReferenceAssembly Condition="'$(IsReferenceAssembly)'=='' AND ($(MSBuildProjectFullPath.Contains('\ref\')) OR $(MSBuildProjectFullPath.Contains('/ref/')))">true</IsReferenceAssembly>
-
     <!-- The first two parts of the assembly version represent API version, 
          the third part is for bugfixes, the fourth is for hotfixes/securtity-updates -->
     <APIVersion>$([System.Version]::Parse('$(AssemblyVersion)').ToString(2))</APIVersion>

@@ -3,4 +3,13 @@
      This file will contain all of the common properties from most repos. The intention is to only have 
      repo specific properties inside the repos, and move to this file everything that is common.
   -->
+
+  <!--
+    Import the reference assembly props
+    
+      Sets Properties:
+        IsReferenceAssembly - Set if the project is in the ref assm path
+  -->
+  <Import Project="$(MSBuildThisFileDirectory)ReferenceAssemblies.props" Condition="'$(ExcludeReferenceAssembliesImport)'!='true'" />
+
 </Project>
