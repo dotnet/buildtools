@@ -73,10 +73,12 @@
       <XmlDocFile Remove="@(XmlDocFile)" Condition="!Exists('%(XmlDocFile.Identity)')"/>
     </ItemGroup>
 
-    <!-- Desktop libraries that contain types in classic assemblies need to be included in ref
-         so that the types unify with the classic assemblies from the targeting pack. -->
     <PropertyGroup>
-      <PackageAsRefAndLib Condition="'$(PackageAsRefAndLib)' == '' AND '$(IsPartialFacadeAssembly)' == 'true' AND $(PackageTargetFramework.StartsWith('net4', StringComparison.OrdinalIgnoreCase))">true</PackageAsRefAndLib>
+      <IsNetFxLibrary Condition="'$(IsNetFxLibrary)' == '' AND $(PackageTargetFramework.StartsWith('net4', StringComparison.OrdinalIgnoreCase))">true</IsNetFxLibrary>
+      
+      <!-- Desktop libraries that contain types in classic assemblies need to be included in ref
+         so that the types unify with the classic assemblies from the targeting pack. -->
+      <PackageAsRefAndLib Condition="'$(PackageAsRefAndLib)' == '' AND '$(IsPartialFacadeAssembly)' == 'true' AND '$(IsNetFxLibrary)' == 'true'">true</PackageAsRefAndLib>
 
       <!-- A reference asset is any file contributed from a project that is contributing a reference,
            not just the file in the ref folder. -->
@@ -84,7 +86,7 @@
       <IsReferenceAsset Condition="'$(IsReferenceAssembly)' == 'true' OR '$(PackageAsRefAndLib)' == 'true'">true</IsReferenceAsset>
     </PropertyGroup>
 
-    <Error Condition="'$(IsReferenceAsset)' == 'true' AND '$(PackageTargetRuntime)' != ''"
+    <Error Condition="'$(IsReferenceAsset)' == 'true' AND '$(PackageAsRefAndLib)' != 'true' AND '$(PackageTargetRuntime)' != ''"
            Text="Reference assemblies should not specify the PackageTargetRuntime property since runtimes cannot effect compile time assets."/>
 
     <!-- PackageTargetRuntime Defaults -->
@@ -114,6 +116,12 @@
       <PackageDestination Include="$(PackageTargetPath)">
         <TargetFramework Condition="'$(PackageTargetFramework)' != ''">$(PackageTargetFramework)</TargetFramework>
       </PackageDestination>
+      
+      <!-- RID-specific desktop libraries should also be packaged without a RID to work in packages.config projects -->
+      <PackageDestination Condition="'$(IsNetFxLibrary)' == 'true' AND '$(PackageTargetRuntime)' != '' AND '$(ExludeNetFxLibraryFromLib)' != 'true'" Include="lib/$(PackageTargetFramework)">
+        <TargetFramework>$(PackageTargetFramework)</TargetFramework>
+      </PackageDestination>
+      
       <PackageDestination Condition="'$(PackageAsRefAndLib)' == 'true'" Include="ref/$(PackageTargetFramework)">
         <TargetFramework>$(PackageTargetFramework)</TargetFramework>
       </PackageDestination>
