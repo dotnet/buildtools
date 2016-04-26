@@ -1,0 +1,26 @@
+{
+  "dependencies": {
+    "Microsoft.NETCore.TestHost": "1.0.0-rc2-23923",
+    "Microsoft.NETCore.Console": "1.0.0-rc2-23923",
+      "Microsoft.NETCore.Platforms": "1.0.1-rc2-23923",
+      "Microsoft.NETCore.Runtime": "1.0.2-rc2-23923",
+    "Newtonsoft.Json": "7.0.1"
+  },
+  "compilationOptions": {
+    "emitEntryPoint": true
+  },
+  "frameworks": {
+    "dnxcore50": {
+      "imports": "portable-net45+win8"
+    }
+  },
+  "runtimes": {
+    "win7-x64": {},
+    "win7-x86": {},
+    "ubuntu.14.04-x64": {},
+    "osx.10.10-x64": {},
+    "centos.7-x64": {},
+    "rhel.7-x64": {},
+    "debian.8.2-x64": {}
+  }
+}

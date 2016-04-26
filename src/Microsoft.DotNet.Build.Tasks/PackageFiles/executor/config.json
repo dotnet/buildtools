@@ -1,0 +1,126 @@
+﻿{
+  "properties": {
+    "OSGroup": {
+      "explanation": "Target OS for result binaries.",
+      "type": "property",
+      "values": "Windows_NT, Linux, OSX, FreeBSD, NetBSD",
+      "default": "Windows_NT"
+     },
+    "RestoreDuringBuild": {
+      "explanation": "Enables/Disables the restoration of packages.",
+      "type": "property",
+      "values": "True, False",
+      "default": true
+    },
+    "BuildTests": {
+      "explanation": "Enables/Disables building tests against the product binaries.",
+      "type": "property",
+      "values": "True, False",
+      "default": true
+    },
+    "BuildPackages": {
+      "explanation": "Enables/Disables building packages.", 
+      "type": "property",
+      "values": "True, False",
+      "default": true
+    },
+    "BuildTestsAgainstPackages": {
+      "explanation": "Allows to build tests against product packages.",
+      "type": "property",
+      "values": "True, False",
+      "default": false
+    },
+    "BatchRestorePackages": {
+      "explanation": "MsBuild target that restores the packages.",
+      "type": "target",
+      "values": "",
+      "default": ""
+    },
+    "BatchGenerateTestProjectJsons": {
+      "explanation": "MsBuild target that generates the project Jsons files to build tests against packages.",
+      "type": "target",
+      "values": "",
+      "default": ""
+    }
+  },
+  "commands": {
+    "simple": {
+      "explanation": "Only builds managed product binaries. It doesn't restore packages.",
+      "processName": "msbuild",
+      "project": "build.proj",
+      "extraCommands": "",
+      "property": {
+        "RestoreDuringBuild": false,
+        "BuildTests": false,
+        "BuildPackages": false
+      }
+    },
+    "complete": {
+      "explanation": "Restores packages, builds product and test binaries, runs the tests and builds product packages",
+      "processName": "msbuild",
+      "project": "build.proj",
+      "extraCommands": "",
+      "property": {
+        "RestoreDuringBuild": "",
+        "BuildTests": "",
+        "BuildPackages": ""
+      }
+    },
+    "testAgainstPackages": {
+      "explanation": "Generates project.jsons for test projects, restores packages, builds product and then builds tests against the generated project.json files.",
+      "processName": "msbuild",
+      "project": "build.proj",
+      "extraCommands": "",
+      "property": {
+        "RestoreDuringBuild":  true,
+        "BuildTestsAgainstPackages": true,
+        "BatchRestorePackages": "",
+        "BatchGenerateTestProjectJsons":  ""
+      }
+    },
+    "native": {
+      "explanation": "Builds native libraries.",
+      "processName": "cmake",
+      "project": "",
+      "extraCommands": "",
+      "property": {}
+    },
+    "managed": {
+      "explanation": "Only builds managed product binaries. It doesn't restore packages.",
+      "processName": "msbuild",
+      "project": "build.proj",
+      "extraCommands": "complete",
+      "property": {}
+    },
+    "all": {
+      "explanation": "Restores packages, builds product and test binaries, runs the tests and builds product packages.",
+      "processName": "msbuild",
+      "project": "build.proj",
+      "extraCommands": "native, managed",
+      "property": {}
+    }
+  },
+  "processes": {
+    "msbuild": {
+      "run": {
+        "windows": "msbuild.exe",
+        "non-windows": "..\\corerun.exe ..\\msbuild.exe"
+      },
+      "types": {
+        "property": "/p:{name}={value}",
+        "target": "/t:{name}",
+        "internal": "/{name}"
+      }
+    },
+    "cmake": {
+      "run": {
+        "windows": "cmake.exe",
+        "non-windows": "cmake.exe"
+      },
+      "types": {
+        "property": "",
+        "internal": ""
+      }
+    }
+  }
+}
