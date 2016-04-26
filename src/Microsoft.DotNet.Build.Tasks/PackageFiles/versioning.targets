@@ -26,7 +26,6 @@
 
   <PropertyGroup>
     <GenerateAssemblyInfo Condition="'$(GenerateAssemblyInfo)'==''">true</GenerateAssemblyInfo>
-    <BuiltByString Condition="'$(BuiltByString)'==''">%20built by: $(COMPUTERNAME)-$(USERNAME)</BuiltByString>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(GenerateAssemblyInfo)'=='true'">
@@ -178,7 +177,7 @@
 
     <ItemGroup>
       <SourceFileLines />
-      <SourceFileLines Include="static char sccsid%5B%5D %5F%5Fattribute%5F%5F%28%28used%29%29 %3D %22%40%28%23%29Version $(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)%22%3B" />
+      <SourceFileLines Include="static char sccsid%5B%5D %5F%5Fattribute%5F%5F%28%28used%29%29 %3D %22%40%28%23%29Version $(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)$(BuiltByString)%22%3B" />
       <!-- Since this is a source file, compiler will complain if there is no new line at end of file, so adding one bellow. -->
       <SourceFileLines Include=" " />
     </ItemGroup>
@@ -196,7 +195,7 @@
   <!-- #################################### -->
   <!-- Generate BuildVersion.props -->
   <!-- #################################### -->
-  <Target Name="CreateOrUpdateCurrentVersionFile" Condition="'$(SkipVersionGeneration)'!='true'" DependsOnTargets="GenerateCurrentVersion">
+  <Target Name="CreateOrUpdateCurrentVersionFile" Condition="'$(SkipVersionGeneration)'!='true'" DependsOnTargets="GenerateCurrentVersion;GenerateBuiltByString">
     <!-- Error out if GeneratedBuildNumberMajor is empty since GenerateCurrentVersion should have calculated it already. -->
     <Error Condition="'$(GeneratedBuildNumberMajor)'==''" Text="Error when generating current version." />
 
@@ -230,7 +229,25 @@
       <OldBuildVersionFiles Include="$(BuildVersionFilePath)BuildVersions-*.props" Exclude="$(BuildVersionFilePath)%(BuildVersionFileItem.Filename).props" />
     </ItemGroup>
     <Delete Files="@(OldBuildVersionFiles)" TreatErrorsAsWarnings="true"/>
+  </Target>
 
+  <Target Name="GenerateBuiltByString" Condition="'$(BuiltByString)'==''">
+
+    <PropertyGroup>
+      <VersionUserName Condition="'$(VersionUserName)'==''">$(USERNAME)</VersionUserName>
+      <VersionHostName Condition="'$(VersionHostName)'==''">$(COMPUTERNAME)</VersionHostName>
+    </PropertyGroup>
+
+    <Exec Command="whoami" Condition="'$(OSEnvironment)'!='Windows_NT' AND '$(VersionUserName)'==''" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="VersionUserName" />
+    </Exec>
+    <Exec Command="hostname" Condition="'$(OSEnvironment)'!='Windows_NT' AND '$(VersionHostName)'==''" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="VersionHostName" />
+    </Exec>
+
+    <PropertyGroup>
+      <BuiltByString Condition="'$(BuiltByString)'==''">%20built by: $(VersionUserName)-$(VersionHostName)</BuiltByString>
+    </PropertyGroup>
   </Target>
 
   <Target Name="GenerateCurrentVersion" DependsOnTargets="GetVersionSeedDate">
