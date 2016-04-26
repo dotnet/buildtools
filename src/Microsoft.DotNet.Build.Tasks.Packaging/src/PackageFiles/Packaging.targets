@@ -999,15 +999,11 @@
                PrefixedSymbolPackageOutputDirectory="$(PrefixedSymbolPackageOutputPath)"
                AdditionalLibPackageExcludes="@(AdditionalLibPackageExcludes)"
                AdditionalSymbolPackageExcludes="@(AdditionalSymbolPackageExcludes)"
-               Condition="'$(_SkipCreatePackage)' != 'true'"/>
+               Condition="'$(_SkipCreatePackage)' != 'true'">
+      <Output TaskParameter="PackagesCreated" ItemName="OutputPackagePath" />
+    </NugetPack>
 
     <!-- Create markers that record the paths to the generated packages -->
-    <ItemGroup>
-      <OutputPackagePath Include="$(PackageOutputPath)$(Id).$(Version).nupkg" />
-      <OutputPackagePath Include="$(SymbolPackageOutputPath)$(Id).$(Version).symbols.nupkg" />
-      <OutputPackagePath Include="$(PrefixedSymbolPackageOutputPath)symbols.$(Id).$(Version).symbols.nupkg" />
-    </ItemGroup>
-
     <WriteLinesToFile Lines="@(OutputPackagePath)"
                       File="$(NuSpecPath).pkgpath"
                       Overwrite="true"
