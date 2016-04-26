@@ -131,32 +131,37 @@
       Condition="'$(NativeVersionHeaderFile)'!='' and '$(GenerateVersionHeader)'=='true'">
 
     <ItemGroup>
-      <!-- Some of these variables might be defined by macros, so undefine them first to avoid build warnings. -->
-      <NativeVersionLines Include="#undef VER_COMPANYNAME_STR" />
-      <NativeVersionLines Include="#undef VER_FILEDESCRIPTION_STR" />
-      <NativeVersionLines Include="#undef VER_INTERNALNAME_STR" />
-      <NativeVersionLines Include="#undef VER_ORIGINALFILENAME_STR" />
-      <NativeVersionLines Include="#undef VER_PRODUCTNAME_STR" />
-      <NativeVersionLines Include="#undef VER_PRODUCTVERSION" />
-      <NativeVersionLines Include="#undef VER_PRODUCTVERSION_STR" />
-      <NativeVersionLines Include="#undef VER_FILEVERSION" />
-      <NativeVersionLines Include="#undef VER_FILEVERSION_STR" />
-      <NativeVersionLines Include="#undef VER_LEGALCOPYRIGHT_STR" />
-      <NativeVersionLines Include="#undef VER_DEBUG" />
-
       <!-- Defining versioning variables -->
+      <NativeVersionLines Include="#ifndef VER_COMPANYNAME_STR" />
       <NativeVersionLines Include="#define VER_COMPANYNAME_STR         &quot;Microsoft Corporation&quot;" />
+      <NativeVersionLines Include="#endif" />
+      <NativeVersionLines Include="#ifndef VER_FILEDESCRIPTION_STR" />
       <NativeVersionLines Include="#define VER_FILEDESCRIPTION_STR     &quot;$(AssemblyName)&quot;" />
+      <NativeVersionLines Include="#endif" />
+      <NativeVersionLines Include="#ifndef VER_INTERNALNAME_STR" />
       <NativeVersionLines Include="#define VER_INTERNALNAME_STR        VER_FILEDESCRIPTION_STR" />
+      <NativeVersionLines Include="#endif" />
+      <NativeVersionLines Include="#ifndef VER_ORIGINALFILENAME_STR" />
       <NativeVersionLines Include="#define VER_ORIGINALFILENAME_STR    VER_FILEDESCRIPTION_STR" />
+      <NativeVersionLines Include="#endif" />
+      <NativeVersionLines Include="#ifndef VER_PRODUCTNAME_STR" />
       <NativeVersionLines Include="#define VER_PRODUCTNAME_STR         &quot;Microsoft\xae .NET Framework&quot;" />
+      <NativeVersionLines Include="#endif" />
+      <NativeVersionLines Include="#undef VER_PRODUCTVERSION" />
       <NativeVersionLines Include="#define VER_PRODUCTVERSION          $(MajorVersion),$(MinorVersion),$(BuildNumberMajor),$(BuildNumberMinor)" />
+      <NativeVersionLines Include="#undef VER_PRODUCTVERSION_STR" />
       <NativeVersionLines Include="#define VER_PRODUCTVERSION_STR      &quot;$(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)$(BuiltByString)&quot;" />
+      <NativeVersionLines Include="#undef VER_FILEVERSION" />
       <NativeVersionLines Include="#define VER_FILEVERSION             $(MajorVersion),$(MinorVersion),$(BuildNumberMajor),$(BuildNumberMinor)" />
+      <NativeVersionLines Include="#undef VER_FILEVERSION_STR" />
       <NativeVersionLines Include="#define VER_FILEVERSION_STR         &quot;$(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)$(BuiltByString)&quot;" />
+      <NativeVersionLines Include="#ifndef VER_LEGALCOPYRIGHT_STR" />
       <NativeVersionLines Include="#define VER_LEGALCOPYRIGHT_STR      &quot;\xa9 Microsoft Corporation.  All rights reserved.&quot;" />
+      <NativeVersionLines Include="#endif" />
+      <NativeVersionLines Include="#ifndef VER_DEBUG" />
       <NativeVersionLines Condition="'$(Configuration)'=='Debug'" Include="#define VER_DEBUG                   VS_FF_DEBUG" />
       <NativeVersionLines Condition="'$(Configuration)'!='Debug'" Include="#define VER_DEBUG                   0" />
+      <NativeVersionLines Include="#endif" />
     </ItemGroup>
 
     <WriteLinesToFile
