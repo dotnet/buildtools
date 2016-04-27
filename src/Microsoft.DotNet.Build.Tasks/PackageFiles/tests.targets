@@ -69,6 +69,8 @@
   <!-- General xunit options -->
   <PropertyGroup>
     <XunitResultsFileName>testResults.xml</XunitResultsFileName>
+    
+    <XunitOptions Condition="'$(TestWithCore)' != 'true'">$(XunitOptions) -noshadow </XunitOptions>
     <XunitOptions>$(XunitOptions) -xml $(XunitResultsFileName)</XunitOptions>
 
     <XunitOptions Condition="'$(Performance)'!='true'">$(XunitOptions) -notrait Benchmark=true</XunitOptions>
