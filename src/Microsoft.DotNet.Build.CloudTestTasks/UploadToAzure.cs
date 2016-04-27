@@ -87,7 +87,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 ContainerName);
 
             DateTime dt = DateTime.UtcNow;
-            HashSet<string> blobsPresent = new HashSet<string>();
+            HashSet<string> blobsPresent = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             using (HttpClient client = new HttpClient())
             {
@@ -124,9 +124,9 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             {
                 await ThreadingTask.WhenAll(Items.Select(item => UploadAsync(ct, item, blobsPresent)));
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                Log.LogError("Failed to upload to Azure");
+                Log.LogErrorFromException(e,true);
                 return false;
             }
 
