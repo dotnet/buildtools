@@ -89,12 +89,6 @@
     <Error Condition="'$(IsReferenceAsset)' == 'true' AND '$(PackageAsRefAndLib)' != 'true' AND '$(PackageTargetRuntime)' != ''"
            Text="Reference assemblies should not specify the PackageTargetRuntime property since runtimes cannot effect compile time assets."/>
 
-    <!-- PackageTargetRuntime Defaults -->
-    <PropertyGroup Condition="'$(UsePackageTargetRuntimeDefaults)' == 'true' AND '$(PackageTargetRuntime)' == ''">
-      <PackageTargetRuntime Condition=" '$(TargetsWindows)' == 'true'">win7</PackageTargetRuntime>
-      <PackageTargetRuntime Condition="'$(TargetsUnix)' == 'true'">unix</PackageTargetRuntime>
-    </PropertyGroup>
-
     <!-- *** determine destination path for assets *** -->
     <PropertyGroup>
       <_packageTargetRefLib>lib</_packageTargetRefLib>

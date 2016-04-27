@@ -136,7 +136,6 @@
         "System.Net.Requests": "4.0.10.0",
         "System.Net.Sockets": "4.1.0.0",
         "System.Net.WebHeaderCollection": "4.0.0.0",
-        "System.Numerics.Vectors": "4.0.0.0",
         "System.ObjectModel": "4.0.10.0",
         "System.Reflection": "4.0.10.0",
         "System.Runtime": "4.0.20.0",

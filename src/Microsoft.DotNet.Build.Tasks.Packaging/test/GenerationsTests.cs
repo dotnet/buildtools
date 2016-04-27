@@ -67,6 +67,11 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
         {
             FrameworkSet fxs = FrameworkSet.Load("FrameworkLists");
             Version maxVersion = new Version(int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue);
+            HashSet<string> ignoredAssemblies = new HashSet<string>()
+            {
+                // We can OOB vectors to older frameworks
+                "System.Numerics.Vectors"
+            };
 
             foreach (var fxGroup in fxs.Frameworks)
             {
@@ -77,6 +82,11 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
 
                     foreach (var assembly in fx.Assemblies.Where(a => !s_classicAssemblies.Contains(a.Key) && a.Value != maxVersion))
                     {
+                        if (ignoredAssemblies.Contains(assembly.Key))
+                        {
+                            continue;
+                        }
+
                         _log.Reset();
                         Version assmGeneration = _generations.DetermineGenerationFromSeeds(assembly.Key, assembly.Value, _log);
 
