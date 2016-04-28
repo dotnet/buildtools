@@ -2,7 +2,7 @@
   "dependencies": {
     "Microsoft.NETCore.Platforms": "1.0.1-rc2-23923",
     "Newtonsoft.Json": "7.0.1",
-    "NuGet.Client": "3.4.0-rtm-0764",
+    "NuGet.Client": "3.5.0-rc-1220",
     "System.Reflection.Metadata": "1.0.22",
     "System.Runtime.InteropServices.RuntimeInformation": "4.0.0-rc2-23923"
   },
