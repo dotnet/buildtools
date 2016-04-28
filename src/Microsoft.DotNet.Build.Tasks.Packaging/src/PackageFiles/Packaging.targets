@@ -949,7 +949,7 @@
     <PropertyGroup>
       <_VersionWithoutPreRelease>$(Version)</_VersionWithoutPreRelease>
       <_VersionWithoutPreRelease Condition="$(Version.Contains('-'))">$(Version.SubString(0, $(Version.IndexOf('-'))))</_VersionWithoutPreRelease>
-      <BaseLinePropsUpdateMessage Condition="'$(BaseLinePropsFile)' == ''">  Please update '$(BaseLinePropsFile)'.</BaseLinePropsUpdateMessage>
+      <BaseLinePropsUpdateMessage Condition="'$(BaseLinePropsFile)' != ''">  Please update '$(BaseLinePropsFile)'.</BaseLinePropsUpdateMessage>
     </PropertyGroup>
     
     <Error Condition="'$(SkipBaseLineCheck)' != 'true' AND '@(_thisPackageBaseLine)' != '' AND '@(_thisPackageBaseLine->WithMetadataValue('Version', '$(_VersionWithoutPreRelease)'))' == ''"
