@@ -87,7 +87,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 ContainerName);
 
             DateTime dt = DateTime.UtcNow;
-            HashSet<string> blobsPresent = new HashSet<string>();
+            HashSet<string> blobsPresent = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             using (HttpClient client = new HttpClient())
             {
@@ -120,10 +120,17 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                     Log.LogMessage(MessageImportance.Normal, "Received response to check whether Container blobs exist");
                 }
             }
-            await ThreadingTask.WhenAll(Items.Select(item => UploadAsync(ct, item, blobsPresent)));
+            try
+            {
+                await ThreadingTask.WhenAll(Items.Select(item => UploadAsync(ct, item, blobsPresent)));
+            }
+            catch (Exception e)
+            {
+                Log.LogErrorFromException(e,true);
+                return false;
+            }
 
-           Log.LogMessage(MessageImportance.High, "Upload to Azure is complete, a total of {0} items were uploaded.", Items.Length);
-
+            Log.LogMessage(MessageImportance.High, "Upload to Azure is complete, a total of {0} items were uploaded.", Items.Length);
             return true;
         }
 
@@ -155,7 +162,11 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 result = false;
             }
 
-            if (result)
+            if (!result)
+            {
+                throw new Exception ("Task UploadToAzure failed.");
+            }
+            else
             {
                 Log.LogMessage("Uploading {0} to {1}.", item.ItemSpec, ContainerName);
                 UploadClient uploadClient = new UploadClient(Log);
