@@ -212,7 +212,7 @@
   <Target Name="CheckTestPlatforms"
           AfterTargets="Test">
     <GetTargetMachineInfo>
-      <Output TaskParameter="TargetOS" PropertyName="TargetOS" />
+      <Output TaskParameter="TargetOS" PropertyName="TargetOS" Condition="'$(TargetOS)' == ''" />
     </GetTargetMachineInfo>
     <PropertyGroup>
       <TestDisabled Condition="'%(UnsupportedPlatformsItems.Identity)' == '$(TargetOS)'">true</TestDisabled>
