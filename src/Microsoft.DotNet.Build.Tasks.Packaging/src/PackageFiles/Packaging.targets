@@ -817,7 +817,7 @@
 
   <ItemGroup>
     <!-- Default validation frameworks : every framework that supports contracts -->
-    <DefaultValidateFramework Include="netstandardapp1.5">
+    <DefaultValidateFramework Include="netcoreapp1.0">
       <RuntimeIDs>win7-x86;win7-x64;osx.10.11-x64;centos.7.1-x64;ubuntu.14.04-x64;linuxmint.17-x64</RuntimeIDs>
     </DefaultValidateFramework>
 
@@ -949,7 +949,7 @@
     <PropertyGroup>
       <_VersionWithoutPreRelease>$(Version)</_VersionWithoutPreRelease>
       <_VersionWithoutPreRelease Condition="$(Version.Contains('-'))">$(Version.SubString(0, $(Version.IndexOf('-'))))</_VersionWithoutPreRelease>
-      <BaseLinePropsUpdateMessage Condition="'$(BaseLinePropsFile)' == ''">  Please update '$(BaseLinePropsFile)'.</BaseLinePropsUpdateMessage>
+      <BaseLinePropsUpdateMessage Condition="'$(BaseLinePropsFile)' != ''">  Please update '$(BaseLinePropsFile)'.</BaseLinePropsUpdateMessage>
     </PropertyGroup>
     
     <Error Condition="'$(SkipBaseLineCheck)' != 'true' AND '@(_thisPackageBaseLine)' != '' AND '@(_thisPackageBaseLine->WithMetadataValue('Version', '$(_VersionWithoutPreRelease)'))' == ''"

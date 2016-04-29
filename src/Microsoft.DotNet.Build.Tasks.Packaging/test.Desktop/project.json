@@ -2,7 +2,7 @@
   "dependencies": {
     "Microsoft.NETCore.Platforms": "1.0.0",
     "Newtonsoft.Json": "7.0.1",
-    "NuGet.Client": "3.4.0-beta-488",
+    "NuGet.Client": "3.5.0-rc-1220",
     "System.Reflection.Metadata": "1.0.22",
     "xunit": "2.1.0",
     "xunit.runner.visualstudio": "2.1.0"

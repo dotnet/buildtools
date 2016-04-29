@@ -7,7 +7,7 @@
     "System.Net.NetworkInformation": "4.1.0-rc2-23923",
     "Microsoft.NETCore.Platforms": "1.0.1-rc2-23923",
     "Newtonsoft.Json": "7.0.1",
-    "NuGet.Client": "3.4.0-rtm-0764",
+    "NuGet.Client": "3.5.0-rc-1220",
     "System.Dynamic.Runtime": "4.0.11-rc2-23923",
     "xunit": "2.1.0",
     "test-runtime": {
