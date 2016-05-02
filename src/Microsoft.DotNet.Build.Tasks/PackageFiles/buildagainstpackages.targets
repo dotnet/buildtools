@@ -182,6 +182,7 @@
                                   VersionStructureRegex="$(VersionStructureRegex)"
                                   AdditionalDependencies="@(_InjectProjectReferenceDependency)"
                                   ProjectJson="$(OriginalProjectJson)"
+                                  IdentityRegex="$(BuildTestsAgainstPackagesIdentityRegex)"
                                   Frameworks="$(GeneratedTargetGroup)"
                                   OutputProjectJson="$(ProjectJson)" 
                                   PackageBuildNumberOverride="$(PackageBuildNumberOverride)"
