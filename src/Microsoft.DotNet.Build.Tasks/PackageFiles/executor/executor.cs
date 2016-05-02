@@ -1,227 +1,119 @@
-﻿using System;
-using System.IO;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
+using System.IO;
+using Microsoft.Fx.CommandLine;
 
-namespace Executor
+namespace Microsoft.DotNet.Execute
 {
     public class Executor
     {
-        public Setup openFile(string filePath)
+        //the path depends on where the executor ends up living...
+        public string configFile = @"config.json";
+        public Dictionary<string, string> SettingParameters { get; set; }
+        public Dictionary<string, string> CommandParameters { get; set; }
+        
+        public Executor()
         {
-            string jsonFile = string.Empty;
-            if (File.Exists(filePath))
+            SettingParameters = new Dictionary<string, string>();
+            CommandParameters = new Dictionary<string, string>();
+        }
+
+        public Setup OpenFile()
+        {
+            if (File.Exists(configFile))
             {
-                jsonFile = File.ReadAllText(filePath);
+                string jsonFile = File.ReadAllText(configFile);
                 Setup jsonSetup = JsonConvert.DeserializeObject<Setup>(jsonFile);
                 return jsonSetup;
             }
             return null;
         }
 
-        public void usage()
+        public void DefineParameters(string[] args, Setup setupInformation)
         {
-            Console.WriteLine("Executor tool");
-            Console.WriteLine("Usage: executor [config file] [command]");
-            Console.WriteLine("  Config file:      json file that contains the properties and the commands to be run. (Required)");
-            Console.WriteLine("Command: [executor command]|[config command]");
-            Console.WriteLine("  Executor command:   Executor tool commands.");
-            Console.WriteLine("         info       Provides information about the executor tool.");
-            Console.WriteLine("         help       Provides information about the content of the config file. ");
-            Console.WriteLine("  Config command:   Config file specific commands.");
-        }
-                
-        public static void Main(string[] args)
-        {
-            int argsLength = args.Length;
-            if (argsLength > 0)
+            CommandLineParser.ParseForConsoleApplication(delegate (CommandLineParser parser)
             {
-                Executor executor = new Executor();
-                Setup jsonSetup = executor.openFile(args[0]);
-                if (jsonSetup != null)
+                //Settings
+                foreach (KeyValuePair<string, Setting> option in setupInformation.Settings)
                 {
-                    //will be passed by executor.cmd/sh? we only need to now if it is in windows or non-windows.
-                    string os = "windows";
-                    //default right now.
-                    string command = "simple";
-                    bool end = false;
-                    for (int i = 1; i < argsLength && !end; i++)
+                    if(!option.Key.Equals("ExtraArguments"))
                     {
-                        switch (args[i])
-                        {
-                            case "info":
-                                executor.usage();
-                                end = true;
-                                break;
-                            case "help":
-                                Console.WriteLine("Usage: build [command]:");
-                                ++i;
-                                if (i < argsLength)
-                                {
-                                    end = true;
-                                    if (args[i].Equals("properties"))
-                                    {
-                                        jsonSetup.ProvideHelpProperties();
-                                    }
-                                    else if (args[i].Equals("commands"))
-                                    {
-                                        jsonSetup.ProvideHelpInstructions(os);
-                                    }
-                                }
-                                if (!end)
-                                {
-                                    jsonSetup.help(os);
-                                    end = true;
-                                }
-                                break;
-                            default:
-                                command = args[i];
-                                break;
-                        }
-                    }
-                    
-                    if(!end)
-                    {
-                        if (jsonSetup.commands.ContainsKey(command))
-                        {
-                            Console.WriteLine(jsonSetup.buildCommand(jsonSetup.commands[command], os));
-                        }
-                        else
-                        {
-                            Console.WriteLine(string.Format("Error: Command {0} not found.", command));
-                            jsonSetup.help(os);
-                        }
+                        string temp = "";
+                        parser.DefineOptionalQualifier(option.Key, ref temp, option.Value.Description);
+                        SettingParameters[option.Key] = temp;
                     }
                 }
-                else
+
+                //Optional project value
+                string project = "";
+                parser.DefineOptionalQualifier("project", ref project, "Project where the commands are going to be applied.");
+                SettingParameters["project"] = project;
+
+                //Commands
+                foreach (KeyValuePair<string, Command> comm in setupInformation.Commands)
                 {
-                    Console.WriteLine("Error: Could not load Json configuration file.");
+                    bool temp = false;
+                    parser.DefineOptionalQualifier(comm.Key, ref temp, comm.Value.Description);
+                    CommandParameters[comm.Key] = temp.ToString();
                 }
-            }
-            else
-            {
-                Console.WriteLine("Error: Json configuration file should be provided.");
-            }
-        }
-    }
 
-    public class Setup
-    {
-        public Dictionary<string, Dictionary<string, string>> properties { get; set; }
-        public Dictionary<string, Command> commands { get; set; }
-        public Dictionary<string, Process> processes { get; set; }
-
-        public void ProvideHelpInstructions(string os)
-        {
-            Console.WriteLine("========Commands========");
-
-            foreach (KeyValuePair<string, Command> instr in commands)
-            {
-                Console.WriteLine(string.Format("* {0} - {1}", instr.Key, instr.Value.explanation));
-                Console.WriteLine(string.Format("    The value is: {0}", buildCommand(instr.Value, os)));
-            }
-        }
-
-        public void ProvideHelpProperties()
-        {
-            Console.WriteLine("========Properties========");
-
-            foreach (KeyValuePair<string, Dictionary<string, string> > property in properties)
-            {
-                Console.WriteLine(string.Format("* {0} - {1}", property.Key, property.Value["explanation"]));
-                if(property.Value["values"] != string.Empty)
+                //extra arguments
+                //TODO: when something that is passed with ExtraArguments has a '/' the parser tool would print an error.
+                //It still works, but in the future we would like to aviod this by changing the parsing tool code.
+                if (!args[0].Equals("-?"))
                 {
-                    Console.WriteLine(string.Format("    The values for this property are: {0}", property.Value["values"]));
+                    string[] extraArguments = null;
+                    parser.DefineOptionalParameter("ExtraArguments", ref extraArguments, "Extra parameters will be passed to the selected command.");
+                    if(extraArguments.Length>0)
+                    {
+                        string[] temp = new string[extraArguments.Length - 1];
+                        Array.Copy(extraArguments, 1, temp, 0, extraArguments.Length - 1);
+                        SettingParameters["ExtraArguments"] = string.Join(" ", temp);
+                    }
+                    else
+                    {
+                        SettingParameters["ExtraArguments"] = string.Join(" ", extraArguments);
+                    }
                 }
-                if (property.Value["default"] != string.Empty)
-                {
-                    Console.WriteLine(string.Format("    The default value is: {0}", property.Value["default"]));
-                }
-            }
-        }
-
-        public void help(string os)
-        {
-            ProvideHelpProperties();
-            ProvideHelpInstructions(os);
-        }
-
-        private string findPropertyValue(string valueToFind)
-        {
-            if (properties.ContainsKey(valueToFind))
-            {
-                return properties[valueToFind]["default"];
-            }
-            return null;
-        }
-
-        private string findPropertyType(string valueToFind)
-        {
-            if (properties.ContainsKey(valueToFind))
-            {
-                return properties[valueToFind]["type"];
-            }
-            return null;
-        }
-
-        public string buildCommand(Command commandToExecute, string os)
-        {
-            string completeCommand = string.Empty;
-            if(processes.ContainsKey(commandToExecute.processName))
-            {
-                completeCommand = (os.Equals("windows")) ? processes[commandToExecute.processName].run["windows"] : processes[commandToExecute.processName].run["non-windows"];
-                completeCommand += string.Format(" {0}", commandToExecute.project);
-                completeCommand += buildPropertiesForCommand(commandToExecute.property, commandToExecute.processName);
-            }
-            else
-            {
-                Console.WriteLine("Error: The process {0} is not specified in the Json file.", commandToExecute.processName);
-            }
+            }, args);
             
-            return completeCommand;
         }
 
-        public string buildPropertiesForCommand(Dictionary<string, string> propertiesToParse, string processName)
+        public static int Main(string[] args)
         {
-            string commandProperties = string.Empty;
-            foreach(KeyValuePair<string,string> prop in propertiesToParse)
+            Executor executor = new Executor();
+            Setup jsonSetup = executor.OpenFile();
+            if (jsonSetup == null)
             {
-                var value = (prop.Value.Equals(string.Empty)) ? findPropertyValue(prop.Key): prop.Value;
-                if (value!=null)
+                Console.WriteLine("Error: Could not load Json configuration file.");
+                return 1;
+            }
+            else
+            {
+                // RuntimeInformation class to get it.See https://github.com/dotnet/buildtools/blob/master/src/Microsoft.DotNet.Build.Tasks/GetTargetMachineInfo.cs#L40
+                string os = "windows";
+                
+                executor.DefineParameters(args, jsonSetup);
+                
+                foreach (KeyValuePair<string, string> command in executor.CommandParameters)
                 {
-                    commandProperties += string.Format(" {0}",formatProperty(prop.Key, value, findPropertyType(prop.Key), processName));
-                }
-                else
-                {
-                    Console.WriteLine("Error: The property {0} is not specified in the Json file.", prop.Key);
+                    //activated by the user
+                    if (Convert.ToBoolean(command.Value))
+                    {
+                        if(!jsonSetup.BuildCommand(jsonSetup.Commands[command.Key], os, executor.SettingParameters))
+                        {
+                            return 1;
+                        }
+                    }
                 }
             }
-            return commandProperties;
+            return 0;
         }
-
-        public string formatProperty(string property, string value, string type, string processName)
-        {
-            string commandProperty = processes[processName].types[type];
-            commandProperty = commandProperty.Replace("{name}", property).Replace("{value}", value);
-            return commandProperty;
-        }
-
-    }
-
-    public class Command
-    {
-        public string explanation { get; set; }
-        public string processName { get; set; }
-        public string project { get; set; }
-        public string extraCommands { get; set; }
-        public Dictionary<string,string> property { get; set; }
-
-    }
-
-    public class Process
-    {
-        public Dictionary<string, string> run { get; set; }
-        public Dictionary<string, string> types { get; set; }
     }
 }
