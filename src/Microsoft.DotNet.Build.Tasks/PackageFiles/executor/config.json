@@ -1,103 +1,103 @@
 ﻿{
-  "properties": {
+  "settings": {
     "OSGroup": {
-      "explanation": "Target OS for result binaries.",
-      "type": "property",
-      "values": "Windows_NT, Linux, OSX, FreeBSD, NetBSD",
-      "default": "Windows_NT"
+      "description": "Target OS for result binaries.",
+      "valueType": "property",
+      "values": ["Windows_NT", "Linux", "OSX", "FreeBSD", "NetBSD"],
+      "defaultValue": "Windows_NT"
      },
     "RestoreDuringBuild": {
-      "explanation": "Enables/Disables the restoration of packages.",
-      "type": "property",
-      "values": "True, False",
-      "default": true
+      "description": "Enables/Disables the restoration of packages.",
+      "valueType": "property",
+      "values": ["True", "False"],
+      "defaultValue": true
     },
     "BuildTests": {
-      "explanation": "Enables/Disables building tests against the product binaries.",
-      "type": "property",
-      "values": "True, False",
-      "default": true
+      "description": "Enables/Disables building tests against the product binaries.",
+      "valueType": "property",
+      "values": ["True", "False"],
+      "defaultValue": true
     },
     "BuildPackages": {
-      "explanation": "Enables/Disables building packages.", 
-      "type": "property",
-      "values": "True, False",
-      "default": true
+      "description": "Enables/Disables building packages.", 
+      "valueType": "property",
+      "values": ["True", "False"],
+      "defaultValue": true
     },
     "BuildTestsAgainstPackages": {
-      "explanation": "Allows to build tests against product packages.",
-      "type": "property",
-      "values": "True, False",
-      "default": false
+      "description": "Allows to build tests against product packages.",
+      "valueType": "property",
+      "values": ["True", "False"],
+      "defaultValue": false
     },
     "BatchRestorePackages": {
-      "explanation": "MsBuild target that restores the packages.",
-      "type": "target",
-      "values": "",
-      "default": ""
+      "description": "MsBuild target that restores the packages.",
+      "valueType": "target",
+      "values": [],
+      "defaultValue": ""
     },
     "BatchGenerateTestProjectJsons": {
-      "explanation": "MsBuild target that generates the project Jsons files to build tests against packages.",
-      "type": "target",
-      "values": "",
-      "default": ""
+      "description": "MsBuild target that generates the project Jsons files to build tests against packages.",
+      "valueType": "target",
+      "values": [],
+      "defaultValue": ""
+    },
+    "ExtraArguments": {
+      "description": "Doesn't format the setting to a specific tool.",
+      "valueType": "passThrough",
+      "values": [],
+      "defaultValue": ""
     }
   },
   "commands": {
-    "simple": {
-      "explanation": "Only builds managed product binaries. It doesn't restore packages.",
-      "processName": "msbuild",
-      "project": "build.proj",
-      "extraCommands": "",
-      "property": {
+    "default": {
+      "description": "Only builds managed product binaries. It doesn't restore packages.",
+      "toolName": "msbuild",
+      "lockedSettings": {
         "RestoreDuringBuild": false,
         "BuildTests": false,
         "BuildPackages": false
-      }
-    },
-    "complete": {
-      "explanation": "Restores packages, builds product and test binaries, runs the tests and builds product packages",
-      "processName": "msbuild",
-      "project": "build.proj",
-      "extraCommands": "",
-      "property": {
-        "RestoreDuringBuild": "",
-        "BuildTests": "",
-        "BuildPackages": ""
+      },
+      "settings": {
+        "OSGroup": ""
       }
     },
     "testAgainstPackages": {
-      "explanation": "Generates project.jsons for test projects, restores packages, builds product and then builds tests against the generated project.json files.",
-      "processName": "msbuild",
-      "project": "build.proj",
-      "extraCommands": "",
-      "property": {
+      "description": "Generates project.jsons for test projects, restores packages, builds product and then builds tests against the generated project.json files.",
+      "toolName": "msbuild",
+      "lockedSettings": {
         "RestoreDuringBuild":  true,
         "BuildTestsAgainstPackages": true,
-        "BatchRestorePackages": "",
-        "BatchGenerateTestProjectJsons":  ""
+        "BatchRestorePackages": "default",
+        "BatchGenerateTestProjectJsons":  "default"
+      },
+      "settings": {
+        "OSGroup": "default"
       }
     },
     "native": {
-      "explanation": "Builds native libraries.",
-      "processName": "cmake",
-      "project": "",
-      "extraCommands": "",
-      "property": {}
+      "description": "Builds native libraries.",
+      "toolName": "cmake",
+      "lockedSettings": {},
+      "settings": {}
     },
     "managed": {
-      "explanation": "Only builds managed product binaries. It doesn't restore packages.",
-      "processName": "msbuild",
-      "project": "build.proj",
-      "extraCommands": "complete",
-      "property": {}
+      "description": "Restores packages, builds product and test binaries, runs the tests and builds product packages",
+      "toolName": "msbuild",
+      "lockedSettings": {
+        "RestoreDuringBuild": "default",
+        "BuildTests": "default",
+        "BuildPackages": "default"
+      },
+      "settings": {
+        "OSGroup": ""
+      }
     },
     "all": {
-      "explanation": "Restores packages, builds product and test binaries, runs the tests and builds product packages.",
-      "processName": "msbuild",
-      "project": "build.proj",
-      "extraCommands": "native, managed",
-      "property": {}
+      "description": "Restores packages, builds product and test binaries, runs the tests and builds product packages.",
+      "toolName": "msbuild",
+      "lockedSettings": {},
+      "settings": {}
     }
   },
   "processes": {
@@ -106,7 +106,7 @@
         "windows": "msbuild.exe",
         "non-windows": "..\\corerun.exe ..\\msbuild.exe"
       },
-      "types": {
+      "valueTypes": {
         "property": "/p:{name}={value}",
         "target": "/t:{name}",
         "internal": "/{name}"
@@ -117,7 +117,7 @@
         "windows": "cmake.exe",
         "non-windows": "cmake.exe"
       },
-      "types": {
+      "valueTypes": {
         "property": "",
         "internal": ""
       }
