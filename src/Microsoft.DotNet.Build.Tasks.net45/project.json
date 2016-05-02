@@ -4,8 +4,8 @@
     "NuGet.Versioning": "3.5.0-rc-1220",
     "System.Collections.Immutable": "1.1.37",
     "System.Reflection.Metadata": "1.1.0",
-    "Microsoft.NETCore.Platforms": "1.0.1-rc2-23923",
-    "System.Runtime.InteropServices.RuntimeInformation": "4.0.0-rc2-23923"
+    "Microsoft.NETCore.Platforms": "1.0.1-rc2-24027",
+    "System.Runtime.InteropServices.RuntimeInformation": "4.0.0-rc2-24027"
   },
   "frameworks": {
     "net45": {}
