@@ -1,9 +1,9 @@
 {
   "dependencies": {
-    "Microsoft.Cci": "4.0.0-rc2-23923",
-    "System.Console": "4.0.0-rc2-23923",
-    "System.Diagnostics.TextWriterTraceListener": "4.0.0-rc2-23923",
-    "System.Diagnostics.TraceSource": "4.0.0-rc2-23923",
+    "Microsoft.Cci": "4.0.0-rc2-24027",
+    "System.Console": "4.0.0-rc2-24027",
+    "System.Diagnostics.TextWriterTraceListener": "4.0.0-rc2-24027",
+    "System.Diagnostics.TraceSource": "4.0.0-rc2-24027",
     "System.Linq": "4.0.0",
     "System.Reflection": "4.0.10",
     "System.Reflection.Extensions": "4.0.0",
