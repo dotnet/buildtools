@@ -15,12 +15,12 @@
   <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
     <HelixPythonPath>%HELIX_PYTHONPATH%</HelixPythonPath>
     <HelixScriptRoot>%HELIX_SCRIPT_ROOT%\</HelixScriptRoot>
-    <FuncTestRunnerScript>%HELIX_CORRELATION_PAYLOAD%\RunnerScripts\xunitrunner-func\xunitrunner-func.py</FuncTestRunnerScript>
+    <FuncTestRunnerScript>%HELIX_CORRELATION_PAYLOAD%\RunnerScripts\scriptrunner\scriptrunner.py</FuncTestRunnerScript>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
     <HelixPythonPath>$HELIX_PYTHONPATH</HelixPythonPath>
     <HelixScriptRoot>$HELIX_SCRIPT_ROOT/</HelixScriptRoot>
-    <FuncTestRunnerScript>$HELIX_CORRELATION_PAYLOAD/RunnerScripts/xunitrunner-func/xunitrunner-func.py</FuncTestRunnerScript>
+    <FuncTestRunnerScript>$HELIX_CORRELATION_PAYLOAD/RunnerScripts/scriptrunner/scriptrunner.py</FuncTestRunnerScript>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -177,7 +177,8 @@
 
     <ItemGroup>
       <FunctionalTest>
-        <Command>$(HelixPythonPath) $(RunnerScript) --dll %(Filename).dll $(OtherRunnerScriptArgs) -- $(XunitArgs)</Command>
+        <Command Condition="'$(TargetsWindows)' == 'true'">$(HelixPythonPath) $(RunnerScript) --script RunTests.cmd %HELIX_CORRELATION_PAYLOAD% %HELIX_WORKITEM_ROOT%\execution</Command>
+        <Command Condition="'$(TargetsWindows)' != 'true'"> chmod +777 $HELIX_WORKITEM_PAYLOAD/RunTests.sh &amp;&amp; $(HelixPythonPath) $(RunnerScript) --script RunTests.sh $HELIX_CORRELATION_PAYLOAD $HELIX_WORKITEM_ROOT/execution</Command>
         <CorrelationPayloadUris>[$(CorrelationPayloadUris)]</CorrelationPayloadUris>
         <PayloadUri>$(DropUri)$(Platform)$(ConfigurationGroup)/Tests/$([System.String]::Copy('%(RecursiveDir)').Replace('\', '/'))%(Filename)%(Extension)$(DropUriReadOnlyToken)</PayloadUri>
         <WorkItemId>FunctionalTest.%(Filename)</WorkItemId>

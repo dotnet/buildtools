@@ -36,6 +36,9 @@
     <None Include="PackageFiles\**\*.*" />
     <None Include="project.json" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="RunnerScripts\scriptrunner\scriptrunner.py" />
+  </ItemGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
   <Target Name="AfterBuild">
     <ItemGroup>
