@@ -1,7 +1,4 @@
 {
-  "compilationOptions": {
-    "emitEntryPoint": true
-  },
   "frameworks": {
     "dnxcore50": {
       "dependencies": {
