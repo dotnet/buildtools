@@ -30,6 +30,10 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public string BuildNumberOverrideStructureRegex { get; set; }
 
+        // Regex for which packages to update
+        [Required]
+        public string IdentityRegex { get; set; }
+
         // Permit overriding package versions found in project.json with custom build number version.
         public string PackageBuildNumberOverride { get; set; }
 
@@ -43,6 +47,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
         private Regex _versionStructureRegex;
         private Regex _buildNumberOverrideStructureRegex;
+        private Regex _identityRegex;
 
         public override bool Execute()
         {
@@ -74,6 +79,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 return false;
             }
             _versionStructureRegex = new Regex(VersionStructureRegex);
+            _identityRegex = new Regex(IdentityRegex);
 
             // No PackageBuildNumberOverride was specified, so try to find one to associate with our AdditionalDependencies
             PackageBuildNumberOverride = PackageBuildNumberOverride ?? DeriveBuildNumber(projectRoot);
@@ -151,30 +157,39 @@ namespace Microsoft.DotNet.Build.Tasks
                 // Update versions in dependencies
                 foreach (JProperty property in originalDependenciesList.Select(od => od))
                 {
-                    NuGetVersion nuGetVersion;
-                    if (NuGetVersion.TryParse(property.Value.ToString(), out nuGetVersion))
+                    // Validate that the package matches the identity regex for packages we want to update.
+                    Match updateDependency = _identityRegex.Match(property.Name);
+                    if (updateDependency.Success)
                     {
-                        Match m = _versionStructureRegex.Match(nuGetVersion.ToString());
-
-                        if (m.Success)
+                        NuGetVersion nuGetVersion;
+                        if (NuGetVersion.TryParse(property.Value.ToString(), out nuGetVersion))
                         {
-                            NuGetVersion dependencyVersion = nuGetVersion;
-                            nuGetVersion = NuGetVersion.Parse(string.Join(".", dependencyVersion.Major, dependencyVersion.Minor, dependencyVersion.Patch) + "-" + PackageBuildNumberOverride);
+                            Match m = _versionStructureRegex.Match(nuGetVersion.ToString());
+
+                            if (m.Success)
+                            {
+                                NuGetVersion dependencyVersion = nuGetVersion;
+                                nuGetVersion = NuGetVersion.Parse(string.Join(".", dependencyVersion.Major, dependencyVersion.Minor, dependencyVersion.Patch) + "-" + PackageBuildNumberOverride);
+                            }
+                        }
+                        // Only add the original dependency if it wasn't passed as an AdditionalDependency, ie. AdditionalDependencies may override dependencies in project.json
+                        if (AdditionalDependencies.FirstOrDefault(d => d.GetMetadata("Name").Equals(property.Name, StringComparison.OrdinalIgnoreCase)) == null)
+                        {
+                            JProperty addProperty;
+                            if (nuGetVersion != null)
+                            {
+                                addProperty = new JProperty(property.Name, nuGetVersion.ToString());
+                            }
+                            else
+                            {
+                                addProperty = property;
+                            }
+                            returnDependenciesList.Add(addProperty);
                         }
                     }
-                    // Only add the original dependency if it wasn't passed as an AdditionalDependency, ie. AdditionalDependencies may override dependencies in project.json
-                    if (AdditionalDependencies.FirstOrDefault(d => d.GetMetadata("Name").Equals(property.Name, StringComparison.OrdinalIgnoreCase)) == null)
+                    else
                     {
-                        JProperty addProperty;
-                        if (nuGetVersion != null)
-                        {
-                            addProperty = new JProperty(property.Name, nuGetVersion.ToString());
-                        }
-                        else
-                        {
-                            addProperty = property;
-                        }
-                        returnDependenciesList.Add(addProperty);
+                        returnDependenciesList.Add(property);
                     }
                 }
             }
