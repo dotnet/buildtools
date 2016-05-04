@@ -84,7 +84,7 @@
 
     <!-- gather the test archives for upload -->
     <ItemGroup>
-      <ForUpload Include="$(TestArchivesRoot)*.zip" />
+      <ForUpload Include="$(TestArchivesRoot)**/*.zip" />
       <ForUpload Include="$(AnyOSTestArchivesRoot)*.zip" />
       <!-- Only include Unix folders if supported by the current target OS --> 
       <ForUpload Condition="'$(TargetsUnix)' == 'true'" Include="$(UnixTestArchivesRoot)*.zip" />      
@@ -99,7 +99,7 @@
     <!-- add relative blob path metadata -->
     <ItemGroup>
       <ForUpload>
-        <RelativeBlobPath>$(Platform)$(ConfigurationGroup)/Tests/%(Filename)%(Extension)</RelativeBlobPath>
+        <RelativeBlobPath>$(Platform)$(ConfigurationGroup)/Tests/$([System.String]::Copy('%(RecursiveDir)').Replace('\', '/'))%(Filename)%(Extension)</RelativeBlobPath>
       </ForUpload>
     </ItemGroup>
   </Target>
@@ -165,7 +165,7 @@
           Condition="'$(Performance)' != 'true' or '$(FuncTestsDisabled)' != 'true'">
     <!-- create item group of functional tests -->
     <ItemGroup>
-      <FunctionalTest Include="$(TestArchivesRoot)*.zip" />
+      <FunctionalTest Include="$(TestArchivesRoot)**/*.zip" />
       <FunctionalTest Include="$(AnyOSTestArchivesRoot)*.zip" />
       <FunctionalTest Condition="'$(TargetsUnix)' == 'true'" Include="$(UnixTestArchivesRoot)*.zip" />  
     </ItemGroup>
@@ -179,8 +179,9 @@
       <FunctionalTest>
         <Command>$(HelixPythonPath) $(RunnerScript) --dll %(Filename).dll $(OtherRunnerScriptArgs) -- $(XunitArgs)</Command>
         <CorrelationPayloadUris>[$(CorrelationPayloadUris)]</CorrelationPayloadUris>
-        <PayloadUri>$(DropUri)$(Platform)$(ConfigurationGroup)/Tests/%(Filename)%(Extension)$(DropUriReadOnlyToken)</PayloadUri>
+        <PayloadUri>$(DropUri)$(Platform)$(ConfigurationGroup)/Tests/$([System.String]::Copy('%(RecursiveDir)').Replace('\', '/'))%(Filename)%(Extension)$(DropUriReadOnlyToken)</PayloadUri>
         <WorkItemId>FunctionalTest.%(Filename)</WorkItemId>
+        <WorkItemId Condition="'%(RecursiveDir)' != ''">FunctionalTest.%(Filename).$([System.String]::Copy('%(RecursiveDir)').Replace('\', ''))</WorkItemId>
         <TimeoutInSeconds>$(TimeoutInSeconds)</TimeoutInSeconds>
       </FunctionalTest>
     </ItemGroup>
