@@ -220,12 +220,12 @@
   <Target Name="ArchiveTestBuild" AfterTargets="CreateAssemblyListTxt" Condition="'$(ArchiveTests)' == 'true'">
     <PropertyGroup>
       <TestArchiveDir>$(TestWorkingDir)$(OSPlatformConfig)/archive/tests/</TestArchiveDir>
+      <TestArchiveDir Condition="'$(TargetGroup)' != ''">$(TestArchiveDir)$(TargetGroup)/</TestArchiveDir>
       <ProjectJson Condition="!Exists('$(ProjectJson)')">$(OriginalProjectJson)</ProjectJson>
     </PropertyGroup>
     <PropertyGroup Condition="'$(TestProjectName)'==''">
       <TestProjectName>$(MSBuildProjectName)</TestProjectName>
     </PropertyGroup>
-
     <!-- the project json files need to be included in the archive -->
     <Copy SourceFiles="$(ProjectJson);$(ProjectLockJson)" DestinationFolder="$(OutDir)" />
     <MakeDir Directories="$(TestArchiveDir)" />
