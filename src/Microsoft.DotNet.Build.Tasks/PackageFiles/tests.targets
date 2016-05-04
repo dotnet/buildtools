@@ -98,7 +98,7 @@
     <StartWorkingDirectory Condition="'$(StartWorkingDirectory)'==''">$(TestPath)$(DebugTestFrameworkFolder)</StartWorkingDirectory>
     <StartAction Condition="'$(StartAction)'==''">Program</StartAction>
     <StartProgram Condition="'$(StartProgram)'==''">$(TestProgram)</StartProgram>
-    <StartArguments Condition="'$(StartArguments)'==''">$(TestArguments) -wait</StartArguments>
+    <StartArguments Condition="'$(StartArguments)'==''">$(TestArguments) -wait -parallel none</StartArguments>
   </PropertyGroup>
 
   <Target Name="DiscoverTestInputs" DependsOnTargets="ResolveProjectReferences;ResolveAssemblyReferences;GetCopyToOutputDirectoryItems">
