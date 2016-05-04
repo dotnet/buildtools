@@ -161,7 +161,14 @@
       <NativeVersionLines Condition="'$(Configuration)'=='Debug'" Include="#define VER_DEBUG                   VS_FF_DEBUG" />
       <NativeVersionLines Condition="'$(Configuration)'!='Debug'" Include="#define VER_DEBUG                   0" />
       <NativeVersionLines Include="#endif" />
+      <NativeVersionFile Include="$(NativeVersionHeaderFile)" />
     </ItemGroup>
+
+    <PropertyGroup>
+      <NativeVersionFileDir>%(NativeVersionFile.RootDir)%(NativeVersionFile.Directory)</NativeVersionFileDir>
+    </PropertyGroup>
+
+    <MakeDir Condition="!Exists('$(NativeVersionFileDir)')" Directories="$(NativeVersionFileDir)" />
 
     <WriteLinesToFile
       File="$(NativeVersionHeaderFile)"
