@@ -24,7 +24,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <ContainerName Condition="'$(ContainerName)' == ''">$(TestProduct)-$(Branch)-$(BuildMoniker)-$(TargetOS)</ContainerName>
+    <ContainerName Condition="'$(ContainerName)' == ''">$(TestProduct)-$(Branch)-$(BuildMoniker)</ContainerName>
     <ContainerName>$(ContainerName.ToLower())</ContainerName>
     <FuncTestListFilename>FuncTests.$(OSGroup).$(Platform)$(ConfigurationGroup).json</FuncTestListFilename>
     <PerfTestListFilename>PerfTests.$(OSGroup).$(Platform)$(ConfigurationGroup).json</PerfTestListFilename>
