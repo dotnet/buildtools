@@ -116,11 +116,9 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(GenerateNativeVersionInfo)'=='true'">
-    <NativeVersionHeaderFile>$(IntermediateOutputPath)_version.h</NativeVersionHeaderFile>
-    <BeforeResourceCompileTargets>$(BeforeResourceCompileTargets);GenerateVersionHeader</BeforeResourceCompileTargets>
+    <NativeVersionFileDir>$(BaseIntermediateOutputPath)</NativeVersionFileDir>
+    <NativeVersionHeaderFile>$(NativeVersionFileDir)_version.h</NativeVersionHeaderFile>
     <GenerateVersionHeader>true</GenerateVersionHeader>
-    <Win32Resource>$(IntermediateOutputPath)/Native.res</Win32Resource>
-    <CoreCompileDependsOn>$(CoreCompileDependsOn);NativeResourceCompile</CoreCompileDependsOn>
   </PropertyGroup>
 
   <Target Name="GenerateVersionHeader"
@@ -161,12 +159,7 @@
       <NativeVersionLines Condition="'$(Configuration)'=='Debug'" Include="#define VER_DEBUG                   VS_FF_DEBUG" />
       <NativeVersionLines Condition="'$(Configuration)'!='Debug'" Include="#define VER_DEBUG                   0" />
       <NativeVersionLines Include="#endif" />
-      <NativeVersionFile Include="$(NativeVersionHeaderFile)" />
     </ItemGroup>
-
-    <PropertyGroup>
-      <NativeVersionFileDir>%(NativeVersionFile.RootDir)%(NativeVersionFile.Directory)</NativeVersionFileDir>
-    </PropertyGroup>
 
     <MakeDir Condition="!Exists('$(NativeVersionFileDir)')" Directories="$(NativeVersionFileDir)" />
 
