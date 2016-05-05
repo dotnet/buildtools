@@ -31,9 +31,28 @@ ROBOCOPY "%BUILDTOOLS_PACKAGE_DIR%\." "%TOOLRUNTIME_DIR%" /E
 set TOOLRUNTIME_PROJECTJSON=%BUILDTOOLS_PACKAGE_DIR%\tool-runtime\project.json
 @echo on
 call "%DOTNET_CMD%" restore "%TOOLRUNTIME_PROJECTJSON%" --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json
-call "%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECTJSON%" -f dnxcore50 -r %BUILDTOOLS_TARGET_RUNTIME% -o "%TOOLRUNTIME_DIR%"
-call "%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECTJSON%" -f net45 -r %BUILDTOOLS_NET45_TARGET_RUNTIME% -o "%TOOLRUNTIME_DIR%\net45"
+set RESTORE_ERROR_LEVEL=%ERRORLEVEL%
 @echo off
+if not [%RESTORE_ERROR_LEVEL%]==[0] (
+	echo ERROR: An error occured on the restore.
+	exit /b %RESTORE_ERROR_LEVEL%
+)
+@echo on
+call "%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECTJSON%" -f dnxcore50 -r %BUILDTOOLS_TARGET_RUNTIME% -o "%TOOLRUNTIME_DIR%"
+set DNXCORE_PUBLISH_ERROR_LEVEL=%ERRORLEVEL%
+@echo off
+if not [%DNXCORE_PUBLISH_ERROR_LEVEL%]==[0] (
+	echo ERROR: An error ocurred when publishing to dnxcore50.
+	exit /b %DNXCORE_PUBLISH_ERROR_LEVEL%
+)
+@echo on
+call "%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECTJSON%" -f net45 -r %BUILDTOOLS_NET45_TARGET_RUNTIME% -o "%TOOLRUNTIME_DIR%\net45"
+set NET45_PUBLISH_ERROR_LEVEL=%ERRORLEVEL%
+@echo off
+if not [%NET45_PUBLISH_ERROR_LEVEL%]==[0] (
+	echo ERROR: An error ocurred when publishing to net45.
+	exit /b %NET45_PUBLISH_ERROR_LEVEL%
+)
 
 :: Copy Portable Targets Over to ToolRuntime
 if not exist "%PACKAGES_DIR%\generated" mkdir "%PACKAGES_DIR%\generated"
@@ -41,11 +60,16 @@ set PORTABLETARGETS_PROJECTJSON=%PACKAGES_DIR%\generated\project.json
 echo %MSBUILD_CONTENT_JSON% > "%PORTABLETARGETS_PROJECTJSON%"
 @echo on
 call "%DOTNET_CMD%" restore "%PORTABLETARGETS_PROJECTJSON%" --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json --packages "%PACKAGES_DIR%\."
+set RESTORE_PORTABLETARGETS_ERROR_LEVEL=%ERRORLEVEL%
 @echo off
+if not [%RESTORE_PORTABLETARGETS_ERROR_LEVEL%]==[0] (
+	echo ERROR: An error ocurred on the restore of the portable targets.
+	exit /b %RESTORE_PORTABLETARGETS_ERROR_LEVEL%
+)
 Robocopy "%PACKAGES_DIR%\Microsoft.Portable.Targets\%PORTABLETARGETS_VERSION%\contentFiles\any\any\." "%TOOLRUNTIME_DIR%\." /E
 Robocopy "%PACKAGES_DIR%\MicroBuild.Core\%MICROBUILD_VERSION%\build\." "%TOOLRUNTIME_DIR%\." /E
 
 :: Copy Roslyn Compilers Over to ToolRuntime
 Robocopy "%PACKAGES_DIR%\Microsoft.Net.Compilers\%ROSLYNCOMPILERS_VERSION%\." "%TOOLRUNTIME_DIR%\net45\roslyn\." /E
 
-exit /b %ERRORLEVEL%
+exit /b 0

@@ -10,8 +10,6 @@ __MICROBUILD_VERSION=0.2.0
 __PORTABLETARGETS_VERSION=0.1.1-dev
 __MSBUILD_CONTENT_JSON="{\"dependencies\": {\"MicroBuild.Core\": \"${__MICROBUILD_VERSION}\", \"Microsoft.Portable.Targets\": \"${__PORTABLETARGETS_VERSION}\"},\"frameworks\": {\"dnxcore50\": {},\"net46\": {}}}"
 
-__BUILDERRORLEVEL=0
-
 if [ ! -d "$__PROJECT_DIR" ]; then
     echo "ERROR: Cannot find project root path at '$__PROJECT_DIR'. Please pass in the source directory as the 1st parameter."
     exit 1
@@ -64,8 +62,16 @@ cp -R $__TOOLS_DIR/* $__TOOLRUNTIME_DIR
 __TOOLRUNTIME_PROJECTJSON=$__TOOLS_DIR/tool-runtime/project.json
 echo "Running: $__DOTNET_CMD restore \"${__TOOLRUNTIME_PROJECTJSON}\" --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json"
 $__DOTNET_CMD restore "${__TOOLRUNTIME_PROJECTJSON}" --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json
+if [ "$?" != "0" ]; then
+    echo "ERROR: An error occured on the restore."
+    exit 1
+fi
 echo "Running: $__DOTNET_CMD publish \"${__TOOLRUNTIME_PROJECTJSON}\" -f dnxcore50 -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR"
 $__DOTNET_CMD publish "${__TOOLRUNTIME_PROJECTJSON}" -f dnxcore50 -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR
+if [ "$?" != "0" ]; then
+    echo "ERROR: An error occured on publish."
+    exit 1
+fi
 chmod a+x $__TOOLRUNTIME_DIR/corerun
 
 if [ -n "$BUILDTOOLS_OVERRIDE_RUNTIME" ]; then
@@ -79,6 +85,10 @@ __PORTABLETARGETS_PROJECTJSON=${__PACKAGES_DIR}/generated/project.json
 echo $__MSBUILD_CONTENT_JSON > "${__PORTABLETARGETS_PROJECTJSON}"
 echo "Running: \"$__DOTNET_CMD\" restore \"${__PORTABLETARGETS_PROJECTJSON}\" --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --packages \"${__PACKAGES_DIR}/.\""
 $__DOTNET_CMD restore "${__PORTABLETARGETS_PROJECTJSON}" --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --packages "${__PACKAGES_DIR}/."
+if [ "$?" != "0" ]; then
+    echo "ERROR: An error occured on the restore of the portable targets."
+    exit 1
+fi
 cp -R "${__PACKAGES_DIR}/Microsoft.Portable.Targets/${__PORTABLETARGETS_VERSION}/contentFiles/any/any/." "$__TOOLRUNTIME_DIR/."
 cp -R "${__PACKAGES_DIR}/MicroBuild.Core/${__MICROBUILD_VERSION}/build/." "$__TOOLRUNTIME_DIR/."
 
@@ -86,4 +96,4 @@ cp -R "${__PACKAGES_DIR}/MicroBuild.Core/${__MICROBUILD_VERSION}/build/." "$__TO
 cp "$__TOOLRUNTIME_DIR/corerun" "$__TOOLRUNTIME_DIR/corerun.exe"
 mv "$__TOOLRUNTIME_DIR/Microsoft.CSharp.targets" "$__TOOLRUNTIME_DIR/Microsoft.CSharp.Targets"
 
-exit $__BUILDERRORLEVEL
+exit 0
