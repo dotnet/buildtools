@@ -46,14 +46,26 @@
     </EmbeddedResource>
   </ItemGroup>
   
-  <ItemGroup Condition="Exists('$(StringResourcesPath)') And '$(SkipCommonResourcesIncludes)'=='' AND '$(OmitResources)'!='true'">
-    <Compile Condition="'$(MSBuildProjectExtension)' == '.csproj'" Include="$(CommonPath)/System/SR.cs">
-      <Visible>true</Visible>
-      <Link>Resources/Common/SR.cs</Link>
-    </Compile>
-    <Compile Condition="'$(MSBuildProjectExtension)' == '.vbproj'" Include="$(CommonPath)/System/SR.vb">
-      <Visible>true</Visible>
-      <Link>Resources/Common/SR.vb</Link>
-    </Compile>
-  </ItemGroup>
+  <Choose>
+    <When Condition="Exists('$(StringResourcesPath)') And '$(SkipCommonResourcesIncludes)'=='' AND '$(OmitResources)'!='true'">
+      <Choose>
+        <When Condition="'$(MSBuildProjectExtension)' == '.csproj'">
+          <ItemGroup>
+            <Compile Include="$(CommonPath)/System/SR.cs">
+              <Visible>true</Visible>
+              <Link>Resources/Common/SR.cs</Link>
+            </Compile>
+          </ItemGroup>
+        </When>
+        <When Condition="'$(MSBuildProjectExtension)' == '.vbproj'">
+          <ItemGroup>
+            <Compile Include="$(CommonPath)/System/SR.vb">
+              <Visible>true</Visible>
+              <Link>Resources/Common/SR.vb</Link>
+            </Compile>
+          </ItemGroup>
+        </When>
+      </Choose>
+    </When>
+  </Choose>
 </Project>
