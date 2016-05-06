@@ -34,7 +34,7 @@ call "%DOTNET_CMD%" restore "%TOOLRUNTIME_PROJECTJSON%" --source https://dotnet.
 set RESTORE_ERROR_LEVEL=%ERRORLEVEL%
 @echo off
 if not [%RESTORE_ERROR_LEVEL%]==[0] (
-	echo ERROR: An error occured on the restore.
+	echo ERROR: An error occured when running: '"%DOTNET_CMD%" restore "%TOOLRUNTIME_PROJECTJSON%"'. Please check above for more details.
 	exit /b %RESTORE_ERROR_LEVEL%
 )
 @echo on
@@ -42,7 +42,7 @@ call "%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECTJSON%" -f dnxcore50 -r %BUILDTO
 set DNXCORE_PUBLISH_ERROR_LEVEL=%ERRORLEVEL%
 @echo off
 if not [%DNXCORE_PUBLISH_ERROR_LEVEL%]==[0] (
-	echo ERROR: An error ocurred when publishing to dnxcore50.
+	echo ERROR: An error ocurred when running: '"%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECTJSON%" -f dnxcore50'. Please check above for more details.
 	exit /b %DNXCORE_PUBLISH_ERROR_LEVEL%
 )
 @echo on
@@ -50,7 +50,7 @@ call "%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECTJSON%" -f net45 -r %BUILDTOOLS_
 set NET45_PUBLISH_ERROR_LEVEL=%ERRORLEVEL%
 @echo off
 if not [%NET45_PUBLISH_ERROR_LEVEL%]==[0] (
-	echo ERROR: An error ocurred when publishing to net45.
+	echo ERROR: An error ocurred when running: '"%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECTJSON%" -f net45'. Please check above for more details.
 	exit /b %NET45_PUBLISH_ERROR_LEVEL%
 )
 
@@ -63,7 +63,7 @@ call "%DOTNET_CMD%" restore "%PORTABLETARGETS_PROJECTJSON%" --source https://dot
 set RESTORE_PORTABLETARGETS_ERROR_LEVEL=%ERRORLEVEL%
 @echo off
 if not [%RESTORE_PORTABLETARGETS_ERROR_LEVEL%]==[0] (
-	echo ERROR: An error ocurred on the restore of the portable targets.
+	echo ERROR: An error ocurred when running: '"%DOTNET_CMD%" restore "%PORTABLETARGETS_PROJECTJSON%"'. Please check above for more details.
 	exit /b %RESTORE_PORTABLETARGETS_ERROR_LEVEL%
 )
 Robocopy "%PACKAGES_DIR%\Microsoft.Portable.Targets\%PORTABLETARGETS_VERSION%\contentFiles\any\any\." "%TOOLRUNTIME_DIR%\." /E
