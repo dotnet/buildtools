@@ -9,6 +9,7 @@
     <DefineConstants>$(DefineConstants);COREFX</DefineConstants>
     <NuGetRuntimeIdentifier>win7-x64</NuGetRuntimeIdentifier>
     <CLSCompliant>false</CLSCompliant>
+    <NuGetTargetMoniker>.NETCoreApp,Version=v1.0</NuGetTargetMoniker>
   </PropertyGroup>
   <!-- Default configurations to help VS understand the configurations -->
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />

@@ -12,6 +12,7 @@
     <CLSCompliant>false</CLSCompliant>
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
     <TaskProject Condition="'$(TaskProject)' == ''">..\src\Microsoft.DotNet.Build.Tasks.Packaging.csproj</TaskProject>
+    <NuGetTargetMoniker>.NETStandard,Version=v1.5</NuGetTargetMoniker>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="CreateTrimDependencyGroupsTests.cs" />

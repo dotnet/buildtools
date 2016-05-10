@@ -12,6 +12,7 @@
   <Import Project="$(ImportedProjectRelativePath)Microsoft.DotNet.Build.Tasks.Packaging.csproj" />
   <PropertyGroup>
     <ProjectGuid>{440527ED-C69A-4EC6-8E63-AB1624BD7D8B}</ProjectGuid>
+    <NuGetTargetMoniker>.NETFramework,Version=v4.5</NuGetTargetMoniker>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Build.Framework" />

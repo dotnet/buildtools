@@ -9,6 +9,9 @@
     <ProjectGuid>{17C66BCE-EB35-44CA-893C-8AAFB67708E9}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(ImportedProjectRelativePath)Microsoft.DotNet.Build.CloudTestTasks.csproj" />
+  <PropertyGroup>
+    <NuGetTargetMoniker>.NETFramework,Version=v4.5</NuGetTargetMoniker>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Build.Tasks.v4.0" />
     <Reference Include="Microsoft.CSharp" />
