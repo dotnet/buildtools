@@ -42,6 +42,18 @@
       "values": [],
       "defaultValue": ""
     },
+    "MsBuildLogging": {
+      "description": "MsBuild logging options",
+      "valueType": "passThrough",
+      "values": [],
+      "defaultValue": "/flp:v=detailed;Append;LogFile=%~dp0msbuild.log /l:BinClashLogger,%~dp0Tools\net45\\Microsoft.DotNet.Build.Tasks.dll;LogFile=%~dp0binclash.log"
+    },
+    "MsBuildParameters": {
+      "description": "MsBuild logging options",
+      "valueType": "passThrough",
+      "values": [],
+      "defaultValue": "/nologo /maxcpucount /v:minimal /clp:Summary"
+    },
     "ExtraArguments": {
       "description": "Doesn't format the setting to a specific tool.",
       "valueType": "passThrough",
@@ -59,7 +71,9 @@
         "BuildPackages": false
       },
       "settings": {
-        "OSGroup": ""
+        "OSGroup": "",
+        "MsBuildLogging":"",
+        "MsBuildParameters":""
       }
     },
     "testAgainstPackages": {
@@ -72,7 +86,9 @@
         "BatchGenerateTestProjectJsons":  "default"
       },
       "settings": {
-        "OSGroup": "default"
+        "OSGroup": "default",
+        "MsBuildLogging":"",
+        "MsBuildParameters":""
       }
     },
     "native": {
@@ -90,14 +106,10 @@
         "BuildPackages": "default"
       },
       "settings": {
-        "OSGroup": ""
+        "OSGroup": "",
+        "MsBuildLogging":"",
+        "MsBuildParameters":""
       }
-    },
-    "all": {
-      "description": "Restores packages, builds product and test binaries, runs the tests and builds product packages.",
-      "toolName": "msbuild",
-      "lockedSettings": {},
-      "settings": {}
     }
   },
   "processes": {
