@@ -151,6 +151,8 @@
       <TestCommandLine>$(TestCommandLine.Replace('{XunitTraitOptions}', '$(XunitTraitOptions)'))</TestCommandLine>
       <OutputFolderForScriptGenerator>$(TestPath)%(TestTargetFramework.Folder)</OutputFolderForScriptGenerator>
       <OutputPathForScriptGenerator>$(OutputFolderForScriptGenerator)/$(RunnerScriptName)</OutputPathForScriptGenerator>
+      <OutputFolderForTestDependencies>$(BinDir)/TestDependencies</OutputFolderForTestDependencies>
+
     </PropertyGroup>
 
     <MakeDir Condition="'$(CoverageEnabledForProject)'=='true'" Directories="$(CoverageReportDir)" />
@@ -164,6 +166,14 @@
         <UseAbsolutePath Condition="'$(TestWithLocalLibraries)'=='true'">$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').StartsWith('$(BinDir)'))</UseAbsolutePath>
       </IncludedFileForRunnerScript>
     </ItemGroup>
+    
+    <MakeDir Directories="$(OutputFolderForTestDependencies)" />
+    <Message Text="Generating $(OutputFolderForTestDependencies)/$(AssemblyName).dependencylist.txt" />
+    <WriteLinesToFile
+      File="$(OutputFolderForTestDependencies)/$(AssemblyName).dependencylist.txt"
+      Lines="@(IncludedFileForRunnerScript -> '%(PackageRelativePath)')"
+      Overwrite="true"
+      Encoding="Ascii" />
 
     <!-- Add commands for before / after test execution here.  -->
     <ItemGroup>
