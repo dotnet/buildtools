@@ -108,6 +108,7 @@
     <!-- copy runner scripts so they can be uploaded as supplemental payload -->
     <ItemGroup>
       <RunnerScripts Include="$(ToolsDir)RunnerScripts/**/*.py" />
+      <RunnerScripts Include="$(ToolsDir)RunnerScripts/**/*.sh" />
     </ItemGroup>
     <Copy SourceFiles="@(RunnerScripts)"
           DestinationFiles="@(RunnerScripts->'$(SupplementalPayloadDir)RunnerScripts/%(RecursiveDir)%(Filename)%(Extension)')"
@@ -204,8 +205,14 @@
   </Target>
 
   <Target Name="CreatePerfTestListJson" DependsOnTargets="CreateAzureStorage" Condition="'$(Performance)' == 'true'">
+    <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
+      <PerfRunner>Microsoft.DotNet.xunit.performance.runner.Windows</PerfRunner>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
+      <PerfRunner>Microsoft.DotNet.xunit.performance.runner.cli</PerfRunner>
+    </PropertyGroup>
     <PropertyGroup>
-      <OtherRunnerScriptArgs>--perf-runner Microsoft.DotNet.xunit.performance.runner.Windows $(OtherRunnerScriptArgs)</OtherRunnerScriptArgs>
+      <OtherRunnerScriptArgs>--perf-runner $(PerfRunner) --osgroup $(OSGroup) $(OtherRunnerScriptArgs)</OtherRunnerScriptArgs>
     </PropertyGroup>
     <!-- now gather the perf tests -->
     <ItemGroup>

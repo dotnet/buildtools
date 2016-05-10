@@ -11,9 +11,13 @@
     <PerfRunnerJsonFileName>xunitrunner-perf.json</PerfRunnerJsonFileName>
     <!-- place the JSON file in the same directory as the runner script -->
     <PerfRunnerJsonFile>$(SupplementalPayloadDir)RunnerScripts/xunitrunner-perf/$(PerfRunnerJsonFileName)</PerfRunnerJsonFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
     <RunnerScript>%HELIX_CORRELATION_PAYLOAD%\RunnerScripts\xunitrunner-perf\xunitrunner-perf.py</RunnerScript>
   </PropertyGroup>
-
+  <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
+    <RunnerScript>$HELIX_CORRELATION_PAYLOAD/RunnerScripts/xunitrunner-perf/xunitrunner-perf.py</RunnerScript>
+  </PropertyGroup>
   <!-- creates a JSON file to be uploaded as supplemental payload -->
   <Target Name="CreatePerfJson">
     <CreateAzureContainer

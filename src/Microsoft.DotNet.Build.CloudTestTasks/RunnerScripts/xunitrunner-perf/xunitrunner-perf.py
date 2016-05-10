@@ -74,9 +74,52 @@ def _prepare_execution_environment(settings, framework_in_tpa, assembly_list_nam
     log.info("Copying product binaries from {} to {}".format(build_drop, framework_target))
     _copy_package_files(assembly_list, build_drop, framework_target, core_root, test_location)
 
+def _copy_files_to_dest(src, dest):
+    for item in os.listdir(src):
+        s = os.path.join(src, item)
+        d = os.path.join(dest, item)
+        if os.path.isfile(s):
+            shutil.copy2(s, d)
+
+def _prepare_linux_env_for_perf(correlation_dir, xunit_perf_drop, test_location, core_root):
+    # copy over the cli runner and its dependencies for execution
+    _copy_files_to_dest(xunit_perf_drop, test_location)
+    xunit_perf_deps = os.path.join(correlation_dir, "Microsoft.DotNet.xunit.performance.run.core")
+    if len(os.listdir(xunit_perf_deps)) > 1:
+        log.info('Multiple directories found under '+xunit_perf_deps+' picking '+os.listdir(xunit_perf_deps)[0])
+    xunit_perf_deps = os.path.join(xunit_perf_deps, os.listdir(xunit_perf_deps)[0])
+    xunit_perf_deps = os.path.join(xunit_perf_deps, "lib", "dotnet")
+    log.info('Copying xunit perf dependencies from '+xunit_perf_deps)
+    _copy_files_to_dest(xunit_perf_deps, test_location)
+
+    dotnet_cli_dir = os.path.join(correlation_dir, "dotnet_cli")
+
+    # if local dotnet cli is already installed, skip
+    if not os.path.exists(dotnet_cli_dir):
+        # install dotnet cli locally
+        log.info('Local dotnet cli install not found, launching the insallation script')
+        dotnet_installer = os.path.join(correlation_dir, "RunnerScripts", "xunitrunner-perf", "ubuntu-dotnet-local-install.sh")
+        log.info('Setting dotnet cli installation script at '+dotnet_installer+' as executable')
+        helix.proc.run_and_log_output(("chmod 777 "+dotnet_installer).split(" "))
+        log.info('Running script '+dotnet_installer)
+        helix.proc.run_and_log_output((dotnet_installer+" -d "+dotnet_cli_dir).split(" "))
+    else:
+        log.info('Local dotnet cli install found')
+
+    # for dotnet to execute the dll we need the runtime files right next to the dll we need to test
+    _copy_files_to_dest(core_root, test_location)
+
+def _prepare_windows_env_for_perf(xunit_perf_drop, test_location):
+    shutil.copy2(os.path.join(xunit_perf_drop, "xunit.performance.run.exe"), test_location)
+    shutil.copy2(os.path.join(xunit_perf_drop, "xunit.performance.metrics.dll"), test_location)
+    shutil.copy2(os.path.join(xunit_perf_drop, "xunit.performance.logger.exe"), test_location)
+    shutil.copy2(os.path.join(xunit_perf_drop, "xunit.runner.utility.desktop.dll"), test_location)
+    shutil.copy2(os.path.join(xunit_perf_drop, "ProcDomain.dll"), test_location)
+    shutil.copy2(os.path.join(xunit_perf_drop, "Microsoft.Diagnostics.Tracing.TraceEvent.dll"), test_location)
+
 # used to copy the required xunit perf runner an its dependencies
 # note that the perf runner will only be present for perf tests.
-def _prepare_perf_execution_environment(settings, perf_runner):
+def _prepare_perf_execution_environment(settings, perf_runner, osgroup):
     correlation_dir = fix_path(settings.correlation_payload_dir)
     test_location = os.path.join(fix_path(settings.workitem_working_dir), 'execution')
     core_root = os.path.join(settings.workitem_working_dir, 'core_root')
@@ -86,16 +129,25 @@ def _prepare_perf_execution_environment(settings, perf_runner):
         raise Exception("Failed to find perf runner {} in directory {}.".format(perf_runner, correlation_dir))
 
     # get the first subdir in the root and append it to xunit_perf_drop
-    buildSubdir = os.listdir(xunit_perf_drop)
-    xunit_perf_drop = os.path.join(xunit_perf_drop, buildSubdir[0])
-    xunit_perf_drop = os.path.join(xunit_perf_drop, "tools")
+    build_subdir = os.listdir(xunit_perf_drop)
+    if len(build_subdir) > 1:
+        log.info('Multiple directories found in '+xunit_perf_drop+' picking '+build_subdir[0])
+
+    xunit_perf_drop = os.path.join(xunit_perf_drop, build_subdir[0])
+    if perf_runner == 'Microsoft.DotNet.xunit.performance.runner.Windows':
+        xunit_perf_drop = os.path.join(xunit_perf_drop, "tools")
+    else:
+        xunit_perf_drop = os.path.join(xunit_perf_drop, "lib", "netstandard1.3")
+
     log.info("Copying xunit perf drop from {} to {}.".format(xunit_perf_drop, test_location))
-    shutil.copy2(os.path.join(xunit_perf_drop, "xunit.performance.run.exe"), test_location)
-    shutil.copy2(os.path.join(xunit_perf_drop, "xunit.performance.metrics.dll"), test_location)
-    shutil.copy2(os.path.join(xunit_perf_drop, "xunit.performance.logger.exe"), test_location)
-    shutil.copy2(os.path.join(xunit_perf_drop, "xunit.runner.utility.desktop.dll"), test_location)
-    shutil.copy2(os.path.join(xunit_perf_drop, "ProcDomain.dll"), test_location)
-    shutil.copy2(os.path.join(xunit_perf_drop, "Microsoft.Diagnostics.Tracing.TraceEvent.dll"), test_location)
+
+    if osgroup.lower().startswith('windows'):
+        _prepare_windows_env_for_perf(xunit_perf_drop, test_location)
+    elif osgroup.lower().startswith('linux'):
+        _prepare_linux_env_for_perf(correlation_dir, xunit_perf_drop, test_location, core_root)
+    else:
+        log.error('Invalid osgroup '+osgroup)
+
     # copy the architecture specific subdirectories
     archSubdirs = os.listdir(xunit_perf_drop)
     for archSubdir in archSubdirs:
@@ -144,12 +196,32 @@ def _copy_package_files(assembly_list, build_drop, test_location, coreroot_locat
         raise
 
 # does perf-specific tasks; converts results xml to csv and then to json, populates machine information and uploads json
-def post_process_perf_results(settings, results_location, workitem_dir):
+def post_process_perf_results(settings, results_location, workitem_dir, xunit_test_type):
     # Use the xunit perf analysis exe from nuget package here
     log.info('Converting xml to csv')
     payload_dir = fix_path(os.getenv('HELIX_CORRELATION_PAYLOAD'))
-    perf_analysis_version = (next(os.walk(os.path.join(payload_dir, 'Microsoft.DotNet.xunit.performance.analysis')))[1])[0]
-    xmlconvertorpath = os.path.join(*[payload_dir, 'Microsoft.DotNet.xunit.performance.analysis', perf_analysis_version, 'tools', 'xunit.performance.analysis.exe'])
+    xmlconvertorpath = ''
+
+    if xunit_test_type == xunit.XUNIT_CONFIG_PERF_WINDOWS:
+        perf_lib_dir = os.path.join(payload_dir, 'Microsoft.DotNet.xunit.performance.analysis')
+        if len(os.listdir(perf_lib_dir)) > 1:
+            log.info('Multiple directories found under '+perf_lib_dir+' picking '+os.listdir(perf_lib_dir)[0])
+
+        perf_analysis_version = os.listdir(perf_lib_dir)[0]
+        xmlconvertorpath = os.path.join(payload_dir, 'Microsoft.DotNet.xunit.performance.analysis', perf_analysis_version, 'tools', 'xunit.performance.analysis.exe')
+    elif xunit_test_type == xunit.XUNIT_CONFIG_PERF_LINUX:
+        perf_lib_dir = os.path.join(payload_dir, 'Microsoft.DotNet.xunit.performance.analysis.cli')
+        if len(os.listdir(perf_lib_dir)) > 1:
+            log.info('Multiple directories found under '+perf_lib_dir+' picking '+os.listdir(perf_lib_dir)[0])
+
+        perf_analysis_version = os.listdir(perf_lib_dir)[0]
+        dotnet_cli_exec = os.path.join(settings.correlation_payload_dir, "dotnet_cli", "dotnet")
+        _copy_files_to_dest(os.path.join(payload_dir, 'Microsoft.DotNet.xunit.performance.analysis.cli', perf_analysis_version, 'lib', 'netstandard1.3'), os.path.join(workitem_dir, 'execution'))
+        xmlconvertorpath = dotnet_cli_exec + ' ' + os.path.join(workitem_dir, 'execution', 'Microsoft.DotNet.xunit.performance.analysis.cli.dll')
+    else:
+        log.error('Invalid xunit_test_type')
+        return
+
     xmlCmd = xmlconvertorpath+' -csv '+os.path.join(workitem_dir, 'results.csv')+' '+results_location
     if (helix.proc.run_and_log_output(xmlCmd.split(' '))) != 0:
         raise Exception('Failed to generate csv from result xml')
@@ -157,7 +229,7 @@ def post_process_perf_results(settings, results_location, workitem_dir):
     log.info('Uploading the results.csv file')
     _write_output_path(os.path.join(workitem_dir, 'results.csv'), settings)
 
-    perfscriptsdir = os.path.join(*[payload_dir, 'RunnerScripts', 'xunitrunner-perf'])
+    perfscriptsdir = os.path.join(payload_dir, 'RunnerScripts', 'xunitrunner-perf')
     perfsettingsjson = ''
     with open(os.path.join(perfscriptsdir, 'xunitrunner-perf.json'), 'rb') as perfsettingsjson:
         # read the perf-specific settings
@@ -234,6 +306,7 @@ def _run_xunit_from_execution(settings, test_dll, xunit_test_type, args):
     event_client = helix.event.create_from_uri(settings.event_uri)
 
     log.info("Starting xunit against '{}'".format(test_dll))
+
     xunit_result = xunit.run_tests(
         settings,
         [test_dll],
@@ -244,19 +317,23 @@ def _run_xunit_from_execution(settings, test_dll, xunit_test_type, args):
         args
     )
 
-    if xunit_test_type == xunit.XUNIT_CONFIG_PERF:
+    if xunit_test_type == xunit.XUNIT_CONFIG_PERF_WINDOWS or xunit_test_type == xunit.XUNIT_CONFIG_PERF_LINUX:
         # perf testing has special requirements on the test output file name.
         # make a copy of it in the expected location so we can report the result.
         perf_log = os.path.join(test_location, "latest-perf-build.xml")
         log.info("Copying {} to {}.".format(perf_log, results_location))
         shutil.copy2(perf_log, results_location)
-        # archive the ETL file and upload it
-        etl_file = os.path.join(test_location, "latest-perf-build.etl")
-        etl_zip = os.path.join(test_location, "latest-perf-build.zip")
-        log.info("Compressing {} into {}".format(etl_file, etl_zip))
-        zip_script.zipFilesAndFolders(etl_zip, [etl_file], True, True)
-        log.info("Uploading ETL from {}".format(etl_zip))
-        _write_output_path(etl_zip, settings)
+        if xunit_test_type == xunit.XUNIT_CONFIG_PERF_WINDOWS:
+            # only windows runs would generate the etl file
+            # archive the ETL file and upload it
+            etl_file = os.path.join(test_location, "latest-perf-build.etl")
+            etl_zip = os.path.join(test_location, "latest-perf-build.zip")
+            log.info("Compressing {} into {}".format(etl_file, etl_zip))
+            zip_script.zipFilesAndFolders(etl_zip, [etl_file], True, True)
+            log.info("Uploading ETL from {}".format(etl_zip))
+            uploadlink = _write_output_path(etl_zip, settings)
+            if uploadlink is not None:
+                log.info('Blob uploaded at '+uploadlink)
 
     log.info("XUnit exit code: {}".format(xunit_result))
 
@@ -273,7 +350,7 @@ def _run_xunit_from_execution(settings, test_dll, xunit_test_type, args):
                         test_count = int(match.groups()[0])
                     break
 
-        post_process_perf_results(settings, results_location, workitem_dir)
+        post_process_perf_results(settings, results_location, workitem_dir, xunit_test_type)
 
         result_url = _write_output_path(results_location, settings)
         log.info("Sending completion event")
@@ -319,7 +396,7 @@ def _report_error(settings):
 
 
 
-def run_tests(settings, test_dll, framework_in_tpa, assembly_list, perf_runner, args):
+def run_tests(settings, test_dll, framework_in_tpa, assembly_list, perf_runner, osgroup, args):
     try:
         log.info("Running on '{}'".format(socket.gethostname()))
         xunit_test_type = xunit.XUNIT_CONFIG_NETCORE
@@ -327,8 +404,11 @@ def run_tests(settings, test_dll, framework_in_tpa, assembly_list, perf_runner, 
 
         # perform perf test prep if required
         if perf_runner is not None:
-            _prepare_perf_execution_environment(settings, perf_runner)
-            xunit_test_type = xunit.XUNIT_CONFIG_PERF
+            _prepare_perf_execution_environment(settings, perf_runner, osgroup)
+            if perf_runner == 'Microsoft.DotNet.xunit.performance.runner.Windows':
+                xunit_test_type = xunit.XUNIT_CONFIG_PERF_WINDOWS
+            else:
+                xunit_test_type = xunit.XUNIT_CONFIG_PERF_LINUX
 
         return _run_xunit_from_execution(settings, test_dll, xunit_test_type, args)
     except:
@@ -361,6 +441,11 @@ def main(args=None):
                     raise Exception('No valid test dll or exe found')
                 else:
                     optdict['--dll'] = exepath
+        osgroup = optdict['--osgroup']
+        #default to windows
+        if osgroup == '':
+            osgroup = 'windows'
+
 
         if '--assemblylist' in optdict:
             assembly_list = optdict['--assemblylist']
@@ -368,9 +453,9 @@ def main(args=None):
         else:
             assembly_list = os.getenv('HELIX_ASSEMBLY_LIST')
             log.info('Using assemblylist environment variable:'+assembly_list)
-        return run_tests(settings, optdict['--dll'], '--tpaframework' in optdict, assembly_list, perf_runner, args)
+        return run_tests(settings, optdict['--dll'], '--tpaframework' in optdict, assembly_list, perf_runner, osgroup, args)
 
-    return command_main(_main, ['dll=', 'tpaframework', 'perf-runner=', 'assemblylist='], args)
+    return command_main(_main, ['dll=', 'tpaframework', 'perf-runner=', 'assemblylist=','osgroup='], args)
 
 if __name__ == '__main__':
     import sys
