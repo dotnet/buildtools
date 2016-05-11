@@ -10,6 +10,7 @@
   <UsingTask TaskName="WriteItemsToJson" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="WriteTestBuildStatsJson" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="ZipFileCreateFromDirectory" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="ZipFileCreateFromDependencyLists" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
   <!-- set Helix environment vars based on target platform -->
   <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
@@ -29,11 +30,11 @@
     <FuncTestListFilename>FuncTests.$(OSGroup).$(Platform)$(ConfigurationGroup).json</FuncTestListFilename>
     <PerfTestListFilename>PerfTests.$(OSGroup).$(Platform)$(ConfigurationGroup).json</PerfTestListFilename>
     <!-- Test builds consist of the tests that are platform specific in one root, plus others in AnyOS. -->
-    <AnyOSPlatformConfig>AnyOS.AnyCPU.$(ConfigurationGroup)</AnyOSPlatformConfig>    
+    <AnyOSPlatformConfig>AnyOS.AnyCPU.$(ConfigurationGroup)</AnyOSPlatformConfig>
     <AnyOsArchivesRoot>$(TestWorkingDir)$(AnyOSPlatformConfig)/archive/</AnyOsArchivesRoot>
     <AnyOSTestArchivesRoot>$(AnyOsArchivesRoot)tests/</AnyOSTestArchivesRoot>
-    <!-- Additionally, *NIX variations may need to include their own root folders -->    
-    <UnixPlatformConfig>Unix.$(Platform).$(ConfigurationGroup)</UnixPlatformConfig>    
+    <!-- Additionally, *NIX variations may need to include their own root folders -->
+    <UnixPlatformConfig>Unix.$(Platform).$(ConfigurationGroup)</UnixPlatformConfig>
     <UnixArchivesRoot>$(TestWorkingDir)$(UnixPlatformConfig)/archive/</UnixArchivesRoot>
     <UnixTestArchivesRoot>$(UnixArchivesRoot)tests/</UnixTestArchivesRoot>
     <!-- Finally, these archives represent the zips of tests that are OSPlatform specific -->
@@ -76,7 +77,7 @@
     <Error Condition="'$(BuildIsOfficial)' == 'true' and '$(BuildIsOfficialEventHubSharedAccessKey)' == ''" Text="Missing required property BuildIsOfficialEventHubSharedAccessKey." />
     <!-- TODO: Once we all users are no longer setting EventHubInfoMissing, we can remove this message, and the '$(EventHubInfoMissing)' == '' condition from the error following -->
     <PropertyGroup>
-     <EventHubInfoMissing Condition="'$(EventHubPath)' == '' or '$(EventHubSharedAccessKey)' == '' or '$(EventHubSharedAccessKeyName)' == ''">true</EventHubInfoMissing>
+      <EventHubInfoMissing Condition="'$(EventHubPath)' == '' or '$(EventHubSharedAccessKey)' == '' or '$(EventHubSharedAccessKeyName)' == ''">true</EventHubInfoMissing>
     </PropertyGroup>
     <Warning Condition="'$(SkipNotifyEvent)' != 'true' and '$(HelixApiAccessKey)' == '' and '$(EventHubInfoMissing)' == '' " Text="EventHubPath and EventHubAccessKeys are depricated, use HelixApiAccessKey" />
     <Error Condition="'$(SkipNotifyEvent)' != 'true' and '$(HelixApiAccessKey)' == '' and '$(EventHubInfoMissing)' == 'true' " Text="HelixApiAccessKey must be set to start Helix jobs" />
@@ -85,14 +86,14 @@
     <ItemGroup>
       <ForUpload Include="$(TestArchivesRoot)**/*.zip" />
       <ForUpload Include="$(AnyOSTestArchivesRoot)*.zip" />
-      <!-- Only include Unix folders if supported by the current target OS --> 
-      <ForUpload Condition="'$(TargetsUnix)' == 'true'" Include="$(UnixTestArchivesRoot)*.zip" />      
-    </ItemGroup>   
-    
-    <Message Text="Using OS-Specific test archives from: $(TestArchivesRoot)" /> 
+      <!-- Only include Unix folders if supported by the current target OS -->
+      <ForUpload Condition="'$(TargetsUnix)' == 'true'" Include="$(UnixTestArchivesRoot)*.zip" />
+    </ItemGroup>
+
+    <Message Text="Using OS-Specific test archives from: $(TestArchivesRoot)" />
     <Message Text="Using AnyOS test archives from: $(AnyOSTestArchivesRoot)" />
     <Message Condition="'$(TargetsUnix)' == 'true'"  Text="Using Unix test archives from: $(UnixTestArchivesRoot)" />
-    
+
     <!-- verify the test archives were created -->
     <Error Condition="'@(ForUpload->Count())' == '0'" Text="Didn't find any test archives in supplied folders." />
     <!-- add relative blob path metadata -->
@@ -167,12 +168,12 @@
     <ItemGroup>
       <FunctionalTest Include="$(TestArchivesRoot)**/*.zip" />
       <FunctionalTest Include="$(AnyOSTestArchivesRoot)*.zip" />
-      <FunctionalTest Condition="'$(TargetsUnix)' == 'true'" Include="$(UnixTestArchivesRoot)*.zip" />  
+      <FunctionalTest Condition="'$(TargetsUnix)' == 'true'" Include="$(UnixTestArchivesRoot)*.zip" />
     </ItemGroup>
 
     <PropertyGroup>
-        <OtherRunnerScriptArgs Condition="'$(FilterToTargetGroup)' == 'net46'">$(OtherRunnerScriptArgs) --xunit-test-type=desktop </OtherRunnerScriptArgs>
-        <XunitArgs Condition="'$(FilterToTargetGroup)' == 'net46'"> -noshadow $(XunitArgs)</XunitArgs>
+      <OtherRunnerScriptArgs Condition="'$(FilterToTargetGroup)' == 'net46'">$(OtherRunnerScriptArgs) --xunit-test-type=desktop </OtherRunnerScriptArgs>
+      <XunitArgs Condition="'$(FilterToTargetGroup)' == 'net46'"> -noshadow $(XunitArgs)</XunitArgs>
     </PropertyGroup>
 
     <ItemGroup>
@@ -261,19 +262,20 @@
     </ItemGroup>
   </Target>
 
-  <!-- compress the packages dir in preparation for uploading -->
+  <!-- compress the required files from the packages dir in preparation for uploading -->
   <Target Name="CompressPackagesDir" Condition="'$(SkipArchive)' != 'true'">
     <ItemGroup>
       <ExcludeFromArchive Include="nupkg$" />
       <ExcludeFromArchive Include="Microsoft.DotNet.BuildTools" />
       <ExcludeFromArchive Include="TestData" />
+      <TestDependencyListFile Include="$(BinDir)/TestDependencies/*.dependencylist.txt" />      
     </ItemGroup>
-    <ZipFileCreateFromDirectory
-        SourceDirectory="$(PackagesDir)"
-        DestinationArchive="$(PackagesArchiveFile)"
-        ExcludePatterns="@(ExcludeFromArchive)"
-        OverwriteDestination="true" />
-    <!-- add to the list of uploads -->
+    
+    <ZipFileCreateFromDependencyLists
+      DependencyListFiles="@(TestDependencyListFile)"
+      DestinationArchive="$(PackagesArchiveFile)"
+      RelativePathBaseDirectory="$(PackagesDir)"
+      OverwriteDestination="true" />
     <ItemGroup>
       <ForUpload Include="$(PackagesArchiveFile)">
         <RelativeBlobPath>$(Platform)$(ConfigurationGroup)/$(PackagesArchiveFilename)</RelativeBlobPath>
@@ -325,8 +327,8 @@
     <!-- write out build statistics (only contains number of built projects at present) -->
     <ItemGroup>
       <BuiltSuccessfully Include="$(TestArchivesRoot)*.zip" />
-      <BuiltSuccessfully Include="$(AnyOSTestArchivesRoot)*.zip" />      
-      <BuiltSuccessfully Condition="'$(TargetsUnix)' == 'true'"  Include="$(UnixTestArchivesRoot)*.zip" />      
+      <BuiltSuccessfully Include="$(AnyOSTestArchivesRoot)*.zip" />
+      <BuiltSuccessfully Condition="'$(TargetsUnix)' == 'true'"  Include="$(UnixTestArchivesRoot)*.zip" />
     </ItemGroup>
   </Target>
 
@@ -348,7 +350,7 @@
       <Output TaskParameter="JobId" PropertyName="GeneratedCorrelationId" />
     </SendToHelix>
     <PropertyGroup Condition="'$(HelixApiAccessKey)' == ''">
-     <GeneratedCorrelationId>%(TestListFile.CorrelationId)</GeneratedCorrelationId>
+      <GeneratedCorrelationId>%(TestListFile.CorrelationId)</GeneratedCorrelationId>
     </PropertyGroup>
     <WriteLinesToFile File="%(TestListFile.HelixJobUploadCompletePath)" Overwrite="true" Lines="Correlation Id : $(GeneratedCorrelationId)"/>
     <Message Condition="'$(HelixApiAccessKey)' == ''" Importance="high" Text="Started Helix job: CorrelationId = $(GeneratedCorrelationId)"/>
