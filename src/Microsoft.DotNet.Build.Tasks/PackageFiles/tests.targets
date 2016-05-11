@@ -72,9 +72,7 @@
     <XunitOptions Condition="'$(Performance)'!='true'">$(XunitOptions) -notrait Benchmark=true</XunitOptions>
 
     <XunitOptions Condition="'$(XunitMaxThreads)'!=''">$(XunitOptions) -maxthreads $(XunitMaxThreads)</XunitOptions>
-
     <XunitTestAssembly Condition="'$(XunitTestAssembly)' == ''">$(TargetFileName)</XunitTestAssembly>
-    
     <XunitArguments>$(XunitTestAssembly) $(XunitOptions)</XunitArguments>
 
     <TestProgram Condition="'$(TestHostExecutable)'!=''">$(TestHostExecutable)</TestProgram>
