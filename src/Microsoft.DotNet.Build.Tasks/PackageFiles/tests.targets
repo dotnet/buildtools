@@ -73,9 +73,9 @@
 
     <XunitOptions Condition="'$(XunitMaxThreads)'!=''">$(XunitOptions) -maxthreads $(XunitMaxThreads)</XunitOptions>
 
-    <XunitTestAssebly Condition="'$(XunitTestAssembly)' == ''">$(TargetFileName)</XunitTestAssebly>
+    <XunitTestAssembly Condition="'$(XunitTestAssembly)' == ''">$(TargetFileName)</XunitTestAssembly>
     
-    <XunitArguments>$(XunitTestAssebly) $(XunitOptions)</XunitArguments>
+    <XunitArguments>$(XunitTestAssembly) $(XunitOptions)</XunitArguments>
 
     <TestProgram Condition="'$(TestHostExecutable)'!=''">$(TestHostExecutable)</TestProgram>
     <TestArguments Condition="'$(TestHostExecutable)'!=''">$(XunitExecutable) $(XunitArguments)</TestArguments>
