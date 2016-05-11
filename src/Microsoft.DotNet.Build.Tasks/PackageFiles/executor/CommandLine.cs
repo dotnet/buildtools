@@ -1710,7 +1710,7 @@ class CommandLine
 
         private static int GetConsoleHeight()
         {
-            return 40;
+            return 100;
         }
 
         private static string GetEntryAssemblyName()

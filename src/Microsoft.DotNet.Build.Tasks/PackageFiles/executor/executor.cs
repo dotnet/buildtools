@@ -14,7 +14,7 @@ namespace Microsoft.DotNet.Execute
     public class Executor
     {
         //the path depends on where the executor ends up living...
-        public string configFile = @"C:\mariariBT\src\Scripts\config.json";
+        public string configFile = @"config.json";
         public Dictionary<string, string> SettingParameters { get; set; }
         public Dictionary<string, string> CommandParameters { get; set; }
         
@@ -89,7 +89,6 @@ namespace Microsoft.DotNet.Execute
 
         public static int Main(string[] args)
         {
-            
             Executor executor = new Executor();
             Setup jsonSetup = executor.OpenFile();
             if (jsonSetup == null)
