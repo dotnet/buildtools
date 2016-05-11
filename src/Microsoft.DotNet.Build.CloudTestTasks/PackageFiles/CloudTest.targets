@@ -261,9 +261,11 @@
       <ExcludeFromArchive Include="nupkg$" />
       <ExcludeFromArchive Include="Microsoft.DotNet.BuildTools" />
       <ExcludeFromArchive Include="TestData" />
+      <TestDependencyListFile Include="$(BinDir)/TestDependencies/*.dependencylist.txt" />      
     </ItemGroup>
+    
     <ZipFileCreateFromDependencyLists
-      DependencyListsFolder="$(BinDir)/TestDependencies"
+      DependencyListFiles="@(TestDependencyListFile)"
       DestinationArchive="$(PackagesArchiveFile)"
       RelativePathBaseDirectory="$(PackagesDir)"
       OverwriteDestination="true" />

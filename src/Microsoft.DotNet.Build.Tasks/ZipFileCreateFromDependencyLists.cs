@@ -18,7 +18,7 @@ namespace Microsoft.DotNet.Build.Tasks
         /// List of dependency text files to be unified.
         /// </summary>
         [Required]
-        public string DependencyListsFolder { get; set; }
+        public string [] DependencyListFiles { get; set; }
 
         /// <summary>
         /// The path of the archive to be created.
@@ -39,10 +39,9 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public override bool Execute()
         {
-            Log.LogMessage($"DependencyListsFolder = {DependencyListsFolder}");
-            Log.LogMessage($"DestinationArchive = {DestinationArchive}");
-            Log.LogMessage($"RelativePathBaseDirectory = {RelativePathBaseDirectory}");
-            Log.LogMessage($"OverwriteDestination = {OverwriteDestination}");
+            Log.LogMessage(MessageImportance.Low, $"DestinationArchive = {DestinationArchive}");
+            Log.LogMessage(MessageImportance.Low, $"RelativePathBaseDirectory = {RelativePathBaseDirectory}");
+            Log.LogMessage(MessageImportance.Low, $"OverwriteDestination = {OverwriteDestination}");
 
             try
             {
@@ -59,36 +58,34 @@ namespace Microsoft.DotNet.Build.Tasks
                     }
                 }
 
-                Log.LogMessage(MessageImportance.High, $"Compressing files listed in {DependencyListsFolder} into {DestinationArchive}...");
+                Log.LogMessage(MessageImportance.High, $"Compressing files listed in {nameof(DependencyListFiles)} into {DestinationArchive}...");
                 if (!Directory.Exists(Path.GetDirectoryName(DestinationArchive)))
                 {
                     Directory.CreateDirectory(Path.GetDirectoryName(DestinationArchive));
                 }
-                List<string> filesForArchiving = GetUniquePaths(DependencyListsFolder, "*");
-                Log.LogMessage($"{DependencyListsFolder} contained files referencing {filesForArchiving.Count} unique file paths.");
+                List<string> filesForArchiving = GetUniquePaths(DependencyListFiles);
+                Log.LogMessage($"Received {DependencyListFiles.Count()} files referencing {filesForArchiving.Count} unique file paths.");
                 ZipDependencies(filesForArchiving, RelativePathBaseDirectory, DestinationArchive);
             }
             catch (Exception e)
             {
                 // We have 2 log calls because we want a nice error message but we also want to capture the callstack in the log.
-                Log.LogError($"An exception has occured while trying to compress files listed in '{DependencyListsFolder}' into '{DestinationArchive}'.");
+                Log.LogError($"An exception has occured while trying to compress files listed in {nameof(DependencyListFiles)} into '{DestinationArchive}'.");
                 Log.LogMessage(MessageImportance.Low, e.ToString());
                 return false;
             }
-
             return true;
         }
 
-
-        private List<string> GetUniquePaths(string folder, string filePattern)
+        private List<string> GetUniquePaths(string [] filesToParseForUniqueDependencies)
         {
             HashSet<string> everyDependency = new HashSet<string>();
-            foreach (string path in Directory.GetFiles(folder, filePattern))
+            foreach (string path in filesToParseForUniqueDependencies)
             {
                 IEnumerable<string> specificDependencies = File.ReadAllLines(path);
                 everyDependency.UnionWith(specificDependencies);
             }
-            return everyDependency.Distinct().ToList<string>();
+            return everyDependency.ToList<string>();
         }
 
         private void ZipDependencies(List<string> dependencies, string basePath, string outputFileName)

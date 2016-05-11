@@ -152,7 +152,6 @@
       <OutputFolderForScriptGenerator>$(TestPath)%(TestTargetFramework.Folder)</OutputFolderForScriptGenerator>
       <OutputPathForScriptGenerator>$(OutputFolderForScriptGenerator)/$(RunnerScriptName)</OutputPathForScriptGenerator>
       <OutputFolderForTestDependencies>$(BinDir)/TestDependencies</OutputFolderForTestDependencies>
-
     </PropertyGroup>
 
     <MakeDir Condition="'$(CoverageEnabledForProject)'=='true'" Directories="$(CoverageReportDir)" />
@@ -168,9 +167,9 @@
     </ItemGroup>
     
     <MakeDir Directories="$(OutputFolderForTestDependencies)" />
-    <Message Text="Generating $(OutputFolderForTestDependencies)/$(AssemblyName).dependencylist.txt" />
+    <Message Text="Generating $(OutputFolderForTestDependencies)/$(AssemblyName)-$(OSGroup).$(Platform).$(ConfigurationGroup).dependencylist.txt" />
     <WriteLinesToFile
-      File="$(OutputFolderForTestDependencies)/$(AssemblyName).dependencylist.txt"
+      File="$(OutputFolderForTestDependencies)/$(AssemblyName)-$(OSGroup).$(Platform).$(ConfigurationGroup).dependencylist.txt"
       Lines="@(IncludedFileForRunnerScript -> '%(PackageRelativePath)')"
       Overwrite="true"
       Encoding="Ascii" />
