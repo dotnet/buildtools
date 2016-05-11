@@ -173,6 +173,12 @@
       Lines="@(IncludedFileForRunnerScript -> '%(PackageRelativePath)')"
       Overwrite="true"
       Encoding="Ascii" />
+    
+    <Message Text="Generating JSON-Processed $(OutDir)assemblylist.txt for legacy execution" />
+    <GenerateAssemblyList
+      InputListLocation="$(OutputFolderForTestDependencies)/$(AssemblyName)-$(OSGroup).$(Platform).$(ConfigurationGroup).dependencylist.txt"
+      OutputListLocation="$(OutDir)assemblylist.txt"
+     />
 
     <!-- Add commands for before / after test execution here.  -->
     <ItemGroup>
