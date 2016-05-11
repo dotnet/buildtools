@@ -48,37 +48,28 @@ namespace Microsoft.DotNet.Execute
 
         public bool BuildCommand(Command commandToExecute, string os, Dictionary<string, string> settingParameters)
         {
-            string completeCommand = CommandSignature(commandToExecute, os, settingParameters);
-            if (!string.IsNullOrEmpty(completeCommand))
-            {
-                if (BuildRequiredValueSettingsForCommand(commandToExecute.LockedSettings, settingParameters) &&
-                    BuildOptionalValueSettingsForCommand(commandToExecute.Settings, settingParameters))
-                {
-                    completeCommand += BuildParametersForCommand(settingParameters, commandToExecute.ToolName);
-                    Console.WriteLine(completeCommand);
-                    return true;
-                }
-            }
-            return false;
-        }
-        
-        public string CommandSignature(Command commandToExecute, string os, Dictionary<string, string> settingParameters)
-        {
+            string toolName = string.Empty;
             if (Processes.ContainsKey(commandToExecute.ToolName))
             {
-                string completeCommand = (os.Equals("windows")) ? Processes[commandToExecute.ToolName].Run["windows"] : Processes[commandToExecute.ToolName].Run["non-windows"];
-
-                if (!string.IsNullOrEmpty(settingParameters["project"]))
-                {
-                    completeCommand += string.Format(" {0}", settingParameters["project"]);
-                }
-
-                return completeCommand;
+                toolName = (os.Equals("windows")) ? Processes[commandToExecute.ToolName].Run["windows"] : Processes[commandToExecute.ToolName].Run["non-windows"];
             }
-            Console.WriteLine("Error: The process {0} is not specified in the Json file.", commandToExecute.ToolName);
-            return null;
-        }
+            else
+            {
+                Console.WriteLine("Error: The process {0} is not specified in the Json file.", commandToExecute.ToolName);
+                return false;
+            }
 
+            if (BuildRequiredValueSettingsForCommand(commandToExecute.LockedSettings, settingParameters) &&
+                    BuildOptionalValueSettingsForCommand(commandToExecute.Settings, settingParameters))
+            {
+                string commandParameters = BuildParametersForCommand(settingParameters, commandToExecute.ToolName);
+                Run runCommand = new Run();
+                Console.WriteLine("About to run: {0} {1}", toolName, commandParameters);
+                return Convert.ToBoolean(runCommand.ExecuteProcess(toolName, commandParameters));
+            }
+
+            return false;
+        }
         
         private string BuildParametersForCommand(Dictionary<string, string> settingParameters, string toolName)
         {
@@ -88,7 +79,7 @@ namespace Microsoft.DotNet.Execute
                 if (!string.IsNullOrEmpty(parameters.Value))
                 {
                     string settingType = FindSettingType(parameters.Key);
-                    if(settingType.Equals("passThrough"))
+                    if (settingType.Equals("passThrough"))
                     {
                         commandSetting += string.Format(" {0}", parameters.Value);
                     }
@@ -105,8 +96,8 @@ namespace Microsoft.DotNet.Execute
         {
             foreach (KeyValuePair<string, string> reqSetting in requiredSettings)
             {
-                string value = string.IsNullOrEmpty(reqSetting.Value)||reqSetting.Value.Equals("default") ? FindSettingValue(reqSetting.Key) : reqSetting.Value;
-                if (value!= null && string.IsNullOrEmpty(commandValues[reqSetting.Key]))
+                string value = string.IsNullOrEmpty(reqSetting.Value) || reqSetting.Value.Equals("default") ? FindSettingValue(reqSetting.Key) : reqSetting.Value;
+                if (value != null && string.IsNullOrEmpty(commandValues[reqSetting.Key]))
                 {
                     commandValues[reqSetting.Key] = string.IsNullOrEmpty(value) ? "True" : value;
                 }

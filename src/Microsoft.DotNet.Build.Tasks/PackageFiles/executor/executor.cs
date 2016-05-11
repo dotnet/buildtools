@@ -14,7 +14,7 @@ namespace Microsoft.DotNet.Execute
     public class Executor
     {
         //the path depends on where the executor ends up living...
-        public string configFile = @"config.json";
+        public string configFile = @"C:\mariariBT\src\Scripts\config.json";
         public Dictionary<string, string> SettingParameters { get; set; }
         public Dictionary<string, string> CommandParameters { get; set; }
         
@@ -50,11 +50,6 @@ namespace Microsoft.DotNet.Execute
                     }
                 }
 
-                //Optional project value
-                string project = "";
-                parser.DefineOptionalQualifier("project", ref project, "Project where the commands are going to be applied.");
-                SettingParameters["project"] = project;
-
                 //Commands
                 foreach (KeyValuePair<string, Command> comm in setupInformation.Commands)
                 {
@@ -85,8 +80,16 @@ namespace Microsoft.DotNet.Execute
             
         }
 
+        private string Format(string filename, string arguments)
+        {
+            return "'" + filename +
+                ((string.IsNullOrEmpty(arguments)) ? string.Empty : " " + arguments) +
+                "'";
+        }
+
         public static int Main(string[] args)
         {
+            
             Executor executor = new Executor();
             Setup jsonSetup = executor.OpenFile();
             if (jsonSetup == null)

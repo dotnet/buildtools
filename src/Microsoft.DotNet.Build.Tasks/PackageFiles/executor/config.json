@@ -6,6 +6,12 @@
       "values": ["Windows_NT", "Linux", "OSX", "FreeBSD", "NetBSD"],
       "defaultValue": "Windows_NT"
      },
+     "FilterToOSGroup": {
+      "description": "Target OS for result binaries.",
+      "valueType": "property",
+      "values": ["Windows_NT", "Linux", "OSX", "FreeBSD", "NetBSD"],
+      "defaultValue": "Windows_NT"
+     },
     "RestoreDuringBuild": {
       "description": "Enables/Disables the restoration of packages.",
       "valueType": "property",
@@ -30,6 +36,18 @@
       "values": ["True", "False"],
       "defaultValue": false
     },
+    "CloudDropAccountName": {
+      "description": "Azure account name.",
+      "valueType": "passThrough",
+      "values": [],
+      "defaultValue": ""
+    },
+    "CloudDropAccessToken": {
+      "description": "Azure access token",
+      "valueType": "passThrough",
+      "values": [],
+      "defaultValue": ""
+    },
     "BatchRestorePackages": {
       "description": "MsBuild target that restores the packages.",
       "valueType": "target",
@@ -38,6 +56,24 @@
     },
     "BatchGenerateTestProjectJsons": {
       "description": "MsBuild target that generates the project Jsons files to build tests against packages.",
+      "valueType": "target",
+      "values": [],
+      "defaultValue": ""
+    },
+    "Clean": {
+      "description": "MsBuild target that deletes the binary output directory.",
+      "valueType": "target",
+      "values": [],
+      "defaultValue": ""
+    },
+    "CleanPackages": {
+      "description": "MsBuild target that deletes the repo-local nuget package directory.",
+      "valueType": "target",
+      "values": [],
+      "defaultValue": ""
+    },
+    "CleanPackagesCache": {
+      "description": "MsBuild target that deletes the user-local nuget package cache.",
       "valueType": "target",
       "values": [],
       "defaultValue": ""
@@ -53,6 +89,12 @@
       "valueType": "passThrough",
       "values": [],
       "defaultValue": "/nologo /maxcpucount /v:minimal /clp:Summary"
+    },
+    "Project": {
+      "description": "Project where the commands are going to be applied.",
+      "valueType": "passThrough",
+      "values": [],
+      "defaultValue": ""
     },
     "ExtraArguments": {
       "description": "Doesn't format the setting to a specific tool.",
@@ -72,7 +114,83 @@
       },
       "settings": {
         "OSGroup": "",
-        "MsBuildLogging":"",
+        "MsBuildParameters":""
+      }
+    },
+    "build-tests": {
+      "description": "Builds the tests that are in the repository.",
+      "toolName": "msbuild",
+      "lockedSettings": {
+        "Project": "C:\\mariariCoreFX\\src\\tests.builds"
+      },
+      "settings": {
+        "OSGroup": "",
+        "MsBuildParameters":""
+      }
+    },
+    "build-packages": {
+      "description": "Builds the NuGet packages from the binaries that were built in the Build product binaries step.",
+      "toolName": "msbuild",
+      "lockedSettings": {
+        "Project": "C:\\mariariCoreFX\\src\\packages.builds"
+      },
+      "settings": {
+        "OSGroup": "",
+        "MsBuildParameters":""
+      }
+    },
+    "cleanBinariesCommand": {
+      "description": "Builds the NuGet packages from the binaries that were built in the Build product binaries step.",
+      "toolName": "msbuild",
+      "lockedSettings": {
+        "Clean": ""
+      },
+      "settings": {
+        "MsBuildParameters":""
+      }
+    },
+    "cleanPackagesCommand": {
+      "description": "Builds the NuGet packages from the binaries that were built in the Build product binaries step.",
+      "toolName": "msbuild",
+      "lockedSettings": {
+        "CleanPackages": ""
+      },
+      "settings": {
+        "MsBuildParameters":""
+      }
+    },
+    "cleanPackagesCacheCommand": {
+      "description": "Builds the NuGet packages from the binaries that were built in the Build product binaries step.",
+      "toolName": "msbuild",
+      "lockedSettings": {
+        "CleanPackagesCache": ""
+      },
+      "settings": {
+        "MsBuildParameters":""
+      }
+    },
+    "downloadAzurePackages": {
+      "description": "Downloads the latests product packages from Azure.",
+      "toolName": "msbuild",
+      "lockedSettings": {
+        "Project": "C:\\mariariCoreFX\\src\\src\\syncAzure.proj",
+        "CloudDropAccountName": "default",
+        "CloudDropAccessToken": "default"
+      },
+      "settings": {
+        "OSGroup": "",
+        "MsBuildParameters":""
+      }
+    },
+    "sync": {
+      "description": "Restores all nuget packages for repository",
+      "toolName": "msbuild",
+      "lockedSettings": {
+        "RestoreDuringBuild":  true,
+        "BatchRestorePackages": "default"
+      },
+      "settings": {
+        "OSGroup": "",
         "MsBuildParameters":""
       }
     },
