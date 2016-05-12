@@ -58,8 +58,10 @@
     <Copyright>&#169; Microsoft Corporation.  All rights reserved.</Copyright>
     <Tags></Tags>
     <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
-    <!-- we depend on nuget v3.4 behavior -->
-    <MinClientVersion Condition="'$(MinClientVersion)' == ''">3.4</MinClientVersion>
+    <!-- we depend on nuget v2.12 / v3.4 behavior NuGet doesn't support two different min client versions
+         so we declare 2.12 and mention in package description that when using 3.x we require 3.4 or later -->
+    <MinClientVersion3 Condition="'$(MinClientVersion3)' == '' and '$(MinClientVersion)' == ''">3.4</MinClientVersion3>
+    <MinClientVersion Condition="'$(MinClientVersion)' == ''">2.12</MinClientVersion>
   </PropertyGroup>
 
   <!-- Shared properties -->
@@ -807,11 +809,20 @@
       <Output TaskParameter="Description"
               PropertyName="RuntimeDisclaimer" />
     </GetPackageDescription>
+    
+    <!-- Looks up a message similar to "When using NuGet 3.x this package requires at least version {0}." -->
+    <GetPackageDescription ResourceFile="$(PackageDescriptionFile)"
+                           Condition="'$(MinClientVersion3)' != ''"
+                           PackageId="NuGet3MinVersion">
+      <Output TaskParameter="Description"
+              PropertyName="NuGet3MinVersionMessage" />
+    </GetPackageDescription>
 
     <PropertyGroup>
       <Description Condition="'$(UseRuntimePackageDescription)' == 'true' AND '$(RuntimeDisclaimer)' != ''">$(RuntimeDisclaimer)</Description>
       <Description Condition="'$(UseRuntimePackageDescription)' != 'true' AND '$(RuntimeDisclaimer)' != ''">$(RuntimeDisclaimer) %0A$(Description)</Description>
       <Description Condition="'@(SyncInfoLines)' != ''">$(Description) %0A%(SyncInfoLines.Identity)</Description>
+      <Description Condition="'$(MinClientVersion3)' != ''">$(Description) %0A$([System.String]::Format('$(NuGet3MinVersionMessage)', '$(MinClientVersion3)'))</Description>
     </PropertyGroup>
   </Target>
 
