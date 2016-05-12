@@ -811,7 +811,7 @@
     </GetPackageDescription>
     
     <!-- Looks up a message similar to "When using NuGet 3.x this package requires at least version {0}." -->
-    <GetPackageDescription ResourceFile="$(PackageDescriptionFile)"
+    <GetPackageDescription DescriptionFile="$(PackageDescriptionFile)"
                            Condition="'$(MinClientVersion3)' != ''"
                            PackageId="NuGet3MinVersion">
       <Output TaskParameter="Description"
