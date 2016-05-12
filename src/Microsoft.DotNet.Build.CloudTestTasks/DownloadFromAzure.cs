@@ -38,8 +38,9 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         public string ContainerName { get; set; }
 
         /// <summary>
-        /// Directory to download blob files to
+        /// Directory to download blob files to.
         /// </summary>
+        [Required]
         public string DownloadDirectory { get; set; }
         
         public override bool Execute()
@@ -49,13 +50,14 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
         public async Task<bool> ExecuteAsync()
         {
-            Log.LogMessage(MessageImportance.Normal, "Downloading container {0} from storage account '{1}'.", ContainerName, AccountName);
+            Log.LogMessage(MessageImportance.Normal, "Downloading contents of container {0} from storage account '{1}' to directory {2}.",
+                ContainerName, AccountName, DownloadDirectory);
 
             DateTime dateTime = DateTime.UtcNow;
             List<string> blobsNames = null;
             string urlListBlobs = string.Format("https://{0}.blob.core.windows.net/{1}?restype=container&comp=list", AccountName, ContainerName);
             
-            Log.LogMessage(MessageImportance.Normal, "Sending request to list blobsNames for container '{0}'.", ContainerName);
+            Log.LogMessage(MessageImportance.Low, "Sending request to list blobsNames for container '{0}'.", ContainerName);
 
             using (HttpClient client = new HttpClient())
             {
@@ -75,6 +77,12 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                         XmlDocument responseFile;
                         using (HttpResponseMessage response = await client.SendAsync(request))
                         {
+                            if (!response.IsSuccessStatusCode)
+                            {
+                                Log.LogError("The request for the list of blobs failed with status code {0}", response.StatusCode);
+                                return false;
+                            }
+
                             responseFile = new XmlDocument();
                             responseFile.LoadXml(await response.Content.ReadAsStringAsync());
                             XmlNodeList elemList = responseFile.GetElementsByTagName("Name");
@@ -82,19 +90,24 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                             blobsNames = elemList.Cast<XmlNode>()
                                                         .Select(x => x.InnerText)
                                                         .ToList();
+
+                            if (blobsNames.Count == 0)
+                                Log.LogWarning("No blobs were found.");
                         }
                     }
                     catch (Exception e)
                     {
-                        Log.LogError("Failed to retrieve information.\n" + e.Message);
+                        Log.LogErrorFromException(e, true);
                         return false;
                     }
                 }
 
-                DownloadDirectory = DownloadDirectory ?? Directory.GetCurrentDirectory();
+                // track the number of blobs that fail to download
+                int failureCount = 0;
+
                 foreach (string blob in blobsNames)
                 {
-                    Log.LogMessage(MessageImportance.Normal, "Downloading BLOB - {0}", blob);
+                    Log.LogMessage(MessageImportance.Low, "Downloading BLOB - {0}", blob);
                     string urlGetBlob = string.Format("https://{0}.blob.core.windows.net/{1}/{2}", AccountName, ContainerName, blob);
 
                     string filename = Path.Combine(DownloadDirectory, blob);
@@ -115,19 +128,29 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                                 "GET",
                                 dateTime,
                                 request));
-                        
+
                         using (HttpResponseMessage response = await client.SendAsync(request))
                         {
-                            Stream responseStream = await response.Content.ReadAsStreamAsync();
-                            using (FileStream sourceStream = File.Open(filename, FileMode.Create))
+                            if (response.IsSuccessStatusCode)
                             {
-                                responseStream.CopyTo(sourceStream);
+                                Stream responseStream = await response.Content.ReadAsStreamAsync();
+                                using (FileStream sourceStream = File.Open(filename, FileMode.Create))
+                                {
+                                    responseStream.CopyTo(sourceStream);
+                                }
+                            }
+                            else
+                            {
+                                Log.LogError("Failed to retrieve blob {0}, the status code was {1}", blob, response.StatusCode);
+                                ++failureCount;
                             }
                         }
                     }
                 }
+
+                // if no blobs failed to download the task succeeded
+                return (failureCount == 0);
             }
-            return true;
         }
     }
 }

@@ -18,55 +18,55 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
     public sealed class CreateAzureContainer : Task
     {
         /// <summary>
-        ///     The Azure account key used when creating the connection string.
+        /// The Azure account key used when creating the connection string.
         /// </summary>
         [Required]
         public string AccountKey { get; set; }
 
         /// <summary>
-        ///     The Azure account name used when creating the connection string.
+        /// The Azure account name used when creating the connection string.
         /// </summary>
         [Required]
         public string AccountName { get; set; }
 
         /// <summary>
-        ///     The name of the container to create.  The specified name must be in the correct format, see the
-        ///     following page for more info.  https://msdn.microsoft.com/en-us/library/azure/dd135715.aspx
+        /// The name of the container to create.  The specified name must be in the correct format, see the
+        /// following page for more info.  https://msdn.microsoft.com/en-us/library/azure/dd135715.aspx
         /// </summary>
         [Required]
         public string ContainerName { get; set; }
 
         /// <summary>
-        ///     When false, if the specified container already exists get a reference to it.
-        ///     When true, if the specified container already exists the task will fail.
+        /// When false, if the specified container already exists get a reference to it.
+        /// When true, if the specified container already exists the task will fail.
         /// </summary>
         public bool FailIfExists { get; set; }
 
         /// <summary>
-        ///     The read-only SAS token created when ReadOnlyTokenDaysValid is greater than zero.
+        /// The read-only SAS token created when ReadOnlyTokenDaysValid is greater than zero.
         /// </summary>
         [Output]
         public string ReadOnlyToken { get; set; }
 
         /// <summary>
-        ///     The number of days for which the read-only token should be valid.
+        /// The number of days for which the read-only token should be valid.
         /// </summary>
         public int ReadOnlyTokenDaysValid { get; set; }
 
         /// <summary>
-        ///     The URI of the created container.
+        /// The URI of the created container.
         /// </summary>
         [Output]
         public string StorageUri { get; set; }
 
         /// <summary>
-        ///     The write-only SAS token create when WriteOnlyTokenDaysValid is greater than zero.
+        /// The write-only SAS token create when WriteOnlyTokenDaysValid is greater than zero.
         /// </summary>
         [Output]
         public string WriteOnlyToken { get; set; }
 
         /// <summary>
-        ///     The number of days for which the write-only token should be valid.
+        /// The number of days for which the write-only token should be valid.
         /// </summary>
         public int WriteOnlyTokenDaysValid { get; set; }
 
@@ -92,7 +92,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 AccountName, 
                 ContainerName);
 
-            Log.LogMessage(MessageImportance.Normal, "Sending request to create Container");
+            Log.LogMessage(MessageImportance.Low, "Sending request to create Container");
             using (HttpClient client = new HttpClient())
             {
                 using (HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Put, url))
@@ -114,48 +114,50 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
                     using (HttpResponseMessage response = await client.SendAsync(req))
                     {
-                        this.Log.LogMessage(
-                            MessageImportance.Normal,
+                        Log.LogMessage(
+                            MessageImportance.Low,
                             "Received response to create Container {0}: Status Code: {1} {2}",
-                            this.ContainerName, response.StatusCode, response.Content);
+                            ContainerName, response.StatusCode, response.Content.ToString());
+
+                        // the Conflict status (409) indicates that the container already exists, so
+                        // if FailIfExists is set to false and we get a 409 don't fail the task.
+                        if (!response.IsSuccessStatusCode && (FailIfExists || response.StatusCode != HttpStatusCode.Conflict))
+                        {
+                            Log.LogError("Container creation failed with response {0}", response.StatusCode);
+                            return false;
+                        }
+
+                        try
+                        {
+                            // specifying zero is valid, it means "I don't want a token"
+                            if (ReadOnlyTokenDaysValid > 0)
+                            {
+                                ReadOnlyToken = AzureHelper.CreateContainerSasToken(
+                                    AccountName,
+                                    ContainerName,
+                                    AccountKey,
+                                    AzureHelper.SasAccessType.Read,
+                                    ReadOnlyTokenDaysValid);
+                            }
+
+                            // specifying zero is valid, it means "I don't want a token"
+                            if (WriteOnlyTokenDaysValid > 0)
+                            {
+                                WriteOnlyToken = AzureHelper.CreateContainerSasToken(
+                                    AccountName,
+                                    ContainerName,
+                                    AccountKey,
+                                    AzureHelper.SasAccessType.Write,
+                                    WriteOnlyTokenDaysValid);
+                            }
+                        }
+                        catch (ArgumentOutOfRangeException e)
+                        {
+                            Log.LogErrorFromException(e, true);
+                            return false;
+                        }
                     }
                 }
-            }
-
-            try
-            {
-                if (ReadOnlyTokenDaysValid > 0)
-                {
-                    ReadOnlyToken = AzureHelper.CreateContainerSasToken(
-                        AccountName,
-                        ContainerName,
-                        AccountKey,
-                        AzureHelper.SasAccessType.Read,
-                        ReadOnlyTokenDaysValid);
-                }
-                else
-                {
-                    Log.LogWarning("{0} will not allow read permissions - ReadOnlyTokenDaysValid must be greater than 0.", StorageUri);
-                }
-
-                if (WriteOnlyTokenDaysValid > 0)
-                {
-                    WriteOnlyToken = AzureHelper.CreateContainerSasToken(
-                        AccountName,
-                        ContainerName,
-                        AccountKey,
-                        AzureHelper.SasAccessType.Write,
-                        WriteOnlyTokenDaysValid);
-                }
-                else
-                {
-                    Log.LogWarning("{0} will not allow write permissions - WriteOnlyTokenDaysValid must be greater than 0.", StorageUri);
-                }
-            }
-            catch (ArgumentOutOfRangeException e)
-            {
-                Log.LogError("ArgumentOutOfRangeException: Invalid AzureHelper.SasAccessType :"+e.Message);
-                return false;
             }
 
             return true;

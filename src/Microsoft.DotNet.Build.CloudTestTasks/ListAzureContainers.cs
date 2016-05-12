@@ -53,7 +53,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             DateTime dateTime = DateTime.UtcNow;
             string url = string.Format("https://{0}.blob.core.windows.net/?comp=list", AccountName);
             
-            Log.LogMessage(MessageImportance.Normal, "Sending request to list containers in account '{0}'.", AccountName);
+            Log.LogMessage(MessageImportance.Low, "Sending request to list containers in account '{0}'.", AccountName);
 
             using (HttpClient client = new HttpClient())
             {
@@ -73,22 +73,34 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                         XmlDocument responseFile;
                         using (HttpResponseMessage response = await client.SendAsync(request))
                         {
+                            if (!response.IsSuccessStatusCode)
+                            {
+                                Log.LogError("Listing of Azure containers failed with response {0}", response.StatusCode);
+                                return false;
+                            }
+
                             responseFile = new XmlDocument();
                             responseFile.LoadXml(await response.Content.ReadAsStringAsync());
                             XmlNodeList elemList = responseFile.GetElementsByTagName("Name");
 
                             ContainerNames = (from x in elemList.Cast<XmlNode>()
-                                              where x.InnerText.Contains(Prefix)
-                                              select new TaskItem(x.InnerText)).ToArray();
+                                                where x.InnerText.Contains(Prefix)
+                                                select new TaskItem(x.InnerText)).ToArray();
+
+                            if (ContainerNames.Length == 0)
+                                Log.LogWarning("No containers were found.");
+                            else
+                                Log.LogMessage("Found {0} containers.", ContainerNames.Length);
                         }
                     }
                     catch (Exception e)
                     {
-                        Log.LogError("Failed to retrieve information.\n" + e.Message);
+                        Log.LogErrorFromException(e, true);
                         return false;
                     }
                 }
             }
+
             return true;
         }
     }
