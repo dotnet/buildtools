@@ -22,36 +22,36 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
     {
 
         /// <summary>
-        ///     The event data used to form the body stream.
+        /// The event data used to form the body stream.
         /// </summary>
         [Required]
         public string EventData { get; set; }
 
         /// <summary>
-        ///     The Event Hub Url 
+        /// The Event Hub Url 
         /// </summary>
         [Required]
         public string EventHubPath { get; set; }
 
         /// <summary>
-        ///     The Shared Access Key Name of the event hub
+        /// The Shared Access Key Name of the event hub
         /// </summary>
         [Required]
         public string EventHubSharedAccessKey { get; set; }
 
         /// <summary>
-        ///     The Shared Access Key Name of the event hub
+        /// The Shared Access Key Name of the event hub
         /// </summary>
         [Required]
         public string EventHubSharedAccessKeyName { get; set; }
 
         /// <summary>
-        ///     The partition key for the event.
+        /// The partition key for the event.
         /// </summary>
         public string PartitionKey { get; set; }
 
         /// <summary>
-        ///     Gets or sets the content bytes.
+        /// Gets or sets the content bytes.
         /// </summary>
         internal byte[] contentBytes { get; set; }
 
@@ -85,11 +85,11 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
                                 using (HttpResponseMessage response = await client.SendAsync(req))
                                 {
-                                    this.Log.LogMessage(MessageImportance.Normal, "Received response to send event to event hub");
+                                    Log.LogMessage(MessageImportance.Low, "Received response to send event to event hub");
 
-                                    if (response.StatusCode != HttpStatusCode.Created)
+                                    if (!response.IsSuccessStatusCode)
                                     {
-                                        this.Log.LogError(
+                                        Log.LogError(
                                             "Failed to send event to event hub: StatusCode:{0} Response:{1}",
                                             response.StatusCode,
                                             await response.Content.ReadAsStringAsync());

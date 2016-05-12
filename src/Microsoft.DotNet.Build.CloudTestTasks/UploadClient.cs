@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
+using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Task = System.Threading.Tasks.Task;
 
@@ -69,11 +70,9 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
                     if (nextBytesToRead != read)
                     {
-                        log.LogError(
-                            "Number of bytes read ({0}) from file {1} isn't equal to the number of bytes expected ({1}) .",
-                            read,
-                            fileName,
-                            nextBytesToRead);
+                        throw new Exception(string.Format(
+                            "Number of bytes read ({0}) from file {1} isn't equal to the number of bytes expected ({2}) .",
+                            read, fileName, nextBytesToRead));
                     }
 
                     string blockId = EncodeBlockIds(countForId, numberOfBlocks.ToString().Length);
@@ -104,7 +103,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                                     nextBytesToRead.ToString(),
                                     string.Empty));
 
-                            log.LogMessage("Sending request to upload part {0} of file {1}", countForId, fileName);
+                            log.LogMessage(MessageImportance.Low, "Sending request to upload part {0} of file {1}", countForId, fileName);
 
                             using (Stream postStream = new MemoryStream())
                             {
@@ -114,7 +113,11 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                                 req.Content = contentStream;
                                 using (HttpResponseMessage response = await client.SendAsync(req, ct))
                                 {
-                                    this.log.LogMessage(
+                                    if (!response.IsSuccessStatusCode)
+                                        throw new Exception(string.Format("Upload request failed with status code {0}", response.StatusCode));
+
+                                    log.LogMessage(
+                                        MessageImportance.Low,
                                         "Received response to upload part {0} of file {1}: Status Code:{2} Status Desc: {3}",
                                         countForId,
                                         fileName,
@@ -168,7 +171,11 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
                         using (HttpResponseMessage response = await client.SendAsync(req, ct))
                         {
-                            this.log.LogMessage(
+                            if (!response.IsSuccessStatusCode)
+                                throw new Exception(string.Format("Combination of block list failed with status code {0}", response.StatusCode));
+
+                            log.LogMessage(
+                                MessageImportance.Low,
                                 "Received response to combine block list for file {0}: Status Code:{1} Status Desc: {2}",
                                 fileName,
                                 response.StatusCode,
