@@ -168,16 +168,22 @@
     </ItemGroup>
     
     <MakeDir Directories="$(OutputFolderForTestDependencies)" />
-    <Message Text="Generating $(OutputFolderForTestDependencies)/$(AssemblyName)-$(OSGroup).$(Platform).$(ConfigurationGroup).dependencylist.txt" />
+    <PropertyGroup>
+      <_TestDependencyListRoot>$(AssemblyName)-$(OSGroup).$(Platform).$(ConfigurationGroup)</_TestDependencyListRoot>
+      <_TestDependencyListRoot Condition="'$(TargetGroup)' != ''">$(_TestDependencyListRoot).$(TargetGroup)</_TestDependencyListRoot>
+      <_TestDependencyListFileName>$(_TestDependencyListRoot).dependencylist.txt</_TestDependencyListFileName>
+      <TestDependencyListFilePath>$(OutputFolderForTestDependencies)/$(_TestDependencyListFileName)</TestDependencyListFilePath>
+    </PropertyGroup>
+    <Message Text="Generating $(TestDependencyListFilePath)" />
     <WriteLinesToFile
-      File="$(OutputFolderForTestDependencies)/$(AssemblyName)-$(OSGroup).$(Platform).$(ConfigurationGroup).dependencylist.txt"
+      File="$(TestDependencyListFilePath)"
       Lines="@(IncludedFileForRunnerScript -> '%(PackageRelativePath)')"
       Overwrite="true"
       Encoding="Ascii" />
     
     <Message Text="Generating JSON-Processed $(OutDir)assemblylist.txt for legacy execution" />
     <GenerateAssemblyList
-      InputListLocation="$(OutputFolderForTestDependencies)/$(AssemblyName)-$(OSGroup).$(Platform).$(ConfigurationGroup).dependencylist.txt"
+      InputListLocation="$(TestDependencyListFilePath)"
       OutputListLocation="$(OutDir)assemblylist.txt"
      />
 
