@@ -340,8 +340,7 @@
                       '%(File.Extension)' != '.cs' AND
                       '%(File.Extension)' != '.vb' AND
                       !$(ID.Contains('%(File.FileName)'))"
-           Text="Package $(ID) contains file with name %(File.FileName).  If this is expected you can disable this filename checking for this item or package by setting SkipPackageFileCheck = true"
-           ContinueOnError="ErrorAndContinue" />
+           Text="Package $(ID) contains file with name %(File.FileName).  If this is expected you can disable this filename checking for this item or package by setting SkipPackageFileCheck = true" />
   </Target>
 
   <!-- Permit setting TargetFramework and add our own metadata (TargetRuntime) -->
@@ -600,8 +599,7 @@
     </GetPackageVersion>
 
     <Error Condition="'$(_AssemblyVersion)' == ''"
-           Text="No assembly version could be determined."
-           ContinueOnError="ErrorAndContinue" />
+           Text="No assembly version could be determined." />
   </Target>
 
   <!-- Calculates the package version including any prerelease suffix -->
@@ -609,8 +607,7 @@
         DependsOnTargets="CreateVersionFileDuringBuild;GetAssemblyVersionFromProjects">
 
     <Error Text="No version could be detected.  Either specify the Version property or provide at least one managed assembly."
-           Condition="'$(Version)' == '' AND '$(_AssemblyVersion)' == ''"
-           ContinueOnError="ErrorAndContinue" />
+           Condition="'$(Version)' == '' AND '$(_AssemblyVersion)' == ''" />
 
     <ItemGroup>
       <_thisPackage Include="$(Id)">
@@ -643,8 +640,7 @@
     </ItemGroup>
 
     <Error Text="Packages that are constrained by runtime should not have runtime dependencies.  They will be ignored by nuget"
-           Condition="'$(PackageTargetRuntime)' != '' AND '@(RuntimeDependency)' != ''"
-           ContinueOnError="ErrorAndContinue" />
+           Condition="'$(PackageTargetRuntime)' != '' AND '@(RuntimeDependency)' != ''" />
 
     <!-- determine if there is a file to be updated, and setup the output file -->
     <PropertyGroup>
@@ -954,8 +950,7 @@
                      SkipSupportCheck="$(SkipSupportCheck)"
                      SuppressionFile="$(ValidationSuppressionFile)"
                      UseNetPlatform="$(UseNetPlatform)"
-                     ValidationReport="$(PackageReportPath)"
-                     ContinueOnError="ErrorAndContinue"/>
+                     ValidationReport="$(PackageReportPath)" />
   
     <!-- Validate that this package version is part of the baseline -->
     <ItemGroup>
@@ -988,8 +983,7 @@
     </ItemGroup>
 
     <Error Text="Packages @(_MissingMetaDependencies) should be included."
-           Condition="'@(_MissingMetaDependencies)' != ''"
-           ContinueOnError="ErrorAndContinue" />
+           Condition="'@(_MissingMetaDependencies)' != ''" />
   </Target>
 
   <Target Name="CreatePackage"
