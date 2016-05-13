@@ -27,33 +27,33 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         private static readonly CancellationToken CancellationToken = TokenSource.Token;
 
         /// <summary>
-        ///     The Azure account key used when creating the connection string.
+        /// The Azure account key used when creating the connection string.
         /// </summary>
         [Required]
         public string AccountKey { get; set; }
 
         /// <summary>
-        ///     The Azure account name used when creating the connection string.
+        /// The Azure account name used when creating the connection string.
         /// </summary>
         [Required]
         public string AccountName { get; set; }
 
         /// <summary>
-        ///     The name of the container to access.  The specified name must be in the correct format, see the
-        ///     following page for more info.  https://msdn.microsoft.com/en-us/library/azure/dd135715.aspx
+        /// The name of the container to access.  The specified name must be in the correct format, see the
+        /// following page for more info.  https://msdn.microsoft.com/en-us/library/azure/dd135715.aspx
         /// </summary>
         [Required]
         public string ContainerName { get; set; }
 
         /// <summary>
-        ///     An item group of files to upload.  Each item must have metadata RelativeBlobPath
-        ///     that specifies the path relative to ContainerName where the item will be uploaded.
+        /// An item group of files to upload.  Each item must have metadata RelativeBlobPath
+        /// that specifies the path relative to ContainerName where the item will be uploaded.
         /// </summary>
         [Required]
         public ITaskItem[] Items { get; set; }
 
         /// <summary>
-        ///     Indicates if the destination blob should be overwritten if it already exists.  The default if false.
+        /// Indicates if the destination blob should be overwritten if it already exists.  The default if false.
         /// </summary>
         public bool Overwrite { get; set; } = false;
 
@@ -77,7 +77,8 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
             if (Items.Length == 0)
             {
-                throw new ArgumentException("No items were provided for upload.");
+                Log.LogError("No items were provided for upload.");
+                return false;
             }
 
             // first check what blobs are present
@@ -101,42 +102,46 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                         "GET",
                         dt,
                         req));
-                    
-                    Log.LogMessage(MessageImportance.Normal, "Sending request to check whether Container blobs exist");
-                    XmlDocument doc;
+
+                    Log.LogMessage(MessageImportance.Low, "Sending request to check whether Container blobs exist");
                     using (HttpResponseMessage response = await client.SendAsync(req, ct))
                     {
-                        doc = new XmlDocument();
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            Log.LogError("Failed to get the list of blobs, the status code was {0}", response.StatusCode);
+                            return false;
+                        }
+
+                        var doc = new XmlDocument();
                         doc.LoadXml(await response.Content.ReadAsStringAsync());
+
+                        XmlNodeList nodes = doc.DocumentElement.GetElementsByTagName("Blob");
+
+                        foreach (XmlNode node in nodes)
+                        {
+                            blobsPresent.Add(node["Name"].InnerText);
+                        }
+
+                        Log.LogMessage(MessageImportance.Low, "Received response to check whether Container blobs exist");
                     }
-
-                    XmlNodeList nodes = doc.DocumentElement.GetElementsByTagName("Blob");
-
-                    foreach (XmlNode node in nodes)
-                    {
-                        blobsPresent.Add(node["Name"].InnerText);
-                    }
-
-                    Log.LogMessage(MessageImportance.Normal, "Received response to check whether Container blobs exist");
                 }
             }
+
             try
             {
                 await ThreadingTask.WhenAll(Items.Select(item => UploadAsync(ct, item, blobsPresent)));
+                Log.LogMessage(MessageImportance.High, "Upload to Azure is complete, a total of {0} items were uploaded.", Items.Length);
+                return true;
             }
             catch (Exception e)
             {
-                Log.LogErrorFromException(e,true);
+                Log.LogErrorFromException(e, true);
                 return false;
             }
-
-            Log.LogMessage(MessageImportance.High, "Upload to Azure is complete, a total of {0} items were uploaded.", Items.Length);
-            return true;
         }
 
         private async ThreadingTask UploadAsync(CancellationToken ct, ITaskItem item, HashSet<string> blobsPresent)
         {
-            bool result = true;
             if (ct.IsCancellationRequested)
             {
                 Log.LogError("Task UploadToAzure cancelled");
@@ -145,40 +150,24 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
             string relativeBlobPath = item.GetMetadata("RelativeBlobPath");
             if (string.IsNullOrEmpty(relativeBlobPath))
-            {
-                Log.LogError(string.Format("Metadata 'RelativeBlobPath' is missing for item '{0}'.", item.ItemSpec));
-                result = false;
-            }
+                throw new Exception(string.Format("Metadata 'RelativeBlobPath' is missing for item '{0}'.", item.ItemSpec));
 
             if (!File.Exists(item.ItemSpec))
-            {
-                Log.LogError(string.Format("The file '{0}' does not exist.", item.ItemSpec));
-                result = false;
-            }
+                throw new Exception(string.Format("The file '{0}' does not exist.", item.ItemSpec));
 
             if (!Overwrite && blobsPresent.Contains(relativeBlobPath))
-            {
-                Log.LogError(string.Format("The blob '{0}' already exists.", relativeBlobPath));
-                result = false;
-            }
+                throw new Exception(string.Format("The blob '{0}' already exists.", relativeBlobPath));
 
-            if (!result)
-            {
-                throw new Exception ("Task UploadToAzure failed.");
-            }
-            else
-            {
-                Log.LogMessage("Uploading {0} to {1}.", item.ItemSpec, ContainerName);
-                UploadClient uploadClient = new UploadClient(Log);
-                await
-                    uploadClient.UploadBlockBlobAsync(
-                        ct,
-                        AccountName,
-                        AccountKey,
-                        ContainerName,
-                        item.ItemSpec,
-                        relativeBlobPath);
-            }
+            Log.LogMessage("Uploading {0} to {1}.", item.ItemSpec, ContainerName);
+            UploadClient uploadClient = new UploadClient(Log);
+            await
+                uploadClient.UploadBlockBlobAsync(
+                    ct,
+                    AccountName,
+                    AccountKey,
+                    ContainerName,
+                    item.ItemSpec,
+                    relativeBlobPath);
         }
     }
 }

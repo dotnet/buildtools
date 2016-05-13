@@ -21,6 +21,7 @@
     <Compile Include="ExceptionFromResource.cs" />
     <Compile Include="ExecWithMutex.cs" />
     <Compile Include="GatherFoldersToRestore.cs" />
+    <Compile Include="GenerateAssemblyList.cs" />
     <Compile Include="AddDependenciesToProjectJson.cs" />
     <Compile Include="GenerateTestExecutionScripts.cs" />
     <Compile Include="ParsePackageNames.cs" />
@@ -48,6 +49,7 @@
     <Compile Include="VisitProjectDependencies.cs" />
     <Compile Include="ValidateProjectDependencyVersions.cs" />
     <Compile Include="WriteSigningRequired.cs" />
+    <Compile Include="ZipFileCreateFromDependencyLists.cs" />
     <Compile Include="ZipFileExtractToDirectory.cs" />
     <Compile Include="ZipFileCreateFromDirectory.cs" />
     <Compile Include="Strings.Designer.cs">

@@ -152,6 +152,7 @@
       <TestCommandLine>$(TestCommandLine.Replace('{XunitTraitOptions}', '$(XunitTraitOptions)'))</TestCommandLine>
       <OutputFolderForScriptGenerator>$(TestPath)%(TestTargetFramework.Folder)</OutputFolderForScriptGenerator>
       <OutputPathForScriptGenerator>$(OutputFolderForScriptGenerator)/$(RunnerScriptName)</OutputPathForScriptGenerator>
+      <OutputFolderForTestDependencies>$(BinDir)/TestDependencies</OutputFolderForTestDependencies>
     </PropertyGroup>
 
     <MakeDir Condition="'$(CoverageEnabledForProject)'=='true'" Directories="$(CoverageReportDir)" />
@@ -165,6 +166,20 @@
         <UseAbsolutePath Condition="'$(TestWithLocalLibraries)'=='true'">$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').StartsWith('$(BinDir)'))</UseAbsolutePath>
       </IncludedFileForRunnerScript>
     </ItemGroup>
+    
+    <MakeDir Directories="$(OutputFolderForTestDependencies)" />
+    <Message Text="Generating $(OutputFolderForTestDependencies)/$(AssemblyName)-$(OSGroup).$(Platform).$(ConfigurationGroup).dependencylist.txt" />
+    <WriteLinesToFile
+      File="$(OutputFolderForTestDependencies)/$(AssemblyName)-$(OSGroup).$(Platform).$(ConfigurationGroup).dependencylist.txt"
+      Lines="@(IncludedFileForRunnerScript -> '%(PackageRelativePath)')"
+      Overwrite="true"
+      Encoding="Ascii" />
+    
+    <Message Text="Generating JSON-Processed $(OutDir)assemblylist.txt for legacy execution" />
+    <GenerateAssemblyList
+      InputListLocation="$(OutputFolderForTestDependencies)/$(AssemblyName)-$(OSGroup).$(Platform).$(ConfigurationGroup).dependencylist.txt"
+      OutputListLocation="$(OutDir)assemblylist.txt"
+     />
 
     <!-- Add commands for before / after test execution here.  -->
     <ItemGroup>
