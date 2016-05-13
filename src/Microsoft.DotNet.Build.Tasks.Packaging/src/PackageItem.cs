@@ -25,6 +25,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
             TargetPath = item.GetMetadata("TargetPath");
             Package = item.GetMetadata("PackageId");
+            PackageVersion = item.GetMetadata("PackageVersion");
 
             // determine if we need to append filename to TargetPath
             // see https://docs.nuget.org/create/nuspec-reference#specifying-files-to-include-in-the-package
@@ -88,5 +89,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         public string TargetDirectory { get; }
         public string TargetPath { get; }
         public string Package { get; }
+        public string PackageVersion { get; }
     }
 }

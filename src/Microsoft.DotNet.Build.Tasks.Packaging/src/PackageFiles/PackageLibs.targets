@@ -3,10 +3,44 @@
   <PropertyGroup>
     <PackagingTaskDir Condition="'$(PackagingTaskDir)' == ''">$(MSBuildThisFileDirectory)</PackagingTaskDir>
     <GenerationDefinitionFile Condition="'$(GenerationDefinitionFile)' == ''">$(MSBuildThisFileDirectory)Generations.json</GenerationDefinitionFile>
+    <RuntimeIdGraphDefinitionFile Condition="'$(RuntimeIdGraphDefinitionFile)' == '' AND Exists('$(ProjectDir)pkg/Microsoft.NETCore.Platforms/runtime.json')">$(ProjectDir)pkg/Microsoft.NETCore.Platforms/runtime.json</RuntimeIdGraphDefinitionFile>
+    <RuntimeIdGraphDefinitionFile Condition="'$(RuntimeIdGraphDefinitionFile)' == ''">$(MSBuildThisFileDirectory)runtime.json</RuntimeIdGraphDefinitionFile>
   </PropertyGroup>
 
   <UsingTask TaskName="ValidatePackageTargetFramework" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  <UsingTask TaskName="GetApplicableAssetsFromPackages" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
 
+  <Target Name="UpdatePkgProjProjectReferences" BeforeTargets="BeforeResolveReferences">
+    <!-- Update PkgProj references to call the GetPackageAssets target -->
+    <ItemGroup>
+      <ProjectReference Condition="'%(Extension)'=='.pkgproj'">
+        <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+        <Targets>Build;GetPackageAssets</Targets>
+        <OutputItemType>PkgProjAsset</OutputItemType>
+      </ProjectReference>
+    </ItemGroup>
+  </Target>
+  
+  <PropertyGroup>
+    <!-- Resolve from pkgProjs before nuget packages -->
+    <ResolveNugetPackagesDependsOn>$(ResolveNugetPackagesDependsOn);ResolvePkgProjReferences</ResolveNugetPackagesDependsOn>
+    <ResolvePkgProjReferencesDependsOn>ResolveProjectReferences</ResolvePkgProjReferencesDependsOn>
+  </PropertyGroup>
+
+  <!-- Resolves applicable files from all files in PkgProjs. Similar to ResolveNuGetPackageAssets, except operates on a file list
+       without requiring actual nupkgs, project.json, or restore -->
+  <Target Name="ResolvePkgProjReferences" Condition="'@(PkgProjAsset)' != ''" DependsOnTargets="$(ResolvePkgProjReferencesDependsOn)">
+    <!-- If TestNuGetTargetMoniker is set, use that for resolving runtime assets. -->
+    <GetApplicableAssetsFromPackages PackageAssets="@(PkgProjAsset)" 
+                                     TargetMoniker="$(NuGetTargetMoniker)"
+                                     RuntimeTargetMoniker="$(TestNuGetTargetMoniker)"
+                                     TargetRuntime="$(TestNugetRuntimeId)"
+                                     RuntimeFile="$(RuntimeIdGraphDefinitionFile)">
+      <Output TaskParameter="CompileAssets" ItemName="Reference" />
+      <Output TaskParameter="RuntimeAssets" ItemName="ReferenceCopyLocalPaths" />
+    </GetApplicableAssetsFromPackages>
+  </Target>
+  
   <!-- Returns the set of files to be included in the nuget package
        with appropriate metadata.-->
   <Target Name="GetFilesToPackage"

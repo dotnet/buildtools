@@ -890,10 +890,10 @@
     <SkipValidatePackage Condition="'$(SkipValidateTargetFrameworks)' == '' AND '$(PackageTargetRuntime)' != ''">true</SkipValidatePackage>
     <SkipSupportCheck Condition="'$(SkipSupportCheck)' == '' AND ($(Id.StartsWith('System.Private.')) OR $(Id.StartsWith('Microsoft.NETCore.')))">true</SkipSupportCheck>
   </PropertyGroup>
-
-  <Target Name="ValidatePackage"
+  
+  <Target Name="GetPackageAssets"
           DependsOnTargets="GetPackageFiles;DetermineRuntimeDependencies"
-          Condition="'$(SkipValidatePackage)' != 'true'">
+          Returns="@(PackageAsset)">
     <ItemGroup>
       <RuntimeDependencyProject Include="%(RuntimeDependency.OriginalItemSpec)" KeepDuplicates="false" />
       <!-- map back to the project references -->
@@ -901,6 +901,27 @@
       <ProjectReferenceFullPath Include="@(ProjectReference->'%(FullPath)')"/>
       <RuntimeProjectReference Include="@(ProjectReferenceFullPath)" Condition="'@(ProjectReferenceFullPath)' == '@(RuntimeDependencyProjectFullPath)' AND '%(Identity)' != ''"/>
     </ItemGroup>
+      
+
+    <!-- Get all the files from runtime implementation packages to include in reference path-->
+    <MSBuild Projects="@(RuntimeProjectReference)" 
+             Targets="GetPackageFiles" 
+             BuildInParallel="$(BuildInParallel)"
+             Properties="$(ProjectProperties)">
+      <Output TaskParameter="TargetOutputs" ItemName="RuntimeFile" />
+    </MSBuild>
+
+    <ItemGroup>
+      <PackageAsset Include="@(RuntimeFile)"
+                    Condition="'%(RuntimeFile.IsSourceCodeFile)'!='true'" />
+      <PackageAsset Include="@(PackageFile)"
+                    Condition="'%(PackageFile.IsSourceCodeFile)'!='true'" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="ValidatePackage"
+          DependsOnTargets="GetPackageAssets"
+          Condition="'$(SkipValidatePackage)' != 'true'">
 
     <ItemGroup>
       <!-- Validation framework metadata can be sepecified in multiple ways.
@@ -926,33 +947,10 @@
       </SupportedFramework>
     </ItemGroup>
 
-    <!-- Get all the files from runtime implementation packages to include in reference path-->
-    <MSBuild Projects="@(RuntimeProjectReference)" 
-             Targets="GetPackageFiles" 
-             BuildInParallel="$(BuildInParallel)"
-             Properties="$(ProjectProperties)">
-      <Output TaskParameter="TargetOutputs" ItemName="RuntimeFile" />
-    </MSBuild>
-
-    <ItemGroup>
-      <EveryUnfilteredFile Include="@(RuntimeFile);@(PackageFile)" />
-
-      <!-- Include all files except source files. Sources need to be deduplicated. -->
-      <EveryFile Include="@(EveryUnfilteredFile)"
-                 Condition="'%(EveryUnfilteredFile.IsSourceCodeFile)'!='true'" />
-
-      <!-- Include Sources. Deduplicate so they pass package validation. -->
-      <SourceFile Include="@(EveryUnfilteredFile)"
-                  KeepMetadata="TargetPath;IsSourceCodeFile"
-                  KeepDuplicates="false"
-                  Condition="'%(EveryUnfilteredFile.IsSourceCodeFile)'=='true'" />
-      <EveryFile Include="@(SourceFile)" />
-    </ItemGroup>
-
     <ValidatePackage ContractName="$(BaseId)"
                      PackageId="$(Id)"
                      PackageVersion="$(Version)"
-                     Files="@(EveryFile)"
+                     Files="@(PackageAsset)"
                      SupportedFrameworks="@(SupportedFramework)"
                      Frameworks="@(ValidateFramework)"
                      RuntimeFile="$(RuntimeIdGraphDefinitionFile)"
@@ -976,6 +974,20 @@
     <Error Condition="'$(SkipBaseLineCheck)' != 'true' AND '@(_thisPackageBaseLine)' != '' AND '@(_thisPackageBaseLine->WithMetadataValue('Version', '$(_VersionWithoutPreRelease)'))' == ''"
            Text="This package's version '$(_VersionWithoutPreRelease)' is not part of any BaseLine '@(_thisPackageBaseLine->'%(Version)')'.$(BaseLinePropsUpdateMessage)" />
   </Target>
+
+  <Target Name="GetValidationReport" DependsOnTargets="ValidatePackage" Returns="$(PackageReportPath)" />
+
+  <!-- Required by Common.Targets when evaluating projectReferences -->
+  <Target Name="GetNativeManifest" />
+  <Target Name="GetCopyToOutputDirectoryItems" />
+  <!-- App packaging support -->
+  <!-- 
+    Following two targets are needed to be present in every project being built
+    because the app packaging targets recursively scan all projects referenced
+    from projects that generate app packages for them.
+  -->
+  <Target Name="CleanAppxPackage" />
+  <Target Name="GetPackagingOutputs" />
 
   <Target Name="GenerateNuSpec"
           DependsOnTargets="GetPackageDependencies;GetPackageFiles;GetPackageMetadata;GenerateRuntimeDependencies;EnsureEmptyPackage;ValidatePackage">
