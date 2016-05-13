@@ -33,9 +33,15 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         public string EncodeBlockIds(int numberOfBlocks, int lengthOfId)
         {
             string numberOfBlocksString = numberOfBlocks.ToString("D" + lengthOfId);
-
-            byte[] bytes = Encoding.UTF8.GetBytes(numberOfBlocksString);
-            return Convert.ToBase64String(bytes);
+            if (Encoding.UTF8.GetByteCount(numberOfBlocksString) <= 64)
+            {
+                byte[] bytes = Encoding.UTF8.GetBytes(numberOfBlocksString);
+                return Convert.ToBase64String(bytes);
+            }
+            else
+            {
+                throw new Exception("Task failed - Could not encode block id.");
+            }
         }
 
         public async Task UploadBlockBlobAsync(
@@ -78,7 +84,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                     string blockId = EncodeBlockIds(countForId, numberOfBlocks.ToString().Length);
 
                     blockIds.Add(blockId);
-                    string blockUploadUrl = blobUploadUrl + "?comp=block&blockid=" + blockId;
+                    string blockUploadUrl = blobUploadUrl + "?comp=block&blockid=" + WebUtility.UrlEncode(blockId);
 
                     DateTime dt = DateTime.UtcNow;
                     using (HttpClient client = new HttpClient())
@@ -162,6 +168,8 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                             string.Empty,
                             bodyData.Length.ToString(),
                             ""));
+                    log.LogMessage(MessageImportance.Low, "Sending request to combine block list of file {0}", fileName);
+                    
                     using (Stream postStream = new MemoryStream())
                     {
                         postStream.Write(bodyData, 0, bodyData.Length);
