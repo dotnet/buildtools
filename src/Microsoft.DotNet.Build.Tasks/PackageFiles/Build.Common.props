@@ -12,4 +12,8 @@
   -->
   <Import Project="$(MSBuildThisFileDirectory)ReferenceAssemblies.props" Condition="'$(ExcludeReferenceAssembliesImport)'!='true'" />
 
+  <PropertyGroup>
+    <CompilerResponseFile Condition="'$(ExcludeChecsumParameterFromCsc)'!='true'">$(MSBuildThisFileDirectory)checksum.rsp</CompilerResponseFile>
+  </PropertyGroup>
+
 </Project>

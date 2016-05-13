@@ -38,22 +38,9 @@
 
   <!-- Roslyn requires the runtimemetadataversion parameter when building a core assembly -->
   <Target Name="AddCoreAssemblyResponseFile" Condition="'$(IsCoreAssembly)' == 'true' AND '$(_usingRoslyn)' == 'true'" BeforeTargets="CoreCompile">
-    <CallTarget Targets="MergeCoreAssemblyResponseFile" Condition="'$(CompilerResponseFile)'!=''" />
     <PropertyGroup>
+      <CompilerResponseFile Condition="'$(CompilerResponseFile)'!=''">$(MSBuildThisFileDirectory)coreAssembly.rsp;$(CompilerResponseFile)</CompilerResponseFile>
       <CompilerResponseFile Condition="'$(CompilerResponseFile)'==''">$(MSBuildThisFileDirectory)coreAssembly.rsp</CompilerResponseFile>
-    </PropertyGroup>
-  </Target>
-
-  <Target Name="MergeCoreAssemblyResponseFile">
-    <ItemGroup>
-      <ResponseFilesToMerge Include="$(CompilerResponseFile);$(MSBuildThisFileDirectory)coreAssembly.rsp" />
-    </ItemGroup>
-    <ReadLinesFromFile File="%(ResponseFilesToMerge.Identity)">
-      <Output TaskParameter="Lines" ItemName="ResponseFileLines" />
-    </ReadLinesFromFile>
-    <WriteLinesToFile File="$(IntermediateOutputPath)/resp.rsp" Lines="@(ResponseFileLines)" Overwrite="true" />
-    <PropertyGroup>
-      <CompilerResponseFile>$(IntermediateOutputPath)/resp.rsp</CompilerResponseFile>
     </PropertyGroup>
   </Target>
 </Project>
