@@ -57,10 +57,11 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
             using (HttpClient client = new HttpClient())
             {
-                using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url))
+                try
                 {
-                    try
+                    Func<HttpRequestMessage> createRequest = () =>
                     {
+                        var request = new HttpRequestMessage(HttpMethod.Get, url);
                         request.Headers.Add(AzureHelper.DateHeaderString, dateTime.ToString("R", CultureInfo.InvariantCulture));
                         request.Headers.Add(AzureHelper.VersionHeaderString, AzureHelper.StorageApiVersion);
                         request.Headers.Add(AzureHelper.AuthorizationHeaderString, AzureHelper.AuthorizationHeader(
@@ -69,35 +70,30 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                                 "GET",
                                 dateTime,
                                 request));
+                        return request;
+                    };
 
-                        XmlDocument responseFile;
-                        using (HttpResponseMessage response = await client.SendAsync(request))
-                        {
-                            if (!response.IsSuccessStatusCode)
-                            {
-                                Log.LogError("Listing of Azure containers failed with response {0}", response.StatusCode);
-                                return false;
-                            }
-
-                            responseFile = new XmlDocument();
-                            responseFile.LoadXml(await response.Content.ReadAsStringAsync());
-                            XmlNodeList elemList = responseFile.GetElementsByTagName("Name");
-
-                            ContainerNames = (from x in elemList.Cast<XmlNode>()
-                                                where x.InnerText.Contains(Prefix)
-                                                select new TaskItem(x.InnerText)).ToArray();
-
-                            if (ContainerNames.Length == 0)
-                                Log.LogWarning("No containers were found.");
-                            else
-                                Log.LogMessage("Found {0} containers.", ContainerNames.Length);
-                        }
-                    }
-                    catch (Exception e)
+                    XmlDocument responseFile;
+                    using (HttpResponseMessage response = await AzureHelper.RequestWithRetry(Log, client, createRequest))
                     {
-                        Log.LogErrorFromException(e, true);
-                        return false;
+                        responseFile = new XmlDocument();
+                        responseFile.LoadXml(await response.Content.ReadAsStringAsync());
+                        XmlNodeList elemList = responseFile.GetElementsByTagName("Name");
+
+                        ContainerNames = (from x in elemList.Cast<XmlNode>()
+                                            where x.InnerText.Contains(Prefix)
+                                            select new TaskItem(x.InnerText)).ToArray();
+
+                        if (ContainerNames.Length == 0)
+                            Log.LogWarning("No containers were found.");
+                        else
+                            Log.LogMessage("Found {0} containers.", ContainerNames.Length);
                     }
+                }
+                catch (Exception e)
+                {
+                    Log.LogErrorFromException(e, true);
+                    return false;
                 }
             }
 

@@ -2,15 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.Build.Framework;
+using Microsoft.Build.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Net.Http;
-using System.Net.Http.Headers;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.DotNet.Build.CloudTestTasks
 {
@@ -180,6 +184,102 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             }
 
             return list;
+        }
+
+        private static bool IsWithinRetryRange(HttpStatusCode statusCode)
+        {
+            // Retry on http client and server error codes (4xx - 5xx) as well as redirect
+
+            var rawStatus = (int)statusCode;
+            if (rawStatus == 302)
+                return true;
+            else if (rawStatus >= 400 && rawStatus <= 599)
+                return true;
+            else
+                return false;
+        }
+
+        public static async Task<HttpResponseMessage> RequestWithRetry(TaskLoggingHelper loggingHelper, HttpClient client,
+            Func<HttpRequestMessage> createRequest, Func<HttpResponseMessage, bool> validationCallback = null, int retryCount = 5,
+            int retryDelaySeconds = 5)
+        {
+            if (loggingHelper == null)
+                throw new ArgumentNullException(nameof(loggingHelper));
+            if (client == null)
+                throw new ArgumentNullException(nameof(client));
+            if (createRequest == null)
+                throw new ArgumentNullException(nameof(createRequest));
+            if (retryCount < 1)
+                throw new ArgumentException(nameof(retryCount));
+            if (retryDelaySeconds < 1)
+                throw new ArgumentException(nameof(retryDelaySeconds));
+
+            int retries = 0;
+            HttpResponseMessage response = null;
+
+            // add a bit of randomness to the retry delay
+            var rng = new Random();
+
+            while (retries < retryCount)
+            {
+                if (retries > 0)
+                {
+                    response.Dispose();
+                    int delay = retryDelaySeconds * (retries - 1) * rng.Next(1, 5);
+                    loggingHelper.LogMessage(MessageImportance.Low, "Waiting {0} seconds before retry", delay);
+                    await System.Threading.Tasks.Task.Delay(delay * 1000);
+                }
+
+                try
+                {
+                    using (var request = createRequest())
+                        response = await client.SendAsync(request);
+                }
+                catch (Exception e)
+                {
+                    loggingHelper.LogWarningFromException(e, true);
+
+                    // if this is the final iteration let the exception bubble up
+                    if (retries + 1 == retryCount)
+                        throw;
+                }
+
+                if (validationCallback == null)
+                {
+                    // check if the response code is within the range of failures
+                    if (IsWithinRetryRange(response.StatusCode))
+                    {
+                        loggingHelper.LogWarning("Request failed with status code {0}", response.StatusCode);
+                    }
+                    else
+                    {
+                        loggingHelper.LogMessage(MessageImportance.Low, "Response completed with status code {0}", response.StatusCode);
+                        return response;
+                    }
+                }
+                else
+                {
+                    bool isSuccess = validationCallback(response);
+                    if (!isSuccess)
+                    {
+                        loggingHelper.LogMessage("Validation callback returned retry for status code {0}", response.StatusCode);
+                    }
+                    else
+                    {
+                        loggingHelper.LogMessage("Validation callback returned success for status code {0}", response.StatusCode);
+                        return response;
+                    }
+                }
+
+                ++retries;
+            }
+
+            // retry count exceeded
+            loggingHelper.LogWarning("Retry count {0} exceeded", retryCount);
+            var statusCode = response.StatusCode;
+            var contentStr = await response.Content.ReadAsStringAsync();
+            response.Dispose();
+            throw new HttpRequestException(string.Format("Request failed with status {0} response {1}", statusCode, contentStr));
         }
 
         private static string ConstructServiceStringToSign(

@@ -69,39 +69,37 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                     using (HttpClient client = new HttpClient())
                     {
                         string url = String.IsNullOrEmpty(PartitionKey) ? EventHubPath + "/messages" : EventHubPath + "/partitions/" + PartitionKey +"/messages";
-                        using (HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Post, url))
+                        Func<HttpRequestMessage> createRequest = () =>
                         {
+                            var req = new HttpRequestMessage(HttpMethod.Post, url);
                             req.Headers.Add(AzureHelper.AuthorizationHeaderString, ConstructSharedAccessToken());
-                            
+
                             contentBytes = Encoding.UTF8.GetBytes(streamReader.ReadToEnd());
-                            using (Stream postStream = new MemoryStream())
+                            Stream postStream = new MemoryStream();
+                            postStream.Write(this.contentBytes, 0, this.contentBytes.Length);
+                            postStream.Seek(0, SeekOrigin.Begin);
+                            req.Content = new StreamContent(postStream);
+                            return req;
+                        };
+
+                        Log.LogMessage(MessageImportance.High, "Sending {0} to event hub {1}", EventData, url);
+
+                        try
+                        {
+                            using (HttpResponseMessage response = await AzureHelper.RequestWithRetry(Log, client, createRequest))
                             {
-                                postStream.Write(this.contentBytes, 0, this.contentBytes.Length);
-                                postStream.Seek(0, SeekOrigin.Begin);
-                                StreamContent contentStream = new StreamContent(postStream);
-                                req.Content = contentStream;
-
-                                Log.LogMessage(MessageImportance.High, "Sending {0} to event hub {1}", EventData, url);
-
-                                using (HttpResponseMessage response = await client.SendAsync(req))
-                                {
-                                    Log.LogMessage(MessageImportance.Low, "Received response to send event to event hub");
-
-                                    if (!response.IsSuccessStatusCode)
-                                    {
-                                        Log.LogError(
-                                            "Failed to send event to event hub: StatusCode:{0} Response:{1}",
-                                            response.StatusCode,
-                                            await response.Content.ReadAsStringAsync());
-                                        return false;
-                                    }
-                                }
-                                Log.LogMessage(
-                                    MessageImportance.Normal,
-                                    "Successfully sent notification to event hub path {0}.",
-                                    EventHubPath);
+                                Log.LogMessage(MessageImportance.Low, "Received response to send event to event hub");
                             }
 
+                            Log.LogMessage(
+                                MessageImportance.Normal,
+                                "Successfully sent notification to event hub path {0}.",
+                                EventHubPath);
+                        }
+                        catch (Exception e)
+                        {
+                            Log.LogErrorFromException(e, true);
+                            return false;
                         }
                     }
                 }

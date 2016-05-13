@@ -2,19 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.Build.Framework;
+using Microsoft.Build.Utilities;
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Net;
-using System.Text;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Net.Http;
-using System.Net.Http.Headers;
+using System.Text;
 using System.Threading;
-using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.DotNet.Build.CloudTestTasks
@@ -90,8 +87,9 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                     using (HttpClient client = new HttpClient())
                     {
                         client.DefaultRequestHeaders.Clear();
-                        using (HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Put, blockUploadUrl))
+                        Func<HttpRequestMessage> createRequest = () =>
                         {
+                            var req = new HttpRequestMessage(HttpMethod.Put, blockUploadUrl);
                             req.Headers.Add(
                                 AzureHelper.DateHeaderString,
                                 dt.ToString("R", CultureInfo.InvariantCulture));
@@ -109,30 +107,27 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                                     nextBytesToRead.ToString(),
                                     string.Empty));
 
-                            log.LogMessage(MessageImportance.Low, "Sending request to upload part {0} of file {1}", countForId, fileName);
+                            Stream postStream = new MemoryStream();
+                            postStream.Write(fileBytes, 0, nextBytesToRead);
+                            postStream.Seek(0, SeekOrigin.Begin);
+                            req.Content = new StreamContent(postStream);
+                            return req;
+                        };
 
-                            using (Stream postStream = new MemoryStream())
-                            {
-                                postStream.Write(fileBytes, 0, nextBytesToRead);
-                                postStream.Seek(0, SeekOrigin.Begin);
-                                StreamContent contentStream = new StreamContent(postStream);
-                                req.Content = contentStream;
-                                using (HttpResponseMessage response = await client.SendAsync(req, ct))
-                                {
-                                    if (!response.IsSuccessStatusCode)
-                                        throw new Exception(string.Format("Upload request failed with status code {0}", response.StatusCode));
+                        log.LogMessage(MessageImportance.Low, "Sending request to upload part {0} of file {1}", countForId, fileName);
 
-                                    log.LogMessage(
-                                        MessageImportance.Low,
-                                        "Received response to upload part {0} of file {1}: Status Code:{2} Status Desc: {3}",
-                                        countForId,
-                                        fileName,
-                                        response.StatusCode,
-                                        await response.Content.ReadAsStringAsync());
-                                }
-                            }
+                        using (HttpResponseMessage response = await AzureHelper.RequestWithRetry(log, client, createRequest))
+                        {
+                            log.LogMessage(
+                                MessageImportance.Low,
+                                "Received response to upload part {0} of file {1}: Status Code:{2} Status Desc: {3}",
+                                countForId,
+                                fileName,
+                                response.StatusCode,
+                                await response.Content.ReadAsStringAsync());
                         }
                     }
+
                     offset += read;
                     bytesLeft -= nextBytesToRead;
                     countForId += 1;
@@ -143,19 +138,18 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             DateTime dt1 = DateTime.UtcNow;
             using (HttpClient client = new HttpClient())
             {
-                using (HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Put, blockListUploadUrl))
+                Func<HttpRequestMessage> createRequest = () =>
                 {
+                    var req = new HttpRequestMessage(HttpMethod.Put, blockListUploadUrl);
                     req.Headers.Add(AzureHelper.DateHeaderString, dt1.ToString("R", CultureInfo.InvariantCulture));
                     req.Headers.Add(AzureHelper.VersionHeaderString, AzureHelper.StorageApiVersion);
 
-                    string body = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><BlockList>";
+                    var body = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?><BlockList>");
                     foreach (object item in blockIds)
-                    {
-                        body += "<Latest>" + item + "</Latest>";
-                    }
+                        body.AppendFormat("<Latest>{0}</Latest>", item);
 
-                    body += "</BlockList>";
-                    byte[] bodyData = Encoding.UTF8.GetBytes(body);
+                    body.Append("</BlockList>");
+                    byte[] bodyData = Encoding.UTF8.GetBytes(body.ToString());
                     req.Headers.Add(
                         AzureHelper.AuthorizationHeaderString,
                         AzureHelper.AuthorizationHeader(
@@ -168,28 +162,21 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                             string.Empty,
                             bodyData.Length.ToString(),
                             ""));
-                    log.LogMessage(MessageImportance.Low, "Sending request to combine block list of file {0}", fileName);
-                    
-                    using (Stream postStream = new MemoryStream())
-                    {
-                        postStream.Write(bodyData, 0, bodyData.Length);
-                        postStream.Seek(0, SeekOrigin.Begin);
-                        StreamContent contentStream = new StreamContent(postStream);
-                        req.Content = contentStream;
+                    Stream postStream = new MemoryStream();
+                    postStream.Write(bodyData, 0, bodyData.Length);
+                    postStream.Seek(0, SeekOrigin.Begin);
+                    req.Content = new StreamContent(postStream);
+                    return req;
+                };
 
-                        using (HttpResponseMessage response = await client.SendAsync(req, ct))
-                        {
-                            if (!response.IsSuccessStatusCode)
-                                throw new Exception(string.Format("Combination of block list failed with status code {0}", response.StatusCode));
-
-                            log.LogMessage(
-                                MessageImportance.Low,
-                                "Received response to combine block list for file {0}: Status Code:{1} Status Desc: {2}",
-                                fileName,
-                                response.StatusCode,
-                                await response.Content.ReadAsStringAsync());
-                        }
-                    }
+                using (HttpResponseMessage response = await AzureHelper.RequestWithRetry(log, client, createRequest))
+                {
+                    log.LogMessage(
+                        MessageImportance.Low,
+                        "Received response to combine block list for file {0}: Status Code:{1} Status Desc: {2}",
+                        fileName,
+                        response.StatusCode,
+                        await response.Content.ReadAsStringAsync());
                 }
             }
         }

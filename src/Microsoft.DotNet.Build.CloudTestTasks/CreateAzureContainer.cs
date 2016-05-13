@@ -95,8 +95,9 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             Log.LogMessage(MessageImportance.Low, "Sending request to create Container");
             using (HttpClient client = new HttpClient())
             {
-                using (HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Put, url))
+                Func<HttpRequestMessage> createRequest = () =>
                 {
+                    var req = new HttpRequestMessage(HttpMethod.Put, url);
                     req.Headers.Add(AzureHelper.DateHeaderString, dt.ToString("R", CultureInfo.InvariantCulture));
                     req.Headers.Add(AzureHelper.VersionHeaderString, AzureHelper.StorageApiVersion);
                     req.Headers.Add(AzureHelper.AuthorizationHeaderString, AzureHelper.AuthorizationHeader(
@@ -112,50 +113,51 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                     postStream.Write(bytestoWrite, 0, bytesToWriteLength);
                     req.Content = new StreamContent(postStream);
 
-                    using (HttpResponseMessage response = await client.SendAsync(req))
+                    return req;
+                };
+
+                Func<HttpResponseMessage, bool> validate = (HttpResponseMessage response) =>
+                {
+                    // the Conflict status (409) indicates that the container already exists, so
+                    // if FailIfExists is set to false and we get a 409 don't fail the task.
+                    return response.IsSuccessStatusCode || (!FailIfExists && response.StatusCode == HttpStatusCode.Conflict);
+                };
+
+                using (HttpResponseMessage response = await AzureHelper.RequestWithRetry(Log, client, createRequest, validate))
+                {
+                    try
                     {
                         Log.LogMessage(
                             MessageImportance.Low,
                             "Received response to create Container {0}: Status Code: {1} {2}",
                             ContainerName, response.StatusCode, response.Content.ToString());
 
-                        // the Conflict status (409) indicates that the container already exists, so
-                        // if FailIfExists is set to false and we get a 409 don't fail the task.
-                        if (!response.IsSuccessStatusCode && (FailIfExists || response.StatusCode != HttpStatusCode.Conflict))
+                        // specifying zero is valid, it means "I don't want a token"
+                        if (ReadOnlyTokenDaysValid > 0)
                         {
-                            Log.LogError("Container creation failed with response {0}", response.StatusCode);
-                            return false;
+                            ReadOnlyToken = AzureHelper.CreateContainerSasToken(
+                                AccountName,
+                                ContainerName,
+                                AccountKey,
+                                AzureHelper.SasAccessType.Read,
+                                ReadOnlyTokenDaysValid);
                         }
 
-                        try
+                        // specifying zero is valid, it means "I don't want a token"
+                        if (WriteOnlyTokenDaysValid > 0)
                         {
-                            // specifying zero is valid, it means "I don't want a token"
-                            if (ReadOnlyTokenDaysValid > 0)
-                            {
-                                ReadOnlyToken = AzureHelper.CreateContainerSasToken(
-                                    AccountName,
-                                    ContainerName,
-                                    AccountKey,
-                                    AzureHelper.SasAccessType.Read,
-                                    ReadOnlyTokenDaysValid);
-                            }
-
-                            // specifying zero is valid, it means "I don't want a token"
-                            if (WriteOnlyTokenDaysValid > 0)
-                            {
-                                WriteOnlyToken = AzureHelper.CreateContainerSasToken(
-                                    AccountName,
-                                    ContainerName,
-                                    AccountKey,
-                                    AzureHelper.SasAccessType.Write,
-                                    WriteOnlyTokenDaysValid);
-                            }
+                            WriteOnlyToken = AzureHelper.CreateContainerSasToken(
+                                AccountName,
+                                ContainerName,
+                                AccountKey,
+                                AzureHelper.SasAccessType.Write,
+                                WriteOnlyTokenDaysValid);
                         }
-                        catch (ArgumentOutOfRangeException e)
-                        {
-                            Log.LogErrorFromException(e, true);
-                            return false;
-                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Log.LogErrorFromException(e, true);
+                        return false;
                     }
                 }
             }
