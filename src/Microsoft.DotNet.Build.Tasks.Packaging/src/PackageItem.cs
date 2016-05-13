@@ -17,6 +17,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         {
             OriginalItem = item;
             SourcePath = item.GetMetadata("FullPath");
+            SourceProject = item.GetMetadata("MSBuildSourceProjectFile");
             string fx = item.GetMetadata("TargetFramework");
             if (!String.IsNullOrWhiteSpace(fx))
             {
@@ -82,6 +83,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
         public ITaskItem OriginalItem { get; }
         public string SourcePath { get; }
+        public string SourceProject { get; }
         public NuGetFramework TargetFramework { get; }
         public string TargetDirectory { get; }
         public string TargetPath { get; }

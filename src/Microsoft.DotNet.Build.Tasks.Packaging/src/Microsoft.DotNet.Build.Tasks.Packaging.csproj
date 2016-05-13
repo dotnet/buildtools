@@ -47,6 +47,7 @@
     <Compile Include="SplitReferences.cs" />
     <Compile Include="ValidatePackage.cs" />
     <Compile Include="ValidatePackageTargetFramework.cs" />
+    <Compile Include="ValidationReport.cs" />
     <Compile Include="VersionUtility.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -80,6 +81,7 @@
     <Folder Include="FrameworkLists\.NETFramework,Version=v4.5\" />
     <Folder Include="FrameworkLists\.NETFramework,Version=v4.6.1\" />
     <Folder Include="FrameworkLists\.NETFramework,Version=v4.6.2\" />
+    <Folder Include="FrameworkLists\.NETFramework,Version=v4.6.3\" />
     <Folder Include="FrameworkLists\.NETFramework,Version=v4.6\" />
     <Folder Include="FrameworkLists\.NETPortable,Version=v4.5,Profile=Profile111\" />
     <Folder Include="FrameworkLists\.NETPortable,Version=v4.5,Profile=Profile259\" />
