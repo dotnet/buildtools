@@ -64,7 +64,6 @@ namespace Microsoft.DotNet.Execute
             {
                 string commandParameters = BuildParametersForCommand(settingParameters, commandToExecute.ToolName);
                 Run runCommand = new Run();
-                Console.WriteLine("About to run: {0} {1}", toolName, commandParameters);
                 return Convert.ToBoolean(runCommand.ExecuteProcess(toolName, commandParameters));
             }
 
