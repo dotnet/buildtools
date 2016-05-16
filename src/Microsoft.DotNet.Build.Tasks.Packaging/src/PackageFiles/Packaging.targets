@@ -201,10 +201,10 @@
 
   <Target Name="GetFiles"
           Returns="@(File)"
-          DependsOnTargets="ConvertItems" />
+          DependsOnTargets="ConvertItems;EnsureOOBFramework" />
 
   <Target Name="ConvertItems"
-          DependsOnTargets="ExpandProjectReferences">
+          DependsOnTargets="ExpandProjectReferences;AddPlaceholders">
     <CreateItem Include="@(ProjectReferenceOutput)">
       <Output TaskParameter="Include"
               ItemName="File"/>
@@ -252,16 +252,10 @@
   <Target Name="GetPackageDependencies"
           DependsOnTargets="AssignPkgProjPackageDependenciesTargetFramework;GetNuGetPackageDependencies"
           Returns="@(Dependency)">
-    <ItemGroup>
-      <Dependency Include="@(PkgProjDependency)"
-                  Condition="'%(PkgProjDependency.DependencyKind)' == 'Direct'" />
-      <Dependency Include="@(NuGetDependency)"
-                  Condition="'%(NuGetDependency.DependencyKind)' == 'Direct'" />
-    </ItemGroup>
   </Target>
 
   <Target Name="GenerateNuSpec"
-          DependsOnTargets="GetPackageDependencies;GenerateRuntimeDependencies;GetPackageFiles;GetPackageIdentity">
+          DependsOnTargets="GetPackageDependencies;GetPackageFiles;GetPackageMetadata;GenerateRuntimeDependencies;EnsureEmptyPackage;ValidatePackage">
     <!-- Please Note:
          In order to avoid incremental build issues this target will always run.
          However, the task will make sure that it doesn't touch the file if the
@@ -346,7 +340,7 @@
   <!-- Permit setting TargetFramework and add our own metadata (TargetRuntime) -->
   <Target Name="GetPackageIdentity"
           Returns="@(_PackageIdentity)"
-          DependsOnTargets="ExpandProjectReferences;CalculatePackageVersion">
+          DependsOnTargets="GetFiles;CalculatePackageVersion">
 
     <ItemGroup>
       <_referenceFrameworks Include="%(File.TargetFramework)" Condition="'%(File.IsReferenceAsset)' == 'true'" />
@@ -370,7 +364,8 @@
   <!-- Don't actually walk the closure all the time, conditioned on GetClosure metadata on ProjectReference.
        Walking the closure is very expensive for many of our packages and is unecessary since we are very
        strict about assets that are included in the package.  -->
-  <Target Name="_GetProjectClosure" DependsOnTargets="ConvertCommonMetadataToAdditionalProperties"
+  <Target Name="_GetProjectClosure" 
+          DependsOnTargets="ConvertCommonMetadataToAdditionalProperties"
           Returns="@(_ProjectReferenceClosure)">
 
     <!-- Get closure of indirect references if they opt-in -->
@@ -407,7 +402,7 @@
   </Target>
 
   <Target Name="AssignPkgProjPackageDependenciesTargetFramework"
-          DependsOnTargets="GetPkgProjPackageDependencies;GetFiles;EnsureOOBFramework">
+          DependsOnTargets="GetPkgProjPackageDependencies;GetFiles">
 
     <SplitDependenciesBySupport Condition="'$(SplitDependenciesBySupport)' == 'true'"
                                 OriginalDependencies="@(PkgProjDependency)">
@@ -432,6 +427,9 @@
       <PkgProjDependency Include="@(_PkgProjDependencyWithoutTFM)">
         <TargetFramework>%(_AllPkgProjTFMs.Identity)</TargetFramework>
       </PkgProjDependency>
+
+      <Dependency Include="@(PkgProjDependency)"
+                  Condition="'%(PkgProjDependency.DependencyKind)' == 'Direct'" />
     </ItemGroup>
   </Target>
 
@@ -440,7 +438,7 @@
        filter out files that come from dependent packages. -->
   <Target Name="GetPackageFiles"
           Returns="@(PackageFile)"
-          DependsOnTargets="GetFiles;EnsureOOBFramework">
+          DependsOnTargets="GetFiles">
     <ItemGroup>
       <!-- Include all files except source files. Sources need to be deduplicated. -->
       <PackageFile Include="@(File)" Condition="'%(File.IsSourceCodeFile)'!='true'" />
@@ -476,7 +474,7 @@
        Assume version of package dependency == assembly version of dependency (3-part).
        For prerelease (not stable) packages apply a pre-release suffix to the dependency -->
   <Target Name="GetFilePackageReferences"
-          DependsOnTargets="EnsureOOBFramework"
+          DependsOnTargets="GetFiles"
           Condition="'$(OmitDependencies)' != 'true'"
           Inputs="%(File.Identity);%(File.TargetFramework)"
           Outputs="fake">
@@ -537,7 +535,7 @@
   </Target>
 
   <Target Name="GetNuGetPackageDependencies"
-          DependsOnTargets="CreateVersionFileDuringBuild;GetFilePackageReferences">
+          DependsOnTargets="CreateVersionFileDuringBuild;GetFilePackageReferences;DetermineRuntimeDependencies">
     <PropertyGroup>
       <!-- determine if we have any reference assets in the package (files in the ref folder) -->
       <_containsReferenceAsset Condition="'%(File.IsReferenceAsset)' == 'true'">true</_containsReferenceAsset>
@@ -592,7 +590,7 @@
   <!-- Skipped if the package explicitly defines a version -->
   <Target Name="GetAssemblyVersionFromProjects"
           Condition="$(Version) == ''"
-          DependsOnTargets="ExpandProjectReferences">
+          DependsOnTargets="GetFiles">
 
     <GetPackageVersion Files="@(File)">
       <Output TaskParameter="Version" PropertyName="_AssemblyVersion" />
@@ -627,7 +625,7 @@
   </Target>
 
   <Target Name="DetermineRuntimeDependencies"
-          DependsOnTargets="GetPackageDependencies"
+          DependsOnTargets="AssignPkgProjPackageDependenciesTargetFramework"
           Returns="@(RuntimeDependency)">
     <!-- see if we have any runtime dependencies to write to runtime.json -->
     <ItemGroup>
@@ -660,8 +658,7 @@
   </Target>
 
   <Target Name="EnsureEmptyPackage"
-          DependsOnTargets="DetermineRuntimeDependencies"
-          BeforeTargets="GenerateNuSpec">
+          DependsOnTargets="DetermineRuntimeDependencies;GetPackageFiles">
     <!-- Nuget will include all files when nuspec is empty, ensure we have at least one file to avoid that -->
     <ItemGroup Condition="'@(PackageFile)' == ''">
       <PackageFile Include="$(PlaceholderFile)">
@@ -675,8 +672,7 @@
   <!-- If the "PreventImplementationReference" property is true, then don't permit references to the
     package implementation from lib.  This is used in the platform specific packages which should
     not be directly referenced by projects for implemtation dependencies. -->
-  <Target Name="PreventImplementationReference"
-          BeforeTargets="EnsureEmptyPackage">
+  <Target Name="PreventImplementationReference">
     <ItemGroup Condition="'$(PreventImplementationReference)' == 'true'">
       <PackageFile Include="$(PlaceholderFile)">
         <PackageId>$(Id)</PackageId>
@@ -694,10 +690,9 @@
       ExternalOnTargetFramework: contract implementation is provided by another package, use placeholders for both
   -->
   <Target Name="AddPlaceholders"
-          DependsOnTargets="ExpandProjectReferences"
+          DependsOnTargets="ExpandProjectReferences;PreventImplementationReference"
           Inputs="%(InboxOnTargetFramework.Identity);%(NotSupportedOnTargetFramework.Identity);%(ExternalOnTargetFramework.Identity)"
-          Outputs="fake"
-          BeforeTargets="ConvertItems">
+          Outputs="fake">
     <ItemGroup>
       <_targetItem Include="@(InboxOnTargetFramework)"/>
       <_targetItem Include="@(NotSupportedOnTargetFramework)"/>
@@ -741,7 +736,7 @@
     <OutOfBoxFramework Include="netcore50"/>
   </ItemGroup>
   <Target Name="EnsureOOBFramework"
-          DependsOnTargets="AddPlaceholders;GetFiles">
+          DependsOnTargets="AddPlaceholders;ConvertItems">
     <EnsureOOBFramework Condition="'@(OutOfBoxFramework)' != ''" OOBFrameworks="@(OutOfBoxFramework)" Files="@(File)" RuntimeJson="$(RuntimeIdGraphDefinitionFile)" RuntimeId="$(PackageTargetRuntime)">
       <Output TaskParameter="AdditionalFiles" ItemName="File" />
     </EnsureOOBFramework>
@@ -749,8 +744,7 @@
 
   <!-- Generates a runtime.json file containing all dependencies with TargetRuntime -->
   <Target Name="GenerateRuntimeDependencies"
-          DependsOnTargets="DetermineRuntimeDependencies"
-          BeforeTargets="GenerateNuspec">
+          DependsOnTargets="DetermineRuntimeDependencies">
     <ItemGroup>
       <LineupProjectReference Include="@(ProjectReference)" />
     </ItemGroup>
@@ -776,7 +770,6 @@
   </Target>
 
   <Target Name="GetSyncInfo"
-    BeforeTargets="GetPackageDescription"
     Condition="Exists('$(SyncInfoFile)')">
     <ReadLinesFromFile
       File="$(SyncInfoFile)">
@@ -787,7 +780,7 @@
   </Target>
 
   <Target Name="GetPackageDescription"
-          BeforeTargets="GenerateNuspec">
+          DependsOnTargets="GetSyncInfo">
     <PropertyGroup>
       <UseRuntimePackageDescription Condition="'$(UseRuntimePackageDescription)' == '' AND $(BaseId.StartsWith('runtime.native'))">true</UseRuntimePackageDescription>
     </PropertyGroup>
@@ -821,6 +814,9 @@
       <Description Condition="'$(MinClientVersion3)' != ''">$(Description) %0A$([System.String]::Format('$(NuGet3MinVersionMessage)', '$(MinClientVersion3)'))</Description>
     </PropertyGroup>
   </Target>
+
+  <Target Name="GetPackageMetadata"
+          DependsOnTargets="GetPackageDescription;GetPackageIdentity" />
 
   <ItemGroup>
     <!-- Default validation frameworks : every framework that supports contracts -->
@@ -881,7 +877,6 @@
 
   <Target Name="ValidatePackage"
           DependsOnTargets="GetPackageFiles;DetermineRuntimeDependencies"
-          BeforeTargets="GenerateNuspec"
           Condition="'$(SkipValidatePackage)' != 'true'">
     <ItemGroup>
       <RuntimeDependencyProject Include="%(RuntimeDependency.OriginalItemSpec)" KeepDuplicates="false" />
@@ -964,26 +959,6 @@
     
     <Error Condition="'$(SkipBaseLineCheck)' != 'true' AND '@(_thisPackageBaseLine)' != '' AND '@(_thisPackageBaseLine->WithMetadataValue('Version', '$(_VersionWithoutPreRelease)'))' == ''"
            Text="This package's version '$(_VersionWithoutPreRelease)' is not part of any BaseLine '@(_thisPackageBaseLine->'%(Version)')'.$(BaseLinePropsUpdateMessage)" />
-  </Target>
-
-  <Target Name="ValidateMetaPackageFramework"
-          Condition="'$(MetaPackageFramework)' != ''"
-          BeforeTargets="GenerateNuspec">
-
-    <ItemGroup>
-      <_ExpectedMetaDependencies Include="@(ContractAssembly)" Condition="'%(ContractAssembly.Platform)' == '$(MetaPackageFramework)'" />
-
-      <_ExpectedMetaDependencies Remove="@(ExcludePackage);@(NoPackage)" />
-
-      <_ActualMetaDependencies Include="@(Dependency);@(RuntimeDependency)"/>
-      <!-- also consider indirect dependencies that may come from the core package -->
-      <_ActualMetaDependencies Include="@(PkgProjDependency)" Condition="'%(PkgProjDependency.DependencyKind)' == 'Indirect'" />
-
-      <_MissingMetaDependencies Include="@(_ExpectedMetaDependencies)" Exclude="@(_ActualMetaDependencies)" />
-    </ItemGroup>
-
-    <Error Text="Packages @(_MissingMetaDependencies) should be included."
-           Condition="'@(_MissingMetaDependencies)' != ''" />
   </Target>
 
   <Target Name="CreatePackage"
