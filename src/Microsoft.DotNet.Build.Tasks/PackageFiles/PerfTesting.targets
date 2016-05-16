@@ -16,6 +16,7 @@
     <XunitPerfAnalysisPath>$(PackagesDir)$(XunitPerfAnalysisPackageId)/$(XunitPerfAnalysisPackageVersion)/tools/xunit.performance.analysis.exe</XunitPerfAnalysisPath>
   </PropertyGroup>
 
+
   <!-- Copy over the performance runners to the test directory-->
   <Target Name="CopyXunitExecutionDesktop" AfterTargets="CopyTestToTestDirectory" Condition="'$(Performance)' == 'true'">
     <ItemGroup>
@@ -27,17 +28,28 @@
       <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/ProcDomain.dll" />
       <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/Microsoft.Diagnostics.Tracing.TraceEvent.dll" />
       <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/*/*.*" />
+      <XunitPerfRunnerFiles Include ="$(PackagesDir)$(XunitPerfRunnerPackageId)/**/*.*" />
+      <XunitPerfAnalysisFiles Include ="$(PackagesDir)$(XunitPerfAnalysisPackageId)/**/*.*" />
     </ItemGroup>
     <Copy SourceFiles="@(PerfRunners)"
           DestinationFiles="@(PerfRunners->'$(TestPath)$(DebugTestFrameworkFolder)/%(RecursiveDir)%(Filename)%(Extension)')"
           SkipUnchangedFiles="true" />
+
+    <!-- The packages Microsoft.DotNet.xunit.performance.runner.Windows and Microsoft.DotNet.xunit.performance.analysis is not being uploaded alongwith Packages.zip, hence the workaround -->
+    <Copy SourceFiles="@(XunitPerfRunnerFiles)"
+          DestinationFiles="@(XunitPerfRunnerFiles->'$(TestWorkingDir)SupplementalPayload/$(XunitPerfRunnerPackageId)/%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true"/>
+    <Copy SourceFiles="@(XunitPerfAnalysisFiles)"
+          DestinationFiles="@(XunitPerfAnalysisFiles->'$(TestWorkingDir)SupplementalPayload/$(XunitPerfAnalysisPackageId)/%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true"/>
+
   </Target>
 
   <!-- Executable properties -->
   <PropertyGroup>
     <PerfRunId Condition="'$(PerfRunId)' == ''">$(TargetFileName)-WindowsCore</PerfRunId>
     <AnalysisReportFileName>$(PerfRunId)-analysis.html</AnalysisReportFileName>
-    <XunitRunnerArgs>$(TargetFileName) -trait Benchmark=true -runnerhost $(TestHost) -runner $(XunitExecutable) -runid $(PerfRunId) -verbose</XunitRunnerArgs>
+    <XunitRunnerArgs>$(TargetFileName) -trait Benchmark=true -runnerhost $(TestHostExecutable) -runner $(XunitExecutable) -runid $(PerfRunId) -verbose</XunitRunnerArgs>
     <PerfTestCommandLine>$(XunitPerfRunnerPath) $(XunitRunnerArgs) $(AdditionalPerfTestArgs)</PerfTestCommandLine>
 
     <PerfRunOutputFile>$(TestPath)$(DebugTestFrameworkFolder)/$(PerfRunId).xml</PerfRunOutputFile>
