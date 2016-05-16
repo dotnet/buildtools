@@ -225,7 +225,8 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 if (retries > 0)
                 {
                     response.Dispose();
-                    int delay = retryDelaySeconds * (retries - 1) * rng.Next(1, 5);
+                    response = null;
+                    int delay = retryDelaySeconds * retries * rng.Next(1, 5);
                     loggingHelper.LogMessage(MessageImportance.Low, "Waiting {0} seconds before retry", delay);
                     await System.Threading.Tasks.Task.Delay(delay * 1000);
                 }
@@ -244,30 +245,34 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                         throw;
                 }
 
-                if (validationCallback == null)
+                // response can be null if we fail to send the request
+                if (response != null)
                 {
-                    // check if the response code is within the range of failures
-                    if (IsWithinRetryRange(response.StatusCode))
+                    if (validationCallback == null)
                     {
-                        loggingHelper.LogWarning("Request failed with status code {0}", response.StatusCode);
+                        // check if the response code is within the range of failures
+                        if (IsWithinRetryRange(response.StatusCode))
+                        {
+                            loggingHelper.LogWarning("Request failed with status code {0}", response.StatusCode);
+                        }
+                        else
+                        {
+                            loggingHelper.LogMessage(MessageImportance.Low, "Response completed with status code {0}", response.StatusCode);
+                            return response;
+                        }
                     }
                     else
                     {
-                        loggingHelper.LogMessage(MessageImportance.Low, "Response completed with status code {0}", response.StatusCode);
-                        return response;
-                    }
-                }
-                else
-                {
-                    bool isSuccess = validationCallback(response);
-                    if (!isSuccess)
-                    {
-                        loggingHelper.LogMessage("Validation callback returned retry for status code {0}", response.StatusCode);
-                    }
-                    else
-                    {
-                        loggingHelper.LogMessage("Validation callback returned success for status code {0}", response.StatusCode);
-                        return response;
+                        bool isSuccess = validationCallback(response);
+                        if (!isSuccess)
+                        {
+                            loggingHelper.LogMessage("Validation callback returned retry for status code {0}", response.StatusCode);
+                        }
+                        else
+                        {
+                            loggingHelper.LogMessage("Validation callback returned success for status code {0}", response.StatusCode);
+                            return response;
+                        }
                     }
                 }
 
