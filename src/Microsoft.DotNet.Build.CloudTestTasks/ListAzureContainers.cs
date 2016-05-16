@@ -49,8 +49,6 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         public async Task<bool> ExecuteAsync()
         {
             Log.LogMessage(MessageImportance.Normal, "List of Azure containers in storage account '{0}'.", AccountName);
-
-            DateTime dateTime = DateTime.UtcNow;
             string url = string.Format("https://{0}.blob.core.windows.net/?comp=list", AccountName);
             
             Log.LogMessage(MessageImportance.Low, "Sending request to list containers in account '{0}'.", AccountName);
@@ -61,6 +59,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 {
                     Func<HttpRequestMessage> createRequest = () =>
                     {
+                        DateTime dateTime = DateTime.UtcNow;
                         var request = new HttpRequestMessage(HttpMethod.Get, url);
                         request.Headers.Add(AzureHelper.DateHeaderString, dateTime.ToString("R", CultureInfo.InvariantCulture));
                         request.Headers.Add(AzureHelper.VersionHeaderString, AzureHelper.StorageApiVersion);

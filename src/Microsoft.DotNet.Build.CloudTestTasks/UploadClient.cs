@@ -83,12 +83,12 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                     blockIds.Add(blockId);
                     string blockUploadUrl = blobUploadUrl + "?comp=block&blockid=" + WebUtility.UrlEncode(blockId);
 
-                    DateTime dt = DateTime.UtcNow;
                     using (HttpClient client = new HttpClient())
                     {
                         client.DefaultRequestHeaders.Clear();
                         Func<HttpRequestMessage> createRequest = () =>
                         {
+                            DateTime dt = DateTime.UtcNow;
                             var req = new HttpRequestMessage(HttpMethod.Put, blockUploadUrl);
                             req.Headers.Add(
                                 AzureHelper.DateHeaderString,
@@ -135,11 +135,12 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             }
 
             string blockListUploadUrl = blobUploadUrl + "?comp=blocklist";
-            DateTime dt1 = DateTime.UtcNow;
+
             using (HttpClient client = new HttpClient())
             {
                 Func<HttpRequestMessage> createRequest = () =>
                 {
+                    DateTime dt1 = DateTime.UtcNow;
                     var req = new HttpRequestMessage(HttpMethod.Put, blockListUploadUrl);
                     req.Headers.Add(AzureHelper.DateHeaderString, dt1.ToString("R", CultureInfo.InvariantCulture));
                     req.Headers.Add(AzureHelper.VersionHeaderString, AzureHelper.StorageApiVersion);

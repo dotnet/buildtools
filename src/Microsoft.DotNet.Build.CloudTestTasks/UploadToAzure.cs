@@ -87,7 +87,6 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 AccountName, 
                 ContainerName);
 
-            DateTime dt = DateTime.UtcNow;
             HashSet<string> blobsPresent = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             try
@@ -96,6 +95,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 {
                     Func<HttpRequestMessage> createRequest = () =>
                     {
+                        DateTime dt = DateTime.UtcNow;
                         var req = new HttpRequestMessage(HttpMethod.Get, checkListUrl);
                         req.Headers.Add(AzureHelper.DateHeaderString, dt.ToString("R", CultureInfo.InvariantCulture));
                         req.Headers.Add(AzureHelper.VersionHeaderString, AzureHelper.StorageApiVersion);

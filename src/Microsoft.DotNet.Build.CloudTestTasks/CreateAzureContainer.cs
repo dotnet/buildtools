@@ -82,7 +82,6 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 "Creating container named '{0}' in storage account {1}.", 
                 ContainerName, 
                 AccountName);
-            DateTime dt = DateTime.UtcNow;
             string url = string.Format(
                 "https://{0}.blob.core.windows.net/{1}?restype=container", 
                 AccountName, 
@@ -97,6 +96,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             {
                 Func<HttpRequestMessage> createRequest = () =>
                 {
+                    DateTime dt = DateTime.UtcNow;
                     var req = new HttpRequestMessage(HttpMethod.Put, url);
                     req.Headers.Add(AzureHelper.DateHeaderString, dt.ToString("R", CultureInfo.InvariantCulture));
                     req.Headers.Add(AzureHelper.VersionHeaderString, AzureHelper.StorageApiVersion);
