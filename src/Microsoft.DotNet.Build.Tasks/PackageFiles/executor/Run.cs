@@ -13,31 +13,45 @@ namespace Microsoft.DotNet.Execute
         
         public int ExecuteProcess(string filename, string args = null)
         {
-            var psi = new ProcessStartInfo
+            try
             {
-                FileName = filename,
-                Arguments = args,
-                RedirectStandardOutput = true,
-                UseShellExecute = false
-            };
+                var psi = new ProcessStartInfo
+                {
+                    FileName = filename,
+                    Arguments = args,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false
+                };
 
-            _process = new System.Diagnostics.Process();
-            _process.StartInfo = psi;
+                _process = new System.Diagnostics.Process();
+                _process.StartInfo = psi;
 
-            // Set our event handler to asynchronously read the output.
-            _process.OutputDataReceived += new DataReceivedEventHandler(ReadOutputHandler);
+                // Set our event handler to asynchronously read the output.
+                _process.OutputDataReceived += new DataReceivedEventHandler(ReadOutputHandler);
 
-            _process.Start();
-            _process.BeginOutputReadLine();
-            
-            _process.WaitForExit();
-            return _process.ExitCode;
+                Console.WriteLine("About to run: {0} {1}", filename, args);
+                _process.Start();
+                _process.BeginOutputReadLine();
+
+                _process.WaitForExit();
+                return _process.ExitCode;
+            }
+            catch (InvalidOperationException e)
+            {
+                Console.WriteLine(e.Message);
+                return 1;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error in the command: {0}. => {1}", string.Format("{0} {1}", filename, args), e.Message);
+                return 1;
+            }
         }
 
         private static void ReadOutputHandler(object sendingProcess,
             DataReceivedEventArgs outLine)
         {
-            // Collect the sort command output.
+            // Collect the command output.
             if (!String.IsNullOrEmpty(outLine.Data))
             {
                 Console.WriteLine(outLine.Data);

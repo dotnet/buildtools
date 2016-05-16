@@ -14,7 +14,7 @@ namespace Microsoft.DotNet.Execute
     public class Executor
     {
         //the path depends on where the executor ends up living...
-        public string configFile = @"config.json";
+        public string configFile = @"C:\mariariBT\src\Scripts\config.json";
         public Dictionary<string, string> SettingParameters { get; set; }
         public Dictionary<string, string> CommandParameters { get; set; }
         
@@ -29,8 +29,15 @@ namespace Microsoft.DotNet.Execute
             if (File.Exists(configFile))
             {
                 string jsonFile = File.ReadAllText(configFile);
-                Setup jsonSetup = JsonConvert.DeserializeObject<Setup>(jsonFile);
-                return jsonSetup;
+                try
+                {
+                    Setup jsonSetup = JsonConvert.DeserializeObject<Setup>(jsonFile);
+                    return jsonSetup;
+                }
+                catch (JsonSerializationException e)
+                {
+                    Console.WriteLine(e.Message);
+                }
             }
             return null;
         }
@@ -78,13 +85,6 @@ namespace Microsoft.DotNet.Execute
                 }
             }, args);
             
-        }
-
-        private string Format(string filename, string arguments)
-        {
-            return "'" + filename +
-                ((string.IsNullOrEmpty(arguments)) ? string.Empty : " " + arguments) +
-                "'";
         }
 
         public static int Main(string[] args)
