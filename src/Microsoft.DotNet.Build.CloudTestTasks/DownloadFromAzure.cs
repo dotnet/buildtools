@@ -53,7 +53,6 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             Log.LogMessage(MessageImportance.Normal, "Downloading contents of container {0} from storage account '{1}' to directory {2}.",
                 ContainerName, AccountName, DownloadDirectory);
 
-            DateTime dateTime = DateTime.UtcNow;
             List<string> blobsNames = null;
             string urlListBlobs = string.Format("https://{0}.blob.core.windows.net/{1}?restype=container&comp=list", AccountName, ContainerName);
 
@@ -65,6 +64,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 {
                     Func<HttpRequestMessage> createRequest = () =>
                     {
+                        DateTime dateTime = DateTime.UtcNow;
                         var request = new HttpRequestMessage(HttpMethod.Get, urlListBlobs);
                         request.Headers.Add(AzureHelper.DateHeaderString, dateTime.ToString("R", CultureInfo.InvariantCulture));
                         request.Headers.Add(AzureHelper.VersionHeaderString, AzureHelper.StorageApiVersion);
@@ -110,6 +110,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
                         createRequest = () =>
                         {
+                            DateTime dateTime = DateTime.UtcNow;
                             var request = new HttpRequestMessage(HttpMethod.Get, urlGetBlob);
                             request.Headers.Add(AzureHelper.DateHeaderString, dateTime.ToString("R", CultureInfo.InvariantCulture));
                             request.Headers.Add(AzureHelper.VersionHeaderString, AzureHelper.StorageApiVersion);
