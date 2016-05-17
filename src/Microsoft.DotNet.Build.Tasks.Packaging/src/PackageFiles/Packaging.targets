@@ -83,6 +83,10 @@
     <ValidationSuppressionFile Condition="'$(ValidationSuppressionFile)' == ''">ValidationSuppression.txt</ValidationSuppressionFile>
     <SyncInfoFile Condition="'$(SyncInfoFile)' == ''">unspecified</SyncInfoFile>
     <PackagingTaskDir Condition="'$(PackagingTaskDir)' == ''">$(MSBuildThisFileDirectory)</PackagingTaskDir>
+    <LineupPackageId Condition="'$(LineupPackageId)' == ''">Microsoft.NETCore.Targets</LineupPackageId>
+    <LineupPackageVersion Condition="'$(LineupPackageVersion)' == ''">1.0.1</LineupPackageVersion>
+    <PlatformPackageId Condition="'$(PlatformPackageId)' == ''">Microsoft.NETCore.Platforms</PlatformPackageId>
+    <PlatformPackageVersion Condition="'$(PlatformPackageVersion)' == ''">1.0.1</PlatformPackageVersion>
   </PropertyGroup>
 
   <!-- If this package explicitly sets the StableVersion then add it to the stable list -->
@@ -468,7 +472,7 @@
 
     <ItemGroup>
       <!-- ensure that unconstrained dependencies are also expanded in constrained TFM groups -->
-      <_PkgProjDependencyWithoutTFM Include="@(PkgProjDependency)" Condition="'%(PkgProjDependency.TargetFramework)' == '' AND '%(PkgProjDependency.DoNotExpand)' != 'true'" />
+      <_PkgProjDependencyWithoutTFM Include="@(PkgProjDependency)" Condition="'%(PkgProjDependency.TargetFramework)' == '' AND '%(PkgProjDependency.TargetRuntime)' == '' AND '%(PkgProjDependency.DoNotExpand)' != 'true'" />
       <_AllPkgProjTFMs Include="%(PkgProjDependency.TargetFramework)" Condition="'%(PkgProjDependency.DependencyKind)' == 'Direct'" />
       <!-- Include file TFMs -->
       <_AllPkgProjTFMs Include="%(File.TargetFramework)" Condition="'%(File.TargetFramework)' != ''" />
@@ -505,10 +509,11 @@
     <!-- determine if there is a file to be updated, and setup the output file -->
     <PropertyGroup>
       <RuntimeFileSource Condition="'%(File.FileName)%(File.Extension)' == 'runtime.json'">%(File.Identity)</RuntimeFileSource>
+      <_runtimeJsonIncluded Condition="'$(IsLineupPackage)' == 'true' OR '$(IncludeRuntimeJson)' == 'true'">true</_runtimeJsonIncluded>
     </PropertyGroup>
 
     <!-- only include runtime.json in lineup packages -->
-    <ItemGroup Condition="'$(IsLineupPackage)' == 'true' OR '$(IncludeRuntimeJson)' == 'true'">
+    <ItemGroup Condition="'$(_runtimeJsonIncluded)' == 'true'">
       <!-- if we are updating, remove it from the file group, we'll replace it with the generated version -->
       <PackageFile Condition="'$(RuntimeFileSource)' != ''" Remove="$(RuntimeFileSource)"/>
       <PackageFile Include="$(RuntimeFilePath)">
@@ -596,6 +601,40 @@
            graph.-->
       <FilePackageDependency>
         <Exclude Condition="'%(FilePackageDependency.IsReferenceAsset)' != 'true'">Compile</Exclude>
+      </FilePackageDependency>
+    </ItemGroup>
+
+    <!-- Add a dependency on the lineup & platform package if this package has runtime dependencies and no runtime.json -->
+    <ItemGroup Condition="'@(RuntimeDependency)' != '' AND '$(_runtimeJsonIncluded)' != 'true' AND '$(ExcludeLineupReference)' != 'true'">
+      <!-- Add to any TargetFramework that isn't a placeholder-->
+      <_runtimeDependenciesTargetFramework Include="%(File.TargetFramework)" 
+                                           Condition="'%(File.Identity)' != '$(PlaceholderFile)'" 
+                                           KeepDuplicates="false" />
+      <!-- remove any frameworks that have an impl in this package -->
+      <_runtimeDependenciesTargetFramework Remove="%(File.TargetFramework)" 
+                                           Condition="$([System.String]::new('%(File.TargetPath)').StartsWith('lib/', StringComparison.OrdinalIgnoreCase))" />
+      <FilePackageDependency Include="$(LineupPackageId)">
+        <Version>$(LineupPackageVersion)</Version>
+        <TargetFramework>%(_runtimeDependenciesTargetFramework.Identity)</TargetFramework>
+      </FilePackageDependency>
+      <FilePackageDependency Include="$(PlatformPackageId)">
+        <Version>$(PlatformPackageVersion)</Version>
+        <TargetFramework>%(_runtimeDependenciesTargetFramework.Identity)</TargetFramework>
+      </FilePackageDependency>
+    </ItemGroup>
+
+    <!-- Add a dependency on the runtime graph package for every TFM that has RID-specific assets and is not already a runtime package -->
+    <ItemGroup Condition="'$(PackageTargetRuntime)' == '' AND '$(ExcludeRuntimeReference)' != 'true'">
+      <_ridSpecificTargetFrameworks Include="@(File->'%(TargetFramework)')"
+                                    Condition="$([System.String]::new('%(File.TargetPath)').StartsWith('runtimes/', StringComparison.OrdinalIgnoreCase))
+                                               AND '%(File.Identity)' != '$(PlaceholderFile)'" />
+      <!-- remove any frameworks that have a RID-less impl in this package-->
+      <_ridSpecificTargetFrameworks Remove="%(File.TargetFramework)" 
+                                           Condition="$([System.String]::new('%(File.TargetPath)').StartsWith('lib/', StringComparison.OrdinalIgnoreCase))" />
+        
+      <FilePackageDependency Include="$(PlatformPackageId)" Condition="'@(_ridSpecificTargetFrameworks)' != ''">
+        <Version>$(PlatformPackageVersion)</Version>
+        <TargetFramework>%(_ridSpecificTargetFrameworks.Identity)</TargetFramework>
       </FilePackageDependency>
     </ItemGroup>
 
