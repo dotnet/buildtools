@@ -57,7 +57,9 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         /// </summary>
         public bool Overwrite { get; set; } = false;
 
-
+        /// <summary>
+        /// Specifies the maximum number of clients to concurrently upload blobs to azure
+        /// </summary>
         public int MaxClients { get; set; } = 8;
 
         public void Cancel()
