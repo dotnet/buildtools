@@ -57,6 +57,9 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         /// </summary>
         public bool Overwrite { get; set; } = false;
 
+
+        public int MaxClients { get; set; } = 8;
+
         public void Cancel()
         {
             TokenSource.Cancel();
@@ -125,7 +128,11 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                     }
                 }
 
-                await ThreadingTask.WhenAll(Items.Select(item => UploadAsync(ct, item, blobsPresent)));
+                using (var clientThrottle = new SemaphoreSlim(this.MaxClients, this.MaxClients))
+                {
+                    await ThreadingTask.WhenAll(Items.Select(item => UploadAsync(ct, item, blobsPresent, clientThrottle)));
+                }
+
                 Log.LogMessage(MessageImportance.High, "Upload to Azure is complete, a total of {0} items were uploaded.", Items.Length);
                 return true;
             }
@@ -136,7 +143,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             }
         }
 
-        private async ThreadingTask UploadAsync(CancellationToken ct, ITaskItem item, HashSet<string> blobsPresent)
+        private async ThreadingTask UploadAsync(CancellationToken ct, ITaskItem item, HashSet<string> blobsPresent, SemaphoreSlim clientThrottle)
         {
             if (ct.IsCancellationRequested)
             {
@@ -154,16 +161,25 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             if (!Overwrite && blobsPresent.Contains(relativeBlobPath))
                 throw new Exception(string.Format("The blob '{0}' already exists.", relativeBlobPath));
 
-            Log.LogMessage("Uploading {0} to {1}.", item.ItemSpec, ContainerName);
-            UploadClient uploadClient = new UploadClient(Log);
-            await
-                uploadClient.UploadBlockBlobAsync(
-                    ct,
-                    AccountName,
-                    AccountKey,
-                    ContainerName,
-                    item.ItemSpec,
-                    relativeBlobPath);
+            await clientThrottle.WaitAsync();
+
+            try
+            {
+                Log.LogMessage("Uploading {0} to {1}.", item.ItemSpec, ContainerName);
+                UploadClient uploadClient = new UploadClient(Log);
+                await
+                    uploadClient.UploadBlockBlobAsync(
+                        ct,
+                        AccountName,
+                        AccountKey,
+                        ContainerName,
+                        item.ItemSpec,
+                        relativeBlobPath);
+            }
+            finally
+            {
+                clientThrottle.Release();
+            }
         }
     }
 }
