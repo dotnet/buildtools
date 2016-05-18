@@ -102,7 +102,7 @@ def _prepare_linux_env_for_perf(correlation_dir, xunit_perf_drop, test_location,
         log.info('Setting dotnet cli installation script at '+dotnet_installer+' as executable')
         helix.proc.run_and_log_output(("chmod 777 "+dotnet_installer).split(" "))
         log.info('Running script '+dotnet_installer)
-        helix.proc.run_and_log_output((dotnet_installer+" -d "+dotnet_cli_dir).split(" "))
+        helix.proc.run_and_log_output((dotnet_installer+" -d "+dotnet_cli_dir+" -v "+os.path.join(xunit_perf_drop,"DotNetCliVersion.txt")).split(" "))
     else:
         log.info('Local dotnet cli install found')
 

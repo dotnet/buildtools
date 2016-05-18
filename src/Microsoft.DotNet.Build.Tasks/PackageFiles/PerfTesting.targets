@@ -31,9 +31,10 @@
   </PropertyGroup>
 
 
+  <!-- Installing dotnet cli version that can execute the xunit perf test runner -->
   <Target Name="InstallDotnetCliForPerfExection" Condition="'$(TargetOS)'=='Linux' AND '$(Performance)'=='true' AND !Exists('$(PerfDotNetCliDir)/dotnet')" AfterTargets="CopyXunitExecutionFiles" >
     <Exec Command="chmod +x $(PerfDotNetCliInstaller)" />
-    <Exec Command="$(PerfDotNetCliInstaller) -d $(PerfDotNetCliDir)" ContinueOnError="true"/>
+    <Exec Command="$(PerfDotNetCliInstaller) -d $(PerfDotNetCliDir) -v $(PackagesDir)$(XunitPerfAnalysisPackageId)/$(XunitPerfAnalysisPackageVersion)/lib/netstandard1.3/DotNetCliVersion.txt" ContinueOnError="true"/>
   </Target>
   <!-- Copy over the performance runners to the test directory-->
   <Target Name="CopyXunitExecutionFiles" AfterTargets="CopyTestToTestDirectory" Condition="'$(Performance)' == 'true'">
