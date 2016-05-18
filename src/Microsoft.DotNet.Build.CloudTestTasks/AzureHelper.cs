@@ -224,8 +224,12 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             {
                 if (retries > 0)
                 {
-                    response.Dispose();
-                    response = null;
+                    if (response != null)
+                    {
+                        response.Dispose();
+                        response = null;
+                    }
+
                     int delay = retryDelaySeconds * retries * rng.Next(1, 5);
                     loggingHelper.LogMessage(MessageImportance.Low, "Waiting {0} seconds before retry", delay);
                     await System.Threading.Tasks.Task.Delay(delay * 1000);
@@ -281,9 +285,17 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
             // retry count exceeded
             loggingHelper.LogWarning("Retry count {0} exceeded", retryCount);
-            var statusCode = response.StatusCode;
-            var contentStr = await response.Content.ReadAsStringAsync();
-            response.Dispose();
+
+            // set some default values in case response is null
+            var statusCode = "None";
+            var contentStr = "Null";
+            if (response != null)
+            {
+                statusCode = response.StatusCode.ToString();
+                contentStr = await response.Content.ReadAsStringAsync();
+                response.Dispose();
+            }
+
             throw new HttpRequestException(string.Format("Request failed with status {0} response {1}", statusCode, contentStr));
         }
 
