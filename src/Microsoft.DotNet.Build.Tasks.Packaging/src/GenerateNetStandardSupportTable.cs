@@ -68,27 +68,22 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             SortedSet<Version> knownNetStandardVersions = new SortedSet<Version>();
             List<SupportRow> rows = new List<SupportRow>(Reports.Length);
 
-            foreach (var report in Reports.Select(r => r.GetMetadata("FullPath")))
+            foreach (var reportPath in Reports.Select(r => r.GetMetadata("FullPath")))
             {
                 SupportRow row = new SupportRow();
-                row.Name = Path.GetFileNameWithoutExtension(report);
+                row.Name = Path.GetFileNameWithoutExtension(reportPath);
                 row.SuportedVersions = new SortedSet<NETStandardApiVersion>();
 
-                using (var file = File.OpenText(report))
-                using (var reader = new JsonTextReader(file))
+                var report = ValidationReport.Load(reportPath);
+
+                foreach(var supportedFramework in report.SupportedFrameworks)
                 {
-                    var doc = JObject.Load(reader);
-                    var supportedFrameworks = doc["supportedFrameworks"] as JObject;
+                    var fx = NuGetFramework.Parse(supportedFramework.Key);
 
-                    foreach(var supportedFramework in supportedFrameworks.Properties())
+                    if (fx.Framework == FrameworkConstants.FrameworkIdentifiers.NetStandard)
                     {
-                        var fx = NuGetFramework.Parse(supportedFramework.Name);
-
-                        if (fx.Framework == FrameworkConstants.FrameworkIdentifiers.NetStandard)
-                        {
-                            row.SuportedVersions.Add(new NETStandardApiVersion(fx.Version, new Version(supportedFramework.Value.ToString())));
-                            knownNetStandardVersions.Add(fx.Version);
-                        }
+                        row.SuportedVersions.Add(new NETStandardApiVersion(fx.Version, new Version(supportedFramework.Value.ToString())));
+                        knownNetStandardVersions.Add(fx.Version);
                     }
                 }
                 rows.Add(row);

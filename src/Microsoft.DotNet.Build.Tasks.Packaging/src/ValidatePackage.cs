@@ -213,6 +213,11 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         private void ValidateSupport()
         {
             var runtimeFxSuppression = GetSuppressionValues(Suppression.PermitRuntimeTargetMonikerMismatch) ?? new HashSet<string>();
+            ValidationReport report = null;
+            if (ValidationReport != null)
+            {
+                report = CreateValidationReport();
+            }
 
             // validate support for each TxM:RID
             foreach (var validateFramework in _frameworks.Values)
@@ -223,6 +228,19 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 var compileAssetPaths = _resolver.ResolveCompileAssets(fx, PackageId);
                 bool hasCompileAsset, hasCompilePlaceHolder;
                 ExamineAssets("Compile", ContractName, fx.ToString(), compileAssetPaths, out hasCompileAsset, out hasCompilePlaceHolder);
+
+                if (report != null && validateFramework.RuntimeIds.All(rid => !String.IsNullOrEmpty(rid)))
+                {
+                    // Add Framework only (compile) target if all RIDs are non-empty.
+                    // This acts as a compile target for a framework that requires a RID for runtime.
+                    var reportTarget = new Target()
+                    {
+                        Framework = fx.ToString(),
+                        RuntimeID = null,
+                        CompileAssets = compileAssetPaths.Where(c => !NuGetAssetResolver.IsPlaceholder(c)).Select(c => GetPackageAssetFromTargetPath(c)).ToArray()
+                    };
+                    report.Targets.Add(fx.ToString(), reportTarget);
+                }
 
                 // resolve/test for each RID associated with this framework.
                 foreach (string runtimeId in validateFramework.RuntimeIds)
@@ -254,6 +272,18 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     }
                     else
                     {
+                        if (report != null)
+                        {
+                            var reportTarget = new Target()
+                            {
+                                Framework = fx.ToString(),
+                                RuntimeID = runtimeId,
+                                CompileAssets = compileAssetPaths.Where(c => !NuGetAssetResolver.IsPlaceholder(c)).Select(c => GetPackageAssetFromTargetPath(c)).ToArray(),
+                                RuntimeAssets = runtimeAssetPaths.Where(r => !NuGetAssetResolver.IsPlaceholder(r)).Select(r => GetPackageAssetFromTargetPath(r)).ToArray()
+                            };
+                            report.Targets.Add(target, reportTarget);
+                        }
+
                         if (validateFramework.IsInbox)
                         {
                             if (!hasCompileAsset && !hasCompilePlaceHolder)
@@ -367,7 +397,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             if (!String.IsNullOrEmpty(ValidationReport))
             {
-                WriteValidationReport(ValidationReport, _frameworks.Values);
+                report.Save(ValidationReport);
             }
         }
 
@@ -780,31 +810,33 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
         }
 
-        private void WriteValidationReport(string reportPath, IEnumerable<ValidationFramework> frameworks)
+        private ValidationReport CreateValidationReport()
         {
-            JObject root = new JObject();
-            root["id"] = PackageId;
-            root["version"] = PackageVersion;
-
-            JObject supportedFrameworks = new JObject();
-            foreach (var framework in frameworks.OrderBy(fx => fx.Framework.ToString()). Where(fx => fx.SupportedVersion != null))
+            return new ValidationReport()
             {
-                supportedFrameworks[framework.Framework.ToString()] = GetVersionString(framework.SupportedVersion);
-            }
-            root["supportedFrameworks"] = supportedFrameworks;
+                Id = PackageId,
+                Version = PackageVersion,
+                SupportedFrameworks = _frameworks.OrderBy(fx => fx.Key.ToString())
+                                                .Where(fx => fx.Value.SupportedVersion != null)
+                                                .ToDictionary(fx => fx.Key.ToString(), fx => GetVersionString(fx.Value.SupportedVersion))
+            };
 
-            string directory = Path.GetDirectoryName(reportPath);
-            if (!Directory.Exists(directory))
+        }
+
+        private PackageAsset GetPackageAssetFromTargetPath(string targetPath)
+        {
+            PackageItem packageItem = null;
+            if (!_targetPathToPackageItem.TryGetValue(targetPath, out packageItem))
             {
-                Directory.CreateDirectory(directory);
+                throw new ArgumentException($"Could not find source item for {targetPath}", nameof(targetPath));
             }
 
-            using (var jsonWriter = new JsonTextWriter(File.CreateText(reportPath)))
+            return new PackageAsset()
             {
-                jsonWriter.Formatting = Formatting.Indented;
-                jsonWriter.Indentation = 2;
-                root.WriteTo(jsonWriter);
-            }
+                LocalPath = packageItem.SourcePath,
+                SourceProject = packageItem.SourceProject,
+                PackagePath = packageItem.TargetPath
+            };
         }
 
         private string GetVersionString(Version version)

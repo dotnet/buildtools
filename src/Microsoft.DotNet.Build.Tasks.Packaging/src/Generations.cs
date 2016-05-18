@@ -137,7 +137,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                             File.Exists(contractPath))
                         {
                             // traverse the indirect dependencies recursively.
-                            assemblyGeneration = DetermineGenerationFromFile(contractPath, log, reference.Version, candidateRefs);
+                            assemblyGeneration = DetermineGenerationFromFile(contractPath, log, reference.Version, candidateRefs, ignoredRefs);
                         }
                         else
                         {
