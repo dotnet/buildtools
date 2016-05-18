@@ -29,7 +29,6 @@ namespace Microsoft.DotNet.Execute
                 // Set our event handler to asynchronously read the output.
                 _process.OutputDataReceived += new DataReceivedEventHandler(ReadOutputHandler);
 
-                Console.WriteLine("About to run: {0} {1}", filename, args);
                 _process.Start();
                 _process.BeginOutputReadLine();
 

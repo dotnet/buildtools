@@ -14,7 +14,7 @@ namespace Microsoft.DotNet.Execute
     public class Executor
     {
         //the path depends on where the executor ends up living...
-        public string configFile = @"C:\mariariBT\src\Scripts\config.json";
+        public string configFile = @"..\..\config.json";
         public Dictionary<string, string> SettingParameters { get; set; }
         public Dictionary<string, string> CommandParameters { get; set; }
         
@@ -44,46 +44,54 @@ namespace Microsoft.DotNet.Execute
 
         public void DefineParameters(string[] args, Setup setupInformation)
         {
-            CommandLineParser.ParseForConsoleApplication(delegate (CommandLineParser parser)
+            try
             {
-                //Settings
-                foreach (KeyValuePair<string, Setting> option in setupInformation.Settings)
+                CommandLineParser.ParseForConsoleApplication(delegate (CommandLineParser parser)
                 {
-                    if(!option.Key.Equals("ExtraArguments"))
+                    //Settings
+                    foreach (KeyValuePair<string, Setting> option in setupInformation.Settings)
                     {
-                        string temp = "";
-                        parser.DefineOptionalQualifier(option.Key, ref temp, option.Value.Description);
-                        SettingParameters[option.Key] = temp;
+                        if (!option.Key.Equals("ExtraArguments"))
+                        {
+                            string temp = "";
+                            parser.DefineOptionalQualifier(option.Key, ref temp, option.Value.Description);
+                            SettingParameters[option.Key] = temp;
+                        }
                     }
-                }
 
-                //Commands
-                foreach (KeyValuePair<string, Command> comm in setupInformation.Commands)
-                {
-                    bool temp = false;
-                    parser.DefineOptionalQualifier(comm.Key, ref temp, comm.Value.Description);
-                    CommandParameters[comm.Key] = temp.ToString();
-                }
+                    //Commands
+                    foreach (KeyValuePair<string, Command> comm in setupInformation.Commands)
+                    {
+                        bool temp = false;
+                        parser.DefineOptionalQualifier(comm.Key, ref temp, comm.Value.Description);
+                        CommandParameters[comm.Key] = temp.ToString();
+                    }
 
-                //extra arguments
-                //TODO: when something that is passed with ExtraArguments has a '/' the parser tool would print an error.
-                //It still works, but in the future we would like to aviod this by changing the parsing tool code.
-                if (!args[0].Equals("-?"))
-                {
-                    string[] extraArguments = null;
-                    parser.DefineOptionalParameter("ExtraArguments", ref extraArguments, "Extra parameters will be passed to the selected command.");
-                    if(extraArguments.Length>0)
+                    //extra arguments
+                    //TODO: when something that is passed with ExtraArguments has a '/' the parser tool would print an error.
+                    //It still works, but in the future we would like to aviod this by changing the parsing tool code.
+                    if (!args[0].Equals("-?"))
                     {
-                        string[] temp = new string[extraArguments.Length - 1];
-                        Array.Copy(extraArguments, 1, temp, 0, extraArguments.Length - 1);
-                        SettingParameters["ExtraArguments"] = string.Join(" ", temp);
+                        string[] extraArguments = null;
+                        parser.DefineOptionalParameter("ExtraArguments", ref extraArguments, "Extra parameters will be passed to the selected command.");
+                        if (extraArguments.Length > 0)
+                        {
+                            string[] temp = new string[extraArguments.Length - 1];
+                            Array.Copy(extraArguments, 1, temp, 0, extraArguments.Length - 1);
+                            SettingParameters["ExtraArguments"] = string.Join(" ", temp);
+                        }
+                        else
+                        {
+                            SettingParameters["ExtraArguments"] = string.Join(" ", extraArguments);
+                        }
                     }
-                    else
-                    {
-                        SettingParameters["ExtraArguments"] = string.Join(" ", extraArguments);
-                    }
-                }
-            }, args);
+                }, args);
+            }
+            catch
+            {
+                //use default as the parameter
+                Console.WriteLine("Error: Please provide at least one parameter");
+            }
             
         }
 

@@ -7,7 +7,7 @@ namespace Microsoft.DotNet.Execute
     {
         public Dictionary<string, Setting> Settings { get; set; }
         public Dictionary<string, Command> Commands { get; set; }
-        public Dictionary<string, Process> Processes { get; set; }
+        public Dictionary<string, Tool> Tools { get; set; }
 
 
         public void ProvideHelpSettings()
@@ -48,12 +48,8 @@ namespace Microsoft.DotNet.Execute
 
         public bool BuildCommand(Command commandToExecute, string os, Dictionary<string, string> settingParameters)
         {
-            string toolName = string.Empty;
-            if (Processes.ContainsKey(commandToExecute.ToolName))
-            {
-                toolName = (os.Equals("windows")) ? Processes[commandToExecute.ToolName].Run["windows"] : Processes[commandToExecute.ToolName].Run["non-windows"];
-            }
-            else
+            string toolName = GetTool(commandToExecute, os);
+            if (string.IsNullOrEmpty(toolName))
             {
                 Console.WriteLine("Error: The process {0} is not specified in the Json file.", commandToExecute.ToolName);
                 return false;
@@ -80,7 +76,7 @@ namespace Microsoft.DotNet.Execute
                     string settingType = FindSettingType(parameters.Key);
                     if (settingType.Equals("passThrough"))
                     {
-                        commandSetting += string.Format(" {0}", parameters.Value);
+                        commandSetting += string.Format(" {0}", toolName.Equals("console") ? "": parameters.Value);
                     }
                     else
                     {
@@ -132,11 +128,28 @@ namespace Microsoft.DotNet.Execute
             return true;
         }
 
+        public string GetTool(Command commandToExecute, string os)
+        {
+            if (Tools.ContainsKey(commandToExecute.ToolName))
+            {
+                if(commandToExecute.ToolName.Equals("msbuild"))
+                {
+                    return os.Equals("windows") ? Tools[commandToExecute.ToolName].Run["windows"] : Tools[commandToExecute.ToolName].Run["unix"];
+                }
+                else if (commandToExecute.ToolName.Equals("console"))
+                {
+                    string extension = os.Equals("windows") ? Tools[commandToExecute.ToolName].Run["windows"] : Tools[commandToExecute.ToolName].Run["unix"];
+                    return string.Format("{0}.{1}", commandToExecute.LockedSettings["Project"],extension);
+                }
+            }
+            return string.Empty;
+        }
+            
         public string FormatSetting(string option, string value, string type, string toolName)
         {
-            if (Processes.ContainsKey(toolName) && !string.IsNullOrEmpty(type))
+            if (Tools.ContainsKey(toolName) && !string.IsNullOrEmpty(type))
             {
-                string commandOption = Processes[toolName].ValueTypes[type];
+                string commandOption = Tools[toolName].ValueTypes[type];
                 commandOption = commandOption.Replace("{name}", option).Replace("{value}", value);
                 return commandOption;
             }
@@ -153,7 +166,7 @@ namespace Microsoft.DotNet.Execute
 
     }
 
-    public class Process
+    public class Tool
     {
         public Dictionary<string, string> Run { get; set; }
         public Dictionary<string, string> ValueTypes { get; set; }
