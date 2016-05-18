@@ -1,5 +1,5 @@
 #!/bin/bash
-# Argument = -d destdir
+# Argument = -d destdir -v versionfile
 usage()
 {
 cat << EOF
@@ -10,13 +10,14 @@ This script installs dotnet cli on the linux machine
 OPTIONS:
    -h      Show this message
    -d      Directory where dotnet cli will be installed
-   -v      Location of DotNetCliVersion.txt file
+   -v      Location of DotNetCliVersion.txt 
 
 EOF
 }
 
 DESTDIR=
-while getopts “hd:” OPTION
+VERFILE=
+while getopts “hd:v:” OPTION
 do
      case $OPTION in
          h)
@@ -37,7 +38,8 @@ do
 done
 
 echo $DESTDIR
-if [[ -z $DESTDIR ]]
+echo $VERFILE
+if [ -z $DESTDIR ] || [ -z $VERFILE ];
 then
      usage
      exit 1
@@ -46,6 +48,6 @@ fi
 echo "Initiating local dotnet install"
 wget https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0/scripts/obtain/dotnet-install.sh
 chmod 777 dotnet-install.sh
-versionnum=$(cat VERFILE)
+versionnum=$(cat $VERFILE)
 mkdir $DESTDIR
 source dotnet-install.sh -i $DESTDIR -v $versionnum
