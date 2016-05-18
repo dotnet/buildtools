@@ -173,6 +173,11 @@
     </ItemGroup>
   </Target>
 
+  <PropertyGroup Condition="'$(GenerateVersionSourceFile)'=='true'">
+    <NativeVersionSourceDir>$(BaseIntermediateOutputPath)</NativeVersionSourceDir>
+    <NativeVersionSourceFile>$(NativeVersionSourceDir)version.c</NativeVersionSourceFile>
+  </PropertyGroup>
+
   <!-- Non Windows versioning requires to generate a source file and include it on the compilation. -->
   <Target Name="GenerateVersionSourceFile"
       Inputs="$(MSBuildProjectFile)"
@@ -186,6 +191,8 @@
       <!-- Since this is a source file, compiler will complain if there is no new line at end of file, so adding one bellow. -->
       <SourceFileLines Include=" " />
     </ItemGroup>
+
+    <MakeDir Condition="!Exists('$(NativeVersionSourceDir)')" Directories="$(NativeVersionSourceDir)" />
 
     <WriteLinesToFile
       File="$(NativeVersionSourceFile)"
