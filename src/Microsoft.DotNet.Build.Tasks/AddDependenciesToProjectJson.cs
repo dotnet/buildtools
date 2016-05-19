@@ -115,7 +115,7 @@ namespace Microsoft.DotNet.Build.Tasks
             // Check for a valid path, if invalid, exit
             for (int i = 0; i < Frameworks.Length; i++)
             {
-                var _frameworkPath = "frameworks." + Frameworks[i];
+                var _frameworkPath = "frameworks." + NewtonsoftEscapeJProperty(Frameworks[i]);
                 var validFramework = projectRoot.SelectToken(_frameworkPath);
                 if (validFramework == null)
                 {
@@ -141,7 +141,7 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 return projectJsonRoot["dependencies"];
             }
-            return projectJsonRoot.SelectToken("frameworks." + framework + ".dependencies");
+            return projectJsonRoot.SelectToken("frameworks." + NewtonsoftEscapeJProperty(framework) + ".dependencies");
         }
 
         // Generate the combines dependencies from the projectjson jObject and from AdditionalDependencies
@@ -249,7 +249,7 @@ namespace Microsoft.DotNet.Build.Tasks
             var frameworkPath = string.Empty;
             if(!string.IsNullOrWhiteSpace(framework))
             {
-                frameworkPath = "frameworks." + framework;
+                frameworkPath = "frameworks." + NewtonsoftEscapeJProperty(framework);
             }
             var frameworkPathObject = projectJsonRoot.SelectToken(frameworkPath);
             frameworkPathObject["dependencies"] = updatedProperties;
@@ -261,6 +261,23 @@ namespace Microsoft.DotNet.Build.Tasks
             string projectJson = JsonConvert.SerializeObject(projectRoot, Formatting.Indented);
             Directory.CreateDirectory(Path.GetDirectoryName(projectJsonPath));
             File.WriteAllText(projectJsonPath, projectJson + Environment.NewLine); 
+        }
+
+        /* JProperties are encapsulated with "['" and "']" to assist with matching Paths which
+           contain properties with a '.'.  ie. frameworks.netcoreapp1.0 becomes frameworks.['netcoreapp1.0'].
+           A match for a property without a '.' and unencapsulated still works.  ie, we can still select
+           frameworks.['dnxcore50'] even if internally its path is frameworks.dnxcore50. */
+        private static string NewtonsoftEscapeJProperty(string property)
+        {
+            if (string.IsNullOrWhiteSpace(property))
+            {
+                return property;
+            }
+            if (!property.StartsWith("['") && !property.EndsWith("']"))
+            {
+                property = "['" + property + "']";
+            }
+            return property;
         }
     }
 }
