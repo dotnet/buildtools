@@ -92,7 +92,7 @@ namespace Microsoft.DotNet.Execute
             foreach (KeyValuePair<string, string> reqSetting in requiredSettings)
             {
                 string value = string.IsNullOrEmpty(reqSetting.Value) || reqSetting.Value.Equals("default") ? FindSettingValue(reqSetting.Key) : reqSetting.Value;
-                if (value != null && string.IsNullOrEmpty(commandValues[reqSetting.Key]))
+                if (value != null && (string.IsNullOrEmpty(commandValues[reqSetting.Key]) || reqSetting.Key.Equals("Project")))
                 {
                     commandValues[reqSetting.Key] = string.IsNullOrEmpty(value) ? "True" : value;
                 }

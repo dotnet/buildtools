@@ -8,13 +8,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.Fx.CommandLine;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.DotNet.Execute
 {
     public class Executor
     {
         //the path depends on where the executor ends up living...
-        public string configFile = @"..\..\config.json";
+        public string configFile = @"config.json";
         public Dictionary<string, string> SettingParameters { get; set; }
         public Dictionary<string, string> CommandParameters { get; set; }
         
@@ -106,8 +107,7 @@ namespace Microsoft.DotNet.Execute
             }
             else
             {
-                // RuntimeInformation class to get it.See https://github.com/dotnet/buildtools/blob/master/src/Microsoft.DotNet.Build.Tasks/GetTargetMachineInfo.cs#L40
-                string os = "windows";
+                string os = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "windows": "unix";
                 
                 executor.DefineParameters(args, jsonSetup);
                 
