@@ -182,12 +182,12 @@
   <Target Name="GenerateVersionSourceFile"
       Inputs="$(MSBuildProjectFile)"
       Outputs="$(NativeVersionSourceFile)"
-      DependsOnTargets="CreateVersionFileDuringBuild"
+      DependsOnTargets="CreateVersionFileDuringBuild;GetLatestCommitHash"
       Condition="'$(NativeVersionSourceFile)'!='' and '$(GenerateVersionSourceFile)'=='true'">
 
     <ItemGroup>
       <SourceFileLines />
-      <SourceFileLines Include="static char sccsid%5B%5D %5F%5Fattribute%5F%5F%28%28used%29%29 %3D %22%40%28%23%29Version $(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)$(BuiltByString)%22%3B" />
+      <SourceFileLines Include="static char sccsid%5B%5D %5F%5Fattribute%5F%5F%28%28used%29%29 %3D %22%40%28%23%29Version $(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)$(BuiltByString). Commit Hash%3A $(LatestCommit)%22%3B" />
       <!-- Since this is a source file, compiler will complain if there is no new line at end of file, so adding one bellow. -->
       <SourceFileLines Include=" " />
     </ItemGroup>
@@ -202,6 +202,17 @@
     <ItemGroup>
       <FileWrites Include="$(NativeVersionSourceFile)" />
     </ItemGroup>
+  </Target>
+
+  <Target Name="GetLatestCommitHash" Condition="'$(LatestCommit)'==''">
+    <Exec Command="git rev-parse HEAD" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="LatestCommit" />
+      <Output TaskParameter="ExitCode" PropertyName="LatestCommitExitCode" />
+    </Exec>
+    <!-- We shouldn't fail the build if we can't retreive the commit hash, so in this case just set it to N/A -->
+    <PropertyGroup Condition="'$(LatestCommitExitCode)'!='0'">
+      <LatestCommit>N/A</LatestCommit>
+    </PropertyGroup>
   </Target>
 
   <!-- #################################### -->
