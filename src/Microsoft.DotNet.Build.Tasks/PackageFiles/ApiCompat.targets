@@ -19,7 +19,6 @@
 
   <!-- ApiCompat for Implementation Assemblies  -->
   <Target Name="ValidateApiCompatForSrc"
-          DependsOnTargets="CopyFilesToOutputDirectory"
           Condition="'$(RunApiCompatForSrc)' == 'true' AND '$(RunApiCompat)' == 'true' AND Exists('$(ContractProject)')" >
 
     <PropertyGroup>
@@ -47,7 +46,7 @@
     <PropertyGroup>
       <_ApiCompatCmd>"$(ToolsDir)CoreRun.exe" "$(ToolsDir)ApiCompat.exe" "$(ReferenceAssembly)" </_ApiCompatCmd>
       <_ApiCompatCmd>$(_ApiCompatCmd) -contractDepends:"@(_ContractDependencyDirectories);"</_ApiCompatCmd>
-      <_ApiCompatCmd>$(_ApiCompatCmd) -implDirs:"$(OutputPath);@(_DependencyDirectories);"</_ApiCompatCmd>
+      <_ApiCompatCmd>$(_ApiCompatCmd) -implDirs:"$(IntermediateOutputPath);@(_DependencyDirectories);"</_ApiCompatCmd>
       <_ApiCompatCmd Condition="'$(BaselineAllAPICompatError)'!='true' and Exists('$(ApiCompatBaseline)')">$(_ApiCompatCmd) -baseline:"$(ApiCompatBaseline)"</_ApiCompatCmd>
       <_ApiCompatCmd Condition="'$(BaselineAllAPICompatError)'=='true'">$(_ApiCompatCmd) &gt; $(ApiCompatBaseline)</_ApiCompatCmd>
       <ApiCompatExitCode>0</ApiCompatExitCode>
@@ -72,7 +71,6 @@
 
   <!-- ApiCompat for Contract Assemblies -->
   <Target Name="ValidateApiCompatForRef"
-          DependsOnTargets="CopyFilesToOutputDirectory"
           Condition="'$(RunApiCompatForRef)' == 'true' AND '$(RunApiCompat)' == 'true'" >
 
     <!--
@@ -101,7 +99,7 @@
     <PropertyGroup>
       <_ApiCompatCmd>"$(ToolsDir)CoreRun.exe" "$(ToolsDir)ApiCompat.exe" "$(PreviousContractAssembly)"</_ApiCompatCmd>
       <_ApiCompatCmd>$(_ApiCompatCmd) -contractDepends:"@(_PreviousContractDependencyDirectories);"</_ApiCompatCmd>
-      <_ApiCompatCmd>$(_ApiCompatCmd) -implDirs:"$(ReferenceOutputPath);@(_CurrentContractDependencies);"</_ApiCompatCmd>
+      <_ApiCompatCmd>$(_ApiCompatCmd) -implDirs:"$(IntermediateOutputPath);@(_CurrentContractDependencies);"</_ApiCompatCmd>
       <_ApiCompatCmd Condition="Exists('$(ApiCompatBaseline)')">$(_ApiCompatCmd) -baseline:"$(ApiCompatBaseline)"</_ApiCompatCmd>
       <ApiCompatExitCode>0</ApiCompatExitCode>
     </PropertyGroup>
