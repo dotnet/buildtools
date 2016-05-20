@@ -1,13 +1,10 @@
 {
-  "buildOptions": {
-    "emitEntryPoint": true
-  },
   "dependencies": {
     "xunit": "2.1.0",
     "xunit.runner.utility": "2.1.0",
     "Microsoft.NETCore.App": {
       "type": "platform",
-      "version": "1.0.0-rc2-3002700"
+      "version": "1.0.0-rc2-3002702"
     }
   },
   "frameworks": {

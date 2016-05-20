@@ -1,8 +1,8 @@
 {
   "dependencies": {
-    "Microsoft.Build.Framework": "0.1.0-preview-00017",
-    "Microsoft.Build.Tasks.Core": "0.1.0-preview-00017",
-    "Microsoft.Build.Utilities.Core": "0.1.0-preview-00017",
+    "Microsoft.Build.Framework": "0.1.0-preview-00022",
+    "Microsoft.Build.Tasks.Core": "0.1.0-preview-00022",
+    "Microsoft.Build.Utilities.Core": "0.1.0-preview-00022",
     "Newtonsoft.Json": "7.0.1",
     "NuGet.Client": "3.5.0-rc-1220",
     "NETStandard.Library": "1.5.0-rc2-24027",
