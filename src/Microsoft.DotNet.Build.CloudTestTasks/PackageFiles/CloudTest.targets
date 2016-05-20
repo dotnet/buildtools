@@ -110,6 +110,7 @@
     <ItemGroup>
       <RunnerScripts Include="$(ToolsDir)RunnerScripts/**/*.py" />
       <RunnerScripts Include="$(ToolsDir)RunnerScripts/**/*.sh" />
+      <RunnerScripts Include="$(ToolsDir)RunnerScripts/**/*.txt" />
     </ItemGroup>
     <Copy SourceFiles="@(RunnerScripts)"
           DestinationFiles="@(RunnerScripts->'$(SupplementalPayloadDir)RunnerScripts/%(RecursiveDir)%(Filename)%(Extension)')"
@@ -268,9 +269,9 @@
       <ExcludeFromArchive Include="nupkg$" />
       <ExcludeFromArchive Include="Microsoft.DotNet.BuildTools" />
       <ExcludeFromArchive Include="TestData" />
-      <TestDependencyListFile Include="$(BinDir)/TestDependencies/*.dependencylist.txt" />      
+      <TestDependencyListFile Include="$(BinDir)/TestDependencies/*.dependencylist.txt" />
     </ItemGroup>
-    
+
     <ZipFileCreateFromDependencyLists
       DependencyListFiles="@(TestDependencyListFile)"
       DestinationArchive="$(PackagesArchiveFile)"

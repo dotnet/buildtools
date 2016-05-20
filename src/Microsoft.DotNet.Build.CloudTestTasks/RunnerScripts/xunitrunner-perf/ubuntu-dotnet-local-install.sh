@@ -10,7 +10,7 @@ This script installs dotnet cli on the linux machine
 OPTIONS:
    -h      Show this message
    -d      Directory where dotnet cli will be installed
-   -v      Location of DotNetCliVersion.txt 
+   -v      Location of DotNetCliVersion.txt
 
 EOF
 }
@@ -46,7 +46,7 @@ then
 fi
 
 echo "Initiating local dotnet install"
-wget https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0/scripts/obtain/dotnet-install.sh
+wget https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0-preview1/scripts/obtain/dotnet-install.sh
 chmod 777 dotnet-install.sh
 versionnum=$(cat $VERFILE)
 mkdir $DESTDIR

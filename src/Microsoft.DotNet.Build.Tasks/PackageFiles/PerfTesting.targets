@@ -63,6 +63,9 @@
     <Copy SourceFiles="@(XunitPerfRunnerFiles)"
           DestinationFiles="@(XunitPerfRunnerFiles->'$(TestWorkingDir)SupplementalPayload/$(XunitPerfRunnerPackageId)/%(RecursiveDir)%(Filename)%(Extension)')"
           SkipUnchangedFiles="true"/>
+    <Copy SourceFiles="$(PackagesDir)$(XunitPerfAnalysisPackageId)/$(XunitPerfAnalysisPackageVersion)/lib/netstandard1.3/DotNetCliVersion.txt"
+          DestinationFolder="$(TestWorkingDir)SupplementalPayload/RunnerScripts/xunitrunner-perf"
+          SkipUnchangedFiles="true" Condition="'$(TargetOS)'=='Linux'"/>
     <Copy SourceFiles="@(XunitPerfAnalysisFiles)"
           DestinationFiles="@(XunitPerfAnalysisFiles->'$(TestWorkingDir)SupplementalPayload/$(XunitPerfAnalysisPackageId)/%(RecursiveDir)%(Filename)%(Extension)')"
           SkipUnchangedFiles="true"/>
@@ -81,17 +84,18 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetOS)'=='Linux'">
-    <PerfTestCommandLine>$(PerfDotNetCliDir)/dotnet $(XunitPerfRunnerPath) $(XunitRunnerArgs) $(AdditionalPerfTestArgs)</PerfTestCommandLine>
+    <PerfTestCommandDotnetExecutable>$(PerfDotNetCliDir)/dotnet</PerfTestCommandDotnetExecutable>
     <PerfAnalysisReportCommandLine>$(PerfDotNetCliDir)/dotnet $(TestPath)$(DebugTestFrameworkFolder)/Microsoft.DotNet.xunit.performance.analysis.cli.dll $(XunitAnalysisReportArgs)</PerfAnalysisReportCommandLine>
     <PerfAnalysisCsvCommandLine>$(PerfDotNetCliDir)/dotnet $(TestPath)$(DebugTestFrameworkFolder)/Microsoft.DotNet.xunit.performance.analysis.cli.dll $(XunitAnalysisCsvArgs)</PerfAnalysisCsvCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetOS)'=='Windows_NT'">
-    <PerfTestCommandLine>$(XunitPerfRunnerPath) $(XunitRunnerArgs) $(AdditionalPerfTestArgs)</PerfTestCommandLine>
+    <PerfTestCommandDotnetExecutable></PerfTestCommandDotnetExecutable>
     <PerfAnalysisReportCommandLine>$(XunitPerfAnalysisPath) $(XunitAnalysisReportArgs)</PerfAnalysisReportCommandLine>
     <PerfAnalysisCsvCommandLine>$(XunitPerfAnalysisPath) $(XunitAnalysisCsvArgs)</PerfAnalysisCsvCommandLine>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Performance)' == 'true'">
+  <PropertyGroup>
+    <PerfTestCommandLine>$(PerfTestCommandDotnetExecutable) $(XunitPerfRunnerPath) $(XunitRunnerArgs) $(AdditionalPerfTestArgs)</PerfTestCommandLine>
     <AnalyzePerfResults Condition="'$(AnalyzePerfResults)' != 'false'">true</AnalyzePerfResults>
     <TestCommandLine>$(PerfTestCommandLine)</TestCommandLine>
   </PropertyGroup>
