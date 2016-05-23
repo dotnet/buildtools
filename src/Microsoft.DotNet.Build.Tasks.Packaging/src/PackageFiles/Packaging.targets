@@ -349,6 +349,9 @@
       <FrameworkReference Condition="'%(InboxOnTargetFramework.AsFrameworkReference)' == 'true'" Include="$(Id)">
         <TargetFramework>$(_target)</TargetFramework>
       </FrameworkReference>
+      <FrameworkReference Condition="'%(InboxOnTargetFramework.FrameworkReference)' != ''" Include="%(InboxOnTargetFramework.FrameworkReference)">
+        <TargetFramework>$(_target)</TargetFramework>
+      </FrameworkReference>
       <Dependency Include="_._">
         <TargetFramework>$(_target)</TargetFramework>
       </Dependency>
