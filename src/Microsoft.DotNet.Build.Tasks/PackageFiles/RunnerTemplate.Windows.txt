@@ -30,6 +30,7 @@ echo Command(s):
 [[TestRunCommandsEcho]]
 pushd %EXECUTION_DIR%
 [[TestRunCommands]]
+popd
 echo Finished running tests.  End time=%TIME%, Exit code = %ERRORLEVEL%
 EXIT /B %ERRORLEVEL%
 :: ========================= END Test Execution =================================
