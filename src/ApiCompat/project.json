@@ -2,27 +2,17 @@
   "dependencies": {
     "Microsoft.Cci": "4.0.0-rc2-24027",
     "Microsoft.Composition": "1.0.30",
-    "System.Collections": "4.0.10",
-    "System.Console": "4.0.0-rc2-24027",
-    "System.Diagnostics.Debug": "4.0.10",
+    "Microsoft.NETCore.App": {
+      "type": "platform",
+      "version": "1.0.0-rc2-3002702"
+    },
     "System.Diagnostics.Contracts": "4.0.0",
-    "System.Diagnostics.FileVersionInfo": "4.0.0-rc2-24027",
     "System.Diagnostics.TextWriterTraceListener": "4.0.0-rc2-24027",
-    "System.Diagnostics.TraceSource": "4.0.0-rc2-24027",
-    "System.IO.FileSystem": "4.0.0",
-    "System.Linq": "4.0.0",
-    "System.Linq.Expressions": "4.0.11-rc2-24027",
-    "System.Reflection": "4.0.10",
-    "System.Reflection.Extensions": "4.0.0",
-    "System.Reflection.TypeExtensions": "4.0.0",
-    "System.Threading.Thread": "4.0.0-rc2-24027",
-    "Microsoft.NETCore.Platforms": "1.0.1-rc2-24027",
-    "Microsoft.NETCore.Runtime": "1.0.2-rc2-24027",
-    "Microsoft.NETCore.TestHost": "1.0.0-rc2-24027"
+    "System.Diagnostics.TraceSource": "4.0.0-rc2-24027"
   },
   "frameworks": {
-    "dnxcore50": {
-      "imports": "portable-net45+win8"
+     "netcoreapp1.0": {
+      "imports": [ "dnxcore50", "portable-net45+win8"]
     }
   },
   "runtimes": {

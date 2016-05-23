@@ -8,6 +8,9 @@
     <ImportedProjectRelativePath>..\Microsoft.DotNet.Build.Tasks\</ImportedProjectRelativePath>
   </PropertyGroup>
   <Import Project="$(ImportedProjectRelativePath)Microsoft.DotNet.Build.Tasks.csproj" />
+  <PropertyGroup>
+    <NuGetTargetMoniker>.NETFramework,Version=v4.5</NuGetTargetMoniker>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Build" />
     <Reference Include="Microsoft.Build.Tasks.v4.0" />

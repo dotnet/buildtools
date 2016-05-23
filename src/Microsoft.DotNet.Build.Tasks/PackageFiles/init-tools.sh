@@ -66,8 +66,8 @@ if [ "$?" != "0" ]; then
     echo "ERROR: An error occured when running: '$__DOTNET_CMD restore \"${__TOOLRUNTIME_PROJECTJSON}\"'. Please check above for more details."
     exit 1
 fi
-echo "Running: $__DOTNET_CMD publish \"${__TOOLRUNTIME_PROJECTJSON}\" -f dnxcore50 -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR"
-$__DOTNET_CMD publish "${__TOOLRUNTIME_PROJECTJSON}" -f dnxcore50 -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR
+echo "Running: $__DOTNET_CMD publish \"${__TOOLRUNTIME_PROJECTJSON}\" -f netcoreapp1.0 -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR"
+$__DOTNET_CMD publish "${__TOOLRUNTIME_PROJECTJSON}" -f netcoreapp1.0 -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR
 if [ "$?" != "0" ]; then
     echo "ERROR: An error ocurred when running: '$__DOTNET_CMD publish \"${__TOOLRUNTIME_PROJECTJSON}\"'. Please check above for more details."
     exit 1

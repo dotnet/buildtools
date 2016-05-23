@@ -8,6 +8,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <CLSCompliant>false</CLSCompliant>
     <NuGetRuntimeIdentifier>win7-x64</NuGetRuntimeIdentifier>
+    <NuGetTargetMoniker>.NETCoreApp,Version=v1.0</NuGetTargetMoniker>
   </PropertyGroup>
   
   <!-- Default configurations to help VS understand the configurations -->
