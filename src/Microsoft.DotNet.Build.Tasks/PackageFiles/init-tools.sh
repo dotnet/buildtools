@@ -60,8 +60,8 @@ esac
 cp -R $__TOOLS_DIR/* $__TOOLRUNTIME_DIR
 
 __TOOLRUNTIME_PROJECTJSON=$__TOOLS_DIR/tool-runtime/project.json
-echo "Running: $__DOTNET_CMD restore \"${__TOOLRUNTIME_PROJECTJSON}\" --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json --source https://www.myget.org/F/roslyn-nightly/api/v3/index.json"
-$__DOTNET_CMD restore "${__TOOLRUNTIME_PROJECTJSON}" --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json --source https://www.myget.org/F/roslyn-nightly/api/v3/index.json
+echo "Running: $__DOTNET_CMD restore \"${__TOOLRUNTIME_PROJECTJSON}\" --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json"
+$__DOTNET_CMD restore "${__TOOLRUNTIME_PROJECTJSON}" --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json
 if [ "$?" != "0" ]; then
     echo "ERROR: An error occured when running: '$__DOTNET_CMD restore \"${__TOOLRUNTIME_PROJECTJSON}\"'. Please check above for more details."
     exit 1

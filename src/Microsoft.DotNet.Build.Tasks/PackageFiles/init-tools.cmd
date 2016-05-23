@@ -30,7 +30,7 @@ ROBOCOPY "%BUILDTOOLS_PACKAGE_DIR%\." "%TOOLRUNTIME_DIR%" /E
 
 set TOOLRUNTIME_PROJECTJSON=%BUILDTOOLS_PACKAGE_DIR%\tool-runtime\project.json
 @echo on
-call "%DOTNET_CMD%" restore "%TOOLRUNTIME_PROJECTJSON%" --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json --source https://www.myget.org/F/roslyn-nightly/api/v3/index.json
+call "%DOTNET_CMD%" restore "%TOOLRUNTIME_PROJECTJSON%" --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json
 set RESTORE_ERROR_LEVEL=%ERRORLEVEL%
 @echo off
 if not [%RESTORE_ERROR_LEVEL%]==[0] (
