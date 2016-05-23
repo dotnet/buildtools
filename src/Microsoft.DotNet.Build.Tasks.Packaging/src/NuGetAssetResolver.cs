@@ -185,6 +185,24 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 Enumerable.Empty<string>();
         }
 
+        public IEnumerable<string> ResolveCompileAssets(NuGetFramework framework)
+        {
+            var allCompileItems = GetCompileItems(framework);
+            foreach (var packageId in allCompileItems.Keys)
+            {
+                var packageAssets = allCompileItems[packageId];
+                if (packageAssets == null)
+                {
+                    continue;
+                }
+
+                foreach (var packageAsset in packageAssets.Items)
+                {
+                    yield return AsPackageSpecificTargetPath(packageId, packageAsset.Path);
+                }
+            }
+        }
+
         public IReadOnlyDictionary<string, ContentItemGroup> GetRuntimeItems(NuGetFramework framework, string runtimeIdentifier)
         {
             var managedCriteria = _conventions.Criteria.ForFrameworkAndRuntime(framework, runtimeIdentifier);

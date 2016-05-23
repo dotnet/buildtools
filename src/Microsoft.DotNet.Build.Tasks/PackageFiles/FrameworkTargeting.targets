@@ -38,6 +38,7 @@
     <ImplicitlyExpandTargetFramework>false</ImplicitlyExpandTargetFramework>
     <!-- Disable RAR complaining about us referencing higher .NET Portable libraries as we aren't a traditional portable library -->
     <ResolveAssemblyReferenceIgnoreTargetFrameworkAttributeVersionMismatch>true</ResolveAssemblyReferenceIgnoreTargetFrameworkAttributeVersionMismatch>
+    <NuGetTargetMoniker Condition="'$(NuGetTargetMoniker)' == ''">DNXCore,Version=v5.0</NuGetTargetMoniker>
   </PropertyGroup>
 
   <!-- Need to add references to the mscorlib design-time facade for some old-style portable dependencies like xunit -->
