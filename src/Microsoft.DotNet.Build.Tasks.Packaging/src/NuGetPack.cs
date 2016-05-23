@@ -71,6 +71,18 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             set;
         }
 
+        /// <summary>
+        /// Nuspec files can contain properties that are substituted with values at pack time
+        /// This task property passes through the nuspect properties.
+        /// Each item is a string with the syntax <key>=<value>
+        /// String validation for <key> and <value> is deffered to the Nuget APIs
+        /// </summary>
+        public ITaskItem[] NuspecProperties
+        {
+            get;
+            set;
+        }
+
         public ITaskItem[] AdditionalLibPackageExcludes
         {
             get;
@@ -94,6 +106,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
         public override bool Execute()
         {
+            Func<string, string> nuspecPropertyProvider = GetNuspecPropertyProviderFunction(NuspecProperties);
+
             if (Nuspecs == null || Nuspecs.Length == 0)
             {
                 Log.LogError("Nuspecs argument must be specified");
@@ -121,18 +135,23 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     continue;
                 }
 
-                Pack(nuspecPath, false);
+                Pack(nuspecPath, nuspecPropertyProvider, false);
 
                 if (PackSymbolPackage)
                 {
-                    Pack(nuspecPath, true);
+                    Pack(nuspecPath, nuspecPropertyProvider, true);
                 }
             }
 
             return !Log.HasLoggedErrors;
         }
 
-        public void Pack(string nuspecPath, bool packSymbols)
+        private static Func<string, string> GetNuspecPropertyProviderFunction(ITaskItem[] nuspecProperties)
+        {
+            return nuspecProperties == null ? null : NuspecPropertyStringProvider.GetNuspecPropertyProviderFunction(nuspecProperties.Select(p => p.ItemSpec).ToArray());
+        }
+
+        public void Pack(string nuspecPath, Func<string, string> nuspecPropertyProvider, bool packSymbols)
         {
             try
             {
@@ -141,7 +160,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 using (var nuspecFile = File.Open(nuspecPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
                 {
                     string baseDirectoryPath = (string.IsNullOrEmpty(BaseDirectory)) ? Path.GetDirectoryName(nuspecPath) : BaseDirectory;
-                    Manifest manifest = Manifest.ReadFrom(nuspecFile, false);
+                    Manifest manifest = Manifest.ReadFrom(nuspecFile, nuspecPropertyProvider, false);
                     builder.Populate(manifest.Metadata);
                     builder.PopulateFiles(baseDirectoryPath, manifest.Files);
 

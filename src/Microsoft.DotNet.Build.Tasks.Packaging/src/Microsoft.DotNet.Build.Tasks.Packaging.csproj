@@ -22,6 +22,7 @@
   <ItemGroup>
     <Compile Include="GetApplicableAssetsFromPackages.cs" />
     <Compile Include="GetMinimumNETStandard.cs" />
+    <Compile Include="NugetPropertyStringProvider.cs" />
     <Compile Include="GetRuntimeJsonValues.cs" />
     <Compile Include="GetRuntimeTargets.cs" />
     <Compile Include="SplitDependenciesBySupport.cs" />
