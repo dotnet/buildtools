@@ -1738,7 +1738,7 @@ class CommandLine
         private bool _noDashOnParameterSets;
         private bool _noSpaceOnQualifierValues;
         private string[] _parameterSetsWhereQualifiersMustBeFirst;
-        private bool _qualifiersUseOnlyDash;
+        private bool _qualifiersUseOnlyDash = true;
         private bool _lastQualifierWins;
 
         // In order to produce help, we need to remember everything useful about all the parameters.  This list
