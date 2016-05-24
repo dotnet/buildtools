@@ -152,8 +152,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
         {
             ITaskItem[] files = new[]
             {
-                CreateItem(@"D:\K2\binaries\x86ret\NETCore\Libraries\dnxcore\System.Xml.XmlSerializer.dll", "lib/DNXCore50", "dnxcore50"),
-                CreateItem(@"D:\K2\binaries\x86ret\NETCore\Libraries\dnxcore\System.Xml.XmlSerializer.dll", "lib/netcore50", "netcore50"),
+                CreateItem(@"D:\K2\binaries\x86ret\NETCore\Libraries\System.Xml.XmlSerializer.dll", "lib/netcoreapp1.0", "netcoreapp1.0"),
+                CreateItem(@"D:\K2\binaries\x86ret\NETCore\Libraries\System.Xml.XmlSerializer.dll", "lib/netcore50", "netcore50"),
                 CreateItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "lib/MonoAndroid10", "MonoAndroid10"),
                 CreateItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "lib/MonoTouch10", "MonoTouch10"),
                 CreateItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "lib/net45", "net45"),
@@ -241,7 +241,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 CreateItem(@"D:\K2\src\Redist\x86\retail\bin\i386\HelpDocs\intellisense\NETCore5\1049\System.Reflection.Emit.xml", "ref/netstandard1.1/ru", ""),
                 CreateItem(@"D:\K2\src\Redist\x86\retail\bin\i386\HelpDocs\intellisense\NETCore5\2052\System.Reflection.Emit.xml", "ref/netstandard1.1/zh-hans", ""),
                 CreateItem(@"D:\K2\src\Redist\x86\retail\bin\i386\HelpDocs\intellisense\NETCore5\3082\System.Reflection.Emit.xml", "ref/netstandard1.1/es", ""),
-                CreateItem(@"D:\K2\binaries\x86ret\NETCore\Libraries\dnxcore\System.Reflection.Emit.dll", "lib/DNXCore50", "DNXCore50"),
+                CreateItem(@"D:\K2\binaries\x86ret\NETCore\Libraries\System.Reflection.Emit.dll", "lib/netcoreapp1.0", "netcoreapp1.0"),
                 CreateItem(@"D:\K2\binaries\x86ret\NETCore\Libraries\netcoreforcoreclr\System.Reflection.Emit.dll", "lib/netcore50", "netcore50"),
                 CreateItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "lib/MonoAndroid10", ""),
                 CreateItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "ref/MonoAndroid10", ""),
@@ -277,7 +277,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 CreateItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "runtimes/win7/lib/win8", "win8"),
                 CreateItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "runtimes/win7/lib/wp8", "wp8"),
                 CreateItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "runtimes/win7/lib/wpa81", "wpa81"),
-                CreateItem(@"D:\K2\binaries\x86ret\NETCore\Libraries\dnxcore\System.Diagnostics.FileVersionInfo.dll", "runtimes/win7/lib/netstandard1.3", "netstandard1.3"),
+                CreateItem(@"D:\K2\binaries\x86ret\NETCore\Libraries\System.Diagnostics.FileVersionInfo.dll", "runtimes/win7/lib/netstandard1.3", "netstandard1.3"),
                 CreateItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "ref/netstandard", "netstandard")
             };
 
@@ -308,7 +308,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 CreateItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "runtimes/win7/lib/wp8", "wp8"),
                 CreateItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "runtimes/win7/lib/wpa81", "wpa81"),
                 CreateItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "runtimes/win7/lib/netcore50", "netcore50"),
-                CreateItem(@"D:\K2\binaries\x86ret\NETCore\Libraries\dnxcore\System.Diagnostics.FileVersionInfo.dll", "runtimes/win7/lib/netstandard1.3", "netstandard1.3"),
+                CreateItem(@"D:\K2\binaries\x86ret\NETCore\Libraries\System.Diagnostics.FileVersionInfo.dll", "runtimes/win7/lib/netstandard1.3", "netstandard1.3"),
                 CreateItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "ref/netstandard", "netstandard")
             };
 

@@ -30,20 +30,20 @@
 
   <PropertyGroup Condition="'$(TestWithCore)' == 'true'">
     <TestHostExecutable>CoreRun.exe</TestHostExecutable>
-    <TestHostDirectory>$(TestPath)dnxcore50/</TestHostDirectory>
+    <TestHostDirectory>$(TestPath)netcoreapp1.0/</TestHostDirectory>
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.netcore.exe</XunitExecutable>
-    <DebugTestFrameworkFolder>dnxcore50</DebugTestFrameworkFolder>
+    <DebugTestFrameworkFolder>netcoreapp1.0</DebugTestFrameworkFolder>
     <DebugEngines>{2E36F1D4-B23C-435D-AB41-18E608940038}</DebugEngines>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TestWithCore)' != 'true'">
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.exe</XunitExecutable>
-    <DebugTestFrameworkFolder>dnx45</DebugTestFrameworkFolder>
+    <DebugTestFrameworkFolder>net45</DebugTestFrameworkFolder>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TestWithCore)' == 'true'">
-    <TestTargetFramework Include="DNXCore,Version=v5.0">
-      <Folder>dnxcore50</Folder>
+    <TestTargetFramework Include=".NETCoreApp,Version=v1.0">
+      <Folder>netcoreapp1.0</Folder>
     </TestTargetFramework>
   </ItemGroup>
 

@@ -10,6 +10,7 @@
     <AssemblyName>Microsoft.DotNet.CodeAnalysis</AssemblyName>
     <CLSCompliant>false</CLSCompliant>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <NuGetTargetMoniker>.NETCoreApp,Version=v1.0</NuGetTargetMoniker>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>
