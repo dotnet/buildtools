@@ -41,6 +41,9 @@ namespace Microsoft.DotNet.Build.Tasks
         [Required]
         public string ProjectJson { get; set; }
 
+        // External package dependency versions.
+        public ITaskItem[] ExternalPackages { get; set; }
+        
         // The directory to put the generated project.json in
         [Required]
         public string OutputProjectJson { get; set; }
@@ -91,13 +94,13 @@ namespace Microsoft.DotNet.Build.Tasks
             }
 
             // Update default dependencies section
-            JObject dependencies = GenerateDependencies(projectRoot);
+            JObject dependencies = GenerateDependencies(projectRoot, ExternalPackages);
             projectRoot = UpdateDependenciesProperty(projectRoot, dependencies);
 
             // Update framework dependencies sections
             for (int i = 0; i < Frameworks.Length; i++)
             {
-                dependencies = GenerateDependencies(projectRoot, Frameworks[i]);
+                dependencies = GenerateDependencies(projectRoot, ExternalPackages, Frameworks[i]);
                 projectRoot = UpdateDependenciesProperty(projectRoot, dependencies, Frameworks[i]);
             }
             WriteProject(projectRoot, OutputProjectJson);
@@ -145,7 +148,7 @@ namespace Microsoft.DotNet.Build.Tasks
         }
 
         // Generate the combines dependencies from the projectjson jObject and from AdditionalDependencies
-        private JObject GenerateDependencies(JObject projectJsonRoot, string framework = null)
+        private JObject GenerateDependencies(JObject projectJsonRoot, ITaskItem[] externalPackageVersions, string framework = null)
         {
             var originalDependenciesList = new List<JToken>();
             var returnDependenciesList = new List<JToken>();
@@ -200,12 +203,16 @@ namespace Microsoft.DotNet.Build.Tasks
                 // Don't add a new dependency if one already exists.
                 if (returnDependenciesList.FirstOrDefault(rd => ((JProperty)rd).Name.Equals(name)) == null)
                 {
-                    NuGetVersion dependencyVersion = NuGetVersion.Parse(dependency.GetMetadata("Version"));
-
-                    string version = string.Join(".", dependencyVersion.Major, dependencyVersion.Minor, dependencyVersion.Patch);
-                    if (!string.IsNullOrWhiteSpace(PackageBuildNumberOverride))
+                    var externalPackageVersion = externalPackageVersions.FirstOrDefault(epv => epv.ItemSpec.Equals(name, StringComparison.OrdinalIgnoreCase))?.GetMetadata("Version");
+                    string version = externalPackageVersion;
+                    if (version == null)
                     {
-                        version += "-" + PackageBuildNumberOverride;
+                        NuGetVersion dependencyVersion = NuGetVersion.Parse(dependency.GetMetadata("Version"));
+                        version = string.Join(".", dependencyVersion.Major, dependencyVersion.Minor, dependencyVersion.Patch);
+                        if (!string.IsNullOrWhiteSpace(PackageBuildNumberOverride) && externalPackageVersion == null)
+                        {
+                            version += "-" + PackageBuildNumberOverride;
+                        }
                     }
                     JProperty property = new JProperty(name, version);
                     returnDependenciesList.Add(property);

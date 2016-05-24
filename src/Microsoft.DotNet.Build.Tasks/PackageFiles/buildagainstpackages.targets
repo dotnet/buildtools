@@ -5,7 +5,6 @@
   <UsingTask TaskName="GetPackageNumberFromPackageDrop" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="DumpItem" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   
-
   <ItemGroup>
     <_PackagesDrops Include="$(PackagesDrops)" />
   </ItemGroup>
@@ -186,7 +185,8 @@
                                   Frameworks="$(GeneratedTargetGroup)"
                                   OutputProjectJson="$(ProjectJson)" 
                                   PackageBuildNumberOverride="$(PackageBuildNumberOverride)"
-                                  BuildNumberOverrideStructureRegex="$(BuildNumberOverrideStructureRegex)" />
+                                  BuildNumberOverrideStructureRegex="$(BuildNumberOverrideStructureRegex)" 
+                                  ExternalPackages="@(ExternalPackage)" />
 
     <Message Condition="'$(ErrorNoVersion)' == ''" Text="Generated project.json file - '$(ProjectJson)'" />
   </Target>
