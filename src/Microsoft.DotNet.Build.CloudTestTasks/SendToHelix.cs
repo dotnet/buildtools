@@ -55,7 +55,11 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
             using (HttpClient client = new HttpClient())
             {
-                int retryCount = 15;
+                const int MaxAttempts = 15;
+                // add a bit of randomness to the retry delay
+                var rng = new Random();
+                int retryCount = MaxAttempts;
+
                 while (true)
                 {
                     HttpResponseMessage response;
@@ -99,6 +103,8 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                     }
 
                     Log.LogWarning("Failed to publish to '{0}', {1} retries remaining", ApiEndpoint, retryCount);
+                    int delay = (MaxAttempts - retryCount) * rng.Next(1, 5);
+                    await System.Threading.Tasks.Task.Delay(delay * 1000);
                 }
             }
         }
