@@ -11,7 +11,7 @@
   </ItemGroup>
   <PropertyGroup>
     <PackageNameRegex Condition="'$(PackageNameRegex)' == ''">(.*)\.(\d+\.\d+\.\d+)-([^-]+-\d+-\d+)</PackageNameRegex>
-    <VersionStructureRegex Condition="'$(VersionStructureRegex)' == ''">(\d+\.\d+\.\d+)-((beta|rc2|rc3)-?(\d+(-\d+)?)?)</VersionStructureRegex>
+    <VersionStructureRegex Condition="'$(VersionStructureRegex)' == ''">(\d+\.\d+\.\d+)-(([^-]+)-?(\d+(-\d+)?)?)</VersionStructureRegex>
     <BuildNumberOverrideStructureRegex Condition="'$(BuildNumberOverrideStructureRegex)' == ''">([^-]+)?-?(\d+(-\d+)?)?</BuildNumberOverrideStructureRegex>
   </PropertyGroup>
   <PropertyGroup>
