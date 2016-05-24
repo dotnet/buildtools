@@ -44,7 +44,7 @@
     </ItemGroup>
 
     <PropertyGroup>
-      <_ApiCompatCmd>"$(ToolsDir)CoreRun.exe" "$(ToolsDir)ApiCompat.exe" "$(ReferenceAssembly)" </_ApiCompatCmd>
+      <_ApiCompatCmd>$(ToolHostCmd) "$(ToolsDir)ApiCompat.exe" "$(ReferenceAssembly)" </_ApiCompatCmd>
       <_ApiCompatCmd>$(_ApiCompatCmd) -contractDepends:"@(_ContractDependencyDirectories);"</_ApiCompatCmd>
       <_ApiCompatCmd>$(_ApiCompatCmd) -implDirs:"$(IntermediateOutputPath);@(_DependencyDirectories);"</_ApiCompatCmd>
       <_ApiCompatCmd Condition="'$(BaselineAllAPICompatError)'!='true' and Exists('$(ApiCompatBaseline)')">$(_ApiCompatCmd) -baseline:"$(ApiCompatBaseline)"</_ApiCompatCmd>
@@ -97,7 +97,7 @@
     </ItemGroup>
 
     <PropertyGroup>
-      <_ApiCompatCmd>"$(ToolsDir)CoreRun.exe" "$(ToolsDir)ApiCompat.exe" "$(PreviousContractAssembly)"</_ApiCompatCmd>
+      <_ApiCompatCmd>$(ToolHostCmd) "$(ToolsDir)ApiCompat.exe" "$(PreviousContractAssembly)"</_ApiCompatCmd>
       <_ApiCompatCmd>$(_ApiCompatCmd) -contractDepends:"@(_PreviousContractDependencyDirectories);"</_ApiCompatCmd>
       <_ApiCompatCmd>$(_ApiCompatCmd) -implDirs:"$(IntermediateOutputPath);@(_CurrentContractDependencies);"</_ApiCompatCmd>
       <_ApiCompatCmd Condition="Exists('$(ApiCompatBaseline)')">$(_ApiCompatCmd) -baseline:"$(ApiCompatBaseline)"</_ApiCompatCmd>
