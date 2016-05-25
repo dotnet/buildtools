@@ -14,7 +14,7 @@ set BUILDTOOLS_PACKAGE_DIR=%~dp0
 set MICROBUILD_VERSION=0.2.0
 set PORTABLETARGETS_VERSION=0.1.1-dev
 set ROSLYNCOMPILERS_VERSION=1.3.0-beta1-20160429-01
-set MSBUILD_CONTENT_JSON={"dependencies": { "MicroBuild.Core": "%MICROBUILD_VERSION%", "Microsoft.Portable.Targets": "%PORTABLETARGETS_VERSION%", "Microsoft.Net.Compilers": "%ROSLYNCOMPILERS_VERSION%"},"frameworks": {"dnxcore50": {},"net46": {}}}
+set MSBUILD_CONTENT_JSON={"dependencies": { "MicroBuild.Core": "%MICROBUILD_VERSION%", "Microsoft.Portable.Targets": "%PORTABLETARGETS_VERSION%", "Microsoft.Net.Compilers": "%ROSLYNCOMPILERS_VERSION%"},"frameworks": {"netcoreapp1.0": {},"net46": {}}}
 
 if not exist "%PROJECT_DIR%" (
   echo ERROR: Cannot find project root path at [%PROJECT_DIR%]. Please pass in the source directory as the 1st parameter.
@@ -39,11 +39,11 @@ if not [%RESTORE_ERROR_LEVEL%]==[0] (
 )
 @echo on
 call "%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECTJSON%" -f netcoreapp1.0 -r %BUILDTOOLS_TARGET_RUNTIME% -o "%TOOLRUNTIME_DIR%"
-set DNXCORE_PUBLISH_ERROR_LEVEL=%ERRORLEVEL%
+set TOOLRUNTIME_PUBLISH_ERROR_LEVEL=%ERRORLEVEL%
 @echo off
-if not [%DNXCORE_PUBLISH_ERROR_LEVEL%]==[0] (
+if not [%TOOLRUNTIME_PUBLISH_ERROR_LEVEL%]==[0] (
 	echo ERROR: An error ocurred when running: '"%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECTJSON%" -f netcoreapp1.0'. Please check above for more details.
-	exit /b %DNXCORE_PUBLISH_ERROR_LEVEL%
+	exit /b %TOOLRUNTIME_PUBLISH_ERROR_LEVEL%
 )
 @echo on
 call "%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECTJSON%" -f net45 -r %BUILDTOOLS_NET45_TARGET_RUNTIME% -o "%TOOLRUNTIME_DIR%\net45"

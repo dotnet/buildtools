@@ -221,7 +221,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
         {
             ITaskItem[] files = new[]
             {
-                CreateFileItem(@"E:\ProjectK\binaries\x86ret\NETCore\Libraries\dnxcore\System.Threading.AccessControl.dll", "lib/DNXCore50", "dnxcore50"),
+                CreateFileItem(@"E:\ProjectK\binaries\x86ret\NETCore\Libraries\System.Threading.AccessControl.dll", "lib/netcoreapp1.0", "netcoreapp1.0"),
                 CreateFileItem(@"E:\ProjectK\binaries\x86ret\NETCore\Libraries\net\System.Threading.AccessControl.dll", "lib/net46", "net46"),
                 CreateFileItem(@"E:\ProjectK\binaries\x86ret\Contracts\System.Threading.AccessControl\4.0.0.0\System.Threading.AccessControl.dll", "ref/netstandard1.3", "netstandard1.3"),
                 CreateFileItem(@"E:\ProjectK\src\Redist\x86\retail\bin\i386\HelpDocs\intellisense\NETCore5\1033\System.Threading.AccessControl.xml", "ref/netstandard1.3", "netstandard1.3"),
@@ -238,12 +238,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
             };
             ITaskItem[] dependencies = new[]
             {
-                CreateDependencyItem(@"System.Runtime", "4.0.20", "dnxcore50"),
-                CreateDependencyItem(@"System.Resources.ResourceManager", "4.0.0", "dnxcore50"),
-                CreateDependencyItem(@"System.Security.AccessControl", "4.0.0-rc2-23516", "dnxcore50"),
-                CreateDependencyItem(@"System.Security.Principal.Windows", "4.0.0-rc2-23516", "dnxcore50"),
-                CreateDependencyItem(@"System.Runtime.Handles", "4.0.0", "dnxcore50"),
-                CreateDependencyItem(@"System.Threading", "4.0.10", "dnxcore50")
+                CreateDependencyItem(@"System.Runtime", "4.0.20", "netcoreapp1.0"),
+                CreateDependencyItem(@"System.Resources.ResourceManager", "4.0.0", "netcoreapp1.0"),
+                CreateDependencyItem(@"System.Security.AccessControl", "4.0.0-rc2-23516", "netcoreapp1.0"),
+                CreateDependencyItem(@"System.Security.Principal.Windows", "4.0.0-rc2-23516", "netcoreapp1.0"),
+                CreateDependencyItem(@"System.Runtime.Handles", "4.0.0", "netcoreapp1.0"),
+                CreateDependencyItem(@"System.Threading", "4.0.10", "netcoreapp1.0")
             };
             string frameworkListsPath = "FrameworkLists";
 

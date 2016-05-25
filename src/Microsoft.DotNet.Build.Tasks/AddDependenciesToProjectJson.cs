@@ -272,7 +272,7 @@ namespace Microsoft.DotNet.Build.Tasks
         /* JProperties are encapsulated with "['" and "']" to assist with matching Paths which
            contain properties with a '.'.  ie. frameworks.netcoreapp1.0 becomes frameworks.['netcoreapp1.0'].
            A match for a property without a '.' and unencapsulated still works.  ie, we can still select
-           frameworks.['dnxcore50'] even if internally its path is frameworks.dnxcore50. */
+           frameworks.['netcoreapp1.0'] even if internally its path is frameworks.netcoreapp1.0. */
         private static string NewtonsoftEscapeJProperty(string property)
         {
             if (string.IsNullOrWhiteSpace(property))
