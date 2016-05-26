@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.props))\dir.props" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Executor</RootNamespace>
+    <AssemblyName>Executor</AssemblyName>
+    <NuGetRuntimeIdentifier>win7-x64</NuGetRuntimeIdentifier>
+    <NuGetTargetMoniker>.NETCoreApp,Version=v1.0</NuGetTargetMoniker>
+  </PropertyGroup>
+
+  <!-- Default configurations to help VS understand the configurations -->
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' " />
+
+  <ItemGroup>
+    <Compile Include="Executor.cs" />
+    <Compile Include="CommandLine.cs" />
+	<Compile Include="Run.cs" />
+	<Compile Include="Setup.cs" />
+  </ItemGroup>
+
+  <!-- Common command-line helper sources 
+  <ItemGroup>
+    <Compile Include="$(CommonPath)\CommandLine.cs">
+      <Link>Common\CommandLine.cs</Link>
+    </Compile>
+  </ItemGroup> -->
+
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
+</Project>
