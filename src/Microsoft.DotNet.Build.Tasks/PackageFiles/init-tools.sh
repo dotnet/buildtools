@@ -36,18 +36,12 @@ case $OSName in
         ;;
 
     Linux)
-        source /etc/os-release
-        if [ "$ID" == "centos" ]; then
-            __PUBLISH_RID=centos.7-x64
-        elif [ "$ID" == "rhel" ]; then
-            __PUBLISH_RID=rhel.7-x64
-        elif [ "$ID" == "ubuntu" ]; then
+        if [ ! -e /etc/os-release ]; then
+            echo "Can not determine distribution, assuming Ubuntu 14.04"
             __PUBLISH_RID=ubuntu.14.04-x64
-        elif [ "$ID" == "debian" ]; then
-            __PUBLISH_RID=debian.8-x64
         else
-            echo "Unsupported Linux distribution '$ID' detected. Downloading ubuntu-x64 tools."
-            __PUBLISH_RID=ubuntu.14.04-x64
+            source /etc/os-release
+            __PUBLISH_RID=$ID.$VERSION_ID-x64
         fi
         ;;
 
