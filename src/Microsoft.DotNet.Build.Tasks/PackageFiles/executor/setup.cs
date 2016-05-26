@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 
 namespace Microsoft.DotNet.Execute
@@ -46,9 +47,9 @@ namespace Microsoft.DotNet.Execute
             return null;
         }
 
-        public bool BuildCommand(Command commandToExecute, string os, Dictionary<string, string> settingParameters)
+        public bool BuildCommand(Command commandToExecute, string os, Dictionary<string, string> settingParameters, string configPath)
         {
-            string toolName = GetTool(commandToExecute, os);
+            string toolName = GetTool(commandToExecute, os, configPath);
             if (string.IsNullOrEmpty(toolName))
             {
                 Console.WriteLine("Error: The process {0} is not specified in the Json file.", commandToExecute.ToolName);
@@ -56,16 +57,16 @@ namespace Microsoft.DotNet.Execute
             }
 
             if (BuildRequiredValueSettingsForCommand(commandToExecute.LockedSettings, settingParameters) &&
-                    BuildOptionalValueSettingsForCommand(commandToExecute.Settings, settingParameters))
+                    BuildOptionalValueSettingsForCommand(commandToExecute.Settings, settingParameters) &&
+                    ValidExtraArgumentsForCommand(settingParameters["ExtraArguments"], settingParameters))
             {
                 string commandParameters = BuildParametersForCommand(settingParameters, commandToExecute.ToolName);
                 Run runCommand = new Run();
                 return Convert.ToBoolean(runCommand.ExecuteProcess(toolName, commandParameters));
             }
-
             return false;
         }
-        
+
         private string BuildParametersForCommand(Dictionary<string, string> settingParameters, string toolName)
         {
             string commandSetting = string.Empty;
@@ -76,7 +77,7 @@ namespace Microsoft.DotNet.Execute
                     string settingType = FindSettingType(parameters.Key);
                     if (settingType.Equals("passThrough"))
                     {
-                        commandSetting += string.Format(" {0}", toolName.Equals("console") ? "": parameters.Value);
+                        commandSetting += string.Format(" {0}", toolName.Equals("console") ? "" : parameters.Value);
                     }
                     else
                     {
@@ -128,23 +129,59 @@ namespace Microsoft.DotNet.Execute
             return true;
         }
 
-        public string GetTool(Command commandToExecute, string os)
+        private bool ValidExtraArgumentsForCommand(string extraArguments, Dictionary<string, string> commandValues)
+        {
+            int colonPosition;
+            int equalPosition;
+            string tempParam;
+
+            string[] extraA = extraArguments.Split(' ');
+            foreach (string param in extraA)
+            {
+                colonPosition = 0;
+                equalPosition = param.Length;
+                tempParam = string.Empty;
+
+                colonPosition = param.IndexOf(":");
+                equalPosition = param.IndexOf("=");
+                if (colonPosition != 0)
+                {
+                    if (equalPosition == -1)
+                    {
+                        tempParam = param.Substring(colonPosition + 1, (param.Length - colonPosition - 1));
+                    }
+                    else
+                    {
+                        tempParam = param.Substring(colonPosition + 1, (equalPosition - colonPosition - 1));
+                    }
+
+                    if (commandValues.ContainsKey(tempParam) && !string.IsNullOrEmpty(commandValues[tempParam]))
+                    {
+                        Console.WriteLine("Error: The value for setting {0} can't be overwriten.", tempParam);
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        public string GetTool(Command commandToExecute, string os, string configPath)
         {
             if (Tools.ContainsKey(commandToExecute.ToolName))
             {
-                if(commandToExecute.ToolName.Equals("msbuild"))
+                if (commandToExecute.ToolName.Equals("msbuild"))
                 {
-                    return os.Equals("windows") ? Tools[commandToExecute.ToolName].Run["windows"] : Tools[commandToExecute.ToolName].Run["unix"];
+                    return Path.GetFullPath(Path.Combine(configPath, os.Equals("windows") ? Tools[commandToExecute.ToolName].Run["windows"] : Tools[commandToExecute.ToolName].Run["unix"]));
                 }
                 else if (commandToExecute.ToolName.Equals("console"))
                 {
                     string extension = os.Equals("windows") ? Tools[commandToExecute.ToolName].Run["windows"] : Tools[commandToExecute.ToolName].Run["unix"];
-                    return string.Format("{0}.{1}", commandToExecute.LockedSettings["Project"],extension);
+                    return Path.GetFullPath(Path.Combine(configPath, string.Format("{0}.{1}", commandToExecute.LockedSettings["Project"], extension)));
                 }
             }
             return string.Empty;
         }
-            
+
         public string FormatSetting(string option, string value, string type, string toolName)
         {
             if (Tools.ContainsKey(toolName) && !string.IsNullOrEmpty(type))
