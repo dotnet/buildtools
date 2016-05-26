@@ -157,7 +157,7 @@
       <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
     </Copy>
 
-    <Exec Condition="'$(OS)'=='Unix'"
+    <Exec Condition="'$(OS)'=='Unix' and Exists('$(TestPath)%(TestTargetFramework.Folder)/corerun')"
           Command="chmod a+x &quot;$(TestPath)%(TestTargetFramework.Folder)/corerun&quot;" />
 
   </Target>
