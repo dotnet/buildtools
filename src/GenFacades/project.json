@@ -1,8 +1,8 @@
 {
   "dependencies": {
-    "Microsoft.Cci": "4.0.0-rc2-24027",
-    "System.Diagnostics.TextWriterTraceListener": "4.0.0-rc2-24027",
-    "System.Diagnostics.FileVersionInfo": "4.0.0-rc2-24027",
+    "Microsoft.Cci": "4.0.0-rc3-24123-01",
+    "System.Diagnostics.TextWriterTraceListener": "4.0.0-rc3-24123-01",
+    "System.Diagnostics.FileVersionInfo": "4.0.0-rc3-24123-01",
     "Microsoft.NETCore.App": {
       "type": "platform",
       "version": "1.0.0-rc2-3002702"
