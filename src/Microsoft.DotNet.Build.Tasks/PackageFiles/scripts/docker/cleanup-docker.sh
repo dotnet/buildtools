@@ -28,7 +28,7 @@ foreach(@imageItems) {
     my $imageId = $3;
     if($imageId !~ /IMAGE/ig) {
       printf "delete image ID $imageId\n";
-      my $deleteImageOutput = `docker rmi $imageId`;
+      my $deleteImageOutput = `docker rmi -f $imageId`;
       printf "$deleteImageOutput\n";
     }
   }
