@@ -5,6 +5,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Reflection;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.Fx.CommandLine;
@@ -14,19 +15,22 @@ namespace Microsoft.DotNet.Execute
 {
     public class Executor
     {
-        //the path depends on where the executor ends up living...
-        public string configFile = @"config.json";
+        public string configFilePath;
+        public string configFileName = "config.json";
         public Dictionary<string, string> SettingParameters { get; set; }
         public Dictionary<string, string> CommandParameters { get; set; }
-        
+
         public Executor()
         {
             SettingParameters = new Dictionary<string, string>();
             CommandParameters = new Dictionary<string, string>();
+            string executorDirectory = Path.GetDirectoryName(typeof(Executor).GetTypeInfo().Assembly.Location);
+            configFilePath = Path.GetFullPath(Path.Combine(executorDirectory, @"..\..\..\"));
         }
 
         public Setup OpenFile()
         {
+            string configFile = Path.Combine(configFilePath, configFileName);
             if (File.Exists(configFile))
             {
                 string jsonFile = File.ReadAllText(configFile);
@@ -69,31 +73,26 @@ namespace Microsoft.DotNet.Execute
                     }
 
                     //extra arguments
-                    //TODO: when something that is passed with ExtraArguments has a '/' the parser tool would print an error.
-                    //It still works, but in the future we would like to aviod this by changing the parsing tool code.
-                    if (!args[0].Equals("-?"))
+                    string[] extraArguments = null;
+                    parser.DefineOptionalParameter("ExtraArguments", ref extraArguments, "Extra parameters will be passed to the selected command.");
+                    if (extraArguments.Length > 0)
                     {
-                        string[] extraArguments = null;
-                        parser.DefineOptionalParameter("ExtraArguments", ref extraArguments, "Extra parameters will be passed to the selected command.");
-                        if (extraArguments.Length > 0)
-                        {
-                            string[] temp = new string[extraArguments.Length - 1];
-                            Array.Copy(extraArguments, 1, temp, 0, extraArguments.Length - 1);
-                            SettingParameters["ExtraArguments"] = string.Join(" ", temp);
-                        }
-                        else
-                        {
-                            SettingParameters["ExtraArguments"] = string.Join(" ", extraArguments);
-                        }
+                        string[] temp = new string[extraArguments.Length - 1];
+                        Array.Copy(extraArguments, 1, temp, 0, extraArguments.Length - 1);
+                        SettingParameters["ExtraArguments"] = string.Join(" ", temp);
                     }
+                    else
+                    {
+                        SettingParameters["ExtraArguments"] = string.Join(" ", extraArguments);
+                    }
+
                 }, args);
             }
             catch
             {
-                //use default as the parameter
                 Console.WriteLine("Error: Please provide at least one parameter");
             }
-            
+
         }
 
         public static int Main(string[] args)
@@ -107,16 +106,16 @@ namespace Microsoft.DotNet.Execute
             }
             else
             {
-                string os = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "windows": "unix";
-                
+                string os = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "windows" : "unix";
+
                 executor.DefineParameters(args, jsonSetup);
-                
+
                 foreach (KeyValuePair<string, string> command in executor.CommandParameters)
                 {
                     //activated by the user
                     if (Convert.ToBoolean(command.Value))
                     {
-                        if(!jsonSetup.BuildCommand(jsonSetup.Commands[command.Key], os, executor.SettingParameters))
+                        if (!jsonSetup.BuildCommand(jsonSetup.Commands[command.Key], os, executor.SettingParameters, executor.configFilePath))
                         {
                             return 1;
                         }
