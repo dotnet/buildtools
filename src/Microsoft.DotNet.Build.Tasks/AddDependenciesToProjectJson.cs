@@ -203,7 +203,10 @@ namespace Microsoft.DotNet.Build.Tasks
                 // Don't add a new dependency if one already exists.
                 if (returnDependenciesList.FirstOrDefault(rd => ((JProperty)rd).Name.Equals(name)) == null)
                 {
-                    var version = externalPackageVersions.FirstOrDefault(epv => epv.ItemSpec.Equals(name, StringComparison.OrdinalIgnoreCase))?.GetMetadata("Version");
+                    string version = null;
+                    if (externalPackageVersions != null)
+                        version = externalPackageVersions.FirstOrDefault(epv => epv.ItemSpec.Equals(name, StringComparison.OrdinalIgnoreCase))?.GetMetadata("Version");
+
                     if (version == null)
                     {
                         NuGetVersion dependencyVersion = NuGetVersion.Parse(dependency.GetMetadata("Version"));
