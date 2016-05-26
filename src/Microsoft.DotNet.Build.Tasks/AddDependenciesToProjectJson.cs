@@ -162,19 +162,34 @@ namespace Microsoft.DotNet.Build.Tasks
                 {
                     // Validate that the package matches the identity regex for packages we want to update.
                     Match updateDependency = _identityRegex.Match(property.Name);
-                    if (updateDependency.Success)
+
+                    // if the package is in the external packages list then we'll
+                    // need to replace the version with the version from the list
+                    string externalVersion = null;
+                    if (externalPackageVersions != null)
+                        externalVersion = externalPackageVersions.FirstOrDefault(epv => epv.ItemSpec.Equals(property.Name, StringComparison.OrdinalIgnoreCase))?.GetMetadata("Version");
+
+                    if (updateDependency.Success || externalVersion != null)
                     {
                         NuGetVersion nuGetVersion;
-                        if (NuGetVersion.TryParse(property.Value.ToString(), out nuGetVersion))
+                        if (externalVersion == null)
                         {
-                            Match m = _versionStructureRegex.Match(nuGetVersion.ToString());
-
-                            if (m.Success)
+                            if (NuGetVersion.TryParse(property.Value.ToString(), out nuGetVersion))
                             {
-                                NuGetVersion dependencyVersion = nuGetVersion;
-                                nuGetVersion = NuGetVersion.Parse(string.Join(".", dependencyVersion.Major, dependencyVersion.Minor, dependencyVersion.Patch) + "-" + PackageBuildNumberOverride);
+                                Match m = _versionStructureRegex.Match(nuGetVersion.ToString());
+
+                                if (m.Success)
+                                {
+                                    NuGetVersion dependencyVersion = nuGetVersion;
+                                    nuGetVersion = NuGetVersion.Parse(string.Join(".", dependencyVersion.Major, dependencyVersion.Minor, dependencyVersion.Patch) + "-" + PackageBuildNumberOverride);
+                                }
                             }
                         }
+                        else
+                        {
+                            nuGetVersion = NuGetVersion.Parse(externalVersion);
+                        }
+
                         // Only add the original dependency if it wasn't passed as an AdditionalDependency, ie. AdditionalDependencies may override dependencies in project.json
                         if (AdditionalDependencies.FirstOrDefault(d => d.GetMetadata("Name").Equals(property.Name, StringComparison.OrdinalIgnoreCase)) == null)
                         {
@@ -211,7 +226,7 @@ namespace Microsoft.DotNet.Build.Tasks
                     {
                         NuGetVersion dependencyVersion = NuGetVersion.Parse(dependency.GetMetadata("Version"));
                         version = string.Join(".", dependencyVersion.Major, dependencyVersion.Minor, dependencyVersion.Patch);
-                        if (!string.IsNullOrWhiteSpace(PackageBuildNumberOverride) && version == null)
+                        if (!string.IsNullOrWhiteSpace(PackageBuildNumberOverride))
                         {
                             version += "-" + PackageBuildNumberOverride;
                         }
