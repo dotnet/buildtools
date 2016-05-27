@@ -43,6 +43,11 @@ namespace Microsoft.DotNet.Build.Tasks
 
         // External package dependency versions.
         public ITaskItem[] ExternalPackages { get; set; }
+
+        /// <summary>
+        /// Optional list of RIDs to exclude from the generated project.json.
+        /// </summary>
+        public string[] ExcludedRuntimes { get; set; }
         
         // The directory to put the generated project.json in
         [Required]
@@ -96,6 +101,12 @@ namespace Microsoft.DotNet.Build.Tasks
             // Update default dependencies section
             JObject dependencies = GenerateDependencies(projectRoot, ExternalPackages);
             projectRoot = UpdateDependenciesProperty(projectRoot, dependencies);
+
+            if (ExcludedRuntimes != null)
+            {
+                var excludedRIDs = new HashSet<string>(ExcludedRuntimes, StringComparer.OrdinalIgnoreCase);
+                projectRoot = FilterRuntimes(projectRoot, excludedRIDs);
+            }
 
             // Update framework dependencies sections
             for (int i = 0; i < Frameworks.Length; i++)
@@ -278,6 +289,28 @@ namespace Microsoft.DotNet.Build.Tasks
             var frameworkPathObject = projectJsonRoot.SelectToken(frameworkPath);
             frameworkPathObject["dependencies"] = updatedProperties;
             return projectJsonRoot;
+        }
+
+        private JObject FilterRuntimes(JObject projectRoot, HashSet<string> excludedRIDs)
+        {
+            var runtimes = projectRoot["runtimes"];
+            if (runtimes != null)
+            {
+                var toRemove = new List<JToken>();
+                foreach (JProperty runtime in runtimes)
+                {
+                    if (excludedRIDs.Contains(runtime.Name))
+                        toRemove.Add(runtime);
+                }
+
+                foreach (var token in toRemove)
+                {
+                    Log.LogMessage("Removing RID '{0}' from the list of applicable runtimes.", ((JProperty)token).Name);
+                    token.Remove();
+                }
+            }
+
+            return projectRoot;
         }
 
         private static void WriteProject(JObject projectRoot, string projectJsonPath)

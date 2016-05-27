@@ -185,7 +185,8 @@
                                   Frameworks="$(GeneratedTargetGroup)"
                                   OutputProjectJson="$(ProjectJson)" 
                                   PackageBuildNumberOverride="$(PackageBuildNumberOverride)"
-                                  BuildNumberOverrideStructureRegex="$(BuildNumberOverrideStructureRegex)" 
+                                  BuildNumberOverrideStructureRegex="$(BuildNumberOverrideStructureRegex)"
+                                  ExcludedRuntimes="@(ExcludedRuntimes)"
                                   ExternalPackages="@(ExternalPackage)" />
 
     <Message Condition="'$(ErrorNoVersion)' == ''" Text="Generated project.json file - '$(ProjectJson)'" />
