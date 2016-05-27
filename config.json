@@ -1,0 +1,145 @@
+﻿{
+  "settings": {
+    "OSGroup": {
+      "description": "Target OS for result binaries.",
+      "valueType": "property",
+      "values": ["AnyOS", "Windows_NT", "Linux", "OSX", "FreeBSD", "NetBSD"],
+      "defaultValue": "AnyOS"
+     },
+    "RestoreDuringBuild": {
+      "description": "Enables/Disables the restoration of packages.",
+      "valueType": "property",
+      "values": ["True", "False"],
+      "defaultValue": true
+    },
+    "BatchRestorePackages": {
+      "description": "MsBuild target that restores the packages.",
+      "valueType": "target",
+      "values": [],
+      "defaultValue": ""
+    },
+    "Clean": {
+      "description": "MsBuild target that deletes the binary output directory.",
+      "valueType": "target",
+      "values": [],
+      "defaultValue": ""
+    },
+    "CleanPackages": {
+      "description": "MsBuild target that deletes the repo-local nuget package directory.",
+      "valueType": "target",
+      "values": [],
+      "defaultValue": ""
+    },
+    "CleanPackagesCache": {
+      "description": "MsBuild target that deletes the user-local nuget package cache.",
+      "valueType": "target",
+      "values": [],
+      "defaultValue": ""
+    },
+    "MsBuildLogging": {
+      "description": "MsBuild logging options.",
+      "valueType": "passThrough",
+      "values": [],
+      "defaultValue": "/flp:v=detailed;Append;LogFile=%~dp0msbuild.log /l:BinClashLogger,%~dp0Tools\net45\\Microsoft.DotNet.Build.Tasks.dll;LogFile=%~dp0binclash.log"
+    },
+    "MsBuildParameters": {
+      "description": "MsBuild building options.",
+      "valueType": "passThrough",
+      "values": [],
+      "defaultValue": "/nologo /maxcpucount /v:minimal /clp:Summary"
+    },
+    "Project": {
+      "description": "Project where the commands are going to be applied.",
+      "valueType": "passThrough",
+      "values": [],
+      "defaultValue": ""
+    },
+    "ExtraArguments": {
+      "description": "Extra parameters will be passed to the selected command.",
+      "valueType": "passThrough",
+      "values": [],
+      "defaultValue": ""
+    }
+  },
+  "commands": {
+    "default": {
+      "description": "Restores packages, builds, runs the tests and builds packages",
+      "toolName": "msbuild",
+      "lockedSettings": {},
+      "settings": {
+        "MsBuildParameters":""
+      }
+    },
+    "cleanBinariesCommand": {
+      "description": "Deletes the binary output directory.",
+      "toolName": "msbuild",
+      "lockedSettings": {
+        "Clean": ""
+      },
+      "settings": {
+        "MsBuildParameters":""
+      }
+    },
+    "cleanPackagesCommand": {
+      "description": "Deletes the repo-local nuget package directory.",
+      "toolName": "msbuild",
+      "lockedSettings": {
+        "CleanPackages": ""
+      },
+      "settings": {
+        "MsBuildParameters":""
+      }
+    },
+    "cleanPackagesCacheCommand": {
+      "description": "Deletes the user-local nuget package cache.",
+      "toolName": "msbuild",
+      "lockedSettings": {
+        "CleanPackagesCache": ""
+      },
+      "settings": {
+        "MsBuildParameters":""
+      }
+    },
+    "sync": {
+      "description": "Restores all nuget packages for repository",
+      "toolName": "msbuild",
+      "lockedSettings": {
+        "RestoreDuringBuild":  true,
+        "BatchRestorePackages": "default"
+      },
+      "settings": {
+        "MsBuildParameters":""
+      }
+    },
+    "simpleBuild": {
+      "description": "Only builds binaries. It doesn't restore packages.",
+      "toolName": "msbuild",
+      "lockedSettings": {
+        "RestoreDuringBuild": false,
+      },
+      "settings": {
+        "MsBuildParameters":""
+      }
+    }
+  },
+  "tools": {
+    "msbuild": {
+      "run": {
+        "windows": "Tools\\msbuild.cmd",
+        "unix": "Tools/msbuild.sh"
+      },
+      "valueTypes": {
+        "property": "/p:{name}={value}",
+        "target": "/t:{name}",
+        "internal": "/{name}"
+      }
+    },
+    "console": {
+      "run": {
+        "windows": "cmd",
+        "non-windows": "sh"
+      },
+      "valueTypes": {}
+    }
+  }
+}
