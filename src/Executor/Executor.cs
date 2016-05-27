@@ -47,11 +47,11 @@ namespace Microsoft.DotNet.Execute
             return null;
         }
 
-        public void DefineParameters(string[] args, Setup setupInformation)
+        public bool DefineParameters(string[] args, Setup setupInformation)
         {
             try
             {
-                CommandLineParser.ParseForConsoleApplication(delegate (CommandLineParser parser)
+                return CommandLineParser.ParseForConsoleApplication(delegate (CommandLineParser parser)
                 {
                     //Settings
                     foreach (KeyValuePair<string, Setting> option in setupInformation.Settings)
@@ -67,6 +67,10 @@ namespace Microsoft.DotNet.Execute
                     //Commands
                     foreach (KeyValuePair<string, Command> comm in setupInformation.Commands)
                     {
+                        if (!string.IsNullOrEmpty(comm.Value.Alias))
+                        {
+                            parser.DefineAliases(comm.Key, comm.Value.Alias);
+                        }
                         bool temp = false;
                         parser.DefineOptionalQualifier(comm.Key, ref temp, comm.Value.Description);
                         CommandParameters[comm.Key] = temp.ToString();
@@ -93,6 +97,7 @@ namespace Microsoft.DotNet.Execute
             catch (Exception e)
             {
                 Console.WriteLine("Error: Please provide at least one parameter. {0}", e.Message);
+                return false;
             }
             
         }
@@ -110,16 +115,17 @@ namespace Microsoft.DotNet.Execute
             {
                 string os = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "windows": "unix";
                 
-                executor.DefineParameters(args, jsonSetup);
-                
-                foreach (KeyValuePair<string, string> command in executor.CommandParameters)
+                if (executor.DefineParameters(args, jsonSetup))
                 {
-                    //activated by the user
-                    if (Convert.ToBoolean(command.Value))
+                    foreach (KeyValuePair<string, string> command in executor.CommandParameters)
                     {
-                        if(!jsonSetup.BuildCommand(jsonSetup.Commands[command.Key], os, executor.SettingParameters, executor.configFilePath))
+                        //activated by the user
+                        if (Convert.ToBoolean(command.Value))
                         {
-                            return 1;
+                            if (!jsonSetup.BuildCommand(jsonSetup.Commands[command.Key], os, executor.SettingParameters, executor.configFilePath))
+                            {
+                                return 1;
+                            }
                         }
                     }
                 }

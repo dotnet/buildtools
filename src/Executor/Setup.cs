@@ -197,6 +197,7 @@ namespace Microsoft.DotNet.Execute
     public class Command
     {
         public string Description { get; set; }
+        public string Alias { get; set; }
         public string ToolName { get; set; }
         public Dictionary<string, string> LockedSettings { get; set; }
         public Dictionary<string, string> Settings { get; set; }
