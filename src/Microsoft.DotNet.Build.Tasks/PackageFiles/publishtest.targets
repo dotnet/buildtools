@@ -108,7 +108,8 @@
     </ItemGroup>
 
     <ItemGroup Condition="'$(BUILDTOOLS_OVERRIDE_RUNTIME)' != ''">
-      <TestCopyLocal Include="$(BUILDTOOLS_OVERRIDE_RUNTIME)/*.*" />
+      <OverridenRuntimeContent Include="$(BUILDTOOLS_OVERRIDE_RUNTIME)/*.*" />
+      <TestCopyLocal Include="@(OverridenRuntimeContent)" />
     </ItemGroup>
 
     <!-- Remove duplicates. Note that we mustn't just copy in sequence and let
@@ -143,6 +144,9 @@
 
       <SourcesToCopyToTestDir Include="@(ContentWithTargetPath)" />
       <DestinationsForTestDir Include="@(ContentWithTargetPath->'$(TestPath)$(TestTargetFrameworkFolder)\%(TargetPath)')" />
+
+      <SourcesToCopyToTestDir Include="@(OverridenRuntimeContent)" />
+      <DestinationsForTestDir Include="@(OverridenRuntimeContent->'$(TestPath)$(TestTargetFrameworkFolder)\%(Filename)%(Extension)')" />
     </ItemGroup>
 
     <Copy
