@@ -64,6 +64,7 @@
   "commands": {
     "default": {
       "description": "Restores packages, builds, runs the tests and builds packages",
+      "alias": "build",
       "toolName": "msbuild",
       "lockedSettings": {},
       "settings": {
@@ -72,6 +73,7 @@
     },
     "cleanBinariesCommand": {
       "description": "Deletes the binary output directory.",
+      "alias": "",
       "toolName": "msbuild",
       "lockedSettings": {
         "Clean": ""
@@ -82,6 +84,7 @@
     },
     "cleanPackagesCommand": {
       "description": "Deletes the repo-local nuget package directory.",
+      "alias": "",
       "toolName": "msbuild",
       "lockedSettings": {
         "CleanPackages": ""
@@ -92,6 +95,7 @@
     },
     "cleanPackagesCacheCommand": {
       "description": "Deletes the user-local nuget package cache.",
+      "alias": "",
       "toolName": "msbuild",
       "lockedSettings": {
         "CleanPackagesCache": ""
@@ -102,6 +106,7 @@
     },
     "sync": {
       "description": "Restores all nuget packages for repository",
+      "alias": "p",
       "toolName": "msbuild",
       "lockedSettings": {
         "RestoreDuringBuild":  true,
@@ -113,6 +118,7 @@
     },
     "simpleBuild": {
       "description": "Only builds binaries. It doesn't restore packages.",
+      "alias": "",
       "toolName": "msbuild",
       "lockedSettings": {
         "RestoreDuringBuild": false,
