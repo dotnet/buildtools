@@ -13,6 +13,12 @@
     <ItemGroup>
       <ForPublishing Include="$(PublishPattern)" />
     </ItemGroup>
+    <!-- add relative blob path metadata -->
+    <ItemGroup>
+      <ForPublishing>
+        <RelativeBlobPath>$([System.String]::Copy('%(RecursiveDir)%(Filename)%(Extension)').Replace('\' ,'/'))</RelativeBlobPath> 
+      </ForPublishing>
+    </ItemGroup>
     <Error Condition="'@(ForPublishing)' == ''" Text="No items were found matching pattern '$(PublishPattern)'." />
   </Target>
 
@@ -26,12 +32,6 @@
       AccountKey="$(CloudDropAccessToken)"
       AccountName="$(CloudDropAccountName)"
       ContainerName="$(ContainerName)" />
-    <!-- add relative blob path metadata -->
-    <ItemGroup>
-      <ForPublishing>
-        <RelativeBlobPath>$([System.String]::Copy('%(RecursiveDir)%(Filename)%(Extension)').Replace('\' ,'/'))</RelativeBlobPath> 
-      </ForPublishing>
-    </ItemGroup>
     <!-- now upload the items -->
     <UploadToAzure
       AccountKey="$(CloudDropAccessToken)"
