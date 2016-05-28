@@ -15,7 +15,7 @@
   <UsingTask TaskName="NuGetPack" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   
   <Target Name="BuildPackages"
-    DependsOnTargets="GetNuGetPackageVersions"
+    DependsOnTargets="AddNuGetPackageVersionMetadataToNuspecs"
     Condition="'$(SkipBuildPackages)' != 'true'">
     
     <!-- Create package output directory -->
@@ -28,7 +28,8 @@
       OutputDirectory="$(PackagesOutDir)"
       BaseDirectory="$(PackagesBasePath)"
       PackageVersion="%(PackagesNuSpecFiles.PackageVersion)"
-      ExcludeEmptyDirectories="true"/>
+      ExcludeEmptyDirectories="true"
+      NuspecProperties="@(NuspecProperties)"/>
 
     <Message
       Condition="'@(PackagesNuSpecFiles)'!=''"
@@ -47,7 +48,7 @@
   </Target>
 
   <Target
-    Name="GetNuGetPackageVersions"
+    Name="AddNuGetPackageVersionMetadataToNuspecs"
     Condition="'@(PackagesNuSpecFiles)'!=''"
     Outputs="%(PackagesNuSpecFiles.Identity)"
     DependsOnTargets="$(GetNuGetPackageVersionsDependsOn)">
@@ -57,17 +58,32 @@
     </PropertyGroup>
 
     <GetPackageVersion
-      Condition="Exists('$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll')"
+      Condition="Exists('$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll') and $(DoNotGeneratePackageVersion) != 'true'"
       RevisionNumber="$(SelectedPackageVersion)"
       NuSpecFile="%(PackagesNuSpecFiles.Identity)">
       <Output PropertyName="_TempPackageVersion" TaskParameter="PackageVersion" />
     </GetPackageVersion>
     
-    <ItemGroup>
+    <!-- Assign the package version that was automatically generated from the nuspecs -->
+    <ItemGroup
+      Condition="$(DoNotGeneratePackageVersion) != 'true'">
       <PackagesNuSpecFiles Condition="'%(PackagesNuSpecFiles.Identity)' == '%(Identity)'">
         <PackageVersion>$(_TempPackageVersion)</PackageVersion>
       </PackagesNuSpecFiles>
     </ItemGroup>
+
+    <!-- Assign the package version that was provided by the user -->
+    <ItemGroup
+      Condition="$(DoNotGeneratePackageVersion) == 'true' and $(PackageVersion) != ''">
+      <PackagesNuSpecFiles Condition="'%(PackagesNuSpecFiles.Identity)' == '%(Identity)'">
+        <PackageVersion>$(PackageVersion)</PackageVersion>
+      </PackagesNuSpecFiles>
+    </ItemGroup>
+
+    <Error
+      Condition="$(DoNotGeneratePackageVersion) == 'true' and $(PackageVersion) == ''"
+      Text="When DoNotGeneratePackageVersion is set to 'true' the user has to provide a PackageVersion property that applies to all nuget packages"
+      />
 
     <PropertyGroup>
       <_TempPackageVersion />
