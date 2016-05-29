@@ -43,6 +43,13 @@ case $OSName in
             source /etc/os-release
             __PUBLISH_RID=$ID.$VERSION_ID-x64
         fi
+
+        # RHEL bumps their OS Version with minor releases, but we only put the "rhel.7-x64" RID in our
+        # tool runtime, since there's binary compatibility between minor versions.
+
+        if [[ $__PUBLISH_RID == rhel.7*-x64 ]]; then
+            __PUBLISH_RID=rhel.7-x64
+        fi
         ;;
 
     *)
