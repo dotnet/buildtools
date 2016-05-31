@@ -47,13 +47,13 @@ namespace Microsoft.DotNet.Execute
             return null;
         }
 
-        public bool BuildCommand(Command commandToExecute, string os, Dictionary<string, string> settingParameters, string configPath)
+        public int BuildCommand(Command commandToExecute, string os, Dictionary<string, string> settingParameters, string configPath)
         {
             string toolName = GetTool(commandToExecute, os, configPath);
             if (string.IsNullOrEmpty(toolName))
             {
                 Console.WriteLine("Error: The process {0} is not specified in the Json file.", commandToExecute.ToolName);
-                return false;
+                return 1;
             }
 
             if (BuildRequiredValueSettingsForCommand(commandToExecute.LockedSettings, settingParameters) &&
@@ -62,9 +62,9 @@ namespace Microsoft.DotNet.Execute
             {
                 string commandParameters = BuildParametersForCommand(settingParameters, commandToExecute.ToolName);
                 Run runCommand = new Run();
-                return Convert.ToBoolean(runCommand.ExecuteProcess(toolName, commandParameters));
+                return runCommand.ExecuteProcess(toolName, commandParameters);
             }
-            return false;
+            return 1;
         }
         
         private string BuildParametersForCommand(Dictionary<string, string> settingParameters, string toolName)

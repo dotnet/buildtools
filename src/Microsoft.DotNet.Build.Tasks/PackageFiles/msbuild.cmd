@@ -3,7 +3,6 @@ setlocal
 echo msbuild.exe %*
 call msbuild.exe %*
 IF ERRORLEVEL 1 (
-    echo Error!
-    exit /b 1 
+  exit /b 1
 )
-exit /b
+exit /b 0

@@ -43,6 +43,10 @@ namespace Microsoft.DotNet.Execute
                 {
                     Console.WriteLine(e.Message);
                 }
+                catch (JsonReaderException e)
+                {
+                    Console.WriteLine(e.Message);
+                }
             }
             return null;
         }
@@ -122,10 +126,7 @@ namespace Microsoft.DotNet.Execute
                         //activated by the user
                         if (Convert.ToBoolean(command.Value))
                         {
-                            if (!jsonSetup.BuildCommand(jsonSetup.Commands[command.Key], os, executor.SettingParameters, executor.configFilePath))
-                            {
-                                return 1;
-                            }
+                            return jsonSetup.BuildCommand(jsonSetup.Commands[command.Key], os, executor.SettingParameters, executor.configFilePath);
                         }
                     }
                 }
