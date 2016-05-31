@@ -40,13 +40,13 @@
       "description": "MsBuild logging options.",
       "valueType": "passThrough",
       "values": [],
-      "defaultValue": "/flp:v=detailed;Append;LogFile=%~dp0msbuild.log /l:BinClashLogger,%~dp0Tools\net45\\Microsoft.DotNet.Build.Tasks.dll;LogFile=%~dp0binclash.log"
+      "defaultValue": "/flp:v=normal"
     },
     "MsBuildParameters": {
       "description": "MsBuild building options.",
       "valueType": "passThrough",
       "values": [],
-      "defaultValue": "/nologo /maxcpucount /v:minimal /clp:Summary"
+      "defaultValue": "/nologo /maxcpucount /verbosity:minimal"
     },
     "Project": {
       "description": "Project where the commands are going to be applied.",
@@ -68,7 +68,8 @@
       "toolName": "msbuild",
       "lockedSettings": {},
       "settings": {
-        "MsBuildParameters":""
+        "MsBuildParameters":"default",
+        "MsBuildLogging":"default"
       }
     },
     "cleanBinariesCommand": {
@@ -76,10 +77,10 @@
       "alias": "",
       "toolName": "msbuild",
       "lockedSettings": {
-        "Clean": ""
+        "Clean": "default"
       },
       "settings": {
-        "MsBuildParameters":""
+        "MsBuildParameters":"default"
       }
     },
     "cleanPackagesCommand": {
@@ -87,10 +88,10 @@
       "alias": "",
       "toolName": "msbuild",
       "lockedSettings": {
-        "CleanPackages": ""
+        "CleanPackages": "default"
       },
       "settings": {
-        "MsBuildParameters":""
+        "MsBuildParameters":"default"
       }
     },
     "cleanPackagesCacheCommand": {
@@ -98,10 +99,10 @@
       "alias": "",
       "toolName": "msbuild",
       "lockedSettings": {
-        "CleanPackagesCache": ""
+        "CleanPackagesCache": "default"
       },
       "settings": {
-        "MsBuildParameters":""
+        "MsBuildParameters":"default"
       }
     },
     "sync": {
@@ -113,7 +114,7 @@
         "BatchRestorePackages": "default"
       },
       "settings": {
-        "MsBuildParameters":""
+        "MsBuildParameters":"default"
       }
     },
     "simpleBuild": {
@@ -124,7 +125,8 @@
         "RestoreDuringBuild": false,
       },
       "settings": {
-        "MsBuildParameters":""
+        "MsBuildLogging":"default",
+        "MsBuildParameters":"default"
       }
     }
   },
