@@ -60,6 +60,7 @@
 
       <_TestCopyLocalXunitFiles Include="$(PackagesDir)xunit.runner.console\2.1.0\tools\*.exe" />
       <_TestCopyLocalXunitFiles Include="$(PackagesDir)xunit.runner.console\2.1.0\tools\*.dll" />
+      <_TestCopyLocalXunitFiles Condition="'$(TestAppX)' == 'true'" Include="$(PackagesDir)microsoft.xunit.runner.uwp\**\*.*" />
 
       <TestCopyLocal Include="@(_TestCopyLocalXunitFiles)" >
         <NuGetPackageId>%(FileName)</NuGetPackageId>
