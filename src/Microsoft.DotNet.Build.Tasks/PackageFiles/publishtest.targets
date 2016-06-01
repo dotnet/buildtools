@@ -52,15 +52,15 @@
                                RuntimeIdentifier="$(TestNugetRuntimeId)"
                                ProjectLanguage="$(Language)"
                                ProjectLockFile="$(ProjectLockJson)"
-                               TargetMonikers="@(TestTargetFramework)">
+                               TargetMonikers="@(TestNugetTargetMoniker)">
       <Output TaskParameter="ResolvedCopyLocalItems" ItemName="TestCopyLocal" />
     </PrereleaseResolveNuGetPackageAssets>
 
     <ItemGroup Condition="'$(TestWithCore)' != 'true'">
-      <!-- Filter out the copy-local set of references coming from the targeting pack packages -->
-      <TestCopyLocalToRemove Include="@(TestCopyLocal)"
+      <!-- Filter out the copy-local set of references coming from the targeting pack packages, leaving here for legacy reasons for Targeting pack-->
+<!--       <TestCopyLocalToRemove Include="@(TestCopyLocal)"
         Condition="$([System.String]::new('%(TestCopyLocal.NuGetPackageId)').StartsWith('$(_TargetingPackPrefix)'))" />
-      <TestCopyLocal Remove="@(TestCopyLocalToRemove)" />
+      <TestCopyLocal Remove="@(TestCopyLocalToRemove)" /> -->
 
       <_TestCopyLocalXunitFiles Include="$(PackagesDir)xunit.runner.console\2.1.0\tools\*.exe" />
       <_TestCopyLocalXunitFiles Include="$(PackagesDir)xunit.runner.console\2.1.0\tools\*.dll" />
@@ -135,18 +135,18 @@
     </PropertyGroup>
 
     <PropertyGroup>
-      <TestTargetFrameworkFolder>%(TestTargetFramework.Folder)</TestTargetFrameworkFolder>
+      <TestNugetTargetMonikerFolder>%(TestNugetTargetMoniker.Folder)</TestNugetTargetMonikerFolder>
     </PropertyGroup>
 
     <ItemGroup>
       <SourcesToCopyToTestDir Include="@(RunTestsForProjectInputs)" />
-      <DestinationsForTestDir Include="@(RunTestsForProjectInputs->'$(TestPath)$(TestTargetFrameworkFolder)\%(Filename)%(Extension)')" />
+      <DestinationsForTestDir Include="@(RunTestsForProjectInputs->'$(TestPath)$(TestNugetTargetMonikerFolder)\%(Filename)%(Extension)')" />
 
       <SourcesToCopyToTestDir Include="@(ContentWithTargetPath)" />
-      <DestinationsForTestDir Include="@(ContentWithTargetPath->'$(TestPath)$(TestTargetFrameworkFolder)\%(TargetPath)')" />
+      <DestinationsForTestDir Include="@(ContentWithTargetPath->'$(TestPath)$(TestNugetTargetMonikerFolder)\%(TargetPath)')" />
 
       <SourcesToCopyToTestDir Include="@(OverridenRuntimeContent)" />
-      <DestinationsForTestDir Include="@(OverridenRuntimeContent->'$(TestPath)$(TestTargetFrameworkFolder)\%(Filename)%(Extension)')" />
+      <DestinationsForTestDir Include="@(OverridenRuntimeContent->'$(TestPath)$(TestNugetTargetMonikerFolder)\%(Filename)%(Extension)')" />
     </ItemGroup>
 
     <Copy
@@ -161,8 +161,8 @@
       <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
     </Copy>
 
-    <Exec Condition="'$(OS)'=='Unix' and Exists('$(TestPath)%(TestTargetFramework.Folder)/corerun')"
-          Command="chmod a+x &quot;$(TestPath)%(TestTargetFramework.Folder)/corerun&quot;" />
+    <Exec Condition="'$(OS)'=='Unix' and Exists('$(TestPath)%(TestNugetTargetMoniker.Folder)/corerun')"
+          Command="chmod a+x &quot;$(TestPath)%(TestNugetTargetMoniker.Folder)/corerun&quot;" />
 
   </Target>
 
@@ -173,12 +173,12 @@
   <Target Name="CopySupplementalTestData"
           AfterTargets="CopyTestToTestDirectory"
           Inputs="@(SupplementalTestData)"
-          Outputs="%(TestTargetFramework.Folder)">
+          Outputs="%(TestNugetTargetMoniker.Folder)">
     <PropertyGroup>
-      <TestTargetFrameworkFolder>%(TestTargetFramework.Folder)</TestTargetFrameworkFolder>
+      <TestNugetTargetMonikerFolder>%(TestNugetTargetMoniker.Folder)</TestNugetTargetMonikerFolder>
     </PropertyGroup>
     <ItemGroup>
-      <SupplementalTestDataTestDir Include="@(SupplementalTestData->'$(TestPath)$(TestTargetFrameworkFolder)/%(RecursiveDir)%(Filename)%(Extension)')" />
+      <SupplementalTestDataTestDir Include="@(SupplementalTestData->'$(TestPath)$(TestNugetTargetMonikerFolder)/%(RecursiveDir)%(Filename)%(Extension)')" />
       <SupplementalTestDataOutDir Include="@(SupplementalTestData->'$(OutDir)/%(RecursiveDir)%(Filename)%(Extension)')" />
     </ItemGroup>
     <Copy
@@ -209,7 +209,7 @@
   <Target Name="ArchiveTestBuild" Condition="'$(ArchiveTests)' == 'true'"  DependsOnTargets="RunTestsForProject">
     <PropertyGroup>
       <TestArchiveDir>$(TestWorkingDir)$(OSPlatformConfig)/archive/tests/</TestArchiveDir>
-      <TestArchiveDir Condition="'$(TargetGroup)' != ''">$(TestArchiveDir)$(TargetGroup)/</TestArchiveDir>
+      <TestArchiveDir Condition="'$(TestTFM)' != ''">$(TestArchiveDir)$(TestTFM)/</TestArchiveDir>
       <ProjectJson Condition="!Exists('$(ProjectJson)')">$(OriginalProjectJson)</ProjectJson>
     </PropertyGroup>
     <PropertyGroup Condition="'$(TestProjectName)'==''">
