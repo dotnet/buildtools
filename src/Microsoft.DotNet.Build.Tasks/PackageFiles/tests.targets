@@ -21,11 +21,8 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <TestWithCore Condition="'$(TestWithCore)' == '' And '$(TestTFM)' == 'net45'">false</TestWithCore>
-    <TestWithCore Condition="'$(TestWithCore)' == '' And '$(TestTFM)' == 'net46'">false</TestWithCore>
-    <TestWithCore Condition="'$(TestWithCore)' == '' And '$(TestTFM)' == 'net461'">false</TestWithCore>
-    <TestWithCore Condition="'$(TestWithCore)' == '' And '$(TestTFM)' == 'net462'">false</TestWithCore>
-    <TestWithCore Condition="'$(TestWithCore)' == ''">true</TestWithCore>
+    <TestWithCore Condition="'$(TestWithCore)' == '' And '$(TestTFM)' != 'netcoreapp1.0'">false</TestWithCore>
+    <TestWithCore Condition="'$(TestWithCore)' == '' ">true</TestWithCore>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TestWithCore)' == 'true'">
@@ -42,8 +39,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Table to track mapping between TestNugetTargetMoniker and the corresponding TestTFM -->
     <TestNugetTargetMoniker Include=".NETCoreApp,Version=v1.0" Condition="'$(TestTFM)' == 'netcoreapp1.0'">
       <Folder>netcoreapp1.0</Folder>
+    </TestNugetTargetMoniker>
+    <TestNugetTargetMoniker Include=".NETFramework,Version=v4.6.3" Condition="'$(TestTFM)' == 'net463'">
+      <Folder>net462</Folder>
     </TestNugetTargetMoniker>
     <TestNugetTargetMoniker Include=".NETFramework,Version=v4.6.2" Condition="'$(TestTFM)' == 'net462'">
       <Folder>net462</Folder>
@@ -60,14 +61,12 @@
     <TestNugetTargetMoniker Include=".NETFramework,Version=v4.5.1" Condition="'$(TestTFM)' == 'net451'">
       <Folder>net451</Folder>
     </TestNugetTargetMoniker>
+    <TestNugetTargetMoniker Include=".NETFramework,Version=v4.5.2" Condition="'$(TestTFM)' == 'net452'">
+      <Folder>net451</Folder>
+    </TestNugetTargetMoniker>
+    <!-- Project template for UWP Apps uses uap10.0, this mapping allows support for the Debug and Release scenarios -->
     <TestNugetTargetMoniker Include="UAP,Version=v10.0" Condition="'$(TestTFM)' == 'netcore50aot'">
       <Folder>netcore50aot</Folder>
-    </TestNugetTargetMoniker>
-    <TestNugetTargetMoniker Include=".NETStandard,Version=v1.3" Condition="'$(TestTFM)' == 'netstandard13aot'">
-      <Folder>netstandard13aot</Folder>
-    </TestNugetTargetMoniker>
-    <TestNugetTargetMoniker Include=".NETStandard,Version=v1.5" Condition="'$(TestTFM)' == 'netstandard15aot'">
-      <Folder>netstandard15aot</Folder>
     </TestNugetTargetMoniker>
     <TestNugetTargetMoniker Include="UAP,Version=v10.0" Condition="'$(TestTFM)' == 'netcore50'">
       <Folder>netcore50</Folder>

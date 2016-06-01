@@ -9,6 +9,7 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="project.json" />
+    <!-- This project is used to redist the xunit dependencies (xunit and xunit.runner.utility) for the netstandard1.0 tfm as currently xunit still packages using the old profiles -->
   </ItemGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
     <Target Name="AfterBuild">

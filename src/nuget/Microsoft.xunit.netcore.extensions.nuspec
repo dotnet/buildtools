@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package>
   <metadata minClientVersion="2.8.1">
-    <id>xunit.netcore.extensions</id>
+    <id>Microsoft.xunit.netcore.extensions</id>
     <version>1.0.0-prerelease</version>
     <title>xUnit extensions of .NET Core test projects</title>
     <authors>Microsoft</authors>

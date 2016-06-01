@@ -11,7 +11,12 @@
     <projectUrl>http://go.microsoft.com/fwlink/?LinkId=518631</projectUrl>
     <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
     <summary>xUnit extensions of .NET Core test projects</summary>
-    <description>This package is a metapackage for all xunit deps.</description>
+    <description>
+        This package is a metapackage for testing in corefx.
+        It contains redisted xunit deps for netstandard and contains the 
+        runtime.json that list the supports clauses that describe TFMxRID 
+        combinations possible today in corefx.
+    </description>
     <copyright>Copyright © Microsoft Corporation</copyright>
     <dependencies>
     </dependencies>

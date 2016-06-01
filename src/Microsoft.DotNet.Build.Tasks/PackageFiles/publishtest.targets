@@ -57,10 +57,6 @@
     </PrereleaseResolveNuGetPackageAssets>
 
     <ItemGroup Condition="'$(TestWithCore)' != 'true'">
-      <!-- Filter out the copy-local set of references coming from the targeting pack packages, leaving here for legacy reasons for Targeting pack-->
-<!--       <TestCopyLocalToRemove Include="@(TestCopyLocal)"
-        Condition="$([System.String]::new('%(TestCopyLocal.NuGetPackageId)').StartsWith('$(_TargetingPackPrefix)'))" />
-      <TestCopyLocal Remove="@(TestCopyLocalToRemove)" /> -->
 
       <_TestCopyLocalXunitFiles Include="$(PackagesDir)xunit.runner.console\2.1.0\tools\*.exe" />
       <_TestCopyLocalXunitFiles Include="$(PackagesDir)xunit.runner.console\2.1.0\tools\*.dll" />
@@ -110,6 +106,14 @@
     <ItemGroup Condition="'$(BUILDTOOLS_OVERRIDE_RUNTIME)' != ''">
       <OverridenRuntimeContent Include="$(BUILDTOOLS_OVERRIDE_RUNTIME)/*.*" />
       <TestCopyLocal Include="@(OverridenRuntimeContent)" />
+     </ItemGroup>
+    
+    <!-- Once the copying of RunTestsForProjectInputs is complete, we can remove it from the 
+    TestCopyLocal (which is the dependency list for each test) and cannot have any values
+    referring to locally built assets -->
+    <Message Condition="'@(RunTestsForProjectInputs)'!=''" Text="Overwriting the following values in TestDir : '@(RunTestsForProjectInputs)'" />
+    <ItemGroup>
+      <TestCopyLocal Remove="@(RunTestsForProjectInputs)" />
     </ItemGroup>
 
     <!-- Remove duplicates. Note that we mustn't just copy in sequence and let

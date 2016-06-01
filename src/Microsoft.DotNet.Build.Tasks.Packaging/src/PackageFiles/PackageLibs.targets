@@ -17,6 +17,7 @@
         <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
         <Targets>Build;GetPackageAssets</Targets>
         <OutputItemType>PkgProjAsset</OutputItemType>
+        <UndefineProperties>OSGroup;TargetGroup</UndefineProperties>
       </ProjectReference>
     </ItemGroup>
   </Target>
@@ -30,10 +31,9 @@
   <!-- Resolves applicable files from all files in PkgProjs. Similar to ResolveNuGetPackageAssets, except operates on a file list
        without requiring actual nupkgs, project.json, or restore -->
   <Target Name="ResolvePkgProjReferences" Condition="'@(PkgProjAsset)' != ''" DependsOnTargets="$(ResolvePkgProjReferencesDependsOn)">
-    <!-- If TestNuGetTargetMoniker is set, use that for resolving runtime assets. -->
     <GetApplicableAssetsFromPackages PackageAssets="@(PkgProjAsset)" 
-                                     TargetMoniker="$(NuGetTargetMoniker)"
-                                     RuntimeTargetMoniker="$(TestNuGetTargetMoniker)"
+                                     TargetMonikers="$(NuGetTargetMoniker)"
+                                     RuntimeTargetMonikers="@(TestNuGetTargetMoniker)"
                                      TargetRuntime="$(TestNugetRuntimeId)"
                                      RuntimeFile="$(RuntimeIdGraphDefinitionFile)">
       <Output TaskParameter="CompileAssets" ItemName="Reference" />
