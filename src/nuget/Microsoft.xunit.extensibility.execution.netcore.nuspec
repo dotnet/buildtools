@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata minClientVersion="2.8.5">
+    <id>Microsoft.xunit.extensibility.execution.netcore</id>
+    <version>1.0.0-prerelease</version>
+    <title>xUnit Performance Dep for Perf</title>
+     <authors>Microsoft</authors>
+    <owners>Microsoft</owners>
+    <description>
+        Extensions for the xunit-performance lib
+    </description>
+    <language>en-US</language>
+    <projectUrl>https://github.com/Microsoft/xunit-performance</projectUrl>
+    <licenseUrl>https://raw.githubusercontent.com/Microsoft/xunit-performance/master/LICENSE</licenseUrl>
+    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <dependencies>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="Microsoft.xunit.extensibility.execution.netcore\*.dll" target="lib/netstandard1.0" />
+  </files>
+</package>

@@ -1,0 +1,14 @@
+{
+  "dependencies": {
+    "xunit": "2.1.0",
+    "xunit.runner.utility": "2.1.0"
+  },
+  "frameworks": {
+    "netstandard1.3": {
+      "imports": "portable-net45+win8"
+    }
+  },
+  "runtimes": {
+    "any": {}
+  }
+}
