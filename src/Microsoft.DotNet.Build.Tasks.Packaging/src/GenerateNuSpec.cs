@@ -65,6 +65,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
         public bool DevelopmentDependency { get; set; }
 
+        public bool Serviceable { get; set; }
+
         public string Tags { get; set; }
 
         public ITaskItem[] Dependencies { get; set; }
@@ -181,6 +183,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             manifestMetadata.UpdateMember(x => x.Tags, Tags);
             manifestMetadata.UpdateMember(x => x.Title, Title);
             manifestMetadata.UpdateMember(x => x.Version, Version != null ? new NuGetVersion(Version) : null);
+            manifestMetadata.Serviceable |= Serviceable;
 
             manifest.AddRangeToMember(x => x.Files, GetManifestFiles());
 
