@@ -40,7 +40,10 @@ EXIT /B %ERRORLEVEL%
 IF EXIST %2 (
 exit /b 0
 )
-mklink /H %2 %1 > NUL
+mklink /H %2 %1 > NUL 2>&1
+IF %ERRORLEVEL% == 1 (
+copy /y %1 %2 > NUL 2>&1
+)
 exit /b %ERRORLEVEL%
 :: =====================================
 :ShowUsage
