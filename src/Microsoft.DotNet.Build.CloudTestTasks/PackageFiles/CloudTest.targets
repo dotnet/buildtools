@@ -51,7 +51,7 @@
     <SupplementalPayloadFile>$(ArchivesRoot)$(SupplementalPayloadFilename)</SupplementalPayloadFile>
     <OverwriteOnUpload Condition="'$(OverwriteOnUpload)' == ''">false</OverwriteOnUpload>
     <TimeoutInSeconds Condition="'$(TimeoutInSeconds)' == ''">600</TimeoutInSeconds>
-    <HelixApiEndpoint>https://helixview-stage.azurewebsites.net/api/jobs</HelixApiEndpoint>
+    <HelixApiEndpoint>https://helixview.azurewebsites.net/api/jobs</HelixApiEndpoint>
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)CloudTest.Perf.targets" Condition="'$(Performance)' == 'true'" />
