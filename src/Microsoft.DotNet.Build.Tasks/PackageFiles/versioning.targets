@@ -271,6 +271,8 @@
     </Exec>
 
     <PropertyGroup>
+      <UserNameExitCode Condition="'$(UserNameExitCode)'==''">0</UserNameExitCode>
+      <HostNameExitCode Condition="'$(HostNameExitCode)'==''">0</HostNameExitCode>
       <BuiltByString Condition="'$(BuiltByString)'=='' AND '$(UserNameExitCode)'=='0' AND '$(HostNameExitCode)'=='0'">%20built by: $(VersionUserName)-$(VersionHostName)</BuiltByString>
     </PropertyGroup>
   </Target>
