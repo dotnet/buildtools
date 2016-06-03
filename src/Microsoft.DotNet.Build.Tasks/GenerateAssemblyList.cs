@@ -18,7 +18,7 @@ namespace Microsoft.DotNet.Build.Tasks
         public override bool Execute()
         {
             HashSet<string> processedFileNames = new HashSet<string>();
-            AssemblyList corerun = new AssemblyList("Microsoft.NETCore.Runtime", "Microsoft.NETCore.TestHost", "Microsoft.NETCore.Windows.ApiSets");
+            AssemblyList corerun = new AssemblyList("Microsoft.NETCore.Runtime", "Microsoft.NETCore.TestHost", "Microsoft.NETCore.Windows.ApiSets",  "Microsoft.NETCore.Jit");
             AssemblyList xunit = new AssemblyList("xunit");
             List<string> unmatched = new List<string>();
             bool foundDuplicates = false;
