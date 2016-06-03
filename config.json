@@ -18,7 +18,7 @@
       "values": [],
       "defaultValue": ""
     },
-    "Clean": {
+    "CleanAllProjects": {
       "description": "MsBuild target that deletes the binary output directory.",
       "valueType": "target",
       "values": [],
@@ -62,9 +62,8 @@
     }
   },
   "commands": {
-    "default": {
-      "description": "Restores packages, builds, runs the tests and builds packages",
-      "alias": "build",
+    "build": {
+      "description": "Restores packages, builds, runs the tests and builds packages.",
       "toolName": "msbuild",
       "lockedSettings": {},
       "settings": {
@@ -72,42 +71,19 @@
         "MsBuildLogging":"default"
       }
     },
-    "cleanBinariesCommand": {
-      "description": "Deletes the binary output directory.",
-      "alias": "",
+    "build-s": {
+      "description": "Only builds binaries. It doesn't restore packages.",
       "toolName": "msbuild",
       "lockedSettings": {
-        "Clean": "default"
+        "RestoreDuringBuild": false,
       },
       "settings": {
+        "MsBuildLogging":"default",
         "MsBuildParameters":"default"
       }
     },
-    "cleanPackagesCommand": {
-      "description": "Deletes the repo-local nuget package directory.",
-      "alias": "",
-      "toolName": "msbuild",
-      "lockedSettings": {
-        "CleanPackages": "default"
-      },
-      "settings": {
-        "MsBuildParameters":"default"
-      }
-    },
-    "cleanPackagesCacheCommand": {
-      "description": "Deletes the user-local nuget package cache.",
-      "alias": "",
-      "toolName": "msbuild",
-      "lockedSettings": {
-        "CleanPackagesCache": "default"
-      },
-      "settings": {
-        "MsBuildParameters":"default"
-      }
-    },
-    "sync": {
+    "sync-p": {
       "description": "Restores all nuget packages for repository",
-      "alias": "p",
       "toolName": "msbuild",
       "lockedSettings": {
         "RestoreDuringBuild":  true,
@@ -117,15 +93,33 @@
         "MsBuildParameters":"default"
       }
     },
-    "simpleBuild": {
-      "description": "Only builds binaries. It doesn't restore packages.",
-      "alias": "",
+    "clean-b": {
+      "description": "Deletes the binary output directory.",
       "toolName": "msbuild",
       "lockedSettings": {
-        "RestoreDuringBuild": false,
+        "CleanAllProjects": "default"
       },
       "settings": {
-        "MsBuildLogging":"default",
+        "MsBuildParameters":"default"
+      }
+    },
+    "clean-p": {
+      "description": "Deletes the repo-local nuget package directory.",
+      "toolName": "msbuild",
+      "lockedSettings": {
+        "CleanPackages": "default"
+      },
+      "settings": {
+        "MsBuildParameters":"default"
+      }
+    },
+    "clean-c": {
+      "description": "Deletes the user-local nuget package cache.",
+      "toolName": "msbuild",
+      "lockedSettings": {
+        "CleanPackagesCache": "default"
+      },
+      "settings": {
         "MsBuildParameters":"default"
       }
     }

@@ -84,7 +84,7 @@
   <Target Name="RestorePackages" DependsOnTargets="BatchRestorePackages" />
 
   <!-- Override clean from dir.traversal.targets and just remove the full BinDir -->
-  <Target Name="Clean">
+  <Target Name="CleanAllProjects">
     <RemoveDir Directories="$(BinDir)" />
   </Target>
 

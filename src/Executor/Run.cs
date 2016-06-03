@@ -30,6 +30,8 @@ namespace Microsoft.DotNet.Execute
 
                 _process.WaitForExit();
                 return _process.ExitCode;
+                /*Console.WriteLine(filename + " " + args);
+                return 0;*/
             }
             catch (InvalidOperationException e)
             {

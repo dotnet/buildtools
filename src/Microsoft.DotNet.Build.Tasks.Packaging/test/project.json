@@ -15,14 +15,7 @@
   },
   "frameworks": {
     "netcoreapp1.0": {
-<<<<<<< HEAD
-      "imports": [
-        "dnxcore50",
-        "portable-net45+win8"
-      ]
-=======
       "imports": [ "dnxcore50", "portable-net45+win8" ]
->>>>>>> updating test project.json file to use nercoreapp1.0
     }
   },
   "runtimes": {

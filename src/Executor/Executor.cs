@@ -17,6 +17,9 @@ namespace Microsoft.DotNet.Execute
     {
         public string configFilePath;
         public string configFileName = "config.json";
+        public string CommandSelectedByUser { get; set; }
+        
+        public Dictionary<string, List<string>> DevWorkflowCommands { get; set; }
         public Dictionary<string, string> SettingParameters { get; set; }
         public Dictionary<string, string> CommandParameters { get; set; }
         
@@ -24,6 +27,7 @@ namespace Microsoft.DotNet.Execute
         {
             SettingParameters = new Dictionary<string, string>();
             CommandParameters = new Dictionary<string, string>();
+            DevWorkflowCommands = new Dictionary<string, List<string>>();
             string executorDirectory = Path.GetDirectoryName(typeof(Executor).GetTypeInfo().Assembly.Location);
             configFilePath = Path.GetFullPath(Path.Combine(executorDirectory, @"..\"));
         }
@@ -53,9 +57,10 @@ namespace Microsoft.DotNet.Execute
 
         public bool DefineParameters(string[] args, Setup setupInformation)
         {
+            string userCommand = string.Empty;
             try
             {
-                return CommandLineParser.ParseForConsoleApplication(delegate (CommandLineParser parser)
+                bool result = CommandLineParser.ParseForConsoleApplication(delegate (CommandLineParser parser)
                 {
                     //Settings
                     foreach (KeyValuePair<string, Setting> option in setupInformation.Settings)
@@ -69,19 +74,19 @@ namespace Microsoft.DotNet.Execute
                     }
 
                     //Commands
-                    foreach (KeyValuePair<string, Command> comm in setupInformation.Commands)
+                    foreach (KeyValuePair<string, List<string>> comm in DevWorkflowCommands)
                     {
-                        if (!string.IsNullOrEmpty(comm.Value.Alias))
+                        parser.DefineParameterSet(comm.Key, ref userCommand, comm.Key, string.Format("Help for {0}", comm.Key));
+                        foreach(string devWorkflowOption in comm.Value)
                         {
-                            parser.DefineAliases(comm.Key, comm.Value.Alias);
+                            bool temp = false;
+                            parser.DefineOptionalQualifier(devWorkflowOption, ref temp, setupInformation.Commands[comm.Key + "-" + devWorkflowOption].Description);
+                            CommandParameters[comm.Key + "-" + devWorkflowOption] = temp.ToString();
                         }
-                        bool temp = false;
-                        parser.DefineOptionalQualifier(comm.Key, ref temp, comm.Value.Description);
-                        CommandParameters[comm.Key] = temp.ToString();
                     }
 
                     //extra arguments
-                    if (!args[0].Equals("-?"))
+                    /*if (!args[0].Equals("-?"))
                     {
                         string[] extraArguments = null;
                         parser.DefineOptionalParameter("ExtraArguments", ref extraArguments, "Extra parameters will be passed to the selected command.");
@@ -95,15 +100,51 @@ namespace Microsoft.DotNet.Execute
                         {
                             SettingParameters["ExtraArguments"] = string.Join(" ", extraArguments);
                         }
-                    }
+                    }*/
                 }, args);
+                CommandSelectedByUser = userCommand;
+                return result;
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error: Please provide at least one parameter. {0}", e.Message);
+                Console.WriteLine("Error: {0}", e.Message);
                 return false;
             }
             
+        }
+
+        public void CreateDevWorkflowCommandStructure(Setup setupInformation)
+        {
+            foreach (KeyValuePair<string, Setting> option in setupInformation.Settings)
+            {
+                SettingParameters[option.Key] = string.Empty;
+            }
+
+            string devWorkflowStep = string.Empty;
+            string devWorkflowOption = string.Empty;
+            foreach (KeyValuePair<string, Command> comm in setupInformation.Commands)
+            {
+                CommandParameters[comm.Key] = "False";
+
+                int delimiter = comm.Key.IndexOf("-");
+                if (delimiter != -1)
+                {
+                    devWorkflowOption = comm.Key.Substring(delimiter+1);
+                    devWorkflowStep = comm.Key.Substring(0, delimiter);
+                    if (!DevWorkflowCommands.ContainsKey(devWorkflowStep))
+                    {
+                        DevWorkflowCommands[devWorkflowStep] = new List<string>();
+                    }
+                    DevWorkflowCommands[devWorkflowStep].Add(devWorkflowOption);
+                }
+                else
+                {
+                    if (!DevWorkflowCommands.ContainsKey(comm.Key))
+                    {
+                        DevWorkflowCommands[comm.Key] = new List<string>();
+                    }
+                }
+            }
         }
 
         public static int Main(string[] args)
@@ -118,17 +159,19 @@ namespace Microsoft.DotNet.Execute
             else
             {
                 string os = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "windows": "unix";
-                
+
+                executor.CreateDevWorkflowCommandStructure(jsonSetup);
+
                 if (executor.DefineParameters(args, jsonSetup))
                 {
                     foreach (KeyValuePair<string, string> command in executor.CommandParameters)
                     {
-                        //activated by the user
                         if (Convert.ToBoolean(command.Value))
                         {
-                            return jsonSetup.BuildCommand(jsonSetup.Commands[command.Key], os, executor.SettingParameters, executor.configFilePath);
+                            executor.CommandSelectedByUser = command.Key;
                         }
                     }
+                    return jsonSetup.BuildCommand(executor.CommandSelectedByUser, os, executor.SettingParameters, executor.configFilePath);
                 }
             }
             return 0;
