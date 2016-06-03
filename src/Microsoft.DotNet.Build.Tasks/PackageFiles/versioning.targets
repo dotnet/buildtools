@@ -263,13 +263,15 @@
 
     <Exec Command="whoami" Condition="'$(OSEnvironment)'!='Windows_NT' AND '$(VersionUserName)'==''" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="VersionUserName" />
+      <Output TaskParameter="ExitCode" PropertyName="UserNameExitCode" />
     </Exec>
     <Exec Command="hostname" Condition="'$(OSEnvironment)'!='Windows_NT' AND '$(VersionHostName)'==''" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="VersionHostName" />
+      <Output TaskParameter="ExitCode" PropertyName="HostNameExitCode" />
     </Exec>
 
     <PropertyGroup>
-      <BuiltByString Condition="'$(BuiltByString)'==''">%20built by: $(VersionUserName)-$(VersionHostName)</BuiltByString>
+      <BuiltByString Condition="'$(BuiltByString)'=='' AND '$(UserNameExitCode)'=='0' AND '$(HostNameExitCode)'=='0'">%20built by: $(VersionUserName)-$(VersionHostName)</BuiltByString>
     </PropertyGroup>
   </Target>
 
