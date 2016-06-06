@@ -25,11 +25,13 @@ namespace Microsoft.DotNet.Execute
                 // Set our event handler to asynchronously read the output.
                 _process.OutputDataReceived += new DataReceivedEventHandler(ReadOutputHandler);
 
-                _process.Start();
+                /*_process.Start();
                 _process.BeginOutputReadLine();
 
                 _process.WaitForExit();
-                return _process.ExitCode;
+                return _process.ExitCode;*/
+                Console.WriteLine(filename + " " + args);
+                return 0;
             }
             catch (InvalidOperationException e)
             {

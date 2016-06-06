@@ -18,7 +18,7 @@
       "values": [],
       "defaultValue": ""
     },
-    "Clean": {
+    "CleanAllProjects": {
       "description": "MsBuild target that deletes the binary output directory.",
       "valueType": "target",
       "values": [],
@@ -97,7 +97,7 @@
       "description": "Deletes the binary output directory.",
       "toolName": "msbuild",
       "lockedSettings": {
-        "Clean": "default"
+        "CleanAllProjects": "default"
       },
       "settings": {
         "MsBuildParameters":"default"

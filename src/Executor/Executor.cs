@@ -60,7 +60,7 @@ namespace Microsoft.DotNet.Execute
             string userCommand = string.Empty;
             try
             {
-                CommandLineParser.ParseForConsoleApplication(delegate (CommandLineParser parser)
+                bool result = CommandLineParser.ParseForConsoleApplication(delegate (CommandLineParser parser)
                 {
                     //Settings
                     foreach (KeyValuePair<string, Setting> option in setupInformation.Settings)
@@ -80,13 +80,13 @@ namespace Microsoft.DotNet.Execute
                         foreach(string devWorkflowOption in comm.Value)
                         {
                             bool temp = false;
-                            parser.DefineOptionalQualifier(devWorkflowOption, ref temp, setupInformation.Commands[comm.Key+"-"+comm.Value].Description);
-                            CommandParameters[comm.Key + "-" + comm.Value] = temp.ToString();
+                            parser.DefineOptionalQualifier(devWorkflowOption, ref temp, setupInformation.Commands[comm.Key + "-" + devWorkflowOption].Description);
+                            CommandParameters[comm.Key + "-" + devWorkflowOption] = temp.ToString();
                         }
                     }
 
                     //extra arguments
-                    if (!args[0].Equals("-?"))
+                    /*if (!args[0].Equals("-?"))
                     {
                         string[] extraArguments = null;
                         parser.DefineOptionalParameter("ExtraArguments", ref extraArguments, "Extra parameters will be passed to the selected command.");
@@ -100,20 +100,20 @@ namespace Microsoft.DotNet.Execute
                         {
                             SettingParameters["ExtraArguments"] = string.Join(" ", extraArguments);
                         }
-                    }
+                    }*/
                 }, args);
                 CommandSelectedByUser = userCommand;
-                return true;
+                return result;
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error: Please provide at least one parameter. {0}", e.Message);
+                Console.WriteLine("Error: {0}", e.Message);
                 return false;
             }
             
         }
 
-        public void juanito(Setup setupInformation)
+        public void CreateDevWorkflowCommandStructure(Setup setupInformation)
         {
             foreach (KeyValuePair<string, Setting> option in setupInformation.Settings)
             {
@@ -127,16 +127,22 @@ namespace Microsoft.DotNet.Execute
                 CommandParameters[comm.Key] = "False";
 
                 int delimiter = comm.Key.IndexOf("-");
-
-                if (delimiter == -1)
-                {
-                    DevWorkflowCommands[comm.Key] = null;
-                }
-                else
+                if (delimiter != -1)
                 {
                     devWorkflowOption = comm.Key.Substring(delimiter+1);
                     devWorkflowStep = comm.Key.Substring(0, delimiter);
-                    DevWorkflowCommands[devWorkflowStep] = null;
+                    if (!DevWorkflowCommands.ContainsKey(devWorkflowStep))
+                    {
+                        DevWorkflowCommands[devWorkflowStep] = new List<string>();
+                    }
+                    DevWorkflowCommands[devWorkflowStep].Add(devWorkflowOption);
+                }
+                else
+                {
+                    if (!DevWorkflowCommands.ContainsKey(comm.Key))
+                    {
+                        DevWorkflowCommands[comm.Key] = new List<string>();
+                    }
                 }
             }
         }
@@ -154,18 +160,19 @@ namespace Microsoft.DotNet.Execute
             {
                 string os = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "windows": "unix";
 
-                executor.juanito(jsonSetup);
+                executor.CreateDevWorkflowCommandStructure(jsonSetup);
 
                 if (executor.DefineParameters(args, jsonSetup))
                 {
-                    /*foreach (KeyValuePair<string, string> command in executor.CommandParameters)
+                    foreach (KeyValuePair<string, string> command in executor.CommandParameters)
                     {
-                        //activated by the user
                         if (Convert.ToBoolean(command.Value))
                         {
-                            return jsonSetup.BuildCommand(jsonSetup.Commands[command.Key], os, executor.SettingParameters, executor.configFilePath);
+                            executor.CommandSelectedByUser = command.Key;
                         }
-                    }*/
+                    }
+                    Console.WriteLine(executor.CommandSelectedByUser);
+                    return jsonSetup.BuildCommand(executor.CommandSelectedByUser, os, executor.SettingParameters, executor.configFilePath);
                 }
             }
             return 0;

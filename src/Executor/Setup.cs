@@ -46,9 +46,16 @@ namespace Microsoft.DotNet.Execute
             }
             return null;
         }
-
-        public int BuildCommand(Command commandToExecute, string os, Dictionary<string, string> settingParameters, string configPath)
+        
+        public int BuildCommand(string commandSelectedByUser, string os, Dictionary<string, string> settingParameters, string configPath)
         {
+            if (!Commands.ContainsKey(commandSelectedByUser))
+            {
+                Console.WriteLine("Error: The command {0} is not specified in the Json file.", commandSelectedByUser);
+                return 1;
+            }
+
+            Command commandToExecute = Commands[commandSelectedByUser];
             string toolName = GetTool(commandToExecute, os, configPath);
             if (string.IsNullOrEmpty(toolName))
             {
