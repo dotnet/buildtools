@@ -99,22 +99,22 @@ if /I [%clean_src%] == [true] (
 
 if /I [%clean_bin%] == [true] (
   echo Cleaning bin directory ...
-  echo. >> %cleanlog% && echo %~dp0executor.cmd -cleanBinariesCommand !unprocessedBuildArgs!>> %cleanlog%
-  call %~dp0executor.cmd -cleanBinariesCommand !unprocessedBuildArgs!>> %cleanlog%
+  echo. >> %cleanlog% && echo %~dp0executor.cmd -clean -b !unprocessedBuildArgs!>> %cleanlog%
+  call %~dp0executor.cmd -clean -b !unprocessedBuildArgs!>> %cleanlog%
   call :CheckErrorLevel
 )
 
 if /I [%clean_pgk%] == [true] (
   echo Cleaning package directory ...
-  echo. >> %cleanlog% && echo %~dp0executor.cmd -cleanPackagesCommand !unprocessedBuildArgs!>> %cleanlog%
-  call %~dp0executor.cmd -cleanPackagesCommand !unprocessedBuildArgs!>> %cleanlog%
+  echo. >> %cleanlog% && echo %~dp0executor.cmd -clean -p !unprocessedBuildArgs!>> %cleanlog%
+  call %~dp0executor.cmd -clean -p !unprocessedBuildArgs!>> %cleanlog%
   call :CheckErrorLevel
 )
 
 if /I [%clean_pgkcache%] == [true] (
   echo Cleaning package cache directory ...
-  echo. >> %cleanlog% && echo %~dp0executor.cmd -cleanPackagesCacheCommand !unprocessedBuildArgs!>> %cleanlog%
-  call %~dp0executor.cmd -cleanPackagesCacheCommand !unprocessedBuildArgs!>> %cleanlog%
+  echo. >> %cleanlog% && echo %~dp0executor.cmd -clean -c !unprocessedBuildArgs!>> %cleanlog%
+  call %~dp0executor.cmd -clean -c !unprocessedBuildArgs!>> %cleanlog%
   call :CheckErrorLevel
 )
 
