@@ -336,7 +336,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             if (update)
             {
-                target = new VersionRange(minVersion, includeMinVersion, target.MaxVersion, target.IsMaxInclusive, target.IncludePrerelease, target.Float, target.OriginalString);
+                target = new VersionRange(minVersion, includeMinVersion, target.MaxVersion, target.IsMaxInclusive, target.Float, target.OriginalString);
             }
         }
 
@@ -373,7 +373,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             if (update)
             {
-                target = new VersionRange(target.MinVersion, target.IsMinInclusive, maxVersion, includeMaxVersion, target.IncludePrerelease, target.Float, target.OriginalString);
+                target = new VersionRange(target.MinVersion, target.IsMinInclusive, maxVersion, includeMaxVersion, target.Float, target.OriginalString);
             }
         }
 
