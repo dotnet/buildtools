@@ -60,10 +60,6 @@ esac
 
 cp -R $__TOOLS_DIR/* $__TOOLRUNTIME_DIR
 
-# These have a different name in the package, otherwise NuGet will strip them.
-mv $__TOOLS_DIR/tool-runtime/project.json.rename $__TOOLS_DIR/tool-runtime/project.json
-mv $__TOOLS_DIR/test-runtime/project.json.rename $__TOOLS_DIR/test-runtime/project.json
-
 __TOOLRUNTIME_PROJECTJSON=$__TOOLS_DIR/tool-runtime/project.json
 echo "Running: $__DOTNET_CMD restore \"${__TOOLRUNTIME_PROJECTJSON}\" --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json"
 $__DOTNET_CMD restore "${__TOOLRUNTIME_PROJECTJSON}" --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json
