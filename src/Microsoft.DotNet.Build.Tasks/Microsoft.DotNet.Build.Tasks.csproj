@@ -81,6 +81,8 @@
       <NuProjFiles Include="$(PackagesDir)NuProj\$(NuProjVersion)\tools\**\*.*" />
     </ItemGroup>
     <Copy SourceFiles="@(PackageFiles)" DestinationFolder="$(OutputPath)\PackageFiles\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    <!-- nuget strips files with the name 'project.json' so give a suffix that we'll rename in init-tools -->
+    <Copy SourceFiles="@(PackageFiles)" Condition="'%(FileName)%(Extension)' == 'project.json'" DestinationFiles="$(OutputPath)\PackageFiles\%(RecursiveDir)%(FileName)%(Extension).rename" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(NuProjFiles)" DestinationFolder="$(OutputPath)\NuProj\%(RecursiveDir)" SkipUnchangedFiles="true" />
   </Target>
 </Project>
