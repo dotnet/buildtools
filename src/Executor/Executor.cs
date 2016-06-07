@@ -65,12 +65,9 @@ namespace Microsoft.DotNet.Execute
                     //Settings
                     foreach (KeyValuePair<string, Setting> option in setupInformation.Settings)
                     {
-                        if (!option.Key.Equals("ExtraArguments"))
-                        {
-                            string temp = "";
-                            parser.DefineOptionalQualifier(option.Key, ref temp, option.Value.Description);
-                            SettingParameters[option.Key] = temp;
-                        }
+                        string temp = "";
+                        parser.DefineOptionalQualifier(option.Key, ref temp, option.Value.Description);
+                        SettingParameters[option.Key] = temp;
                     }
 
                     //Commands
@@ -85,22 +82,6 @@ namespace Microsoft.DotNet.Execute
                         }
                     }
 
-                    //extra arguments
-                    /*if (!args[0].Equals("-?"))
-                    {
-                        string[] extraArguments = null;
-                        parser.DefineOptionalParameter("ExtraArguments", ref extraArguments, "Extra parameters will be passed to the selected command.");
-                        if (extraArguments.Length > 0)
-                        {
-                            string[] temp = new string[extraArguments.Length - 1];
-                            Array.Copy(extraArguments, 1, temp, 0, extraArguments.Length - 1);
-                            SettingParameters["ExtraArguments"] = string.Join(" ", temp);
-                        }
-                        else
-                        {
-                            SettingParameters["ExtraArguments"] = string.Join(" ", extraArguments);
-                        }
-                    }*/
                 }, args);
                 CommandSelectedByUser = userCommand;
                 return result;
