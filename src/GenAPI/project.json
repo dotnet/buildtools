@@ -1,12 +1,12 @@
 {
   "dependencies": {
-    "Microsoft.Cci": "4.0.0-rc3-24123-01",
+    "Microsoft.Cci": "4.0.0-rc3-24128-00",
     "Microsoft.NETCore.App": {
       "type": "platform",
       "version": "1.0.0-rc2-3002702"
     },
-    "System.Diagnostics.TextWriterTraceListener": "4.0.0-rc3-24123-01",
-    "System.Diagnostics.TraceSource": "4.0.0-rc3-24123-01"
+    "System.Diagnostics.TextWriterTraceListener": "4.0.0-rc3-24128-00",
+    "System.Diagnostics.TraceSource": "4.0.0-rc3-24128-00"
   },
   "frameworks": {
     "netcoreapp1.0": {
