@@ -68,8 +68,26 @@ namespace Microsoft.DotNet.Execute
                     ValidExtraArgumentsForCommand(settingParameters["ExtraArguments"], settingParameters))
             {
                 string commandParameters = BuildParametersForCommand(settingParameters, commandToExecute.ToolName);
+
+                Console.ForegroundColor = ConsoleColor.DarkYellow;
+                Console.WriteLine("Running: {0} {1}", toolName, commandParameters);
+                Console.ResetColor();
+
                 Run runCommand = new Run();
-                return runCommand.ExecuteProcess(toolName, commandParameters);
+                int result =  runCommand.ExecuteProcess(toolName, commandParameters);
+                if(result == 0)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("Build Succeeded.");
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Build Failed.");
+                }
+                Console.ResetColor();
+
+                return result;
             }
             return 1;
         }
