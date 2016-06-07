@@ -8,6 +8,9 @@
     <ImportedProjectRelativePath>..\Microsoft.DotNet.CodeAnalysis\</ImportedProjectRelativePath>
   </PropertyGroup>
   <Import Project="$(ImportedProjectRelativePath)Microsoft.DotNet.CodeAnalysis.csproj" />
+  <PropertyGroup>
+    <NuGetTargetMoniker>.NETFramework,Version=v4.5</NuGetTargetMoniker >
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
     <Reference Include="System.Core" />
