@@ -3,6 +3,15 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.props))\dir.props" />
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
 
+  <PropertyGroup>
+    <!-- Use the packaging task we just built to pick up the latest NuGet,
+         Disable this once we are able to update buildtools consumed by this repo
+         to one that has 843d9943ada43ff4b83f58b2d92024665f1fee23.
+         https://github.com/dotnet/buildtools/issues/780 -->
+    <PackagingTaskDir Condition="'$(BuildToolsTargets45)' != 'true'">$(BinDir)AnyOS.AnyCPU.Debug/Microsoft.DotNet.Build.Tasks.Packaging/</PackagingTaskDir>
+    <PackagingTaskDir Condition="'$(BuildToolsTargets45)' == 'true'">$(BinDir)AnyOS.AnyCPU.Debug/Microsoft.DotNet.Build.Tasks.Packaging.Desktop/</PackagingTaskDir>
+  </PropertyGroup>
+
   <Import Project="Microsoft.DotNet.Build.Tasks\PackageFiles\packages.targets" Condition="'$(ImportGetNuGetPackageVersions)' != 'false'" />
   
   <Target Name="Build" DependsOnTargets="BuildPackages" />
