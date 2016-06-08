@@ -83,6 +83,7 @@
     <Error Condition="'$(SkipNotifyEvent)' != 'true' and '$(HelixApiAccessKey)' == '' and '$(EventHubInfoMissing)' == 'true' " Text="HelixApiAccessKey must be set to start Helix jobs" />
 
     <!-- gather the test archives for upload -->
+    <!-- This will include every zip in the test archive, to allow CoreCLR tests for perf which don't have a TestTFM directory -->
     <ItemGroup>
       <ForUpload Include="$(TestArchivesRoot)**/*.zip" />
       <ForUpload Include="$(AnyOSTestArchivesRoot)**/*.zip" />
@@ -90,9 +91,15 @@
       <ForUpload Condition="'$(TargetsUnix)' == 'true'" Include="$(UnixTestArchivesRoot)**/*.zip" />
     </ItemGroup>
 
+    <Message Condition="'$(TestTFM)' != ''" Text="Using test archives for TFM: $(TestTFM)" />
     <Message Text="Using OS-Specific test archives from: $(TestArchivesRoot)" />
     <Message Text="Using AnyOS test archives from: $(AnyOSTestArchivesRoot)" />
     <Message Condition="'$(TargetsUnix)' == 'true'"  Text="Using Unix test archives from: $(UnixTestArchivesRoot)" />
+    
+    <PropertyGroup>
+        <RelativeBlobPathFolderContainingTests Condition="'$(TestTFM)' != ''" >Tests/$(TestTFM)</RelativeBlobPathFolderContainingTests>
+        <RelativeBlobPathFolderContainingTests Condition="'$(TestTFM)' == ''" >Tests</RelativeBlobPathFolderContainingTests>
+    </PropertyGroup>
 
     <!-- verify the test archives were created -->
     <Error Condition="'@(ForUpload->Count())' == '0'" Text="Didn't find any test archives in supplied folders." />
@@ -230,22 +237,32 @@
     <GetPerfTestAssemblies TestBinaries="@(TestBinary)" GetFullPaths="false">
       <Output TaskParameter="PerfTestAssemblies" ItemName="PerfTestAssembly" />
     </GetPerfTestAssemblies>
+    
     <!-- don't add any items to the group if no perf tests were found -->
     <ItemGroup Condition="'@(PerfTestAssembly->Count())' != '0'">
-      <PerfTest Condition="Exists('$(TestArchivesRoot)%(PerfTestAssembly.Identity).zip')" Include="$(TestArchivesRoot)%(PerfTestAssembly.Identity).zip" />
-      <PerfTest Condition="Exists('$(AnyOSTestArchivesRoot)%(PerfTestAssembly.Identity).zip')" Include="$(AnyOSTestArchivesRoot)%(PerfTestAssembly.Identity).zip" />
-      <PerfTest Condition="'$(TargetsUnix)' == 'true' And Exists('$(UnixTestArchivesRoot)%(PerfTestAssembly.Identity).zip')" Include="$(UnixTestArchivesRoot)%(PerfTestAssembly.Identity).zip" />
+      <PerfTest Condition="Exists('$(TestArchivesRoot)$(TestTFM)/%(PerfTestAssembly.Identity).zip')" Include="$(TestArchivesRoot)$(TestTFM)/%(PerfTestAssembly.Identity).zip" />
+      <PerfTest Condition="Exists('$(AnyOSTestArchivesRoot)$(TestTFM)/%(PerfTestAssembly.Identity).zip')" Include="$(AnyOSTestArchivesRoot)$(TestTFM)/%(PerfTestAssembly.Identity).zip" />
+      <PerfTest Condition="'$(TargetsUnix)' == 'true' And Exists('$(UnixTestArchivesRoot)$(TestTFM)/%(PerfTestAssembly.Identity).zip')" Include="$(UnixTestArchivesRoot)$(TestTFM)/%(PerfTestAssembly.Identity).zip" />
     </ItemGroup>
+
     <ItemGroup Condition="'@(PerfTestAssembly->Count())' != '0'">
       <PerfTest>
         <Command>$(HelixPythonPath) $(RunnerScript) --dll %(Filename).dll $(OtherRunnerScriptArgs) -- $(XunitArgs)</Command>
         <CorrelationPayloadUris>[$(CorrelationPayloadUris)]</CorrelationPayloadUris>
-        <PayloadUri>$(DropUri)$(Platform)$(ConfigurationGroup)/Tests/%(Filename)%(Extension)$(DropUriReadOnlyToken)</PayloadUri>
+        <PayloadUri>$(DropUri)$(Platform)$(ConfigurationGroup)/$(RelativeBlobPathFolderContainingTests)/%(Filename)%(Extension)$(DropUriReadOnlyToken)</PayloadUri>
         <WorkItemId>PerfTest.%(Filename)</WorkItemId>
         <TimeoutInSeconds>$(TimeoutInSeconds)</TimeoutInSeconds>
       </PerfTest>
     </ItemGroup>
     <WriteItemsToJson JsonFileName="$(PerfTestListFile)" Items="@(PerfTest)" />
+    <!-- add test lists to the list of items for upload depending on whether TestTFM was specified or not-->
+    <ItemGroup>
+      <!-- Removing all zips and allowing only perf test assemblies to be uploaded -->
+      <ForUpload Condition="'$(Performance)' == 'true'" Remove="@(ForUpload)"/>
+      <ForUpload Condition="'$(Performance)' == 'true'" Include="@(PerfTest)">
+        <RelativeBlobPath>$(Platform)$(ConfigurationGroup)/$(RelativeBlobPathFolderContainingTests)/$([System.String]::Copy('%(RecursiveDir)').Replace('\', '/'))%(Filename)%(Extension)</RelativeBlobPath>
+      </ForUpload>
+    </ItemGroup>
     <!-- add test lists to the list of items for upload -->
     <ItemGroup>
       <ForUpload Include="$(PerfTestListFile)">

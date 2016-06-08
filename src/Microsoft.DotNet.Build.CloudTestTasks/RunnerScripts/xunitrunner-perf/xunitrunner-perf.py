@@ -88,7 +88,11 @@ def _prepare_linux_env_for_perf(correlation_dir, xunit_perf_drop, test_location,
     if len(os.listdir(xunit_perf_deps)) > 1:
         log.info('Multiple directories found under '+xunit_perf_deps+' picking '+os.listdir(xunit_perf_deps)[0])
     xunit_perf_deps = os.path.join(xunit_perf_deps, os.listdir(xunit_perf_deps)[0])
-    xunit_perf_deps = os.path.join(xunit_perf_deps, "lib", "dotnet")
+    if os.path.exists(os.path.join(xunit_perf_deps, "lib", "netstandard1.3")):
+        log.info('Using the netstandard1.3 folder which has the same deps in the dotnet folder just repackaged')
+        xunit_perf_deps = os.path.join(xunit_perf_deps, "lib", "netstandard1.3")
+    else:
+        xunit_perf_deps = os.path.join(xunit_perf_deps, "lib", "dotnet")
     log.info('Copying xunit perf dependencies from '+xunit_perf_deps)
     _copy_files_to_dest(xunit_perf_deps, test_location)
 
