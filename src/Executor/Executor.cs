@@ -66,7 +66,7 @@ namespace Microsoft.DotNet.Execute
                     foreach (KeyValuePair<string, Setting> option in setupInformation.Settings)
                     {
                         string temp = "";
-                        parser.DefineOptionalQualifier(option.Key, ref temp, option.Value.Description);
+                        parser.DefineOptionalQualifier(option.Key, ref temp, option.Value.Description, option.Value.DefaultValue);
                         SettingParameters[option.Key] = temp;
                     }
 
@@ -74,10 +74,10 @@ namespace Microsoft.DotNet.Execute
                     foreach (KeyValuePair<string, List<string>> comm in DevWorkflowCommands)
                     {
                         parser.DefineParameterSet(comm.Key, ref userCommand, comm.Key, string.Format("Help for {0}", comm.Key));
-                        foreach(string devWorkflowOption in comm.Value)
+                        foreach (string devWorkflowOption in comm.Value)
                         {
                             bool temp = false;
-                            parser.DefineOptionalQualifier(devWorkflowOption, ref temp, setupInformation.Commands[comm.Key + "-" + devWorkflowOption].Description);
+                            parser.DefineOptionalQualifier(devWorkflowOption, ref temp, setupInformation.Commands[comm.Key + "-" + devWorkflowOption].Description, null);
                             CommandParameters[comm.Key + "-" + devWorkflowOption] = temp.ToString();
                         }
                     }
