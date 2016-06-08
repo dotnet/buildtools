@@ -85,9 +85,9 @@
     <!-- gather the test archives for upload -->
     <ItemGroup>
       <ForUpload Include="$(TestArchivesRoot)**/*.zip" />
-      <ForUpload Include="$(AnyOSTestArchivesRoot)*.zip" />
+      <ForUpload Include="$(AnyOSTestArchivesRoot)**/*.zip" />
       <!-- Only include Unix folders if supported by the current target OS -->
-      <ForUpload Condition="'$(TargetsUnix)' == 'true'" Include="$(UnixTestArchivesRoot)*.zip" />
+      <ForUpload Condition="'$(TargetsUnix)' == 'true'" Include="$(UnixTestArchivesRoot)**/*.zip" />
     </ItemGroup>
 
     <Message Text="Using OS-Specific test archives from: $(TestArchivesRoot)" />
@@ -168,8 +168,8 @@
     <!-- create item group of functional tests -->
     <ItemGroup>
       <FunctionalTest Include="$(TestArchivesRoot)**/*.zip" />
-      <FunctionalTest Include="$(AnyOSTestArchivesRoot)*.zip" />
-      <FunctionalTest Condition="'$(TargetsUnix)' == 'true'" Include="$(UnixTestArchivesRoot)*.zip" />
+      <FunctionalTest Include="$(AnyOSTestArchivesRoot)**/*.zip" />
+      <FunctionalTest Condition="'$(TargetsUnix)' == 'true'" Include="$(UnixTestArchivesRoot)**/*.zip" />
     </ItemGroup>
 
     <PropertyGroup>
@@ -327,9 +327,9 @@
     <WriteItemsToJson JsonFileName="%(TestListFile.BuildCompleteJson)" Items="@(BuildComplete)" />
     <!-- write out build statistics (only contains number of built projects at present) -->
     <ItemGroup>
-      <BuiltSuccessfully Include="$(TestArchivesRoot)*.zip" />
-      <BuiltSuccessfully Include="$(AnyOSTestArchivesRoot)*.zip" />
-      <BuiltSuccessfully Condition="'$(TargetsUnix)' == 'true'"  Include="$(UnixTestArchivesRoot)*.zip" />
+      <BuiltSuccessfully Include="$(TestArchivesRoot)**/*.zip" />
+      <BuiltSuccessfully Include="$(AnyOSTestArchivesRoot)**/*.zip" />
+      <BuiltSuccessfully Condition="'$(TargetsUnix)' == 'true'"  Include="$(UnixTestArchivesRoot)**/*.zip" />
     </ItemGroup>
   </Target>
 

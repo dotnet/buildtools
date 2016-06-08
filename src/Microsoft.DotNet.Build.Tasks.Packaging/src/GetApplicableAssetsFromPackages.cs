@@ -36,18 +36,18 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// TargetMoniker to use when resolving assets.  EG: netcoreapp1.0, netstandard1.4
         /// </summary>
         [Required]
-        public string TargetMoniker { get; set; }
+        public string[] TargetMonikers { get; set; }
 
         /// <summary>
         /// runtime.json that defines the RID graph
         /// </summary>
         [Required]
         public string RuntimeFile { get; set; }
-        
+
         /// <summary>
         /// If specified will be used when resolving runtime assets, otherwise TargetMoniker will be used.
         /// </summary>
-        public string RuntimeTargetMoniker { get; set; }
+        public string[] RuntimeTargetMonikers { get; set; }
 
         /// <summary>
         /// If specified will be used when resolving runtime assets, otherwise no RID will be used.
@@ -73,32 +73,60 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 return false;
             }
 
-            if (String.IsNullOrEmpty(TargetMoniker))
+            if (TargetMonikers == null || TargetMonikers.Length == 0)
             {
                 Log.LogError("TargetMoniker argument must be specified");
                 return false;
             }
 
-            NuGetFramework fx = NuGetFramework.Parse(TargetMoniker);
-            NuGetFramework runtimeFx = fx;
+            NuGetFramework[] compileFxs = TargetMonikers.Select(fx => NuGetFramework.Parse(fx)).ToArray();
+            NuGetFramework[] runtimeFxs = compileFxs;
 
-            if (!String.IsNullOrEmpty(RuntimeTargetMoniker))
+            if (RuntimeTargetMonikers != null && RuntimeTargetMonikers.Length > 0)
             {
-                runtimeFx = NuGetFramework.Parse(RuntimeTargetMoniker);
+                runtimeFxs = RuntimeTargetMonikers.Select(fx => NuGetFramework.Parse(fx)).ToArray();
             }
-
-            string targetString = String.IsNullOrEmpty(TargetRuntime) ? fx.ToString() : $"{fx}/{TargetRuntime}";
 
             LoadFiles();
 
-            CompileAssets = _resolver.ResolveCompileAssets(fx)
-                                .Where(ca => !NuGetAssetResolver.IsPlaceholder(ca))
-                                .Select(ca => PackageItemAsResolvedAsset(_targetPathToPackageItem[ca]))
-                                .ToArray();
-            RuntimeAssets = _resolver.ResolveRuntimeAssets(runtimeFx, TargetRuntime)
-                                .Where(ra => !NuGetAssetResolver.IsPlaceholder(ra))
-                                .Select(ra => PackageItemAsResolvedAsset(_targetPathToPackageItem[ra]))
-                                .ToArray();
+            // find the best framework
+            foreach (var compileFx in compileFxs)
+            {
+                CompileAssets = _resolver.ResolveCompileAssets(compileFx)
+                                         .Where(ca => !NuGetAssetResolver.IsPlaceholder(ca))
+                                         .Select(ca => PackageItemAsResolvedAsset(_targetPathToPackageItem[ca]))
+                                         .ToArray();
+
+                if (CompileAssets.Any())
+                {
+                    Log.LogMessage($"Resolved compile assets from {compileFx.ToString()}: {String.Join(";", CompileAssets.Select(c => c.ItemSpec))}");
+                    break;
+                }
+            }
+
+            if (!CompileAssets.Any())
+            {
+                Log.LogError($"Could not locate compile assets for any of the frameworks {String.Join(";", compileFxs.Select(fx => fx.ToString()))}");
+            }
+
+            foreach (var runtimeFx in runtimeFxs)
+            {
+                RuntimeAssets = _resolver.ResolveRuntimeAssets(runtimeFx, TargetRuntime)
+                                         .Where(ra => !NuGetAssetResolver.IsPlaceholder(ra))
+                                         .Select(ra => PackageItemAsResolvedAsset(_targetPathToPackageItem[ra]))
+                                         .ToArray();
+
+                if (RuntimeAssets.Any())
+                {
+                    Log.LogMessage($"Resolved runtime assets from {runtimeFx.ToString()}: {String.Join(";", RuntimeAssets.Select(r => r.ItemSpec))}");
+                    break;
+                }
+            }
+
+            if (!RuntimeAssets.Any())
+            {
+                Log.LogError($"Could not locate runtime assets for any of the frameworks {String.Join(";", runtimeFxs.Select(fx => fx.ToString()))}");
+            }
 
             return !Log.HasLoggedErrors;
         }

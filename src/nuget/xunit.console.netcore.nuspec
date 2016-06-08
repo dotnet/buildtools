@@ -19,25 +19,25 @@
     <copyright>Copyright © Microsoft Corporation</copyright>
     <dependencies>
       <group targetFramework="netstandard1.3">
-        <dependency id="System.Collections" version="4.0.11-rc2-23923" />
-        <dependency id="System.Collections.Concurrent" version="4.0.12-rc2-23923" />
-        <dependency id="System.Console" version="4.0.0-rc2-23923" />
-        <dependency id="System.Diagnostics.Debug" version="4.0.11-rc2-23923" />
-        <dependency id="System.Globalization" version="4.0.11-rc2-23923" />
-        <dependency id="System.IO" version="4.1.0-rc2-23923" />
-        <dependency id="System.IO.FileSystem" version="4.0.1-rc2-23923" />
-        <dependency id="System.IO.FileSystem.Primitives" version="4.0.1-rc2-23923" />
-        <dependency id="System.Linq" version="4.1.0-rc2-23923" />
-        <dependency id="System.Runtime" version="4.1.0-rc2-23923" />
-        <dependency id="System.Runtime.Extensions" version="4.1.0-rc2-23923" />
-        <dependency id="System.Text.RegularExpressions" version="4.0.12-rc2-23923" />
-        <dependency id="System.Threading" version="4.0.11-rc2-23923" />
-        <dependency id="System.Threading.Tasks" version="4.0.11-rc2-23923" />
-        <dependency id="System.Xml.XDocument" version="4.0.11-rc2-23923" />
-        <dependency id="xunit.runner.utility" version="2.1.0" />
+        <dependency id="System.Collections" version="4.0.11-rc3-24117-00" />
+        <dependency id="System.Collections.Concurrent" version="4.0.12-rc3-24117-00" />
+        <dependency id="System.Console" version="4.0.0-rc3-24117-00" />
+        <dependency id="System.Diagnostics.Debug" version="4.0.11-rc3-24117-00" />
+        <dependency id="System.Globalization" version="4.0.11-rc3-24117-00" />
+        <dependency id="System.IO" version="4.1.0-rc3-24117-00" />
+        <dependency id="System.IO.FileSystem" version="4.0.1-rc3-24117-00" />
+        <dependency id="System.IO.FileSystem.Primitives" version="4.0.1-rc3-24117-00" />
+        <dependency id="System.Linq" version="4.1.0-rc3-24117-00" />
+        <dependency id="System.Runtime" version="4.1.0-rc3-24117-00" />
+        <dependency id="System.Runtime.Extensions" version="4.1.0-rc3-24117-00" />
+        <dependency id="System.Text.RegularExpressions" version="4.0.12-rc3-24117-00" />
+        <dependency id="System.Threading" version="4.0.11-rc3-24117-00" />
+        <dependency id="System.Threading.Tasks" version="4.0.11-rc3-24117-00" />
+        <dependency id="System.Xml.XDocument" version="4.0.11-rc3-24117-00" />
+        <dependency id="Microsoft.DotNet.BuildTools.TestSuite" version="1.0.0-prerelease"/>
         <!-- xunit.runner.utility 2.1.0 has some older packages referenced that are not listed here -->
-        <dependency id="System.Reflection" version="4.1.0-rc2-23923" />
-        <dependency id="System.Reflection.Extensions" version="4.0.1-rc2-23923" />
+        <dependency id="System.Reflection" version="4.1.0-rc3-24117-00" />
+        <dependency id="System.Reflection.Extensions" version="4.0.1-rc3-24117-00" />
       </group>
     </dependencies>
   </metadata>
@@ -45,6 +45,9 @@
     <!-- xunit runner for .NET Core -->
     <!-- don't reference anything, only provide runner as runtime asset -->
     <file src="xunit.console.netcore\_._" target="lib\netstandard1.0" />  
+    <file src="xunit.console.netcore\_._" target="lib\aspnetcore50" />
+    <file src="xunit.console.netcore\_._" target="lib\dnxcore50" />
+    <file src="xunit.console.netcore\_._" target="lib\dotnet" />
     <file src="xunit.console.netcore\xunit.console.netcore.exe" target="runtimes\any\native" />
   </files>
   
