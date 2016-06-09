@@ -25,7 +25,7 @@ set clean_all=
 :Loop
 if [%1] == [] goto Begin
 
-if /I [%1] == [/?] goto Usage
+if /I [%1] == [-?] goto Usage
 
 if /I [%1] == [-b] (
   set clean_bin=true
@@ -63,7 +63,7 @@ if /I [%1] == [-e] (
   goto Next
 )
 
-if /I [%1] == [/all] (
+if /I [%1] == [-all] (
   set clean_src=
   set clean_tools=
   set clean_environment=
@@ -99,22 +99,22 @@ if /I [%clean_src%] == [true] (
 
 if /I [%clean_bin%] == [true] (
   echo Cleaning bin directory ...
-  echo. >> %cleanlog% && echo %~dp0executor.cmd -clean -b !unprocessedBuildArgs!>> %cleanlog%
-  call %~dp0executor.cmd -clean -b !unprocessedBuildArgs!>> %cleanlog%
+  echo. >> %cleanlog% && echo %~dp0executor.cmd !unprocessedBuildArgs! clean -b>> %cleanlog%
+  call %~dp0executor.cmd !unprocessedBuildArgs! clean -b>> %cleanlog%
   call :CheckErrorLevel
 )
 
 if /I [%clean_pgk%] == [true] (
   echo Cleaning package directory ...
-  echo. >> %cleanlog% && echo %~dp0executor.cmd -clean -p !unprocessedBuildArgs!>> %cleanlog%
-  call %~dp0executor.cmd -clean -p !unprocessedBuildArgs!>> %cleanlog%
+  echo. >> %cleanlog% && echo %~dp0executor.cmd !unprocessedBuildArgs! clean -p>> %cleanlog%
+  call %~dp0executor.cmd !unprocessedBuildArgs! clean -p >> %cleanlog%
   call :CheckErrorLevel
 )
 
 if /I [%clean_pgkcache%] == [true] (
   echo Cleaning package cache directory ...
-  echo. >> %cleanlog% && echo %~dp0executor.cmd -clean -c !unprocessedBuildArgs!>> %cleanlog%
-  call %~dp0executor.cmd -clean -c !unprocessedBuildArgs!>> %cleanlog%
+  echo. >> %cleanlog% && echo %~dp0executor.cmd !unprocessedBuildArgs! clean -c >> %cleanlog%
+  call %~dp0executor.cmd !unprocessedBuildArgs! clean -c >> %cleanlog%
   call :CheckErrorLevel
 )
 
