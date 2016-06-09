@@ -66,7 +66,7 @@ namespace Microsoft.DotNet.Execute
                     foreach (KeyValuePair<string, Setting> option in setupInformation.Settings)
                     {
                         string temp = "";
-                        parser.DefineOptionalQualifier(option.Key, ref temp, option.Value.Description, option.Value.DefaultValue);
+                        parser.DefineOptionalQualifier(option.Key, ref temp, option.Value.Description, option.Value.DefaultValue, option.Value.Values);
                         SettingParameters[option.Key] = temp;
                     }
 
@@ -77,13 +77,14 @@ namespace Microsoft.DotNet.Execute
                         foreach (string devWorkflowOption in comm.Value)
                         {
                             bool temp = false;
-                            parser.DefineOptionalQualifier(devWorkflowOption, ref temp, setupInformation.Commands[comm.Key + "-" + devWorkflowOption].Description, null);
+                            parser.DefineOptionalQualifier(devWorkflowOption, ref temp, setupInformation.Commands[comm.Key + "-" + devWorkflowOption].Description, null, null);
                             CommandParameters[comm.Key + "-" + devWorkflowOption] = temp.ToString();
                         }
                     }
 
-                }, args);
+                }, args, setupInformation);
                 CommandSelectedByUser = userCommand;
+                setupInformation.SettingParameters = SettingParameters;
                 return result;
             }
             catch (Exception e)
@@ -142,6 +143,7 @@ namespace Microsoft.DotNet.Execute
                 string os = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "windows": "unix";
 
                 executor.CreateDevWorkflowCommandStructure(jsonSetup);
+                jsonSetup.prepareValues(os, executor.SettingParameters, executor.configFilePath);
 
                 if (executor.DefineParameters(args, jsonSetup))
                 {
@@ -152,7 +154,7 @@ namespace Microsoft.DotNet.Execute
                             executor.CommandSelectedByUser = command.Key;
                         }
                     }
-                    return jsonSetup.BuildCommand(executor.CommandSelectedByUser, os, executor.SettingParameters, executor.configFilePath);
+                    return jsonSetup.ExecuteCommand(executor.CommandSelectedByUser);
                 }
             }
             return 0;
