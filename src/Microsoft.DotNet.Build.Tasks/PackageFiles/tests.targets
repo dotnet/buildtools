@@ -25,7 +25,7 @@
     <TestWithCore Condition="'$(TestWithCore)' == '' ">true</TestWithCore>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TestWithCore)' == 'true'">
+  <PropertyGroup Condition="'$(TestWithCore)' == 'true' And '$(TestAppX)' != 'true'">
     <TestHostExecutable>CoreRun.exe</TestHostExecutable>
     <TestHostDirectory>$(TestPath)netcoreapp1.0/</TestHostDirectory>
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.netcore.exe</XunitExecutable>
@@ -33,9 +33,13 @@
     <DebugEngines>{2E36F1D4-B23C-435D-AB41-18E608940038}</DebugEngines>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TestWithCore)' != 'true'">
+  <PropertyGroup Condition="'$(TestWithCore)' != 'true' And '$(TestAppX)' != 'true'">
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.exe</XunitExecutable>
     <DebugTestFrameworkFolder>net45</DebugTestFrameworkFolder>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TestAppX)' == 'true'">
+    <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.uwp.exe</XunitExecutable>
   </PropertyGroup>
 
   <ItemGroup>

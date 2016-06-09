@@ -34,6 +34,9 @@
     <Compile Include="..\common\Guard.cs">
       <Link>Common\Guard.cs</Link>
     </Compile>
+    <Compile Include="..\common\ParallelismOption.cs">
+      <Link>Common\ParallelismOption.cs</Link>
+    </Compile>
     <Compile Include="..\common\TestDiscoveryVisitor.cs">
       <Link>Common\TestDiscoveryVisitor.cs</Link>
     </Compile>
@@ -41,7 +44,6 @@
       <Link>Common\XmlTestExecutionVisitor.cs</Link>
     </Compile>
     <Compile Include="CommandLine.cs" />
-    <Compile Include="ParallelismOption.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RunnerCallbacks\RunnerCallback.cs" />
