@@ -46,8 +46,8 @@ then
 fi
 
 echo "Initiating local dotnet install"
-wget https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0-preview1/scripts/obtain/dotnet-install.sh
-chmod 777 dotnet-install.sh
-versionnum=$(cat $VERFILE)
 mkdir $DESTDIR
-source dotnet-install.sh -i $DESTDIR -v $versionnum
+wget https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0-preview1/scripts/obtain/dotnet-install.sh -P $DESTDIR
+chmod 777 $DESTDIR/dotnet-install.sh
+versionnum=$(cat $VERFILE)
+source $DESTDIR/dotnet-install.sh -i $DESTDIR -v $versionnum
