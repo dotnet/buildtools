@@ -257,7 +257,7 @@ namespace Microsoft.DotNet.Execute
                 string[] completeCommand = BuildCommand(commandName, commandParametersToPrint);
 
                 sb.AppendLine().Append("  It will run: ").AppendLine();
-                sb.Append(string.Format("{0} {1} (optional Settings)",completeCommand[0], completeCommand[1]));
+                sb.Append(string.Format("{0} {1} (global Settings)",completeCommand[0], completeCommand[1]));
                 return sb.ToString();
             }
             return null;
