@@ -21,6 +21,8 @@
   <ItemGroup>
     <Compile Include="GetApplicableAssetsFromPackages.cs" />
     <Compile Include="GetMinimumNETStandard.cs" />
+    <Compile Include="GetRuntimeJsonValues.cs" />
+    <Compile Include="GetRuntimeTargets.cs" />
     <Compile Include="SplitDependenciesBySupport.cs" />
     <Compile Include="GenerateNetStandardSupportTable.cs" />
     <Compile Include="PromoteReferenceDependencies.cs" />
