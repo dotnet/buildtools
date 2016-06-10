@@ -2,7 +2,7 @@
 <package>
   <metadata minClientVersion="2.8.1">
     <id>microsoft.xunit.runner.uwp</id>
-    <version>1.0.2-prerelease</version>
+    <version>1.0.3-prerelease</version>
     <title>xUnit UWP Runner</title>
     <authors>Chris Rummel</authors>
     <owners>Microsoft</owners>
