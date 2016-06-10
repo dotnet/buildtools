@@ -27,7 +27,7 @@ fi
 
 echo Executing in $EXECUTION_DIR
 
-# ========================= BEGIN Copying files  =============================== 
+# ========================= BEGIN Copying files  =============================
 if [ ! -d "$EXECUTION_DIR" ]
 then
     mkdir $EXECUTION_DIR
@@ -45,9 +45,19 @@ echo Hard linking dependent files...
 [[CopyFilesCommands]]
 
 echo "Finished linking needed files, moving to running tests."
-# ========================= END Copying files  =================================
+# ========================= END Copying files  ===============================
 
-# ========================= BEGIN Test Execution ============================= 
+# ========================= BEGIN Core File Setup ============================
+if [ "$(uname -s)" == "Darwin" ]; then
+  # If there are no core files already in /cores/, we'll enable core dump
+  # generation for this shell.
+  if [ "$(ls -A /cores)" ]; then 
+    ulimit -c unlimited
+  fi
+fi
+# ========================= END Core File Setup ==============================
+
+# ========================= BEGIN Test Execution =============================
 echo Running tests... Start time: $(date +"%T")
 echo Commands:
 [[TestRunCommandsEcho]]
@@ -56,4 +66,4 @@ cd $EXECUTION_DIR
 test_exitcode=$?
 echo Finished running tests.  End time=$(date +"%T").  Return value was $test_exitcode
 exit $test_exitcode
-# ========================= END Test Execution =================================
+# ========================= END Test Execution ===============================
