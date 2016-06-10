@@ -40,9 +40,9 @@
        This is required because the publishtest.targets used by buildtools isn't handling 
        paths with subdirectories (it assumes all assets are copied to test output folder).
        https://github.com/dotnet/buildtools/issues/343 -->
-  <Target Name="CopyFrameworkLists" AfterTargets="CopyTestToTestDirectory" Inputs="%(TestTargetFramework.Folder)" Outputs="none">
+  <Target Name="CopyFrameworkLists" AfterTargets="CopyTestToTestDirectory" Inputs="%(TestTargetFramework.Folder)$(TestTFM)" Outputs="none">
     <PropertyGroup>
-      <_testDirectory>$(TestPath)%(TestTargetFramework.Folder)</_testDirectory>
+      <_testDirectory>$(TestPath)%(TestTargetFramework.Folder)$(TestTFM)</_testDirectory>
     </PropertyGroup>
     <ItemGroup>
       <_frameworkList Include="..\src\FrameworkLists\**\*.xml">

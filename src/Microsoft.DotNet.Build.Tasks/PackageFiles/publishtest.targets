@@ -108,14 +108,6 @@
       <OverridenRuntimeContent Include="$(BUILDTOOLS_OVERRIDE_RUNTIME)/*.*" />
       <TestCopyLocal Include="@(OverridenRuntimeContent)" />
      </ItemGroup>
-    
-    <!-- Once the copying of RunTestsForProjectInputs is complete, we can remove it from the 
-    TestCopyLocal (which is the dependency list for each test) and cannot have any values
-    referring to locally built assets -->
-    <Message Condition="'@(RunTestsForProjectInputs)'!=''" Text="Overwriting the following values in TestDir : '@(RunTestsForProjectInputs)'" />
-    <ItemGroup>
-      <TestCopyLocal Remove="@(RunTestsForProjectInputs)" />
-    </ItemGroup>
 
     <!-- Remove duplicates. Note that we mustn't just copy in sequence and let
          the last one win that way because it will cause copies to occur on
