@@ -61,12 +61,16 @@
   <PropertyGroup>
     <ValidatePackageVersions>true</ValidatePackageVersions>
     <ProhibitFloatingDependencies>true</ProhibitFloatingDependencies>
-    <CoreFxExpectedPrerelease>rc3-24128-00</CoreFxExpectedPrerelease>
+    <CoreFxExpectedPrerelease>rc3-24210-10</CoreFxExpectedPrerelease>
+    <ExternalExpectedPrerelease>rc3-24210-00</ExternalExpectedPrerelease>
   </PropertyGroup>
 
   <ItemGroup>
-    <ValidationPattern Include="^(?i)((System\..%2A)|(Microsoft\.Cci)|(Microsoft\.CSharp)|(Microsoft\.Win32\..%2A)|(Microsoft\.VisualBasic))(?&lt;!TestData)$">
+    <ValidationPattern Include="^(?i)((System\..%2A)|(Microsoft\.CSharp)|(Microsoft\.Win32\..%2A)|(Microsoft\.VisualBasic)|(NETStandard.Library))(?&lt;!TestData)$">
       <ExpectedPrerelease>$(CoreFxExpectedPrerelease)</ExpectedPrerelease>
+    </ValidationPattern>
+    <ValidationPattern Include="^Microsoft.Cci$">
+      <ExpectedPrerelease>$(ExternalExpectedPrerelease)</ExpectedPrerelease>
     </ValidationPattern>
     <ValidationPattern Include="^(?i)xunit$">
       <ExpectedVersion>2.1.0</ExpectedVersion>
