@@ -216,6 +216,11 @@
     <DebugType Condition="'$(DebugType)' == ''">pdbonly</DebugType>
     <DefineConstants>$(DefineConstants),TRACE</DefineConstants>
   </PropertyGroup>
+  
+  <!-- Default Test platform to deploy the netstandard compiled tests to -->
+  <PropertyGroup>
+    <TestTFM Condition="'$(TestTFM)'==''">netcoreapp1.0</TestTFM>
+  </PropertyGroup>
 
   <!-- Disable some standard properties for building our projects -->
   <PropertyGroup>
