@@ -4,7 +4,7 @@
     "Microsoft.Build.Tasks.Core": "0.1.0-preview-00022",
     "Microsoft.Build.Utilities.Core": "0.1.0-preview-00022",
     "Newtonsoft.Json": "7.0.1",
-    "NuGet.Client": "3.5.0-beta2-1437",
+    "NuGet.Client": "3.5.0-beta2-1456",
     "NETStandard.Library": "1.5.0-rc2-24027",
     "Microsoft.NETCore.Targets": "1.0.1-rc2-24027",
     "xunit": "2.1.0",
