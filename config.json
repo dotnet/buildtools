@@ -12,29 +12,11 @@
       "values": ["True", "False"],
       "defaultValue": true
     },
-    "BatchRestorePackages": {
-      "description": "MsBuild target that restores the packages.",
-      "valueType": "target",
-      "values": [],
-      "defaultValue": ""
-    },
-    "CleanAllProjects": {
-      "description": "MsBuild target that deletes the binary output directory.",
-      "valueType": "target",
-      "values": [],
-      "defaultValue": ""
-    },
-    "CleanPackages": {
-      "description": "MsBuild target that deletes the repo-local nuget package directory.",
-      "valueType": "target",
-      "values": [],
-      "defaultValue": ""
-    },
-    "CleanPackagesCache": {
-      "description": "MsBuild target that deletes the user-local nuget package cache.",
-      "valueType": "target",
-      "values": [],
-      "defaultValue": ""
+    "SkipTests":{
+      "description": "Enables/Disables running tests.",
+      "valueType": "property",
+      "values": ["True", "False"],
+      "defaultValue": false
     },
     "MsBuildLogging": {
       "description": "MsBuild logging options.",
@@ -57,6 +39,30 @@
     "ExtraArguments": {
       "description": "Extra parameters will be passed to the selected command.",
       "valueType": "passThrough",
+      "values": [],
+      "defaultValue": ""
+    },
+    "BatchRestorePackages": {
+      "description": "MsBuild target that restores the packages.",
+      "valueType": "target",
+      "values": [],
+      "defaultValue": ""
+    },
+    "CleanAllProjects": {
+      "description": "MsBuild target that deletes the binary output directory.",
+      "valueType": "target",
+      "values": [],
+      "defaultValue": ""
+    },
+    "CleanPackages": {
+      "description": "MsBuild target that deletes the repo-local nuget package directory.",
+      "valueType": "target",
+      "values": [],
+      "defaultValue": ""
+    },
+    "CleanPackagesCache": {
+      "description": "MsBuild target that deletes the user-local nuget package cache.",
+      "valueType": "target",
       "values": [],
       "defaultValue": ""
     }
