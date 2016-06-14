@@ -31,7 +31,7 @@ namespace Microsoft.DotNet.CodeAnalysis
                             miscellaneousOptions:
                                 SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        internal static string GetPublicApiName(ISymbol symbol)
+        internal static string GetMemberName(ISymbol symbol)
         {
             return symbol.ToDisplayString(s_publicApiFormat);
         }
