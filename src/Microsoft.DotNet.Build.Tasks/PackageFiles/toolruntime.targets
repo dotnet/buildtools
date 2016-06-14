@@ -8,8 +8,7 @@
          that check the invoked process name against known casing which fail under code coverage.
          This is probably because the code coverage target invocation does not canonicalize the
          process name. -->
-    <ToolHost Condition="'$(OS)' == 'Windows_NT'">dotnet.exe</ToolHost>
-    <ToolHost Condition="'$(OS)' != 'Windows_NT'">dotnet</ToolHost>
+    <ToolHost>dotnet</ToolHost>
 
     <ToolRuntimePath Condition="'$(ToolRuntimePath)' == ''">$(ProjectDir)Tools/</ToolRuntimePath>
     <ToolHostCmd>"$(ToolRuntimePath)dotnetcli/$(ToolHost)"</ToolHostCmd>
