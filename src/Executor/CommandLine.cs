@@ -313,10 +313,10 @@ class CommandLine
                 if (parameterSetTofocusOn.Length == 0)
                 {
                     parameterSetTofocusOn = null;
-                    helpString = parser.GetHelp(GetConsoleWidth() - 1, parameterSetTofocusOn, true);
+                    //helpString = parser.GetHelp(GetConsoleWidth() - 1, parameterSetTofocusOn, true);
                 }
 
-                helpString = parser.GetHelp(GetConsoleWidth() - 1, parameterSetTofocusOn, false);
+                helpString = parser.GetHelp(GetConsoleWidth() - 1, parameterSetTofocusOn, true);
                 DisplayStringToConsole(helpString);
             }, (parser, ex) =>
             {
@@ -775,6 +775,9 @@ class CommandLine
                 globalQualifiers = GetHelpGlobalQualifiers(maxLineWidth);
             if(!string.IsNullOrEmpty(globalQualifiers))
             {
+                sb.AppendLine().Append('-', maxLineWidth - 1).AppendLine();
+                sb.Append("Global settings to all commands:").AppendLine();
+                sb.AppendLine();
                 sb.Append(globalQualifiers);
             }
                 
@@ -1570,7 +1573,7 @@ class CommandLine
 
             string appName = GetEntryAssemblyName();
             sb.AppendLine();
-            string intro = "The " + appName + " has a number of dev workflow setps associated with it, " +
+            string intro = "The " + appName + " has a number of dev workflow steps associated with it, " +
                 "each with its own command and set of actions.  They are listed below.  " +
                 "Settings that are common to all commands are listed at the end.";
             Wrap(sb, intro, 0, String.Empty, maxLineWidth, true);
