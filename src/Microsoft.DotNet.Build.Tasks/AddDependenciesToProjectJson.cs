@@ -146,16 +146,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
                 foreach (ITaskItem package in packages)
                 {
-                    Match m = _packageNameRegex.Match(package.ItemSpec);
-                    if (m.Success)
-                    {
-                        TaskItem packageName = new TaskItem(m.Groups[0].Value);
-                        string name = m.Groups[1].Value;
-                        packageName.SetMetadata("Name", name);
-                        packageName.SetMetadata("Version", m.Groups[2].Value);
-                        packageName.SetMetadata("ReleaseVersion", m.Groups[3].Value);
-                        packageNameItems.Add(packageName);
-                    }
+                    packageNameItems.Add(CreatePackageItemFromString(package.ItemSpec));
                 }
             }
             return packageNameItems;
@@ -174,25 +165,27 @@ namespace Microsoft.DotNet.Build.Tasks
             { 
                 if(!string.IsNullOrWhiteSpace(line))
                 {
-                    string[] tokens = line.Split(' ');
-                    string name = tokens[0];
-                    string version = tokens[1];
-                    string assemblyVersion = version.Substring(0, version.IndexOf('-'));
-                    string packageVersion = null;
-                    if(version.IndexOf('-') >= 0)
-                    {
-                        packageVersion = version.Substring(version.IndexOf('-') + 1);
-                    }
-                    TaskItem packageName = new TaskItem(string.Join(".", tokens));
-                    packageName.SetMetadata("Name", name);
-                    packageName.SetMetadata("Version", assemblyVersion);
-                    packageName.SetMetadata("ReleaseVersion", packageVersion);
-                    packageNameItems.Add(packageName);
+                    string packageVersion = line.Replace(' ', '.');
+                    packageNameItems.Add(CreatePackageItemFromString(packageVersion));
                 }
             }
             return packageNameItems;
         }
 
+        private TaskItem CreatePackageItemFromString(string package)
+        {
+            Match m = _packageNameRegex.Match(package);
+            TaskItem packageItem = null;
+            if (m.Success)
+            {
+                packageItem = new TaskItem(m.Groups[0].Value);
+                string name = m.Groups[1].Value;
+                packageItem.SetMetadata("Name", name);
+                packageItem.SetMetadata("Version", m.Groups[2].Value);
+                packageItem.SetMetadata("ReleaseVersion", m.Groups[3].Value);
+            }
+            return packageItem;
+        }
         private string AreValidFrameworkPaths(JObject projectRoot)
         {
             if(Frameworks == null ||
