@@ -73,7 +73,6 @@ if [ "$?" != "0" ]; then
     echo "ERROR: An error ocurred when running: '$__DOTNET_CMD publish \"${__TOOLRUNTIME_PROJECTJSON}\"'. Please check above for more details."
     exit 1
 fi
-chmod a+x $__TOOLRUNTIME_DIR/corerun
 
 if [ -n "$BUILDTOOLS_OVERRIDE_RUNTIME" ]; then
     find $__TOOLRUNTIME_DIR -name *.ni.* | xargs rm 2>/dev/null
@@ -94,7 +93,6 @@ cp -R "${__PACKAGES_DIR}/Microsoft.Portable.Targets/${__PORTABLETARGETS_VERSION}
 cp -R "${__PACKAGES_DIR}/MicroBuild.Core/${__MICROBUILD_VERSION}/build/." "$__TOOLRUNTIME_DIR/."
 
 # Temporary Hacks to fix couple of issues in the msbuild and roslyn nuget packages
-cp "$__TOOLRUNTIME_DIR/corerun" "$__TOOLRUNTIME_DIR/corerun.exe"
 mv "$__TOOLRUNTIME_DIR/Microsoft.CSharp.targets" "$__TOOLRUNTIME_DIR/Microsoft.CSharp.Targets"
 
 exit 0
