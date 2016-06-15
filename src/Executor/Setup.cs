@@ -44,14 +44,14 @@ namespace Microsoft.DotNet.Execute
 
         public int ExecuteCommand(string commandSelectedByUser)
         {
-            string[] commandToRun = BuildCommand(commandSelectedByUser);
+            CompleteCommand commandToRun = BuildCommand(commandSelectedByUser);
             if(commandToRun != null)
             {
                 Console.ForegroundColor = ConsoleColor.DarkYellow;
-                Console.WriteLine("Running: {0} {1}", commandToRun[0], commandToRun[1]);
+                Console.WriteLine("Running: {0} {1}", commandToRun.ToolCommand, commandToRun.ParametersCommand);
                 Console.ResetColor();
 
-                int result = Run.ExecuteProcess(commandToRun[0], commandToRun[1]);
+                int result = Run.ExecuteProcess(commandToRun.ToolCommand, commandToRun.ParametersCommand);
                 if (result == 0)
                 {
                     Console.ForegroundColor = ConsoleColor.Green;
@@ -69,7 +69,7 @@ namespace Microsoft.DotNet.Execute
             return 1;
         }
 
-        public string[] BuildCommand(string commandSelectedByUser, Dictionary<string, string> parameters = null)
+        private CompleteCommand BuildCommand(string commandSelectedByUser, Dictionary<string, string> parameters = null)
         {
             Command commandToExecute;
             if (!Commands.TryGetValue(commandSelectedByUser, out commandToExecute))
@@ -92,7 +92,7 @@ namespace Microsoft.DotNet.Execute
                     ValidExtraArgumentsForCommand(SettingParameters["ExtraArguments"], SettingParameters))
                 {
                     string commandParameters = BuildParametersForCommand(SettingParameters, commandToExecute.ToolName);
-                    string[] completeCommand = { toolName, commandParameters };
+                    CompleteCommand completeCommand = new CompleteCommand(toolName, commandParameters);
                     return completeCommand;
                 }
                 return null;
@@ -100,7 +100,7 @@ namespace Microsoft.DotNet.Execute
             else
             {
                 string commandParameters = BuildParametersForCommand(parameters, commandToExecute.ToolName);
-                string[] completeCommand = { toolName, commandParameters };
+                CompleteCommand completeCommand = new CompleteCommand(toolName, commandParameters);
                 return completeCommand;
             }
         }
@@ -210,7 +210,7 @@ namespace Microsoft.DotNet.Execute
             return true;
         }
 
-        public string GetTool(Command commandToExecute, string os, string configPath)
+        private string GetTool(Command commandToExecute, string os, string configPath)
         {
             if (Tools.ContainsKey(commandToExecute.ToolName))
             {
@@ -270,13 +270,28 @@ namespace Microsoft.DotNet.Execute
                     commandParametersToPrint[optionalSettings.Key] = value;
                 }
 
-                string[] completeCommand = BuildCommand(commandName, commandParametersToPrint);
+                CompleteCommand completeCommand = BuildCommand(commandName, commandParametersToPrint);
 
                 sb.AppendLine().Append("  It will run: ").AppendLine();
-                sb.Append(string.Format("{0} {1} (global Settings)",completeCommand[0], completeCommand[1]));
+                sb.Append(string.Format("{0} {1} (global Settings)",completeCommand.ToolCommand, completeCommand.ParametersCommand));
                 return sb.ToString();
             }
             return null;
+        }
+
+        private class CompleteCommand
+        {
+            public string ToolCommand { get { return _toolCommand; } }
+            public string ParametersCommand { get { return _parametersCommand; } }
+
+            internal CompleteCommand(string tool, string parameters)
+            {
+                _toolCommand = tool;
+                _parametersCommand = parameters;
+            }
+
+            private string _toolCommand;
+            private string _parametersCommand;
         }
     }
 
