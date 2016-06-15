@@ -93,7 +93,6 @@ cd $EXECUTION_DIR
 [[TestRunCommands]]
 test_exitcode=$?
 echo Finished running tests.  End time=$(date +"%T").  Return value was $test_exitcode
-exit $test_exitcode
 # ========================= END Test Execution ===============================
 # ======================= BEGIN Core File Inspection =========================
 if [ "$(uname -s)" == "Linux" ]; then
@@ -117,3 +116,4 @@ if [ "$(uname -s)" == "Linux" ]; then
   fi
 fi
 # ======================== END Core File Inspection ==========================
+exit $test_exitcode
