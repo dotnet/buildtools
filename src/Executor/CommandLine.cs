@@ -320,8 +320,8 @@ class CommandLine
                 DisplayStringToConsole(helpString);
             }, (parser, ex) =>
             {
-                Console.WriteLine("Error: " + ex.Message);
-                Console.WriteLine("Use -? for help.");
+                Console.Error.WriteLine("Error: " + ex.Message);
+                Console.Error.WriteLine("Use -? for help.");
             },
             setupContent, args);
         }

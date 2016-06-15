@@ -89,7 +89,7 @@ namespace Microsoft.DotNet.Execute
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error: {0}", e.Message);
+                Console.Error.WriteLine("Error: {0}", e.Message);
                 return false;
             }
             
@@ -135,7 +135,7 @@ namespace Microsoft.DotNet.Execute
             Setup jsonSetup = executor.OpenFile();
             if (jsonSetup == null)
             {
-                Console.WriteLine("Error: Could not load Json configuration file.");
+                Console.Error.WriteLine("Error: Could not load Json configuration file.");
                 return 1;
             }
             else

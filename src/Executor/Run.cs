@@ -3,11 +3,11 @@ using System.Diagnostics;
 
 namespace Microsoft.DotNet.Execute
 {
-    public class Run
+    public static class Run
     {
-        private System.Diagnostics.Process _process;
+        private static System.Diagnostics.Process _process;
         
-        public int ExecuteProcess(string filename, string args = null)
+        public static int ExecuteProcess(string filename, string args = null)
         {
             try
             {
@@ -30,8 +30,6 @@ namespace Microsoft.DotNet.Execute
 
                 _process.WaitForExit();
                 return _process.ExitCode;
-                /*Console.WriteLine(filename + " " + args);
-                return 0;*/
             }
             catch (InvalidOperationException e)
             {
@@ -40,7 +38,7 @@ namespace Microsoft.DotNet.Execute
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error in the command: {0}. => {1}", string.Format("{0} {1}", filename, args), e.Message);
+                Console.Error.WriteLine("Error in the command: {0}. => {1}", string.Format("{0} {1}", filename, args), e.Message);
                 return 1;
             }
         }
@@ -49,7 +47,7 @@ namespace Microsoft.DotNet.Execute
             DataReceivedEventArgs outLine)
         {
             // Collect the command output.
-            if (!String.IsNullOrEmpty(outLine.Data))
+            if (outLine.Data != null)
             {
                 Console.WriteLine(outLine.Data);
             }

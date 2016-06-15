@@ -17,18 +17,20 @@ namespace Microsoft.DotNet.Execute
 
         private string FindSettingValue(string valueToFind)
         {
-            if (Settings.ContainsKey(valueToFind))
+            Setting value;
+            if(Settings.TryGetValue(valueToFind, out value))
             {
-                return Settings[valueToFind].DefaultValue;
+                return value.DefaultValue;
             }
             return null;
         }
 
         private string FindSettingType(string valueToFind)
         {
-            if (Settings.ContainsKey(valueToFind))
+            Setting value;
+            if (Settings.TryGetValue(valueToFind, out value))
             {
-                return Settings[valueToFind].ValueType;
+                return value.ValueType;
             }
             return null;
         }
@@ -49,8 +51,7 @@ namespace Microsoft.DotNet.Execute
                 Console.WriteLine("Running: {0} {1}", commandToRun[0], commandToRun[1]);
                 Console.ResetColor();
 
-                Run runCommand = new Run();
-                int result = runCommand.ExecuteProcess(commandToRun[0], commandToRun[1]);
+                int result = Run.ExecuteProcess(commandToRun[0], commandToRun[1]);
                 if (result == 0)
                 {
                     Console.ForegroundColor = ConsoleColor.Green;
@@ -70,28 +71,27 @@ namespace Microsoft.DotNet.Execute
 
         public string[] BuildCommand(string commandSelectedByUser, Dictionary<string, string> parameters = null)
         {
-            if (!Commands.ContainsKey(commandSelectedByUser))
+            Command commandToExecute;
+            if (!Commands.TryGetValue(commandSelectedByUser, out commandToExecute))
             {
-                Console.WriteLine("Error: The command {0} is not specified in the Json file.", commandSelectedByUser);
+                Console.Error.WriteLine("Error: The command {0} is not specified in the Json file.", commandSelectedByUser);
                 return null;
             }
 
-            Command commandToExecute = Commands[commandSelectedByUser];
             string toolName = GetTool(commandToExecute, Os, ConfigurationFilePath);
             if (string.IsNullOrEmpty(toolName))
             {
-                Console.WriteLine("Error: The process {0} is not specified in the Json file.", commandToExecute.ToolName);
+                Console.Error.WriteLine("Error: The process {0} is not specified in the Json file.", commandToExecute.ToolName);
                 return null;
             }
 
-            string commandParameters = string.Empty;
             if (parameters == null)
             {
                 if (BuildRequiredValueSettingsForCommand(commandToExecute.LockedSettings, SettingParameters) &&
                     BuildOptionalValueSettingsForCommand(commandToExecute.Settings, SettingParameters) &&
                     ValidExtraArgumentsForCommand(SettingParameters["ExtraArguments"], SettingParameters))
                 {
-                    commandParameters = BuildParametersForCommand(SettingParameters, commandToExecute.ToolName);
+                    string commandParameters = BuildParametersForCommand(SettingParameters, commandToExecute.ToolName);
                     string[] completeCommand = { toolName, commandParameters };
                     return completeCommand;
                 }
@@ -99,7 +99,7 @@ namespace Microsoft.DotNet.Execute
             }
             else
             {
-                commandParameters = BuildParametersForCommand(parameters, commandToExecute.ToolName);
+                string commandParameters = BuildParametersForCommand(parameters, commandToExecute.ToolName);
                 string[] completeCommand = { toolName, commandParameters };
                 return completeCommand;
             }
@@ -123,17 +123,26 @@ namespace Microsoft.DotNet.Execute
             foreach (KeyValuePair<string, string> reqSetting in requiredSettings)
             {
                 string value = string.IsNullOrEmpty(reqSetting.Value) || reqSetting.Value.Equals("default") ? FindSettingValue(reqSetting.Key) : reqSetting.Value;
-                if (value != null && (string.IsNullOrEmpty(commandValues[reqSetting.Key]) || reqSetting.Key.Equals("Project")))
+                string currentValue;
+                if(commandValues.TryGetValue(reqSetting.Key, out currentValue))
                 {
-                    commandValues[reqSetting.Key] = string.IsNullOrEmpty(value) ? "True" : value;
+                    if (value != null && (string.IsNullOrEmpty(currentValue) || reqSetting.Key.Equals("Project")))
+                    {
+                        commandValues[reqSetting.Key] = string.IsNullOrEmpty(value) ? "True" : value;
+                    }
+                    else
+                    {
+                        if (!string.IsNullOrEmpty(value) && !value.Equals(currentValue))
+                        {
+                            Console.Error.WriteLine("Error: The value for setting {0} can't be overwriten.", reqSetting.Key);
+                            return false;
+                        }
+                    }
                 }
                 else
                 {
-                    if (!string.IsNullOrEmpty(value) && !value.Equals(commandValues[reqSetting.Key]))
-                    {
-                        Console.WriteLine("Error: The value for setting {0} can't be overwriten.", reqSetting.Key);
-                        return false;
-                    }
+                    Console.Error.WriteLine("Error: The setting {0} is not specified in the Json file.", reqSetting.Key);
+                    return false;
                 }
             }
             return true;
@@ -143,17 +152,22 @@ namespace Microsoft.DotNet.Execute
         {
             foreach (KeyValuePair<string, string> optSetting in optionalSettings)
             {
-                if (string.IsNullOrEmpty(commandValues[optSetting.Key]))
+                string currentValue;
+                if(commandValues.TryGetValue(optSetting.Key, out currentValue))
                 {
-                    string value = string.IsNullOrEmpty(optSetting.Value) || optSetting.Value.Equals("default") ? FindSettingValue(optSetting.Key) : optSetting.Value;
-                    if (value != null)
+                    if (string.IsNullOrEmpty(currentValue))
                     {
-                        commandValues[optSetting.Key] = value;
+                        string value = string.IsNullOrEmpty(optSetting.Value) || optSetting.Value.Equals("default") ? FindSettingValue(optSetting.Key) : optSetting.Value;
+                        if (value != null)
+                        {
+                            commandValues[optSetting.Key] = value;
+                        }
                     }
-                    else
-                    {
-                        return false;
-                    }
+                }
+                else
+                {
+                    Console.Error.WriteLine("Error: The setting {0} is not specified in the Json file.", optSetting.Key);
+                    return false;
                 }
             }
             return true;
@@ -185,9 +199,10 @@ namespace Microsoft.DotNet.Execute
                         tempParam = param.Substring(colonPosition + 1, (equalPosition - colonPosition - 1));
                     }
 
-                    if(commandValues.ContainsKey(tempParam) && !string.IsNullOrEmpty(commandValues[tempParam]))
+                    string value;
+                    if(commandValues.TryGetValue(tempParam, out value) && !string.IsNullOrEmpty(value))
                     {
-                        Console.WriteLine("Error: The value for setting {0} can't be overwriten.", tempParam);
+                        Console.Error.WriteLine("Error: The value for setting {0} can't be overwriten.", tempParam);
                         return false;
                     }
                 }
@@ -221,9 +236,10 @@ namespace Microsoft.DotNet.Execute
             }
             else
             {
-                if (Tools.ContainsKey(toolName) && !string.IsNullOrEmpty(type))
+                Tool toolFormat;
+                if (Tools.TryGetValue(toolName, out toolFormat) && !string.IsNullOrEmpty(type))
                 {
-                    commandOption = Tools[toolName].ValueTypes[type];
+                    commandOption = toolFormat.ValueTypes[type];
                     commandOption = commandOption.Replace("{name}", option).Replace("{value}", value);
                 }
             }
@@ -232,9 +248,9 @@ namespace Microsoft.DotNet.Execute
 
         public string GetHelpCommand(string commandName)
         {
-            if(Commands.ContainsKey(commandName))
+            Command commandToPrint;
+            if (Commands.TryGetValue(commandName, out commandToPrint))
             {
-                Command commandToPrint = Commands[commandName];
                 StringBuilder sb = new StringBuilder();
                 Dictionary<string, string> commandParametersToPrint = new Dictionary<string, string>();
                 string value;
