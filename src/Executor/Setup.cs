@@ -175,37 +175,41 @@ namespace Microsoft.DotNet.Execute
 
         private bool ValidExtraArgumentsForCommand(string extraArguments, Dictionary<string, string> commandValues)
         {
-            int colonPosition;
-            int equalPosition;
-            string tempParam;
-
+            int namePos, valuePos;
+            string tempParam, name, value;
+            
             string[] extraA = extraArguments.Split(' ');
             foreach(string param in extraA)
             {
-                colonPosition = 0;
-                equalPosition = param.Length;
-                tempParam = string.Empty;
+                namePos = 0;
+                valuePos = param.Length;
+                tempParam = param;
 
-                colonPosition = param.IndexOf(":");
-                equalPosition = param.IndexOf("=");
-                if(colonPosition!=0)
+                namePos = param.IndexOf(":");
+                if(namePos != -1)
                 {
-                    if(equalPosition == -1)
-                    {
-                        tempParam = param.Substring(colonPosition + 1, (param.Length - colonPosition - 1));
-                    }
-                    else
-                    {
-                        tempParam = param.Substring(colonPosition + 1, (equalPosition - colonPosition - 1));
-                    }
-
-                    string value;
-                    if(commandValues.TryGetValue(tempParam, out value) && !string.IsNullOrEmpty(value))
-                    {
-                        Console.Error.WriteLine("Error: The value for setting {0} can't be overwriten.", tempParam);
-                        return false;
-                    }
+                    tempParam = param.Substring(namePos+1);
                 }
+
+                valuePos = tempParam.IndexOf("=");
+                if(valuePos != -1)
+                {
+                    name = tempParam.Substring(0,valuePos);
+                    value = tempParam.Substring(valuePos + 1);
+                }
+                else
+                {
+                    name = tempParam;
+                    value = string.Empty;
+                }
+
+                string paramValue;
+                if (commandValues.TryGetValue(name, out paramValue) && !string.IsNullOrEmpty(paramValue))
+                {
+                    Console.Error.WriteLine("Error: The value for setting {0} can't be overwriten.", name);
+                    return false;
+                }
+
             }
             return true;
         }
