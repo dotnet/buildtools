@@ -21,16 +21,9 @@
     <Compile Include="Setup.cs" />
   </ItemGroup>
 
-  <!-- Common command-line helper sources 
-  <ItemGroup>
-    <Compile Include="$(CommonPath)\CommandLine.cs">
-      <Link>Common\CommandLine.cs</Link>
-    </Compile>
-  </ItemGroup>-->
-
   <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
-
+  
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
 </Project>

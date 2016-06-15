@@ -1574,10 +1574,12 @@ class CommandLine
             string appName = GetEntryAssemblyName();
             sb.AppendLine();
             string intro = "The " + appName + " has a number of dev workflow steps associated with it, " +
-                "each with its own command and set of actions.  They are listed below.  " +
+                "each with its own command and set of actions. They are listed below.  " +
                 "Settings that are common to all commands are listed at the end.";
             Wrap(sb, intro, 0, String.Empty, maxLineWidth, true);
-            sb.AppendLine().Append("Sintaxis: executor [Command] [Action] (global settings)");
+            sb.Append("The information comes from a config.json file. By default the file is in the root of the repo. Otherwise the first parameter should be the path to the config.json file.");
+            sb.AppendLine().AppendLine().Append("Sintaxis: executor [Command] [Action] (global settings)");
+
             // Always print the default parameter set first.
             if (_defaultParamSetEncountered)
             {

@@ -32,9 +32,27 @@ namespace Microsoft.DotNet.Execute
             configFilePath = Path.GetFullPath(Path.Combine(executorDirectory, @"..\"));
         }
 
+        public Executor(string configFile=null)
+        {
+            SettingParameters = new Dictionary<string, string>();
+            CommandParameters = new Dictionary<string, string>();
+            DevWorkflowCommands = new Dictionary<string, List<string>>();
+
+            if (configFile == null)
+            {
+                string executorDirectory = Path.GetDirectoryName(typeof(Executor).GetTypeInfo().Assembly.Location);
+                configFilePath = Path.GetFullPath(Path.Combine(executorDirectory, @"..\"));
+            }
+            else
+            {
+                configFilePath = Path.GetDirectoryName(configFile);
+            }
+        }
+
         public Setup OpenFile()
         {
             string configFile = Path.Combine(configFilePath, configFileName);
+            Console.WriteLine(configFile);
             if (File.Exists(configFile))
             {
                 string jsonFile = File.ReadAllText(configFile);
@@ -131,7 +149,20 @@ namespace Microsoft.DotNet.Execute
 
         public static int Main(string[] args)
         {
-            Executor executor = new Executor();
+            string[] parseArgs;
+            Executor executor;
+            if(args.Length > 0 && args[0].Contains("config.json"))
+            {
+                executor = new Executor(args[0]);
+                parseArgs = new string[args.Length - 1];
+                Array.Copy(args, 1, parseArgs, 0, args.Length - 1);
+            }
+            else
+            {
+                executor = new Executor();
+                parseArgs = args;
+            }
+
             Setup jsonSetup = executor.OpenFile();
             if (jsonSetup == null)
             {
@@ -145,7 +176,7 @@ namespace Microsoft.DotNet.Execute
                 executor.CreateDevWorkflowCommandStructure(jsonSetup);
                 jsonSetup.prepareValues(os, executor.SettingParameters, executor.configFilePath);
 
-                if (executor.DefineParameters(args, jsonSetup))
+                if (executor.DefineParameters(parseArgs, jsonSetup))
                 {
                     foreach (KeyValuePair<string, string> command in executor.CommandParameters)
                     {
