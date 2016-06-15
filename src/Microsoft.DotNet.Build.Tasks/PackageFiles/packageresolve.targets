@@ -70,6 +70,7 @@
   <Target Name="ResolveNuGetPackages"
           Condition="'$(PrereleaseResolveNuGetPackages)'=='true'"
           DependsOnTargets="$(ResolveNugetPackagesDependsOn)">
+    
     <PrereleaseResolveNuGetPackageAssets Condition="Exists('$(ProjectLockJson)')"
                                AllowFallbackOnTargetSelection="true"
                                IncludeFrameworkReferences="false"
@@ -79,20 +80,31 @@
                                ProjectLockFile="$(ProjectLockJson)"
                                TargetMonikers="$(NuGetTargetMoniker)">
       <Output TaskParameter="ResolvedAnalyzers" ItemName="Analyzer" />
-      <Output TaskParameter="ResolvedReferences" ItemName="Reference" />
-      <Output TaskParameter="ResolvedCopyLocalItems" ItemName="ReferenceCopyLocalPaths" />
+      <Output TaskParameter="ResolvedReferences" ItemName="_ReferenceFromPackage" />
+      <Output TaskParameter="ResolvedCopyLocalItems" ItemName="_ReferenceCopyLocalPathsFromPackage" />
       <Output TaskParameter="ReferencedPackages" ItemName="ReferencedNuGetPackages" />
     </PrereleaseResolveNuGetPackageAssets>
 
-    <!-- We may have an indirect package reference that we want to replace with a project reference -->
+    <!-- We may have package references that we want to replace with project references -->
     <ItemGroup>
-      <!-- Intersect project-refs with package-refs -->
-      <_ReferenceFileNamesToRemove Include="@(Reference)" Condition="'@(_ResolvedProjectReferencePaths->'%(FileName)%(Extension)')' == '%(FileName)%(Extension)'" />
+      <!-- Intersect project-refs with package-refs.  
+             Project refs may be in _ResolvedProjectReferencePaths or Reference items.
+             Copy local may be in _ResolvedProjectReferencePaths or ReferenceCopyLocalPaths.
+             Copy local items may also be in any item like Content but we currently don't strip those.-->
+      <_ReferenceFileNamesToRemove Include="@(_ReferenceFromPackage)" Condition="'@(_ResolvedProjectReferencePaths->'%(FileName)%(Extension)')' == '%(FileName)%(Extension)'" />
+      <_ReferenceFileNamesToRemove Include="@(_ReferenceFromPackage)" Condition="'@(Reference->'%(FileName)%(Extension)')' == '%(FileName)%(Extension)'" />
+      
       <!-- If local copy is disabled remove all references, otherwise remove only project refrerences -->
-      <_ReferenceCopyLocalPathsFileNamesToRemove Include="@(ReferenceCopyLocalPaths)" Condition="'$(DisableReferenceCopyLocal)' == 'true' OR '@(_ResolvedProjectReferencePaths->'%(FileName)%(Extension)')' == '%(FileName)%(Extension)'" />
+      <_ReferenceCopyLocalPathsFromPackage Include="@(_ReferenceCopyLocalPathsFromPackage)" Condition="'$(DisableReferenceCopyLocal)' == 'true' OR '@(_ResolvedProjectReferencePaths->'%(FileName)%(Extension)')' == '%(FileName)%(Extension)'" />
+      <_ReferenceCopyLocalPathsFromPackage Include="@(_ReferenceCopyLocalPathsFromPackage)" Condition="'$(DisableReferenceCopyLocal)' == 'true' OR '@(ReferenceCopyLocalPaths->'%(FileName)%(Extension)')' == '%(FileName)%(Extension)'" />
 
-      <Reference Remove="@(_ReferenceFileNamesToRemove)" />
-      <ReferenceCopyLocalPaths Remove="@(_ReferenceCopyLocalPathsFileNamesToRemove)"/>
+      <!-- strip from the resolved package output -->
+      <_ReferenceFromPackage Remove="@(_ReferenceFileNamesToRemove)" />
+      <_ReferenceCopyLocalPathsFromPackage Remove="@(_ReferenceCopyLocalPathsFileNamesToRemove)" />
+
+      <!-- add the filtered resolved package output -->
+      <Reference Include="@(_ReferenceFromPackage)" />
+      <ReferenceCopyLocalPaths Include="@(_ReferenceCopyLocalPathsFromPackage)" />
     </ItemGroup>
 
     <Message Text="Excluding @(_ReferenceFileNamesToRemove);@(_ReferenceCopyLocalPathsFileNamesToRemove) from package references since the same file is provided by a project reference."
