@@ -92,17 +92,17 @@
       <BaseLocalLibrariesPath Condition="'$(BaseLocalLibrariesPath)'==''">$(BaseOutputPath)</BaseLocalLibrariesPath>
       <AnyOSLocalLibrariesPath>$(BaseLocalLibrariesPath)/AnyOS.$(Platform).$(ConfigurationGroup)</AnyOSLocalLibrariesPath>
       <UnixLocalLibrariesPath>$(BaseLocalLibrariesPath)/Unix.$(Platform).$(ConfigurationGroup)</UnixLocalLibrariesPath>
-      <OSGroupLocalLibrariesPath>$(BaseLocalLibrariesPath)/$(OSGroup).$(Platform).$(ConfigurationGroup)</OSGroupLocalLibrariesPath>
+      <TargetOSLocalLibrariesPath>$(BaseLocalLibrariesPath)/$(TargetOS).$(Platform).$(ConfigurationGroup)</TargetOSLocalLibrariesPath>
     </PropertyGroup>
     <ItemGroup Condition="'$(TestWithLocalLibraries)'=='true'">
       <!-- Replace some of the resolved libraries that came from nuget by exploring the list of files that we are going to copy
            and replacing them with local copies that were just built -->
       <_ReplacementCandidates Include="@(TestCopyLocal -> '$(AnyOSLocalLibrariesPath)/%(filename)/%(filename).dll')" />
       <_ReplacementCandidates Include="@(TestCopyLocal -> '$(AnyOSLocalLibrariesPath)/%(filename)/%(filename).pdb')" />
-      <_ReplacementCandidates Condition="'$(TargetsUnix)' == 'true'" Include="@(TestCopyLocal -> '$(UnixLocalLibrariesPath)/%(filename)/%(filename).dll')" />
-      <_ReplacementCandidates Condition="'$(TargetsUnix)' == 'true'" Include="@(TestCopyLocal -> '$(UnixLocalLibrariesPath)/%(filename)/%(filename).pdb')" />
-      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(OSGroupLocalLibrariesPath)/%(filename)/%(filename).dll')" />
-      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(OSGroupLocalLibrariesPath)/%(filename)/%(filename).pdb')" />
+      <_ReplacementCandidates Condition="'$(TargetOS)' == 'Linux' OR '$(TargetOS)' == 'OSX'" Include="@(TestCopyLocal -> '$(UnixLocalLibrariesPath)/%(filename)/%(filename).dll')" />
+      <_ReplacementCandidates Condition="'$(TargetOS)' == 'Linux' OR '$(TargetOS)' == 'OSX'" Include="@(TestCopyLocal -> '$(UnixLocalLibrariesPath)/%(filename)/%(filename).pdb')" />
+      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(TargetOSLocalLibrariesPath)/%(filename)/%(filename).dll')" />
+      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(TargetOSLocalLibrariesPath)/%(filename)/%(filename).pdb')" />
       <_ExistingReplacementCandidate Include="@(_ReplacementCandidates)" Condition="Exists('%(_ReplacementCandidates.FullPath)')" />
       <TestCopyLocal Include="@(_ExistingReplacementCandidate)" />
     </ItemGroup>
