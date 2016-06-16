@@ -91,6 +91,7 @@
     <PropertyGroup Condition="'$(TestWithLocalLibraries)'=='true'">
       <BaseLocalLibrariesPath Condition="'$(BaseLocalLibrariesPath)'==''">$(BaseOutputPath)</BaseLocalLibrariesPath>
       <AnyOSLocalLibrariesPath>$(BaseLocalLibrariesPath)/AnyOS.$(Platform).$(ConfigurationGroup)</AnyOSLocalLibrariesPath>
+      <UnixLocalLibrariesPath>$(BaseLocalLibrariesPath)/Unix.$(Platform).$(ConfigurationGroup)</UnixLocalLibrariesPath>
       <OSGroupLocalLibrariesPath>$(BaseLocalLibrariesPath)/$(OSGroup).$(Platform).$(ConfigurationGroup)</OSGroupLocalLibrariesPath>
     </PropertyGroup>
     <ItemGroup Condition="'$(TestWithLocalLibraries)'=='true'">
@@ -98,6 +99,8 @@
            and replacing them with local copies that were just built -->
       <_ReplacementCandidates Include="@(TestCopyLocal -> '$(AnyOSLocalLibrariesPath)/%(filename)/%(filename).dll')" />
       <_ReplacementCandidates Include="@(TestCopyLocal -> '$(AnyOSLocalLibrariesPath)/%(filename)/%(filename).pdb')" />
+      <_ReplacementCandidates Condition="'$(TargetsUnix)' == 'true'" Include="@(TestCopyLocal -> '$(UnixLocalLibrariesPath)/%(filename)/%(filename).dll')" />
+      <_ReplacementCandidates Condition="'$(TargetsUnix)' == 'true'" Include="@(TestCopyLocal -> '$(UnixLocalLibrariesPath)/%(filename)/%(filename).pdb')" />
       <_ReplacementCandidates Include="@(TestCopyLocal -> '$(OSGroupLocalLibrariesPath)/%(filename)/%(filename).dll')" />
       <_ReplacementCandidates Include="@(TestCopyLocal -> '$(OSGroupLocalLibrariesPath)/%(filename)/%(filename).pdb')" />
       <_ExistingReplacementCandidate Include="@(_ReplacementCandidates)" Condition="Exists('%(_ReplacementCandidates.FullPath)')" />
