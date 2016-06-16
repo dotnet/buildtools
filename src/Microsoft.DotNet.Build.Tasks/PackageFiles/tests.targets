@@ -182,19 +182,6 @@
       </IncludedFileForRunnerScript>
     </ItemGroup>
     
-    <!-- Introduce workaround for Dependency list to prevent copying local assemblies now that test csproj references pkgproj
-         This will remove all bin directory assemblies when TestWithLocalLibraries is false and local files are found.
-         This was added to allow the version of buildtools (that the buildtools repo depends on to be built) to be updated.  -->
-    <ItemGroup>
-      <IncludedFileForRunnerScriptRemove Include="@(IncludedFileForRunnerScript)"
-                                   Condition="$([System.String]::Copy('%(IncludedFileForRunnerScript.PackageRelativePath)').StartsWith('$(BinDir.Substring(0, $(BinDir.IndexOf('/'))))'))" >
-      </IncludedFileForRunnerScriptRemove>
-    </ItemGroup>
-    
-    <ItemGroup>
-      <IncludedFileForRunnerScript Condition="'$(TestWithLocalLibraries)'!='true'" Remove="@(IncludedFileForRunnerScriptRemove)" />
-    </ItemGroup>
-    
     <MakeDir Directories="$(OutputFolderForTestDependencies)" />
     <PropertyGroup>
       <_TestDependencyListRoot>$(AssemblyName)-$(OSGroup).$(Platform).$(ConfigurationGroup)</_TestDependencyListRoot>
