@@ -33,7 +33,6 @@ namespace Microsoft.DotNet.Build.Tasks
         public string PackageNameRegex { get; set; }
 
         public string[] VersionsFiles { get; set; }
-        public string DownloadFileLocation { get; set; }
 
         /// <summary>
         /// Original package version which is used to seed the output project.json
@@ -165,8 +164,8 @@ namespace Microsoft.DotNet.Build.Tasks
             { 
                 if(!string.IsNullOrWhiteSpace(line))
                 {
-                    string packageVersion = line.Replace(' ', '.');
-                    packageNameItems.Add(CreatePackageItemFromString(packageVersion));
+                    string [] packageVersionTokens = line.Split(' ');
+                    packageNameItems.Add(CreatePackageItemFromString(packageVersionTokens[0], packageVersionTokens[1]));
                 }
             }
             return packageNameItems;
@@ -179,13 +178,24 @@ namespace Microsoft.DotNet.Build.Tasks
             if (m.Success)
             {
                 packageItem = new TaskItem(m.Groups[0].Value);
-                string name = m.Groups[1].Value;
+                string name = m.Groups["name"].Value;
                 packageItem.SetMetadata("Name", name);
-                packageItem.SetMetadata("Version", m.Groups[2].Value);
-                packageItem.SetMetadata("ReleaseVersion", m.Groups[3].Value);
+                packageItem.SetMetadata("Version", m.Groups["version"].Value);
+                packageItem.SetMetadata("Prerelease", m.Groups["prerelease"].Value);
             }
             return packageItem;
         }
+
+        private TaskItem CreatePackageItemFromString(string id, string version)
+        {
+            NuGetVersion nuGetVersion = new NuGetVersion(version);
+            TaskItem packageItem = new TaskItem(id);
+            packageItem.SetMetadata("Name", id);
+            packageItem.SetMetadata("Version", string.Join(".", nuGetVersion.Major, nuGetVersion.Minor, nuGetVersion.Patch));
+            packageItem.SetMetadata("Prerelease", nuGetVersion.Release.ToString());
+            return packageItem;
+        }
+
         private string AreValidFrameworkPaths(JObject projectRoot)
         {
             if(Frameworks == null ||
@@ -258,11 +268,11 @@ namespace Microsoft.DotNet.Build.Tasks
                                 ver = string.Join(".", dependencyVersion.Major, dependencyVersion.Minor, dependencyVersion.Patch);
                             }
 
-                            string releaseVersion = package.GetMetadata("ReleaseVersion");
+                            string prereleaseVersion = package.GetMetadata("Prerelease");
                             // we have package information, so use that.
-                            if (!string.IsNullOrWhiteSpace(releaseVersion))
+                            if (!string.IsNullOrWhiteSpace(prereleaseVersion))
                             {
-                                ver = ver + "-" + releaseVersion;
+                                ver += "-" + prereleaseVersion;
                             }
                             nuGetVersion = NuGetVersion.Parse(ver);
                         }
@@ -305,15 +315,11 @@ namespace Microsoft.DotNet.Build.Tasks
                     if (package != null)
                     {
                         version = package.GetMetadata("Version");
-                        string releaseVersion = package.GetMetadata("ReleaseVersion");
-                        if (!string.IsNullOrWhiteSpace(releaseVersion))
+                        string prereleaseVersion = package.GetMetadata("Prerelease");
+                        if (!string.IsNullOrWhiteSpace(prereleaseVersion))
                         {
-                            version += "-" + releaseVersion;
+                            version += "-" + prereleaseVersion;
                         }
-                    }
-                    else if(!string.IsNullOrWhiteSpace(dependency.GetMetadata("PackageVersion")))
-                    {
-                        version += "-" + dependency.GetMetadata("PackageVersion");
                     }
                     JProperty property = new JProperty(name, version);
                     returnDependenciesList.Add(property);

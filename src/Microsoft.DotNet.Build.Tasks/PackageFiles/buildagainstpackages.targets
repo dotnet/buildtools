@@ -8,7 +8,8 @@
     <_PackagesDrops Include="$(PackagesDrops)" />
   </ItemGroup>
   <PropertyGroup>
-    <PackageNameRegex Condition="'$(PackageNameRegex)' == ''">(.*)\.(\d+\.\d+\.\d+)-?([^-]+-\d+-\d+)?</PackageNameRegex>
+    <!-- Note: escape msbuild characters with ascii escape codes.  < == %3C, > == %3E-->
+    <PackageNameRegex Condition="'$(PackageNameRegex)' == ''">(?%3Cname%3E.*)\.(?%3Cversion%3E\d+\.\d+\.\d+)-?(?%3Cprerelease%3E.*)?</PackageNameRegex>
   </PropertyGroup>
   <PropertyGroup>
     <!-- overridden in repo -->
