@@ -52,7 +52,6 @@ namespace Microsoft.DotNet.Execute
         public Setup OpenFile()
         {
             string configFile = Path.Combine(configFilePath, configFileName);
-            Console.WriteLine(configFile);
             if (File.Exists(configFile))
             {
                 string jsonFile = File.ReadAllText(configFile);
