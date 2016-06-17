@@ -13,12 +13,13 @@ namespace Microsoft.DotNet.Build.Tasks
 {
     /// <summary>
     /// Parse a project.json, and add additional dependencies, then write a out new project.json.
+    /// Use-case scenarios
+    /// 1. Provide a list of package drops, this becomes the source of package versions
+    /// 2. Provide a versions files, this becomes the source of package versions
+    /// If both a package drop and a version file are provided, then the package drop takes precedent over the version file.
     /// </summary>
     public class AddDependenciesToProjectJson : Task
     {
-        [Required]
-        public string VersionStructureRegex { get; set; }
-
         // Additional Dependencies to add to the project.json. May Optionally contain a version.
         // Will Override dependencies present in the project if there is a conflict.
         // AdditionalDependencies required metadata:  Name, Version
@@ -27,35 +28,33 @@ namespace Microsoft.DotNet.Build.Tasks
 
         // Framework section which the additional dependencies apply to.  Empty is the default dependencies section.
         public string[] Frameworks { get; set; }
-
-        public string BuildNumberOverrideStructureRegex { get; set; }
-
-        // Regex for which packages to update
+        public string[] PackagesDrops { get; set; }
         [Required]
-        public string IdentityRegex { get; set; }
+        public string PackageNameRegex { get; set; }
 
-        // Permit overriding package versions found in project.json with custom build number version.
-        public string PackageBuildNumberOverride { get; set; }
+        public string[] VersionsFiles { get; set; }
 
-        // Original package version which is used to seed the output project.json
+        /// <summary>
+        /// Original package version which is used to seed the output project.json
+        /// </summary>
         [Required]
         public string ProjectJson { get; set; }
 
-        // External package dependency versions.
+        /// <summary>
+        /// External package dependency versions.
+        /// </summary>
         public ITaskItem[] ExternalPackages { get; set; }
 
         /// <summary>
         /// Optional list of RIDs to exclude from the generated project.json.
         /// </summary>
         public string[] ExcludedRuntimes { get; set; }
-        
+
         // The directory to put the generated project.json in
         [Required]
         public string OutputProjectJson { get; set; }
 
-        private Regex _versionStructureRegex;
-        private Regex _buildNumberOverrideStructureRegex;
-        private Regex _identityRegex;
+        private Regex _packageNameRegex;
 
         public override bool Execute()
         {
@@ -64,17 +63,28 @@ namespace Microsoft.DotNet.Build.Tasks
                 Log.LogError("Cannot find specified project.json - '{0}'", ProjectJson);
                 return false;
             }
-            if (!string.IsNullOrWhiteSpace(PackageBuildNumberOverride))
+
+            List<ITaskItem> packageInformation = new List<ITaskItem>();
+            _packageNameRegex = new Regex(PackageNameRegex);
+
+            // Retrieve package information from a package drop location
+            if (PackagesDrops != null &&
+                PackagesDrops.Length > 0)
             {
-                if(string.IsNullOrWhiteSpace(BuildNumberOverrideStructureRegex))
+                packageInformation.AddRange(GatherPackageInformationFromDrops(PackagesDrops));
+            }
+
+            // Retrieve package information from a versions file
+            if (VersionsFiles != null)
+            {
+                foreach (var versionsFile in VersionsFiles)
                 {
-                    Log.LogError("Missing required parameter.  BuildNumberOverrideStructureRegex must be provided if PackageBuildNumberOverride is provided.");
-                }
-                _buildNumberOverrideStructureRegex = new Regex(BuildNumberOverrideStructureRegex);
-                if(!_buildNumberOverrideStructureRegex.IsMatch(PackageBuildNumberOverride))
-                {
-                    Log.LogError("Invalid package version format: '{0}'", PackageBuildNumberOverride);
-                    return false;
+                    if (!File.Exists(versionsFile))
+                    {
+                        Log.LogError("Version file {0} does not exist.", versionsFile);
+                    }
+
+                    packageInformation.AddRange(GatherPackageInformationFromVersionsFile(versionsFile));
                 }
             }
 
@@ -86,11 +96,6 @@ namespace Microsoft.DotNet.Build.Tasks
                 Log.LogError("Unable to find framework section '{0}' in '{1}'", invalidFramework, ProjectJson);
                 return false;
             }
-            _versionStructureRegex = new Regex(VersionStructureRegex);
-            _identityRegex = new Regex(IdentityRegex);
-
-            // No PackageBuildNumberOverride was specified, so try to find one to associate with our AdditionalDependencies
-            PackageBuildNumberOverride = PackageBuildNumberOverride ?? DeriveBuildNumber(projectRoot);
 
             // No Frameworks were specified, apply AdditionalDependencies to all framework groups in the project.json
             if (Frameworks == null || Frameworks.Length == 0)
@@ -99,7 +104,7 @@ namespace Microsoft.DotNet.Build.Tasks
             }
 
             // Update default dependencies section
-            JObject dependencies = GenerateDependencies(projectRoot, ExternalPackages);
+            JObject dependencies = GenerateDependencies(projectRoot, ExternalPackages, packageInformation);
             projectRoot = UpdateDependenciesProperty(projectRoot, dependencies);
 
             if (ExcludedRuntimes != null)
@@ -111,12 +116,84 @@ namespace Microsoft.DotNet.Build.Tasks
             // Update framework dependencies sections
             for (int i = 0; i < Frameworks.Length; i++)
             {
-                dependencies = GenerateDependencies(projectRoot, ExternalPackages, Frameworks[i]);
+                dependencies = GenerateDependencies(projectRoot, ExternalPackages, packageInformation, Frameworks[i]);
                 projectRoot = UpdateDependenciesProperty(projectRoot, dependencies, Frameworks[i]);
             }
             WriteProject(projectRoot, OutputProjectJson);
 
             return true;
+        }
+
+        /// <summary>
+        /// Given a package name regex pattern, and an array of drop locations, create an array of objects
+        /// containing package information (name, version,, prerelease version)
+        /// </summary>
+        /// <param name="packagesDrops"></param>
+        /// <returns></returns>
+        private IEnumerable<ITaskItem> GatherPackageInformationFromDrops(string [] packagesDrops)
+        {
+            List<ITaskItem> packageNameItems = new List<ITaskItem>();
+
+            foreach (string packageDrop in packagesDrops)
+            {
+                if (!Directory.Exists(packageDrop))
+                {
+                    Log.LogWarning("PackageDrop does not exist - '{0}'", packageDrop);
+                    continue;
+                }
+                IEnumerable<ITaskItem> packages = Directory.GetFiles(packageDrop).Select(f => new TaskItem(Path.GetFileNameWithoutExtension(f)));
+
+                foreach (ITaskItem package in packages)
+                {
+                    packageNameItems.Add(CreatePackageItemFromString(package.ItemSpec));
+                }
+            }
+            return packageNameItems;
+        }
+
+        // A versions file is of the form https://github.com/dotnet/versions/blob/master/build-info/dotnet/corefx/master/Latest_Packages.txt
+        private IEnumerable<ITaskItem> GatherPackageInformationFromVersionsFile(string versionsFile)
+        {
+            List<ITaskItem> packageNameItems = new List<ITaskItem>();
+            if(!File.Exists(versionsFile))
+            {
+                Log.LogError("Specified versions file ({0}) does not exist.", versionsFile);
+            }
+            var lines = File.ReadAllLines(versionsFile);
+            foreach(string line in lines)
+            { 
+                if(!string.IsNullOrWhiteSpace(line))
+                {
+                    string [] packageVersionTokens = line.Split(' ');
+                    packageNameItems.Add(CreatePackageItemFromString(packageVersionTokens[0], packageVersionTokens[1]));
+                }
+            }
+            return packageNameItems;
+        }
+
+        private TaskItem CreatePackageItemFromString(string package)
+        {
+            Match m = _packageNameRegex.Match(package);
+            TaskItem packageItem = null;
+            if (m.Success)
+            {
+                packageItem = new TaskItem(m.Groups[0].Value);
+                string name = m.Groups["name"].Value;
+                packageItem.SetMetadata("Name", name);
+                packageItem.SetMetadata("Version", m.Groups["version"].Value);
+                packageItem.SetMetadata("Prerelease", m.Groups["prerelease"].Value);
+            }
+            return packageItem;
+        }
+
+        private TaskItem CreatePackageItemFromString(string id, string version)
+        {
+            NuGetVersion nuGetVersion = new NuGetVersion(version);
+            TaskItem packageItem = new TaskItem(id);
+            packageItem.SetMetadata("Name", id);
+            packageItem.SetMetadata("Version", string.Join(".", nuGetVersion.Major, nuGetVersion.Minor, nuGetVersion.Patch));
+            packageItem.SetMetadata("Prerelease", nuGetVersion.Release.ToString());
+            return packageItem;
         }
 
         private string AreValidFrameworkPaths(JObject projectRoot)
@@ -159,7 +236,7 @@ namespace Microsoft.DotNet.Build.Tasks
         }
 
         // Generate the combines dependencies from the projectjson jObject and from AdditionalDependencies
-        private JObject GenerateDependencies(JObject projectJsonRoot, ITaskItem[] externalPackageVersions, string framework = null)
+        private JObject GenerateDependencies(JObject projectJsonRoot, ITaskItem[] externalPackageVersions, IEnumerable<ITaskItem> packageInformation, string framework = null)
         {
             var originalDependenciesList = new List<JToken>();
             var returnDependenciesList = new List<JToken>();
@@ -171,34 +248,26 @@ namespace Microsoft.DotNet.Build.Tasks
                 // Update versions in dependencies
                 foreach (JProperty property in originalDependenciesList.Select(od => od))
                 {
-                    // Validate that the package matches the identity regex for packages we want to update.
-                    Match updateDependency = _identityRegex.Match(property.Name);
+                    ITaskItem package = GetPackageInformation(property.Name, packageInformation);
 
-                    // if the package is in the external packages list then we'll
-                    // need to replace the version with the version from the list
-                    string externalVersion = null;
-                    if (externalPackageVersions != null)
-                        externalVersion = externalPackageVersions.FirstOrDefault(epv => epv.ItemSpec.Equals(property.Name, StringComparison.OrdinalIgnoreCase))?.GetMetadata("Version");
-
-                    if (updateDependency.Success || externalVersion != null)
+                    if (package != null)
                     {
                         NuGetVersion nuGetVersion;
-                        if (externalVersion == null)
+                        if (NuGetVersion.TryParse(property.Value.ToString(), out nuGetVersion))
                         {
-                            if (NuGetVersion.TryParse(property.Value.ToString(), out nuGetVersion))
-                            {
-                                Match m = _versionStructureRegex.Match(nuGetVersion.ToString());
+                            NuGetVersion dependencyVersion = nuGetVersion;
+                            string ver = null;
 
-                                if (m.Success)
-                                {
-                                    NuGetVersion dependencyVersion = nuGetVersion;
-                                    nuGetVersion = NuGetVersion.Parse(string.Join(".", dependencyVersion.Major, dependencyVersion.Minor, dependencyVersion.Patch) + "-" + PackageBuildNumberOverride);
-                                }
+                            // a package version was provided, use its version information.
+                            ver = package.GetMetadata("Version");
+
+                            string prereleaseVersion = package.GetMetadata("Prerelease");
+                            // we have package information, so use that.
+                            if (!string.IsNullOrWhiteSpace(prereleaseVersion))
+                            {
+                                ver += "-" + prereleaseVersion;
                             }
-                        }
-                        else
-                        {
-                            nuGetVersion = NuGetVersion.Parse(externalVersion);
+                            nuGetVersion = NuGetVersion.Parse(ver);
                         }
 
                         // Only add the original dependency if it wasn't passed as an AdditionalDependency, ie. AdditionalDependencies may override dependencies in project.json
@@ -229,17 +298,20 @@ namespace Microsoft.DotNet.Build.Tasks
                 // Don't add a new dependency if one already exists.
                 if (returnDependenciesList.FirstOrDefault(rd => ((JProperty)rd).Name.Equals(name)) == null)
                 {
+                    ITaskItem package = GetPackageInformation(name, packageInformation);
                     string version = null;
-                    if (externalPackageVersions != null)
-                        version = externalPackageVersions.FirstOrDefault(epv => epv.ItemSpec.Equals(name, StringComparison.OrdinalIgnoreCase))?.GetMetadata("Version");
 
-                    if (version == null)
+                    NuGetVersion dependencyVersion = NuGetVersion.Parse(dependency.GetMetadata("Version"));
+                    version = string.Join(".", dependencyVersion.Major, dependencyVersion.Minor, dependencyVersion.Patch);
+
+                    // a package version was provided, use its version information.
+                    if (package != null)
                     {
-                        NuGetVersion dependencyVersion = NuGetVersion.Parse(dependency.GetMetadata("Version"));
-                        version = string.Join(".", dependencyVersion.Major, dependencyVersion.Minor, dependencyVersion.Patch);
-                        if (!string.IsNullOrWhiteSpace(PackageBuildNumberOverride))
+                        version = package.GetMetadata("Version");
+                        string prereleaseVersion = package.GetMetadata("Prerelease");
+                        if (!string.IsNullOrWhiteSpace(prereleaseVersion))
                         {
-                            version += "-" + PackageBuildNumberOverride;
+                            version += "-" + prereleaseVersion;
                         }
                     }
                     JProperty property = new JProperty(name, version);
@@ -254,28 +326,16 @@ namespace Microsoft.DotNet.Build.Tasks
             return new JObject(returnDependenciesList.ToArray());
         }
 
-        /* No build number was specified, determine the build number by examining the other packages in the dependencies list */
-        private string DeriveBuildNumber(JObject projectRoot)
+        private ITaskItem GetPackageInformation(string name, IEnumerable<ITaskItem> packageInformation)
         {
-            var dependenciesList = projectRoot
-                .DescendantsAndSelf()
-                .OfType<JProperty>()
-                .Where(property => property.Name == "dependencies")
-                .Select(property => property.Value)
-                .SelectMany(o => o.Children<JProperty>());
-
-            foreach (JProperty property in dependenciesList.Select(dl => (JProperty)dl))
+            foreach(var package in packageInformation)
             {
-                string version = property.Value.ToString();
-                Match m = _versionStructureRegex.Match(version);
-                if (m.Success)
+                if(name.Equals(package.GetMetadata("Name"), StringComparison.OrdinalIgnoreCase))
                 {
-                    string buildNumber = m.Groups[2].Value;
-                    Log.LogMessage("Determined buildnumber using existing package dependencies as '{0}'", buildNumber);
-                    return buildNumber;
+                    return package;
                 }
             }
-            return PackageBuildNumberOverride;
+            return null;
         }
 
         /* Given a project.json as a JObject, replace it's dependencies property with a new dependencies property. */
