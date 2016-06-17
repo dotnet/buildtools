@@ -259,14 +259,7 @@ namespace Microsoft.DotNet.Build.Tasks
                             string ver = null;
 
                             // a package version was provided, use its version information.
-                            if (package != null)
-                            {
-                                ver = package.GetMetadata("Version");
-                            }
-                            else
-                            {
-                                ver = string.Join(".", dependencyVersion.Major, dependencyVersion.Minor, dependencyVersion.Patch);
-                            }
+                            ver = package.GetMetadata("Version");
 
                             string prereleaseVersion = package.GetMetadata("Prerelease");
                             // we have package information, so use that.
