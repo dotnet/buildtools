@@ -982,6 +982,14 @@
   <!-- Required by Common.Targets when evaluating projectReferences -->
   <Target Name="GetNativeManifest" />
   <Target Name="GetCopyToOutputDirectoryItems" />
+  
+  <!-- When building in VS, ResolveProjectReferences only calls GetTargetPath 
+       and expects that to return the same set of items as Targets defined by 
+       ProjectReference.Targets metadata.  -->
+  <Target Name="GetTargetPath" 
+          DependsOnTargets="GetPackageAssets"  
+          Returns="@(PackageAsset)" />
+ 
   <!-- App packaging support -->
   <!-- 
     Following two targets are needed to be present in every project being built

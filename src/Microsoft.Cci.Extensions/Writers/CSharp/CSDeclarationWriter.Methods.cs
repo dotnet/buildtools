@@ -196,16 +196,11 @@ namespace Microsoft.Cci.Writers.CSharp
             else if (method.ContainingTypeDefinition.IsValueType && method.IsConstructor)
             {
                 // Structs cannot have empty constructors so we need to output this dummy body
-                Write("throw new ");
-                if (_forCompilationIncludeGlobalprefix)
-                    Write("global::");
-                Write("System.NotImplementedException(); ");
+                Write("throw null;");
             }
             else if (!TypeHelper.TypesAreEquivalent(method.Type, method.ContainingTypeDefinition.PlatformType.SystemVoid))
             {
-                WriteKeyword("return");
-                WriteDefaultOf(method.Type);
-                WriteSymbol(";", true);
+                WriteKeyword("throw null;");
             }
 
             WriteSymbol("}");

@@ -61,6 +61,7 @@ namespace Microsoft.DotNet.CodeAnalysis.Analyzers
 
             context.RegisterCompilationEndAction(OnCompilationEnd);
             context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.Method, SymbolKind.Event);
+            context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.Field, SymbolKind.Event);
         }
 
         private static IEnumerable<string> ReadRequiredAPIsFromFiles(IEnumerable<AdditionalText> additionalAnalyzerFiles)
@@ -82,7 +83,7 @@ namespace Microsoft.DotNet.CodeAnalysis.Analyzers
 
         private void AnalyzeSymbol(SymbolAnalysisContext context)
         {
-            string apiDef = Helpers.GetPublicApiName(context.Symbol);
+            string apiDef = Helpers.GetMemberName(context.Symbol);
 
             lock (_apisToEnsureExist)
             {
