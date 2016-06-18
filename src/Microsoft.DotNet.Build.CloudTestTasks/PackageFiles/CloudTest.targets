@@ -378,5 +378,24 @@
       EventHubSharedAccessKeyName="$(BuildIsOfficialEventHubSharedAccessKeyName)"
       EventHubSharedAccessKey="$(BuildIsOfficialEventHubSharedAccessKey)"
       EventData="%(TestListFile.OfficialBuildJson)"/>
+    <!-- Upload the Correlation Id to the test drop container for tracking purposes-->
+    <PropertyGroup>
+      <CorrelationFileName>correlation_id-$(ConfigurationGroup)-$(TestNugetRuntimeId).txt</CorrelationFileName>
+    </PropertyGroup>
+    <ItemGroup>
+      <CorrelationFile Include="$(TestArchivesRoot)$(CorrelationFileName)">
+        <RelativeBlobPath>Tracking/$(CorrelationFileName)</RelativeBlobPath>
+      </CorrelationFile>
+    </ItemGroup>
+    <WriteLinesToFile
+        File="@(CorrelationFile)"
+        Lines="$(GeneratedCorrelationId)"
+        Overwrite="true" />
+    <UploadToAzure Condition=" '$(HelixApiAccessKey)' != '' "
+        AccountKey="$(CloudDropAccessToken)"
+        AccountName="$(CloudDropAccountName)"
+        ContainerName="$(ContainerName)"
+        Items="@(CorrelationFile)"
+        Overwrite="true" />
   </Target>
 </Project>
