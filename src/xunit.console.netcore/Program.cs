@@ -20,7 +20,7 @@ namespace Xunit.ConsoleClient
         {
             try
             {
-                Console.ForegroundColor = ConsoleColor.White;
+                SetConsoleForegroundColor(ConsoleColor.White);
 #if !NETCORE
                 var netVersion = Environment.Version;
 #else
@@ -29,7 +29,7 @@ namespace Xunit.ConsoleClient
                 Console.WriteLine("xUnit.net console test runner ({0}-bit .NET {1})", IntPtr.Size * 8, netVersion);
                 Console.WriteLine("Copyright (C) 2014 Outercurve Foundation.");
                 Console.WriteLine();
-                Console.ForegroundColor = ConsoleColor.Gray;
+                SetConsoleForegroundColor(ConsoleColor.Gray);
 
                 if (args.Length == 0 || args[0] == "-?")
                 {
@@ -52,7 +52,9 @@ namespace Xunit.ConsoleClient
 
                 var defaultDirectory = Directory.GetCurrentDirectory();
                 if (!defaultDirectory.EndsWith(new String(new[] { Path.DirectorySeparatorChar })))
+                {
                     defaultDirectory += Path.DirectorySeparatorChar;
+                }
 
                 var commandLine = CommandLine.Parse(args);
 
@@ -82,7 +84,7 @@ namespace Xunit.ConsoleClient
             }
             finally
             {
-                Console.ResetColor();
+                ResetConsoleColor();
             }
         }
 
@@ -154,7 +156,7 @@ namespace Xunit.ConsoleClient
             var consoleLock = new object();
 
             if (!parallelizeAssemblies.HasValue)
-                parallelizeAssemblies = project.All(assembly => assembly.Configuration.ParallelizeAssembly ?? false); 
+                parallelizeAssemblies = project.All(assembly => assembly.Configuration.ParallelizeAssembly ?? false);
 
             if (needsXml)
                 assembliesElement = new XElement("assemblies");
@@ -186,10 +188,10 @@ namespace Xunit.ConsoleClient
 
                 if (completionMessages.Count > 0)
                 {
-                    Console.ForegroundColor = ConsoleColor.White;
+                    SetConsoleForegroundColor(ConsoleColor.White);
                     Console.WriteLine();
                     Console.WriteLine("=== TEST EXECUTION SUMMARY ===");
-                    Console.ForegroundColor = ConsoleColor.Gray;
+                    SetConsoleForegroundColor(ConsoleColor.Gray);
 
                     var totalTestsRun = completionMessages.Values.Sum(summary => summary.Total);
                     var totalTestsFailed = completionMessages.Values.Sum(summary => summary.Failed);
@@ -292,7 +294,9 @@ namespace Xunit.ConsoleClient
                     discoveryVisitor.Finished.WaitOne();
 
                     lock (consoleLock)
+                    {
                         Console.WriteLine("Discovered:  {0}", Path.GetFileNameWithoutExtension(assembly.AssemblyFilename));
+                    }
 
                     var resultsVisitor = CreateVisitor(consoleLock, defaultDirectory, assemblyElement, teamCity, appVeyor, showProgress);
                     var filteredTestCases = discoveryVisitor.TestCases.Where(filters.Filter).ToList();
@@ -300,9 +304,9 @@ namespace Xunit.ConsoleClient
                     {
                         lock (consoleLock)
                         {
-                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            SetConsoleForegroundColor(ConsoleColor.DarkYellow);
                             Console.WriteLine("Info:        {0} has no tests to run", Path.GetFileNameWithoutExtension(assembly.AssemblyFilename));
-                            Console.ForegroundColor = ConsoleColor.Gray;
+                            SetConsoleForegroundColor(ConsoleColor.Gray);
                         }
                     }
                     else
@@ -328,12 +332,36 @@ namespace Xunit.ConsoleClient
 
             lock (consoleLock)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
+                SetConsoleForegroundColor(ConsoleColor.Red);
                 Console.WriteLine("File not found: {0}", fileName);
-                Console.ForegroundColor = ConsoleColor.Gray;
+                SetConsoleForegroundColor(ConsoleColor.Gray);
             }
 
             return false;
+        }
+
+        public static void SetConsoleForegroundColor(ConsoleColor value)
+        {
+            try
+            {
+                Console.ForegroundColor = value;
+            }
+            catch (NotSupportedException)
+            {
+                Debug.WriteLine("Ignoring NotSupportedException from Console PAL");
+            }
+        }
+
+        public static void ResetConsoleColor()
+        {
+            try
+            {
+                Console.ResetColor();
+            }
+            catch (NotSupportedException)
+            {
+                Debug.WriteLine("Ignoring NotSupportedException from Console PAL");
+            }
         }
     }
 }

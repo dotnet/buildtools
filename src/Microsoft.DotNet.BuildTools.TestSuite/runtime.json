@@ -58,7 +58,7 @@
             ]
         },
         "coreFx.Test.netcore50": {
-            "netcore50": [
+            "uap10.0": [
                 "win10-x86",
                 "win10-x86-aot",
                 "win10-x64",
