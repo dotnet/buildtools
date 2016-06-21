@@ -69,13 +69,6 @@
       </TestCopyLocal>
     </ItemGroup>
 
-    <!-- We may have an indirect package reference that we want to replace with a project reference.
-          Those are part of RunTestsForProjectInputs. The order that we append to TestCopyLocal is
-          significant, later entries override earlier entries. -->
-    <ItemGroup>
-      <TestCopyLocal Include="@(RunTestsForProjectInputs)" Exclude="@(PackagesConfigs)" />
-    </ItemGroup>
-
     <GetTargetMachineInfo Condition="'$(TestWithLocalLibraries)'=='true'">
       <Output Condition="'$(TargetArch)'==''" TaskParameter="TargetArch" PropertyName="TargetArch" />
       <Output Condition="'$(TargetOS)'==''" TaskParameter="TargetOS" PropertyName="TargetOS" />
