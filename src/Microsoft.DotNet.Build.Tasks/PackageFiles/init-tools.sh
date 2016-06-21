@@ -5,7 +5,6 @@ __DOTNET_CMD=$2
 __TOOLRUNTIME_DIR=$3
 __PACKAGES_DIR=$4
 if [ "$__PACKAGES_DIR" == "" ]; then __PACKAGES_DIR=${__TOOLRUNTIME_DIR}; fi
-__TOOLS_DIR=$(cd "$(dirname "$0")"; pwd -P)
 __MICROBUILD_VERSION=0.2.0
 __PORTABLETARGETS_VERSION=0.1.1-dev
 __MSBUILD_CONTENT_JSON="{\"dependencies\": {\"MicroBuild.Core\": \"${__MICROBUILD_VERSION}\", \"Microsoft.Portable.Targets\": \"${__PORTABLETARGETS_VERSION}\"},\"frameworks\": {\"netcoreapp1.0\": {},\"net46\": {}}}"
@@ -29,55 +28,12 @@ if [ ! -d "$__TOOLRUNTIME_DIR" ]; then
     mkdir $__TOOLRUNTIME_DIR
 fi
 
-OSName=$(uname -s)
-case $OSName in
-    Darwin)
-        __PUBLISH_RID=osx.10.10-x64
-        ;;
-
-    Linux)
-        if [ ! -e /etc/os-release ]; then
-            echo "Can not determine distribution, assuming Ubuntu 14.04"
-            __PUBLISH_RID=ubuntu.14.04-x64
-        else
-            source /etc/os-release
-            __PUBLISH_RID=$ID.$VERSION_ID-x64
-        fi
-
-        # RHEL bumps their OS Version with minor releases, but we only put the "rhel.7-x64" RID in our
-        # tool runtime, since there's binary compatibility between minor versions.
-
-        if [[ $__PUBLISH_RID == rhel.7*-x64 ]]; then
-            __PUBLISH_RID=rhel.7-x64
-        fi
-        ;;
-
-    *)
-        echo "Unsupported OS '$OSName' detected. Downloading ubuntu-x64 tools."
-        __PUBLISH_RID=ubuntu.14.04-x64
-        ;;
-esac
-
-cp -R $__TOOLS_DIR/* $__TOOLRUNTIME_DIR
-
-__TOOLRUNTIME_PROJECTJSON=$__TOOLS_DIR/tool-runtime/project.json
-echo "Running: $__DOTNET_CMD restore \"${__TOOLRUNTIME_PROJECTJSON}\" --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json"
-$__DOTNET_CMD restore "${__TOOLRUNTIME_PROJECTJSON}" --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json
-if [ "$?" != "0" ]; then
-    echo "ERROR: An error occured when running: '$__DOTNET_CMD restore \"${__TOOLRUNTIME_PROJECTJSON}\"'. Please check above for more details."
-    exit 1
-fi
-echo "Running: $__DOTNET_CMD publish \"${__TOOLRUNTIME_PROJECTJSON}\" -f netcoreapp1.0 -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR"
-$__DOTNET_CMD publish "${__TOOLRUNTIME_PROJECTJSON}" -f netcoreapp1.0 -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR
-if [ "$?" != "0" ]; then
-    echo "ERROR: An error ocurred when running: '$__DOTNET_CMD publish \"${__TOOLRUNTIME_PROJECTJSON}\"'. Please check above for more details."
-    exit 1
-fi
-
 if [ -n "$BUILDTOOLS_OVERRIDE_RUNTIME" ]; then
     find $__TOOLRUNTIME_DIR -name *.ni.* | xargs rm 2>/dev/null
     cp -R $BUILDTOOLS_OVERRIDE_RUNTIME/* $__TOOLRUNTIME_DIR
 fi
+
+echo "" > "${__TOOLRUNTIME_DIR}/_._"
 
 # Copy Portable Targets Over to ToolRuntime
 if [ ! -d "${__PACKAGES_DIR}/generated" ]; then mkdir "${__PACKAGES_DIR}/generated"; fi
