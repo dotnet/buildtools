@@ -2,20 +2,17 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <!-- Perf Runner NuGet package paths -->
-  <PropertyGroup>
-   <XunitPerfAnalysisPackageVersion Condition="'$(XunitPerfAnalysisPackageVersion)' == ''">1.0.0-alpha-build0037</XunitPerfAnalysisPackageVersion>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(TargetOS)'=='Linux'">
     <PerfDotNetCliDir>$(TestPath)../perf.dotnetcli</PerfDotNetCliDir>
     <PerfDotNetCliInstaller>$(ToolsDir)/RunnerScripts/xunitrunner-perf/ubuntu-dotnet-local-install.sh</PerfDotNetCliInstaller>
     <XunitPerfRunnerPackageId>Microsoft.DotNet.xunit.performance.runner.cli</XunitPerfRunnerPackageId>
-    <XunitPerfRunnerPackageDir>$(PackagesDir)$(XunitPerfRunnerPackageId)/$(XunitPerfRunnerPackageVersion)</XunitPerfRunnerPackageDir>
+    <XunitPerfRunnerPackageDir>$(PackagesDir)$(XunitPerfRunnerPackageId)/$(XunitPerfAnalysisPackageVersion)</XunitPerfRunnerPackageDir>
     <XunitPerfRunnerPath>$(TestPath)$(DebugTestFrameworkFolder)/Microsoft.DotNet.xunit.performance.runner.cli.dll</XunitPerfRunnerPath>
   </PropertyGroup>
   <!-- Perf Runner NuGet package paths -->
   <PropertyGroup Condition="'$(TargetOS)'=='Windows_NT'">
     <XunitPerfRunnerPackageId>Microsoft.DotNet.xunit.performance.runner.Windows</XunitPerfRunnerPackageId>
-    <XunitPerfRunnerPackageDir>$(PackagesDir)$(XunitPerfRunnerPackageId)/$(XunitPerfRunnerPackageVersion)</XunitPerfRunnerPackageDir>
+    <XunitPerfRunnerPackageDir>$(PackagesDir)$(XunitPerfRunnerPackageId)/$(XunitPerfAnalysisPackageVersion)</XunitPerfRunnerPackageDir>
     <XunitPerfRunnerPath>$(TestPath)$(DebugTestFrameworkFolder)/xunit.performance.run.exe</XunitPerfRunnerPath>
   </PropertyGroup>
 
@@ -37,7 +34,8 @@
   </Target>
   <!-- Copy over the performance runners to the test directory-->
   <Target Name="CopyXunitExecutionFiles" AfterTargets="CopyTestToTestDirectory" Condition="'$(Performance)' == 'true'">
-
+    <Error Condition="'$(XunitPerfAnalysisPackageVersion)' == ''" Text="Xunit performance package version was not specified" />
+    <Error Condition="!Exists('$(XunitPerfAnalysisPath)')" Text="Xunit performance package was not found" />
     <ItemGroup Condition="'$(TargetOS)'=='Windows_NT'">
       <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/xunit.performance.run.exe" />
       <PerfRunners Include="$(XunitPerfRunnerPackageDir)/tools/xunit.performance.metrics.dll" />
