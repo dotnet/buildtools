@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-    <!-- Perf Runner NuGet package paths -->
+  <!-- Perf Runner NuGet package paths -->
+  <PropertyGroup>
+   <XunitPerfAnalysisPackageVersion Condition="'$(XunitPerfAnalysisPackageVersion)' == ''">1.0.0-alpha-build0037</XunitPerfAnalysisPackageVersion>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(TargetOS)'=='Linux'">
     <PerfDotNetCliDir>$(TestPath)../perf.dotnetcli</PerfDotNetCliDir>
     <PerfDotNetCliInstaller>$(ToolsDir)/RunnerScripts/xunitrunner-perf/ubuntu-dotnet-local-install.sh</PerfDotNetCliInstaller>
     <XunitPerfRunnerPackageId>Microsoft.DotNet.xunit.performance.runner.cli</XunitPerfRunnerPackageId>
-    <XunitPerfRunnerPackageVersion Condition="'$(XunitPerfRunnerPackageVersion)' == ''">1.0.0-alpha-build0037</XunitPerfRunnerPackageVersion>
     <XunitPerfRunnerPackageDir>$(PackagesDir)$(XunitPerfRunnerPackageId)/$(XunitPerfRunnerPackageVersion)</XunitPerfRunnerPackageDir>
     <XunitPerfRunnerPath>$(TestPath)$(DebugTestFrameworkFolder)/Microsoft.DotNet.xunit.performance.runner.cli.dll</XunitPerfRunnerPath>
   </PropertyGroup>
   <!-- Perf Runner NuGet package paths -->
   <PropertyGroup Condition="'$(TargetOS)'=='Windows_NT'">
     <XunitPerfRunnerPackageId>Microsoft.DotNet.xunit.performance.runner.Windows</XunitPerfRunnerPackageId>
-    <XunitPerfRunnerPackageVersion Condition="'$(XunitPerfRunnerPackageVersion)' == ''">1.0.0-alpha-build0037</XunitPerfRunnerPackageVersion>
     <XunitPerfRunnerPackageDir>$(PackagesDir)$(XunitPerfRunnerPackageId)/$(XunitPerfRunnerPackageVersion)</XunitPerfRunnerPackageDir>
     <XunitPerfRunnerPath>$(TestPath)$(DebugTestFrameworkFolder)/xunit.performance.run.exe</XunitPerfRunnerPath>
   </PropertyGroup>
@@ -21,12 +22,10 @@
   <!-- Perf Analysis NuGet package paths -->
   <PropertyGroup Condition="'$(TargetOS)'=='Linux'">
     <XunitPerfAnalysisPackageId>Microsoft.DotNet.xunit.performance.analysis.cli</XunitPerfAnalysisPackageId>
-    <XunitPerfAnalysisPackageVersion Condition="'$(XunitPerfAnalysisPackageVersion)' == ''">1.0.0-alpha-build0037</XunitPerfAnalysisPackageVersion>
     <XunitPerfAnalysisPath>$(PackagesDir)$(XunitPerfAnalysisPackageId)/$(XunitPerfAnalysisPackageVersion)/lib/netstandard1.3/Microsoft.DotNet.xunit.performance.analysis.cli.dll</XunitPerfAnalysisPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetOS)'=='Windows_NT'">
     <XunitPerfAnalysisPackageId>Microsoft.DotNet.xunit.performance.analysis</XunitPerfAnalysisPackageId>
-    <XunitPerfAnalysisPackageVersion Condition="'$(XunitPerfAnalysisPackageVersion)' == ''">1.0.0-alpha-build0037</XunitPerfAnalysisPackageVersion>
     <XunitPerfAnalysisPath>$(PackagesDir)$(XunitPerfAnalysisPackageId)/$(XunitPerfAnalysisPackageVersion)/tools/xunit.performance.analysis.exe</XunitPerfAnalysisPath>
   </PropertyGroup>
 
