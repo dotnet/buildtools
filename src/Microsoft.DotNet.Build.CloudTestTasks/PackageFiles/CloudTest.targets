@@ -132,6 +132,11 @@
         <RelativeBlobPath>$(SupplementalPayloadFilename)</RelativeBlobPath>
       </SupplementalPayload>
     </ItemGroup>
+    <ItemGroup Condition="'$(UseDotNetNativeToolchain)' == 'true'" >
+      <SupplementalPayload Include="$(TestILCZipFile)">
+        <RelativeBlobPath>$([System.IO.Path]::GetFileName('$(TestILCZipFile)'))</RelativeBlobPath>
+      </SupplementalPayload>
+    </ItemGroup>
   </Target>
 
   <!-- create Azure containers and file shares -->

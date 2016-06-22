@@ -13,6 +13,7 @@ namespace Xunit.ConsoleClient
     {
         volatile static bool cancel;
         static bool failed;
+        static bool hitPlatformNotSupported = false;
         static readonly ConcurrentDictionary<string, ExecutionSummary> completionMessages = new ConcurrentDictionary<string, ExecutionSummary>();
 
         [STAThread]
@@ -21,6 +22,21 @@ namespace Xunit.ConsoleClient
             try
             {
                 SetConsoleForegroundColor(ConsoleColor.White);
+
+                // Workaround for NetCore50 (UWP) implementations:
+                // If we can't set Foreground color, we're running against a version that will be no-op'ing
+                // standard output stream.  If this is the case, just redirect console output.
+                //
+                // Since these things are just coincidental If there's ever a version of System.Console that throws for color but
+                // actually allows console output, we'll need to make this optional.
+                if (hitPlatformNotSupported)
+                {
+                    StreamWriter textFileOutput = new StreamWriter(new FileStream("Xunit.Console.Output.txt", FileMode.Create))
+                    {
+                        AutoFlush = true
+                    };
+                    Console.SetOut(textFileOutput);
+                }
 #if !NETCORE
                 var netVersion = Environment.Version;
 #else
@@ -40,15 +56,22 @@ namespace Xunit.ConsoleClient
 #if !NETCORE
                 AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 #endif
-                Console.CancelKeyPress += (sender, e) =>
+                try
                 {
-                    if (!cancel)
+                    Console.CancelKeyPress += (sender, e) =>
                     {
-                        Console.WriteLine("Canceling... (Press Ctrl+C again to terminate)");
-                        cancel = true;
-                        e.Cancel = true;
-                    }
-                };
+                        if (!cancel)
+                        {
+                            Console.WriteLine("Canceling... (Press Ctrl+C again to terminate)");
+                            cancel = true;
+                            e.Cancel = true;
+                        }
+                    };
+                }
+                catch (PlatformNotSupportedException)
+                {
+                    Debug.WriteLine("Ignoring PlatformNotSupportedException from Console PAL");
+                }
 
                 var defaultDirectory = Directory.GetCurrentDirectory();
                 if (!defaultDirectory.EndsWith(new String(new[] { Path.DirectorySeparatorChar })))
@@ -342,25 +365,37 @@ namespace Xunit.ConsoleClient
 
         public static void SetConsoleForegroundColor(ConsoleColor value)
         {
+            if (hitPlatformNotSupported)
+            {
+                return;
+            }
+
             try
             {
                 Console.ForegroundColor = value;
             }
-            catch (NotSupportedException)
+            catch (PlatformNotSupportedException)
             {
-                Debug.WriteLine("Ignoring NotSupportedException from Console PAL");
+                hitPlatformNotSupported = true;
+                Debug.WriteLine("Ignoring PlatformNotSupportedException from Console PAL");
             }
         }
 
         public static void ResetConsoleColor()
         {
+            if (hitPlatformNotSupported)
+            {
+                return;
+            }
+
             try
             {
                 Console.ResetColor();
             }
-            catch (NotSupportedException)
+            catch (PlatformNotSupportedException)
             {
-                Debug.WriteLine("Ignoring NotSupportedException from Console PAL");
+                hitPlatformNotSupported = true;
+                Debug.WriteLine("Ignoring PlatformNotSupportedException from Console PAL");
             }
         }
     }

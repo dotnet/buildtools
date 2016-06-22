@@ -3,7 +3,7 @@ SETLOCAL
 
 SET PACKAGE_DIR=%1
 SET EXECUTION_DIR=%2
-
+set PACKAGE_DIR=%PACKAGE_DIR:/=\%
 IF DEFINED PACKAGE_DIR ( echo Using %PACKAGE_DIR% as folder for resolving package dependencies.) ELSE (
 echo Please specify an package source directory using PACKAGEROOT parameter
 goto ShowUsage

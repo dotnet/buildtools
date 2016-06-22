@@ -33,12 +33,19 @@
     <DebugEngines>{2E36F1D4-B23C-435D-AB41-18E608940038}</DebugEngines>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(UseDotNetNativeToolchain)' == 'true'">
+    <TestILCFolder>%PACKAGE_DIR%\TestILC\1.0.0</TestILCFolder>
+    <TestHostExecutable></TestHostExecutable>
+    <XunitExecutable>xunit.console.netcore.exe</XunitExecutable>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(TestWithCore)' != 'true' And '$(TestAppX)' != 'true'">
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.exe</XunitExecutable>
     <DebugTestFrameworkFolder>net45</DebugTestFrameworkFolder>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TestAppX)' == 'true'">
+    <TestHostExecutable></TestHostExecutable>
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.uwp.exe</XunitExecutable>
   </PropertyGroup>
 
@@ -181,7 +188,7 @@
         <UseAbsolutePath Condition="'$(TestWithLocalLibraries)'=='true'">$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').StartsWith('$(BinDir)'))</UseAbsolutePath>
       </IncludedFileForRunnerScript>
     </ItemGroup>
-    
+
     <MakeDir Directories="$(OutputFolderForTestDependencies)" />
     <PropertyGroup>
       <_TestDependencyListRoot>$(AssemblyName)-$(OSGroup).$(Platform).$(ConfigurationGroup)</_TestDependencyListRoot>
@@ -195,16 +202,33 @@
       Lines="@(IncludedFileForRunnerScript -> '%(PackageRelativePath)')"
       Overwrite="true"
       Encoding="Ascii" />
-    
+
     <Message Text="Generating JSON-Processed $(OutDir)assemblylist.txt for legacy execution" />
     <GenerateAssemblyList
       InputListLocation="$(TestDependencyListFilePath)"
       OutputListLocation="$(OutDir)assemblylist.txt"
      />
 
-    <!-- Add commands for before / after test execution here.  -->
+    <!-- For .NET Native compilation, we first need to generate a native executable if possible. -->
+    <ItemGroup Condition="'$(UseDotNetNativeToolchain)' == 'true'" >
+      <TestCommandLines Include="copy /y $(TestILCFolder)\default.rd.xml  %EXECUTION_DIR%" />
+      <TestCommandLines Include="$(TestILCFolder)\ilc.exe -usecustomframework -ExeName xunit.console.netcore.exe -in %EXECUTION_DIR% -out %EXECUTION_DIR%\native -usedefaultpinvoke -buildtype ret -v diag || exit /b %ERRORLEVEL%"/>
+      <TestCommandLines Include="copy /y $(TestILCFolder)\ProductIlc\lib\MSCRT\vcruntime140_app.dll %EXECUTION_DIR%\native" />
+      <TestCommandLines Include="echo > %EXECUTION_DIR%\native\$(XunitTestAssembly)"/>
+      <TestCommandLines Include="cd native"/>
+    </ItemGroup>
+
     <ItemGroup>
-      <TestCommandLines Include="$(TestCommandLine)"/>
+      <!-- On Windows, call prevents the test command from making execution end prematurely -->
+      <TestCommandLines  Condition="'$(TargetOS)'=='Windows_NT'" Include="call $(TestCommandLine)"/>
+      <TestCommandLines  Condition="'$(TargetOS)'!='Windows_NT'" Include="$(TestCommandLine)"/>
+    </ItemGroup>
+
+    <!-- Currently all netcore50 implementations of System.Console actually write to a noop stream -->
+    <!-- Workaround is to have the exe detect this and use Console.SetOut to write to a text file. -->
+    <ItemGroup Condition="'$(UseDotNetNativeToolchain)' == 'true'" >
+      <TestCommandLines Include="type Xunit.Console.Output.txt" />
+      <TestCommandLines Include="copy /y testResults.xml %EXECUTION_DIR%\" />      
     </ItemGroup>
 
     <GenerateTestExecutionScripts
