@@ -130,11 +130,18 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
             else
             {
-                List<ITaskItem> matchingSymbols = (from asset in candidateRuntimeAssets
-                                                   where File.Exists(Path.ChangeExtension(asset.ItemSpec, ".pdb"))
-                                                   select new TaskItem(Path.ChangeExtension(asset.ItemSpec, ".pdb"))).ToList<ITaskItem>();
 
-                candidateRuntimeAssets.AddRange(matchingSymbols);
+                ITaskItem[] matchingSymbols = (from asset in candidateRuntimeAssets
+                                               where File.Exists(Path.ChangeExtension(asset.ItemSpec, ".pdb")) 
+                                               && !Path.GetExtension(asset.ItemSpec).Equals(".pdb", StringComparison.OrdinalIgnoreCase)
+                                               select asset).ToArray();
+                // Not using foreach here because CopyMetadataTo() triggers "Collection was modified... in a foreach"
+                for (int i = 0; i < matchingSymbols.Length; i ++)
+                {
+                    ITaskItem symbolItem = new TaskItem(Path.ChangeExtension(matchingSymbols[i].ItemSpec, ".pdb"));
+                    matchingSymbols[i].CopyMetadataTo(symbolItem);
+                    candidateRuntimeAssets.Add(symbolItem);
+                }
             }
             RuntimeAssets = candidateRuntimeAssets.ToArray();
             return !Log.HasLoggedErrors;
