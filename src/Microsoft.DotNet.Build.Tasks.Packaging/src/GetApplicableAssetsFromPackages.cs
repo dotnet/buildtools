@@ -5,14 +5,11 @@
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using NuGet.Frameworks;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
@@ -113,7 +110,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             {
                 RuntimeAssets = _resolver.ResolveRuntimeAssets(runtimeFx, TargetRuntime)
                                          .Where(ra => !NuGetAssetResolver.IsPlaceholder(ra))
-                                         .Select(ra => PackageItemAsResolvedAsset(_targetPathToPackageItem[ra]))
+                                         .SelectMany(ra => PackageItemAndSymbolsAsResolvedAsset(_targetPathToPackageItem[ra]))
                                          .ToArray();
 
                 if (RuntimeAssets.Any())
@@ -182,9 +179,33 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
         }
 
-        private ITaskItem PackageItemAsResolvedAsset(PackageItem packageItem)
+        private static ITaskItem PackageItemAsResolvedAsset(PackageItem packageItem)
         {
-            var item = new TaskItem(packageItem.OriginalItem);
+            return SetPackageMetadata(new TaskItem(packageItem.OriginalItem), packageItem);
+        }
+
+        private static IEnumerable<ITaskItem> PackageItemAndSymbolsAsResolvedAsset(PackageItem packageItem)
+        {
+            yield return PackageItemAsResolvedAsset(packageItem);
+
+            string pdbPath = Path.ChangeExtension(packageItem.SourcePath, ".pdb");
+            if (File.Exists(pdbPath))
+            {
+                var pdbItem = new TaskItem(Path.ChangeExtension(packageItem.OriginalItem.ItemSpec, ".pdb"));
+                packageItem.OriginalItem.CopyMetadataTo(pdbItem);
+                SetPackageMetadata(pdbItem, packageItem);
+                
+                if (!String.IsNullOrEmpty(packageItem.TargetPath))
+                {
+                    pdbItem.SetMetadata("TargetPath", Path.ChangeExtension(packageItem.TargetPath, ".pdb"));
+                }
+
+                yield return pdbItem;
+            }
+        }
+
+        private static ITaskItem SetPackageMetadata(ITaskItem item, PackageItem packageItem)
+        {
             item.SetMetadata("Private", "false");
             item.SetMetadata("FromPkgProj", "true");
             item.SetMetadata("NuGetPackageId", packageItem.Package);
