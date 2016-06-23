@@ -5,14 +5,11 @@
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using NuGet.Frameworks;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
@@ -26,14 +23,14 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// All items that make up packages to resolve from.  
         /// Must have the following metadata
         ///     Identity - path to the file in the binary directory
-        ///         TargetPath - path to the file in the package
-        ///         PackageId - ID of the package containing the file
+        ///     TargetPath - path to the file in the package
+        ///     PackageId - ID of the package containing the file
         /// </summary>
         [Required]
         public ITaskItem[] PackageAssets { get; set; }
 
         /// <summary>
-        /// TargetMoniker to use when resolving assets.  EG: netcoreapp1.0, netstandard1.4
+        /// TargetMoniker to use when resolving assets.  e.g., netcoreapp1.0, netstandard1.4
         /// </summary>
         [Required]
         public string[] TargetMonikers { get; set; }
@@ -109,25 +106,44 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 Log.LogError($"Could not locate compile assets for any of the frameworks {String.Join(";", compileFxs.Select(fx => fx.ToString()))}");
             }
 
+            List<ITaskItem> candidateRuntimeAssets = new List<ITaskItem>();
+
             foreach (var runtimeFx in runtimeFxs)
             {
-                RuntimeAssets = _resolver.ResolveRuntimeAssets(runtimeFx, TargetRuntime)
+
+                candidateRuntimeAssets = _resolver.ResolveRuntimeAssets(runtimeFx, TargetRuntime)
                                          .Where(ra => !NuGetAssetResolver.IsPlaceholder(ra))
                                          .Select(ra => PackageItemAsResolvedAsset(_targetPathToPackageItem[ra]))
-                                         .ToArray();
+                                         .ToList();
 
-                if (RuntimeAssets.Any())
+                if (candidateRuntimeAssets.Any())
                 {
-                    Log.LogMessage($"Resolved runtime assets from {runtimeFx.ToString()}: {String.Join(";", RuntimeAssets.Select(r => r.ItemSpec))}");
+                    Log.LogMessage($"Resolved runtime assets from {runtimeFx.ToString()}: {String.Join(";", candidateRuntimeAssets.Select(r => r.ItemSpec))}");
                     break;
                 }
             }
 
-            if (!RuntimeAssets.Any())
+
+            if (!candidateRuntimeAssets.Any())
             {
                 Log.LogError($"Could not locate runtime assets for any of the frameworks {String.Join(";", runtimeFxs.Select(fx => fx.ToString()))}");
             }
+            else
+            {
 
+                ITaskItem[] matchingSymbols = (from asset in candidateRuntimeAssets
+                                               where File.Exists(Path.ChangeExtension(asset.ItemSpec, ".pdb")) 
+                                               && !Path.GetExtension(asset.ItemSpec).Equals(".pdb", StringComparison.OrdinalIgnoreCase)
+                                               select asset).ToArray();
+                // Not using foreach here because CopyMetadataTo() triggers "Collection was modified... in a foreach"
+                for (int i = 0; i < matchingSymbols.Length; i ++)
+                {
+                    ITaskItem symbolItem = new TaskItem(Path.ChangeExtension(matchingSymbols[i].ItemSpec, ".pdb"));
+                    matchingSymbols[i].CopyMetadataTo(symbolItem);
+                    candidateRuntimeAssets.Add(symbolItem);
+                }
+            }
+            RuntimeAssets = candidateRuntimeAssets.ToArray();
             return !Log.HasLoggedErrors;
         }
 
