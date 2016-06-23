@@ -18,12 +18,13 @@
     </description>
     <copyright>Copyright © Microsoft Corporation</copyright>
     <dependencies>
-      <dependency id="xunit" version="2.1.0" />
-      <dependency id="xunit.runner.utility" version="2.1.0" />
+      <dependency id="Microsoft.NETCore.UniversalWindowsPlatform" version="5.0.0" />
     </dependencies>
   </metadata>
   <files>
     <!-- xunit runner for UWP -->
+    <file src="xunit.runner.uwp\Core\*.exe" target="app\Core" />
+    <file src="xunit.runner.uwp\Core\*.xml" target="app\Core" />
     <file src="xunit.runner.uwp\**\*.exe" target="app" />
     <file src="xunit.runner.uwp\**\*.xml" target="app" />
     <file src="xunit.runner.uwp\**\*.xbf" target="app" />
