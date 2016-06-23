@@ -79,7 +79,7 @@
     <PropertyGroup>
       <EventHubInfoMissing Condition="'$(EventHubPath)' == '' or '$(EventHubSharedAccessKey)' == '' or '$(EventHubSharedAccessKeyName)' == ''">true</EventHubInfoMissing>
     </PropertyGroup>
-    <Warning Condition="'$(SkipNotifyEvent)' != 'true' and '$(HelixApiAccessKey)' == '' and '$(EventHubInfoMissing)' == '' " Text="EventHubPath and EventHubAccessKeys are depricated, use HelixApiAccessKey" />
+    <Warning Condition="'$(SkipNotifyEvent)' != 'true' and '$(HelixApiAccessKey)' == '' and '$(EventHubInfoMissing)' == '' " Text="EventHubPath and EventHubAccessKeys have been deprecated, use HelixApiAccessKey instead" />
     <Error Condition="'$(SkipNotifyEvent)' != 'true' and '$(HelixApiAccessKey)' == '' and '$(EventHubInfoMissing)' == 'true' " Text="HelixApiAccessKey must be set to start Helix jobs" />
 
     <!-- gather the test archives for upload -->
@@ -152,13 +152,15 @@
     <!-- flatten it into a property as msbuild chokes on @(CorrelationPayloadUri) in FunctionalTest.CorrelationPayloadUris :( -->
     <PropertyGroup>
       <CorrelationPayloadUris>@(CorrelationPayloadUri)</CorrelationPayloadUris>
+      <CloudResultsReadTokenValidDays Condition="'$(CloudResultsReadTokenValidDays)' == ''">30</CloudResultsReadTokenValidDays>
+      <CloudResultsWriteTokenValidDays Condition="'$(CloudResultsWriteTokenValidDays)' == ''">4</CloudResultsWriteTokenValidDays>
     </PropertyGroup>
     <CreateAzureContainer
       AccountKey="$(CloudResultsAccessToken)"
       AccountName="$(CloudResultsAccountName)"
       ContainerName="$(ContainerName)"
-      ReadOnlyTokenDaysValid="30"
-      WriteOnlyTokenDaysValid="1">
+      ReadOnlyTokenDaysValid="$(CloudResultsReadTokenValidDays)"
+      WriteOnlyTokenDaysValid="$(CloudResultsWriteTokenValidDays)">
       <Output TaskParameter="StorageUri" PropertyName="ResultsUri" />
       <Output TaskParameter="ReadOnlyToken" PropertyName="ResultsReadOnlyToken" />
       <Output TaskParameter="WriteOnlyToken" PropertyName="ResultsWriteOnlyToken" />
