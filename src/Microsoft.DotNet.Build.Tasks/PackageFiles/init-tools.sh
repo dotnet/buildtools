@@ -29,34 +29,41 @@ if [ ! -d "$__TOOLRUNTIME_DIR" ]; then
     mkdir $__TOOLRUNTIME_DIR
 fi
 
-OSName=$(uname -s)
-case $OSName in
-    Darwin)
-        __PUBLISH_RID=osx.10.10-x64
-        ;;
+if [ -z "$__PUBLISH_RID" ]; then
+    OSName=$(uname -s)
+    case $OSName in
+        Darwin)
+            __PUBLISH_RID=osx.10.10-x64
+            ;;
 
-    Linux)
-        if [ ! -e /etc/os-release ]; then
-            echo "Can not determine distribution, assuming Ubuntu 14.04"
+        Linux)
+            if [ ! -e /etc/os-release ]; then
+                echo "Can not determine distribution, assuming Ubuntu 14.04"
+                __PUBLISH_RID=ubuntu.14.04-x64
+            else
+                source /etc/os-release
+                if [[ "$ID" == "ubuntu" && "$VERSION_ID" != "14.04" && "$VERSION_ID" != "16.04" ]]; then
+                echo "Unsupported Ubuntu version, falling back to Ubuntu 14.04"
+                __PUBLISH_RID=ubuntu.14.04-x64
+                else
+                __PUBLISH_RID=$ID.$VERSION_ID-x64
+                fi
+            fi
+
+            # RHEL bumps their OS Version with minor releases, but we only put the "rhel.7-x64" RID in our
+            # tool runtime, since there's binary compatibility between minor versions.
+
+            if [[ $__PUBLISH_RID == rhel.7*-x64 ]]; then
+                __PUBLISH_RID=rhel.7-x64
+            fi
+            ;;
+
+        *)
+            echo "Unsupported OS '$OSName' detected. Downloading ubuntu-x64 tools."
             __PUBLISH_RID=ubuntu.14.04-x64
-        else
-            source /etc/os-release
-            __PUBLISH_RID=$ID.$VERSION_ID-x64
-        fi
-
-        # RHEL bumps their OS Version with minor releases, but we only put the "rhel.7-x64" RID in our
-        # tool runtime, since there's binary compatibility between minor versions.
-
-        if [[ $__PUBLISH_RID == rhel.7*-x64 ]]; then
-            __PUBLISH_RID=rhel.7-x64
-        fi
-        ;;
-
-    *)
-        echo "Unsupported OS '$OSName' detected. Downloading ubuntu-x64 tools."
-        __PUBLISH_RID=ubuntu.14.04-x64
-        ;;
-esac
+            ;;
+    esac
+fi
 
 cp -R $__TOOLS_DIR/* $__TOOLRUNTIME_DIR
 
