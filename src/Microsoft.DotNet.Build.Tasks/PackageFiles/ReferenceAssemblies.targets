@@ -14,8 +14,9 @@
 
   <PropertyGroup Condition="'$(IsReferenceAssembly)'=='true'">
     <AssemblyName Condition="'$(AssemblyName)' == ''">$(MSBuildProjectName)</AssemblyName>
-    <OutputPath>$(ReferenceAssemblyOutputPath)$(AssemblyName)/$(AssemblyVersion)</OutputPath>
-    <IntermediateOutputPath>$(BaseIntermediateOutputPath)ref/$(AssemblyName)/$(AssemblyVersion)</IntermediateOutputPath>
+    <OutputPathSubfolder Condition="'$(IsCompatAssembly)'=='true'">/Compat</OutputPathSubfolder>
+    <OutputPath>$(ReferenceAssemblyOutputPath)$(AssemblyName)/$(AssemblyVersion)$(OutputPathSubFolder)</OutputPath>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)ref/$(AssemblyName)/$(AssemblyVersion)$(OutputPathSubfolder)</IntermediateOutputPath>
 
     <OmitTransitiveCompileReferences>true</OmitTransitiveCompileReferences>
     <!-- if this is a reference assembly deployment project use compile assets 
