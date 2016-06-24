@@ -19,15 +19,13 @@ namespace Microsoft.DotNet.Execute
         public string configFileName = "config.json";
         public string CommandSelectedByUser { get; set; }
         
-        public Dictionary<string, List<string>> DevWorkflowCommands { get; set; }
         public Dictionary<string, string> SettingParameters { get; set; }
-        public Dictionary<string, string> CommandParameters { get; set; }
+        public Dictionary<string, Dictionary<string, string>> CommandParameters { get; set; }
         
         public Executor()
         {
             SettingParameters = new Dictionary<string, string>();
-            CommandParameters = new Dictionary<string, string>();
-            DevWorkflowCommands = new Dictionary<string, List<string>>();
+            CommandParameters = new Dictionary<string, Dictionary<string, string>>();
             string executorDirectory = Path.GetDirectoryName(typeof(Executor).GetTypeInfo().Assembly.Location);
             configFilePath = Path.GetFullPath(Path.Combine(executorDirectory, @"..\"));
         }
@@ -35,8 +33,7 @@ namespace Microsoft.DotNet.Execute
         public Executor(string configFile=null)
         {
             SettingParameters = new Dictionary<string, string>();
-            CommandParameters = new Dictionary<string, string>();
-            DevWorkflowCommands = new Dictionary<string, List<string>>();
+            CommandParameters = new Dictionary<string, Dictionary<string, string>>();
 
             if (configFile == null)
             {
@@ -88,17 +85,18 @@ namespace Microsoft.DotNet.Execute
                     }
 
                     //Commands
-                    foreach (KeyValuePair<string, List<string>> comm in DevWorkflowCommands)
+                    foreach(KeyValuePair<string, Command> comm in setupInformation.Commands)
                     {
                         parser.DefineParameterSet(comm.Key, ref userCommand, comm.Key, string.Format("Help for {0}", comm.Key));
-                        foreach (string devWorkflowOption in comm.Value)
+                        Dictionary<string, string> param = new Dictionary<string, string>();
+                        foreach(KeyValuePair<string, AliasPerCommand> aliasInfo in comm.Value.Alias)
                         {
                             bool temp = false;
-                            parser.DefineOptionalQualifier(devWorkflowOption, ref temp, setupInformation.Commands[comm.Key + "-" + devWorkflowOption].Description, null, null);
-                            CommandParameters[comm.Key + "-" + devWorkflowOption] = temp.ToString();
+                            parser.DefineOptionalQualifier(aliasInfo.Key, ref temp, aliasInfo.Value.Description, null, null);
+                            param[aliasInfo.Key] = temp.ToString();
                         }
+                        CommandParameters[comm.Key] = new Dictionary<string, string>(param);
                     }
-
                 }, args, setupInformation);
                 CommandSelectedByUser = userCommand;
                 setupInformation.SettingParameters = SettingParameters;
@@ -106,44 +104,10 @@ namespace Microsoft.DotNet.Execute
             }
             catch (Exception e)
             {
-                Console.Error.WriteLine("Error: {0}", e.Message);
+                Console.Error.WriteLine("Error: {0} {1}", e.Message, e.StackTrace);
                 return false;
             }
             
-        }
-
-        public void CreateDevWorkflowCommandStructure(Setup setupInformation)
-        {
-            foreach (KeyValuePair<string, Setting> option in setupInformation.Settings)
-            {
-                SettingParameters[option.Key] = string.Empty;
-            }
-
-            string devWorkflowStep = string.Empty;
-            string devWorkflowOption = string.Empty;
-            foreach (KeyValuePair<string, Command> comm in setupInformation.Commands)
-            {
-                CommandParameters[comm.Key] = "False";
-
-                int delimiter = comm.Key.IndexOf("-");
-                if (delimiter != -1)
-                {
-                    devWorkflowOption = comm.Key.Substring(delimiter+1);
-                    devWorkflowStep = comm.Key.Substring(0, delimiter);
-                    if (!DevWorkflowCommands.ContainsKey(devWorkflowStep))
-                    {
-                        DevWorkflowCommands[devWorkflowStep] = new List<string>();
-                    }
-                    DevWorkflowCommands[devWorkflowStep].Add(devWorkflowOption);
-                }
-                else
-                {
-                    if (!DevWorkflowCommands.ContainsKey(comm.Key))
-                    {
-                        DevWorkflowCommands[comm.Key] = new List<string>();
-                    }
-                }
-            }
         }
 
         public static int Main(string[] args)
@@ -172,19 +136,18 @@ namespace Microsoft.DotNet.Execute
             {
                 string os = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "windows": "unix";
 
-                executor.CreateDevWorkflowCommandStructure(jsonSetup);
                 jsonSetup.prepareValues(os, executor.SettingParameters, executor.configFilePath);
-
                 if (executor.DefineParameters(parseArgs, jsonSetup))
                 {
-                    foreach (KeyValuePair<string, string> command in executor.CommandParameters)
+                    List<string> paramSelected = new List<string>();
+                    foreach(KeyValuePair<string, string> param in executor.CommandParameters[executor.CommandSelectedByUser])
                     {
-                        if (Convert.ToBoolean(command.Value))
+                        if (Convert.ToBoolean(param.Value))
                         {
-                            executor.CommandSelectedByUser = command.Key;
+                            paramSelected.Add(param.Key);
                         }
                     }
-                    return jsonSetup.ExecuteCommand(executor.CommandSelectedByUser);
+                    return jsonSetup.ExecuteCommand(executor.CommandSelectedByUser, paramSelected);
                 }
             }
             return 0;

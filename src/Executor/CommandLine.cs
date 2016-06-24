@@ -728,15 +728,6 @@ class CommandLine
                 Wrap(sb.Append("  "), parameterSetParameter.HelpText, 2, "  ", maxLineWidth);
             }*/
 
-            if (command.Equals("build"))
-            {
-                sb.AppendLine();
-                string def = "Default behaviour: ";
-                Wrap(sb.Append("  "), def, 0, "  ", maxLineWidth, false);
-                string commandSettingsHelp = _setupContent.GetHelpCommand(command);
-                Wrap(sb, commandSettingsHelp, QualifierSyntaxWidth + 7, new string(' ', QualifierSyntaxWidth + 7), maxLineWidth, false);
-            }
-
             if (hasParameters)
             {
                 sb.AppendLine().Append("  Parameters:").AppendLine();
@@ -764,7 +755,7 @@ class CommandLine
                     if (parameter.IsNamed)
                     {
                         ParameterHelp(parameter, sb, QualifierSyntaxWidth, maxLineWidth);
-                        string commandSettingsHelp = _setupContent.GetHelpCommand(parameterSetParameter.Name + "-" + parameter.Name);
+                        string commandSettingsHelp = _setupContent.GetHelpCommand(parameterSetParameter.Name, parameter.Name);
                         Wrap(sb, commandSettingsHelp, QualifierSyntaxWidth + 7, new string(' ', QualifierSyntaxWidth + 7), maxLineWidth, false);
                     }
                 }

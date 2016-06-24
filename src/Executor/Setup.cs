@@ -42,9 +42,9 @@ namespace Microsoft.DotNet.Execute
             ConfigurationFilePath = configFile;
         }
 
-        public int ExecuteCommand(string commandSelectedByUser)
+        public int ExecuteCommand(string commandSelectedByUser, List<string> parametersSelectedByUser)
         {
-            CompleteCommand commandToRun = BuildCommand(commandSelectedByUser);
+            CompleteCommand commandToRun = BuildCommand(commandSelectedByUser, parametersSelectedByUser);
             if(commandToRun != null)
             {
                 Console.ForegroundColor = ConsoleColor.DarkYellow;
@@ -69,7 +69,7 @@ namespace Microsoft.DotNet.Execute
             return 1;
         }
 
-        private CompleteCommand BuildCommand(string commandSelectedByUser, Dictionary<string, string> parameters = null)
+        private CompleteCommand BuildCommand(string commandSelectedByUser, List<string> parametersSelectedByUser, Dictionary<string, string> parameters = null)
         {
             Command commandToExecute;
             if (!Commands.TryGetValue(commandSelectedByUser, out commandToExecute))
@@ -78,39 +78,38 @@ namespace Microsoft.DotNet.Execute
                 return null;
             }
 
-            string toolName = GetTool(commandToExecute, Os, ConfigurationFilePath);
-            if (string.IsNullOrEmpty(toolName))
+            string commandTool = GetTool(commandToExecute, Os, ConfigurationFilePath, parametersSelectedByUser);
+            if (string.IsNullOrEmpty(commandTool))
             {
-                Console.Error.WriteLine("Error: The process {0} is not specified in the Json file.", commandToExecute.ToolName);
                 return null;
             }
 
             if (parameters == null)
             {
-                if (BuildRequiredValueSettingsForCommand(commandToExecute.LockedSettings, SettingParameters) &&
-                    BuildOptionalValueSettingsForCommand(commandToExecute.Settings, SettingParameters) &&
+                if (BuildRequiredValueSettingsForCommand(commandToExecute, parametersSelectedByUser, SettingParameters) &&
+                    BuildOptionalValueSettingsForCommand(commandToExecute, SettingParameters) &&
                     ValidExtraArgumentsForCommand(SettingParameters["ExtraArguments"], SettingParameters))
                 {
-                    string commandParameters = BuildParametersForCommand(SettingParameters, commandToExecute.ToolName);
-                    CompleteCommand completeCommand = new CompleteCommand(toolName, commandParameters);
+                    string commandParameters = BuildParametersForCommand(SettingParameters, SettingParameters["toolName"]);
+                    CompleteCommand completeCommand = new CompleteCommand(commandTool, commandParameters);
                     return completeCommand;
                 }
                 return null;
             }
             else
             {
-                string commandParameters = BuildParametersForCommand(parameters, commandToExecute.ToolName);
-                CompleteCommand completeCommand = new CompleteCommand(toolName, commandParameters);
+                string commandParameters = BuildParametersForCommand(parameters, SettingParameters["toolName"]);
+                CompleteCommand completeCommand = new CompleteCommand(commandTool, commandParameters);
                 return completeCommand;
             }
         }
         
-        private string BuildParametersForCommand(Dictionary<string, string> settingParameters, string toolName)
+        private string BuildParametersForCommand(Dictionary<string, string> commandParameters, string toolName)
         {
             string commandSetting = string.Empty;
-            foreach (KeyValuePair<string, string> parameters in settingParameters)
+            foreach (KeyValuePair<string, string> parameters in commandParameters)
             {
-                if (!string.IsNullOrEmpty(parameters.Value))
+                if (!parameters.Key.Equals("toolName") && !string.IsNullOrEmpty(parameters.Value))
                 {
                     commandSetting += string.Format(" {0}", FormatSetting(parameters.Key, parameters.Value, FindSettingType(parameters.Key), toolName));
                 }
@@ -118,39 +117,42 @@ namespace Microsoft.DotNet.Execute
             return commandSetting;
         }
 
-        private bool BuildRequiredValueSettingsForCommand(Dictionary<string, string> requiredSettings, Dictionary<string, string> commandValues)
+        private bool BuildRequiredValueSettingsForCommand(Command commandToExecute, List<string> requiredSettings, Dictionary<string, string> commandValues)
         {
-            foreach (KeyValuePair<string, string> reqSetting in requiredSettings)
+            foreach (string reqSetting in requiredSettings)
             {
-                string value = string.IsNullOrEmpty(reqSetting.Value) || reqSetting.Value.Equals("default") ? FindSettingValue(reqSetting.Key) : reqSetting.Value;
-                string currentValue;
-                if(commandValues.TryGetValue(reqSetting.Key, out currentValue))
+                foreach(KeyValuePair<string, string> sett in commandToExecute.Alias[reqSetting].Settings)
                 {
-                    if (value != null && (string.IsNullOrEmpty(currentValue) || reqSetting.Key.Equals("Project")))
+                    string value = string.IsNullOrEmpty(sett.Value) || sett.Value.Equals("default") ? FindSettingValue(sett.Key) : sett.Value;
+                    string currentValue;
+                    if (commandValues.TryGetValue(sett.Key, out currentValue))
                     {
-                        commandValues[reqSetting.Key] = string.IsNullOrEmpty(value) ? "True" : value;
-                    }
-                    else
-                    {
-                        if (!string.IsNullOrEmpty(value) && !value.Equals(currentValue))
+                        if (value != null && (string.IsNullOrEmpty(currentValue) || sett.Key.Equals("Project")))
                         {
-                            Console.Error.WriteLine("Error: The value for setting {0} can't be overwriten.", reqSetting.Key);
-                            return false;
+                            commandValues[sett.Key] = string.IsNullOrEmpty(value) ? "True" : value;
+                        }
+                        else
+                        {
+                            if (!string.IsNullOrEmpty(value) && !value.Equals(currentValue))
+                            {
+                                Console.Error.WriteLine("Error: The value for setting {0} can't be overwriten.", sett.Key);
+                                return false;
+                            }
                         }
                     }
-                }
-                else
-                {
-                    Console.Error.WriteLine("Error: The setting {0} is not specified in the Json file.", reqSetting.Key);
-                    return false;
+                    else if(!sett.Key.Equals("toolName"))
+                    {
+                        Console.Error.WriteLine("Error: The setting {0} is not specified in the Json file.", sett.Key);
+                        return false;
+                    }
                 }
             }
             return true;
         }
 
-        private bool BuildOptionalValueSettingsForCommand(Dictionary<string, string> optionalSettings, Dictionary<string, string> commandValues)
+        private bool BuildOptionalValueSettingsForCommand(Command commandToExecute, Dictionary<string, string> commandValues)
         {
-            foreach (KeyValuePair<string, string> optSetting in optionalSettings)
+            foreach (KeyValuePair<string, string> optSetting in commandToExecute.DefaultValues.Settings)
             {
                 string currentValue;
                 if(commandValues.TryGetValue(optSetting.Key, out currentValue))
@@ -214,23 +216,55 @@ namespace Microsoft.DotNet.Execute
             return true;
         }
 
-        private string GetTool(Command commandToExecute, string os, string configPath)
+        private string GetTool(Command commandToExecute, string os, string configPath, List<string> parametersSelectedByUser)
         {
-            if (Tools.ContainsKey(commandToExecute.ToolName))
+            string toolname = commandToExecute.DefaultValues.ToolName;
+            
+            string project = GetProject(commandToExecute, parametersSelectedByUser);
+
+            if (Tools.ContainsKey(toolname))
             {
-                if(commandToExecute.ToolName.Equals("msbuild"))
+                SettingParameters["toolName"] = toolname;
+                
+                if (toolname.Equals("msbuild"))
                 {
-                    return Path.GetFullPath(Path.Combine(configPath, os.Equals("windows") ? Tools[commandToExecute.ToolName].Run["windows"] : Tools[commandToExecute.ToolName].Run["unix"]));
+                    return Path.GetFullPath(Path.Combine(configPath, os.Equals("windows") ? Tools[toolname].Run["windows"] : Tools[toolname].Run["unix"]));
                 }
-                else if (commandToExecute.ToolName.Equals("console"))
+                else if (toolname.Equals("terminal"))
                 {
-                    string extension = os.Equals("windows") ? Tools[commandToExecute.ToolName].Run["windows"] : Tools[commandToExecute.ToolName].Run["unix"];
-                    return Path.GetFullPath(Path.Combine(configPath, string.Format("{0}.{1}", commandToExecute.LockedSettings["Project"],extension)));
+                    string extension = os.Equals("windows") ? Tools[toolname].Run["windows"] : Tools[toolname].Run["unix"];
+                    return Path.GetFullPath(Path.Combine(configPath, string.Format("{0}.{1}", project, extension)));
                 }
             }
+            Console.Error.WriteLine("Error: The process {0} is not specified in the Json file.", toolname);
             return string.Empty;
         }
-            
+
+        private string GetProject(Command commandToExecute, List<string> parametersSelectedByUser)
+        {
+            string project = string.Empty;
+            bool moreThanOneProject = false;
+            foreach (string param in parametersSelectedByUser)
+            {
+                if (commandToExecute.Alias[param].Settings.TryGetValue("Project", out project))
+                {
+                    if (moreThanOneProject)
+                    {
+                        Console.Error.WriteLine("Error: There can only be one project execution per command.");
+                        return string.Empty;
+                    }
+                    moreThanOneProject = true;
+                }
+            }
+
+            if(string.IsNullOrEmpty(project))
+            {
+                project = commandToExecute.DefaultValues.Project;
+            }
+
+            return project;
+        }
+
         public string FormatSetting(string option, string value, string type, string toolName)
         {
             string commandOption = null;
@@ -250,37 +284,41 @@ namespace Microsoft.DotNet.Execute
             return commandOption;
         }
 
-        public string GetHelpCommand(string commandName)
+        public string GetHelpCommand(string commandName, string alias=null)
         {
             Command commandToPrint;
             if (Commands.TryGetValue(commandName, out commandToPrint))
             {
                 StringBuilder sb = new StringBuilder();
                 Dictionary<string, string> commandParametersToPrint = new Dictionary<string, string>();
-                string value;
-                sb.Append("  Locked Settings (values can't be overwritten): ").AppendLine();
-                foreach(KeyValuePair<string, string> lockedSetting in commandToPrint.LockedSettings)
-                {
-                    value = lockedSetting.Value.Equals("default") ? FindSettingValue(lockedSetting.Key) : lockedSetting.Value;
-                    sb.Append(string.Format("    {0} ({1})= {2}", lockedSetting.Key, FindSettingType(lockedSetting.Key), value)).AppendLine();
-                    commandParametersToPrint[lockedSetting.Key] = value;
-                }
 
-                sb.AppendLine().Append("  Other Settings (values can be overwritten): ").AppendLine();
-                foreach (KeyValuePair<string, string> optionalSettings in commandToPrint.Settings)
-                {
-                    value = optionalSettings.Value.Equals("default") ? FindSettingValue(optionalSettings.Key) : optionalSettings.Value;
-                    sb.Append(string.Format("    {0} ({1})= {2}", optionalSettings.Key, FindSettingType(optionalSettings.Key), value)).AppendLine();
-                    commandParametersToPrint[optionalSettings.Key] = value;
-                }
+                sb.AppendLine().Append("Locked Settings (values can't be overwritten): ").AppendLine();
+                sb.Append(GetHelpAlias(commandToPrint.Alias[alias].Settings, commandParametersToPrint));
 
-                CompleteCommand completeCommand = BuildCommand(commandName, commandParametersToPrint);
+                sb.AppendLine().Append("Default Settings for action (values can be overwritten): ").AppendLine();
+                sb.Append(string.Format("  ToolName = {0}", commandToPrint.DefaultValues.ToolName)).AppendLine();
+                sb.Append(GetHelpAlias(commandToPrint.DefaultValues.Settings, commandParametersToPrint));
 
-                sb.AppendLine().Append("  It will run: ").AppendLine();
-                sb.Append(string.Format("{0} {1} (global Settings)",completeCommand.ToolCommand, completeCommand.ParametersCommand));
+                CompleteCommand completeCommand = BuildCommand(commandName, new List<string>(alias.Split(' ')), commandParametersToPrint);
+
+                sb.AppendLine().Append("It will run: ").AppendLine();
+                sb.Append(string.Format("{0} {1}",completeCommand.ToolCommand, completeCommand.ParametersCommand));
                 return sb.ToString();
             }
             return null;
+        }
+
+        private string GetHelpAlias(Dictionary<string, string> settings, Dictionary<string, string> commandParametersToPrint)
+        {
+            StringBuilder sb = new StringBuilder();
+            
+            foreach (KeyValuePair<string, string> setting in settings)
+            {
+                string value = setting.Value.Equals("default") ? FindSettingValue(setting.Key) : setting.Value;
+                sb.Append(string.Format("    {0} ({1})= {2}", setting.Key, FindSettingType(setting.Key), value)).AppendLine();
+                commandParametersToPrint[setting.Key] = string.IsNullOrEmpty(value) ? "True" : value;
+            }
+            return sb.ToString();
         }
 
         private class CompleteCommand
@@ -299,16 +337,25 @@ namespace Microsoft.DotNet.Execute
         }
     }
 
-    public class Command
+    public class AliasPerCommand
     {
         public string Description { get; set; }
-        public string Alias { get; set; }
-        public string ToolName { get; set; }
-        public Dictionary<string, string> LockedSettings { get; set; }
         public Dictionary<string, string> Settings { get; set; }
-
     }
 
+    public class DefaultValuesPerCommand
+    {
+        public string Project { get; set; }
+        public string ToolName { get; set; }
+        public Dictionary<string, string> Settings { get; set; }
+    }
+
+    public class Command
+    {
+        public Dictionary<string, AliasPerCommand> Alias{ get; set; }
+        public DefaultValuesPerCommand DefaultValues { get; set; }
+    }
+    
     public class Tool
     {
         public Dictionary<string, string> Run { get; set; }

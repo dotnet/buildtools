@@ -1,13 +1,37 @@
 ﻿{
   "settings": {
     "OSGroup": {
-      "description": "Target OS for result binaries.",
+      "description": "OS Group for result binaries.",
       "valueType": "property",
       "values": ["AnyOS", "Windows_NT", "Linux", "OSX", "FreeBSD", "NetBSD"],
       "defaultValue": "AnyOS"
      },
     "RestoreDuringBuild": {
       "description": "Enables/Disables the restoration of packages.",
+      "valueType": "property",
+      "values": ["True", "False"],
+      "defaultValue": true
+    },
+    "Platform": {
+      "description": "Enables/Disables the restoration of packages.",
+      "valueType": "property",
+      "values": ["AnyCPU", "x86", "arm", "x64", "amd64"],
+      "defaultValue": "x64"
+    },
+    "ConfigurationGroup": {
+      "description": "Enables/Disables the restoration of packages.",
+      "valueType": "property",
+      "values": ["Release", "Debug"],
+      "defaultValue": "Debug"
+    },
+    "BuildPackages": {
+      "description": "Enables/Disables building packages.",
+      "valueType": "property",
+      "values": ["True", "False"],
+      "defaultValue": true
+    },
+    "BuildTests": {
+      "description": "Enables/Disables building tests.",
       "valueType": "property",
       "values": ["True", "False"],
       "defaultValue": true
@@ -29,6 +53,12 @@
       "valueType": "passThrough",
       "values": [],
       "defaultValue": "/nologo /maxcpucount /verbosity:minimal"
+    },
+    "CmakeDebug": {
+      "description": "Property to build in debug mode.",
+      "valueType": "passThrough",
+      "values": [],
+      "defaultValue": "DEBUG"
     },
     "Project": {
       "description": "Project where the commands are going to be applied.",
@@ -68,65 +98,114 @@
     }
   },
   "commands": {
-    "build": {
-      "description": "Restores packages, builds, runs the tests and builds packages.",
-      "toolName": "msbuild",
-      "lockedSettings": {},
-      "settings": {
-        "MsBuildParameters":"default",
-        "MsBuildLogging":"default"
+    "sync":{
+      "alias":{
+        "p":{
+          "description": "Restores all NuGet packages for repository.",
+          "settings":{
+            "RestoreDuringBuild":  true,
+            "BatchRestorePackages": "default"
+          }
+        },
+      },
+      "defaultValues":{
+        "toolName": "msbuild",
+        "settings": {
+          "MsBuildParameters":"default",
+          "MsBuildLogging":"default"
+        }
       }
     },
-    "build-s": {
-      "description": "Only builds binaries. It doesn't restore packages.",
-      "toolName": "msbuild",
-      "lockedSettings": {
-        "RestoreDuringBuild": false,
+    "build-managed":{
+      "alias":{
+        "s":{
+          "description": "Only builds binaries. It doesn't restore packages.",
+          "settings":{
+            "RestoreDuringBuild": false,
+            "BuildPackages": false,
+            "BuildTests": false
+          }
+        },
+        "packages":{
+          "description": "Builds the NuGet packages.",
+          "settings":{
+            "Project": "src\\packages.builds"
+          }
+        },
+        "managed":{
+          "description": "Builds the managed code.",
+          "settings":{
+            "RestoreDuringBuild": true
+          }
+        },
+        "debug":{
+          "description": "Sets ConfigurationGroup=Debug.",
+          "settings":{
+            "ConfigurationGroup": "Debug"
+          }
+        },
+        "release":{
+          "description": "Sets ConfigurationGroup=Release.",
+          "settings":{
+            "ConfigurationGroup": "Release"
+          }
+        },
+        "verbose":{
+          "description": "Passes /flp:v=normal to the msbuild command.",
+          "settings":{
+            "MsBuildLogging": "default"
+          }
+        }
       },
-      "settings": {
-        "MsBuildLogging":"default",
-        "MsBuildParameters":"default"
+      "defaultValues":{
+        "toolName": "msbuild",
+        "settings": {
+          "MsBuildParameters":"default"
+        }
       }
     },
-    "sync-p": {
-      "description": "Restores all nuget packages for repository",
-      "toolName": "msbuild",
-      "lockedSettings": {
-        "RestoreDuringBuild":  true,
-        "BatchRestorePackages": "default"
+    "build-native":{
+      "alias":{
+        "debug":{
+          "description": "Passes DEBUG to respective build-native script.",
+          "settings":{
+            "CmakeDebug": "default"
+          }
+        },
       },
-      "settings": {
-        "MsBuildParameters":"default"
+      "defaultValues":{
+        "toolName": "terminal",
+        "Project": "src\\Native\\build-native",
+        "settings": {}
       }
     },
-    "clean-b": {
-      "description": "Deletes the binary output directory.",
-      "toolName": "msbuild",
-      "lockedSettings": {
-        "CleanAllProjects": "default"
+    "clean":{
+      "alias":{
+        "b":{
+          "description": "Deletes the binary output directory.",
+          "settings":{
+            "CleanAllProjects": "default"
+          }
+        },
+        "p":{
+          "description": "Deletes the repo-local nuget package directory.",
+          "settings":{
+            "CleanPackages": "default"
+            }
+        },
+        "c":{
+          "description": "Deletes the user-local nuget package cache.",
+          "settings":{
+            "CleanPackagesCache": "default"
+          }
+        }
       },
-      "settings": {
-        "MsBuildParameters":"default"
-      }
-    },
-    "clean-p": {
-      "description": "Deletes the repo-local nuget package directory.",
-      "toolName": "msbuild",
-      "lockedSettings": {
-        "CleanPackages": "default"
-      },
-      "settings": {
-        "MsBuildParameters":"default"
-      }
-    },
-    "clean-c": {
-      "description": "Deletes the user-local nuget package cache.",
-      "toolName": "msbuild",
-      "lockedSettings": {
-        "CleanPackagesCache": "default"
-      },
-      "settings": {
-        "MsBuildParameters":"default"
+      "defaultValues":{
+        "toolName": "msbuild",
+        "settings": {
+          "MsBuildParameters":"default",
+          "MsBuildLogging":"default"
+        }
       }
     }
   },
@@ -142,7 +221,7 @@
         "internal": "/{name}"
       }
     },
-    "console": {
+    "terminal": {
       "run": {
         "windows": "cmd",
         "non-windows": "sh"
