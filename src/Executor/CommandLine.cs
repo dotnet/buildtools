@@ -1174,7 +1174,7 @@ class CommandLine
             if (_skipDefinitions)
                 return null;
             if (_positionalArgEncountered && !_noSpaceOnQualifierValues)
-                throw new CommandLineParserDesignerException("Definitions of Named parameters must come before defintions of positional parameters");
+                throw new CommandLineParserDesignerException("Definitions of Named parameters must come before definitions of positional parameters");
 
             object ret = null;
             string[] alaises = null;
@@ -1206,7 +1206,7 @@ class CommandLine
                 }
                 else if (value == null)
                 {
-                    int valuePos = position + 1;
+                    /*int valuePos = position + 1;
                     if (_noSpaceOnQualifierValues || valuePos >= _args.Count || _args[valuePos] == null)
                     {
                         string message = "Parameter " + name + " is missing a value.";
@@ -1224,7 +1224,8 @@ class CommandLine
                     if (value.Length > 0 && IsQualifier(value))
                         throw new CommandLineParserException("Use " + name + ":" + value + " if " + value +
                             " is meant to be value rather than a named parameter");
-                    _args[valuePos] = null;
+                    _args[valuePos] = null;*/
+                    value = "true";
                 }
                 ret = ParseValue(value, type, name);
                 if (type.IsArray)

@@ -277,8 +277,15 @@ namespace Microsoft.DotNet.Execute
                 Tool toolFormat;
                 if (Tools.TryGetValue(toolName, out toolFormat) && !string.IsNullOrEmpty(type))
                 {
-                    commandOption = toolFormat.ValueTypes[type];
-                    commandOption = commandOption.Replace("{name}", option).Replace("{value}", value);
+                    if (toolFormat.ValueTypes.TryGetValue(type, out commandOption))
+                    {
+                        commandOption = commandOption.Replace("{name}", option).Replace("{value}", value);
+                    }
+                    else
+                    {
+                        Console.Error.WriteLine("The type \"{0}\" is not defined as a Value Type of the tool \"{1}\". Parameter ignored", type, toolName);
+                        return null;
+                    }
                 }
             }
             return commandOption;
@@ -292,11 +299,10 @@ namespace Microsoft.DotNet.Execute
                 StringBuilder sb = new StringBuilder();
                 Dictionary<string, string> commandParametersToPrint = new Dictionary<string, string>();
 
-                sb.AppendLine().Append("Locked Settings (values can't be overwritten): ").AppendLine();
+                sb.AppendLine().Append("Settings: ").AppendLine();
                 sb.Append(GetHelpAlias(commandToPrint.Alias[alias].Settings, commandParametersToPrint));
 
-                sb.AppendLine().Append("Default Settings for action (values can be overwritten): ").AppendLine();
-                sb.Append(string.Format("  ToolName = {0}", commandToPrint.DefaultValues.ToolName)).AppendLine();
+                //sb.AppendLine().Append("Default Settings for action (values can be overwritten): ").AppendLine();
                 sb.Append(GetHelpAlias(commandToPrint.DefaultValues.Settings, commandParametersToPrint));
 
                 CompleteCommand completeCommand = BuildCommand(commandName, new List<string>(alias.Split(' ')), commandParametersToPrint);
@@ -315,7 +321,7 @@ namespace Microsoft.DotNet.Execute
             foreach (KeyValuePair<string, string> setting in settings)
             {
                 string value = setting.Value.Equals("default") ? FindSettingValue(setting.Key) : setting.Value;
-                sb.Append(string.Format("    {0} ({1})= {2}", setting.Key, FindSettingType(setting.Key), value)).AppendLine();
+                sb.Append(string.Format("    {0} = {2}", setting.Key, FindSettingType(setting.Key), value)).AppendLine();
                 commandParametersToPrint[setting.Key] = string.IsNullOrEmpty(value) ? "True" : value;
             }
             return sb.ToString();

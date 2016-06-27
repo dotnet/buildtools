@@ -1,5 +1,11 @@
 ﻿{
   "settings": {
+    "SkipTests":{
+      "description": "Enables/Disables running tests.",
+      "valueType": "property",
+      "values": ["True", "False"],
+      "defaultValue": false
+    },
     "OSGroup": {
       "description": "OS Group for result binaries.",
       "valueType": "property",
@@ -35,12 +41,6 @@
       "valueType": "property",
       "values": ["True", "False"],
       "defaultValue": true
-    },
-    "SkipTests":{
-      "description": "Enables/Disables running tests.",
-      "valueType": "property",
-      "values": ["True", "False"],
-      "defaultValue": false
     },
     "MsBuildLogging": {
       "description": "MsBuild logging options.",
@@ -132,28 +132,28 @@
             "Project": "src\\packages.builds"
           }
         },
-        "managed":{
-          "description": "Builds the managed code.",
-          "settings":{
-            "RestoreDuringBuild": true
-          }
-        },
         "debug":{
-          "description": "Sets ConfigurationGroup=Debug.",
+          "description": "Sets ConfigurationGroup=Debug or the value passed by the user.",
           "settings":{
             "ConfigurationGroup": "Debug"
           }
         },
         "release":{
-          "description": "Sets ConfigurationGroup=Release.",
+          "description": "Sets ConfigurationGroup=Release or the value passed by the user.",
           "settings":{
             "ConfigurationGroup": "Release"
           }
         },
         "verbose":{
-          "description": "Passes /flp:v=normal to the msbuild command.",
+          "description": "Passes /flp:v=normal to the msbuild command or the value passed by the user.",
           "settings":{
             "MsBuildLogging": "default"
+          }
+        },
+        "os":{
+          "description": "Sets OSGroup=AnyOS or the value passed by the user.",
+          "settings":{
+            "OSGroup": "default"
           }
         }
       },

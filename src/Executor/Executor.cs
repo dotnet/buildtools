@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Reflection;
 using System.Collections.Generic;
@@ -85,15 +84,27 @@ namespace Microsoft.DotNet.Execute
                     }
 
                     //Commands
-                    foreach(KeyValuePair<string, Command> comm in setupInformation.Commands)
+                    foreach (KeyValuePair<string, Command> comm in setupInformation.Commands)
                     {
                         parser.DefineParameterSet(comm.Key, ref userCommand, comm.Key, string.Format("Help for {0}", comm.Key));
                         Dictionary<string, string> param = new Dictionary<string, string>();
                         foreach(KeyValuePair<string, AliasPerCommand> aliasInfo in comm.Value.Alias)
                         {
-                            bool temp = false;
+                            string temp = "";
                             parser.DefineOptionalQualifier(aliasInfo.Key, ref temp, aliasInfo.Value.Description, null, null);
-                            param[aliasInfo.Key] = temp.ToString();
+                            if(!string.IsNullOrEmpty(temp) && !temp.Equals("true"))
+                            {
+                                List<string> keys = new List<string>(aliasInfo.Value.Settings.Keys);
+                                if(keys.Count < 2)
+                                {
+                                    foreach (string key in keys)
+                                    {
+                                        setupInformation.Commands[comm.Key].Alias[aliasInfo.Key].Settings[key] = temp;
+                                    }
+                                }
+                            }
+
+                            param[aliasInfo.Key] = temp;
                         }
                         CommandParameters[comm.Key] = new Dictionary<string, string>(param);
                     }
@@ -142,7 +153,7 @@ namespace Microsoft.DotNet.Execute
                     List<string> paramSelected = new List<string>();
                     foreach(KeyValuePair<string, string> param in executor.CommandParameters[executor.CommandSelectedByUser])
                     {
-                        if (Convert.ToBoolean(param.Value))
+                        if (!string.IsNullOrEmpty(param.Value))
                         {
                             paramSelected.Add(param.Key);
                         }
