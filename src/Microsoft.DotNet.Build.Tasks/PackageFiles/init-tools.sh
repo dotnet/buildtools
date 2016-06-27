@@ -29,34 +29,41 @@ if [ ! -d "$__TOOLRUNTIME_DIR" ]; then
     mkdir $__TOOLRUNTIME_DIR
 fi
 
-OSName=$(uname -s)
-case $OSName in
-    Darwin)
-        __PUBLISH_RID=osx.10.10-x64
-        ;;
+if [ -z "$__PUBLISH_RID" ]; then
+    OSName=$(uname -s)
+    case $OSName in
+        Darwin)
+            __PUBLISH_RID=osx.10.10-x64
+            ;;
 
-    Linux)
-        if [ ! -e /etc/os-release ]; then
-            echo "Can not determine distribution, assuming Ubuntu 14.04"
+        Linux)
+            if [ ! -e /etc/os-release ]; then
+                echo "Can not determine distribution, assuming Ubuntu 14.04"
+                __PUBLISH_RID=ubuntu.14.04-x64
+            else
+                source /etc/os-release
+                if [[ "$ID" == "ubuntu" && "$VERSION_ID" != "14.04" && "$VERSION_ID" != "16.04" ]]; then
+                echo "Unsupported Ubuntu version, falling back to Ubuntu 14.04"
+                __PUBLISH_RID=ubuntu.14.04-x64
+                else
+                __PUBLISH_RID=$ID.$VERSION_ID-x64
+                fi
+            fi
+
+            # RHEL bumps their OS Version with minor releases, but we only put the "rhel.7-x64" RID in our
+            # tool runtime, since there's binary compatibility between minor versions.
+
+            if [[ $__PUBLISH_RID == rhel.7*-x64 ]]; then
+                __PUBLISH_RID=rhel.7-x64
+            fi
+            ;;
+
+        *)
+            echo "Unsupported OS '$OSName' detected. Downloading ubuntu-x64 tools."
             __PUBLISH_RID=ubuntu.14.04-x64
-        else
-            source /etc/os-release
-            __PUBLISH_RID=$ID.$VERSION_ID-x64
-        fi
-
-        # RHEL bumps their OS Version with minor releases, but we only put the "rhel.7-x64" RID in our
-        # tool runtime, since there's binary compatibility between minor versions.
-
-        if [[ $__PUBLISH_RID == rhel.7*-x64 ]]; then
-            __PUBLISH_RID=rhel.7-x64
-        fi
-        ;;
-
-    *)
-        echo "Unsupported OS '$OSName' detected. Downloading ubuntu-x64 tools."
-        __PUBLISH_RID=ubuntu.14.04-x64
-        ;;
-esac
+            ;;
+    esac
+fi
 
 cp -R $__TOOLS_DIR/* $__TOOLRUNTIME_DIR
 
@@ -73,7 +80,6 @@ if [ "$?" != "0" ]; then
     echo "ERROR: An error ocurred when running: '$__DOTNET_CMD publish \"${__TOOLRUNTIME_PROJECTJSON}\"'. Please check above for more details."
     exit 1
 fi
-chmod a+x $__TOOLRUNTIME_DIR/corerun
 
 if [ -n "$BUILDTOOLS_OVERRIDE_RUNTIME" ]; then
     find $__TOOLRUNTIME_DIR -name *.ni.* | xargs rm 2>/dev/null
@@ -94,7 +100,6 @@ cp -R "${__PACKAGES_DIR}/Microsoft.Portable.Targets/${__PORTABLETARGETS_VERSION}
 cp -R "${__PACKAGES_DIR}/MicroBuild.Core/${__MICROBUILD_VERSION}/build/." "$__TOOLRUNTIME_DIR/."
 
 # Temporary Hacks to fix couple of issues in the msbuild and roslyn nuget packages
-cp "$__TOOLRUNTIME_DIR/corerun" "$__TOOLRUNTIME_DIR/corerun.exe"
 mv "$__TOOLRUNTIME_DIR/Microsoft.CSharp.targets" "$__TOOLRUNTIME_DIR/Microsoft.CSharp.Targets"
 
 exit 0

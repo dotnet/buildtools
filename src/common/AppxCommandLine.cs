@@ -91,6 +91,7 @@ namespace Xunit.Shared
         protected XunitProject Parse(Predicate<string> fileExists)
         {
             var assemblies = new List<Tuple<string, string>>();
+            Reporter = new DefaultRunnerReporter();
 
             while (arguments.Count > 0)
             {

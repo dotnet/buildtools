@@ -36,6 +36,7 @@ namespace Xunit.UwpClient
             this.runnerAppxPath = runnerAppxPath;
             this.InstallLocation = installPath;
             this.PackageSourceDirectory = Environment.GetEnvironmentVariable("HELIX_CORRELATION_PAYLOAD");
+            NativeMethods.CoInitializeEx(IntPtr.Zero, 2);
         }
 
         public void Setup()
@@ -93,14 +94,15 @@ namespace Xunit.UwpClient
                     if (PackageSourceDirectory != null)
                     {
                         Console.WriteLine("Looking for *.dll in {0}", PackageSourceDirectory);
-                        foreach (var f in Directory.EnumerateFiles(PackageSourceDirectory, "*.dll", SearchOption.AllDirectories))
+                        foreach (var f in Directory.EnumerateFiles(tempDir, "*.dll", SearchOption.TopDirectoryOnly))
                         {
-                            var src = Path.Combine(PackageSourceDirectory, f);
+                            var src = Path.Combine(PackageSourceDirectory, Path.GetFileNameWithoutExtension(f));
+                            src = Path.Combine(src, Directory.EnumerateDirectories(src).First(), f);
                             var dest = Path.Combine(tempDir, Path.GetFileName(f));
-                            if (!File.Exists(dest))
+                            if (File.Exists(src))
                             {
                                 Console.WriteLine("Copying {0} to {1}", src, dest);
-                                File.Copy(src, dest);
+                                File.Copy(src, dest, true);
                             }
                         }
                     }
@@ -155,29 +157,21 @@ namespace Xunit.UwpClient
             IntPtr pid;
             Console.WriteLine("Activating: " + appUserModelId);
             var hri = activationManager.ActivateApplication(appUserModelId, this.argsToPass, ACTIVATEOPTIONS.AO_NOERRORUI | ACTIVATEOPTIONS.AO_NOSPLASHSCREEN, out pid);
+            var timer = Stopwatch.StartNew();
             Console.WriteLine("UWP Install HRESULT: " + hri);
-            var p = Process.GetProcessById((int)pid);
+            var p = Process.GetProcessById(pid.ToInt32());
             Console.WriteLine("Running {0} in process {1} at {2}", p.ProcessName, pid, DateTimeOffset.Now);
-            p.WaitForExit((int)timeout.TotalMilliseconds);
-            var exitCode = "?";
-            if (p.HasExited)
+            while (timer.ElapsedMilliseconds < timeout.TotalMilliseconds && !p.HasExited)
             {
-                exitCode = "H";
-                try
-                {
-                    exitCode = p.ExitCode.ToString();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
+                Thread.Sleep(1000);
             }
-            Console.WriteLine("Finished waiting for {0} at {1}, exit code {2}", pid, DateTimeOffset.Now, exitCode);
+            var cleanExit = p.HasExited;
             if (!p.HasExited)
             {
                 Console.WriteLine("Killing {0}", pid);
                 p.Kill();
             }
+            Console.WriteLine("Finished waiting for {0} at {1}, clean exit: {2}", pid, DateTimeOffset.Now, cleanExit);
 
             var resultPath = Path.Combine(Environment.GetEnvironmentVariable("LOCALAPPDATA"), "Packages", appUserModelId.Substring(0, appUserModelId.IndexOf('!')), "LocalState", "testResults.xml");
             Console.WriteLine("Attempting to read {0}", resultPath);

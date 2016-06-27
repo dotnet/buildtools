@@ -69,13 +69,6 @@
       </TestCopyLocal>
     </ItemGroup>
 
-    <!-- We may have an indirect package reference that we want to replace with a project reference.
-          Those are part of RunTestsForProjectInputs. The order that we append to TestCopyLocal is
-          significant, later entries override earlier entries. -->
-    <ItemGroup>
-      <TestCopyLocal Include="@(RunTestsForProjectInputs)" Exclude="@(PackagesConfigs)" />
-    </ItemGroup>
-
     <GetTargetMachineInfo Condition="'$(TestWithLocalLibraries)'=='true'">
       <Output Condition="'$(TargetArch)'==''" TaskParameter="TargetArch" PropertyName="TargetArch" />
       <Output Condition="'$(TargetOS)'==''" TaskParameter="TargetOS" PropertyName="TargetOS" />
@@ -91,15 +84,18 @@
     <PropertyGroup Condition="'$(TestWithLocalLibraries)'=='true'">
       <BaseLocalLibrariesPath Condition="'$(BaseLocalLibrariesPath)'==''">$(BaseOutputPath)</BaseLocalLibrariesPath>
       <AnyOSLocalLibrariesPath>$(BaseLocalLibrariesPath)/AnyOS.$(Platform).$(ConfigurationGroup)</AnyOSLocalLibrariesPath>
-      <OSGroupLocalLibrariesPath>$(BaseLocalLibrariesPath)/$(OSGroup).$(Platform).$(ConfigurationGroup)</OSGroupLocalLibrariesPath>
+      <UnixLocalLibrariesPath>$(BaseLocalLibrariesPath)/Unix.$(Platform).$(ConfigurationGroup)</UnixLocalLibrariesPath>
+      <TargetOSLocalLibrariesPath>$(BaseLocalLibrariesPath)/$(TargetOS).$(Platform).$(ConfigurationGroup)</TargetOSLocalLibrariesPath>
     </PropertyGroup>
     <ItemGroup Condition="'$(TestWithLocalLibraries)'=='true'">
       <!-- Replace some of the resolved libraries that came from nuget by exploring the list of files that we are going to copy
            and replacing them with local copies that were just built -->
       <_ReplacementCandidates Include="@(TestCopyLocal -> '$(AnyOSLocalLibrariesPath)/%(filename)/%(filename).dll')" />
       <_ReplacementCandidates Include="@(TestCopyLocal -> '$(AnyOSLocalLibrariesPath)/%(filename)/%(filename).pdb')" />
-      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(OSGroupLocalLibrariesPath)/%(filename)/%(filename).dll')" />
-      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(OSGroupLocalLibrariesPath)/%(filename)/%(filename).pdb')" />
+      <_ReplacementCandidates Condition="'$(TargetOS)' == 'Linux' OR '$(TargetOS)' == 'OSX'" Include="@(TestCopyLocal -> '$(UnixLocalLibrariesPath)/%(filename)/%(filename).dll')" />
+      <_ReplacementCandidates Condition="'$(TargetOS)' == 'Linux' OR '$(TargetOS)' == 'OSX'" Include="@(TestCopyLocal -> '$(UnixLocalLibrariesPath)/%(filename)/%(filename).pdb')" />
+      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(TargetOSLocalLibrariesPath)/%(filename)/%(filename).dll')" />
+      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(TargetOSLocalLibrariesPath)/%(filename)/%(filename).pdb')" />
       <_ExistingReplacementCandidate Include="@(_ReplacementCandidates)" Condition="Exists('%(_ReplacementCandidates.FullPath)')" />
       <TestCopyLocal Include="@(_ExistingReplacementCandidate)" />
     </ItemGroup>
@@ -108,14 +104,6 @@
       <OverridenRuntimeContent Include="$(BUILDTOOLS_OVERRIDE_RUNTIME)/*.*" />
       <TestCopyLocal Include="@(OverridenRuntimeContent)" />
      </ItemGroup>
-    
-    <!-- Once the copying of RunTestsForProjectInputs is complete, we can remove it from the 
-    TestCopyLocal (which is the dependency list for each test) and cannot have any values
-    referring to locally built assets -->
-    <Message Condition="'@(RunTestsForProjectInputs)'!=''" Text="Overwriting the following values in TestDir : '@(RunTestsForProjectInputs)'" />
-    <ItemGroup>
-      <TestCopyLocal Remove="@(RunTestsForProjectInputs)" />
-    </ItemGroup>
 
     <!-- Remove duplicates. Note that we mustn't just copy in sequence and let
          the last one win that way because it will cause copies to occur on

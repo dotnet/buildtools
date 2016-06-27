@@ -269,7 +269,7 @@ namespace Microsoft.Cci.Writers.CSharp
                 else if (double.IsNaN(val))
                     Write("0.0 / 0.0");
                 else
-                    Write(((double)value).ToString("R"));
+                    Write(((double)value).ToString("R", CultureInfo.InvariantCulture));
             }
             else if (value is float)
             {
@@ -281,7 +281,7 @@ namespace Microsoft.Cci.Writers.CSharp
                 else if (float.IsNaN(val))
                     Write("0.0f / 0.0f");
                 else
-                    Write(((float)value).ToString("R") + "f");
+                    Write(((float)value).ToString("R", CultureInfo.InvariantCulture) + "f");
             }
             else if (value is bool)
             {

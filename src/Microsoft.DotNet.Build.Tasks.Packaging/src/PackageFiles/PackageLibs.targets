@@ -10,7 +10,7 @@
   <UsingTask TaskName="ValidatePackageTargetFramework" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="GetApplicableAssetsFromPackages" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
 
-  <Target Name="UpdatePkgProjProjectReferences" BeforeTargets="BeforeResolveReferences">
+  <Target Name="UpdatePkgProjProjectReferences" BeforeTargets="AssignProjectConfiguration">
     <!-- Update PkgProj references to call the GetPackageAssets target -->
     <ItemGroup>
       <ProjectReference Condition="'%(Extension)'=='.pkgproj'">

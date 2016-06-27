@@ -11,6 +11,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <CLSCompliant>false</CLSCompliant>
+    <CopyNugetImplementations>true</CopyNugetImplementations>
     <NuGetTargetMoniker>.NETStandard,Version=v1.5</NuGetTargetMoniker>
   </PropertyGroup>
   <!-- Default configurations to help VS understand the options -->
