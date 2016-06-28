@@ -88,7 +88,7 @@ namespace Microsoft.DotNet.Execute
             {
                 if (BuildRequiredValueSettingsForCommand(commandToExecute, parametersSelectedByUser, SettingParameters) &&
                     BuildOptionalValueSettingsForCommand(commandToExecute, SettingParameters) &&
-                    ValidExtraArgumentsForCommand(SettingParameters["ExtraArguments"], SettingParameters))
+                    ValidExtraParametersForCommand(SettingParameters["ExtraParameters"], SettingParameters))
                 {
                     string commandParameters = BuildParametersForCommand(SettingParameters, SettingParameters["toolName"]);
                     CompleteCommand completeCommand = new CompleteCommand(commandTool, commandParameters);
@@ -175,12 +175,12 @@ namespace Microsoft.DotNet.Execute
             return true;
         }
 
-        private bool ValidExtraArgumentsForCommand(string extraArguments, Dictionary<string, string> commandValues)
+        private bool ValidExtraParametersForCommand(string extraParameters, Dictionary<string, string> commandValues)
         {
             int namePos, valuePos;
             string tempParam, name, value;
             
-            string[] extraA = extraArguments.Split(' ');
+            string[] extraA = extraParameters.Split(' ');
             foreach(string param in extraA)
             {
                 namePos = 0;

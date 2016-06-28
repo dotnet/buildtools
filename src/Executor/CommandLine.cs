@@ -588,6 +588,12 @@ class CommandLine
             set { _lastQualifierWins = value; }
         }
 
+        public static string ExtraParameters
+        {
+            get { return _extraparameters; }
+            set { _extraparameters = value; }
+        }
+
         // These routines are typically are not needed because ParseArgsForConsoleApp does the work.
         public CommandLineParser(string commandLine)
         {
@@ -615,11 +621,21 @@ class CommandLine
             }
 
             // Find any 'unused' parameters;
-            while (_curPosition < _args.Count && _args[_curPosition] == null)
-                _curPosition++;
-
-            if (_curPosition < _args.Count)
-                throw new CommandLineParserException("Extra positional parameter: " + _args[_curPosition] + ".");
+            List<string> unusedParameters = new List<string>();
+            foreach(string param in _args)
+            {
+                if(!string.IsNullOrEmpty(param))
+                {
+                    unusedParameters.Add(param);
+                }
+            }
+            
+            if (unusedParameters != null)
+            {
+                _extraparameters = string.Join(" ", unusedParameters);
+                //throw new CommandLineParserException("Extra positional parameter: " + _args[_curPosition] + ".");
+            }
+                
 
             // TODO we should null out data structures we no longer need, to save space.
             // Not critical because in the common case, the parser as a whole becomes dead.
@@ -1765,6 +1781,7 @@ class CommandLine
         private string[] _parameterSetsWhereQualifiersMustBeFirst;
         private bool _qualifiersUseOnlyDash = true;
         private bool _lastQualifierWins;
+        private static string _extraparameters;
 
         // In order to produce help, we need to remember everything useful about all the parameters.  This list
         // does this.  It is only done when help is needed, so it is not here in the common scenario.

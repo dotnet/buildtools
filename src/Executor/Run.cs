@@ -35,15 +35,13 @@ namespace Microsoft.DotNet.Execute
 
                 _process.WaitForExit();
                 Console.Error.WriteLine(errorOutput);
-                                
+
                 const int SLEEP_AMOUNT = 1000;
                 while (!_exited)
                 {
                     Thread.Sleep(SLEEP_AMOUNT);
                 }
                 return _process.ExitCode;
-
-
             }
             catch (InvalidOperationException e)
             {
