@@ -1,2 +1,2 @@
-call msbuild.exe %*
-exit /b %ERRORLEVEL% 
+@call msbuild.exe %*
+@exit /b %ERRORLEVEL%
