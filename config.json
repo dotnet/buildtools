@@ -118,7 +118,7 @@
     },
     "build-managed":{
       "alias":{
-        "s":{
+        "binaries":{
           "description": "Only builds binaries. It doesn't restore packages.",
           "settings":{
             "RestoreDuringBuild": false,
@@ -172,6 +172,12 @@
             "CmakeDebug": "default"
           }
         },
+        "release":{
+          "description": "Passes RELEASE to respective build-native script.",
+          "settings":{
+            "CmakeDebug": "RELEASE"
+          }
+        }
       },
       "defaultValues":{
         "toolName": "terminal",
