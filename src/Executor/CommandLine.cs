@@ -1110,6 +1110,7 @@ class CommandLine
             _dashedParameterEncodedPositions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
             bool paramSetEncountered = false;
+            string parameterSet = string.Empty;
             for (int i = 0; i < _args.Count; i++)
             {
                 string arg = _args[i];
@@ -1127,13 +1128,21 @@ class CommandLine
                     if (name == "?")        // Did the user request help?
                     {
                         _args[i] = null;
-                        _helpRequestedFor = String.Empty;
-                        if (i + 1 < _args.Count)
+                        if(paramSetEncountered)
+                        {
+                            _helpRequestedFor = parameterSet;
+                        }
+                        else
+                        {
+                            _helpRequestedFor = String.Empty;
+                        }
+                        
+                        /*if (i + 1 < _args.Count)
                         {
                             i++;
                             _helpRequestedFor = _args[i];
                             _args[i] = null;
-                        }
+                        }*/
                         _mustParseHelpStrings = true;
                         break;
                     }
@@ -1156,6 +1165,7 @@ class CommandLine
                         else if (IsParameterSetWithqualifiersMustBeFirst(String.Empty))        // Then we are the default parameter set
                             break;
                         paramSetEncountered = true;     // If we have hit a parameter, we must have hit a parameter set.
+                        parameterSet = arg;
                     }
                 }
             }
