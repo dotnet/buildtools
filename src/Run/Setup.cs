@@ -51,7 +51,7 @@ namespace Microsoft.DotNet.Execute
                 Console.WriteLine("Running: {0} {1}", commandToRun.ToolCommand, commandToRun.ParametersCommand);
                 Console.ResetColor();
 
-                int result = Run.ExecuteProcess(commandToRun.ToolCommand, commandToRun.ParametersCommand);
+                int result = RunProcess.ExecuteProcess(commandToRun.ToolCommand, commandToRun.ParametersCommand);
                 if (result == 0)
                 {
                     Console.ForegroundColor = ConsoleColor.Green;

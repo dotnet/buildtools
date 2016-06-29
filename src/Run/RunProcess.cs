@@ -4,7 +4,7 @@ using System.Threading;
 
 namespace Microsoft.DotNet.Execute
 {
-    public static class Run
+    public static class RunProcess
     {
         private static System.Diagnostics.Process _process;
         private static bool _exited = false;

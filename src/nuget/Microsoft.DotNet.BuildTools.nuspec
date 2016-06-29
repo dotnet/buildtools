@@ -27,7 +27,7 @@
     <file src="Microsoft.DotNet.Build.Tasks\PackageFiles\**\*.*" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\Microsoft.DotNet.Build.Tasks.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\NuProj\**\*.*" target="lib\NuProj" />
-    <file src="Executor\Executor.exe" target="lib" />
+    <file src="Run\Run.exe" target="lib" />
     <file src="BclRewriter\BclRewriter.exe" target="lib" />
     <file src="GenFacades\GenFacades.exe" target="lib" />
     <file src="GenAPI\GenAPI.exe" target="lib" />
