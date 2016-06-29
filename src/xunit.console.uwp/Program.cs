@@ -19,7 +19,7 @@ namespace Xunit.UwpClient
 {
     public class Program
     {
-        private const string runnerPath = @"app\XunitUwpRunner.exe";
+        private const string runnerPath = @"XunitUwpRunner.exe";
 
         [STAThread]
         public static int Main(string[] args)

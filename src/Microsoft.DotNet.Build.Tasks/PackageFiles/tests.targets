@@ -22,7 +22,8 @@
 
   <PropertyGroup>
     <TestWithCore Condition="'$(TestWithCore)' == '' And '$(TestTFM)' != 'netcoreapp1.0'">false</TestWithCore>
-    <TestAppX Condition="'$(TestWithCore)' == 'false' And '$(TestTFM)' == 'netcore50'">true</TestAppX>
+    <!-- TestAppX is true only for debug scenario which runs on non-aot runtime ids -->
+    <TestAppX Condition="'$(TestWithCore)' == 'false' And '$(TestTFM)' == 'netcore50' And !$(TestNugetRuntimeId.Contains('aot'))">true</TestAppX>
     <TestWithCore Condition="'$(TestWithCore)' == '' ">true</TestWithCore>
   </PropertyGroup>
 
@@ -182,15 +183,6 @@
         <UseAbsolutePath Condition="'$(TestWithLocalLibraries)'=='true'">$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').StartsWith('$(BinDir)'))</UseAbsolutePath>
       </IncludedFileForRunnerScript>
     </ItemGroup>
-    
-    <Copy Condition="'$(TestAppX)' == 'true'"
-          SourceFiles="$(PackagesDir)%(IncludedFileForRunnerScript.PackageRelativePath)"
-          DestinationFiles="$(TestPath)$(TestNugetTargetMonikerFolder)\app\%(Filename)%(Extension)" 
-          SkipUnchangedFiles="true"/>
-    
-    <Copy Condition="'$(TestAppX)' == 'true'"
-          SourceFiles="@(RunTestsForProjectInputs)" 
-          DestinationFiles="@(RunTestsForProjectInputs->'$(TestPath)$(TestNugetTargetMonikerFolder)\app\%(Filename)%(Extension)')" />
     
     <MakeDir Directories="$(OutputFolderForTestDependencies)" />
     <PropertyGroup>

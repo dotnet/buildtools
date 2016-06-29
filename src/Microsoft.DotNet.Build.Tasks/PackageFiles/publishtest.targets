@@ -57,34 +57,23 @@
     </PrereleaseResolveNuGetPackageAssets>
     
     <ItemGroup Condition="'$(TestWithCore)' != 'true'">
-
       <_TestCopyLocalXunitFiles Include="$(PackagesDir)xunit.runner.console\2.1.0\tools\*.exe" />
       <_TestCopyLocalXunitFiles Include="$(PackagesDir)xunit.runner.console\2.1.0\tools\*.dll" />
-
       <TestCopyLocal Include="@(_TestCopyLocalXunitFiles)" >
         <NuGetPackageId>%(FileName)</NuGetPackageId>
         <NuGetPackageVersion>2.1.0</NuGetPackageVersion>
         <Private>false</Private>
       </TestCopyLocal>
     </ItemGroup>
-      
-    <!-- Select a UWP Runner Version from the package directory-->
-    <CreateItem Condition="'$(TestAppX)' == 'true'" Include="$(PackagesDir)microsoft.xunit.runner.uwp\*\*.*">
-    <Output TaskParameter="Include" ItemName="_UwpRunnerFiles" />
-    </CreateItem>
-    <RemoveDuplicates Condition="'$(TestAppX)' == 'true'" Inputs="@(_UwpRunnerFiles->'%(RelativeDir)')">
-    <Output TaskParameter="Filtered" ItemName="_ItemGroupUwpRunnerVersionCandidates"/>
-    </RemoveDuplicates>
-    <ItemGroup Condition="'$(TestAppX)' == 'true'">
-      <_UwpRunnerDirectory Include="%(_ItemGroupUwpRunnerVersionCandidates.Identity)" Condition="'@(_UwpRunnerVersion->Count())'!=1" />
-    </ItemGroup>
     
-    <ItemGroup Condition="'$(TestWithCore)' != 'true'">
-      <_TestCopyLocalXunitFiles Condition="'$(TestAppX)' == 'true'" Include="$(_UwpRunnerDirectory)\*.*" />
-      <_TestCopyLocalAppXRunner Condition="'$(TestAppX)' == 'true'" Include="$(_UwpRunnerDirectory)\app\**\*.*" />
+    <ItemGroup Condition="'$(TestAppX)' == 'true'">
+      <_TestCopyLocalAppXRunner Include="$(PackagesDir)microsoft.xunit.runner.uwp\$(AppXRunnerVersion)\**\*.*"/>
+      <TestCopyLocal Include="@(_TestCopyLocalAppXRunner)">
+        <NuGetPackageId>microsoft.xunit.runner.uwp</NuGetPackageId>
+        <SourcePath>%(RecursiveDir)%(FileName)%(Extension)</SourcePath>
+        <PreserveSubDirectories>true</PreserveSubDirectories>
+      </TestCopyLocal>
     </ItemGroup>
-    <Copy Condition="'$(TestAppX)' == 'true'" SourceFiles="@(_TestCopyLocalAppXRunner)"
-          DestinationFiles="@(_TestCopyLocalAppXRunner->'$(TestPath)$(TestNugetTargetMonikerFolder)$(TestTFM)\app\%(RecursiveDir)%(Filename)%(Extension)')" />
 
     <GetTargetMachineInfo Condition="'$(TestWithLocalLibraries)'=='true'">
       <Output Condition="'$(TargetArch)'==''" TaskParameter="TargetArch" PropertyName="TargetArch" />
@@ -126,7 +115,7 @@
          the last one win that way because it will cause copies to occur on
          every incremental build. -->
     <ItemGroup>
-      <_TestCopyLocalByFileName Include="@(TestCopyLocal->'%(FileName)%(Extension)')">
+      <_TestCopyLocalByFileName Include="@(TestCopyLocal->'%(RecursiveDir)%(FileName)%(Extension)')">
         <NugetPackageId>%(TestCopyLocal.NugetPackageId)</NugetPackageId>
         <SourcePath>%(Identity)</SourcePath>
       </_TestCopyLocalByFileName>
