@@ -46,7 +46,7 @@
       "description": "MsBuild logging options.",
       "valueType": "passThrough",
       "values": [],
-      "defaultValue": "/flp:v=normal"
+      "defaultValue": "/flp:v=diag"
     },
     "MsBuildParameters": {
       "description": "MsBuild building options.",
@@ -107,6 +107,12 @@
             "BatchRestorePackages": "default"
           }
         },
+        "verbose":{
+          "description": "Passes /flp:v=normal to the msbuild command or the value passed by the user.",
+          "settings":{
+            "MsBuildLogging": "default"
+          }
+        }
       },
       "defaultValues":{
         "toolName": "msbuild",
