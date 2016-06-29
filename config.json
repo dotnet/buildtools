@@ -46,7 +46,7 @@
       "description": "MsBuild logging options.",
       "valueType": "passThrough",
       "values": [],
-      "defaultValue": "/flp:v=diag"
+      "defaultValue": "/flp:v=normal"
     },
     "MsBuildParameters": {
       "description": "MsBuild building options.",
@@ -108,9 +108,9 @@
           }
         },
         "verbose":{
-          "description": "Passes /flp:v=normal to the msbuild command or the value passed by the user.",
+          "description": "Passes /flp:v=diag to the msbuild command or the value passed by the user.",
           "settings":{
-            "MsBuildLogging": "default"
+            "MsBuildLogging": "/flp:v=diag"
           }
         }
       },
@@ -151,9 +151,9 @@
           }
         },
         "verbose":{
-          "description": "Passes /flp:v=normal to the msbuild command or the value passed by the user.",
+          "description": "Passes /flp:v=diag to the msbuild command or the value passed by the user.",
           "settings":{
-            "MsBuildLogging": "default"
+            "MsBuildLogging": "/flp:v=diag"
           }
         },
         "os":{

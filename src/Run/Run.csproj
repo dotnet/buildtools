@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>Executor</RootNamespace>
-    <AssemblyName>Run</AssemblyName>
+    <AssemblyName>run</AssemblyName>
     <NuGetRuntimeIdentifier>win7-x64</NuGetRuntimeIdentifier>
     <NuGetTargetMoniker>.NETCoreApp,Version=v1.0</NuGetTargetMoniker>
     <ProjectGuid>{86A056DD-F776-4331-B009-98D64385E0F8}</ProjectGuid>
