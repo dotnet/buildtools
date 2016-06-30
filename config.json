@@ -127,9 +127,7 @@
         "binaries":{
           "description": "Only builds binaries. It doesn't restore packages.",
           "settings":{
-            "RestoreDuringBuild": false,
-            "BuildPackages": false,
-            "BuildTests": false
+            "RestoreDuringBuild": false
           }
         },
         "packages":{
