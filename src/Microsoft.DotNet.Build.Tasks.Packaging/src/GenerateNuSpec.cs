@@ -193,6 +193,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         private List<ManifestFile> GetManifestFiles()
         {
             return (from f in Files.NullAsEmpty()
+                    where !f.GetMetadata(Metadata.FileTarget).StartsWith("$none$", StringComparison.OrdinalIgnoreCase)
                     select new ManifestFile()
                     {
                         Source = f.GetMetadata(Metadata.FileSource),
