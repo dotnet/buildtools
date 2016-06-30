@@ -19,6 +19,7 @@
     </dependencies>
   </metadata>
   <files>
+    <file src="version.txt" target="" />
     <file src="Microsoft.DotNet.Build.Tasks.net45\*.dll" exclude="Microsoft.DotNet.Build.Tasks.net45\Nuget.*.dll" target="lib\net45" />
     <file src="Microsoft.DotNet.Build.CloudTestTasks\Microsoft.DotNet.Build.CloudTestTasks.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.CloudTestTasks.net45\Microsoft.DotNet.Build.CloudTestTasks.dll" target="lib\net45" />

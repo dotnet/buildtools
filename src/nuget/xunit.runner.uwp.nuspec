@@ -23,6 +23,7 @@
     </dependencies>
   </metadata>
   <files>
+    <file src="version.txt" target="" />
     <!-- xunit runner for UWP -->
     <file src="xunit.runner.uwp\**\*.exe" target="app" />
     <file src="xunit.runner.uwp\**\*.xml" target="app" />

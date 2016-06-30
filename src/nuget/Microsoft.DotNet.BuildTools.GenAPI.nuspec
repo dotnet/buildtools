@@ -20,6 +20,7 @@
     </dependencies>
   </metadata>
   <files>
+    <file src="version.txt" target="" />
     <file src="GenAPI.Desktop\GenAPI.exe" target="tools" />
     <file src="GenAPI.Desktop\GenAPI.exe.config" target="tools" />
     <file src="GenAPI.Desktop\*.dll" target="tools" />

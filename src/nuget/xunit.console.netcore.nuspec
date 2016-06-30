@@ -42,6 +42,7 @@
     </dependencies>
   </metadata>
   <files>
+    <file src="version.txt" target="" />
     <!-- xunit runner for .NET Core -->
     <!-- don't reference anything, only provide runner as runtime asset -->
     <file src="xunit.console.netcore\_._" target="lib\netstandard1.0" />  
