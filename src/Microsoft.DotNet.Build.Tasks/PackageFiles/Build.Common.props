@@ -16,4 +16,7 @@
     <CompilerResponseFile Condition="'$(CheckSumSHA256)'!='false'">$(MSBuildThisFileDirectory)checksum.rsp</CompilerResponseFile>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <GetNuGetPackageVersionsDependsOn>CreateVersionFileDuringBuild</GetNuGetPackageVersionsDependsOn>
+  </PropertyGroup>
 </Project>
