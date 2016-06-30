@@ -49,6 +49,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.console.uwp", "xunit.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.runner.uwp", "xunit.runner.uwp\xunit.runner.uwp.csproj", "{BB960A1D-DE0B-43F5-ACA1-0BDEA8E63CDD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.DotNet.VersionTools", "Microsoft.DotNet.VersionTools\Microsoft.DotNet.VersionTools.csproj", "{8D524FA5-A8C5-4EBD-BA8B-2A4FED03EE58}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -319,6 +321,26 @@ Global
 		{BB960A1D-DE0B-43F5-ACA1-0BDEA8E63CDD}.Release|x86.ActiveCfg = Debug|Any CPU
 		{BB960A1D-DE0B-43F5-ACA1-0BDEA8E63CDD}.Release|x86.Build.0 = Debug|Any CPU
 		{BB960A1D-DE0B-43F5-ACA1-0BDEA8E63CDD}.Release|x86.Deploy.0 = Debug|Any CPU
+		{8D524FA5-A8C5-4EBD-BA8B-2A4FED03EE58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D524FA5-A8C5-4EBD-BA8B-2A4FED03EE58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D524FA5-A8C5-4EBD-BA8B-2A4FED03EE58}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{8D524FA5-A8C5-4EBD-BA8B-2A4FED03EE58}.Debug|ARM.Build.0 = Debug|Any CPU
+		{8D524FA5-A8C5-4EBD-BA8B-2A4FED03EE58}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{8D524FA5-A8C5-4EBD-BA8B-2A4FED03EE58}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{8D524FA5-A8C5-4EBD-BA8B-2A4FED03EE58}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8D524FA5-A8C5-4EBD-BA8B-2A4FED03EE58}.Debug|x64.Build.0 = Debug|Any CPU
+		{8D524FA5-A8C5-4EBD-BA8B-2A4FED03EE58}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8D524FA5-A8C5-4EBD-BA8B-2A4FED03EE58}.Debug|x86.Build.0 = Debug|Any CPU
+		{8D524FA5-A8C5-4EBD-BA8B-2A4FED03EE58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D524FA5-A8C5-4EBD-BA8B-2A4FED03EE58}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D524FA5-A8C5-4EBD-BA8B-2A4FED03EE58}.Release|ARM.ActiveCfg = Release|Any CPU
+		{8D524FA5-A8C5-4EBD-BA8B-2A4FED03EE58}.Release|ARM.Build.0 = Release|Any CPU
+		{8D524FA5-A8C5-4EBD-BA8B-2A4FED03EE58}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{8D524FA5-A8C5-4EBD-BA8B-2A4FED03EE58}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{8D524FA5-A8C5-4EBD-BA8B-2A4FED03EE58}.Release|x64.ActiveCfg = Release|Any CPU
+		{8D524FA5-A8C5-4EBD-BA8B-2A4FED03EE58}.Release|x64.Build.0 = Release|Any CPU
+		{8D524FA5-A8C5-4EBD-BA8B-2A4FED03EE58}.Release|x86.ActiveCfg = Release|Any CPU
+		{8D524FA5-A8C5-4EBD-BA8B-2A4FED03EE58}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
