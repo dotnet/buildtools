@@ -22,7 +22,6 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="version.txt" target="" />
     <file src="Microsoft.DotNet.BuildTools.TestSuite\*.dll" target="lib/netstandard1.0" />
     <file src="Microsoft.DotNet.BuildTools.TestSuite\runtime.json"  />
   </files>
