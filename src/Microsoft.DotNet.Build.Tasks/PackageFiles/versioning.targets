@@ -215,6 +215,22 @@
     </PropertyGroup>
   </Target>
 
+  <PropertyGroup>
+    <GetNuGetPackageVersionsDependsOn>$(GetNuGetPackageVersionsDependsOn);CreateVersionInfoFile</GetNuGetPackageVersionsDependsOn>
+  </PropertyGroup>
+  
+  <Target Name="CreateVersionInfoFile"
+          DependsOnTargets="GetLatestCommitHash">
+    <PropertyGroup>
+      <SyncInfoFile>$(PackagesBasePath)\version.txt</SyncInfoFile>
+    </PropertyGroup>
+    <WriteLinesToFile
+      Condition="'$(LatestCommit)' != ''"
+      File="$(SyncInfoFile)"
+      Lines="$(LatestCommit)"
+      Overwrite="true" />
+  </Target>
+
   <!-- #################################### -->
   <!-- Generate BuildVersion.props -->
   <!-- #################################### -->

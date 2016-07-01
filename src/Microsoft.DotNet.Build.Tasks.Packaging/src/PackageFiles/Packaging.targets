@@ -407,7 +407,9 @@
        precedence than platform specific implementations of any version and we
        put a place-holder in the platform specific folder when an asset is inbox. -->
   <ItemGroup>
-    <OutOfBoxFramework Include="netcore50"/>
+    <OutOfBoxFramework Include="netcore50">
+      <RuntimeId>win10</RuntimeId>
+    </OutOfBoxFramework>
   </ItemGroup>
   <Target Name="EnsureOOBFramework"
           DependsOnTargets="AddPlaceholders;ConvertItems">
