@@ -66,7 +66,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 CreateItem(@"D:\K2\binaries\x86ret\NETCore\Manifests\System.Threading\runtime.json", "", "")
             };
 
-            string[] oobFx = new[] { "netcore50" };
+            ITaskItem[] oobFx = new[] { new TaskItem("netcore50") };
 
             EnsureOOBFramework task = new EnsureOOBFramework()
             {
@@ -80,9 +80,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
             Assert.Equal(0, _log.ErrorsLogged);
             Assert.Equal(0, _log.WarningsLogged);
             Assert.Equal(11, task.AdditionalFiles.Length);
-            Assert.All(task.AdditionalFiles, f => f.GetMetadata("TargetPath").Contains(oobFx[0]));
+            Assert.All(task.AdditionalFiles, f => f.GetMetadata("TargetPath").Contains(oobFx[0].ItemSpec));
             Assert.All(task.AdditionalFiles, f => f.GetMetadata("TargetPath").StartsWith("ref"));
-            Assert.All(task.AdditionalFiles, f => f.GetMetadata("TargetFramework").Equals(oobFx[0]));
+            Assert.All(task.AdditionalFiles, f => f.GetMetadata("TargetFramework").Equals(oobFx[0].ItemSpec));
         }
 
         [Fact]
@@ -129,7 +129,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 CreateItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "ref/xamarinmac20", "xamarinmac20")
             };
 
-            string[] oobFx = new[] { "netcore50" };
+            ITaskItem[] oobFx = new[] { new TaskItem("netcore50") };
 
             EnsureOOBFramework task = new EnsureOOBFramework()
             {
@@ -143,8 +143,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
             Assert.Equal(0, _log.ErrorsLogged);
             Assert.Equal(0, _log.WarningsLogged);
             Assert.Equal(12, task.AdditionalFiles.Length);
-            Assert.All(task.AdditionalFiles, f => f.GetMetadata("TargetPath").Contains(oobFx[0]));
-            Assert.All(task.AdditionalFiles, f => f.GetMetadata("TargetFramework").Equals(oobFx[0]));
+            Assert.All(task.AdditionalFiles, f => f.GetMetadata("TargetPath").Contains(oobFx[0].ItemSpec));
+            Assert.All(task.AdditionalFiles, f => f.GetMetadata("TargetFramework").Equals(oobFx[0].ItemSpec));
         }
 
         [Fact]
@@ -163,7 +163,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 CreateItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "lib/xamarinmac20", "xamarinmac20")
             };
 
-            string[] oobFx = new[] { "netcore50" };
+            ITaskItem[] oobFx = new[] { new TaskItem("netcore50") };
 
             EnsureOOBFramework task = new EnsureOOBFramework()
             {
@@ -208,7 +208,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 CreateItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "ref/xamarinmac20", "xamarinmac20")
             };
 
-            string[] oobFx = new[] { "netcore50" };
+            ITaskItem[] oobFx = new[] { new TaskItem("netcore50") };
 
             EnsureOOBFramework task = new EnsureOOBFramework()
             {
@@ -251,7 +251,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 CreateItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "ref/net45", "")
 };
 
-            string[] oobFx = new[] { "netcore50" };
+            ITaskItem[] oobFx = new[] { new TaskItem("netcore50") };
 
             EnsureOOBFramework task = new EnsureOOBFramework()
             {
@@ -281,7 +281,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 CreateItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "ref/netstandard", "netstandard")
             };
 
-            string[] oobFx = new[] { "netcore50" };
+            ITaskItem[] oobFx = new[] { new TaskItem("netcore50") };
 
             EnsureOOBFramework task = new EnsureOOBFramework()
             {
@@ -312,7 +312,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 CreateItem(@"D:\K2\src\NDP\FxCore\src\Packages\_._", "ref/netstandard", "netstandard")
             };
 
-            string[] oobFx = new[] { "netcore50" };
+            ITaskItem[] oobFx = new[] { new TaskItem("netcore50") };
 
             EnsureOOBFramework task = new EnsureOOBFramework()
             {

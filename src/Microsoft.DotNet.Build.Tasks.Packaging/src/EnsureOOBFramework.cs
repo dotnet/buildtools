@@ -20,7 +20,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
     public class EnsureOOBFramework : PackagingTask
     {
         [Required]
-        public string[] OOBFrameworks { get; set; }
+        public ITaskItem[] OOBFrameworks { get; set; }
 
         [Required]
         public ITaskItem[] Files { get; set; }
@@ -54,8 +54,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             List<ITaskItem> newItems = new List<ITaskItem>();
 
             // determine if an inbox placeholder obscures an OOB implementation.
-            foreach (var oobFx in OOBFrameworks)
+            foreach (var oobFramework in OOBFrameworks)
             {
+                var oobFx = oobFramework.ItemSpec;
                 NuGetFramework targetFramework = NuGetFramework.Parse(oobFx);
 
                 // first see if any dlls are explicitly marked for this framework.
@@ -84,6 +85,23 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 }
 
                 var promotedRuntimeItems = ExpandAssetFoldersToItems(obscuredRuntimeFolders, targetLibFolder, targetFrameworkName: oobFx);
+
+                // If we promoted compile assets but couldn't find any runtime assets to promote we could 
+                // be missing dependencies since a dependency group will be created for the compile assets
+                // that may differ from the runtime assets.
+                if (promotedCompileItems.Any() && !promotedRuntimeItems.Any())
+                {
+                    string oobFxRid = oobFramework.GetMetadata("RuntimeId") ?? RuntimeId;
+
+                    // find the actual implementation that will be used.
+                    var runtimeItems = resolver.GetRuntimeItems(targetFramework, oobFxRid);
+                    var promotedRuntimeFolders = GetRuntimeAssetFoldersForPromotion(runtimeItems, targetFramework, oobFx);
+
+                    // use null here to indicate that this should not actually go into the package but only be used for 
+                    // dependency harvesting
+                    promotedRuntimeItems = ExpandAssetFoldersToItems(promotedRuntimeFolders, "$none$", targetFrameworkName: oobFx);
+                }
+
                 newItems.AddRange(promotedRuntimeItems);
             }
 
@@ -144,6 +162,33 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
 
             return obscuredAssetPaths;
+        }
+
+        private IEnumerable<string> GetRuntimeAssetFoldersForPromotion(ContentItemGroup runtimeAssets, NuGetFramework targetFramework, string targetFrameworkName)
+        {
+            if (runtimeAssets == null || runtimeAssets.Items.Count == 0)
+            {
+                return Enumerable.Empty<string>();
+            }
+
+            if (runtimeAssets.Items.All(ci => NuGetAssetResolver.IsPlaceholder(ci.Path)))
+            {
+                return Enumerable.Empty<string>();
+            }
+
+            if (targetFrameworkName == null)
+            {
+                targetFrameworkName = targetFramework.GetShortFolderName();
+            }
+
+            var resolvedFramework = runtimeAssets.Properties["tfm"] as NuGetFramework;
+            if (targetFramework.Equals(resolvedFramework))
+            {
+                Log.LogMessage(LogImportance.Low, $"Not promoting explicit implementation for {targetFrameworkName}");
+                return Enumerable.Empty<string>();
+            }
+
+            return NuGetAssetResolver.GetPackageTargetDirectories(runtimeAssets);
         }
 
         private IEnumerable<ITaskItem> ExpandAssetFoldersToItems(IEnumerable<string> keyAssets, string targetAssetFolder, string targetFrameworkName)

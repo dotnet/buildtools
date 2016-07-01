@@ -50,7 +50,7 @@
     Name="GetNuGetPackageVersions"
     Condition="'@(PackagesNuSpecFiles)'!=''"
     Outputs="%(PackagesNuSpecFiles.Identity)"
-    DependsOnTargets="CreateVersionFileDuringBuild">
+    DependsOnTargets="$(GetNuGetPackageVersionsDependsOn)">
 
     <PropertyGroup>
       <SelectedPackageVersion>$(BuildNumberMajor)-$(BuildNumberMinor)</SelectedPackageVersion>

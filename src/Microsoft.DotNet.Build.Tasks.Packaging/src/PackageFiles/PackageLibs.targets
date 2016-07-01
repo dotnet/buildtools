@@ -15,7 +15,7 @@
     <ItemGroup>
       <ProjectReference Condition="'%(Extension)'=='.pkgproj'">
         <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-        <Targets>Build;GetPackageAssets</Targets>
+        <Targets>GetPackageAssets</Targets>
         <OutputItemType>PkgProjAsset</OutputItemType>
         <UndefineProperties>OSGroup;TargetGroup</UndefineProperties>
       </ProjectReference>
