@@ -125,7 +125,8 @@ namespace Microsoft.DotNet.Build.Tasks
                     string filePath = Path.GetFileName(relativePath);
                     if (preserveSubDirectories == true)
                     {
-                        //This is to remove the first two directories on the path which will always be the dependency followed by the version used
+                        // PackageRelativePath contains (PackageName/VersionNumber/Directories/FileName). This is to remove the first two directories on 
+                        // the path to preserve just the directory structure.
                         int indexOfSubDirectories = relativePath.IndexOf("\\", relativePath.IndexOf("\\")+1);
                         filePath = relativePath.Substring(indexOfSubDirectories);
                         copyCommands.AppendLine($"call :makedir \"%EXECUTION_DIR%{Path.GetDirectoryName(filePath)}\" ||  exit /b -1");

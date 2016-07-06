@@ -192,12 +192,20 @@ namespace Xunit.UwpClient
             IEnumerable<XElement> address =
                 from el in root.Descendants("assembly")
                 select el;
-            foreach (XElement el in address)
+            if (address!=null && address.Any())
             {
-                List<XAttribute> xmlResults = el.Attributes().ToList();
-                Console.WriteLine("=== TEST EXECUTION SUMMARY ===");
-                Console.WriteLine("{0} {1} {2} {3} {4} {5}", xmlResults[0], xmlResults[5], xmlResults[10], xmlResults[7], xmlResults[8], xmlResults[9]);
-                Console.WriteLine("Finished running tests. {0}", xmlResults[6]);
+                foreach (XElement el in address)
+                {
+                    List<XAttribute> xmlResults = el.Attributes().ToList();
+                    Console.WriteLine("=== TEST EXECUTION SUMMARY ===");
+                    Console.WriteLine(
+                        "{xmlResults[0]} {xmlResults[5]} {xmlResults[10]} {xmlResults[7]} {xmlResults[8]} {xmlResults[9]}");
+                    Console.WriteLine("Finished running tests. {xmlResults[6]}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("{destinationPath} is malformed.");
             }
         }
 
