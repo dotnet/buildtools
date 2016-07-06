@@ -34,7 +34,8 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(UseDotNetNativeToolchain)' == 'true'">
-    <TestILCFolder>%PACKAGE_DIR%\TestILC\1.0.0</TestILCFolder>
+    <TestILCVersion>1.4.24208-prerelease</TestILCVersion>
+    <TestILCFolder>%PACKAGE_DIR%\Microsoft.DotNet.TestILC\$(TestILCVersion)\contentFiles\any\any\TestILC</TestILCFolder>
     <TestHostExecutable></TestHostExecutable>
     <XunitExecutable>xunit.console.netcore.exe</XunitExecutable>
   </PropertyGroup>
@@ -92,6 +93,8 @@
     <XunitOptions>$(XunitOptions) -xml $(XunitResultsFileName)</XunitOptions>
 
     <XunitOptions Condition="'$(Performance)'!='true'">$(XunitOptions) -notrait Benchmark=true</XunitOptions>
+
+    <XunitOptions Condition="'$(UseDotNetNativeToolchain)'=='true'">$(XunitOptions) -redirectoutput</XunitOptions>    
 
     <XunitOptions Condition="'$(XunitMaxThreads)'!=''">$(XunitOptions) -maxthreads $(XunitMaxThreads)</XunitOptions>
     <XunitTestAssembly Condition="'$(XunitTestAssembly)' == ''">$(TargetFileName)</XunitTestAssembly>
@@ -213,7 +216,7 @@
     <ItemGroup Condition="'$(UseDotNetNativeToolchain)' == 'true'" >
       <TestCommandLines Include="copy /y $(TestILCFolder)\default.rd.xml  %EXECUTION_DIR%" />
       <TestCommandLines Include="$(TestILCFolder)\ilc.exe -usecustomframework -ExeName xunit.console.netcore.exe -in %EXECUTION_DIR% -out %EXECUTION_DIR%\native -usedefaultpinvoke -buildtype ret -v diag || exit /b %ERRORLEVEL%"/>
-      <TestCommandLines Include="copy /y $(TestILCFolder)\ProductIlc\lib\MSCRT\vcruntime140_app.dll %EXECUTION_DIR%\native" />
+      <TestCommandLines Include="copy /y $(TestILCFolder)\CRT\vcruntime140_app.dll %EXECUTION_DIR%\native" />
       <TestCommandLines Include="echo > %EXECUTION_DIR%\native\$(XunitTestAssembly)"/>
       <TestCommandLines Include="cd native"/>
     </ItemGroup>

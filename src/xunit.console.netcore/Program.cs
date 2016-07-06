@@ -13,7 +13,6 @@ namespace Xunit.ConsoleClient
     {
         volatile static bool cancel;
         static bool failed;
-        static bool hitPlatformNotSupported = false;
         static readonly ConcurrentDictionary<string, ExecutionSummary> completionMessages = new ConcurrentDictionary<string, ExecutionSummary>();
 
         [STAThread]
@@ -21,22 +20,7 @@ namespace Xunit.ConsoleClient
         {
             try
             {
-                SetConsoleForegroundColor(ConsoleColor.White);
-
-                // Workaround for NetCore50 (UWP) implementations:
-                // If we can't set Foreground color, we're running against a version that will be no-op'ing
-                // standard output stream.  If this is the case, just redirect console output.
-                //
-                // Since these things are just coincidental If there's ever a version of System.Console that throws for color but
-                // actually allows console output, we'll need to make this optional.
-                if (hitPlatformNotSupported)
-                {
-                    StreamWriter textFileOutput = new StreamWriter(new FileStream("Xunit.Console.Output.txt", FileMode.Create))
-                    {
-                        AutoFlush = true
-                    };
-                    Console.SetOut(textFileOutput);
-                }
+                Console.ForegroundColor = ConsoleColor.White;
 #if !NETCORE
                 var netVersion = Environment.Version;
 #else
@@ -45,7 +29,7 @@ namespace Xunit.ConsoleClient
                 Console.WriteLine("xUnit.net console test runner ({0}-bit .NET {1})", IntPtr.Size * 8, netVersion);
                 Console.WriteLine("Copyright (C) 2014 Outercurve Foundation.");
                 Console.WriteLine();
-                SetConsoleForegroundColor(ConsoleColor.Gray);
+                Console.ForegroundColor = ConsoleColor.Gray;
 
                 if (args.Length == 0 || args[0] == "-?")
                 {
@@ -81,6 +65,24 @@ namespace Xunit.ConsoleClient
 
                 var commandLine = CommandLine.Parse(args);
 
+                if (commandLine.RedirectOutput)
+                {
+                    // Workaround for NetCore50 (UWP) implementations:
+                    // When running against a version that will be no-op'ing the  
+                    // standard output stream, we will just redirect console output to a well known file name.
+                    //
+                    // This allows the most recent run's output to be logged.  Could allow customization if it's interesting later.
+                    StreamWriter textFileOutput = new StreamWriter(new FileStream("Xunit.Console.Output.txt", FileMode.Create))
+                    {
+                        AutoFlush = true
+                    };
+                    Console.SetOut(textFileOutput);
+                    // Repeat output for consistency.
+                    Console.WriteLine("xUnit.net console test runner ({0}-bit .NET {1})", IntPtr.Size * 8, netVersion);
+                    Console.WriteLine("Copyright (C) 2014 Outercurve Foundation.");
+                    Console.WriteLine();
+                }
+
                 var failCount = RunProject(defaultDirectory, commandLine.Project, commandLine.TeamCity, commandLine.AppVeyor, commandLine.ShowProgress,
                                            commandLine.ParallelizeAssemblies, commandLine.ParallelizeTestCollections,
                                            commandLine.MaxParallelThreads);
@@ -107,7 +109,7 @@ namespace Xunit.ConsoleClient
             }
             finally
             {
-                ResetConsoleColor();
+                Console.ResetColor();
             }
         }
 
@@ -163,6 +165,8 @@ namespace Xunit.ConsoleClient
             Console.WriteLine("  -class \"name\"          : run all methods in a given test class (should be fully");
             Console.WriteLine("                         : specified; i.e., 'MyNamespace.MyClass')");
             Console.WriteLine("                         : if specified more than once, acts as an OR operation");
+            Console.WriteLine("  -redirectoutput        : Redirect calls to Console APIs to file output,");
+            Console.WriteLine("                         : for platforms where console output is a noop.");
 
             TransformFactory.AvailableTransforms.ForEach(
                 transform => Console.WriteLine("  {0} : {1}",
@@ -211,10 +215,10 @@ namespace Xunit.ConsoleClient
 
                 if (completionMessages.Count > 0)
                 {
-                    SetConsoleForegroundColor(ConsoleColor.White);
+                    Console.ForegroundColor = ConsoleColor.White;
                     Console.WriteLine();
                     Console.WriteLine("=== TEST EXECUTION SUMMARY ===");
-                    SetConsoleForegroundColor(ConsoleColor.Gray);
+                    Console.ForegroundColor = ConsoleColor.Gray;
 
                     var totalTestsRun = completionMessages.Values.Sum(summary => summary.Total);
                     var totalTestsFailed = completionMessages.Values.Sum(summary => summary.Failed);
@@ -327,9 +331,9 @@ namespace Xunit.ConsoleClient
                     {
                         lock (consoleLock)
                         {
-                            SetConsoleForegroundColor(ConsoleColor.DarkYellow);
+                            Console.ForegroundColor = ConsoleColor.DarkYellow;
                             Console.WriteLine("Info:        {0} has no tests to run", Path.GetFileNameWithoutExtension(assembly.AssemblyFilename));
-                            SetConsoleForegroundColor(ConsoleColor.Gray);
+                            Console.ForegroundColor = ConsoleColor.Gray;
                         }
                     }
                     else
@@ -355,48 +359,12 @@ namespace Xunit.ConsoleClient
 
             lock (consoleLock)
             {
-                SetConsoleForegroundColor(ConsoleColor.Red);
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("File not found: {0}", fileName);
-                SetConsoleForegroundColor(ConsoleColor.Gray);
+                Console.ForegroundColor = ConsoleColor.Gray;
             }
 
             return false;
-        }
-
-        public static void SetConsoleForegroundColor(ConsoleColor value)
-        {
-            if (hitPlatformNotSupported)
-            {
-                return;
-            }
-
-            try
-            {
-                Console.ForegroundColor = value;
-            }
-            catch (PlatformNotSupportedException)
-            {
-                hitPlatformNotSupported = true;
-                Debug.WriteLine("Ignoring PlatformNotSupportedException from Console PAL");
-            }
-        }
-
-        public static void ResetConsoleColor()
-        {
-            if (hitPlatformNotSupported)
-            {
-                return;
-            }
-
-            try
-            {
-                Console.ResetColor();
-            }
-            catch (PlatformNotSupportedException)
-            {
-                hitPlatformNotSupported = true;
-                Debug.WriteLine("Ignoring PlatformNotSupportedException from Console PAL");
-            }
         }
     }
 }
