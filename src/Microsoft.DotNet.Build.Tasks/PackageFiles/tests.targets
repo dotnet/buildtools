@@ -35,7 +35,13 @@
 
   <PropertyGroup Condition="'$(UseDotNetNativeToolchain)' == 'true'">
     <TestILCVersion>1.4.24208-prerelease</TestILCVersion>
-    <TestILCFolder>%PACKAGE_DIR%\Microsoft.DotNet.TestILC\$(TestILCVersion)\contentFiles\any\any\TestILC</TestILCFolder>
+    <!-- Workaround:  On .NET execution, these paths will hit 263 characters during unzipping and fail 
+         Unfortunately this means slightly different content of Runtests.cmd local vs Helix, but without lots of 
+         long-path trickery this is the only current options.
+    -->
+    <TestILCFolder Condition="'$(EnableCloudTest)' != 'true'">%PACKAGE_DIR%\Microsoft.DotNet.TestILC\$(TestILCVersion)\contentFiles\any\any\TestILC</TestILCFolder>
+    <!-- CloudTest.targets will zip up the TestILC folder from within the package path above to this folder.-->
+    <TestILCFolder Condition="'$(EnableCloudTest)' == 'true'">%PACKAGE_DIR%\TestILC</TestILCFolder>
     <TestHostExecutable></TestHostExecutable>
     <XunitExecutable>xunit.console.netcore.exe</XunitExecutable>
   </PropertyGroup>
