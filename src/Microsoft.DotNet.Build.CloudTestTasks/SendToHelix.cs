@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Build.Framework;
 using Newtonsoft.Json;
@@ -90,6 +91,11 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
                         Log.LogMessage(MessageImportance.High, "Started Helix job: CorrelationId = {0}", JobId);
                         return true;
+                    }
+                    else
+                    {
+                        string responseContent = await response.Content.ReadAsStringAsync();
+                        Log.LogWarning($"Helix Api Response: StatusCode {response.StatusCode} {responseContent}");
                     }
 
                     if (retryCount -- <= 0)

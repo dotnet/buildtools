@@ -28,6 +28,8 @@ namespace Xunit.UwpClient
 
         private string InstallLocation = null;
 
+        private int ReturnCode = 0;
+
         public HostedAppxTest(string[] args, XunitProject project, string runnerAppxPath, string installPath)
         {
             this.originalArgs = args;
@@ -115,12 +117,12 @@ namespace Xunit.UwpClient
             completed.WaitOne();
         }
 
-        public void Run(bool debug)
+        public int Run(bool debug)
         {
-            this.Run(debug, TimeSpan.FromMinutes(10));
+            return this.Run(debug, TimeSpan.FromMinutes(10));
         }
 
-        public void Run(bool debug, TimeSpan timeout)
+        public int Run(bool debug, TimeSpan timeout)
         {
             object returnedComObj = null;
             NativeMethods.CoCreateInstance(Guids.ApplicationActivationManager, null, NativeMethods.CLSCTX_LOCAL_SERVER, Guids.IApplicationActivationManager, out returnedComObj);
@@ -142,39 +144,43 @@ namespace Xunit.UwpClient
                 Thread.Sleep(1000);
             }
             var cleanExit = p.HasExited;
-            if (!p.HasExited)
+            if (!cleanExit)
             {
                 Console.WriteLine("Killing {0}", pid);
                 p.Kill();
             }
-            Console.WriteLine("Finished waiting for {0} at {1}, clean exit: {2}", pid, DateTimeOffset.Now, cleanExit);
+            Console.WriteLine($"Finished waiting for {pid} at {DateTimeOffset.Now}, clean exit: {cleanExit}");
           
             var resultPath = Path.Combine(Environment.GetEnvironmentVariable("LOCALAPPDATA"), "Packages", appUserModelId.Substring(0, appUserModelId.IndexOf('!')), "LocalState", "testResults.xml");
             var logsPath = Path.Combine(Environment.GetEnvironmentVariable("LOCALAPPDATA"), "Packages", appUserModelId.Substring(0, appUserModelId.IndexOf('!')), "LocalState", "logs.txt");
                 
             
             var destinationPath = Path.Combine(Directory.GetCurrentDirectory(), Path.GetFileName(resultPath));
+            var logsDestinationPath = Path.Combine(Directory.GetCurrentDirectory(), Path.GetFileName(logsPath));
             if (File.Exists(resultPath))
             {
-                Console.WriteLine("Copying {0} to test dir ", resultPath);
+                Console.WriteLine($"Copying {resultPath} to test directory");
                 File.Copy(resultPath, destinationPath, true);
                 PrintTestResults(destinationPath);
             }
             else
             {
-                Console.WriteLine("No results found at  {0}, copying logs ", resultPath);
-                if (File.Exists(resultPath))
-                {
-                    File.Copy(resultPath, destinationPath, true);
-                    PrintLogResults(destinationPath);
-                }
-                else
-                {
-                    Console.WriteLine("No logs found at  {0} ", resultPath);
-                }
+                Console.WriteLine("No results found at  {logsPath}, copying logs ");
+            }
+            if (File.Exists(logsPath))
+            {
+                File.Copy(logsPath, logsDestinationPath, true);
+                PrintLogResults(logsDestinationPath);
+            }
+            else
+            {
+                Console.WriteLine($"No logs found at  {logsPath} ");
             }
             Console.WriteLine("Cleaning up...");
             File.Delete(resultPath);
+            File.Delete(logsPath);
+
+            return ReturnCode;
         }
 
         private void PrintLogResults(string destinationPath)
@@ -183,6 +189,7 @@ namespace Xunit.UwpClient
             {
                 Console.WriteLine("ERROR LOG:");
                 Console.WriteLine(reader.ReadToEnd());
+                //this will error out as there is no tests results file
             }
         }
 
@@ -198,14 +205,22 @@ namespace Xunit.UwpClient
                 {
                     List<XAttribute> xmlResults = el.Attributes().ToList();
                     Console.WriteLine("=== TEST EXECUTION SUMMARY ===");
-                    Console.WriteLine(
-                        "{xmlResults[0]} {xmlResults[5]} {xmlResults[10]} {xmlResults[7]} {xmlResults[8]} {xmlResults[9]}");
-                    Console.WriteLine("Finished running tests. {xmlResults[6]}");
+                    Console.WriteLine($"{xmlResults[0]} {xmlResults[5]} {xmlResults[10]} {xmlResults[7]} {xmlResults[8]} {xmlResults[9]}");
+                    Console.WriteLine($"Finished running tests. {xmlResults[6]}");
+                    if (!xmlResults[7].ToString().Contains("failed=\"0\""))
+                    {
+                        ReturnCode = -1;
+                    }
+                    if (!xmlResults[10].ToString().Contains("errors=\"0\""))
+                    {
+                        ReturnCode = -1;
+                    }
                 }
             }
             else
             {
-                Console.WriteLine("{destinationPath} is malformed.");
+                Console.WriteLine($"{destinationPath} - xml is malformed/missing data.");
+                ReturnCode = -1;
             }
         }
 
