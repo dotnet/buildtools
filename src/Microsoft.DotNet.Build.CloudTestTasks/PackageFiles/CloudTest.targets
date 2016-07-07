@@ -49,6 +49,13 @@
     <SupplementalPayloadDir Condition="'$(SupplementalPayloadDir)' == ''">$(TestWorkingDir)SupplementalPayload/</SupplementalPayloadDir>
     <SupplementalPayloadFilename>SupplementalPayload.zip</SupplementalPayloadFilename>
     <SupplementalPayloadFile>$(ArchivesRoot)$(SupplementalPayloadFilename)</SupplementalPayloadFile>
+
+    <!-- Workaround to bring the whole Test ILC folder if required  -->
+    <TestILCVersion>1.4.24208-prerelease</TestILCVersion>
+    <TestILCFolder>$(PackagesDir)Microsoft.DotNet.TestILC\$(TestILCVersion)\contentFiles\any\any\TestILC</TestILCFolder>
+
+    <TestILCZipFileName>TestILC.zip</TestILCZipFileName>
+    <TestILCZipFile>$(ArchivesRoot)$(TestILCZipFileName)</TestILCZipFile>
     <OverwriteOnUpload Condition="'$(OverwriteOnUpload)' == ''">false</OverwriteOnUpload>
     <TimeoutInSeconds Condition="'$(TimeoutInSeconds)' == ''">600</TimeoutInSeconds>
     <HelixApiEndpoint>https://helixview.azurewebsites.net/api/jobs</HelixApiEndpoint>
@@ -95,10 +102,10 @@
     <Message Text="Using OS-Specific test archives from: $(TestArchivesRoot)" />
     <Message Text="Using AnyOS test archives from: $(AnyOSTestArchivesRoot)" />
     <Message Condition="'$(TargetsUnix)' == 'true'"  Text="Using Unix test archives from: $(UnixTestArchivesRoot)" />
-    
+
     <PropertyGroup>
-        <RelativeBlobPathFolderContainingTests Condition="'$(TestTFM)' != ''" >Tests/$(TestTFM)</RelativeBlobPathFolderContainingTests>
-        <RelativeBlobPathFolderContainingTests Condition="'$(TestTFM)' == ''" >Tests</RelativeBlobPathFolderContainingTests>
+      <RelativeBlobPathFolderContainingTests Condition="'$(TestTFM)' != ''" >Tests/$(TestTFM)</RelativeBlobPathFolderContainingTests>
+      <RelativeBlobPathFolderContainingTests Condition="'$(TestTFM)' == ''" >Tests</RelativeBlobPathFolderContainingTests>
     </PropertyGroup>
 
     <!-- verify the test archives were created -->
@@ -130,6 +137,18 @@
     <ItemGroup>
       <SupplementalPayload Include="$(SupplementalPayloadFile)">
         <RelativeBlobPath>$(SupplementalPayloadFilename)</RelativeBlobPath>
+      </SupplementalPayload>
+    </ItemGroup>
+
+    <ZipFileCreateFromDirectory
+      Condition="'$(UseDotNetNativeToolchain)' == 'true'"
+      SourceDirectory="$(TestILCFolder)"
+      DestinationArchive="$(TestILCZipFile)"
+      IncludeBaseDirectory="true"
+      OverwriteDestination="true" />
+    <ItemGroup Condition="'$(UseDotNetNativeToolchain)' == 'true'" >
+      <SupplementalPayload Include="$(TestILCZipFile)">
+        <RelativeBlobPath>$([System.IO.Path]::GetFileName('$(TestILCZipFile)'))</RelativeBlobPath>
       </SupplementalPayload>
     </ItemGroup>
   </Target>
@@ -239,7 +258,7 @@
     <GetPerfTestAssemblies TestBinaries="@(TestBinary)" GetFullPaths="false">
       <Output TaskParameter="PerfTestAssemblies" ItemName="PerfTestAssembly" />
     </GetPerfTestAssemblies>
-    
+
     <!-- don't add any items to the group if no perf tests were found -->
     <ItemGroup Condition="'@(PerfTestAssembly->Count())' != '0'">
       <PerfTest Condition="Exists('$(TestArchivesRoot)$(TestTFM)/%(PerfTestAssembly.Identity).zip')" Include="$(TestArchivesRoot)$(TestTFM)/%(PerfTestAssembly.Identity).zip" />

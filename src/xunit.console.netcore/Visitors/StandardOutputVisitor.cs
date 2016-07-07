@@ -65,9 +65,9 @@ namespace Xunit.ConsoleClient
             {
                 // TODO: Thread-safe way to figure out the default foreground color
                 
-                Program.SetConsoleForegroundColor(ConsoleColor.Red);
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.Error.WriteLine("   {0} [FAIL]", Escape(testFailed.Test.DisplayName));
-                Program.SetConsoleForegroundColor(ConsoleColor.Gray);
+                Console.ForegroundColor = ConsoleColor.Gray;
                 Console.Error.WriteLine("      {0}", ExceptionUtility.CombineMessages(testFailed).Replace(Environment.NewLine, Environment.NewLine + "      "));
 
                 WriteStackTrace(ExceptionUtility.CombineStackTraces(testFailed));
@@ -86,9 +86,9 @@ namespace Xunit.ConsoleClient
             lock (consoleLock)
             {
                 // TODO: Thread-safe way to figure out the default foreground color
-                Program.SetConsoleForegroundColor(ConsoleColor.Yellow);
+                Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.Error.WriteLine("   {0} [SKIP]", Escape(testSkipped.Test.DisplayName));
-                Program.SetConsoleForegroundColor(ConsoleColor.Gray);
+                Console.ForegroundColor = ConsoleColor.Gray;
                 Console.Error.WriteLine("      {0}", Escape(testSkipped.Reason));
             }
 
@@ -172,9 +172,9 @@ namespace Xunit.ConsoleClient
         {
             lock (consoleLock)
             {
-                Program.SetConsoleForegroundColor(ConsoleColor.Red);
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.Error.WriteLine("   [{0}] {1}", failureName, Escape(failureInfo.ExceptionTypes[0]));
-                Program.SetConsoleForegroundColor(ConsoleColor.Gray);
+                Console.ForegroundColor = ConsoleColor.Gray;
                 Console.Error.WriteLine("      {0}", Escape(ExceptionUtility.CombineMessages(failureInfo)));
 
                 WriteStackTrace(ExceptionUtility.CombineStackTraces(failureInfo));
@@ -186,10 +186,10 @@ namespace Xunit.ConsoleClient
             if (String.IsNullOrWhiteSpace(stackTrace))
                 return;
 
-            Program.SetConsoleForegroundColor(ConsoleColor.DarkGray);
+            Console.ForegroundColor = ConsoleColor.DarkGray;
             Console.Error.WriteLine("      Stack Trace:");
 
-            Program.SetConsoleForegroundColor(ConsoleColor.Gray);
+            Console.ForegroundColor = ConsoleColor.Gray;
             foreach (var stackFrame in stackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.None))
             {
                 Console.Error.WriteLine("         {0}", StackFrameTransformer.TransformFrame(stackFrame, defaultDirectory));

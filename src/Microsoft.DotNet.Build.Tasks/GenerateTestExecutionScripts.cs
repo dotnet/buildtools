@@ -131,7 +131,7 @@ namespace Microsoft.DotNet.Build.Tasks
             StringBuilder testRunCommands = new StringBuilder();
             foreach (string runCommand in TestCommands)
             {
-                testRunCommands.AppendLine($"call {runCommand}");
+                testRunCommands.AppendLine($"{runCommand}");
                 testRunEchoes.AppendLine($"echo {runCommand}");
             }
 
