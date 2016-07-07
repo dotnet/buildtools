@@ -37,8 +37,8 @@
 
   <PropertyGroup Condition="'$(UseDotNetNativeToolchain)' == 'true'">
     <TestILCVersion>1.4.24208-prerelease</TestILCVersion>
-    <!-- Workaround:  On .NET execution, these paths will hit 263 characters during unzipping and fail 
-         Unfortunately this means slightly different content of Runtests.cmd local vs Helix, but without lots of 
+    <!-- Workaround:  On .NET execution, these paths will hit 263 characters during unzipping and fail
+         Unfortunately this means slightly different content of Runtests.cmd local vs Helix, but without lots of
          long-path trickery this is the only current options.
     -->
     <TestILCFolder Condition="'$(EnableCloudTest)' != 'true'">%PACKAGE_DIR%\Microsoft.DotNet.TestILC\$(TestILCVersion)\contentFiles\any\any\TestILC</TestILCFolder>
@@ -102,7 +102,7 @@
 
     <XunitOptions Condition="'$(Performance)'!='true'">$(XunitOptions) -notrait Benchmark=true</XunitOptions>
 
-    <XunitOptions Condition="'$(UseDotNetNativeToolchain)'=='true'">$(XunitOptions) -redirectoutput</XunitOptions>    
+    <XunitOptions Condition="'$(UseDotNetNativeToolchain)'=='true'">$(XunitOptions) -redirectoutput</XunitOptions>
 
     <XunitOptions Condition="'$(XunitMaxThreads)'!=''">$(XunitOptions) -maxthreads $(XunitMaxThreads)</XunitOptions>
     <XunitTestAssembly Condition="'$(XunitTestAssembly)' == ''">$(TargetFileName)</XunitTestAssembly>
@@ -114,7 +114,7 @@
     <TestProgram Condition="'$(TestHostExecutable)'==''">$(XunitExecutable)</TestProgram>
     <TestArguments Condition="'$(TestHostExecutable)'==''">$(XunitArguments)</TestArguments>
 
-    <TestCommandLine>$(TestProgram) $(TestArguments) {XunitTraitOptions}</TestCommandLine>
+    <TestCommandLine Condition="'$(Performance)'!='true'">$(TestProgram) $(TestArguments) {XunitTraitOptions}</TestCommandLine>
   </PropertyGroup>
 
   <!-- The Code Coverage targets will override TestHost and TestCommandLine if coverage is enabled -->
@@ -174,9 +174,9 @@
 
     <!-- Replace the {XunitTraitOptions} place holder with the actual traits.  We use the place holder
          because code coverage needs to have a bit of the test command line after the traits (it adds ending quotes
-         to one of its options).  Simply appending the traits would break code coverage. 
+         to one of its options).  Simply appending the traits would break code coverage.
          Additionally, replace CoreRun.exe with ./corerun on Non-Windows OSes (this is the only difference in the command)
-         Future refactoring will allow us to construct this correctly initially, but we don't always know the TargetOS 
+         Future refactoring will allow us to construct this correctly initially, but we don't always know the TargetOS
          when the properties are set currently.
          -->
 
@@ -191,7 +191,7 @@
     <MakeDir Condition="'$(CoverageEnabledForProject)'=='true'" Directories="$(CoverageReportDir)" />
 
     <ItemGroup>
-      <!-- Not all platforms can use the .ni.dlls that come from packages.  If TestWithoutNativeImages is specified, we'll exclude them from copy generation.  
+      <!-- Not all platforms can use the .ni.dlls that come from packages.  If TestWithoutNativeImages is specified, we'll exclude them from copy generation.
            If we end up needing this for any other sorts of filtering, we'll want to add a list of filtered extensions to be matched on EndsWith.  -->
       <IncludedFileForRunnerScript Include="@(_TestCopyLocalByFileNameWithoutDuplicates)"
                                    Condition="'$(TestWithoutNativeImages)' != 'true' Or !$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').EndsWith('.ni.dll'))" >
@@ -214,14 +214,15 @@
       Overwrite="true"
       Encoding="Ascii" />
 
-    <Message Text="Generating JSON-Processed $(OutDir)assemblylist.txt for legacy execution" />
+    <Message Text="Generating JSON-Processed $(OutDir)assemblylist.txt for legacy execution" Condition="'$(UseLegacyXunitPerfRunner)'=='true'" />
     <GenerateAssemblyList
       InputListLocation="$(TestDependencyListFilePath)"
       OutputListLocation="$(OutDir)assemblylist.txt"
+      Condition="'$(UseLegacyXunitPerfRunner)'=='true'"
      />
 
     <!-- For .NET Native compilation, we first need to generate a native executable if possible. -->
-    <ItemGroup Condition="'$(UseDotNetNativeToolchain)' == 'true'" >
+    <ItemGroup Condition="'$(UseDotNetNativeToolchain)' == 'true' AND '$(Performance)'!='true'" >
       <TestCommandLines Include="copy /y $(TestILCFolder)\default.rd.xml  %EXECUTION_DIR%" />
       <TestCommandLines Include="$(TestILCFolder)\ilc.exe -usecustomframework -ExeName xunit.console.netcore.exe -in %EXECUTION_DIR% -out %EXECUTION_DIR%\native -usedefaultpinvoke -buildtype ret -v diag || exit /b %ERRORLEVEL%"/>
       <TestCommandLines Include="copy /y $(TestILCFolder)\CRT\vcruntime140_app.dll %EXECUTION_DIR%\native" />
@@ -237,9 +238,9 @@
 
     <!-- Currently all netcore50 implementations of System.Console actually write to a noop stream -->
     <!-- Workaround is to have the exe detect this and use Console.SetOut to write to a text file. -->
-    <ItemGroup Condition="'$(UseDotNetNativeToolchain)' == 'true'" >
+    <ItemGroup Condition="'$(UseDotNetNativeToolchain)' == 'true' AND '$(Performance)'!='true'" >
       <TestCommandLines Include="type Xunit.Console.Output.txt" />
-      <TestCommandLines Include="copy /y testResults.xml %EXECUTION_DIR%\" />      
+      <TestCommandLines Include="copy /y testResults.xml %EXECUTION_DIR%\" />
     </ItemGroup>
 
     <GenerateTestExecutionScripts

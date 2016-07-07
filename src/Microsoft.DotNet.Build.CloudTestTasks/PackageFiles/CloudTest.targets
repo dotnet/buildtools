@@ -16,12 +16,12 @@
   <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
     <HelixPythonPath>%HELIX_PYTHONPATH%</HelixPythonPath>
     <HelixScriptRoot>%HELIX_SCRIPT_ROOT%\</HelixScriptRoot>
-    <FuncTestRunnerScript>%HELIX_CORRELATION_PAYLOAD%\RunnerScripts\scriptrunner\scriptrunner.py</FuncTestRunnerScript>
+    <TestRunnerScript>%HELIX_CORRELATION_PAYLOAD%\RunnerScripts\scriptrunner\scriptrunner.py</TestRunnerScript>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
     <HelixPythonPath>$HELIX_PYTHONPATH</HelixPythonPath>
     <HelixScriptRoot>$HELIX_SCRIPT_ROOT/</HelixScriptRoot>
-    <FuncTestRunnerScript>$HELIX_CORRELATION_PAYLOAD/RunnerScripts/scriptrunner/scriptrunner.py</FuncTestRunnerScript>
+    <TestRunnerScript>$HELIX_CORRELATION_PAYLOAD/RunnerScripts/scriptrunner/scriptrunner.py</TestRunnerScript>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -45,7 +45,7 @@
     <FuncTestListFile>$(TestWorkingDir)$(OSPlatformConfig)/$(FuncTestListFilename)</FuncTestListFile>
     <PerfTestListFile>$(TestWorkingDir)$(OSPlatformConfig)/$(PerfTestListFilename)</PerfTestListFile>
     <BuildStatsJsonFile>$(TestWorkingDir)$(OSPlatformConfig)/BuildStats.json</BuildStatsJsonFile>
-    <RunnerScript Condition="'$(RunnerScript)' == ''">$(FuncTestRunnerScript)</RunnerScript>
+    <RunnerScript Condition="'$(RunnerScript)' == ''">$(TestRunnerScript)</RunnerScript>
     <SupplementalPayloadDir Condition="'$(SupplementalPayloadDir)' == ''">$(TestWorkingDir)SupplementalPayload/</SupplementalPayloadDir>
     <SupplementalPayloadFilename>SupplementalPayload.zip</SupplementalPayloadFilename>
     <SupplementalPayloadFile>$(ArchivesRoot)$(SupplementalPayloadFilename)</SupplementalPayloadFile>
@@ -235,15 +235,14 @@
   </Target>
 
   <Target Name="CreatePerfTestListJson" DependsOnTargets="CreateAzureStorage" Condition="'$(Performance)' == 'true'">
-    <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
-      <PerfRunner>Microsoft.DotNet.xunit.performance.runner.Windows</PerfRunner>
+    <PropertyGroup Condition="'$(TargetsWindows)' == 'true' AND '$(UseLegacyXunitPerfRunner)'!='true'">
+      <OtherRunnerScriptArgs>--script RunTests.cmd %HELIX_CORRELATION_PAYLOAD% %HELIX_WORKITEM_ROOT%\execution</OtherRunnerScriptArgs>
+
     </PropertyGroup>
-    <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
-      <PerfRunner>Microsoft.DotNet.xunit.performance.runner.cli</PerfRunner>
+    <PropertyGroup Condition="'$(TargetsWindows)' != 'true' AND '$(UseLegacyXunitPerfRunner)'!='true'">
+      <OtherRunnerScriptArgs>--script RunTests.sh $HELIX_CORRELATION_PAYLOAD $HELIX_WORKITEM_ROOT/execution</OtherRunnerScriptArgs>
     </PropertyGroup>
-    <PropertyGroup>
-      <OtherRunnerScriptArgs>--perf-runner $(PerfRunner) --osgroup $(OSGroup) $(OtherRunnerScriptArgs)</OtherRunnerScriptArgs>
-    </PropertyGroup>
+
     <!-- now gather the perf tests -->
     <ItemGroup>
       <TestBinary Include="$(BinDir)$(OSPlatformConfig)/**/*.dll" />
@@ -266,9 +265,28 @@
       <PerfTest Condition="'$(TargetsUnix)' == 'true' And Exists('$(UnixTestArchivesRoot)$(TestTFM)/%(PerfTestAssembly.Identity).zip')" Include="$(UnixTestArchivesRoot)$(TestTFM)/%(PerfTestAssembly.Identity).zip" />
     </ItemGroup>
 
+    <PropertyGroup Condition="'$(TargetsUnix)' == 'true' AND '$(UseLegacyXunitPerfRunner)'!='true'">
+      <PrefixPerfCommand>chmod +x $HELIX_WORKITEM_PAYLOAD/RunTests.sh &amp;&amp;</PrefixPerfCommand>
+    </PropertyGroup>
+
+    <!-- This is to temporarily support execution through legacy xunit perf runner -->
+    <PropertyGroup Condition="'$(UseLegacyXunitPerfRunner)'=='true' AND '$(TargetsWindows)' == 'true'">
+      <PerfRunner>Microsoft.DotNet.xunit.performance.runner.Windows</PerfRunner>
+      <UseDotNetCli>false</UseDotNetCli>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(UseLegacyXunitPerfRunner)'=='true' AND '$(TargetsWindows)' != 'true'">
+      <PerfRunner>Microsoft.DotNet.xunit.performance.runner.cli</PerfRunner>
+      <UseDotNetCli>true</UseDotNetCli>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(UseLegacyXunitPerfRunner)'=='true'">
+      <OtherRunnerScriptArgs>--perf-runner $(PerfRunner) --use-dotnetcli $(UseDotNetCli) $(OtherRunnerScriptArgs)</OtherRunnerScriptArgs>
+    </PropertyGroup>
+
+
     <ItemGroup Condition="'@(PerfTestAssembly->Count())' != '0'">
       <PerfTest>
-        <Command>$(HelixPythonPath) $(RunnerScript) --dll %(Filename).dll $(OtherRunnerScriptArgs) -- $(XunitArgs)</Command>
+        <Command Condition="'$(UseLegacyXunitPerfRunner)'!='true'">$(PrefixPerfCommand) $(HelixPythonPath) $(RunnerScript) $(OtherRunnerScriptArgs)</Command>
+        <Command Condition="'$(UseLegacyXunitPerfRunner)'=='true'">$(HelixPythonPath) $(RunnerScript) --dll %(Filename).dll $(OtherRunnerScriptArgs) -- $(XunitArgs)</Command>
         <CorrelationPayloadUris>[$(CorrelationPayloadUris)]</CorrelationPayloadUris>
         <PayloadUri>$(DropUri)$(Platform)$(ConfigurationGroup)/$(RelativeBlobPathFolderContainingTests)/%(Filename)%(Extension)$(DropUriReadOnlyToken)</PayloadUri>
         <WorkItemId>PerfTest.%(Filename)</WorkItemId>
