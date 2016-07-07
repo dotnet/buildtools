@@ -27,7 +27,6 @@ namespace Xunit.UwpClient
         private string appUserModelId = null;
 
         private string InstallLocation = null;
-        private string PackageSourceDirectory = null;
 
         public HostedAppxTest(string[] args, XunitProject project, string runnerAppxPath, string installPath)
         {
@@ -35,7 +34,6 @@ namespace Xunit.UwpClient
             this.project = project;
             this.runnerAppxPath = runnerAppxPath;
             this.InstallLocation = installPath;
-            this.PackageSourceDirectory = Environment.GetEnvironmentVariable("HELIX_CORRELATION_PAYLOAD");
             NativeMethods.CoInitializeEx(IntPtr.Zero, 2);
         }
 
@@ -86,39 +84,17 @@ namespace Xunit.UwpClient
             else
             {
                 Console.WriteLine("DLL mode");
-                if (File.Exists("XunitUwpRunner.exe"))
-                {
-                    tempDir = Directory.GetCurrentDirectory();
-                    InstallLocation = tempDir;
-                    Console.WriteLine("Runner EXE exists, using this directory: " + tempDir);
-                    if (PackageSourceDirectory != null)
-                    {
-                        Console.WriteLine("Looking for *.dll in {0}", PackageSourceDirectory);
-                        foreach (var f in Directory.EnumerateFiles(tempDir, "*.dll", SearchOption.TopDirectoryOnly))
-                        {
-                            var src = Path.Combine(PackageSourceDirectory, Path.GetFileNameWithoutExtension(f));
-                            src = Path.Combine(src, Directory.EnumerateDirectories(src).First(), f);
-                            var dest = Path.Combine(tempDir, Path.GetFileName(f));
-                            if (File.Exists(src))
-                            {
-                                Console.WriteLine("Copying {0} to {1}", src, dest);
-                                File.Copy(src, dest, true);
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("Using temp dir: " + tempDir);
-                    RecurseCopy(Path.Combine(Directory.GetCurrentDirectory(), "app"), Path.GetFullPath(tempDir));
+                
+                Console.WriteLine("Using temp dir: " + tempDir);
+                RecurseCopy(Path.Combine(Directory.GetCurrentDirectory()), Path.GetFullPath(tempDir));
 
-                    Console.WriteLine("Install Location: " + tempDir);
-                    foreach (var a in project.Assemblies)
-                    {
-                        Console.WriteLine("Assembly to be tested: " + a.AssemblyFilename);
-                        File.Copy(a.AssemblyFilename, Path.Combine(tempDir, Path.GetFileName(a.AssemblyFilename)), true);
-                    }
+                Console.WriteLine("Install Location: " + tempDir);
+                foreach (var a in project.Assemblies)
+                {
+                    Console.WriteLine("Assembly to be tested: " + a.AssemblyFilename);
+                    File.Copy(a.AssemblyFilename, Path.Combine(tempDir, Path.GetFileName(a.AssemblyFilename)), true);
                 }
+            
                 argsToPass = string.Join("\x1F", originalArgs);
                 Console.WriteLine("Arguments passed: " + argsToPass);
             }
@@ -172,14 +148,65 @@ namespace Xunit.UwpClient
                 p.Kill();
             }
             Console.WriteLine("Finished waiting for {0} at {1}, clean exit: {2}", pid, DateTimeOffset.Now, cleanExit);
-
+          
             var resultPath = Path.Combine(Environment.GetEnvironmentVariable("LOCALAPPDATA"), "Packages", appUserModelId.Substring(0, appUserModelId.IndexOf('!')), "LocalState", "testResults.xml");
-            Console.WriteLine("Attempting to read {0}", resultPath);
-            var destinationPath = Path.Combine(InstallLocation, Path.GetFileName(resultPath));
-            Console.WriteLine("Attempting to copy {0} to {1}", resultPath, destinationPath);
-            File.Copy(resultPath, destinationPath, true);
-            Console.WriteLine("File copied to {0}", destinationPath);
+            var logsPath = Path.Combine(Environment.GetEnvironmentVariable("LOCALAPPDATA"), "Packages", appUserModelId.Substring(0, appUserModelId.IndexOf('!')), "LocalState", "logs.txt");
+                
+            
+            var destinationPath = Path.Combine(Directory.GetCurrentDirectory(), Path.GetFileName(resultPath));
+            if (File.Exists(resultPath))
+            {
+                Console.WriteLine("Copying {0} to test dir ", resultPath);
+                File.Copy(resultPath, destinationPath, true);
+                PrintTestResults(destinationPath);
+            }
+            else
+            {
+                Console.WriteLine("No results found at  {0}, copying logs ", resultPath);
+                if (File.Exists(resultPath))
+                {
+                    File.Copy(resultPath, destinationPath, true);
+                    PrintLogResults(destinationPath);
+                }
+                else
+                {
+                    Console.WriteLine("No logs found at  {0} ", resultPath);
+                }
+            }
+            Console.WriteLine("Cleaning up...");
             File.Delete(resultPath);
+        }
+
+        private void PrintLogResults(string destinationPath)
+        {
+            using (StreamReader reader = new StreamReader(destinationPath))
+            {
+                Console.WriteLine("ERROR LOG:");
+                Console.WriteLine(reader.ReadToEnd());
+            }
+        }
+
+        private void PrintTestResults(string destinationPath)
+        { 
+            XElement root = XElement.Load(destinationPath);
+            IEnumerable<XElement> address =
+                from el in root.Descendants("assembly")
+                select el;
+            if (address!=null && address.Any())
+            {
+                foreach (XElement el in address)
+                {
+                    List<XAttribute> xmlResults = el.Attributes().ToList();
+                    Console.WriteLine("=== TEST EXECUTION SUMMARY ===");
+                    Console.WriteLine(
+                        "{xmlResults[0]} {xmlResults[5]} {xmlResults[10]} {xmlResults[7]} {xmlResults[8]} {xmlResults[9]}");
+                    Console.WriteLine("Finished running tests. {xmlResults[6]}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("{destinationPath} is malformed.");
+            }
         }
 
         public void Cleanup()

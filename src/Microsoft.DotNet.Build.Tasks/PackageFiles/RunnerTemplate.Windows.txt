@@ -46,6 +46,14 @@ copy /y %1 %2 > NUL 2>&1
 )
 exit /b %ERRORLEVEL%
 :: =====================================
+:: ======== MakeDirectory subroutine ====
+:makedir
+IF EXIST %1 (
+exit /b 0
+)
+md %1 > NUL 2>&1
+exit /b %ERRORLEVEL%
+:: =====================================
 :ShowUsage
 echo.
 echo Usage:

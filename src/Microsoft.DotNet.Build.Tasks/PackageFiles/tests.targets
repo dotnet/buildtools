@@ -22,6 +22,8 @@
 
   <PropertyGroup>
     <TestWithCore Condition="'$(TestWithCore)' == '' And '$(TestTFM)' != 'netcoreapp1.0'">false</TestWithCore>
+    <!-- TestAppX is true only for debug scenario which runs on non-aot runtime ids -->
+    <TestAppX Condition="'$(TestWithCore)' == 'false' And '$(TestTFM)' == 'netcore50' And !$(TestNugetRuntimeId.Contains('aot'))">true</TestAppX>
     <TestWithCore Condition="'$(TestWithCore)' == '' ">true</TestWithCore>
   </PropertyGroup>
 
