@@ -26,6 +26,7 @@
 <File AssemblyName="System.Diagnostics.TraceEvent" />
 <File AssemblyName="System.Diagnostics.TraceSource" />
 <File AssemblyName="System.Diagnostics.Tracing" />
+<File AssemblyName="System.Drawing.Primitives" />
 <File AssemblyName="System.Dynamic.Runtime" />
 <File AssemblyName="System.Globalization" />
 <File AssemblyName="System.Globalization.Calendars" />
@@ -52,6 +53,7 @@
 <File AssemblyName="System.Net.Mail" />
 <File AssemblyName="System.Net.NameResolution" />
 <File AssemblyName="System.Net.NetworkInformation" />
+<File AssemblyName="System.Net.Ping" />
 <File AssemblyName="System.Net.Primitives" />
 <File AssemblyName="System.Net.Requests" />
 <File AssemblyName="System.Net.Security" />
@@ -66,6 +68,8 @@
 <File AssemblyName="System.Reflection" />
 <File AssemblyName="System.Reflection.DispatchProxy" />
 <File AssemblyName="System.Reflection.Emit" />
+<File AssemblyName="System.Reflection.Emit.Lightweight" />
+<File AssemblyName="System.Reflection.Emit.ILGeneration" />
 <File AssemblyName="System.Reflection.Extensions" />
 <File AssemblyName="System.Reflection.Primitives" />
 <File AssemblyName="System.Reflection.TypeExtensions" />
@@ -77,7 +81,9 @@
 <File AssemblyName="System.Runtime.Handles" />
 <File AssemblyName="System.Runtime.InteropServices" />
 <File AssemblyName="System.Runtime.InteropServices.RuntimeInformation" />
+<File AssemblyName="System.Runtime.InteropServices.WindowsRuntime" />
 <File AssemblyName="System.Runtime.Numerics" />
+<File AssemblyName="System.Runtime.Serialization.Formatters" />
 <File AssemblyName="System.Runtime.Serialization.Json" />
 <File AssemblyName="System.Runtime.Serialization.Primitives" />
 <File AssemblyName="System.Runtime.Serialization.Xml" />
