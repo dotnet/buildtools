@@ -39,6 +39,8 @@ namespace Xunit.Shared
 
         public bool NoLogo { get; protected set; }
 
+        public bool NativeMode { get; protected set; }
+
         public XunitProject Project { get; protected set; }
 
         public bool? ParallelizeAssemblies { get; protected set; }
@@ -291,11 +293,16 @@ namespace Xunit.Shared
                     project.Filters.IncludedNameSpaces.Add(option.Value);
                 }
                 else if (optionName == "xml")
-                    {
+                {
                         if (option.Value == null)
                             throw new ArgumentException($"missing filename for {option.Key}");
 
                         project.Output.Add(optionName, option.Value);
+                }
+                else if (optionName == "nativemode")
+                {
+                    GuardNoOptionValue(option);
+                    NativeMode = true;
                 }
             }
 

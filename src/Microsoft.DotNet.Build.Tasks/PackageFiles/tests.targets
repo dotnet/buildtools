@@ -46,6 +46,7 @@
     <TestILCFolder Condition="'$(EnableCloudTest)' == 'true'">%PACKAGE_DIR%\TestILC</TestILCFolder>
     <TestHostExecutable></TestHostExecutable>
     <XunitExecutable>xunit.console.netcore.exe</XunitExecutable>
+    <CompiledExecutable>$(XunitExecutable)</CompiledExecutable>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TestWithCore)' != 'true' And '$(TestAppX)' != 'true'">
@@ -55,7 +56,8 @@
 
   <PropertyGroup Condition="'$(TestAppX)' == 'true'">
     <TestHostExecutable></TestHostExecutable>
-    <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.uwp.exe</XunitExecutable>
+    <XunitExecutable>xunit.console.uwp.exe</XunitExecutable>
+    <CompiledExecutable>XunitUwpRunner.exe</CompiledExecutable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -103,6 +105,7 @@
     <XunitOptions Condition="'$(Performance)'!='true'">$(XunitOptions) -notrait Benchmark=true</XunitOptions>
 
     <XunitOptions Condition="'$(UseDotNetNativeToolchain)'=='true'">$(XunitOptions) -redirectoutput</XunitOptions>
+    <XunitOptions Condition="'$(UseDotNetNativeToolchain)'=='true' And '$(TestAppX)' == 'true'">$(XunitOptions) -NativeMode -InstallLocation .\native</XunitOptions>
 
     <XunitOptions Condition="'$(XunitMaxThreads)'!=''">$(XunitOptions) -maxthreads $(XunitMaxThreads)</XunitOptions>
     <XunitTestAssembly Condition="'$(XunitTestAssembly)' == ''">$(TargetFileName)</XunitTestAssembly>
@@ -224,10 +227,10 @@
     <!-- For .NET Native compilation, we first need to generate a native executable if possible. -->
     <ItemGroup Condition="'$(UseDotNetNativeToolchain)' == 'true' AND '$(Performance)'!='true'" >
       <TestCommandLines Include="copy /y $(TestILCFolder)\default.rd.xml  %EXECUTION_DIR%" />
-      <TestCommandLines Include="$(TestILCFolder)\ilc.exe -usecustomframework -ExeName xunit.console.netcore.exe -in %EXECUTION_DIR% -out %EXECUTION_DIR%\native -usedefaultpinvoke -buildtype ret -v diag || exit /b %ERRORLEVEL%"/>
+      <TestCommandLines Include="$(TestILCFolder)\ilc.exe -usecustomframework -ExeName $(CompiledExecutable) -in %EXECUTION_DIR% -out %EXECUTION_DIR%\native -usedefaultpinvoke -buildtype ret -v diag || exit /b %ERRORLEVEL%"/>
       <TestCommandLines Include="copy /y $(TestILCFolder)\CRT\vcruntime140_app.dll %EXECUTION_DIR%\native" />
       <TestCommandLines Include="echo > %EXECUTION_DIR%\native\$(XunitTestAssembly)"/>
-      <TestCommandLines Include="cd native"/>
+      <TestCommandLines Condition="'$(TestAppX)' != 'true'" Include="cd native"/>
     </ItemGroup>
 
     <ItemGroup>
