@@ -210,7 +210,7 @@ def post_process_perf_results(settings, results_location, workitem_dir, xunit_te
             log.info('Multiple directories found under '+perf_lib_dir+' picking '+os.listdir(perf_lib_dir)[0])
 
         perf_analysis_version = os.listdir(perf_lib_dir)[0]
-        xmlconvertorpath = os.path.join(payload_dir, 'Microsoft.DotNet.xunit.performance.analysis', perf_analysis_version, 'tools', 'xunit.performance.analysis.exe')
+        xmlconvertorpath = os.path.join(payload_dir, 'Microsoft.DotNet.xunit.performance.analysis', perf_analysis_version, 'lib', 'netstandard1.3', 'xunit.performance.analysis.exe')
     elif xunit_test_type == xunit.XUNIT_CONFIG_PERF_LINUX:
         perf_lib_dir = os.path.join(payload_dir, 'Microsoft.DotNet.xunit.performance.analysis.cli')
         if len(os.listdir(perf_lib_dir)) > 1:
