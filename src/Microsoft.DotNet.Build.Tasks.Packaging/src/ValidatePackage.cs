@@ -358,6 +358,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                                         Log.LogError($"{ContractName} has mismatched compile ({referenceAssemblyVersion}) and runtime ({implementationVersion}) versions on {target}.");
                                     }
 
+                                    if (fx.Framework == FrameworkConstants.FrameworkIdentifiers.Net &&
+                                        !referenceAssemblyVersion.Equals(implementationVersion))
+                                    {
+                                        Log.LogError($"{ContractName} has a higher runtime version ({implementationVersion}) than compile version ({referenceAssemblyVersion}) on .NET Desktop framework {target}.  This will break bindingRedirects.");
+                                    }
+
                                     string fileName = Path.GetFileName(implementationAssembly);
                                     
                                     if (implementationFiles.ContainsKey(fileName))
@@ -751,32 +757,41 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 }
             }
 
-            // for every framework we know about, also validate it's generation to ensure it can
+            // for every framework we know about, also infer it's netstandard version to ensure it can
             // be targeted by PCL.  Even if a package only supports a single framework we still
             // want to include a portable reference assembly.  This allows 3rd parties to add 
             // their own implementation via a lineup/runtime.json.
 
             // only consider frameworks that support the contract at a specific version
-            var portableFrameworks = _frameworks.Values.Where(fx => fx.SupportedVersion != null && fx.SupportedVersion != s_maxVersion).ToArray();
+            var inferFrameworks = _frameworks.Values.Where(fx => fx.SupportedVersion != null && fx.SupportedVersion != s_maxVersion).ToArray();
 
             var genVersionSuppression = GetSuppressionValues(Suppression.PermitPortableVersionMismatch) ?? new HashSet<string>();
+            var inferNETStandardSuppression = GetSuppressionValues(Suppression.SuppressNETStandardInference) ?? new HashSet<string>();
             Dictionary<NuGetFramework, ValidationFramework> generationsToValidate = new Dictionary<NuGetFramework, ValidationFramework>();
-            foreach (var framework in portableFrameworks)
+            foreach (var inferFramework in inferFrameworks)
             {
-                NuGetFramework generation = new NuGetFramework(_generationIdentifier, Generations.DetermineGenerationForFramework(framework.Framework, UseNetPlatform));
-                Log.LogMessage(LogImportance.Low, $"Validating {generation} for {ContractName}, {framework.SupportedVersion} since it is supported by {framework.Framework}");
+                var inferFrameworkMoniker = inferFramework.Framework.ToString();
+                if (inferNETStandardSuppression.Contains(inferFrameworkMoniker))
+                {
+                    continue;
+                }
+
+                NuGetFramework generation = new NuGetFramework(_generationIdentifier, Generations.DetermineGenerationForFramework(inferFramework.Framework, UseNetPlatform));
+                Log.LogMessage(LogImportance.Low, $"Validating {generation} for {ContractName}, {inferFramework.SupportedVersion} since it is supported by {inferFrameworkMoniker}");
 
                 ValidationFramework existingGeneration = null;
                 if (generationsToValidate.TryGetValue(generation, out existingGeneration))
                 {
-                    if (!VersionUtility.IsCompatibleApiVersion(framework.SupportedVersion, existingGeneration.SupportedVersion) && !genVersionSuppression.Contains(framework.Framework.ToString()))
+                    // the netstandard version should be the minimum version supported by all platforms that support that netstandard version.
+                    if (inferFramework.SupportedVersion < existingGeneration.SupportedVersion)
                     {
-                        Log.LogError($"Framework {framework.Framework} supports {ContractName} at {framework.SupportedVersion} which is lower than {existingGeneration.SupportedVersion} supported by generation {generation.GetShortFolderName()}");
+                        Log.LogMessage($"Framework {inferFramework.Framework} supports {ContractName} at {inferFramework.SupportedVersion} which is lower than {existingGeneration.SupportedVersion} supported by generation {generation.GetShortFolderName()}.  Lowering the version supported by {generation.GetShortFolderName()}.");
+                        existingGeneration.SupportedVersion = inferFramework.SupportedVersion;
                     }
                 }
                 else
                 {
-                    generationsToValidate.Add(generation, new ValidationFramework(generation) { SupportedVersion = framework.SupportedVersion });
+                    generationsToValidate.Add(generation, new ValidationFramework(generation) { SupportedVersion = inferFramework.SupportedVersion });
                 }
             }
 
@@ -890,6 +905,15 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// <summary>
         /// Permits a non-matching targetFramework asset to be used even when a matching one exists.
         /// </summary>
-        PermitRuntimeTargetMonikerMismatch
+        PermitRuntimeTargetMonikerMismatch,
+        /// <summary>
+        /// Suppresses a particular set of SupportedFrameworks from inferring NETStandard support.
+        /// EG: package supports netcore45, wp8, net451, wpa81.
+        ///     package cannot support net45, and thus doesn't wish to expose netstandard1.0 or netstandard1.1
+        ///     reference assemblies.
+        ///     It can use SuppressNETStandardInference=WindowsPhone,Version=v8.0;.NETCore,Version=v4.5 to still 
+        ///     validate support for wp8 and netcore45 without forcing it to support netstandard1.0 and 1.1.
+        /// </summary>
+        SuppressNETStandardInference
     }
 }
