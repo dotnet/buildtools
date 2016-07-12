@@ -728,7 +728,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                                 Log.LogMessage(LogImportance.Low, $"Framework {fx} supported {ContractName} as inbox but the current supported version {supportedVersion} is higher in major.minor than inbox version {inboxVersion}.  Assuming out of box.");
                                 continue;
                             }
-                            else if (supportedVersion != null && supportedVersion < inboxVersion)
+                            else if (supportedVersion != null && supportedVersion < inboxVersion && inboxVersion != s_maxVersion)
                             {
                                 // Lower version
                                 Log.LogError($"Framework {fx} supports {ContractName} as inbox but the current supported version {supportedVersion} is lower than the inbox version {inboxVersion}");
