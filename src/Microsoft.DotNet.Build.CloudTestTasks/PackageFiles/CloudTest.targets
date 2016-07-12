@@ -11,6 +11,7 @@
   <UsingTask TaskName="WriteTestBuildStatsJson" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="ZipFileCreateFromDirectory" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ZipFileCreateFromDependencyLists" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="FilterForUpload" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
 
   <!-- set Helix environment vars based on target platform -->
   <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
@@ -89,14 +90,28 @@
     <Warning Condition="'$(SkipNotifyEvent)' != 'true' and '$(HelixApiAccessKey)' == '' and '$(EventHubInfoMissing)' == '' " Text="EventHubPath and EventHubAccessKeys have been deprecated, use HelixApiAccessKey instead" />
     <Error Condition="'$(SkipNotifyEvent)' != 'true' and '$(HelixApiAccessKey)' == '' and '$(EventHubInfoMissing)' == 'true' " Text="HelixApiAccessKey must be set to start Helix jobs" />
 
-    <!-- gather the test archives for upload -->
-    <!-- This will include every zip in the test archive, to allow CoreCLR tests for perf which don't have a TestTFM directory -->
+    <!-- gather the test archives for upload and filter based on FilterToTestTFM -->
     <ItemGroup>
-      <ForUpload Include="$(TestArchivesRoot)**/*.zip" />
-      <ForUpload Include="$(AnyOSTestArchivesRoot)**/*.zip" />
+      <UnfilteredTestArchives Include="$(TestArchivesRoot)**/*.zip" >
+        <OSPlatformConfig>$(OSPlatformConfig)</OSPlatformConfig>
+      </UnfilteredTestArchives>
+      <UnfilteredTestArchives Include="$(AnyOSTestArchivesRoot)**/*.zip" >
+        <OSPlatformConfig>$(AnyOSPlatformConfig)</OSPlatformConfig>
+      </UnfilteredTestArchives>
       <!-- Only include Unix folders if supported by the current target OS -->
-      <ForUpload Condition="'$(TargetsUnix)' == 'true'" Include="$(UnixTestArchivesRoot)**/*.zip" />
+      <UnfilteredTestArchives Condition="'$(TargetsUnix)' == 'true'" Include="$(UnixTestArchivesRoot)**/*.zip" >
+        <OSPlatformConfig>$(UnixPlatformConfig)</OSPlatformConfig>
+      </UnfilteredTestArchives>
     </ItemGroup>
+    <FilterForUpload UnfilteredUploadItems="@(UnfilteredTestArchives)"
+             FilterToTestTFM="$(FilterToTestTFM)"
+             FilterToOSGroup="$(FilterToOSGroup)" 
+             BinDir="$(BinDir)">
+        <Output TaskParameter="FilteredUploadItems" PropertyName="ForUploadList" />
+    </FilterForUpload>
+    <CreateItem Include="$(ForUploadList)">
+      <Output TaskParameter="Include" ItemName="ForUpload"/>
+    </CreateItem>
 
     <Message Condition="'$(TestTFM)' != ''" Text="Using test archives for TFM: $(TestTFM)" />
     <Message Text="Using OS-Specific test archives from: $(TestArchivesRoot)" />
@@ -194,11 +209,9 @@
           DependsOnTargets="CreateAzureStorage"
           Condition="'$(Performance)' != 'true' or '$(FuncTestsDisabled)' != 'true'">
     <!-- create item group of functional tests -->
-    <ItemGroup>
-      <FunctionalTest Include="$(TestArchivesRoot)**/*.zip" />
-      <FunctionalTest Include="$(AnyOSTestArchivesRoot)**/*.zip" />
-      <FunctionalTest Condition="'$(TargetsUnix)' == 'true'" Include="$(UnixTestArchivesRoot)**/*.zip" />
-    </ItemGroup>
+    <CreateItem Include="$(ForUploadList)">
+      <Output TaskParameter="Include" ItemName="FunctionalTest"/>
+    </CreateItem>
 
     <PropertyGroup>
       <OtherRunnerScriptArgs Condition="'$(FilterToTargetGroup)' == 'net46'">$(OtherRunnerScriptArgs) --xunit-test-type=desktop </OtherRunnerScriptArgs>

@@ -23,6 +23,7 @@
     <Compile Include="AzureHelper.cs" />
     <Compile Include="CreateAzureContainer.cs" />
     <Compile Include="DownloadFromAzure.cs" />
+    <Compile Include="FilterForUpload.cs" />
     <Compile Include="GetPerfTestAssemblies.cs" />
     <Compile Include="ListAzureContainers.cs" />
     <Compile Include="SendToEventHub.cs" />
