@@ -67,6 +67,8 @@ namespace Microsoft.DotNet.Build.Tasks
 
         private Regex _packageNameRegex;
 
+        private VersionComparer comparer = new VersionComparer(VersionComparison.VersionRelease);
+
         public override bool Execute()
         {
             if (!File.Exists(ProjectJson))
@@ -78,13 +80,11 @@ namespace Microsoft.DotNet.Build.Tasks
             Dictionary<string, PackageItem> packageInformation = new Dictionary<string, PackageItem>();
             _packageNameRegex = new Regex(PackageNameRegex);
 
-            VersionComparer comparer = new VersionComparer(VersionComparison.VersionRelease);
-
             // Retrieve package information from a package drop location
             if (PackagesDrops != null &&
                 PackagesDrops.Length > 0)
             {
-                AddPackageItemsToDictionary(ref packageInformation, GatherPackageInformationFromDrops(PackagesDrops, comparer), comparer);
+                AddPackageItemsToDictionary(ref packageInformation, GatherPackageInformationFromDrops(PackagesDrops));
             }
 
             // Retrieve package information from a versions file
@@ -96,7 +96,7 @@ namespace Microsoft.DotNet.Build.Tasks
                     {
                         Log.LogError("Version file {0} does not exist.", versionsFile);
                     }
-                    AddPackageItemsToDictionary(ref packageInformation, GatherPackageInformationFromVersionsFile(versionsFile, comparer), comparer);
+                    AddPackageItemsToDictionary(ref packageInformation, GatherPackageInformationFromVersionsFile(versionsFile, comparer));
                 }
             }
 
@@ -142,7 +142,7 @@ namespace Microsoft.DotNet.Build.Tasks
         /// </summary>
         /// <param name="packagesDrops"></param>
         /// <returns></returns>
-        private Dictionary<string, PackageItem> GatherPackageInformationFromDrops(string [] packagesDrops, VersionComparer comparer = null)
+        private Dictionary<string, PackageItem> GatherPackageInformationFromDrops(string [] packagesDrops)
         {
             Dictionary<string, PackageItem> packageItems = new Dictionary<string, PackageItem>();
 
@@ -157,15 +157,15 @@ namespace Microsoft.DotNet.Build.Tasks
 
                 foreach (var package in packages)
                 {
-                    PackageItem packageItem = CreatePackageItemFromNupkg(package);
+                    PackageItem packageItem = CreatePackageItem(package);
 
-                    AddPackageItemToDictionary(ref packageItems, packageItem, comparer);
+                    AddPackageItemToDictionary(packageItems, packageItem);
                 }
             }
             return packageItems;
         }
 
-        private void AddPackageItemToDictionary(ref Dictionary<string, PackageItem> packageItems, PackageItem packageItem, VersionComparer comparer = null)
+        private void AddPackageItemToDictionary(Dictionary<string, PackageItem> packageItems, PackageItem packageItem)
         {
             if (packageItems.ContainsKey(packageItem.Name))
             {
@@ -190,11 +190,11 @@ namespace Microsoft.DotNet.Build.Tasks
                 packageItems.Add(packageItem.Name, packageItem);
             }
         }
-        private void AddPackageItemsToDictionary(ref Dictionary<string, PackageItem> packageItems, Dictionary<string, PackageItem> addPackageItems, VersionComparer comparer = null)
+        private void AddPackageItemsToDictionary(ref Dictionary<string, PackageItem> packageItems, Dictionary<string, PackageItem> addPackageItems)
         {
             foreach(var packageItem in addPackageItems.Values)
             {
-                AddPackageItemToDictionary(ref packageItems, packageItem, comparer);
+                AddPackageItemToDictionary(packageItems, packageItem);
             }
         }
 
@@ -212,33 +212,34 @@ namespace Microsoft.DotNet.Build.Tasks
                 if(!string.IsNullOrWhiteSpace(line))
                 {
                     string [] packageVersionTokens = line.Split(' ');
-                    PackageItem packageItem = CreatePackageItemFromString(packageVersionTokens[0], packageVersionTokens[1]);
-                    AddPackageItemToDictionary(ref packageItems, packageItem, comparer);
+                    PackageItem packageItem = CreatePackageItem(packageVersionTokens[0], packageVersionTokens[1]);
+                    AddPackageItemToDictionary(packageItems, packageItem);
                 }
             }
             return packageItems;
         }
 
-        private PackageItem CreatePackageItemFromString(string package)
+        /// <summary>
+        /// Create a package item object from a nupkg file
+        /// </summary>
+        /// <param name="package">path to a nupkg</param>
+        /// <returns></returns>
+        private PackageItem CreatePackageItem(string package)
         {
-            Match m = _packageNameRegex.Match(package);
-            if (m.Success)
+            using (PackageArchiveReader archiveReader = new PackageArchiveReader(package))
             {
-                NuGetVersion nuGetVersion = new NuGetVersion(m.Groups["version"].Value);
-
-                return new PackageItem(m.Groups["name"].Value, nuGetVersion);
+                PackageIdentity identity = archiveReader.GetIdentity();
+                return new PackageItem(identity.Id, identity.Version);
             }
-            return null;
         }
 
-        private PackageItem CreatePackageItemFromNupkg(string package)
-        {
-            PackageArchiveReader archiveReader = new PackageArchiveReader(package);
-            PackageIdentity identity = archiveReader.GetIdentity();
-            return new PackageItem(identity.Id, identity.Version);
-        }
-
-        private PackageItem CreatePackageItemFromString(string id, string version)
+        /// <summary>
+        /// Create a package item object from a package name (id) and version
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="version"></param>
+        /// <returns></returns>
+        private PackageItem CreatePackageItem(string id, string version)
         {
             NuGetVersion nuGetVersion = new NuGetVersion(version);
             return new PackageItem(id, nuGetVersion);
