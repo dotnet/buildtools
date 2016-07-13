@@ -3,7 +3,7 @@ Run Command Tool
 The Run Command Tool has a published contract of inputs and outputs to encapsulate the dev workflow. It parses arguments and maps properties to tools in order to run the command given by the user. It also provides documentation of the most common settings we use per repo, and the commands we can execute.
 
 The source code of the tool lives in the Build Tools repo and it is included after the Build Tools package version 1.0.26-prerelease-00601-01. 
-Every repo should have a run.cmd/sh script file that is in charge of:
+In order to on board the Run Command Tool, every repo should have a [run.cmd/sh](../run.cmd) script file that is in charge of:
 - Running init-tools (to download the Build Tools package) 
 - Execute run.exe.
 
