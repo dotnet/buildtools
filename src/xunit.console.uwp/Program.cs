@@ -42,7 +42,7 @@ namespace Xunit.UwpClient
 
                 string installLocation = commandLine.InstallLocation == null ? Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()) : commandLine.InstallLocation;
 
-                var test = new HostedAppxTest(args, commandLine.Project, runnerPath, installLocation);
+                var test = new HostedAppxTest(args, commandLine.Project, runnerPath, installLocation, commandLine.NativeMode);
 
                 try
                 {
