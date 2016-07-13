@@ -16,7 +16,7 @@
       "description": "Sets the value of the platform.",
       "valueType": "property",
       "values": ["AnyCPU", "x86", "arm", "x64", "amd64"],
-      "defaultValue": "x64"
+      "defaultValue": "AnyCPU"
     },
     "ConfigurationGroup": {
       "description": "Sets the configuration group as Release or Debug.",
