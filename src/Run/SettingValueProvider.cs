@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.InteropServices;
-using System.IO;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -14,14 +13,14 @@ namespace Microsoft.DotNet.Execute
     {
         private static string s_cpuArch = null;
         private static string s_osName = null;
-        private static string s_osVersion = null;
+        private static string s_osRid = null;
         private static Dictionary<string, string> s_osToDefaultVersionMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             { OS.OSX, "osx.10.10" },
             { OS.FreeBSD, "osx.10.10" },
             { OS.NetBSD, "osx.10.10" },
             { OS.Linux, "ubuntu.14.04" },
-            { OS.Windows, string.Empty }
+            { OS.Windows, "win7" }
         };
 
         public static string Get(string settingName)
@@ -29,7 +28,7 @@ namespace Microsoft.DotNet.Execute
             PropertyInfo property = typeof(SettingValueProvider).GetTypeInfo().GetProperty(settingName);
             return (property != null) ? (string)property.GetValue(null) : string.Empty;
         }
-        
+
         public static string CPUArch
         {
             get
@@ -61,41 +60,36 @@ namespace Microsoft.DotNet.Execute
             }
         }
 
-        public static string OSVersion
+        public static string ProcessorCount
         {
             get
             {
-                if (s_osVersion == null)
+                return Environment.ProcessorCount.ToString();
+            }
+        }
+
+        public static string OSRid
+        {
+            get
+            {
+                if (s_osRid == null)
                 {
                     switch (OSName)
                     {
                         case OS.Linux:
-                            const string OSReleaseFileName = @"/etc/os-release";
-                            if (File.Exists(OSReleaseFileName))
+                            if (!Interop.GetUnixVersion(out s_osRid))
                             {
-                                string content = File.ReadAllText(OSReleaseFileName);
-                                int idIndex = content.IndexOf("ID");
-                                int versionIndex = content.IndexOf("VERSION_ID");
-                                if (idIndex != -1 && versionIndex != -1)
-                                {
-                                    string id = content.Substring(idIndex + 3, content.IndexOf(Environment.NewLine, idIndex + 3) - idIndex - 3);
-                                    string version = content.Substring(versionIndex + 12, content.IndexOf('"', versionIndex + 12) - versionIndex - 12);
-                                    s_osVersion = $"{id}.{version}";
-                                }
-                                else
-                                {
-                                    s_osVersion = s_osToDefaultVersionMap[OS.Linux];
-                                }
+                                s_osRid = s_osToDefaultVersionMap[OS.Linux];
                             }
                             break;
 
                         default:
-                            s_osVersion = s_osToDefaultVersionMap[OSName];
+                            s_osRid = s_osToDefaultVersionMap[OSName];
                             break;
                     }
                 }
 
-                return s_osVersion;
+                return s_osRid;
             }
         }
 
