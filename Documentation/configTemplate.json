@@ -1,0 +1,68 @@
+{
+  "settings": {
+    "SettingName":{
+      "description": "Brief description about the function of the Setting.",
+      "valueType": "ValueType name. The values are described under the tools section, unless it is passThough. That means that no parsing is needed just pass the value of the Setting as it is.",
+      "values": ["Array of possible values for the Setting"],
+      "defaultValue": "Default value for the Setting."
+    },
+    "Example":{
+      "description": "This is an example of a Setting",
+      "valueType": "passThrough",
+      "values": ["true", "false"],
+      "defaultValue": "true"
+    }
+   ,
+  "commands": {
+    "CommandName":{
+      "alias":{
+        "aliasName":{
+          "description": "Brief description about the function of the alias in the given command",
+          "settings":{
+            "SettingName":  "Value for the Setting. The value needs to be part of the values array of the Setting.",
+            "SettingName": "If the value is specified as 'default', the command will use the default value defined for the Setting.",
+            "Example" : "default"
+          }
+        },
+      },
+      "defaultValues":{
+        "toolName": "Each command needs only one tool, here we specify the name of the tool.",
+        "settings": {
+          "SettingName":"These settings are always going to be applied when calling the command CommandName."
+        }
+      }
+    },
+    "CommandExample":{
+      "alias":{
+        "execute":{
+          "description": "This is an example of a Command",
+          "settings":{
+            "Example": "default"
+          }
+        }
+      },
+      "defaultValues":{
+        "toolName": "toolExample",
+        "settings": {}
+      }
+    }
+  },
+  "tools": {
+    "toolName": {
+      "run": {
+        "windows": "Location or format of the tool in Windows.",
+        "unix": "Location or format of the tool in Unix"
+      },
+      "valueTypes": {
+        "typeName": "Explains how to format the Setting for the specific tool."
+      }
+    },
+    "toolExample": {
+      "run": {
+        "windows": "Tools\\examplePath.cmd",
+        "unix": "Tools/examplePath.sh"
+      },
+      "valueTypes": {}
+    },
+  }
+}
