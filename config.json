@@ -1,11 +1,5 @@
 ﻿{
   "settings": {
-    "SkipTests":{
-      "description": "Enables/Disables running tests.",
-      "valueType": "property",
-      "values": ["True", "False"],
-      "defaultValue": false
-    },
     "OSGroup": {
       "description": "OS Group for result binaries.",
       "valueType": "property",
@@ -19,28 +13,16 @@
       "defaultValue": true
     },
     "Platform": {
-      "description": "Enables/Disables the restoration of packages.",
+      "description": "Sets the value of the platform.",
       "valueType": "property",
       "values": ["AnyCPU", "x86", "arm", "x64", "amd64"],
-      "defaultValue": "x64"
+      "defaultValue": "AnyCPU"
     },
     "ConfigurationGroup": {
-      "description": "Enables/Disables the restoration of packages.",
+      "description": "Sets the configuration group as Release or Debug.",
       "valueType": "property",
       "values": ["Release", "Debug"],
       "defaultValue": "Debug"
-    },
-    "BuildPackages": {
-      "description": "Enables/Disables building packages.",
-      "valueType": "property",
-      "values": ["True", "False"],
-      "defaultValue": true
-    },
-    "BuildTests": {
-      "description": "Enables/Disables building tests.",
-      "valueType": "property",
-      "values": ["True", "False"],
-      "defaultValue": true
     },
     "MsBuildLogging": {
       "description": "MsBuild logging options.",
@@ -53,12 +35,6 @@
       "valueType": "passThrough",
       "values": [],
       "defaultValue": "/nologo /maxcpucount /verbosity:minimal"
-    },
-    "CmakeDebug": {
-      "description": "Property to build in debug mode.",
-      "valueType": "passThrough",
-      "values": [],
-      "defaultValue": "DEBUG"
     },
     "Project": {
       "description": "Project where the commands are going to be applied.",
@@ -133,7 +109,7 @@
         "packages":{
           "description": "Builds the NuGet packages.",
           "settings":{
-            "Project": "src\\packages.builds"
+            "Project": "src/packages.builds"
           }
         },
         "debug":{
@@ -166,27 +142,6 @@
         "settings": {
           "MsBuildParameters":"default"
         }
-      }
-    },
-    "build-native":{
-      "alias":{
-        "debug":{
-          "description": "Passes DEBUG to respective build-native script.",
-          "settings":{
-            "CmakeDebug": "default"
-          }
-        },
-        "release":{
-          "description": "Passes RELEASE to respective build-native script.",
-          "settings":{
-            "CmakeDebug": "RELEASE"
-          }
-        }
-      },
-      "defaultValues":{
-        "toolName": "terminal",
-        "Project": "src\\Native\\build-native",
-        "settings": {}
       }
     },
     "clean":{
@@ -222,7 +177,7 @@
   "tools": {
     "msbuild": {
       "run": {
-        "windows": "Tools\\msbuild.cmd",
+        "windows": "Tools/msbuild.cmd",
         "unix": "Tools/msbuild.sh"
       },
       "valueTypes": {
@@ -234,7 +189,7 @@
     "terminal": {
       "run": {
         "windows": "cmd",
-        "non-windows": "sh"
+        "unix": "sh"
       },
       "valueTypes": {}
     }
