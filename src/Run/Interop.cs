@@ -11,19 +11,36 @@ namespace Microsoft.DotNet.Execute
     {
         public static bool GetUnixVersion(out string result)
         {
+            const string OSId = "ID=";
+            const string OSVersionId = "VERSION_ID=";
             result = null;
             const string OSReleaseFileName = @"/etc/os-release";
             if (File.Exists(OSReleaseFileName))
             {
-                string content = File.ReadAllText(OSReleaseFileName);
-                int idIndex = content.IndexOf("ID");
-                int versionIndex = content.IndexOf("VERSION_ID");
-                if (idIndex != -1 && versionIndex != -1)
+                string[] content = File.ReadAllLines(OSReleaseFileName);
+                string id = null, version = null;
+                foreach (string line in content)
                 {
-                    string id = content.Substring(idIndex + 3, content.IndexOf(Environment.NewLine, idIndex + 3) - idIndex - 3);
-                    string version = content.Substring(versionIndex + 12, content.IndexOf('"', versionIndex + 12) - versionIndex - 12);
-                    result = $"{id}.{version}";
+                    if (line.StartsWith(OSId))
+                    {
+                        id = line.Substring(OSId.Length, line.Length - OSId.Length);
+                    }
+                    else if (line.StartsWith(OSVersionId))
+                    {
+                        int startOfVersion = line.IndexOf('"', OSVersionId.Length) + 1;
+                        int endOfVersion = startOfVersion == 0 ? line.Length : line.IndexOf('"', startOfVersion);
+                        if (startOfVersion == 0)
+                            startOfVersion = OSVersionId.Length;
+
+                        version = line.Substring(startOfVersion, endOfVersion - startOfVersion);
+                    }
+
+                    // Skip parsing rest of the file contents.
+                    if (id != null && version != null)
+                        break;
                 }
+
+                result = $"{id}.{version}";
             }
 
             return result != null;
