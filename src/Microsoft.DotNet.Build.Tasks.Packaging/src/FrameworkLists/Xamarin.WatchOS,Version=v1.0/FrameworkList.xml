@@ -93,8 +93,11 @@
   <File AssemblyName="System.Security.Cryptography.X509Certificates" />
   <File AssemblyName="System.Security.Principal" />
   <File AssemblyName="System.Security.SecureString" />
+  <File AssemblyName="System.ServiceModel.Duplex" />
   <File AssemblyName="System.ServiceModel.Http" />
+  <File AssemblyName="System.ServiceModel.NetTcp" />
   <File AssemblyName="System.ServiceModel.Primitives" />
+  <File AssemblyName="System.ServiceModel.Security" />
   <File AssemblyName="System.Text.Encoding" />
   <File AssemblyName="System.Text.Encoding.CodePages" />
   <File AssemblyName="System.Text.Encoding.Extensions" />
@@ -116,4 +119,27 @@
   <!-- not actually supported but must be treated as inbox since they are part of a PCL profile this supports -->
   <File AssemblyName="System.Reflection.Emit.Lightweight" />
   <File AssemblyName="System.Reflection.Emit.ILGeneration" />
+
+  <!-- classic assemblies that don't overlap with contracts -->
+  <File AssemblyName="mscorlib" />
+  <File AssemblyName="System.ComponentModel.Composition" />
+  <File AssemblyName="System.ComponentModel.DataAnnotations" />
+  <File AssemblyName="System.Core" />
+  <File AssemblyName="System.Data" />
+  <File AssemblyName="System.Data.Services.Client" />
+  <File AssemblyName="System" />
+  <File AssemblyName="System.IO.Compression.FileSystem" />
+  <File AssemblyName="System.Json" />
+  <File AssemblyName="System.Net" />
+  <File AssemblyName="System.Numerics" />
+  <File AssemblyName="System.Runtime.Serialization" />
+  <File AssemblyName="System.ServiceModel" />
+  <File AssemblyName="System.ServiceModel.Internals" />
+  <File AssemblyName="System.ServiceModel.Web" />
+  <File AssemblyName="System.Transactions" />
+  <File AssemblyName="System.Web.Services" />
+  <File AssemblyName="System.Windows" />
+  <File AssemblyName="System.Xml" />
+  <File AssemblyName="System.Xml.Linq" />
+  <File AssemblyName="System.Xml.Serialization" />
 </FileList>
