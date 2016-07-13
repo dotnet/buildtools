@@ -26,7 +26,7 @@ namespace Microsoft.DotNet.Execute
             SettingParameters = new Dictionary<string, string>();
             CommandParameters = new Dictionary<string, Dictionary<string, string>>();
             string executorDirectory = Path.GetDirectoryName(typeof(Executor).GetTypeInfo().Assembly.Location);
-            configFilePath = Path.GetFullPath(Path.Combine(executorDirectory, @"..\"));
+            configFilePath = Path.GetFullPath(Path.Combine(executorDirectory, @".."));
         }
 
         public Executor(string configFile=null)
@@ -37,7 +37,7 @@ namespace Microsoft.DotNet.Execute
             if (configFile == null)
             {
                 string executorDirectory = Path.GetDirectoryName(typeof(Executor).GetTypeInfo().Assembly.Location);
-                configFilePath = Path.GetFullPath(Path.Combine(executorDirectory, @"..\"));
+                configFilePath = Path.GetFullPath(Path.Combine(executorDirectory, @".."));
             }
             else
             {
