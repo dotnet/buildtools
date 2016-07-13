@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Text;
@@ -14,13 +18,51 @@ namespace Microsoft.DotNet.Execute
         public string Os { get; set; }
         public string ConfigurationFilePath { get; set; }
 
+        private string ParseSettingValue(string inputValue)
+        {
+            string value = string.Empty;
+            int length = inputValue.Length;
+            for (int i = 0; i < length; i++)
+            {
+                if (inputValue[i] == '$')
+                {
+                    if (inputValue[i + 1] == '{')
+                    {
+                        int j;
+                        string memberName = string.Empty;
+                        for (j = i + 2; inputValue[j] != '}' && j < length; j++)
+                            memberName += inputValue[j];
+
+                        // The string is not of format ${}, just add the chars to the value.
+                        if (j == length)
+                            value += "${" + memberName;
+                        else
+                            value += SettingValueProvider.Get(memberName);
+
+                        // Put i to j counter.
+                        i = j;
+                    }
+                    else
+                    {
+                        // If next char is not { then add $ to the value.
+                        value += inputValue[i];
+                    }
+                }
+                else
+                {
+                    value += inputValue[i];
+                }
+            }
+
+            return value;
+        }
 
         private string FindSettingValue(string valueToFind)
         {
             Setting value;
             if (Settings.TryGetValue(valueToFind, out value))
             {
-                return value.DefaultValue;
+                return ParseSettingValue(value.DefaultValue);
             }
             return null;
         }
@@ -111,7 +153,7 @@ namespace Microsoft.DotNet.Execute
             {
                 if (!parameters.Key.Equals("toolName") && !string.IsNullOrEmpty(parameters.Value))
                 {
-                    string value = parameters.Value.Equals("default") ? FindSettingValue(parameters.Key) : parameters.Value;
+                    string value = parameters.Value.Equals("default") ? FindSettingValue(parameters.Key) : ParseSettingValue(parameters.Value);
                     commandSetting += string.Format(" {0}", FormatSetting(parameters.Key, value, FindSettingType(parameters.Key), toolName));
                 }
             }
