@@ -44,10 +44,11 @@ namespace Xunit.UwpClient
 
                 var test = new HostedAppxTest(args, commandLine.Project, runnerPath, installLocation);
 
+                int returnCode = 0;
                 try
                 {
                     test.Setup();
-                    test.Run(commandLine.Debug);
+                    returnCode = test.Run(commandLine.Debug);
                 }
                 finally
                 {
@@ -62,7 +63,7 @@ namespace Xunit.UwpClient
                     Console.WriteLine();
                 }
 
-                return 0;
+                return returnCode;
             }
             catch (ArgumentException ex)
             {

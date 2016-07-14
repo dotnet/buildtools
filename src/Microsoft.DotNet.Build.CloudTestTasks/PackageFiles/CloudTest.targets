@@ -59,7 +59,17 @@
     <TestILCZipFile>$(ArchivesRoot)$(TestILCZipFileName)</TestILCZipFile>
     <OverwriteOnUpload Condition="'$(OverwriteOnUpload)' == ''">false</OverwriteOnUpload>
     <TimeoutInSeconds Condition="'$(TimeoutInSeconds)' == ''">600</TimeoutInSeconds>
-    <HelixApiEndpoint>https://helixview.azurewebsites.net/api/jobs</HelixApiEndpoint>
+    
+    <IsOfficial Condition="'$(OfficialBuildId)'!=''">true</IsOfficial>
+    <CurrentDate>$([System.DateTime]::Now.ToString(yyyyMMdd.mmss))</CurrentDate>
+    <HelixJobType Condition="'$(FilterToTestTFM)'=='netcore50' and !$(TestNugetRuntimeId.Contains('aot'))">test/functional/uwp</HelixJobType>
+    <HelixJobType Condition="'$(FilterToTestTFM)'=='netcore50' and $(TestNugetRuntimeId.Contains('aot'))">test/functional/ilc</HelixJobType>
+    <HelixJobType Condition="$(FilterToTestTFM.Contains('net46'))">test/functional/desktop/cli</HelixJobType>
+    <HelixJobType Condition="'$(HelixJobType)'=='' And '$(Performance)'=='true'">test/functional/perf/cli</HelixJobType>
+    <HelixJobType Condition="'$(HelixJobType)'==''">test/functional/cli</HelixJobType>
+    <_UseUpdatedHelixApi Condition="'$(HelixJobType)'!=''">true</_UseUpdatedHelixApi>
+    <HelixApiEndpoint Condition="'$(_UseUpdatedHelixApi)'=='true'">https://helixview.azurewebsites.net/api/2016-06-28/jobs</HelixApiEndpoint>
+    <HelixApiEndpoint Condition="'$(HelixApiEndpoint)'==''">https://helixview.azurewebsites.net/api/jobs</HelixApiEndpoint>
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)CloudTest.Perf.targets" Condition="'$(Performance)' == 'true'" />
@@ -113,14 +123,14 @@
       <Output TaskParameter="Include" ItemName="ForUpload"/>
     </CreateItem>
 
-    <Message Condition="'$(TestTFM)' != ''" Text="Using test archives for TFM: $(TestTFM)" />
+    <Message Condition="'$(FilterToTestTFM)' != ''" Text="Using test archives for TFM: $(FilterToTestTFM)" />
     <Message Text="Using OS-Specific test archives from: $(TestArchivesRoot)" />
     <Message Text="Using AnyOS test archives from: $(AnyOSTestArchivesRoot)" />
     <Message Condition="'$(TargetsUnix)' == 'true'"  Text="Using Unix test archives from: $(UnixTestArchivesRoot)" />
 
     <PropertyGroup>
-      <RelativeBlobPathFolderContainingTests Condition="'$(TestTFM)' != ''" >Tests/$(TestTFM)</RelativeBlobPathFolderContainingTests>
-      <RelativeBlobPathFolderContainingTests Condition="'$(TestTFM)' == ''" >Tests</RelativeBlobPathFolderContainingTests>
+      <RelativeBlobPathFolderContainingTests Condition="'$(FilterToTestTFM)' != ''" >Tests/$(FilterToTestTFM)</RelativeBlobPathFolderContainingTests>
+      <RelativeBlobPathFolderContainingTests Condition="'$(FilterToTestTFM)' == ''" >Tests</RelativeBlobPathFolderContainingTests>
     </PropertyGroup>
 
     <!-- verify the test archives were created -->
@@ -224,8 +234,7 @@
         <Command Condition="'$(TargetsWindows)' != 'true'"> chmod +x $HELIX_WORKITEM_PAYLOAD/RunTests.sh &amp;&amp; $(HelixPythonPath) $(RunnerScript) --script RunTests.sh $HELIX_CORRELATION_PAYLOAD $HELIX_WORKITEM_ROOT/execution</Command>
         <CorrelationPayloadUris>[$(CorrelationPayloadUris)]</CorrelationPayloadUris>
         <PayloadUri>$(DropUri)$(Platform)$(ConfigurationGroup)/Tests/$([System.String]::Copy('%(RecursiveDir)').Replace('\', '/'))%(Filename)%(Extension)$(DropUriReadOnlyToken)</PayloadUri>
-        <WorkItemId>FunctionalTest.%(Filename)</WorkItemId>
-        <WorkItemId Condition="'%(RecursiveDir)' != ''">FunctionalTest.%(Filename).$([System.String]::Copy('%(RecursiveDir)').Replace('\', ''))</WorkItemId>
+        <WorkItemId>%(Filename)</WorkItemId>
         <TimeoutInSeconds>$(TimeoutInSeconds)</TimeoutInSeconds>
       </FunctionalTest>
     </ItemGroup>
@@ -273,9 +282,9 @@
 
     <!-- don't add any items to the group if no perf tests were found -->
     <ItemGroup Condition="'@(PerfTestAssembly->Count())' != '0'">
-      <PerfTest Condition="Exists('$(TestArchivesRoot)$(TestTFM)/%(PerfTestAssembly.Identity).zip')" Include="$(TestArchivesRoot)$(TestTFM)/%(PerfTestAssembly.Identity).zip" />
-      <PerfTest Condition="Exists('$(AnyOSTestArchivesRoot)$(TestTFM)/%(PerfTestAssembly.Identity).zip')" Include="$(AnyOSTestArchivesRoot)$(TestTFM)/%(PerfTestAssembly.Identity).zip" />
-      <PerfTest Condition="'$(TargetsUnix)' == 'true' And Exists('$(UnixTestArchivesRoot)$(TestTFM)/%(PerfTestAssembly.Identity).zip')" Include="$(UnixTestArchivesRoot)$(TestTFM)/%(PerfTestAssembly.Identity).zip" />
+      <PerfTest Condition="Exists('$(TestArchivesRoot)$(FilterToTestTFM)/%(PerfTestAssembly.Identity).zip')" Include="$(TestArchivesRoot)$(FilterToTestTFM)/%(PerfTestAssembly.Identity).zip" />
+      <PerfTest Condition="Exists('$(AnyOSTestArchivesRoot)$(FilterToTestTFM)/%(PerfTestAssembly.Identity).zip')" Include="$(AnyOSTestArchivesRoot)$(FilterToTestTFM)/%(PerfTestAssembly.Identity).zip" />
+      <PerfTest Condition="'$(TargetsUnix)' == 'true' And Exists('$(UnixTestArchivesRoot)$(FilterToTestTFM)/%(PerfTestAssembly.Identity).zip')" Include="$(UnixTestArchivesRoot)$(FilterToTestTFM)/%(PerfTestAssembly.Identity).zip" />
     </ItemGroup>
 
     <PropertyGroup Condition="'$(TargetsUnix)' == 'true' AND '$(UseLegacyXunitPerfRunner)'!='true'">
@@ -307,7 +316,7 @@
       </PerfTest>
     </ItemGroup>
     <WriteItemsToJson JsonFileName="$(PerfTestListFile)" Items="@(PerfTest)" />
-    <!-- add test lists to the list of items for upload depending on whether TestTFM was specified or not-->
+    <!-- add test lists to the list of items for upload depending on whether FilterToTestTFM was specified or not-->
     <ItemGroup>
       <!-- Removing all zips and allowing only perf test assemblies to be uploaded -->
       <ForUpload Condition="'$(Performance)' == 'true'" Remove="@(ForUpload)"/>
@@ -377,7 +386,7 @@
           Outputs="%(TestListFile.BuildCompleteJson)">
     <!-- signal that the build is ready for testing -->
     <ItemGroup>
-      <BuildComplete Include="%(TestListFile.BuildCompleteJson)">
+      <BuildCompleteTemplate Include="%(TestListFile.BuildCompleteJson)">
         <CorrelationId Condition=" '$(HelixApiAccessKey)' == '' ">%(TestListFile.CorrelationId)</CorrelationId>
         <Creator Condition=" '$(HelixApiAccessKey)' == '' ">$(Creator)</Creator>
         <DropContainerSAS>$(DropUriReadOnlyToken)</DropContainerSAS>
@@ -391,15 +400,26 @@
         <Configuration>$(ConfigurationGroup)$(ConfigurationSuffix)</Configuration>
         <BuildNumber>$(BuildMoniker)</BuildNumber>
         <Branch>$(Branch)</Branch>
-      </BuildComplete>
+      </BuildCompleteTemplate>
+      <BuildCompleteTemplateV2 Include="%(TestListFile.BuildCompleteJson)">
+        <DropContainerSAS>$(DropUriReadOnlyToken)</DropContainerSAS>
+        <ListUri>$(DropUri)%(TestListFile.Filename)%(TestListFile.Extension)$(DropUriReadOnlyToken)</ListUri>
+        <QueueId>$(TargetQueue)</QueueId>
+        <ResultsUri>$(ResultsUri)/%(TestListFile.CorrelationId)</ResultsUri>
+        <ResultsUriRSAS>$(ResultsReadOnlyToken)</ResultsUriRSAS>
+        <ResultsUriWSAS>$(ResultsWriteOnlyToken)</ResultsUriWSAS>
+        <Build Condition="'$(IsOfficial)'=='true'">$(OfficialBuildId)</Build>
+        <Build Condition="'$(Build)'==''">$(CurrentDate)</Build>
+        <Type>$(HelixJobType)</Type>
+        <Source Condition="'$(HelixSource)'=='' And '$(IsOfficial)'!='' And '$(TestProduct)'!='' And '$(Branch)'!=''">official/$(TestProduct)/$(Branch)</Source>
+        <Source Condition="'$(HelixSource)'=='' And '$(TestProduct)'!='' And '$(Branch)'!=''">pr/$(TestProduct)/$(Branch)</Source>
+        <Source Condition="'$(HelixSource)'!=''">$(HelixSource)</Source>
+        <Properties>{"architecture": "$(Platform)", "configuration", "$(Configuration)"}</Properties>
+      </BuildCompleteTemplateV2>
+      <BuildComplete Condition="'$(_UseUpdatedHelixApi)'=='true'" Include="@(BuildCompleteTemplateV2)"/>
+      <BuildComplete Condition="'@(BuildComplete)'==''" Include="@(BuildCompleteTemplate)"/>
     </ItemGroup>
     <WriteItemsToJson JsonFileName="%(TestListFile.BuildCompleteJson)" Items="@(BuildComplete)" />
-    <!-- write out build statistics (only contains number of built projects at present) -->
-    <ItemGroup>
-      <BuiltSuccessfully Include="$(TestArchivesRoot)**/*.zip" />
-      <BuiltSuccessfully Include="$(AnyOSTestArchivesRoot)**/*.zip" />
-      <BuiltSuccessfully Condition="'$(TargetsUnix)' == 'true'"  Include="$(UnixTestArchivesRoot)**/*.zip" />
-    </ItemGroup>
   </Target>
 
   <!-- send completion events -->
