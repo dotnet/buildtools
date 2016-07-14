@@ -1,6 +1,6 @@
 Run Command Tool
 ===========================
-The Run Command Tool has a published contract of inputs and outputs to encapsulate the dev workflow. It parses arguments and maps properties to tools in order to run the command given by the user. It also provides documentation of the most common settings we use per repo, and the commands we can execute.
+The Run Command Tool has a published contract of inputs and outputs to encapsulate the [dev workflow](Dev-workflow.md). It parses arguments and maps properties to tools in order to run the command given by the user. It also provides documentation of the most common settings we use per repo, and the commands we can execute.
 
 The source code of the tool lives in the Build Tools repo and it is included after the Build Tools package version 1.0.26-prerelease-00601-01. 
 In order to on board the Run Command Tool, every repo should have a [run.cmd/sh](../run.cmd) script file that is in charge of:
@@ -18,7 +18,7 @@ The config.json file has three major sections:
 
 To access the information located in the config.json file, do run.cmd -? . This helps the commands and settings to be self-documented.
 
-[Config.json](/configTemplate.json) template.
+[Config.json](configTemplate.json) template.
 
 
 The Build Tools repo is now using the Run Command Tool as the default dev workflow.
