@@ -13,11 +13,14 @@
         "Microsoft.Net.Compilers.Targets.NetCore": "0.1.5-dev",
         "Microsoft.Cci": "4.0.0-rc3-24128-00",
         "Microsoft.Composition": "1.0.30",
+        "System.Diagnostics.Process": "4.1.0",
         "System.Diagnostics.TextWriterTraceListener": "4.0.0-rc3-24128-00",
-        "System.Runtime.Serialization.Primitives": "4.1.1-rc3-24128-00",
-        "Newtonsoft.Json": "7.0.1",
+        "System.Diagnostics.TraceSource": "4.0.0",
+        "System.Net.Http": "4.1.0",
+        "System.Runtime.Serialization.Primitives": "4.1.1",
+        "Newtonsoft.Json": "9.0.1",
         "NETStandard.Library": {
-          "version": "1.6.0-rc3-24128-00",
+          "version": "1.6.0",
           "exclude": "runtime"
         }
       },
@@ -27,7 +30,6 @@
       ]
     },
     "net45": {
-
       "dependencies": {
         "Microsoft.NETCore.Windows.ApiSets": "1.0.1-rc3-24128-00"
       }

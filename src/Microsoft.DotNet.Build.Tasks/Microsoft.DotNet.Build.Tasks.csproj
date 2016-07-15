@@ -46,6 +46,10 @@
     <Compile Include="SignTypeItem.cs" />
     <Compile Include="UpdatePackageDependencyVersion.cs" />
     <Compile Include="ValidateExactRestore.cs" />
+    <Compile Include="VersionTools\MsBuildTraceListener.cs" />
+    <Compile Include="VersionTools\TraceListenerCollectionExtensions.cs" />
+    <Compile Include="VersionTools\UpdateDependencies.cs" />
+    <Compile Include="VersionTools\UpdatePublishedVersions.cs" />
     <Compile Include="VisitProjectDependencies.cs" />
     <Compile Include="ValidateProjectDependencyVersions.cs" />
     <Compile Include="WriteSigningRequired.cs" />
@@ -68,6 +72,13 @@
   <ItemGroup>
     <None Include="project.json" />
     <None Include="PackageFiles\**\*.*" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.DotNet.VersionTools\Microsoft.DotNet.VersionTools.csproj">
+      <Project>{8d524fa5-a8c5-4ebd-ba8b-2a4fed03ee58}</Project>
+      <Name>Microsoft.DotNet.VersionTools</Name>
+      <Private>False</Private>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
   <Target Name="AfterBuild">
