@@ -630,10 +630,10 @@ class CommandLine
                 }
             }
             
-            if (unusedParameters != null)
+            if (unusedParameters.Count > 0)
             {
-                _extraparameters = string.Join(" ", unusedParameters);
-                //throw new CommandLineParserException("Extra positional parameter: " + _args[_curPosition] + ".");
+                //_extraparameters = string.Join(" ", unusedParameters);
+                throw new CommandLineParserException("Parameter not recognized: " + unusedParameters[0] + ".");
             }
                 
 
@@ -1123,6 +1123,14 @@ class CommandLine
                     if (name.Length == 1 && IsDash(name[0]))
                     {
                         _args[i] = null;
+                        i++;
+                        string[] extraP = new string[_args.Count-i];
+                        for (int j = 0; i < _args.Count; i++, j++)
+                        {
+                            extraP[j] = _args[i];
+                            _args[i] = null;
+                        }
+                        _extraparameters = string.Join(" ", extraP);
                         break;
                     }
                     if (name == "?")        // Did the user request help?
