@@ -11,7 +11,7 @@ This provides flexibility as with discrete tasks people can iterate on a specifi
 
 **Setup**
 
-Set of instructions in order to have an environment ready to build de repo. It is repo specific.
+Set of instructions in order to have an environment ready to build the repo. It is repo specific.
 
 **Clean**
 
