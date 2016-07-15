@@ -843,6 +843,9 @@
     <DefaultValidateFramework Include="netcoreapp1.0">
       <RuntimeIDs>win7-x86;win7-x64;osx.10.11-x64;centos.7-x64;debian.8-x64;linuxmint.17-x64;opensuse.13.2-x64;rhel.7.2-x64;ubuntu.14.04-x64;ubuntu.16.04-x64</RuntimeIDs>
     </DefaultValidateFramework>
+    <DefaultValidateFramework Include="netcoreapp1.1">
+      <RuntimeIDs>win7-x86;win7-x64;osx.10.11-x64;centos.7-x64;debian.8-x64;linuxmint.17-x64;opensuse.13.2-x64;rhel.7.2-x64;ubuntu.14.04-x64;ubuntu.16.04-x64</RuntimeIDs>
+    </DefaultValidateFramework>
 
     <DefaultValidateFramework Include="netcore50">
       <RuntimeIDs>win10-x86;win10-x86-aot;win10-x64;win10-x64-aot;win10-arm;win10-arm-aot</RuntimeIDs>

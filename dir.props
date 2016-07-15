@@ -72,7 +72,7 @@
       <ExpectedVersion>2.1.0</ExpectedVersion>
     </ValidationPattern>
     <ValidationPattern Include="^(?i)(NuGet\..%2A)$">
-      <ExpectedVersion>3.5.0-beta2-1456</ExpectedVersion>
+      <ExpectedVersion>3.5.0-rc-1590</ExpectedVersion>
     </ValidationPattern>
   </ItemGroup>
 
