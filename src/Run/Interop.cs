@@ -40,6 +40,12 @@ namespace Microsoft.DotNet.Execute
                         break;
                 }
 
+                if (id.Equals("rhel", StringComparison.OrdinalIgnoreCase))
+                {
+                    // For rhel just return the major version number.
+                    version = version.Substring(0, version.IndexOf('.'));
+                }
+
                 result = $"{id}.{version}";
             }
 
