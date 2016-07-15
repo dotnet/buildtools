@@ -11,7 +11,10 @@ namespace Microsoft.DotNet.Execute
         public const string NetBSD = "NetBSD";
         public const string Linux = "Linux";
         public const string Unix = "Unix";
+        public const string OpenBSD = "OpenBSD";
+        public const string SunOS = "SunOS";
         public const string Windows = "Windows_NT";
+        public const string Darwin = "Darwin";
     }
 
     public struct Arch

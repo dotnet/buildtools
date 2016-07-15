@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Linq;
 
 namespace Microsoft.DotNet.Execute
 {
@@ -99,25 +100,28 @@ namespace Microsoft.DotNet.Execute
             {
                 if (s_osName == null)
                 {
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                    {
-                        s_osName = OS.OSX;
-                    }
-                    else if (RuntimeInformation.IsOSPlatform(OSPlatform.Create("FREEBSD")))
-                    {
-                        s_osName = OS.FreeBSD;
-                    }
-                    else if (RuntimeInformation.IsOSPlatform(OSPlatform.Create("NETBSD")))
-                    {
-                        s_osName = OS.NetBSD;
-                    }
-                    else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                    {
-                        s_osName = OS.Linux;
-                    }
-                    else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
                         s_osName = OS.Windows;
+                    }
+                    else
+                    {
+                        string[] osValues = new string[] { OS.Linux, OS.FreeBSD, OS.NetBSD, OS.OpenBSD, OS.SunOS, OS.Darwin };
+                        string osValue = osValues.FirstOrDefault(s => RuntimeInformation.OSDescription.Contains(s));
+                        switch (osValue)
+                        {
+                            case OS.Darwin:
+                                s_osName = OS.OSX;
+                                break;
+
+                            case null:
+                                s_osName = OS.Linux;
+                                break;
+
+                            default:
+                                s_osName = osValue;
+                                break;
+                        }
                     }
                 }
 
