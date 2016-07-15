@@ -62,14 +62,14 @@
     
     <IsOfficial Condition="'$(OfficialBuildId)'!=''">true</IsOfficial>
     <CurrentDate>$([System.DateTime]::Now.ToString(yyyyMMdd.mmss))</CurrentDate>
-    <HelixJobType Condition="'$(FilterToTestTFM)'=='netcore50' and !$(TestNugetRuntimeId.Contains('aot'))">test/functional/uwp</HelixJobType>
-    <HelixJobType Condition="'$(FilterToTestTFM)'=='netcore50' and $(TestNugetRuntimeId.Contains('aot'))">test/functional/ilc</HelixJobType>
-    <HelixJobType Condition="$(FilterToTestTFM.Contains('net46'))">test/functional/desktop/cli</HelixJobType>
-    <HelixJobType Condition="'$(HelixJobType)'=='' And '$(Performance)'=='true'">test/functional/perf/cli</HelixJobType>
-    <HelixJobType Condition="'$(HelixJobType)'==''">test/functional/cli</HelixJobType>    
-    <HelixSource Condition="'$(HelixSource)'=='' And '$(IsOfficial)'!='' And '$(TestProduct)'!='' And '$(Branch)'!=''">official/$(TestProduct)/$(Branch)</HelixSource>
-    <HelixSource Condition="'$(HelixSource)'=='' And '$(IsOfficial)'=='' And '$(TestProduct)'!='' And '$(Branch)'!=''">pr/$(TestProduct)/$(Branch)</HelixSource>
-    <HelixSource Condition="'$(HelixSource)'==''">pr/unknown</HelixSource>
+    <HelixJobType Condition="'$(FilterToTestTFM)'=='netcore50' and !$(TestNugetRuntimeId.Contains('aot'))">test/functional/uwp/</HelixJobType>
+    <HelixJobType Condition="'$(FilterToTestTFM)'=='netcore50' and $(TestNugetRuntimeId.Contains('aot'))">test/functional/ilc/</HelixJobType>
+    <HelixJobType Condition="$(FilterToTestTFM.Contains('net46'))">test/functional/desktop/cli/</HelixJobType>
+    <HelixJobType Condition="'$(HelixJobType)'=='' And '$(Performance)'=='true'">test/functional/perf/cli/</HelixJobType>
+    <HelixJobType Condition="'$(HelixJobType)'==''">test/functional/cli/</HelixJobType>    
+    <HelixSource Condition="'$(HelixSource)'=='' And '$(IsOfficial)'!='' And '$(TestProduct)'!='' And '$(Branch)'!=''">official/$(TestProduct)/$(Branch)/</HelixSource>
+    <HelixSource Condition="'$(HelixSource)'=='' And '$(IsOfficial)'=='' And '$(TestProduct)'!='' And '$(Branch)'!=''">pr/$(TestProduct)/$(Branch)/</HelixSource>
+    <HelixSource Condition="'$(HelixSource)'==''">pr/unknown/</HelixSource>
     <_UseUpdatedHelixApi Condition="'$(HelixJobType)'!=''">true</_UseUpdatedHelixApi>
     <HelixApiEndpoint Condition="'$(_UseUpdatedHelixApi)'=='true'">https://helixview.azurewebsites.net/api/2016-06-28/jobs</HelixApiEndpoint>
     <HelixApiEndpoint Condition="'$(HelixApiEndpoint)'==''">https://helixview.azurewebsites.net/api/jobs</HelixApiEndpoint>
@@ -411,11 +411,11 @@
         <ResultsUri>$(ResultsUri)/%(TestListFile.CorrelationId)</ResultsUri>
         <ResultsUriRSAS>$(ResultsReadOnlyToken)</ResultsUriRSAS>
         <ResultsUriWSAS>$(ResultsWriteOnlyToken)</ResultsUriWSAS>
+        <Build>$(CurrentDate)</Build>
         <Build Condition="'$(IsOfficial)'=='true'">$(OfficialBuildId)</Build>
-        <Build Condition="'$(Build)'==''">$(CurrentDate)</Build>
         <Type>$(HelixJobType)</Type>
         <Source>$(HelixSource)</Source>
-        <Properties>{"architecture": "$(Platform)", "configuration", "$(Configuration)"}</Properties>
+        <Properties>{ &quot;architecture&quot; : &quot;$(Platform)&quot;, &quot;configuration&quot;: &quot;$(ConfigurationGroup)&quot;, &quot;operatingSystem&quot; : &quot;$(TargetQueue)&quot; }</Properties>
       </BuildCompleteTemplateV2>
       <BuildComplete Condition="'$(_UseUpdatedHelixApi)'=='true'" Include="@(BuildCompleteTemplateV2)"/>
       <BuildComplete Condition="'@(BuildComplete)'==''" Include="@(BuildCompleteTemplate)"/>
