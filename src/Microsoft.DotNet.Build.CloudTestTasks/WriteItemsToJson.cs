@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.DotNet.Build.CloudTestTasks
 {
@@ -56,7 +57,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                         foreach (var key in customMd.Keys)
                         {
                             var mdString = key.ToString();
-                            var mdValue = customMd[key].ToString();
+                            var mdValue = customMd[key].ToString().Trim();
 
                             jsonWriter.WritePropertyName(mdString);
 
@@ -73,40 +74,27 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
                                 jsonWriter.WriteEndArray();
                             }
-                            // if the value is surrounded in curly brackets it's meant to be an object.
-                            // split the value into its respective chunks and write it into a JSON object.
-                            else if (mdValue.Length > 0 && mdValue[0] == '{' && mdValue[mdValue.Length - 1] == '}')
-                            {
-                                mdValue = mdValue.Substring(1, mdValue.Length - 2);
-                                jsonWriter.WriteStartObject();
-
-                                var parts = mdValue.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-                                foreach (var part in parts)
-                                {
-                                    if (part.Length > 0 && part[0] == '(' && part[part.Length - 1] == ')')
-                                    {
-                                        var pair = part.Substring(1, part.Length - 2).Split(',');
-                                        if (pair.Length == 2)
-                                        {
-                                            jsonWriter.WritePropertyName(pair[0]);
-                                            jsonWriter.WriteValue(pair[1]);
-                                        }
-                                        else
-                                        {
-                                            Log.LogError("{mdString} is not a valid Json Object. Please provide pairs in the format {(property1,value1);(property2, value2)}");
-                                        }
-                                    }
-                                    else
-                                    {
-                                        Log.LogError("{mdString} is not a valid Json Object. Please provide pairs in the format {(property1,value1);(property2, value2)}");
-                                    }
-                                }
-
-                                jsonWriter.WriteEndObject();
-                            }
                             else
                             {
-                                jsonWriter.WriteValue(mdValue);
+                                if (mdValue.StartsWith("{") && mdValue.EndsWith("}"))
+                                {
+                                    // If it's a JObject, parse it and use that to write...
+                                    try
+                                    {
+                                        JObject jsonEntry = JObject.Parse(mdValue);
+                                        jsonEntry.WriteTo(jsonWriter);
+                                    }
+                                    // Leave it in... it's probably bad by here but writing it aids debugging.
+                                    catch
+                                    {
+                                        jsonWriter.WriteValue(mdValue);
+                                    }
+                                }
+                                // Plain value
+                                else
+                                {
+                                    jsonWriter.WriteValue(mdValue);
+                                }
                             }
                         }
 
@@ -124,4 +112,3 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         }
     }
 }
-
