@@ -215,6 +215,10 @@ namespace Microsoft.DotNet.Execute
         {
             int namePos, valuePos;
             string tempParam, name, value;
+            if(string.IsNullOrEmpty(extraParameters))
+            {
+                return true;
+            }
 
             string[] extraA = extraParameters.Split(' ');
             foreach (string param in extraA)

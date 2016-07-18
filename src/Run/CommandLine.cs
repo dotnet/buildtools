@@ -316,7 +316,8 @@ class CommandLine
                     //helpString = parser.GetHelp(GetConsoleWidth() - 1, parameterSetTofocusOn, true);
                 }
 
-                helpString = parser.GetHelp(GetConsoleWidth() - 1, parameterSetTofocusOn, true);
+                helpString = parser.GetIntroTextForHelp(GetConsoleWidth() - 1).ToString();
+                helpString += parser.GetHelp(GetConsoleWidth() - 1, parameterSetTofocusOn, true);
                 DisplayStringToConsole(helpString);
             }, (parser, ex) =>
             {
@@ -1585,6 +1586,26 @@ class CommandLine
             }
         }
 
+        private StringBuilder GetIntroTextForHelp(int maxLineWidth)
+        {
+            string appName = GetEntryAssemblyName();
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine();
+            string text = "The Run Commant Tool has a number of dev workflow steps associated with it, " +
+                "each with its own command and set of actions that are listed below.  " +
+                "It also provides a list of Global Settings that can be applied to the commands.";
+            Wrap(sb, text, 0, String.Empty, maxLineWidth, true);
+            text = "To pass additional parameters that are not described in the global settings, use `--`. After this command, the Run Command Tool will stop processing arguments and will pass all the information as it is to the selected command.";
+            Wrap(sb, text, 0, String.Empty, maxLineWidth, true);
+            text = "The information comes from a config.json file. By default the file is in the root of the repo. Otherwise the first parameter should be the path to the config.json file.";
+            Wrap(sb, text, 0, String.Empty, maxLineWidth, true);
+            text = "For more information about the Run Command Tool: https://github.com/dotnet/buildtools/blob/master/Documentation/RunCommand.md";
+            Wrap(sb, text, 0, String.Empty, maxLineWidth, true);
+            sb.AppendLine().AppendLine().Append("Sintaxis: run [Command] [Action] (global settings)");
+            sb.AppendLine().Append('-', maxLineWidth - 1).AppendLine();
+            return sb;
+        }
+
 
         /// <summary>
         /// Return a string giving the help for the command, word wrapped at 'maxLineWidth'
@@ -1604,22 +1625,12 @@ class CommandLine
             
             if (!hasParamSets)
                 return GetHelp(maxLineWidth, String.Empty, true);
+
             StringBuilder sb = new StringBuilder();
-
-
-            string appName = GetEntryAssemblyName();
-            sb.AppendLine();
-            string intro = "The " + appName + " has a number of dev workflow steps associated with it, " +
-                "each with its own command and set of actions. They are listed below.  " +
-                "Settings that are common to all commands are listed at the end.";
-            Wrap(sb, intro, 0, String.Empty, maxLineWidth, true);
-            sb.Append("The information comes from a config.json file. By default the file is in the root of the repo. Otherwise the first parameter should be the path to the config.json file.");
-            sb.AppendLine().AppendLine().Append("Sintaxis: executor [Command] [Action] (global settings)");
-
+                        
             // Always print the default parameter set first.
             if (_defaultParamSetEncountered)
             {
-                sb.AppendLine().Append('-', maxLineWidth - 1).AppendLine();
                 sb.Append(GetHelp(maxLineWidth, String.Empty, false));
             }
 
@@ -1627,7 +1638,6 @@ class CommandLine
             {
                 if (parameter.IsParameterSet && parameter.Name.Length != 0)
                 {
-                    sb.AppendLine().Append('-', maxLineWidth - 1).AppendLine();
                     sb.Append(GetHelp(maxLineWidth, parameter.Name, false));
                 }
             }
