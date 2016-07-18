@@ -1120,12 +1120,22 @@ class CommandLine
                 string name = ParseParameterName(arg);
                 if (name != null)
                 {
-                    if (name.Length == 1 && IsDash(name[0]))
+                    if (IsDash(name[0]))
                     {
+                        string temp = string.Empty;
+                        string[] extraP = new string[_args.Count - i];
+                        int j = 0;
+                        if (name.Length != 1)
+                        {
+                            temp = _args[i].Substring(2);
+                            extraP[j] = temp;
+                            j ++;
+                        }
+
                         _args[i] = null;
                         i++;
-                        string[] extraP = new string[_args.Count-i];
-                        for (int j = 0; i < _args.Count; i++, j++)
+                        
+                        for (; i < _args.Count; i++, j++)
                         {
                             extraP[j] = _args[i];
                             _args[i] = null;
