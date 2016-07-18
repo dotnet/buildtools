@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <UsingTask TaskName="UpdatePublishedVersions" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+
+  <ItemGroup Condition="'$(ShippedNuGetPackageGlobPath)'!=''">
+    <ShippedNuGetPackage Include="$(ShippedNuGetPackageGlobPath)" />
+  </ItemGroup>
+
+  <Target Name="UpdatePublishedVersions">
+    <UpdatePublishedVersions ShippedNuGetPackage="@(ShippedNuGetPackage)"
+                             VersionsRepoPath="$(VersionsRepoPath)"
+                             GitHubAuthToken="$(GitHubAuthToken)"
+                             GitHubUser="$(GitHubUser)"
+                             GitHubEmail="$(GitHubEmail)"
+                             VersionRepo="$(VersionRepo)"
+                             VersionRepoOwner="$(VersionRepoOwner)" />
+  </Target>
+
+  <UsingTask TaskName="UpdateDependencies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+
+  <Target Name="UpdateDependencies">
+    <UpdateDependencies DependencyBuildInfo="@(DependencyBuildInfo)"
+                        ProjectJsonFiles="@(ProjectJsonFiles)"
+                        XmlUpdateStep="@(XmlUpdateStep)"
+                        ProjectRepo="$(ProjectRepo)"
+                        ProjectRepoOwner="$(ProjectRepoOwner)"
+                        ProjectRepoBranch="$(ProjectRepoBranch)"
+                        GitHubAuthToken="$(GitHubAuthToken)"
+                        GitHubUser="$(GitHubUser)"
+                        GitHubEmail="$(GitHubEmail)"
+                        GitHubAuthor="$(GitHubAuthor)"
+                        NotifyGitHubUsers="@(NotifyGitHubUsers)" />
+  </Target>
+</Project>

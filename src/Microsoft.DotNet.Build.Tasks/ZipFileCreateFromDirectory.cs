@@ -31,6 +31,11 @@ namespace Microsoft.DotNet.Build.Tasks
         public bool OverwriteDestination { get; set; }
 
         /// <summary>
+        /// If zipping an entire folder without exclusion patterns, whether to include the folder in the archive.
+        /// </summary>
+        public bool IncludeBaseDirectory { get; set; }
+
+        /// <summary>
         /// An item group of regular expressions for content to exclude from the archive.
         /// </summary>
         public ITaskItem[] ExcludePatterns { get; set; }
@@ -58,7 +63,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
                 if (ExcludePatterns == null)
                 {
-                    ZipFile.CreateFromDirectory(SourceDirectory, DestinationArchive);
+                    ZipFile.CreateFromDirectory(SourceDirectory, DestinationArchive, CompressionLevel.Optimal, IncludeBaseDirectory);
                 }
                 else
                 {

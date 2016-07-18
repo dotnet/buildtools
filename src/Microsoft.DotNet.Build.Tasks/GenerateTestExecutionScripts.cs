@@ -121,7 +121,17 @@ namespace Microsoft.DotNet.Build.Tasks
                 // Every test project comes with 4 of them, so not producing a warning here.
                 else if (!string.IsNullOrEmpty(relativePath))
                 {
-                    copyCommands.AppendLine($"call :copyandcheck \"%PACKAGE_DIR%\\{relativePath}\" \"%EXECUTION_DIR%\\{Path.GetFileName(relativePath)}\" ||  exit /b -1");
+                    bool? preserveSubDirectories = dependency.GetMetadata("PreserveSubDirectories")?.Equals("true", StringComparison.OrdinalIgnoreCase);
+                    string filePath = Path.GetFileName(relativePath);
+                    if (preserveSubDirectories == true)
+                    {
+                        // PackageRelativePath contains (PackageName/VersionNumber/Directories/FileName). This is to remove the first two directories on 
+                        // the path to preserve just the directory structure.
+                        int indexOfSubDirectories = relativePath.IndexOf("\\", relativePath.IndexOf("\\")+1);
+                        filePath = relativePath.Substring(indexOfSubDirectories);
+                        copyCommands.AppendLine($"call :makedir \"%EXECUTION_DIR%{Path.GetDirectoryName(filePath)}\" ||  exit /b -1");
+                    }
+                    copyCommands.AppendLine($"call :copyandcheck \"%PACKAGE_DIR%\\{relativePath}\" \"%EXECUTION_DIR%\\{filePath}\" ||  exit /b -1");
                 }
             }
             cmdExecutionTemplate = cmdExecutionTemplate.Replace("[[CopyFilesCommands]]", copyCommands.ToString());
@@ -131,7 +141,7 @@ namespace Microsoft.DotNet.Build.Tasks
             StringBuilder testRunCommands = new StringBuilder();
             foreach (string runCommand in TestCommands)
             {
-                testRunCommands.AppendLine($"call {runCommand}");
+                testRunCommands.AppendLine($"{runCommand}");
                 testRunEchoes.AppendLine($"echo {runCommand}");
             }
 

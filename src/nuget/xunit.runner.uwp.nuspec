@@ -18,22 +18,21 @@
     </description>
     <copyright>Copyright © Microsoft Corporation</copyright>
     <dependencies>
-      <dependency id="xunit" version="2.1.0" />
-      <dependency id="xunit.runner.utility" version="2.1.0" />
+      <dependency id="Microsoft.NETCore.UniversalWindowsPlatform" version="5.0.0" />
     </dependencies>
   </metadata>
   <files>
     <!-- xunit runner for UWP -->
-    <file src="xunit.runner.uwp\**\*.exe" target="app" />
-    <file src="xunit.runner.uwp\**\*.xml" target="app" />
-    <file src="xunit.runner.uwp\**\*.xbf" target="app" />
-    <file src="xunit.runner.uwp\**\*.pri" target="app" />
-    <file src="xunit.runner.uwp\**\*.pdb" target="app" />
-    <file src="xunit.runner.uwp\**\*.appxrecipe" target="app" />
+    <file src="xunit.runner.uwp\Core\*.exe" target="Core" />
+    <file src="xunit.runner.uwp\Core\*.xml" target="Core" />
+    <file src="xunit.runner.uwp\**\*.exe" target="" />
+    <file src="xunit.runner.uwp\**\*.xml" target="" />
+    <file src="xunit.runner.uwp\**\*.xbf" target="" />
+    <file src="xunit.runner.uwp\**\*.pri" target="" />
+    <file src="xunit.runner.uwp\**\*.pdb" target="" />
+    <file src="xunit.runner.uwp\**\*.appxrecipe" target="" />
     <file src="xunit.console.uwp\**\*.*" target="" />
 	
-    <file src="xunit.runner.uwp\_._" target="lib\dnxcore50" />
-    <file src="xunit.runner.uwp\_._" target="lib\dotnet" />
     <file src="xunit.runner.uwp\_._" target="lib\uap10.0" />
   </files>
   

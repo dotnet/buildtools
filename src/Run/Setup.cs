@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Text;
@@ -14,13 +18,51 @@ namespace Microsoft.DotNet.Execute
         public string Os { get; set; }
         public string ConfigurationFilePath { get; set; }
 
+        private string ParseSettingValue(string inputValue)
+        {
+            string value = string.Empty;
+            int length = inputValue.Length;
+            for (int i = 0; i < length; i++)
+            {
+                if (inputValue[i] == '$')
+                {
+                    if (inputValue[i + 1] == '{')
+                    {
+                        int j;
+                        string memberName = string.Empty;
+                        for (j = i + 2; inputValue[j] != '}' && j < length; j++)
+                            memberName += inputValue[j];
+
+                        // The string is not of format ${}, just add the chars to the value.
+                        if (j == length)
+                            value += "${" + memberName;
+                        else
+                            value += SettingValueProvider.Get(memberName);
+
+                        // Put i to j counter.
+                        i = j;
+                    }
+                    else
+                    {
+                        // If next char is not { then add $ to the value.
+                        value += inputValue[i];
+                    }
+                }
+                else
+                {
+                    value += inputValue[i];
+                }
+            }
+
+            return value;
+        }
 
         private string FindSettingValue(string valueToFind)
         {
             Setting value;
-            if(Settings.TryGetValue(valueToFind, out value))
+            if (Settings.TryGetValue(valueToFind, out value))
             {
-                return value.DefaultValue;
+                return ParseSettingValue(value.DefaultValue);
             }
             return null;
         }
@@ -34,7 +76,7 @@ namespace Microsoft.DotNet.Execute
             }
             return null;
         }
-        
+
         public void prepareValues(string os, Dictionary<string, string> parameters, string configFile)
         {
             SettingParameters = new Dictionary<string, string>(parameters);
@@ -45,7 +87,7 @@ namespace Microsoft.DotNet.Execute
         public int ExecuteCommand(string commandSelectedByUser, List<string> parametersSelectedByUser)
         {
             CompleteCommand commandToRun = BuildCommand(commandSelectedByUser, parametersSelectedByUser);
-            if(commandToRun != null)
+            if (commandToRun != null)
             {
                 Console.ForegroundColor = ConsoleColor.DarkYellow;
                 Console.WriteLine("Running: {0} {1}", commandToRun.ToolCommand, commandToRun.ParametersCommand);
@@ -87,7 +129,7 @@ namespace Microsoft.DotNet.Execute
             if (parameters == null)
             {
                 if (BuildRequiredValueSettingsForCommand(commandToExecute, parametersSelectedByUser, SettingParameters) &&
-                    BuildOptionalValueSettingsForCommand(commandToExecute, SettingParameters) &&
+                    BuildDefaultValueSettingsForCommand(commandToExecute, SettingParameters) &&
                     ValidExtraParametersForCommand(SettingParameters["ExtraParameters"], SettingParameters))
                 {
                     string commandParameters = BuildParametersForCommand(SettingParameters, SettingParameters["toolName"]);
@@ -103,7 +145,7 @@ namespace Microsoft.DotNet.Execute
                 return completeCommand;
             }
         }
-        
+
         private string BuildParametersForCommand(Dictionary<string, string> commandParameters, string toolName)
         {
             string commandSetting = string.Empty;
@@ -111,7 +153,8 @@ namespace Microsoft.DotNet.Execute
             {
                 if (!parameters.Key.Equals("toolName") && !string.IsNullOrEmpty(parameters.Value))
                 {
-                    commandSetting += string.Format(" {0}", FormatSetting(parameters.Key, parameters.Value, FindSettingType(parameters.Key), toolName));
+                    string value = parameters.Value.Equals("default") ? FindSettingValue(parameters.Key) : ParseSettingValue(parameters.Value);
+                    commandSetting += string.Format(" {0}", FormatSetting(parameters.Key, value, FindSettingType(parameters.Key), toolName));
                 }
             }
             return commandSetting;
@@ -121,26 +164,23 @@ namespace Microsoft.DotNet.Execute
         {
             foreach (string reqSetting in requiredSettings)
             {
-                foreach(KeyValuePair<string, string> sett in commandToExecute.Alias[reqSetting].Settings)
+                foreach (KeyValuePair<string, string> sett in commandToExecute.Alias[reqSetting].Settings)
                 {
-                    string value = string.IsNullOrEmpty(sett.Value) || sett.Value.Equals("default") ? FindSettingValue(sett.Key) : sett.Value;
+                    string value = sett.Value;
                     string currentValue;
                     if (commandValues.TryGetValue(sett.Key, out currentValue))
                     {
-                        if (value != null && (string.IsNullOrEmpty(currentValue) || sett.Key.Equals("Project")))
+                        if (string.IsNullOrEmpty(currentValue) || currentValue.Equals("default"))
                         {
-                            commandValues[sett.Key] = string.IsNullOrEmpty(value) ? "True" : value;
+                            commandValues[sett.Key] = value;
                         }
-                        else
+                        else if (!value.Equals("default") && !value.Equals(currentValue))
                         {
-                            if (!string.IsNullOrEmpty(value) && !value.Equals(currentValue))
-                            {
-                                Console.Error.WriteLine("Error: The value for setting {0} can't be overwriten.", sett.Key);
-                                return false;
-                            }
+                            Console.Error.WriteLine("Error: The value for setting {0} can't be overwriten.", sett.Key);
+                            return false;
                         }
                     }
-                    else if(!sett.Key.Equals("toolName"))
+                    else if (!sett.Key.Equals("toolName"))
                     {
                         Console.Error.WriteLine("Error: The setting {0} is not specified in the Json file.", sett.Key);
                         return false;
@@ -150,20 +190,16 @@ namespace Microsoft.DotNet.Execute
             return true;
         }
 
-        private bool BuildOptionalValueSettingsForCommand(Command commandToExecute, Dictionary<string, string> commandValues)
+        private bool BuildDefaultValueSettingsForCommand(Command commandToExecute, Dictionary<string, string> commandValues)
         {
             foreach (KeyValuePair<string, string> optSetting in commandToExecute.DefaultValues.Settings)
             {
                 string currentValue;
-                if(commandValues.TryGetValue(optSetting.Key, out currentValue))
+                if (commandValues.TryGetValue(optSetting.Key, out currentValue))
                 {
                     if (string.IsNullOrEmpty(currentValue))
                     {
-                        string value = string.IsNullOrEmpty(optSetting.Value) || optSetting.Value.Equals("default") ? FindSettingValue(optSetting.Key) : optSetting.Value;
-                        if (value != null)
-                        {
-                            commandValues[optSetting.Key] = value;
-                        }
+                        commandValues[optSetting.Key] = optSetting.Value;
                     }
                 }
                 else
@@ -179,24 +215,24 @@ namespace Microsoft.DotNet.Execute
         {
             int namePos, valuePos;
             string tempParam, name, value;
-            
+
             string[] extraA = extraParameters.Split(' ');
-            foreach(string param in extraA)
+            foreach (string param in extraA)
             {
                 namePos = 0;
                 valuePos = param.Length;
                 tempParam = param;
 
                 namePos = param.IndexOf(":");
-                if(namePos != -1)
+                if (namePos != -1)
                 {
-                    tempParam = param.Substring(namePos+1);
+                    tempParam = param.Substring(namePos + 1);
                 }
 
                 valuePos = tempParam.IndexOf("=");
-                if(valuePos != -1)
+                if (valuePos != -1)
                 {
-                    name = tempParam.Substring(0,valuePos);
+                    name = tempParam.Substring(0, valuePos);
                     value = tempParam.Substring(valuePos + 1);
                 }
                 else
@@ -206,7 +242,7 @@ namespace Microsoft.DotNet.Execute
                 }
 
                 string paramValue;
-                if (commandValues.TryGetValue(name, out paramValue) && !string.IsNullOrEmpty(paramValue))
+                if (commandValues.TryGetValue(name, out paramValue) && !string.IsNullOrEmpty(paramValue) && !paramValue.Equals("default") && !value.Equals(paramValue))
                 {
                     Console.Error.WriteLine("Error: The value for setting {0} can't be overwriten.", name);
                     return false;
@@ -219,13 +255,13 @@ namespace Microsoft.DotNet.Execute
         private string GetTool(Command commandToExecute, string os, string configPath, List<string> parametersSelectedByUser)
         {
             string toolname = commandToExecute.DefaultValues.ToolName;
-            
+
             string project = GetProject(commandToExecute, parametersSelectedByUser);
 
             if (Tools.ContainsKey(toolname))
             {
                 SettingParameters["toolName"] = toolname;
-                
+
                 if (toolname.Equals("msbuild"))
                 {
                     return Path.GetFullPath(Path.Combine(configPath, os.Equals("windows") ? Tools[toolname].Run["windows"] : Tools[toolname].Run["unix"]));
@@ -257,7 +293,7 @@ namespace Microsoft.DotNet.Execute
                 }
             }
 
-            if(string.IsNullOrEmpty(project))
+            if (string.IsNullOrEmpty(project))
             {
                 project = commandToExecute.DefaultValues.Project;
             }
@@ -291,7 +327,7 @@ namespace Microsoft.DotNet.Execute
             return commandOption;
         }
 
-        public string GetHelpCommand(string commandName, string alias=null)
+        public string GetHelpCommand(string commandName, string alias = null)
         {
             Command commandToPrint;
             if (Commands.TryGetValue(commandName, out commandToPrint))
@@ -308,7 +344,7 @@ namespace Microsoft.DotNet.Execute
                 CompleteCommand completeCommand = BuildCommand(commandName, new List<string>(alias.Split(' ')), commandParametersToPrint);
 
                 sb.AppendLine().Append("It will run: ").AppendLine();
-                sb.Append(string.Format("{0} {1}",completeCommand.ToolCommand, completeCommand.ParametersCommand));
+                sb.Append(string.Format("{0} {1}", completeCommand.ToolCommand, completeCommand.ParametersCommand));
                 return sb.ToString();
             }
             return null;
@@ -317,7 +353,7 @@ namespace Microsoft.DotNet.Execute
         private string GetHelpAlias(Dictionary<string, string> settings, Dictionary<string, string> commandParametersToPrint)
         {
             StringBuilder sb = new StringBuilder();
-            
+
             foreach (KeyValuePair<string, string> setting in settings)
             {
                 string value = setting.Value.Equals("default") ? FindSettingValue(setting.Key) : setting.Value;
@@ -358,10 +394,10 @@ namespace Microsoft.DotNet.Execute
 
     public class Command
     {
-        public Dictionary<string, AliasPerCommand> Alias{ get; set; }
+        public Dictionary<string, AliasPerCommand> Alias { get; set; }
         public DefaultValuesPerCommand DefaultValues { get; set; }
     }
-    
+
     public class Tool
     {
         public Dictionary<string, string> Run { get; set; }

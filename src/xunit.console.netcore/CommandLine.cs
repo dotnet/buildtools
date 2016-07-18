@@ -31,11 +31,14 @@ namespace Xunit.ConsoleClient
 
         public bool? ParallelizeTestCollections { get; set; }
 
+        public bool RedirectOutput { get; protected set; }
+
         public bool ShowProgress { get; protected set; }
 
         public bool TeamCity { get; protected set; }
 
         public bool Wait { get; protected set; }
+
 
         static XunitProject GetProjectFile(List<Tuple<string, string>> assemblies)
         {
@@ -163,6 +166,11 @@ namespace Xunit.ConsoleClient
                 {
                     GuardNoOptionValue(option);
                     AppVeyor = true;
+                }
+                else if (optionName == "-redirectoutput")
+                {
+                    GuardNoOptionValue(option);
+                    RedirectOutput = true;
                 }
                 else if (optionName == "-showprogress")
                 {

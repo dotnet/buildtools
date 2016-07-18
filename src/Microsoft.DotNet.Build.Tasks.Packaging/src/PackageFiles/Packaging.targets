@@ -843,6 +843,9 @@
     <DefaultValidateFramework Include="netcoreapp1.0">
       <RuntimeIDs>win7-x86;win7-x64;osx.10.11-x64;centos.7-x64;debian.8-x64;linuxmint.17-x64;opensuse.13.2-x64;rhel.7.2-x64;ubuntu.14.04-x64;ubuntu.16.04-x64</RuntimeIDs>
     </DefaultValidateFramework>
+    <DefaultValidateFramework Include="netcoreapp1.1">
+      <RuntimeIDs>win7-x86;win7-x64;osx.10.11-x64;centos.7-x64;debian.8-x64;linuxmint.17-x64;opensuse.13.2-x64;rhel.7.2-x64;ubuntu.14.04-x64;ubuntu.16.04-x64</RuntimeIDs>
+    </DefaultValidateFramework>
 
     <DefaultValidateFramework Include="netcore50">
       <RuntimeIDs>win10-x86;win10-x86-aot;win10-x64;win10-x64-aot;win10-arm;win10-arm-aot</RuntimeIDs>
@@ -889,7 +892,36 @@
     </DefaultValidateFramework>
   </ItemGroup>
 
+  <ItemGroup Condition="'$(ExcludeXamarinValidationFrameworks)' != 'true'">
+    <DefaultValidateFramework Include="MonoAndroid10">
+      <!-- Intentionally empty, no RIDs defined for MonoAndroid10-->
+      <RuntimeIDs></RuntimeIDs>
+    </DefaultValidateFramework>
+    <DefaultValidateFramework Include="MonoTouch10">
+      <!-- Intentionally empty, no RIDs defined for MonoTouch10-->
+      <RuntimeIDs></RuntimeIDs>
+    </DefaultValidateFramework>
+    <DefaultValidateFramework Include="xamarinios10">
+      <!-- Intentionally empty, no RIDs defined for xamarinios10-->
+      <RuntimeIDs></RuntimeIDs>
+    </DefaultValidateFramework>
+    <DefaultValidateFramework Include="xamarinmac20">
+      <!-- Intentionally empty, no RIDs defined for xamarinmac20-->
+      <RuntimeIDs></RuntimeIDs>
+    </DefaultValidateFramework>
+    <DefaultValidateFramework Include="xamarintvos10">
+      <!-- Intentionally empty, no RIDs defined for xamarintvos10-->
+      <RuntimeIDs></RuntimeIDs>
+    </DefaultValidateFramework>
+    <DefaultValidateFramework Include="xamarinwatchos10">
+      <!-- Intentionally empty, no RIDs defined for xamarinwatchos10-->
+      <RuntimeIDs></RuntimeIDs>
+    </DefaultValidateFramework>
+  </ItemGroup>
+
   <PropertyGroup>
+    <AllXamarinFrameworks Condition="'$(AllXamarinFrameworks)' == ''">MonoAndroid10;MonoTouch10;xamarinios10;xamarinmac20;xamarintvos10;xamarinwatchos10</AllXamarinFrameworks>
+    
     <!-- Skip validation of runtime packages, they will be validated in the context of their reference package -->
     <SkipValidatePackage Condition="'$(SkipValidateTargetFrameworks)' == '' AND '$(PackageTargetRuntime)' != ''">true</SkipValidatePackage>
     <SkipSupportCheck Condition="'$(SkipSupportCheck)' == '' AND ($(Id.StartsWith('System.Private.')) OR $(Id.StartsWith('Microsoft.NETCore.')))">true</SkipSupportCheck>

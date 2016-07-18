@@ -123,7 +123,7 @@ def _prepare_windows_env_for_perf(xunit_perf_drop, test_location):
 
 # used to copy the required xunit perf runner an its dependencies
 # note that the perf runner will only be present for perf tests.
-def _prepare_perf_execution_environment(settings, perf_runner, osgroup):
+def _prepare_perf_execution_environment(settings, perf_runner, use_dotnetcli):
     correlation_dir = fix_path(settings.correlation_payload_dir)
     test_location = os.path.join(fix_path(settings.workitem_working_dir), 'execution')
     core_root = os.path.join(settings.workitem_working_dir, 'core_root')
@@ -145,12 +145,10 @@ def _prepare_perf_execution_environment(settings, perf_runner, osgroup):
 
     log.info("Copying xunit perf drop from {} to {}.".format(xunit_perf_drop, test_location))
 
-    if osgroup.lower().startswith('windows'):
+    if use_dotnetcli.lower() != 'true':
         _prepare_windows_env_for_perf(xunit_perf_drop, test_location)
-    elif osgroup.lower().startswith('linux'):
-        _prepare_linux_env_for_perf(correlation_dir, xunit_perf_drop, test_location, core_root)
     else:
-        log.error('Invalid osgroup '+osgroup)
+        _prepare_linux_env_for_perf(correlation_dir, xunit_perf_drop, test_location, core_root)
 
     # copy the architecture specific subdirectories
     archSubdirs = os.listdir(xunit_perf_drop)
@@ -235,51 +233,22 @@ def post_process_perf_results(settings, results_location, workitem_dir, xunit_te
 
     perfscriptsdir = os.path.join(payload_dir, 'RunnerScripts', 'xunitrunner-perf')
     perfsettingsjson = ''
-    with open(os.path.join(perfscriptsdir, 'xunitrunner-perf.json'), 'rb') as perfsettingsjson:
+    perfsettingsjsonfile = os.path.join(perfscriptsdir, 'xunitrunner-perf.json')
+    with open(perfsettingsjsonfile, 'rb') as perfsettingsjson:
         # read the perf-specific settings
         perfsettingsjson = json.loads(perfsettingsjson.read())
 
     # need to extract more properties from settings to pass to csvtojsonconvertor.py
     jsonFileName = perfsettingsjson['TestProduct']+'-'+settings.workitem_id+'.json'
     jsonPath = os.path.join(workitem_dir, jsonFileName)
-
+    jsonPath = jsonPath.encode('ascii', 'ignore')
     jsonArgsDict = dict()
+    jsonArgsDict['--jobName'] = settings.correlation_id
     jsonArgsDict['--csvFile'] = os.path.join(workitem_dir, 'results.csv')
     jsonArgsDict['--jsonFile'] = jsonPath
-    jsonArgsDict['--jobName'] =  settings.correlation_id
-    jsonArgsDict['--jobDescription'] = '...'
-    jsonArgsDict['--configName'] = perfsettingsjson['TargetQueue']
-    jsonArgsDict['--jobGroupName'] = perfsettingsjson['Creator']+'-'+perfsettingsjson['TestProduct']+'-'+perfsettingsjson['Branch']+'-Perf'
-    jsonArgsDict['--jobTypeName'] = 'Private'
-    jsonArgsDict['--username'] = perfsettingsjson['Creator']
-    jsonArgsDict['--userAlias'] = perfsettingsjson['Creator']
-    jsonArgsDict['--branch'] = perfsettingsjson['TestProduct']
-    jsonArgsDict['--buildInfoName'] = perfsettingsjson['BuildMoniker']
-
-    # extract build number from buildmoniker if official build
-    buildtokens = perfsettingsjson['BuildMoniker'].split('-')
-    if len(buildtokens) < 3:
-        jsonArgsDict['--buildNumber'] = perfsettingsjson['BuildMoniker']
-    else:
-        jsonArgsDict['--buildNumber'] = buildtokens[-2] +'.'+buildtokens[-1]
-
-    jsonArgsDict['--machinepoolName'] = perfsettingsjson['TargetQueue']
-    jsonArgsDict['--machinepoolDescription'] = '...'
-    jsonArgsDict['--microarchName'] = 'SSE2' # cannot be obtained by cpu-info; need to figure out some other way
-    jsonArgsDict['--numberOfCores'] = psutil.cpu_count(logical=False)
-    jsonArgsDict['--numberOfLogicalProcessors'] = psutil.cpu_count(logical=True)
-    # psutil returns mem in bytes, convert it to MB for readability
-    jsonArgsDict['--totalPhysicalMemory'] = psutil.virtual_memory().total/1024
-    jsonArgsDict['--osInfoName'] = platform.system()
-    jsonArgsDict['--osVersion'] = platform.version()
-    jsonArgsDict['--machineName'] = platform.node()
-
-    info = cpuinfo.get_cpu_info()
-    jsonArgsDict['--architectureName'] = format(info['arch'])
-    jsonArgsDict['--machineDescription'] = format(info['brand'])
-    jsonArgsDict['--manufacturerName'] = format(info['vendor_id'])
-
+    jsonArgsDict['--perfSettingsJson'] = perfsettingsjsonfile
     jsonArgs = [sys.executable, os.path.join(perfscriptsdir, 'csvjsonconvertor.py')]
+
     for key, value in jsonArgsDict.iteritems():
         jsonArgs.append(key)
         jsonArgs.append(str(value))
@@ -293,7 +262,6 @@ def post_process_perf_results(settings, results_location, workitem_dir, xunit_te
     perfsettings.output_uri = perfsettingsjson['RootURI']
     perfsettings.output_write_token = perfsettingsjson['WriteToken']
     perfsettings.output_read_token = perfsettingsjson['ReadToken']
-    jsonPath = str(jsonPath)
     # Upload json with rest of the results
     _write_output_path(jsonPath, settings)
     # Upload json to the perf specific container
@@ -400,7 +368,7 @@ def _report_error(settings):
 
 
 
-def run_tests(settings, test_dll, framework_in_tpa, assembly_list, perf_runner, osgroup, args):
+def run_tests(settings, test_dll, framework_in_tpa, assembly_list, perf_runner, use_dotnetcli, args):
     try:
         log.info("Running on '{}'".format(socket.gethostname()))
         xunit_test_type = xunit.XUNIT_CONFIG_NETCORE
@@ -408,7 +376,7 @@ def run_tests(settings, test_dll, framework_in_tpa, assembly_list, perf_runner, 
 
         # perform perf test prep if required
         if perf_runner is not None:
-            _prepare_perf_execution_environment(settings, perf_runner, osgroup)
+            _prepare_perf_execution_environment(settings, perf_runner, use_dotnetcli)
             if perf_runner == 'Microsoft.DotNet.xunit.performance.runner.Windows':
                 xunit_test_type = xunit.XUNIT_CONFIG_PERF_WINDOWS
             else:
@@ -445,10 +413,10 @@ def main(args=None):
                     raise Exception('No valid test dll or exe found')
                 else:
                     optdict['--dll'] = exepath
-        osgroup = optdict['--osgroup']
+        use_dotnetcli = optdict['--use-dotnetcli']
         #default to windows
-        if osgroup == '':
-            osgroup = 'windows'
+        if use_dotnetcli == '':
+            use_dotnetcli = 'false'
 
 
         if '--assemblylist' in optdict:
@@ -457,9 +425,9 @@ def main(args=None):
         else:
             assembly_list = os.getenv('HELIX_ASSEMBLY_LIST')
             log.info('Using assemblylist environment variable:'+assembly_list)
-        return run_tests(settings, optdict['--dll'], '--tpaframework' in optdict, assembly_list, perf_runner, osgroup, args)
+        return run_tests(settings, optdict['--dll'], '--tpaframework' in optdict, assembly_list, perf_runner, use_dotnetcli, args)
 
-    return command_main(_main, ['dll=', 'tpaframework', 'perf-runner=', 'assemblylist=','osgroup='], args)
+    return command_main(_main, ['dll=', 'tpaframework', 'perf-runner=', 'assemblylist=','use-dotnetcli='], args)
 
 if __name__ == '__main__':
     import sys
