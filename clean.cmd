@@ -12,7 +12,8 @@ if [%1] == [-all] (
   exit /b !ERRORLEVEL!
 )
 
-call %~dp0run.cmd clean %*
+if [%1]==[] set __args=-b
+call %~dp0run.cmd clean %__args% %*
 exit /b %ERRORLEVEL%
 
 :Usage
