@@ -1126,20 +1126,10 @@ class CommandLine
                 {
                     if (IsDash(name[0]))
                     {
-                        string temp = string.Empty;
-                        string[] extraP = new string[_args.Count - i];
-                        int j = 0;
-                        if (name.Length != 1)
-                        {
-                            temp = _args[i].Substring(2);
-                            extraP[j] = temp;
-                            j ++;
-                        }
-
                         _args[i] = null;
                         i++;
-                        
-                        for (; i < _args.Count; i++, j++)
+                        string[] extraP = new string[_args.Count - i];
+                        for (int j = 0; i < _args.Count; i++, j++)
                         {
                             extraP[j] = _args[i];
                             _args[i] = null;
