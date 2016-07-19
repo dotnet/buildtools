@@ -322,7 +322,10 @@ class CommandLine
             }, (parser, ex) =>
             {
                 Console.Error.WriteLine("Error: " + ex.Message);
-                Console.Error.WriteLine("Use -? for help.");
+                
+                Console.ForegroundColor = ConsoleColor.DarkYellow;
+                Console.WriteLine("Our dev workflow has changed! Use -? for help in the new options we have and how to pass parameters now.");
+                Console.ResetColor();
             },
             setupContent, args);
         }
@@ -784,7 +787,7 @@ class CommandLine
             if(!string.IsNullOrEmpty(globalQualifiers))
             {
                 sb.AppendLine().Append('-', maxLineWidth - 1).AppendLine();
-                sb.Append("Global settings to all commands:").AppendLine();
+                sb.Append("Global Settings:").AppendLine();
                 sb.AppendLine();
                 sb.Append(globalQualifiers);
             }
@@ -1591,11 +1594,10 @@ class CommandLine
             string appName = GetEntryAssemblyName();
             StringBuilder sb = new StringBuilder();
             sb.AppendLine();
-            string text = "The Run Commant Tool has a number of dev workflow steps associated with it, " +
-                "each with its own command and set of actions that are listed below.  " +
-                "It also provides a list of Global Settings that can be applied to the commands.";
+            string text = "The Run Commant Tool is now in charge of running the dev workflow steps. Each step has its own command and set of actions that are listed below.  " +
+                "You could also pass Global Settings to the commands.";
             Wrap(sb, text, 0, String.Empty, maxLineWidth, true);
-            text = "To pass additional parameters that are not described in the global settings, use `--`. After this command, the Run Command Tool will stop processing arguments and will pass all the information as it is to the selected command.";
+            text = "To pass additional parameters that are not described in the Global Settings section, use `--`. After this command, the Run Command Tool will stop processing arguments and will pass all the information as it is to the selected command.";
             Wrap(sb, text, 0, String.Empty, maxLineWidth, true);
             text = "The information comes from a config.json file. By default the file is in the root of the repo. Otherwise the first parameter should be the path to the config.json file.";
             Wrap(sb, text, 0, String.Empty, maxLineWidth, true);
