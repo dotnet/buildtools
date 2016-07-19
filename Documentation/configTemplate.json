@@ -59,7 +59,7 @@
     },
     "toolExample": {
       "run": {
-        "windows": "Tools\\examplePath.cmd",
+        "windows": "Tools/examplePath.cmd",
         "unix": "Tools/examplePath.sh"
       },
       "valueTypes": {}
