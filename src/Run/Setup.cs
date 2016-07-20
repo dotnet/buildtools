@@ -20,6 +20,10 @@ namespace Microsoft.DotNet.Execute
 
         private string ParseSettingValue(string inputValue)
         {
+            // Can happen for target or internal valueTypes.
+            if (inputValue == null)
+                return inputValue;
+
             string value = string.Empty;
             int length = inputValue.Length;
             for (int i = 0; i < length; i++)
