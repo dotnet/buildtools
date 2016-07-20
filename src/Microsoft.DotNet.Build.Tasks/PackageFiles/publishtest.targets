@@ -204,7 +204,39 @@
     </Copy>
   </Target>
 
-  <!-- archive the test binaries along with some supporting files -->
+  <!-- Workaround for VS execution:  This will form the same list and copy the same files as
+       copied via RunTests script so VS can work when the test dir is initially clean. 
+       -->
+  <Target Name="CopyRunnerScriptFiles" Condition=" '$(BuildingInsideVisualStudio)'=='true' "
+        AfterTargets="CopySupplementalTestData">
+    <Message Text ="Copying over test dependencies since we're running inside Visual studio." />
+     <!-- This was copied from RunTestsForProject in tests.targets 
+          The RunTestsForProject target does not execute in VS context and would be confused by the script based runner.
+     -->
+    <ItemGroup>
+      <!-- Not all platforms can use the .ni.dlls that come from packages.  If TestWithoutNativeImages is specified, we'll exclude them from copy generation.
+           If we end up needing this for any other sorts of filtering, we'll want to add a list of filtered extensions to be matched on EndsWith.  -->
+      <_IncludedFileForTestsInVS Include="@(_TestCopyLocalByFileNameWithoutDuplicates)"
+                                 Condition="'$(TestWithoutNativeImages)' != 'true' Or !$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').EndsWith('.ni.dll'))" >
+        <PackageRelativePath Condition="'%(_TestCopyLocalByFileNameWithoutDuplicates.NugetPackageId)' != ''">$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').Replace('$(PackagesDir)',''))</PackageRelativePath>
+        <UseAbsolutePath Condition="'$(TestWithLocalLibraries)'=='true'">$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').StartsWith('$(BinDir)'))</UseAbsolutePath>
+      </_IncludedFileForTestsInVS>
+      <_DestinationsForTestsInVS Include="@(_IncludedFileForTestsInVS->'$(TestPath)$(TestNugetTargetMonikerFolder)\%(Filename)%(Extension)')" />
+    </ItemGroup>
+    
+    <Copy
+      SourceFiles="@(_IncludedFileForTestsInVS  -> '%(SourcePath)')"
+      DestinationFiles="@(_DestinationsForTestsInVS)"
+      SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
+      OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
+      Retries="$(CopyRetryCount)"
+      RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
+      UseHardlinksIfPossible="true">
+      <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
+    </Copy>    
+  </Target>
+
+    <!-- archive the test binaries along with some supporting files -->
   <Target Name="ArchiveTestBuild" Condition="'$(ArchiveTests)' == 'true'"  DependsOnTargets="RunTestsForProject">
     <PropertyGroup>
       <TestArchiveDir>$(TestWorkingDir)$(OSPlatformConfig)/archive/tests/</TestArchiveDir>
