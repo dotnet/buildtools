@@ -65,7 +65,7 @@
   </Target>
 
   <PropertyGroup Condition="'$(GenerateFullCoverageReport)'=='true'">
-    <GenerateFullCoverageReportAfterTargets Condition="'$(GenerateFullCoverageReportAfterTargets)'==''">Test</GenerateFullCoverageReportAfterTargets>
+    <GenerateFullCoverageReportAfterTargets Condition="'$(GenerateFullCoverageReportAfterTargets)'==''">TestAllProjects</GenerateFullCoverageReportAfterTargets>
   </PropertyGroup>
 
   <!-- Generate coverage report for all the projects. -->
