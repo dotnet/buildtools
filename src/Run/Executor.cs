@@ -144,25 +144,23 @@ namespace Microsoft.DotNet.Execute
                 Console.Error.WriteLine("Error: Could not load Json configuration file.");
                 return 1;
             }
-            else
-            {
-                string os = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "windows": "unix";
+            string os = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "windows": "unix";
 
-                jsonSetup.prepareValues(os, executor.SettingParameters, executor.configFilePath);
-                if (executor.DefineParameters(parseArgs, jsonSetup))
+            jsonSetup.prepareValues(os, executor.SettingParameters, executor.configFilePath);
+            if (executor.DefineParameters(parseArgs, jsonSetup))
+            {
+                List<string> paramSelected = new List<string>();
+                foreach (KeyValuePair<string, string> param in executor.CommandParameters[executor.CommandSelectedByUser])
                 {
-                    List<string> paramSelected = new List<string>();
-                    foreach(KeyValuePair<string, string> param in executor.CommandParameters[executor.CommandSelectedByUser])
+                    if (!string.IsNullOrEmpty(param.Value))
                     {
-                        if (!string.IsNullOrEmpty(param.Value))
-                        {
-                            paramSelected.Add(param.Key);
-                        }
+                        paramSelected.Add(param.Key);
                     }
-                    return jsonSetup.ExecuteCommand(executor.CommandSelectedByUser, paramSelected);
                 }
+                return jsonSetup.ExecuteCommand(executor.CommandSelectedByUser, paramSelected);
             }
-            return 0;
+            //There was an error when parsing the user input, Define Parameters is in charge of printing an error message.
+            return 1;
         }
     }
 }
