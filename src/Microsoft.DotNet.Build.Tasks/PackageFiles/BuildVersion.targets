@@ -1,9 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   
   <PropertyGroup>
-    <!-- If OfficialBuildId is passed in, then use it as Today's TimeStamp, else default to today -->
-    <TodayTimeStamp Condition="'$(OfficialBuildId)'!=''">$(OfficialBuildId)</TodayTimeStamp>
-    <TodayTimeStamp Condition="'$(TodayTimeStamp)'==''">$([System.DateTime]::Now.ToString(yyyyMMdd))</TodayTimeStamp>
+    <TodayTimeStamp>$([System.DateTime]::Now.ToString(yyyyMMdd))</TodayTimeStamp>
     <BuildVersionFilePath>$(BaseIntermediateOutputPath)</BuildVersionFilePath>
     <BuildVersionFile Condition="'$(BuildVersionFile)'==''">$(BuildVersionFilePath)BuildVersion-$(TodayTimeStamp).props</BuildVersionFile>
   </PropertyGroup>
