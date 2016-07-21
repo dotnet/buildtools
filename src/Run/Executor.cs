@@ -159,6 +159,7 @@ namespace Microsoft.DotNet.Execute
                 }
                 return jsonSetup.ExecuteCommand(executor.CommandSelectedByUser, paramSelected);
             }
+            //There was an error when parsing the user input, Define Parameters is in charge of printing an error message.
             return 1;
         }
     }
