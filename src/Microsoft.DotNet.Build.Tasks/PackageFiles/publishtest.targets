@@ -207,11 +207,11 @@
   <!-- Workaround for VS execution:  This will form the same list and copy the same files as
        copied via RunTests script so VS can work when the test dir is initially clean. 
        -->
-  <Target Name="CopyRunnerScriptFiles" Condition=" '$(BuildingInsideVisualStudio)'=='true' "
+  <Target Name="CopyRunnerScriptFiles" Condition="'$(BuildingInsideVisualStudio)'=='true'"
         AfterTargets="CopySupplementalTestData">
-    <Message Text ="Copying over test dependencies since we're running inside Visual studio." />
      <!-- This was copied from RunTestsForProject in tests.targets 
           The RunTestsForProject target does not execute in VS context and would be confused by the script based runner.
+          _TestCopyLocalByFileNameWithoutDuplicates are the precise items that are fed to the runner script generation code.
      -->
     <ItemGroup>
       <!-- Not all platforms can use the .ni.dlls that come from packages.  If TestWithoutNativeImages is specified, we'll exclude them from copy generation.
