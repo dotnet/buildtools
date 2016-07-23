@@ -70,7 +70,7 @@
   <Target Name="ResolveNuGetPackages"
           Condition="'$(PrereleaseResolveNuGetPackages)'=='true'"
           DependsOnTargets="$(ResolveNugetPackagesDependsOn)">
-    
+
     <PrereleaseResolveNuGetPackageAssets Condition="Exists('$(ProjectLockJson)')"
                                AllowFallbackOnTargetSelection="true"
                                IncludeFrameworkReferences="false"
@@ -87,13 +87,13 @@
 
     <!-- We may have package references that we want to replace with project references -->
     <ItemGroup>
-      <!-- Intersect project-refs with package-refs.  
+      <!-- Intersect project-refs with package-refs.
              Project refs may be in _ResolvedProjectReferencePaths or Reference items.
              Copy local may be in _ResolvedProjectReferencePaths or ReferenceCopyLocalPaths.
              Copy local items may also be in any item like Content but we currently don't strip those.-->
       <_ReferenceFileNamesToRemove Include="@(_ReferenceFromPackage)" Condition="'@(_ResolvedProjectReferencePaths->'%(FileName)%(Extension)')' == '%(FileName)%(Extension)'" />
       <_ReferenceFileNamesToRemove Include="@(_ReferenceFromPackage)" Condition="'@(Reference->'%(FileName)%(Extension)')' == '%(FileName)%(Extension)'" />
-      
+
       <!-- If local copy is disabled remove all references, otherwise remove only project refrerences -->
       <_ReferenceCopyLocalPathsFromPackage Include="@(_ReferenceCopyLocalPathsFromPackage)" Condition="'$(DisableReferenceCopyLocal)' == 'true' OR '@(_ResolvedProjectReferencePaths->'%(FileName)%(Extension)')' == '%(FileName)%(Extension)'" />
       <_ReferenceCopyLocalPathsFromPackage Include="@(_ReferenceCopyLocalPathsFromPackage)" Condition="'$(DisableReferenceCopyLocal)' == 'true' OR '@(ReferenceCopyLocalPaths->'%(FileName)%(Extension)')' == '%(FileName)%(Extension)'" />
@@ -139,6 +139,14 @@
   <Target Name="FilterTargetingPackResolvedNugetPackages" AfterTargets="ResolveNuGetPackages" >
     <PropertyGroup>
       <_TargetingPackPrefix>Microsoft.TargetingPack</_TargetingPackPrefix>
+      <TargetingPackReferenceCoreAssembly Condition="'$(TargetingPackReferenceCoreAssembly)' == '' and '%(TargetingPackReference.Identity)' == 'System.Private.CoreLib'">System.Private.CoreLib</TargetingPackReferenceCoreAssembly>
+      <TargetingPackReferenceCoreAssembly Condition="'$(TargetingPackReferenceCoreAssembly)' == ''">mscorlib</TargetingPackReferenceCoreAssembly>
+
+      <!--
+        S.P.CoreLib is generally architecture specific so disable the msbuild warning about
+        referencing it from an MSIL project.
+        -->
+      <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch Condition="'$(TargetingPackReferenceCoreAssembly)' == 'System.Private.CoreLib'">None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
     </PropertyGroup>
 
     <!--
@@ -146,7 +154,7 @@
       They only act as a filter so if they aren't present in the packages references it will not impact anything.
     -->
     <ItemGroup Condition="'$(ExcludeDefaultTargetingPackReferences)' != 'true'">
-      <TargetingPackReference Include="mscorlib" />
+      <TargetingPackReference Include="$(TargetingPackReferenceCoreAssembly)" Condition="'$(TargetingPackReferenceCoreAssembly)' != ''" />
       <TargetingPackReference Include="Windows" />
     </ItemGroup>
 
