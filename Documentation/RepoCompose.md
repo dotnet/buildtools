@@ -1,17 +1,18 @@
 # Composing our repos
 
-In order to have automated builds that compose the output of our ever growing number of repos we need to get more structured data about their relationships.  Today repos provide nothing in the way of programitic access to dependencies.  All of the information is known by the owners and as a result the builds and composition is fully manual. 
-Going forward repos will be given contracts, or APIs, that provide structured data about there dependencies and outputs.  This will give us the necessary data to compose our repos in our growing set of scenarios:
+In order to have automated builds that compose the output of our ever growing number of repos we need to get more structured data about their relationships.  Today repos provide nothing in the way of programmatic access to dependencies.  All of the information is known by the owners and as a result the builds and composition is fully manual. 
+
+Going forward repos will be given contracts, or APIs, that provide structured data about their dependencies and outputs.  This will give us the necessary data to compose our repos in our growing set of scenarios:
 
 - Linux distro builds from source
 - Official Windows signed build
 - Builds to quickly test and deploy new packages across repos
 
-These contracts will be included in the `run` command specification.  This document in particular will be discussing the commands which allow us to compose the outputs of our repos.
+These contracts will be included in the `run` command [specification](https://github.com/dotnet/buildtools/blob/master/Documentation/RunCommand.md).  This document in particular will be discussing the commands which allow us to compose the outputs of our repos.
 
 ## Commands
 
-This document describes the commands used to compose different repos together.  There is a larger set of commands including `build`, `sync` and `clean` which is described separately. 
+This document describes the commands used to compose different repos together.  There is a larger set of commands including `build`, `sync` and `clean` which is [described separately](https://github.com/dotnet/buildtools/blob/master/Documentation/Dev-workflow.md). 
 
 ### consumes
 
@@ -207,6 +208,7 @@ Example:
                 },
                 "file": {
                     "nuget.exe":  {
+                        "kind": "url",
                         "uri": "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
                     }
                 }
