@@ -67,6 +67,7 @@
   <PropertyGroup>
     <PackageOutputPath Condition="'$(PackageOutputPath)' == ''">$(BaseOutputPath)pkg/</PackageOutputPath>
     <SymbolPackageOutputPath Condition="'$(SymbolPackageOutputPath)' == ''">$(BaseOutputPath)symbolpkg/</SymbolPackageOutputPath>
+    <PrefixedSymbolPackageOutputPath Condition="'$(PrefixedSymbolPackageOutputPath)' == ''">$(BaseOutputPath)prefixedsymbolpkg/</PrefixedSymbolPackageOutputPath>
     <OutputPath>$(PackageOutputPath)</OutputPath>
     <NuSpecOutputPath Condition="'$(NuSpecOutputPath)' == ''">$(PackageOutputPath)specs/</NuSpecOutputPath>
     <NuSpecPath>$(NuSpecOutputPath)$(Id)$(NuspecSuffix).nuspec</NuSpecPath>
@@ -1085,11 +1086,16 @@
                ExcludeEmptyDirectories="true"
                PackSymbolPackage="true"
                SymbolPackageOutputDirectory="$(SymbolPackageOutputPath)"
+               PackPrefixedSymbolPackage="$(PackPrefixedSymbolPackage)"
+               PrefixedSymbolPackageOutputDirectory="$(PrefixedSymbolPackageOutputPath)"
                AdditionalLibPackageExcludes="@(AdditionalLibPackageExcludes)"
                AdditionalSymbolPackageExcludes="@(AdditionalSymbolPackageExcludes)"
-               Condition="'$(_SkipCreatePackage)' != 'true'"/>
-    <!-- Create a marker that records the path to the generated package -->
-    <WriteLinesToFile Lines="$(PackageOutputPath)$(Id).$(Version).nupkg;$(SymbolPackageOutputPath)$(Id).$(Version).symbols.nupkg"
+               Condition="'$(_SkipCreatePackage)' != 'true'">
+      <Output TaskParameter="PackagesCreated" ItemName="OutputPackagePath" />
+    </NugetPack>
+
+    <!-- Create markers that record the paths to the generated packages -->
+    <WriteLinesToFile Lines="@(OutputPackagePath)"
                       File="$(NuSpecPath).pkgpath"
                       Overwrite="true"
                       Condition="'$(_SkipCreatePackage)' != 'true'"/>
