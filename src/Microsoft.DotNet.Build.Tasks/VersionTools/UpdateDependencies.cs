@@ -6,11 +6,11 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Microsoft.DotNet.VersionTools;
 using Microsoft.DotNet.VersionTools.Automation;
+using Microsoft.DotNet.VersionTools.Dependencies;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Microsoft.DotNet.VersionTools.Dependencies;
 
 namespace Microsoft.DotNet.Build.Tasks.VersionTools
 {
@@ -23,8 +23,11 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 
         public ITaskItem[] XmlUpdateStep { get; set; }
 
-        public string ProjectRepo { get; set; }
         public string ProjectRepoOwner { get; set; }
+
+        [Required]
+        public string ProjectRepoName { get; set; }
+        [Required]
         public string ProjectRepoBranch { get; set; }
 
         [Required]
@@ -39,26 +42,48 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 
         public ITaskItem[] NotifyGitHubUsers { get; set; }
 
+        public bool AlwaysCreateNewPullRequest { get; set; }
+
         public override bool Execute()
         {
             MsBuildTraceListener[] listeners = Trace.Listeners.AddMsBuildTraceListeners(Log);
+            try
+            {
+                IDependencyUpdater[] updaters = GetDependencyUpdaters().ToArray();
+                BuildInfo[] buildInfos = GetBuildInfos().ToArray();
+                var updater = new DependencyUpdater();
 
-            IDependencyUpdater[] updaters = GetDependencyUpdaters().ToArray();
-            BuildInfo[] buildInfos = GetBuildInfos().ToArray();
+                DependencyUpdateResults updateResults = updater.Update(updaters, buildInfos);
 
-            var gitHubAuth = new GitHubAuth(GitHubAuthToken, GitHubUser, GitHubEmail);
+                if (updateResults.ChangesDetected())
+                {
+                    var gitHubAuth = new GitHubAuth(GitHubAuthToken, GitHubUser, GitHubEmail);
 
-            var updater = new DependencyUpdater(
-                gitHubAuth,
-                ProjectRepo,
-                ProjectRepoOwner,
-                ProjectRepoBranch,
-                GitHubAuthor ?? GitHubUser,
-                NotifyGitHubUsers?.Select(item => item.ItemSpec));
+                    var origin = new GitHubProject(ProjectRepoName, GitHubUser);
 
-            updater.UpdateAndSubmitPullRequestAsync(updaters, buildInfos).Wait();
+                    var upstreamBranch = new GitHubBranch(
+                        ProjectRepoBranch,
+                        new GitHubProject(ProjectRepoName, ProjectRepoOwner));
 
-            Trace.Listeners.RemoveMsBuildTraceListeners(listeners);
+                    string suggestedMessage = updateResults.GetSuggestedCommitMessage();
+                    string body = string.Empty;
+                    if (NotifyGitHubUsers != null)
+                    {
+                        body += PullRequestCreator.NotificationString(NotifyGitHubUsers.Select(item => item.ItemSpec));
+                    }
+
+                    var prCreator = new PullRequestCreator(gitHubAuth, origin, upstreamBranch, GitHubAuthor);
+                    prCreator.CreateOrUpdateAsync(
+                        suggestedMessage,
+                        suggestedMessage + $" ({ProjectRepoBranch})",
+                        body,
+                        forceCreate: AlwaysCreateNewPullRequest).Wait();
+                }
+            }
+            finally
+            {
+                Trace.Listeners.RemoveMsBuildTraceListeners(listeners);
+            }
 
             return true;
         }

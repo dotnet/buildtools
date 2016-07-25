@@ -14,6 +14,8 @@ namespace Microsoft.DotNet.VersionTools.Util
 {
     class Command
     {
+        public static Command Git(params string[] args) => Create("git", args);
+
         public static readonly string[] RunnableSuffixes = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? new string[] { ".exe", ".cmd", ".bat" }
             : new string[] { string.Empty };
@@ -194,6 +196,17 @@ namespace Microsoft.DotNet.VersionTools.Util
         public Command WorkingDirectory(string projectDirectory)
         {
             _process.StartInfo.WorkingDirectory = projectDirectory;
+            return this;
+        }
+
+        public Command EnvironmentVariable(string name, string value)
+        {
+#if NET45
+            _process.StartInfo.EnvironmentVariables[name] = value;
+#else
+            _process.StartInfo.Environment[name] = value;
+#endif
+            _process.StartInfo.UseShellExecute = false;
             return this;
         }
 

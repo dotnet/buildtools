@@ -26,14 +26,19 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
             if (newValue == null)
             {
                 Trace.TraceError($"Could not find version information to change '{Path}' with '{Regex}'");
-                return Enumerable.Empty<BuildInfo>();
             }
+            else
+            {
+                bool replaced = ReplaceFileContents(
+                    Path,
+                    contents => ReplaceGroupValue(Regex, contents, VersionGroupName, newValue));
 
-            ReplaceFileContents(
-                Path,
-                contents => ReplaceGroupValue(Regex, contents, VersionGroupName, newValue));
-
-            return usedBuildInfos;
+                if (replaced)
+                {
+                    return usedBuildInfos;
+                }
+            }
+            return Enumerable.Empty<BuildInfo>();
         }
 
         protected abstract string TryGetDesiredValue(
@@ -55,13 +60,18 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
             });
         }
 
-        private static void ReplaceFileContents(string path, Func<string, string> replacement)
+        private static bool ReplaceFileContents(string path, Func<string, string> replacement)
         {
             string contents = File.ReadAllText(path);
 
-            contents = replacement(contents);
+            string newContents = replacement(contents);
 
-            File.WriteAllText(path, contents, Encoding.UTF8);
+            if (contents != newContents)
+            {
+                File.WriteAllText(path, newContents, Encoding.UTF8);
+                return true;
+            }
+            return false;
         }
     }
 }
