@@ -316,12 +316,16 @@ class CommandLine
                     //helpString = parser.GetHelp(GetConsoleWidth() - 1, parameterSetTofocusOn, true);
                 }
 
-                helpString = parser.GetHelp(GetConsoleWidth() - 1, parameterSetTofocusOn, true);
+                helpString = parser.GetIntroTextForHelp(GetConsoleWidth() - 1).ToString();
+                helpString += parser.GetHelp(GetConsoleWidth() - 1, parameterSetTofocusOn, true);
                 DisplayStringToConsole(helpString);
             }, (parser, ex) =>
             {
                 Console.Error.WriteLine("Error: " + ex.Message);
-                Console.Error.WriteLine("Use -? for help.");
+                
+                Console.ForegroundColor = ConsoleColor.DarkYellow;
+                Console.WriteLine("Our dev workflow has changed! Use -? for help in the new options we have and how to pass parameters now.");
+                Console.ResetColor();
             },
             setupContent, args);
         }
@@ -630,10 +634,10 @@ class CommandLine
                 }
             }
             
-            if (unusedParameters != null)
+            if (unusedParameters.Count > 0)
             {
-                _extraparameters = string.Join(" ", unusedParameters);
-                //throw new CommandLineParserException("Extra positional parameter: " + _args[_curPosition] + ".");
+                //_extraparameters = string.Join(" ", unusedParameters);
+                throw new CommandLineParserException("Parameter not recognized: " + unusedParameters[0] + ".");
             }
                 
 
@@ -783,7 +787,7 @@ class CommandLine
             if(!string.IsNullOrEmpty(globalQualifiers))
             {
                 sb.AppendLine().Append('-', maxLineWidth - 1).AppendLine();
-                sb.Append("Global settings to all commands:").AppendLine();
+                sb.Append("Global Settings:").AppendLine();
                 sb.AppendLine();
                 sb.Append(globalQualifiers);
             }
@@ -1120,9 +1124,17 @@ class CommandLine
                 string name = ParseParameterName(arg);
                 if (name != null)
                 {
-                    if (name.Length == 1 && IsDash(name[0]))
+                    if (IsDash(name[0]))
                     {
                         _args[i] = null;
+                        i++;
+                        string[] extraP = new string[_args.Count - i];
+                        for (int j = 0; i < _args.Count; i++, j++)
+                        {
+                            extraP[j] = _args[i];
+                            _args[i] = null;
+                        }
+                        _extraparameters = string.Join(" ", extraP);
                         break;
                     }
                     if (name == "?")        // Did the user request help?
@@ -1567,6 +1579,25 @@ class CommandLine
             }
         }
 
+        private StringBuilder GetIntroTextForHelp(int maxLineWidth)
+        {
+            string appName = GetEntryAssemblyName();
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine();
+            string text = "The Run Commant Tool is now in charge of running the dev workflow steps. Each step has its own command and set of actions that are listed below.  " +
+                "You could also pass Global Settings to the commands.";
+            Wrap(sb, text, 0, String.Empty, maxLineWidth, true);
+            text = "To pass additional parameters that are not described in the Global Settings section, use `--`. After this command, the Run Command Tool will stop processing arguments and will pass all the information as it is to the selected command.";
+            Wrap(sb, text, 0, String.Empty, maxLineWidth, true);
+            text = "The information comes from a config.json file. By default the file is in the root of the repo. Otherwise the first parameter should be the path to the config.json file.";
+            Wrap(sb, text, 0, String.Empty, maxLineWidth, true);
+            text = "For more information about the Run Command Tool: https://github.com/dotnet/buildtools/blob/master/Documentation/RunCommand.md";
+            Wrap(sb, text, 0, String.Empty, maxLineWidth, true);
+            sb.AppendLine().AppendLine().Append("Sintaxis: run [Command] [Action] (global settings)");
+            sb.AppendLine().Append('-', maxLineWidth - 1).AppendLine();
+            return sb;
+        }
+
 
         /// <summary>
         /// Return a string giving the help for the command, word wrapped at 'maxLineWidth'
@@ -1586,22 +1617,12 @@ class CommandLine
             
             if (!hasParamSets)
                 return GetHelp(maxLineWidth, String.Empty, true);
+
             StringBuilder sb = new StringBuilder();
-
-
-            string appName = GetEntryAssemblyName();
-            sb.AppendLine();
-            string intro = "The " + appName + " has a number of dev workflow steps associated with it, " +
-                "each with its own command and set of actions. They are listed below.  " +
-                "Settings that are common to all commands are listed at the end.";
-            Wrap(sb, intro, 0, String.Empty, maxLineWidth, true);
-            sb.Append("The information comes from a config.json file. By default the file is in the root of the repo. Otherwise the first parameter should be the path to the config.json file.");
-            sb.AppendLine().AppendLine().Append("Sintaxis: executor [Command] [Action] (global settings)");
-
+                        
             // Always print the default parameter set first.
             if (_defaultParamSetEncountered)
             {
-                sb.AppendLine().Append('-', maxLineWidth - 1).AppendLine();
                 sb.Append(GetHelp(maxLineWidth, String.Empty, false));
             }
 
@@ -1609,7 +1630,6 @@ class CommandLine
             {
                 if (parameter.IsParameterSet && parameter.Name.Length != 0)
                 {
-                    sb.AppendLine().Append('-', maxLineWidth - 1).AppendLine();
                     sb.Append(GetHelp(maxLineWidth, parameter.Name, false));
                 }
             }

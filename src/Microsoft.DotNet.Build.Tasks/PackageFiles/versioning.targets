@@ -125,7 +125,7 @@
       Inputs="$(MSBuildProjectFile)"
       Outputs="$(NativeVersionHeaderFile)"
       DependsOnTargets="CreateVersionFileDuringBuild;GetLatestCommitHash"
-      Condition="'$(NativeVersionHeaderFile)'!='' and '$(GenerateVersionHeader)'=='true'">
+      Condition="'$(NativeVersionHeaderFile)'!='' and '$(GenerateVersionHeader)'=='true' and !Exists($(NativeVersionHeaderFile))">
 
     <ItemGroup>
       <!-- Defining versioning variables -->

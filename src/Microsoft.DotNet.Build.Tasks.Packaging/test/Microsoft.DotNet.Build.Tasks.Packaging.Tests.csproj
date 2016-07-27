@@ -17,6 +17,7 @@
     <Compile Include="CreateTrimDependencyGroupsTests.cs" />
     <Compile Include="ApplyBaseLineTests.cs" />
     <Compile Include="EnsureOOBFrameworkTests.cs" />
+    <Compile Include="NugetPropertyStringProviderTests.cs" />
     <Compile Include="NuGetAssetResolverTests.cs" />
     <Compile Include="GenerationsTests.cs" />
     <Compile Include="Log.cs" />

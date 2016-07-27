@@ -17,7 +17,7 @@
         <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
         <Targets>GetPackageAssets</Targets>
         <OutputItemType>PkgProjAsset</OutputItemType>
-        <UndefineProperties>OSGroup;TargetGroup</UndefineProperties>
+        <UndefineProperties>%(ProjectReference.UndefineProperties);OSGroup;TargetGroup</UndefineProperties>
       </ProjectReference>
     </ItemGroup>
   </Target>
@@ -205,7 +205,7 @@
           Condition="'$(PackageTargetFramework)' != '' AND '$(SkipValidatePackageTargetFramework)' != 'true'"
           AfterTargets="ResolveReferences">
     <ItemGroup Condition="'@(ValidateIgnoreReference)' == ''">
-      <ValidateIgnoreReference Include="mscorlib;System.Private.Uri;Windows" />
+      <ValidateIgnoreReference Include="mscorlib;System.Private.CoreLib;System.Private.Uri;Windows" />
     </ItemGroup>
 
     <ValidatePackageTargetFramework AssemblyName="$(AssemblyName)"

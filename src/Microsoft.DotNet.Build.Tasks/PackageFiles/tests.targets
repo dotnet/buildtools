@@ -63,6 +63,9 @@
     <TestNugetTargetMoniker Include=".NETCoreApp,Version=v1.0" Condition="'$(TestTFM)' == 'netcoreapp1.0'">
       <Folder>netcoreapp1.0</Folder>
     </TestNugetTargetMoniker>
+    <TestNugetTargetMoniker Include=".NETCoreApp,Version=v1.1" Condition="'$(TestTFM)' == 'netcoreapp1.1'">
+      <Folder>netcoreapp1.1</Folder>
+    </TestNugetTargetMoniker>
     <TestNugetTargetMoniker Include=".NETFramework,Version=v4.6.3" Condition="'$(TestTFM)' == 'net463'">
       <Folder>net462</Folder>
     </TestNugetTargetMoniker>

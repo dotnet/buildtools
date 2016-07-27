@@ -5,12 +5,9 @@ export EXECUTION_DIR=$2
 export BASEDIR=$(dirname "$0")
 
 function copy_and_check {
-if ([ -f $2 ])
-then
-    echo $2 already exists, not copying.
-else
+  if ! [ -f $2 ]; then
     ln $1 $(dirname "$2") || exit $?
-fi
+  fi
 }
 
 function print_info_from_core_file {
