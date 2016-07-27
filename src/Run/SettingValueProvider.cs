@@ -26,7 +26,7 @@ namespace Microsoft.DotNet.Execute
 
         public static string Get(string settingName)
         {
-            PropertyInfo property = typeof(SettingValueProvider).GetTypeInfo().GetProperty(settingName);
+            PropertyInfo property = typeof(SettingValueProvider).GetTypeInfo().GetProperty(settingName, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Static);
             return (property != null) ? (string)property.GetValue(null) : string.Empty;
         }
 
