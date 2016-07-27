@@ -17,7 +17,7 @@
         <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
         <Targets>GetPackageAssets</Targets>
         <OutputItemType>PkgProjAsset</OutputItemType>
-        <UndefineProperties>OSGroup;TargetGroup</UndefineProperties>
+        <UndefineProperties>%(ProjectReference.UndefineProperties);OSGroup;TargetGroup</UndefineProperties>
       </ProjectReference>
     </ItemGroup>
   </Target>
