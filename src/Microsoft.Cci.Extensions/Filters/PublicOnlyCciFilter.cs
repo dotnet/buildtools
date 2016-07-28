@@ -63,8 +63,22 @@ namespace Microsoft.Cci.Filters
             if (this.ExcludeAttributes)
                 return false;
 
-            // Always return the custom attributes if ExcludeAttributes is not set
-            // the PublicOnly mainly concerns the types and members.
+            // Ignore attributes not visible outside the assembly
+            var attributeDef = attribute.Type.GetDefinitionOrNull();
+            if (attributeDef != null && !attributeDef.IsVisibleOutsideAssembly())
+                return false;
+
+            // Ignore attributes with typeof argument of a type invisible outside the assembly
+            foreach(var arg in attribute.Arguments.OfType<IMetadataTypeOf>())
+            {
+                var typeDef = arg.TypeToGet.GetDefinitionOrNull();
+                if (typeDef == null)
+                    continue;
+
+                if (!typeDef.IsVisibleOutsideAssembly())
+                    return false;
+            }
+
             return true;
         }
     }
