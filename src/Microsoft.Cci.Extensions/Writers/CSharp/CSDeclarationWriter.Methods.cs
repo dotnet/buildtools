@@ -157,6 +157,9 @@ namespace Microsoft.Cci.Writers.CSharp
             if (method.IsStatic)
                 WriteKeyword("static");
 
+            if (method.IsPlatformInvoke)
+                WriteKeyword("extern");
+
             if (method.IsVirtual)
             {
                 if (method.IsNewSlot)
@@ -179,7 +182,7 @@ namespace Microsoft.Cci.Writers.CSharp
 
         private void WriteMethodBody(IMethodDefinition method)
         {
-            if (method.IsAbstract || !_forCompilation)
+            if (method.IsAbstract || !_forCompilation || method.IsPlatformInvoke)
             {
                 WriteSymbol(";");
                 return;
