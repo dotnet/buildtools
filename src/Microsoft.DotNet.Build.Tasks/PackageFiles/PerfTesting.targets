@@ -61,7 +61,9 @@
     <PerfRunOutputFile Condition="'$(TargetOS)'=='Windows_NT'">%EXECUTION_DIR%\testResults.xml</PerfRunOutputFile>
     <PerfRunOutputFile Condition="'$(TargetOS)'=='Linux'">$EXECUTION_DIR/testResults.xml</PerfRunOutputFile>
     <XunitAnalysisReportArgs>$(PerfRunOutputFile) -html $(AnalysisReportFileName) $(AdditionalXunitAnalysisArgs)</XunitAnalysisReportArgs>
-    <XunitAnalysisCsvArgs>$(PerfRunOutputFile) -csv testResults.csv</XunitAnalysisCsvArgs>
+    <XunitPerfAnalysisCsvDir Condition="'$(TargetOS)'=='Linux'">$EXECUTION_DIR/resultcsvs/</XunitPerfAnalysisCsvDir>
+    <XunitPerfAnalysisCsvDir Condition="'$(TargetOS)'=='Windows_NT'">%EXECUTION_DIR%\resultcsvs\</XunitPerfAnalysisCsvDir>
+    <XunitAnalysisCsvArgs>$(PerfRunOutputFile) -csvDir $(XunitPerfAnalysisCsvDir)</XunitAnalysisCsvArgs>
     <AnalyzePerfResults Condition="'$(AnalyzePerfResults)' != 'false'">true</AnalyzePerfResults>
   </PropertyGroup>
 
@@ -78,7 +80,9 @@
     <PerfTestCommand>$(PerfTestCommandDotnetExecutable) xunit.performance.run.exe $(XunitRunnerArgs) $(AdditionalPerfTestArgs)</PerfTestCommand>
   </PropertyGroup>
   <ItemGroup Condition="'$(TargetOS)'=='Linux'" >
-    <TestCommandLines Include = "$HELIX_PYTHONPATH $HELIX_CORRELATION_PAYLOAD/RunnerScripts/xunitrunner-perf/dotnetcliinstaller.py"></TestCommandLines>
+    <TestCommandLines Include = "if [ -f  $HELIX_CORRELATION_PAYLOAD/RunnerScripts/xunitrunner-perf/dotnetcliinstaller.py ];"></TestCommandLines>
+    <TestCommandLines Include = "then $HELIX_PYTHONPATH $HELIX_CORRELATION_PAYLOAD/RunnerScripts/xunitrunner-perf/dotnetcliinstaller.py"></TestCommandLines>
+    <TestCommandLines Include = "fi"></TestCommandLines>
   </ItemGroup>
   <ItemGroup Condition="'$(TargetOS)'=='Windows_NT'">
     <TestCommandLines Include = "xcopy &quot;%PACKAGE_DIR%\$(XunitPerfRunnerPackageId)\$(XunitPerfAnalysisPackageVersion)\tools&quot; &quot;%EXECUTION_DIR%&quot; /s /y"></TestCommandLines>
@@ -86,13 +90,16 @@
   </ItemGroup>
   <ItemGroup>
     <TestCommandLines Include = "$(PerfTestCommand)"></TestCommandLines>
+    <TestCommandLines Include = "mkdir $(XunitPerfAnalysisCsvDir)"></TestCommandLines>
     <TestCommandLines Include = "$(PerfAnalysisCsvCommand)"></TestCommandLines>
   </ItemGroup>
   <ItemGroup Condition="'$(TargetOS)'=='Linux'" >
-    <TestCommandLines Include = "$HELIX_PYTHONPATH $HELIX_CORRELATION_PAYLOAD/RunnerScripts/xunitrunner-perf/postprocessperfresults.py"></TestCommandLines>
+    <TestCommandLines Include = "if [ -f  $HELIX_CORRELATION_PAYLOAD/RunnerScripts/xunitrunner-perf/postprocessperfresults.py ];"></TestCommandLines>
+    <TestCommandLines Include = "then $HELIX_PYTHONPATH $HELIX_CORRELATION_PAYLOAD/RunnerScripts/xunitrunner-perf/postprocessperfresults.py --csvDir $(XunitPerfAnalysisCsvDir)"></TestCommandLines>
+    <TestCommandLines Include = "fi"></TestCommandLines>
   </ItemGroup>
   <ItemGroup Condition="'$(TargetOS)'=='Windows_NT'">
-    <TestCommandLines Include = "%HELIX_PYTHONPATH% %HELIX_CORRELATION_PAYLOAD%\RunnerScripts\xunitrunner-perf\postprocessperfresults.py"></TestCommandLines>
+    <TestCommandLines Include = "IF EXIST %HELIX_CORRELATION_PAYLOAD%\RunnerScripts\xunitrunner-perf\postprocessperfresults.py %HELIX_PYTHONPATH% %HELIX_CORRELATION_PAYLOAD%\RunnerScripts\xunitrunner-perf\postprocessperfresults.py --csvDir $(XunitPerfAnalysisCsvDir)"></TestCommandLines>
   </ItemGroup>
   <!-- Optimizations to configure Xunit for performance -->
   <ItemGroup Condition="'$(IncludePerformanceTests)' == 'true'">
