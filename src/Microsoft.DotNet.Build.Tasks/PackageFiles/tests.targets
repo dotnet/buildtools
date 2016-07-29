@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <TestWithCore Condition="'$(TestWithCore)' == '' And '$(TestTFM)' != 'netcoreapp1.0'">false</TestWithCore>
+    <TestWithCore Condition="'$(TestWithCore)' == '' And !$(TestTFM.StartsWith('netcoreapp', StringComparison.OrdinalIgnoreCase))">false</TestWithCore>
     <!-- TestAppX is true only for debug scenario which runs on non-aot runtime ids -->
     <TestAppX Condition="'$(TestWithCore)' == 'false' And '$(TestTFM)' == 'netcore50' And !$(TestNugetRuntimeId.Contains('aot'))">true</TestAppX>
     <TestWithCore Condition="'$(TestWithCore)' == '' ">true</TestWithCore>
@@ -29,9 +29,9 @@
 
   <PropertyGroup Condition="'$(TestWithCore)' == 'true' And '$(TestAppX)' != 'true'">
     <TestHostExecutable>CoreRun.exe</TestHostExecutable>
-    <TestHostDirectory>$(TestPath)netcoreapp1.0/</TestHostDirectory>
+    <TestHostDirectory>$(TestPath)$(TestTFM)</TestHostDirectory>
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.netcore.exe</XunitExecutable>
-    <DebugTestFrameworkFolder>netcoreapp1.0</DebugTestFrameworkFolder>
+    <DebugTestFrameworkFolder>$(TestTFM)</DebugTestFrameworkFolder>
     <DebugEngines>{2E36F1D4-B23C-435D-AB41-18E608940038}</DebugEngines>
   </PropertyGroup>
 
