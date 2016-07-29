@@ -71,29 +71,30 @@ def read_csv(csvFile):
     return csvdict
 
 # generate result object with raw values
-def generate_result_object(resultvalues):
+def generate_result_object(resultvalues, metric):
     result = serialobj.Result()
     # generate measurement result test object per iteration
     measurements = list()
     measurement = serialobj.Measurement()
     measurement.iterValues = resultvalues
-    measurement.measurementType = 'execution_time'
-    measurements.append(measurement)
+    measurement.measurementType = metric
+    if metric:
+        measurements.append(measurement)
     result.measurements = measurements
     return result
 
 # generate a test object per node; each node represents a namespace/function (recursively)
-def generate_test_object(currdict, testName, info):
+def generate_test_object(currdict, testName, info, metric):
     currTest = serialobj.Test()
     currTest.testName = testName
 
     for key, value in currdict.iteritems():
         test = serialobj.Test()
         if isinstance(value, dict):
-            test = generate_test_object(value, key, info)
+            test = generate_test_object(value, key, info, metric)
         elif isinstance(value, list):
             test.testName = key
-            test.results.append(generate_result_object(value))
+            test.results.append(generate_result_object(value, metric))
             test.machine.machineName = platform.node()
             test.machine.machineDescription = format(info['brand'])
 
@@ -103,7 +104,7 @@ def generate_test_object(currdict, testName, info):
 
 
 # build json using csv data and meta data
-def generate_json(opts, csvdict):
+def generate_json(opts, csvdicts):
     perfsettingsjson = ''
     with open(os.path.join(opts['--perfSettingsJson'])) as perfsettingsjson:
         # read the perf-specific settings
@@ -114,9 +115,11 @@ def generate_json(opts, csvdict):
     rootTests = list()
 
     info = cpuinfo.get_cpu_info()
-    # recursively build nodes from the csvdict
-    rootTest = generate_test_object(csvdict, perfsettingsjson['TestProduct']+' Perf Test Results', info)
-    rootTests.append(rootTest)
+
+    for metric, currdict in csvdicts.iteritems():
+        # recursively build nodes from the csvdict
+        rootTest = generate_test_object(currdict, perfsettingsjson['TestProduct']+' Perf Test Results', info, metric)
+        rootTests.append(rootTest)
 
     # populate the root level meta info
     run = serialobj.Run()
@@ -203,9 +206,22 @@ def generate_json(opts, csvdict):
 
 
 def run_json_conversion(opts):
+    csvdir = opts['--csvDir']
+    csvfiles = []
+    for item in os.listdir(csvdir):
+        if item.lower().endswith('.csv'):
+            csvfiles.append(os.path.join(csvdir, item))
+
+    if not csvfiles:
+        log.error('no csv files found for conversion under '+csvdir)
+        return -1
+
     try:
-        csvdict = read_csv(opts['--csvFile'])
-        generate_json(opts, csvdict)
+        csvdicts = dict()
+        for item in csvfiles:
+            csvdicts[item.replace(csvdir, '').replace('.csv', '')] = read_csv(os.path.join(csvdir, item))
+
+        generate_json(opts, csvdicts)
     except Exception as ex:
         log.error(ex.args)
         return -1
@@ -217,7 +233,7 @@ def main(args=None):
         """
             Usage::
                 csv_to_json.py
-                    --csvFile csv file path
+                    --csvDir dir where csvs can be found
                     --jsonFile json file path
                     --jobName "sample job"
                     --perfSettingsJson json file containing perf-specific settings
@@ -227,7 +243,7 @@ def main(args=None):
         opts = dict(optlist)
         return run_json_conversion(opts)
 
-    return command_main(_main, ['csvFile=', 'jsonFile=', 'jobName=', 'perfSettingsJson='], args)
+    return command_main(_main, ['csvDir=', 'jsonFile=', 'jobName=', 'perfSettingsJson='], args)
 
 if __name__ == '__main__':
     sys.exit(main())

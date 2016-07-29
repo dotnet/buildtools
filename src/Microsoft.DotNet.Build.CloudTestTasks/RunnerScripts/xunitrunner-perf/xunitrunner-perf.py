@@ -224,12 +224,16 @@ def post_process_perf_results(settings, results_location, workitem_dir, xunit_te
         log.error('Invalid xunit_test_type')
         return
 
-    xmlCmd = xmlconvertorpath+' -csv '+os.path.join(workitem_dir, 'results.csv')+' '+results_location
+    csvs_dir = os.path.join(workitem_dir, 'resultcsvs')
+    os.mkdir(csvs_dir)
+    xmlCmd = xmlconvertorpath+' -csv '+csvs_dir+' '+results_location
     if (helix.proc.run_and_log_output(xmlCmd.split(' '))) != 0:
         raise Exception('Failed to generate csv from result xml')
 
-    log.info('Uploading the results.csv file')
-    _write_output_path(os.path.join(workitem_dir, 'results.csv'), settings)
+    log.info('Uploading the result csv files')
+    for item in os.listdir(csvs_dir):
+        if item.endswith('.csv'):
+            _write_output_path(os.path.join(csvs_dir, item), settings)
 
     perfscriptsdir = os.path.join(payload_dir, 'RunnerScripts', 'xunitrunner-perf')
     perfsettingsjson = ''
@@ -244,7 +248,7 @@ def post_process_perf_results(settings, results_location, workitem_dir, xunit_te
     jsonPath = jsonPath.encode('ascii', 'ignore')
     jsonArgsDict = dict()
     jsonArgsDict['--jobName'] = settings.correlation_id
-    jsonArgsDict['--csvFile'] = os.path.join(workitem_dir, 'results.csv')
+    jsonArgsDict['--csvDir'] = csvs_dir
     jsonArgsDict['--jsonFile'] = jsonPath
     jsonArgsDict['--perfSettingsJson'] = perfsettingsjsonfile
     jsonArgs = [sys.executable, os.path.join(perfscriptsdir, 'csvjsonconvertor.py')]
