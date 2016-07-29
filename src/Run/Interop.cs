@@ -23,7 +23,12 @@ namespace Microsoft.DotNet.Execute
                 {
                     if (line.StartsWith(OSId))
                     {
-                        id = line.Substring(OSId.Length, line.Length - OSId.Length);
+                        int startOfVersion = line.IndexOf('"', OSId.Length) + 1;
+                        int endOfVersion = startOfVersion == 0 ? line.Length : line.IndexOf('"', startOfVersion);
+                        if (startOfVersion == 0)
+                            startOfVersion = OSId.Length;
+
+                        id = line.Substring(startOfVersion, endOfVersion - startOfVersion);
                     }
                     else if (line.StartsWith(OSVersionId))
                     {
