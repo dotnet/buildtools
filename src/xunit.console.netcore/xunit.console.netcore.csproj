@@ -40,9 +40,6 @@
     <Compile Include="..\common\TestDiscoveryVisitor.cs">
       <Link>Common\TestDiscoveryVisitor.cs</Link>
     </Compile>
-    <Compile Include="..\common\XmlTestExecutionVisitor.cs">
-      <Link>Common\XmlTestExecutionVisitor.cs</Link>
-    </Compile>
     <Compile Include="CommandLine.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
