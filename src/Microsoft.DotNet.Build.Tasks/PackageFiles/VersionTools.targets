@@ -14,8 +14,8 @@
                              GitHubAuthToken="$(GitHubAuthToken)"
                              GitHubUser="$(GitHubUser)"
                              GitHubEmail="$(GitHubEmail)"
-                             VersionRepo="$(VersionRepo)"
-                             VersionRepoOwner="$(VersionRepoOwner)" />
+                             VersionsRepo="$(VersionsRepo)"
+                             VersionsRepoOwner="$(VersionsRepoOwner)" />
   </Target>
 
   <!-- Task to perform automatic dependency updates. -->

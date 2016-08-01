@@ -10,22 +10,22 @@ using System.Threading.Tasks;
 
 namespace Microsoft.DotNet.VersionTools.Automation
 {
-    public class VersionRepoUpdater
+    public class VersionsRepoUpdater
     {
         private GitHubAuth _gitHubAuth;
         private GitHubProject _project;
 
-        public VersionRepoUpdater(
+        public VersionsRepoUpdater(
             GitHubAuth gitHubAuth,
-            string versionRepoOwner = null,
+            string versionsRepoOwner = null,
             string versionsRepo = null)
             : this(
                 gitHubAuth,
-                new GitHubProject(versionsRepo ?? "versions", versionRepoOwner))
+                new GitHubProject(versionsRepo ?? "versions", versionsRepoOwner))
         {
         }
 
-        public VersionRepoUpdater(GitHubAuth gitHubAuth, GitHubProject project)
+        public VersionsRepoUpdater(GitHubAuth gitHubAuth, GitHubProject project)
         {
             if (gitHubAuth == null)
             {
