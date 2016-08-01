@@ -246,6 +246,10 @@
       <TestCommandLines Include="copy /y testResults.xml %EXECUTION_DIR%\" />
     </ItemGroup>
 
+    <!-- Do not put anything between this Item Group and the GenerateTestExecutionScripts invocation -->
+    <ItemGroup>
+      <TestCommandLines Include="@(PostExecutionTestCommandLines)" />
+    </ItemGroup>
     <GenerateTestExecutionScripts
       TestCommands="@(TestCommandLines)"
       TestDependencies="@(IncludedFileForRunnerScript)"
