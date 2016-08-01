@@ -20,10 +20,17 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Automation\GitHubHttpClient.cs" />
+    <Compile Include="Automation\DependencyUpdateResults.cs" />
+    <Compile Include="Automation\GitHubApi\GitHubClient.cs" />
     <Compile Include="Automation\DependencyUpdater.cs" />
+    <Compile Include="Automation\GitHubBranch.cs" />
+    <Compile Include="Automation\GitHubProject.cs" />
+    <Compile Include="Automation\PullRequestCreator.cs" />
+    <Compile Include="Automation\GitHubApi\GitHubApiModel.cs" />
     <Compile Include="Dependencies\FileRegexPackageUpdater.cs" />
     <Compile Include="Dependencies\FileRegexReleaseUpdater.cs" />
+    <Compile Include="Automation\IUpdateBranchNamingStrategy.cs" />
+    <Compile Include="Automation\SingleBranchNamingStrategy.cs" />
     <Compile Include="Util\ArgumentEscaper.cs" />
     <Compile Include="Util\Command.cs" />
     <Compile Include="Util\CommandResult.cs" />
