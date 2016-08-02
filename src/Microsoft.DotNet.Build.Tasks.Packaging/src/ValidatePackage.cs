@@ -350,10 +350,11 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                                         Log.LogError($"{ContractName} should support API version {supportedVersion} on {target} but {implementationAssembly} was found to support {implementationVersion?.ToString() ?? "<unknown version>"}.");
                                     }
 
+                                    // Previously we only permitted compatible mismatch if Suppression.PermitHigherCompatibleImplementationVersion was specified
+                                    // this is a permitted thing on every framework but desktop (which requires exact match to ensure bindingRedirects exist)
+                                    // Now make this the default, we'll check desktop, where it matters, more strictly
                                     if (referenceAssemblyVersion != null &&
-                                        HasSuppression(Suppression.PermitHigherCompatibleImplementationVersion) ? 
-                                            !VersionUtility.IsCompatibleApiVersion(referenceAssemblyVersion, implementationVersion) :
-                                            (implementationVersion != referenceAssemblyVersion))
+                                        !VersionUtility.IsCompatibleApiVersion(referenceAssemblyVersion, implementationVersion))
                                     {
                                         Log.LogError($"{ContractName} has mismatched compile ({referenceAssemblyVersion}) and runtime ({implementationVersion}) versions on {target}.");
                                     }
