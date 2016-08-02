@@ -40,7 +40,7 @@
     <Compile Include="Dependencies\IDependencyUpdater.cs" />
     <Compile Include="BuildInfo.cs" />
     <Compile Include="Dependencies\ProjectJsonUpdater.cs" />
-    <Compile Include="Automation\VersionRepoUpdater.cs" />
+    <Compile Include="Automation\VersionsRepoUpdater.cs" />
   </ItemGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
   <Target Name="AfterBuild">
