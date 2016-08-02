@@ -98,8 +98,10 @@ if [ "$?" != "0" ]; then
     echo "ERROR: An error ocurred when running: '$__DOTNET_CMD restore \"${__PORTABLETARGETS_PROJECTJSON}\"'. Please check above for more details."
     exit 1
 fi
-cp -R "${__PACKAGES_DIR}/Microsoft.Portable.Targets/${__PORTABLETARGETS_VERSION}/contentFiles/any/any/." "$__TOOLRUNTIME_DIR/."
-cp -R "${__PACKAGES_DIR}/MicroBuild.Core/${__MICROBUILD_VERSION}/build/." "$__TOOLRUNTIME_DIR/."
+find $__PACKAGES_DIR -type d \( \
+    -iwholename "${__PACKAGES_DIR}/Microsoft.Portable.Targets/${__PORTABLETARGETS_VERSION}/contentFiles/any/any" -or \
+    -iwholename "${__PACKAGES_DIR}/MicroBuild.Core/${__MICROBUILD_VERSION}/build" \
+    \) -exec cp -R "{}/." "$__TOOLRUNTIME_DIR/." \;
 
 # Temporary Hacks to fix couple of issues in the msbuild and roslyn nuget packages
 mv "$__TOOLRUNTIME_DIR/Microsoft.CSharp.targets" "$__TOOLRUNTIME_DIR/Microsoft.CSharp.Targets"
