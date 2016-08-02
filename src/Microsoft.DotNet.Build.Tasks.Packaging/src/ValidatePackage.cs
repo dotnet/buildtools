@@ -692,9 +692,17 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 if (!isExclusiveVersion)
                 {
                     // find all frameworks of higher version, sorted by version ascending
-                    var higherFrameworks = _frameworks.Values.Where(vf => vf.Framework.Framework == fx.Framework && vf.Framework.Version > fx.Version).OrderBy(vf => vf.Framework.Version);
+                    IEnumerable<ValidationFramework> higherFrameworks = _frameworks.Values.Where(vf => vf.Framework.Framework == fx.Framework && vf.Framework.Version > fx.Version).OrderBy(vf => vf.Framework.Version);
 
-                    foreach(var higherFramework in higherFrameworks)
+                    // netcore50 is the last `netcore` framework, after that we use `uap`
+                    if (fx.Framework == FrameworkConstants.FrameworkIdentifiers.NetCore)
+                    {
+                        var uapFrameworks = _frameworks.Values.Where(vf => vf.Framework.Framework == FrameworkConstants.FrameworkIdentifiers.UAP).OrderBy(vf => vf.Framework.Version);
+                        higherFrameworks = higherFrameworks.Concat(uapFrameworks);
+                    }
+
+
+                    foreach (var higherFramework in higherFrameworks)
                     {
                         if (higherFramework.SupportedVersion != null && higherFramework.SupportedVersion > supportedVersion)
                         {

@@ -188,7 +188,7 @@
         DnuRestoreCommand - Used to restore the project packages from project.json
         PackagesDir - Packages are restored to and resolved from this location    
    -->
-  <Import Project="$(MSBuildThisFileDirectory)tests.targets" Condition="'$(IsTestProject)'=='true' and '$(ExcldueTestsImport)'!='true'"/>
+  <Import Project="$(MSBuildThisFileDirectory)tests.targets" Condition="'$(IsTestProject)'=='true' and '$(ExcludeTestsImport)'!='true'"/>
   
   <!-- 
     Import the PackageLibs.targets which exposes targets from library projects to report what
@@ -218,7 +218,7 @@
         PackageIncludeDocs - true to include the docs next to this project's ouput.  Default
                              is true for reference assemblies, false for implementation.
    -->
-  <Import Project="$(MSBuildThisFileDirectory)PackageLibs.targets" Condition="'$(ExclduePackageLibsImport)'!='true'"/>
+  <Import Project="$(MSBuildThisFileDirectory)PackageLibs.targets" Condition="'$(ExcludePackageLibsImport)'!='true'"/>
 
   <Target Name="CheckDesignTime">
     <!--

@@ -168,7 +168,7 @@
   <!-- Don't actually walk the closure all the time, conditioned on GetClosure metadata on ProjectReference.
        Walking the closure is very expensive for many of our packages and is unecessary since we are very
        strict about assets that are included in the package.  -->
-  <Target Name="_GetProjectClosure" 
+  <Target Name="_GetProjectClosure"
           DependsOnTargets="ConvertCommonMetadataToAdditionalProperties"
           Returns="@(_ProjectReferenceClosure)">
 
@@ -611,11 +611,11 @@
     <!-- Add a dependency on the lineup & platform package if this package has runtime dependencies and no runtime.json -->
     <ItemGroup Condition="'@(RuntimeDependency)' != '' AND '$(_runtimeJsonIncluded)' != 'true' AND '$(ExcludeLineupReference)' != 'true'">
       <!-- Add to any TargetFramework that isn't a placeholder-->
-      <_runtimeDependenciesTargetFramework Include="%(File.TargetFramework)" 
-                                           Condition="'%(File.Identity)' != '$(PlaceholderFile)'" 
+      <_runtimeDependenciesTargetFramework Include="%(File.TargetFramework)"
+                                           Condition="'%(File.Identity)' != '$(PlaceholderFile)'"
                                            KeepDuplicates="false" />
       <!-- remove any frameworks that have an impl in this package -->
-      <_runtimeDependenciesTargetFramework Remove="%(File.TargetFramework)" 
+      <_runtimeDependenciesTargetFramework Remove="%(File.TargetFramework)"
                                            Condition="$([System.String]::new('%(File.TargetPath)').StartsWith('lib/', StringComparison.OrdinalIgnoreCase))" />
       <FilePackageDependency Include="$(LineupPackageId)">
         <Version>$(LineupPackageVersion)</Version>
@@ -633,9 +633,9 @@
                                     Condition="$([System.String]::new('%(File.TargetPath)').StartsWith('runtimes/', StringComparison.OrdinalIgnoreCase))
                                                AND '%(File.Identity)' != '$(PlaceholderFile)'" />
       <!-- remove any frameworks that have a RID-less impl in this package-->
-      <_ridSpecificTargetFrameworks Remove="%(File.TargetFramework)" 
+      <_ridSpecificTargetFrameworks Remove="%(File.TargetFramework)"
                                            Condition="$([System.String]::new('%(File.TargetPath)').StartsWith('lib/', StringComparison.OrdinalIgnoreCase))" />
-        
+
       <FilePackageDependency Include="$(PlatformPackageId)" Condition="'@(_ridSpecificTargetFrameworks)' != ''">
         <Version>$(PlatformPackageVersion)</Version>
         <TargetFramework>%(_ridSpecificTargetFrameworks.Identity)</TargetFramework>
@@ -661,7 +661,7 @@
       <Output TaskParameter="PromotedDependencies" ItemName="FilePackageDependency" />
     </PromoteReferenceDependencies>
 
-    <Error Condition="'@(BaseLinePackage)' == '' AND '@(FilePackageDependency)' != '' AND '$(BaseLinePackageDependencies)' != 'false'" 
+    <Error Condition="'@(BaseLinePackage)' == '' AND '@(FilePackageDependency)' != '' AND '$(BaseLinePackageDependencies)' != 'false'"
            Text="The BaseLinePackage item is not defined: ensure you have imported Microsoft.Private.PackageBaseLine.props from the Microsoft.Private.PackageBaseLine package" />
     <ApplyBaseLine OriginalDependencies="@(FilePackageDependency)" BaseLinePackages="@(BaseLinePackage)" Condition="'$(BaseLinePackageDependencies)' != 'false'">
       <Output TaskParameter="BaseLinedDependencies" ItemName="_BaseLinedDependencies" />
@@ -692,8 +692,8 @@
     </ItemGroup>
 
     <!-- Lineups need to have all runtime dependencies to ensure that they are part of the compile graph -->
-    <MSBuild Projects="@(LineupProjectReference)" 
-             Targets="DetermineRuntimeDependencies" 
+    <MSBuild Projects="@(LineupProjectReference)"
+             Targets="DetermineRuntimeDependencies"
              Condition="'$(IsLineupPackage)' == 'true'"
              BuildInParallel="$(BuildInParallel)"
              Properties="$(ProjectProperties)">
@@ -890,6 +890,13 @@
       <!-- Intentionally empty, no RIDs defined for phone-->
       <RuntimeIDs></RuntimeIDs>
     </DefaultValidateFramework>
+
+    <DefaultValidateFramework Include="uap10.0">
+      <RuntimeIDs>win10-x86;win10-x86-aot;win10-x64;win10-x64-aot;win10-arm;win10-arm-aot</RuntimeIDs>
+    </DefaultValidateFramework>
+    <DefaultValidateFramework Include="uap10.1">
+      <RuntimeIDs>win10-x86;win10-x86-aot;win10-x64;win10-x64-aot;win10-arm;win10-arm-aot</RuntimeIDs>
+    </DefaultValidateFramework>
   </ItemGroup>
 
   <ItemGroup Condition="'$(ExcludeXamarinValidationFrameworks)' != 'true'">
@@ -921,12 +928,12 @@
 
   <PropertyGroup>
     <AllXamarinFrameworks Condition="'$(AllXamarinFrameworks)' == ''">MonoAndroid10;MonoTouch10;xamarinios10;xamarinmac20;xamarintvos10;xamarinwatchos10</AllXamarinFrameworks>
-    
+
     <!-- Skip validation of runtime packages, they will be validated in the context of their reference package -->
     <SkipValidatePackage Condition="'$(SkipValidateTargetFrameworks)' == '' AND '$(PackageTargetRuntime)' != ''">true</SkipValidatePackage>
     <SkipSupportCheck Condition="'$(SkipSupportCheck)' == '' AND ($(Id.StartsWith('System.Private.')) OR $(Id.StartsWith('Microsoft.NETCore.')))">true</SkipSupportCheck>
   </PropertyGroup>
-  
+
   <Target Name="GetPackageAssets"
           DependsOnTargets="GetPackageFiles;DetermineRuntimeDependencies"
           Returns="@(PackageAsset)">
@@ -937,11 +944,11 @@
       <ProjectReferenceFullPath Include="@(ProjectReference->'%(FullPath)')"/>
       <RuntimeProjectReference Include="@(ProjectReferenceFullPath)" Condition="'@(ProjectReferenceFullPath)' == '@(RuntimeDependencyProjectFullPath)' AND '%(Identity)' != ''"/>
     </ItemGroup>
-      
+
 
     <!-- Get all the files from runtime implementation packages to include in reference path-->
-    <MSBuild Projects="@(RuntimeProjectReference)" 
-             Targets="GetPackageFiles" 
+    <MSBuild Projects="@(RuntimeProjectReference)"
+             Targets="GetPackageFiles"
              BuildInParallel="$(BuildInParallel)"
              Properties="$(ProjectProperties)">
       <Output TaskParameter="TargetOutputs" ItemName="RuntimeFile" />
@@ -1016,16 +1023,16 @@
   <!-- Required by Common.Targets when evaluating projectReferences -->
   <Target Name="GetNativeManifest" />
   <Target Name="GetCopyToOutputDirectoryItems" />
-  
-  <!-- When building in VS, ResolveProjectReferences only calls GetTargetPath 
-       and expects that to return the same set of items as Targets defined by 
+
+  <!-- When building in VS, ResolveProjectReferences only calls GetTargetPath
+       and expects that to return the same set of items as Targets defined by
        ProjectReference.Targets metadata.  -->
-  <Target Name="GetTargetPath" 
-          DependsOnTargets="GetPackageAssets"  
+  <Target Name="GetTargetPath"
+          DependsOnTargets="GetPackageAssets"
           Returns="@(PackageAsset)" />
- 
+
   <!-- App packaging support -->
-  <!-- 
+  <!--
     Following two targets are needed to be present in every project being built
     because the app packaging targets recursively scan all projects referenced
     from projects that generate app packages for them.

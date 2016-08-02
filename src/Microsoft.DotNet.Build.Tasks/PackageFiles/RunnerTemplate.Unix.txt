@@ -69,7 +69,7 @@ fi
 
 if [ "$EXECUTION_DIR" != "$BASEDIR" ]; then
   echo "Copying files into execution dir."
-  cp -l -f -R $BASEDIR/* $EXECUTION_DIR
+  ln -f $BASEDIR/* $EXECUTION_DIR || exit -1
 else
   echo "Executing in unpack directory, do not have to copy files"
 fi

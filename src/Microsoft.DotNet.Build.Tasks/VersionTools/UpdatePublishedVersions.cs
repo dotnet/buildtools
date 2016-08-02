@@ -23,8 +23,8 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
         public string GitHubUser { get; set; }
         public string GitHubEmail { get; set; }
 
-        public string VersionRepo { get; set; }
-        public string VersionRepoOwner { get; set; }
+        public string VersionsRepo { get; set; }
+        public string VersionsRepoOwner { get; set; }
 
         public override bool Execute()
         {
@@ -32,7 +32,7 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 
             var gitHubAuth = new GitHubAuth(GitHubAuthToken, GitHubUser, GitHubEmail);
 
-            var updater = new VersionRepoUpdater(gitHubAuth, VersionRepoOwner, VersionRepo);
+            var updater = new VersionsRepoUpdater(gitHubAuth, VersionsRepoOwner, VersionsRepo);
 
             updater.UpdateBuildInfoAsync(
                 ShippedNuGetPackage.Select(item => item.ItemSpec),

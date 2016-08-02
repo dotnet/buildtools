@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.DotNet.VersionTools.Automation.GitHubApi;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,16 +10,22 @@ using System.Threading.Tasks;
 
 namespace Microsoft.DotNet.VersionTools.Automation
 {
-    public class VersionRepoUpdater
+    public class VersionsRepoUpdater
     {
         private GitHubAuth _gitHubAuth;
-        private string _versionsRepoOwner;
-        private string _versionsRepo;
+        private GitHubProject _project;
 
-        public VersionRepoUpdater(
+        public VersionsRepoUpdater(
             GitHubAuth gitHubAuth,
-            string versionRepoOwner = null,
+            string versionsRepoOwner = null,
             string versionsRepo = null)
+            : this(
+                gitHubAuth,
+                new GitHubProject(versionsRepo ?? "versions", versionsRepoOwner))
+        {
+        }
+
+        public VersionsRepoUpdater(GitHubAuth gitHubAuth, GitHubProject project)
         {
             if (gitHubAuth == null)
             {
@@ -26,8 +33,11 @@ namespace Microsoft.DotNet.VersionTools.Automation
             }
             _gitHubAuth = gitHubAuth;
 
-            _versionsRepoOwner = versionRepoOwner ?? "dotnet";
-            _versionsRepo = versionsRepo ?? "versions";
+            if (project == null)
+            {
+                throw new ArgumentNullException(nameof(project));
+            }
+            _project = project;
         }
 
         /// <param name="updateLatestVersion">If true, updates Latest.txt with a prerelease moniker. If there isn't one, makes the file empty.</param>
@@ -92,9 +102,9 @@ namespace Microsoft.DotNet.VersionTools.Automation
 
         private async Task UpdateGitHubFileAsync(string path, string newFileContent, string commitMessage)
         {
-            using (GitHubHttpClient client = new GitHubHttpClient(_gitHubAuth))
+            using (GitHubClient client = new GitHubClient(_gitHubAuth))
             {
-                string fileUrl = $"https://api.github.com/repos/{_versionsRepoOwner}/{_versionsRepo}/contents/{path}";
+                string fileUrl = $"https://api.github.com/repos/{_project.Segments}/contents/{path}";
 
                 await client.PutGitHubFileAsync(fileUrl, commitMessage, newFileContent);
             }

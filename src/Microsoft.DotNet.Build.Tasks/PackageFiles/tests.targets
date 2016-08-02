@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <TestWithCore Condition="'$(TestWithCore)' == '' And '$(TestTFM)' != 'netcoreapp1.0'">false</TestWithCore>
+    <TestWithCore Condition="'$(TestWithCore)' == '' And !$(TestTFM.StartsWith('netcoreapp', StringComparison.OrdinalIgnoreCase))">false</TestWithCore>
     <!-- TestAppX is true only for debug scenario which runs on non-aot runtime ids -->
     <TestAppX Condition="'$(TestWithCore)' == 'false' And '$(TestTFM)' == 'netcore50' And !$(TestNugetRuntimeId.Contains('aot'))">true</TestAppX>
     <TestWithCore Condition="'$(TestWithCore)' == '' ">true</TestWithCore>
@@ -29,9 +29,9 @@
 
   <PropertyGroup Condition="'$(TestWithCore)' == 'true' And '$(TestAppX)' != 'true'">
     <TestHostExecutable>CoreRun.exe</TestHostExecutable>
-    <TestHostDirectory>$(TestPath)netcoreapp1.0/</TestHostDirectory>
+    <TestHostDirectory>$(TestPath)$(TestTFM)</TestHostDirectory>
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.netcore.exe</XunitExecutable>
-    <DebugTestFrameworkFolder>netcoreapp1.0</DebugTestFrameworkFolder>
+    <DebugTestFrameworkFolder>$(TestTFM)</DebugTestFrameworkFolder>
     <DebugEngines>{2E36F1D4-B23C-435D-AB41-18E608940038}</DebugEngines>
   </PropertyGroup>
 
@@ -130,7 +130,7 @@
   <PropertyGroup Condition="'$(IsTestProject)'=='true'">
     <StartWorkingDirectory Condition="'$(StartWorkingDirectory)'==''">$(TestPath)$(DebugTestFrameworkFolder)</StartWorkingDirectory>
     <StartAction Condition="'$(StartAction)'==''">Program</StartAction>
-    <StartProgram Condition="'$(StartProgram)'==''">$(TestProgram)</StartProgram>
+    <StartProgram Condition="'$(StartProgram)'==''">$(TestHostDirectory)$(TestProgram)</StartProgram>
     <StartArguments Condition="'$(StartArguments)'==''">$(TestArguments) -wait -parallel none</StartArguments>
   </PropertyGroup>
 
@@ -233,7 +233,7 @@
       <TestCommandLines Include="cd native"/>
     </ItemGroup>
 
-    <ItemGroup>
+    <ItemGroup Condition="'$(Performance)'!='true'">
       <!-- On Windows, call prevents the test command from making execution end prematurely -->
       <TestCommandLines  Condition="'$(TargetOS)'=='Windows_NT'" Include="call $(TestCommandLine)"/>
       <TestCommandLines  Condition="'$(TargetOS)'!='Windows_NT'" Include="$(TestCommandLine)"/>
@@ -246,6 +246,10 @@
       <TestCommandLines Include="copy /y testResults.xml %EXECUTION_DIR%\" />
     </ItemGroup>
 
+    <!-- Do not put anything between this Item Group and the GenerateTestExecutionScripts invocation -->
+    <ItemGroup>
+      <TestCommandLines Include="@(PostExecutionTestCommandLines)" />
+    </ItemGroup>
     <GenerateTestExecutionScripts
       TestCommands="@(TestCommandLines)"
       TestDependencies="@(IncludedFileForRunnerScript)"

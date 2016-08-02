@@ -24,7 +24,7 @@ namespace Microsoft.DotNet.Execute
             int length = inputValue.Length;
             for (int i = 0; i < length; i++)
             {
-                if (inputValue[i] == '$')
+                if (i != length - 1 && inputValue[i] == '$')
                 {
                     if (inputValue[i + 1] == '{')
                     {
@@ -215,7 +215,7 @@ namespace Microsoft.DotNet.Execute
         {
             int namePos, valuePos;
             string tempParam, name, value;
-            if(string.IsNullOrEmpty(extraParameters))
+            if (string.IsNullOrEmpty(extraParameters))
             {
                 return true;
             }
