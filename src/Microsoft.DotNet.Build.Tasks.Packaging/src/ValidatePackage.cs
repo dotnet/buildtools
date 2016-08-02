@@ -649,13 +649,16 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                 if (explicitlySupportedFrameworks.Contains(fx))
                 {
-                    if (validationFramework.SupportedVersion != supportedVersion)
+                    if (supportedVersion <= validationFramework.SupportedVersion)
                     {
-                        Log.LogError($"Framework {fx} has been listed in SupportedFrameworks more than once with different versions {validationFramework.SupportedVersion} and {supportedVersion}.  Framework should only be listed once with the expected API version for that platform.");
+                        // if we've already picked up a higher/equal version, prefer it
+                        continue;
                     }
-                    continue;
                 }
-                explicitlySupportedFrameworks.Add(fx);
+                else
+                {
+                    explicitlySupportedFrameworks.Add(fx);
+                }
 
                 validationFramework.SupportedVersion = supportedVersion;
                 
