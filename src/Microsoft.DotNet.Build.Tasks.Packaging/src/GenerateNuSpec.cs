@@ -202,12 +202,31 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     }).OrderBy(f => f.Target, StringComparer.OrdinalIgnoreCase).ToList();
         }
 
+
+        static FrameworkAssemblyReferenceComparer frameworkAssemblyReferenceComparer = new FrameworkAssemblyReferenceComparer();
         private List<FrameworkAssemblyReference> GetFrameworkAssemblies()
         {
             return (from fr in FrameworkReferences.NullAsEmpty()
                     orderby fr.ItemSpec, StringComparer.Ordinal
                     select new FrameworkAssemblyReference(fr.ItemSpec, new[] { fr.GetTargetFramework() })
-                    ).ToList();
+                    ).Distinct(frameworkAssemblyReferenceComparer).ToList();
+        }
+
+        private class FrameworkAssemblyReferenceComparer : EqualityComparer<FrameworkAssemblyReference>
+        {
+            public override bool Equals(FrameworkAssemblyReference x, FrameworkAssemblyReference y)
+            {
+                return Object.Equals(x, y) ||
+                    (   x != null && y != null &&
+                        x.AssemblyName.Equals(y.AssemblyName) &&
+                        x.SupportedFrameworks.SequenceEqual(y.SupportedFrameworks, NuGetFramework.Comparer)
+                    );
+            }
+
+            public override int GetHashCode(FrameworkAssemblyReference obj)
+            {
+                return obj.AssemblyName.GetHashCode();
+            }
         }
 
         private List<PackageDependencyGroup> GetDependencySets()
