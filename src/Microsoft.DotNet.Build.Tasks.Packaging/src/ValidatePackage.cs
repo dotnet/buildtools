@@ -227,7 +227,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                 var compileAssetPaths = _resolver.ResolveCompileAssets(fx, PackageId);
                 bool hasCompileAsset, hasCompilePlaceHolder;
-                ExamineAssets("Compile", ContractName, fx.ToString(), compileAssetPaths, out hasCompileAsset, out hasCompilePlaceHolder);
+                NuGetAssetResolver.ExamineAssets(Log, "Compile", ContractName, fx.ToString(), compileAssetPaths, out hasCompileAsset, out hasCompilePlaceHolder);
 
                 if (report != null && validateFramework.RuntimeIds.All(rid => !String.IsNullOrEmpty(rid)))
                 {
@@ -249,7 +249,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     var runtimeAssetPaths = _resolver.ResolveRuntimeAssets(fx, runtimeId);
 
                     bool hasRuntimeAsset, hasRuntimePlaceHolder;
-                    ExamineAssets("Runtime", ContractName, target, runtimeAssetPaths, out hasRuntimeAsset, out hasRuntimePlaceHolder);
+                    NuGetAssetResolver.ExamineAssets(Log, "Runtime", ContractName, target, runtimeAssetPaths, out hasRuntimeAsset, out hasRuntimePlaceHolder);
 
                     if (null == supportedVersion)
                     {
@@ -439,37 +439,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 return values.Contains(value);
             }
             return false;
-        }
-
-        private void ExamineAssets(string assetType, string package, string target, IEnumerable<string> runtimeItems, out bool hasRealAsset, out bool hasPlaceHolder)
-        {
-            hasPlaceHolder = false;
-            hasRealAsset = false;
-            StringBuilder assetLog = new StringBuilder($"{assetType} assets for {ContractName} on {target}: ");
-            if (runtimeItems != null && runtimeItems.Any())
-            {
-                foreach (var runtimeItem in runtimeItems)
-                {
-                    assetLog.AppendLine();
-                    assetLog.Append($"  {runtimeItem}");
-
-                    if (!hasRealAsset && NuGetAssetResolver.IsPlaceholder(runtimeItem))
-                    {
-                        hasPlaceHolder = true;
-                    }
-                    else
-                    {
-                        hasRealAsset = true;
-                        hasPlaceHolder = false;
-                    }
-                }
-            }
-            else
-            {
-                assetLog.AppendLine();
-                assetLog.Append("  <none>");
-            }
-            Log.LogMessage(LogImportance.Low, assetLog.ToString());
         }
 
         private void LoadSuppressions()
