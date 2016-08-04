@@ -1584,7 +1584,7 @@ class CommandLine
             string appName = GetEntryAssemblyName();
             StringBuilder sb = new StringBuilder();
             sb.AppendLine();
-            string text = "The Run Commant Tool is now in charge of running the dev workflow steps. Each step has its own command and set of actions that are listed below.  " +
+            string text = "The Run Command Tool is now in charge of running the dev workflow steps. Each step has its own command and set of actions that are listed below.  " +
                 "You could also pass Global Settings to the commands.";
             Wrap(sb, text, 0, String.Empty, maxLineWidth, true);
             text = "To pass additional parameters that are not described in the Global Settings section, use `--`. After this command, the Run Command Tool will stop processing arguments and will pass all the information as it is to the selected command.";
@@ -1593,7 +1593,7 @@ class CommandLine
             Wrap(sb, text, 0, String.Empty, maxLineWidth, true);
             text = "For more information about the Run Command Tool: https://github.com/dotnet/buildtools/blob/master/Documentation/RunCommand.md";
             Wrap(sb, text, 0, String.Empty, maxLineWidth, true);
-            sb.AppendLine().AppendLine().Append("Sintaxis: run [Command] [Action] (global settings)");
+            sb.AppendLine().AppendLine().Append("Syntax: run [Command] [Action] (global settings)");
             sb.AppendLine().Append('-', maxLineWidth - 1).AppendLine();
             return sb;
         }
