@@ -31,17 +31,11 @@
     <Compile Include="..\Common\DictionaryExtensions.cs">
       <Link>Common\DictionaryExtensions.cs</Link>
     </Compile>
-    <Compile Include="..\Common\FailSkipVisitor.cs">
-      <Link>Common\FailSkipVisitor.cs</Link>
-    </Compile>
     <Compile Include="..\common\ParallelismOption.cs">
       <Link>Common\ParallelismOption.cs</Link>
     </Compile>
     <Compile Include="..\Common\TestDiscoveryVisitor.cs">
       <Link>Common\TestDiscoveryVisitor.cs</Link>
-    </Compile>
-    <Compile Include="..\Common\IExecutionVisitor.cs">
-      <Link>Common\IExecutionVisitor.cs</Link>
     </Compile>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
@@ -50,10 +44,6 @@
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="RunLogger.cs" />
-    <Compile Include="XmlAggregateVisitor.cs" />
-    <Compile Include="..\Common\XmlTestExecutionVisitor.cs">
-      <Link>Common\XmlTestExecutionVisitor.cs</Link>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
