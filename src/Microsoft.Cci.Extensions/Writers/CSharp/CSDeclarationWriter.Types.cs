@@ -53,7 +53,7 @@ namespace Microsoft.Cci.Writers.CSharp
                 WriteTypeName(invoke.Type);
                 WriteIdentifier(namedType.Name);
                 if (type.IsGeneric) WriteGenericParameters(type.GenericParameters);
-                WriteParameters(invoke.Parameters);
+                WriteParameters(invoke.Parameters, invoke.ContainingType);
                 if (type.IsGeneric) WriteGenericContraints(type.GenericParameters);
                 WriteSymbol(";");
             }
