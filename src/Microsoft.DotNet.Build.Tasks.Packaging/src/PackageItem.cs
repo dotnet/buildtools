@@ -70,11 +70,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                     if (_version == null && File.Exists(SourcePath))
                     {
-                        using (PEReader peReader = new PEReader(new FileStream(SourcePath, FileMode.Open, FileAccess.Read, FileShare.Delete | FileShare.Read)))
-                        {
-                            MetadataReader reader = peReader.GetMetadataReader();
-                            _version = reader.GetAssemblyDefinition().Version;
-                        }
+                        _version = VersionUtility.GetAssemblyVersion(SourcePath);
                     }
                 }
 

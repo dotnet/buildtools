@@ -21,6 +21,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="GetApplicableAssetsFromPackageReports.cs" />
+    <Compile Include="GetLastStablePackage.cs" />
+    <Compile Include="HarvestPackage.cs" />
     <Compile Include="GetApplicableAssetsFromPackages.cs" />
     <Compile Include="GetMinimumNETStandard.cs" />
     <Compile Include="NugetPropertyStringProvider.cs" />

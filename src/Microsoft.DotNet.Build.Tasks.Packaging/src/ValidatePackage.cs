@@ -227,7 +227,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                 var compileAssetPaths = _resolver.ResolveCompileAssets(fx, PackageId);
                 bool hasCompileAsset, hasCompilePlaceHolder;
-                ExamineAssets("Compile", ContractName, fx.ToString(), compileAssetPaths, out hasCompileAsset, out hasCompilePlaceHolder);
+                NuGetAssetResolver.ExamineAssets(Log, "Compile", ContractName, fx.ToString(), compileAssetPaths, out hasCompileAsset, out hasCompilePlaceHolder);
 
                 if (report != null && validateFramework.RuntimeIds.All(rid => !String.IsNullOrEmpty(rid)))
                 {
@@ -249,7 +249,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     var runtimeAssetPaths = _resolver.ResolveRuntimeAssets(fx, runtimeId);
 
                     bool hasRuntimeAsset, hasRuntimePlaceHolder;
-                    ExamineAssets("Runtime", ContractName, target, runtimeAssetPaths, out hasRuntimeAsset, out hasRuntimePlaceHolder);
+                    NuGetAssetResolver.ExamineAssets(Log, "Runtime", ContractName, target, runtimeAssetPaths, out hasRuntimeAsset, out hasRuntimePlaceHolder);
 
                     if (null == supportedVersion)
                     {
@@ -350,10 +350,11 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                                         Log.LogError($"{ContractName} should support API version {supportedVersion} on {target} but {implementationAssembly} was found to support {implementationVersion?.ToString() ?? "<unknown version>"}.");
                                     }
 
+                                    // Previously we only permitted compatible mismatch if Suppression.PermitHigherCompatibleImplementationVersion was specified
+                                    // this is a permitted thing on every framework but desktop (which requires exact match to ensure bindingRedirects exist)
+                                    // Now make this the default, we'll check desktop, where it matters, more strictly
                                     if (referenceAssemblyVersion != null &&
-                                        HasSuppression(Suppression.PermitHigherCompatibleImplementationVersion) ? 
-                                            !VersionUtility.IsCompatibleApiVersion(referenceAssemblyVersion, implementationVersion) :
-                                            (implementationVersion != referenceAssemblyVersion))
+                                        !VersionUtility.IsCompatibleApiVersion(referenceAssemblyVersion, implementationVersion))
                                     {
                                         Log.LogError($"{ContractName} has mismatched compile ({referenceAssemblyVersion}) and runtime ({implementationVersion}) versions on {target}.");
                                     }
@@ -439,37 +440,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 return values.Contains(value);
             }
             return false;
-        }
-
-        private void ExamineAssets(string assetType, string package, string target, IEnumerable<string> runtimeItems, out bool hasRealAsset, out bool hasPlaceHolder)
-        {
-            hasPlaceHolder = false;
-            hasRealAsset = false;
-            StringBuilder assetLog = new StringBuilder($"{assetType} assets for {ContractName} on {target}: ");
-            if (runtimeItems != null && runtimeItems.Any())
-            {
-                foreach (var runtimeItem in runtimeItems)
-                {
-                    assetLog.AppendLine();
-                    assetLog.Append($"  {runtimeItem}");
-
-                    if (!hasRealAsset && NuGetAssetResolver.IsPlaceholder(runtimeItem))
-                    {
-                        hasPlaceHolder = true;
-                    }
-                    else
-                    {
-                        hasRealAsset = true;
-                        hasPlaceHolder = false;
-                    }
-                }
-            }
-            else
-            {
-                assetLog.AppendLine();
-                assetLog.Append("  <none>");
-            }
-            Log.LogMessage(LogImportance.Low, assetLog.ToString());
         }
 
         private void LoadSuppressions()
@@ -679,13 +649,16 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                 if (explicitlySupportedFrameworks.Contains(fx))
                 {
-                    if (validationFramework.SupportedVersion != supportedVersion)
+                    if (supportedVersion <= validationFramework.SupportedVersion)
                     {
-                        Log.LogError($"Framework {fx} has been listed in SupportedFrameworks more than once with different versions {validationFramework.SupportedVersion} and {supportedVersion}.  Framework should only be listed once with the expected API version for that platform.");
+                        // if we've already picked up a higher/equal version, prefer it
+                        continue;
                     }
-                    continue;
                 }
-                explicitlySupportedFrameworks.Add(fx);
+                else
+                {
+                    explicitlySupportedFrameworks.Add(fx);
+                }
 
                 validationFramework.SupportedVersion = supportedVersion;
                 

@@ -17,6 +17,7 @@
     <Compile Include="CreateTrimDependencyGroupsTests.cs" />
     <Compile Include="ApplyBaseLineTests.cs" />
     <Compile Include="EnsureOOBFrameworkTests.cs" />
+    <Compile Include="HarvestPackageTests.cs" />
     <Compile Include="NugetPropertyStringProviderTests.cs" />
     <Compile Include="NuGetAssetResolverTests.cs" />
     <Compile Include="GenerationsTests.cs" />
@@ -30,7 +31,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
-    <None Include="$(PackagesDir)Microsoft.NETCore.Platforms\1.0.0\runtime.json">
+    <None Include="$(PackagesDir)Microsoft.NETCore.Platforms\1.0.1\runtime.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
