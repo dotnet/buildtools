@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.DotNet.VersionTools.Util;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging.Core;
@@ -9,7 +10,6 @@ using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 
 namespace Microsoft.DotNet.VersionTools.Dependencies
@@ -29,39 +29,38 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
         {
             foreach (string projectJsonFile in ProjectJsonPaths)
             {
-                JObject projectRoot;
+                IEnumerable<BuildInfo> buildInfosUsed = null;
+
                 try
                 {
-                    projectRoot = ReadProject(projectJsonFile);
+                    FileUtils.ReplaceFileContents(projectJsonFile, contents => ReplaceAllDependencyVersions(contents, projectJsonFile, buildInfos, out buildInfosUsed));
                 }
                 catch (Exception e)
                 {
-                    Trace.TraceWarning($"Non-fatal exception occurred reading '{projectJsonFile}'. Skipping file. Exception: {e}. ");
+                    Trace.TraceWarning($"Non-fatal exception occurred reading or writing '{projectJsonFile}'. Skipping file. Exception: {e}. ");
                     continue;
                 }
 
-                if (projectRoot == null)
+                if (buildInfosUsed != null)
                 {
-                    Trace.TraceWarning($"A non valid JSON file was encountered '{projectJsonFile}'. Skipping file.");
-                    continue;
-                }
-
-                BuildInfo[] buildInfosUsed = FindAllDependencyProperties(projectRoot)
-                    .Select(dependencyProperty => ReplaceDependencyVersion(projectJsonFile, dependencyProperty, buildInfos))
-                    .Where(buildInfo => buildInfo != null)
-                    .ToArray();
-
-                if (buildInfosUsed.Any())
-                {
-                    Trace.TraceInformation($"Writing changes to {projectJsonFile}");
-                    WriteProject(projectRoot, projectJsonFile);
-
                     foreach (var buildInfo in buildInfosUsed)
                     {
                         yield return buildInfo;
                     }
                 }
             }
+        }
+
+        private string ReplaceAllDependencyVersions(string input, string projectJsonFile, IEnumerable<BuildInfo> buildInfos, out IEnumerable<BuildInfo> buildInfosUsed)
+        {
+            JObject projectRoot = JObject.Parse(input);
+
+            buildInfosUsed = FindAllDependencyProperties(projectRoot)
+                    .Select(dependencyProperty => ReplaceDependencyVersion(projectJsonFile, dependencyProperty, buildInfos))
+                    .Where(buildInfo => buildInfo != null)
+                    .ToArray();
+
+            return JsonConvert.SerializeObject(projectRoot, Formatting.Indented) + Environment.NewLine;
         }
 
         /// <summary>
@@ -123,24 +122,6 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
                 }
             }
             return null;
-        }
-
-        private static JObject ReadProject(string projectJsonPath)
-        {
-            using (TextReader projectFileReader = File.OpenText(projectJsonPath))
-            {
-                var projectJsonReader = new JsonTextReader(projectFileReader);
-
-                var serializer = new JsonSerializer();
-                return serializer.Deserialize<JObject>(projectJsonReader);
-            }
-        }
-
-        private static void WriteProject(JObject projectRoot, string projectJsonPath)
-        {
-            string projectJson = JsonConvert.SerializeObject(projectRoot, Formatting.Indented);
-
-            File.WriteAllText(projectJsonPath, projectJson + Environment.NewLine);
         }
 
         private static IEnumerable<JProperty> FindAllDependencyProperties(JObject projectJsonRoot)

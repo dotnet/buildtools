@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+using Microsoft.DotNet.VersionTools.Util;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Microsoft.DotNet.VersionTools.Dependencies
@@ -29,7 +27,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
             }
             else
             {
-                bool replaced = ReplaceFileContents(
+                bool replaced = FileUtils.ReplaceFileContents(
                     Path,
                     contents => ReplaceGroupValue(Regex, contents, VersionGroupName, newValue));
 
@@ -58,20 +56,6 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
 
                 return replacedValue;
             });
-        }
-
-        private static bool ReplaceFileContents(string path, Func<string, string> replacement)
-        {
-            string contents = File.ReadAllText(path);
-
-            string newContents = replacement(contents);
-
-            if (contents != newContents)
-            {
-                File.WriteAllText(path, newContents, Encoding.UTF8);
-                return true;
-            }
-            return false;
         }
     }
 }

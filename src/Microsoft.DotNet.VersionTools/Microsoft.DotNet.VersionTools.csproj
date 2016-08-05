@@ -34,6 +34,7 @@
     <Compile Include="Util\ArgumentEscaper.cs" />
     <Compile Include="Util\Command.cs" />
     <Compile Include="Util\CommandResult.cs" />
+    <Compile Include="Util\FileUtils.cs" />
     <Compile Include="Automation\GitHubAuth.cs" />
     <Compile Include="Automation\NupkgNameInfo.cs" />
     <Compile Include="Dependencies\FileRegexUpdater.cs" />
