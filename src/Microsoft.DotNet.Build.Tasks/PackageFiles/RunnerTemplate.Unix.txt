@@ -69,7 +69,7 @@ fi
 
 if [ "$EXECUTION_DIR" != "$BASEDIR" ]; then
   echo "Copying files into execution dir."
-  ln -f $BASEDIR/* $EXECUTION_DIR || exit -1
+  ln -f $BASEDIR/* $EXECUTION_DIR || echo "Link failed, fallback to copy"; cp -run $BASEDIR/* $EXECUTION_DIR || echo "Still errors, attempting to continue"
 else
   echo "Executing in unpack directory, do not have to copy files"
 fi
