@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.IO;
 using System.Runtime.InteropServices;
 using Xunit.Abstractions;
 using Xunit.Sdk;
@@ -33,7 +34,8 @@ namespace Xunit.NetCore.Extensions
                 (platforms.HasFlag(PlatformID.Linux) && RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) ||
                 (platforms.HasFlag(PlatformID.NetBSD) && RuntimeInformation.IsOSPlatform(OSPlatform.Create("NETBSD"))) ||
                 (platforms.HasFlag(PlatformID.OSX) && RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) ||
-                (platforms.HasFlag(PlatformID.Windows) && RuntimeInformation.IsOSPlatform(OSPlatform.Windows)))
+                (platforms.HasFlag(PlatformID.Windows) && RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) ||
+                (platforms.HasFlag(PlatformID.WindowsNano) && !File.Exists("C:\\Windows\\regedit.exe")))
             {
                 yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.Failing);
                 yield return new KeyValuePair<string, string>(XunitConstants.ActiveIssue, issue);
