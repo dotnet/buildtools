@@ -18,6 +18,13 @@
     <ExcludeLocalizationImport Condition="'$(ExcludeLocalizationImport)'=='' And !Exists('$(MSBuildProjectDirectory)/MultilingualResources/$(MSBuildProjectName).de.xlf')">true</ExcludeLocalizationImport>
   </PropertyGroup>
 
+  <!-- used by test projects that need to copy supplemental content to the output directory -->
+  <ItemDefinitionGroup Condition="'$(IsTestProject)'=='true'">
+    <SupplementalTestData>
+      <DestinationDir />
+    </SupplementalTestData>
+  </ItemDefinitionGroup>
+
   <!-- Assembly metadata indicating that an assembly is a framework (as opposed to user) assembly:
        Test projects need to not have this because of the way "IsFrameworkAssembly" APIs work to check this. -->
   <ItemGroup Condition="'$(IsDotNetFrameworkProductAssembly)' == 'true' AND '$(IsTestProject)' != 'true'" >
