@@ -99,13 +99,30 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
             {
                 foreach (ITaskItem step in XmlUpdateStep)
                 {
-                    yield return new FileRegexReleaseUpdater
+                    string buildInfoName = step.GetMetadata("BuildInfoName");
+                    string packageId = step.GetMetadata("PackageId");
+
+                    FileRegexUpdater updater;
+
+                    if (!string.IsNullOrEmpty(buildInfoName))
                     {
-                        Path = step.GetMetadata("Path"),
-                        Regex = new Regex($@"<{step.GetMetadata("ElementName")}>(?<version>.*)<"),
-                        VersionGroupName = "version",
-                        BuildInfoName = step.GetMetadata("BuildInfoName")
-                    };
+                        updater = new FileRegexReleaseUpdater
+                        {
+                            BuildInfoName = buildInfoName
+                        };
+                    }
+                    else
+                    {
+                        updater = new FileRegexPackageUpdater
+                        {
+                            PackageId = packageId
+                        };
+                    }
+                    updater.Path = step.GetMetadata("Path");
+                    updater.Regex = new Regex($@"<{step.GetMetadata("ElementName")}>(?<version>.*)<");
+                    updater.VersionGroupName = "version";
+
+                    yield return updater;
                 }
             }
         }
