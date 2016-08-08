@@ -32,7 +32,7 @@
     </PropertyGroup>
 
     <MSBuild Projects="$(RefProjectForDependencies)"
-             Targets="ResolveAssemblyReferences"
+             Targets="ResolveProjectReferences;ResolveAssemblyReferences"
              RemoveProperties="OSGroup;TargetGroup"
              Condition="Exists('$(RefProjectForDependencies)')">
       <Output TaskParameter="TargetOutputs" ItemName="ReferenceAssemblyReferencePath" />
