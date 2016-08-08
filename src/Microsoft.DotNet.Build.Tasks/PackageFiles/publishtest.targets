@@ -176,9 +176,20 @@
     <PropertyGroup>
       <TestNugetTargetMonikerFolder>%(TestNugetTargetMoniker.Folder)</TestNugetTargetMonikerFolder>
     </PropertyGroup>
+    <!-- if DestinationDir is defined then prefer that over RecursiveDir -->
     <ItemGroup>
-      <SupplementalTestDataTestDir Include="@(SupplementalTestData->'$(TestPath)$(TestNugetTargetMonikerFolder)/%(RecursiveDir)%(Filename)%(Extension)')" />
-      <SupplementalTestDataOutDir Include="@(SupplementalTestData->'$(OutDir)/%(RecursiveDir)%(Filename)%(Extension)')" />
+      <SupplementalTestDataTestDir
+        Include="@(SupplementalTestData->'$(TestPath)$(TestNugetTargetMonikerFolder)/%(DestinationDir)%(Filename)%(Extension)')"
+        Condition="'%(DestinationDir)' != ''" />
+      <SupplementalTestDataTestDir
+        Include="@(SupplementalTestData->'$(TestPath)$(TestNugetTargetMonikerFolder)/%(RecursiveDir)%(Filename)%(Extension)')"
+        Condition="'%(DestinationDir)' == ''" />
+      <SupplementalTestDataOutDir
+        Include="@(SupplementalTestData->'$(OutDir)/%(DestinationDir)%(Filename)%(Extension)')"
+        Condition="'%(DestinationDir)' != ''" />
+      <SupplementalTestDataOutDir
+        Include="@(SupplementalTestData->'$(OutDir)/%(RecursiveDir)%(Filename)%(Extension)')"
+        Condition="'%(DestinationDir)' == ''" />
     </ItemGroup>
     <Copy
       SourceFiles="@(SupplementalTestData)"
