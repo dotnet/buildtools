@@ -9,16 +9,16 @@ using System.Text;
 
 namespace Microsoft.DotNet.VersionTools.Util
 {
-    static class FileUtils
+    internal static class FileUtils
     {
         public static bool ReplaceFileContents(string path, Func<string, string> replacement)
         {
             string contents;
             Encoding encoding;
 
-            // Atttempt to preserve the file's encoding, using ASCII encoding (which has no BOM) if the file's
+            // Atttempt to preserve the file's encoding, using a UTF-8 encoding with no BOM if the file's
             // encoding cannot be detected. 
-            using (StreamReader reader = new StreamReader(new FileStream(path, FileMode.Open), Encoding.ASCII, true))
+            using (StreamReader reader = new StreamReader(new FileStream(path, FileMode.Open), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false), detectEncodingFromByteOrderMarks: true))
             {
                 contents = reader.ReadToEnd();
                 encoding = reader.CurrentEncoding;

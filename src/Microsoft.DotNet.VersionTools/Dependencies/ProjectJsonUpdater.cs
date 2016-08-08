@@ -37,7 +37,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
                 }
                 catch (Exception e)
                 {
-                    Trace.TraceWarning($"Non-fatal exception occurred reading or writing '{projectJsonFile}'. Skipping file. Exception: {e}. ");
+                    Trace.TraceWarning($"Non-fatal exception occurred processing '{projectJsonFile}'. Skipping file. Exception: {e}. ");
                     continue;
                 }
 

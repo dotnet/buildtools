@@ -12,7 +12,7 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.DotNet.VersionTools.Util
 {
-    class Command
+    internal class Command
     {
         public static Command Git(params string[] args) => Create("git", args);
 
