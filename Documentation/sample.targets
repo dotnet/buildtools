@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Sample">
+  <!--
+    ===============================================================================
+      XML Formatting
+    ===============================================================================
+
+    Spacing
+
+    - Use spaces for indenting.
+    - Indents should be two spaces.
+    - Nested tags should be indented.
+    - Avoid trailing whitespace and whitespace only lines.
+    - Closing tag final character(s) should not be on a line by themselves ('/>', '>').
+    - Single space before closing tag an empty element (<Tag /> <Tag></Tag>).
+
+    Attributes
+
+    - Prefer breaking multiple attributes into multiple lines.
+    - Left-align attributes on the attribute name when broken into multiple lines.
+    - Use double quotes for attributes, single quotes within.
+    - Favor ordering as documented in the Schema Reference:
+        https://msdn.microsoft.com/en-us/library/ms164283.aspx
+
+    Comments
+
+    - Put start and end tags on separate lines for multiple line comments and indent text.
+    - Use a consistent header to label Targets and important comments.
+    - Keep right hand margin for comments consistent, around 80 or so characters.
+
+    Conditions
+
+    - Use lower case "and" and "or".
+    - Single quote properties and constants.
+    - Use a single space around operators.
+    - Use parenthesis for clarity where needed.
+    - "true" and "false" should be lower cased.
+
+    Naming:
+
+    - Property and item names should be Pascal-cased.
+    
+  -->
+
+  <!--
+    ===============================================================================
+      {Sample}
+    ===============================================================================
+
+    This is a sample target and header. By using a consistent header, searching for
+    a given target is easier. Documenting what the target does and it's inputs and
+    outputs are critical for understanding item and property dependencies.
+
+    Trivial targets do not require a header. Consider discoverability for targets
+    when deciding to create a header.
+
+    Use the same number of characters for the header "lines", don't try and match
+    the length of the target name. Enclosing the name in brackets makes searching
+    files easier.
+
+      [In]
+      @(Foo) - Foo items to turn into Bar
+
+      [Out]
+      @(Bar) - Foo items turned into Bar
+  -->
+  <Target Name="Sample"
+          Condition="'$(SkipSample)' != 'false' and 'true' == 'true'">
+    <Message Text="Running the sample target" />
+    <ItemGroup>
+      <Bar Include="@(Foo)" />
+    </ItemGroup>
+  </Target>
+
+  <Import Project="Foo" Condition="'true' == 'false'" />
+
+  <!--
+    ===============================================================================
+      Item Groups
+    ===============================================================================
+
+    - Use Pascal-cased names.
+    - Generate large item groups inside targets (for perf and debugging clarity).
+  -->
+  <ItemGroup>
+    <SampleItem Include="Foo"
+                Exclude="Bar"
+                Condition="'true' == 'false'">
+      <Metadata>FooBar</Metadata>
+    </SampleItem>
+  </ItemGroup>
+
+  <!--
+    ===============================================================================
+      Property Groups
+    ===============================================================================
+
+    - Use Pascal-cased names.
+    - "Lists" should have semicolon terminated items on separate lines.
+  -->
+  <PropertyGroup>
+    <SampleDependsOn>
+        Alpha;
+        Beta;
+    </SampleDependsOn>
+    <Meaning>42</Meaning>
+  </PropertyGroup>
+</Project>
