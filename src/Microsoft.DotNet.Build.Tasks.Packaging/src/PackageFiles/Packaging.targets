@@ -412,7 +412,7 @@
     <OutOfBoxFramework Include="netcore50">
       <RuntimeId>win10</RuntimeId>
     </OutOfBoxFramework>
-    <OutOfBoxFramework Include="uap10.1"/>
+    <OutOfBoxFramework Condition="'$(IsUap101Defined)'=='true'" Include="uap10.1"/>
   </ItemGroup>
   <Target Name="EnsureOOBFramework"
           DependsOnTargets="AddPlaceholders;ConvertItems">
