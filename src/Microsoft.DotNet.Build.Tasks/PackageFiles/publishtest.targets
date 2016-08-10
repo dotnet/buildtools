@@ -176,23 +176,21 @@
     <PropertyGroup>
       <TestNugetTargetMonikerFolder>%(TestNugetTargetMoniker.Folder)</TestNugetTargetMonikerFolder>
     </PropertyGroup>
-    <!-- if DestinationDir is defined then prefer that over RecursiveDir -->
+    <!-- coalesce supplemental test data items with and without DestinationDir metadata -->
     <ItemGroup>
-      <SupplementalTestDataTestDir
-        Include="@(SupplementalTestData->'$(TestPath)$(TestNugetTargetMonikerFolder)/%(DestinationDir)%(Filename)%(Extension)')"
-        Condition="'%(DestinationDir)' != ''" />
-      <SupplementalTestDataTestDir
-        Include="@(SupplementalTestData->'$(TestPath)$(TestNugetTargetMonikerFolder)/%(RecursiveDir)%(Filename)%(Extension)')"
-        Condition="'%(DestinationDir)' == ''" />
-      <SupplementalTestDataOutDir
-        Include="@(SupplementalTestData->'$(OutDir)/%(DestinationDir)%(Filename)%(Extension)')"
-        Condition="'%(DestinationDir)' != ''" />
-      <SupplementalTestDataOutDir
-        Include="@(SupplementalTestData->'$(OutDir)/%(RecursiveDir)%(Filename)%(Extension)')"
-        Condition="'%(DestinationDir)' == ''" />
+      <_SupplementalTestData Include="@(SupplementalTestData)" Condition="'%(DestinationDir)' != ''">
+        <DestinationDir>%(DestinationDir)</DestinationDir>
+      </_SupplementalTestData>
+      <_SupplementalTestData Include="@(SupplementalTestData)" Condition="'%(DestinationDir)' == ''">
+        <DestinationDir>%(RecursiveDir)</DestinationDir>
+      </_SupplementalTestData>
+    </ItemGroup>
+    <ItemGroup>
+      <SupplementalTestDataTestDir Include="@(_SupplementalTestData->'$(TestPath)$(TestNugetTargetMonikerFolder)/%(DestinationDir)%(Filename)%(Extension)')" />
+      <SupplementalTestDataOutDir Include="@(_SupplementalTestData->'$(OutDir)%(DestinationDir)%(Filename)%(Extension)')" />
     </ItemGroup>
     <Copy
-      SourceFiles="@(SupplementalTestData)"
+      SourceFiles="@(_SupplementalTestData)"
       DestinationFiles="@(SupplementalTestDataTestDir)"
       SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
       OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
@@ -203,7 +201,7 @@
       <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
     </Copy>
     <Copy
-      SourceFiles="@(SupplementalTestData)"
+      SourceFiles="@(_SupplementalTestData)"
       DestinationFiles="@(SupplementalTestDataOutDir)"
       SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
       OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
