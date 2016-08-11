@@ -1,8 +1,7 @@
 ﻿#!/usr/bin/env bash
 
 export PACKAGE_DIR=$1
-export EXECUTION_DIR=$2
-export BASEDIR=$(dirname "$0")
+export EXECUTION_DIR=$(dirname "$0")
 
 function copy_and_check {
   if ! [ -f $2 ]; then
@@ -54,26 +53,9 @@ exit -1
 fi
 echo Using $PACKAGE_DIR as folder for resolving package dependencies.
 
-if [ "$EXECUTION_DIR" = "" ]
-then
-export EXECUTION_DIR=$BASEDIR
-fi
-
 echo Executing in $EXECUTION_DIR
 
 # ========================= BEGIN Copying files  =============================
-if [ ! -d "$EXECUTION_DIR" ]
-then
-    mkdir $EXECUTION_DIR
-fi
-
-if [ "$EXECUTION_DIR" != "$BASEDIR" ]; then
-  echo "Copying files into execution dir."
-  ln -f $BASEDIR/* $EXECUTION_DIR || exit -1
-else
-  echo "Executing in unpack directory, do not have to copy files"
-fi
-
 echo Hard linking dependent files... 
 # Format here is: cp -l $PACKAGE_DIR/<File Path> $/EXECUTION_DIR/<File Path> || exit $?
 [[CopyFilesCommands]]

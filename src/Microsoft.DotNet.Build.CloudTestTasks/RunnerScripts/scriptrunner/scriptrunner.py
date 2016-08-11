@@ -36,8 +36,6 @@ def main(args=None):
 
         unpack_dir = fix_path(settings.workitem_payload_dir)
 
-        exec_dir = os.path.join(fix_path(settings.workitem_working_dir), 'execution')
-
         execution_args = [os.path.join(unpack_dir, script_to_execute)] + args
 
         return_code = helix.proc.run_and_log_output(
@@ -46,7 +44,15 @@ def main(args=None):
             env=None
         )
         event_client = helix.event.create_from_uri(settings.event_uri)
-        results_location = os.path.join(exec_dir, 'testResults.xml')
+        results_location = os.path.join(unpack_dir, 'testResults.xml')
+
+        # In case testResults.xml was put somewhere else, try to find it anywhere in this directory before failing
+        if not os.path.exists(results_location):
+            for root, dirs, files in os.walk(settings.workitem_working_dir):
+                for file_name in files:
+                    if file_name == 'testResults.xml':
+                        results_location = os.path.join(root, file_name)
+
         if os.path.exists(results_location):
             log.info("Uploading results from {}".format(results_location))
 
