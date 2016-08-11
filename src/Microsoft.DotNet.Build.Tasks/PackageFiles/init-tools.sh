@@ -9,6 +9,8 @@ __TOOLS_DIR=$(cd "$(dirname "$0")"; pwd -P)
 __MICROBUILD_VERSION=0.2.0
 __PORTABLETARGETS_VERSION=0.1.1-dev
 __MSBUILD_CONTENT_JSON="{\"dependencies\": {\"MicroBuild.Core\": \"${__MICROBUILD_VERSION}\", \"Microsoft.Portable.Targets\": \"${__PORTABLETARGETS_VERSION}\"},\"frameworks\": {\"netcoreapp1.0\": {},\"net46\": {}}}"
+__INIT_TOOLS_RESTORE_ARGS="--source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json ${__INIT_TOOLS_RESTORE_ARGS}"
+__TOOLRUNTIME_RESTORE_ARGS="--source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json ${__INIT_TOOLS_RESTORE_ARGS}"
 
 if [ ! -d "$__PROJECT_DIR" ]; then
     echo "ERROR: Cannot find project root path at '$__PROJECT_DIR'. Please pass in the source directory as the 1st parameter."
@@ -68,8 +70,8 @@ fi
 cp -R $__TOOLS_DIR/* $__TOOLRUNTIME_DIR
 
 __TOOLRUNTIME_PROJECTJSON=$__TOOLS_DIR/tool-runtime/project.json
-echo "Running: $__DOTNET_CMD restore \"${__TOOLRUNTIME_PROJECTJSON}\" --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json"
-$__DOTNET_CMD restore "${__TOOLRUNTIME_PROJECTJSON}" --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json
+echo "Running: $__DOTNET_CMD restore \"${__TOOLRUNTIME_PROJECTJSON}\" $__TOOLRUNTIME_RESTORE_ARGS"
+$__DOTNET_CMD restore "${__TOOLRUNTIME_PROJECTJSON}" $__TOOLRUNTIME_RESTORE_ARGS
 if [ "$?" != "0" ]; then
     echo "ERROR: An error occured when running: '$__DOTNET_CMD restore \"${__TOOLRUNTIME_PROJECTJSON}\"'. Please check above for more details."
     exit 1
@@ -90,8 +92,8 @@ fi
 if [ ! -d "${__PACKAGES_DIR}/generated" ]; then mkdir "${__PACKAGES_DIR}/generated"; fi
 __PORTABLETARGETS_PROJECTJSON=${__PACKAGES_DIR}/generated/project.json
 echo $__MSBUILD_CONTENT_JSON > "${__PORTABLETARGETS_PROJECTJSON}"
-echo "Running: \"$__DOTNET_CMD\" restore \"${__PORTABLETARGETS_PROJECTJSON}\" --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --packages \"${__PACKAGES_DIR}/.\""
-$__DOTNET_CMD restore "${__PORTABLETARGETS_PROJECTJSON}" --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --packages "${__PACKAGES_DIR}/."
+echo "Running: \"$__DOTNET_CMD\" restore \"${__PORTABLETARGETS_PROJECTJSON}\" $__INIT_TOOLS_RESTORE_ARGS --packages \"${__PACKAGES_DIR}/.\""
+$__DOTNET_CMD restore "${__PORTABLETARGETS_PROJECTJSON}" $__INIT_TOOLS_RESTORE_ARGS --packages "${__PACKAGES_DIR}/."
 if [ "$?" != "0" ]; then
     echo "ERROR: An error ocurred when running: '$__DOTNET_CMD restore \"${__PORTABLETARGETS_PROJECTJSON}\"'. Please check above for more details."
     exit 1
