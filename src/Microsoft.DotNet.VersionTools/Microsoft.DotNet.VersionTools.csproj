@@ -21,8 +21,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Automation\DependencyUpdateResults.cs" />
+    <Compile Include="Dependencies\DependencyBuildInfo.cs" />
+    <Compile Include="Dependencies\DependencyUpdateTask.cs" />
     <Compile Include="Automation\GitHubApi\GitHubClient.cs" />
-    <Compile Include="Automation\DependencyUpdater.cs" />
+    <Compile Include="Automation\DependencyUpdateUtils.cs" />
     <Compile Include="Automation\GitHubBranch.cs" />
     <Compile Include="Automation\GitHubProject.cs" />
     <Compile Include="Automation\PullRequestCreator.cs" />

@@ -13,10 +13,12 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
         public string BuildInfoName { get; set; }
 
         protected override string TryGetDesiredValue(
-            IEnumerable<BuildInfo> buildInfos,
+            IEnumerable<DependencyBuildInfo> dependencyBuildInfos,
             out IEnumerable<BuildInfo> usedBuildInfos)
         {
-            BuildInfo project = buildInfos.SingleOrDefault(d => d.Name == BuildInfoName);
+            BuildInfo project = dependencyBuildInfos
+                .Select(d => d.BuildInfo)
+                .SingleOrDefault(d => d.Name == BuildInfoName);
 
             if (project == null)
             {
