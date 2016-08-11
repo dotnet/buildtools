@@ -258,7 +258,8 @@
        This helps minimize the number of project evaluations and targets that build in order
        to determine the contents of the package-->
   <Target Name="ExpandProjectReferences"
-          DependsOnTargets="SplitProjectReferences">
+          DependsOnTargets="SplitProjectReferences"
+          Condition="'$(DesignTimeBuild)' == 'false'">
 
     <!-- Only rebuild project references when specified -->
     <MSBuild Targets="Build"
