@@ -93,6 +93,19 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             set;
         }
 
+        /// <summary>
+        /// Suppressions
+        ///     Identity: suppression name
+        ///     Value: optional semicolon-delimited list of values for the suppression
+        /// </summary>
+        public ITaskItem[] Suppressions { get;set; }
+
+        /// <summary>
+        /// A file containing names of suppressions with optional semi-colon values specified as follows
+        ///     suppression1
+        ///     suppression2=foo
+        ///     suppression3=foo;bar
+        /// </summary>
         public string SuppressionFile
         {
             get;
@@ -445,6 +458,15 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         private void LoadSuppressions()
         {
             _suppressions = new Dictionary<Suppression, HashSet<string>>();
+
+            if (Suppressions != null)
+            {
+                foreach(var suppression in Suppressions)
+                {
+                    AddSuppression(suppression.ItemSpec, suppression.GetMetadata("Value"));
+                }
+            }
+
             if (File.Exists(SuppressionFile))
             {
                 foreach (string suppression in File.ReadAllLines(SuppressionFile))
@@ -455,31 +477,43 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     }
 
                     var parts = suppression.Split(new[] { '=' }, 2);
-                    string keyString = null;
-                    Suppression key;
-                    HashSet<string> values = null;
 
-                    if (parts.Length != 2)
-                    {
-                        // assume entire line is key
-                        keyString = suppression;
-                    }
-                    else
-                    {
-                        keyString = parts[0];
-                        values = new HashSet<string>(parts[1].Split(';'));
-                    }
+                    AddSuppression(parts[0], parts.Length > 1 ? parts[1] : null);
+                }
+            }
+        }
 
-                    if (Enum.TryParse<Suppression>(keyString, out key))
+        private void AddSuppression(string keyString, string valueString)
+        {
+            Suppression key;
+            HashSet<string> values = null;
+
+            if (!Enum.TryParse<Suppression>(keyString, out key))
+            {
+                Log.LogError($"{SuppressionFile} contained unkown suppression {keyString}");
+                return;
+            }
+
+            _suppressions.TryGetValue(key, out values);
+
+            if (valueString != null)
+            {
+                var valuesToAdd = valueString.Split(';');
+
+                if (values == null)
+                {
+                    values = new HashSet<string>(valuesToAdd);
+                }
+                else
+                {
+                    foreach(var valueToAdd in valuesToAdd)
                     {
-                        _suppressions[key] = values;
-                    }
-                    else
-                    {
-                        Log.LogError($"{SuppressionFile} contained unkown suppression {keyString}");
+                        values.Add(valueToAdd);
                     }
                 }
             }
+
+            _suppressions[key] = values;
         }
 
         private void LoadFiles()

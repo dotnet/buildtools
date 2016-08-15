@@ -1052,6 +1052,7 @@
                      FrameworkListsPath="$(FrameworkListsPath)"
                      SkipGenerationCheck="$(SkipGenerationCheck)"
                      SkipSupportCheck="$(SkipSupportCheck)"
+                     Suppressions="@(ValidatePackageSuppression)"
                      SuppressionFile="$(ValidationSuppressionFile)"
                      UseNetPlatform="$(UseNetPlatform)"
                      ValidationReport="$(PackageReportPath)" />
