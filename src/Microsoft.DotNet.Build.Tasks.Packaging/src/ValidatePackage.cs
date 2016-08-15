@@ -490,7 +490,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             if (!Enum.TryParse<Suppression>(keyString, out key))
             {
-                Log.LogError($"{SuppressionFile} contained unkown suppression {keyString}");
+                Log.LogError($"{SuppressionFile} contained unknown suppression {keyString}");
                 return;
             }
 
