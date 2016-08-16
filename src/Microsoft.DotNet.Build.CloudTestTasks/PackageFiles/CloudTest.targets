@@ -422,9 +422,6 @@
           Inputs="%(TestListFile.BuildCompleteJson)"
           Outputs="%(TestListFile.HelixJobUploadCompletePath)"
           Condition="'$(SkipNotifyEvent)' != 'true'">
-    
-    <Error Condition="'$(HelixApiAccessKey)' == ''" Text="Please provide a value for the 'HelixApiAccessKey' property." />
-
     <SendToHelix Condition=" '$(HelixApiAccessKey)' != '' "
       AccessToken="$(HelixApiAccessKey)"
       ApiEndpoint="$(HelixApiEndpoint)"
