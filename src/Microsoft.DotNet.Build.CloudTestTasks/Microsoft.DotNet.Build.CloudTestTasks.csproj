@@ -26,7 +26,6 @@
     <Compile Include="FilterForUpload.cs" />
     <Compile Include="GetPerfTestAssemblies.cs" />
     <Compile Include="ListAzureContainers.cs" />
-    <Compile Include="SendToEventHub.cs" />
     <Compile Include="SendToHelix.cs" />
     <Compile Include="UploadClient.cs" />
     <Compile Include="UploadToAzure.cs" />
