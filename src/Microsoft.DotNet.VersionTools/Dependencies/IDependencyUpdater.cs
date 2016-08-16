@@ -14,6 +14,6 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
         /// <summary>
         /// Updates based on the given build infos and returns build infos used during update.
         /// </summary>
-        IEnumerable<BuildInfo> Update(IEnumerable<BuildInfo> buildInfos);
+        IEnumerable<DependencyUpdateTask> GetUpdateTasks(IEnumerable<DependencyBuildInfo> dependencyBuildInfos);
     }
 }

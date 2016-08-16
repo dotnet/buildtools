@@ -9,16 +9,25 @@ using System.Text;
 
 namespace Microsoft.DotNet.VersionTools.Util
 {
-    internal static class FileUtils
+    public static class FileUtils
     {
-        public static bool ReplaceFileContents(string path, Func<string, string> replacement)
+        /// <summary>
+        /// Returns an Action that performs a replacement on a file, or null if the replacement
+        /// makes no changes to the file's text. Attempts to preserve file encoding.
+        /// </summary>
+        /// <param name="path">Path of the file to change.</param>
+        /// <param name="replacement">A function that takes file contents as input and returns the desired replacement.</param>
+        public static Action ReplaceFileContents(string path, Func<string, string> replacement)
         {
             string contents;
             Encoding encoding;
 
-            // Atttempt to preserve the file's encoding, using a UTF-8 encoding with no BOM if the file's
-            // encoding cannot be detected. 
-            using (StreamReader reader = new StreamReader(new FileStream(path, FileMode.Open), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false), detectEncodingFromByteOrderMarks: true))
+            // Attempt to preserve the file's encoding, using a UTF-8 encoding with no BOM if the
+            // file's encoding cannot be detected. 
+            using (StreamReader reader = new StreamReader(
+                new FileStream(path, FileMode.Open),
+                new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+                detectEncodingFromByteOrderMarks: true))
             {
                 contents = reader.ReadToEnd();
                 encoding = reader.CurrentEncoding;
@@ -28,11 +37,13 @@ namespace Microsoft.DotNet.VersionTools.Util
 
             if (contents != newContents)
             {
-                Trace.TraceInformation($"Writing changes to {path}");
-                File.WriteAllText(path, newContents, encoding);
-                return true;
+                return () =>
+                {
+                    Trace.TraceInformation($"Writing changes to {path}");
+                    File.WriteAllText(path, newContents, encoding);
+                };
             }
-            return false;
+            return null;
         }
     }
 }

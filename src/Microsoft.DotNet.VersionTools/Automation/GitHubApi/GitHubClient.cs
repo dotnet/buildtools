@@ -210,6 +210,21 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             }
         }
 
+        public async Task<GitReference> GetReferenceAsync(GitHubProject project, string @ref)
+        {
+            string url = $"https://api.github.com/repos/{project.Segments}/git/refs/{@ref}";
+
+            using (HttpResponseMessage response = await _httpClient.GetAsync(url))
+            {
+                response.EnsureSuccessStatusCode();
+                Trace.TraceInformation($"Got info about ref {@ref} in {project.Segments}");
+
+                return JsonConvert.DeserializeObject<GitReference>(
+                    await response.Content.ReadAsStringAsync(),
+                    s_jsonSettings);
+            }
+        }
+
         public void Dispose()
         {
             _httpClient.Dispose();

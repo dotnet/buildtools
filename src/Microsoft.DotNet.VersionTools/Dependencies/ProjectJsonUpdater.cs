@@ -18,44 +18,54 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
     {
         public IEnumerable<string> ProjectJsonPaths { get; }
 
-        public bool SkipStableVersions { get; set; } = true;
-
         public ProjectJsonUpdater(IEnumerable<string> projectJsonPaths)
         {
             ProjectJsonPaths = projectJsonPaths;
         }
 
-        public IEnumerable<BuildInfo> Update(IEnumerable<BuildInfo> buildInfos)
+        public IEnumerable<DependencyUpdateTask> GetUpdateTasks(IEnumerable<DependencyBuildInfo> dependencyBuildInfos)
         {
+            var tasks = new List<DependencyUpdateTask>();
             foreach (string projectJsonFile in ProjectJsonPaths)
             {
-                IEnumerable<BuildInfo> buildInfosUsed = null;
-
                 try
                 {
-                    FileUtils.ReplaceFileContents(projectJsonFile, contents => ReplaceAllDependencyVersions(contents, projectJsonFile, buildInfos, out buildInfosUsed));
+                    IEnumerable<DependencyChange> dependencyChanges = null;
+
+                    Action replace = FileUtils.ReplaceFileContents(
+                        projectJsonFile,
+                        contents => ReplaceAllDependencyVersions(
+                            contents,
+                            projectJsonFile,
+                            dependencyBuildInfos,
+                            out dependencyChanges));
+
+                    // The output json may be different even if there weren't any changes made.
+                    if (replace != null && dependencyChanges.Any())
+                    {
+                        tasks.Add(new DependencyUpdateTask(
+                            replace,
+                            dependencyChanges.Select(change => change.BuildInfo),
+                            dependencyChanges.Select(change => $"In '{projectJsonFile}', {change.ToString()}")));
+                    }
                 }
                 catch (Exception e)
                 {
                     Trace.TraceWarning($"Non-fatal exception occurred processing '{projectJsonFile}'. Skipping file. Exception: {e}. ");
-                    continue;
-                }
-
-                if (buildInfosUsed != null)
-                {
-                    foreach (var buildInfo in buildInfosUsed)
-                    {
-                        yield return buildInfo;
-                    }
                 }
             }
+            return tasks;
         }
 
-        private string ReplaceAllDependencyVersions(string input, string projectJsonFile, IEnumerable<BuildInfo> buildInfos, out IEnumerable<BuildInfo> buildInfosUsed)
+        private string ReplaceAllDependencyVersions(
+            string input,
+            string projectJsonFile,
+            IEnumerable<DependencyBuildInfo> buildInfos,
+            out IEnumerable<DependencyChange> dependencyChanges)
         {
             JObject projectRoot = JObject.Parse(input);
 
-            buildInfosUsed = FindAllDependencyProperties(projectRoot)
+            dependencyChanges = FindAllDependencyProperties(projectRoot)
                     .Select(dependencyProperty => ReplaceDependencyVersion(projectJsonFile, dependencyProperty, buildInfos))
                     .Where(buildInfo => buildInfo != null)
                     .ToArray();
@@ -68,15 +78,15 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
         /// dependencies that need to be updated. Stops on the first updated value found.
         /// </summary>
         /// <returns>The BuildInfo used to change the value, or null if there was no change.</returns>
-        private BuildInfo ReplaceDependencyVersion(
+        private DependencyChange ReplaceDependencyVersion(
             string projectJsonFile,
             JProperty dependencyProperty,
-            IEnumerable<BuildInfo> buildInfos)
+            IEnumerable<DependencyBuildInfo> parsedBuildInfos)
         {
             string id = dependencyProperty.Name;
-            foreach (BuildInfo buildInfo in buildInfos)
+            foreach (DependencyBuildInfo info in parsedBuildInfos)
             {
-                foreach (PackageIdentity packageInfo in buildInfo.LatestPackages)
+                foreach (PackageIdentity packageInfo in info.Packages)
                 {
                     if (id != packageInfo.Id)
                     {
@@ -100,12 +110,13 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
                     }
                     NuGetVersion oldNuGetVersion = parsedOldVersionRange.MinVersion;
 
-                    if (SkipStableVersions && !oldNuGetVersion.IsPrerelease)
+                    if (oldNuGetVersion == packageInfo.Version)
                     {
+                        // Versions match, no update to make.
                         continue;
                     }
 
-                    if (oldNuGetVersion != packageInfo.Version)
+                    if (oldNuGetVersion.IsPrerelease || info.UpgradeStableVersions)
                     {
                         string newVersion = packageInfo.Version.ToNormalizedString();
                         if (dependencyProperty.Value is JObject)
@@ -117,7 +128,13 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
                             dependencyProperty.Value = newVersion;
                         }
 
-                        return buildInfo;
+                        return new DependencyChange
+                        {
+                            BuildInfo = info.BuildInfo,
+                            PackageId = id,
+                            Before = oldNuGetVersion,
+                            After = packageInfo.Version
+                        };
                     }
                 }
             }
@@ -132,6 +149,20 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
                 .Where(property => property.Name == "dependencies")
                 .Select(property => property.Value)
                 .SelectMany(o => o.Children<JProperty>());
+        }
+
+        private class DependencyChange
+        {
+            public BuildInfo BuildInfo { get; set; }
+            public string PackageId { get; set; }
+            public NuGetVersion Before { get; set; }
+            public NuGetVersion After { get; set; }
+
+            public override string ToString()
+            {
+                return $"'{PackageId} {Before.ToNormalizedString()}' must be " +
+                    $"'{After.ToNormalizedString()}' ({BuildInfo.Name})";
+            }
         }
     }
 }

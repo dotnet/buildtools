@@ -46,10 +46,13 @@
     <Compile Include="SignTypeItem.cs" />
     <Compile Include="UpdatePackageDependencyVersion.cs" />
     <Compile Include="ValidateExactRestore.cs" />
+    <Compile Include="VersionTools\BaseDependenciesTask.cs" />
     <Compile Include="VersionTools\MsBuildTraceListener.cs" />
+    <Compile Include="VersionTools\UpdateDependenciesAndSubmitPullRequest.cs" />
     <Compile Include="VersionTools\TraceListenerCollectionExtensions.cs" />
     <Compile Include="VersionTools\UpdateDependencies.cs" />
     <Compile Include="VersionTools\UpdatePublishedVersions.cs" />
+    <Compile Include="VersionTools\VerifyDependencies.cs" />
     <Compile Include="VisitProjectDependencies.cs" />
     <Compile Include="ValidateProjectDependencyVersions.cs" />
     <Compile Include="WriteSigningRequired.cs" />

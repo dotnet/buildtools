@@ -13,18 +13,14 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
         public string PackageId { get; set; }
 
         protected override string TryGetDesiredValue(
-            IEnumerable<BuildInfo> buildInfos,
+            IEnumerable<DependencyBuildInfo> dependencyBuildInfos,
             out IEnumerable<BuildInfo> usedBuildInfos)
         {
-            var newVersion = buildInfos
-                .SelectMany(d => d.LatestPackages.Select(p => new
-                {
-                    Package = p,
-                    BuildInfo = d
-                }))
-                .FirstOrDefault(p => p.Package.Id == PackageId);
+            var matchingBuildInfo = dependencyBuildInfos
+                .Select(d => d.BuildInfo)
+                .FirstOrDefault(d => d.LatestPackages.ContainsKey(PackageId));
 
-            if (newVersion == null)
+            if (matchingBuildInfo == null)
             {
                 usedBuildInfos = Enumerable.Empty<BuildInfo>();
 
@@ -32,9 +28,9 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
                 return $"DEPENDENCY '{PackageId}' NOT FOUND";
             }
 
-            usedBuildInfos = new[] { newVersion.BuildInfo };
+            usedBuildInfos = new[] { matchingBuildInfo };
 
-            return newVersion.Package.Version.ToNormalizedString();
+            return matchingBuildInfo.LatestPackages[PackageId];
         }
     }
 }
