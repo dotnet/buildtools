@@ -234,7 +234,7 @@
     <ItemGroup>
       <FunctionalTest>
         <Command Condition="'$(TargetsWindows)' == 'true'">$(HelixPythonPath) $(RunnerScript) --script RunTests.cmd %HELIX_CORRELATION_PAYLOAD%</Command>
-        <Command Condition="'$(TargetsWindows)' != 'true'"> chmod +x $HELIX_WORKITEM_PAYLOAD/RunTests.sh &amp;&amp; $(HelixPythonPath) $(RunnerScript) --script RunTests.sh $HELIX_CORRELATION_PAYLOAD</Command>
+        <Command Condition="'$(TargetsWindows)' != 'true'"> chmod +x $HELIX_WORKITEM_PAYLOAD/corerun &amp;&amp; chmod +x $HELIX_WORKITEM_PAYLOAD/RunTests.sh &amp;&amp; $(HelixPythonPath) $(RunnerScript) --script RunTests.sh $HELIX_CORRELATION_PAYLOAD</Command>
         <CorrelationPayloadUris>[$(CorrelationPayloadUris)]</CorrelationPayloadUris>
         <PayloadUri>$(DropUri)$(Platform)$(ConfigurationGroup)/Tests/$([System.String]::Copy('%(RecursiveDir)').Replace('\', '/'))%(Filename)%(Extension)$(DropUriReadOnlyToken)</PayloadUri>
         <WorkItemId>%(Filename)</WorkItemId>
