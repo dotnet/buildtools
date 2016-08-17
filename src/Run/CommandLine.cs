@@ -1263,7 +1263,7 @@ class CommandLine
                         throw new CommandLineParserException("Use " + name + ":" + value + " if " + value +
                             " is meant to be value rather than a named parameter");
                     _args[valuePos] = null;*/
-                    value = "true";
+                    value = string.IsNullOrEmpty(defaultValue) ? "true" : defaultValue;
                 }
                 ret = ParseValue(value, type, name);
                 if (type.IsArray)
