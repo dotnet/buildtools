@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.props))\dir.props" />
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>RepoUtil</RootNamespace>
+    <AssemblyName>repoutil</AssemblyName>
+    <NuGetRuntimeIdentifier>win7-x64</NuGetRuntimeIdentifier>
+    <NuGetTargetMoniker>.NETCoreApp,Version=v1.0</NuGetTargetMoniker>
+    <ProjectGuid>{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}</ProjectGuid>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
+  <ItemGroup>
+    <Compile Include="ChangeCommand.cs" />
+    <Compile Include="ConflictingPackagesException.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="ConsumesCommand.cs" />
+    <Compile Include="FileName.cs" />
+    <Compile Include="GenerateData.cs" />
+    <Compile Include="GenerateUtil.cs" />
+    <Compile Include="ICommand.cs" />
+    <Compile Include="NuGetConfigUtil.cs" />
+    <Compile Include="NuGetFeed.cs" />
+    <Compile Include="NuGetPackage.cs" />
+    <Compile Include="NuGetPackageChange.cs" />
+    <Compile Include="NuGetPackageSource.cs" />
+    <Compile Include="NuSpecUtil.cs" />
+    <Compile Include="ProducesCommand.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="ProjectJsonUtil.cs" />
+    <Compile Include="RepoConfig.cs" />
+    <Compile Include="RepoData.cs" />
+    <Compile Include="UsageCommand.cs" />
+    <Compile Include="ViewCommand.cs" />
+    <Compile Include="VerifyCommand.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="repoutil.runtimeconfig.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="project.json" />
+  </ItemGroup>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
+</Project>

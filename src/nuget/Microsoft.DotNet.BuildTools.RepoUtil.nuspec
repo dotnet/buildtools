@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata minClientVersion="2.8.1">
+    <id>Microsoft.DotNet.BuildTools.RepoUtil</id>
+    <version>1.0.0-prerelease</version>
+    <title>Repository Produces/Consumes Utility (RepoUtil)</title>
+    <authors>Microsoft</authors>
+    <owners>Microsoft</owners>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <licenseUrl>http://go.microsoft.com/fwlink/?LinkId=329770</licenseUrl>
+    <projectUrl>http://go.microsoft.com/fwlink/?LinkId=518631</projectUrl>
+    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
+    <summary>A tool that can be used to generate and verify internal and external dependency information.</summary>
+    <description>This package provides utilities for implementing the repository produces/consumes API.  You should not need to reference this package from your project.  This tool requires .NET Core 1.0 or later.</description>
+    <copyright>Copyright © Microsoft Corporation</copyright>
+    <tags></tags>
+    <dependencies>
+      <!--
+        Currently we redistribute the dependencies locally since nuget
+        has no support for treating packages as build dependencies.
+      -->
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="RepoUtil\repoutil.exe" target="tools" />
+    <file src="RepoUtil\repoutil.runtimeconfig.json" target="tools" />
+  </files>
+</package>
