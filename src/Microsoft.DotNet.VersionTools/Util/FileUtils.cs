@@ -25,7 +25,7 @@ namespace Microsoft.DotNet.VersionTools.Util
             // Attempt to preserve the file's encoding, using a UTF-8 encoding with no BOM if the
             // file's encoding cannot be detected. 
             using (StreamReader reader = new StreamReader(
-                new FileStream(path, FileMode.Open),
+                new FileStream(path, FileMode.Open, FileAccess.Read),
                 new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
                 detectEncodingFromByteOrderMarks: true))
             {
