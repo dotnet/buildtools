@@ -1,14 +1,10 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-
-#define read
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using NuGet.Common;
-using NuGet.LibraryModel;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.ProjectModel;
@@ -26,8 +22,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
         [Required]
         public string PackagesFolder { get; set; }
-
-
+        
         [Output]
         public bool RestoreRequired { get; set; }
 
@@ -38,9 +33,9 @@ namespace Microsoft.DotNet.Build.Tasks
         {
             var packagesChecked = new HashSet<PackageIdentity>();
             var packageResolver = new VersionFolderPathResolver(PackagesFolder);
-            List<ITaskItem> needRestore = new List<ITaskItem>();
+            var needsRestore = new LinkedList<ITaskItem>();
             var lockFileFormat = new LockFileFormat();
-            
+
             ProjectJsons.AsParallel().ForAll(project =>
             {
                 string projectJsonPath = project.GetMetadata("FullPath");
@@ -49,74 +44,55 @@ namespace Microsoft.DotNet.Build.Tasks
                 if (!File.Exists(projectLockJsonPath))
                 {
                     Log.LogMessage(MessageImportance.Low, $"{projectJsonPath} requires restore because {projectLockJsonPath} is missing.");
-                    needRestore.Add(project);
+                    AddLock(needsRestore, project);
                     return;
                 }
 
                 if (File.GetLastWriteTime(projectJsonPath) > File.GetLastWriteTime(projectLockJsonPath))
                 {
                     Log.LogMessage(MessageImportance.Low, $"{projectJsonPath} requires restore because {projectLockJsonPath} is older.");
-                    needRestore.Add(project);
+                    AddLock(needsRestore, project);
                     return;
                 }
 
-                var lockFile = lockFileFormat.Read(projectLockJsonPath);
+                var packages = ReadPackages(projectLockJsonPath);
 
-                //var projectName = GetProjectName(projectJsonPath);
-                //var packageSpec = JsonPackageSpecReader.GetPackageSpec(projectName, projectJsonPath);
-
-                //if (!lockFile.IsValidForPackageSpec(packageSpec, LockFileFormat.Version))
-                //{
-                //    Log.LogMessage(MessageImportance.Low, $"{projectJsonPath} requires restore because {projectLockJsonPath} is out of date.");
-                //    needRestore.Add(project);
-                //    return;
-                //}
-
-                // Verify all libraries are on disk
-                var packages = lockFile.Libraries.Where(library => library.Type == LibraryType.Package);
-
-                foreach(var library in packages)
+                foreach (var package in packages)
                 {
-                    var identity = new PackageIdentity(library.Name, library.Version);
-
                     // Each id/version only needs to be checked once
-                    if (AddLock(packagesChecked, identity))
+                    if (AddLock(packagesChecked, package))
                     {
-                        // Verify the SHA for each package
-                        var hashPath = packageResolver.GetHashPath(library.Name, library.Version);
+                        // Verify the SHA exists for each package, don't validate the content since we assume our packages are immutable
+                        var hashPath = packageResolver.GetHashPath(package.Id, package.Version);
 
-                        if (File.Exists(hashPath))
+                        if (!File.Exists(hashPath))
                         {
-                            var sha512 = File.ReadAllText(hashPath);
-
-                            if (library.Sha512 != sha512)
-                            {
-                                Log.LogMessage(MessageImportance.Low, $"{projectJsonPath} requires restore because {library} is different.");
-                                needRestore.Add(project);
-                                break;
-                            }
-                        }
-                        else
-                        {
-                            Log.LogMessage(MessageImportance.Low, $"{projectJsonPath} requires restore because {library} is missing.");
-                            needRestore.Add(project);
+                            Log.LogMessage(MessageImportance.Low, $"{projectJsonPath} requires restore because {package} is missing.");
+                            AddLock(needsRestore, project);
                             break;
                         }
                     }
                 }
             });
 
-            ProjectJsonsRequiringRestore = needRestore.ToArray();
+            ProjectJsonsRequiringRestore = needsRestore.ToArray();
             RestoreRequired = ProjectJsonsRequiringRestore.Length > 0;
 
             return !Log.HasLoggedErrors;
         }
 
-        private bool AddLock<T>(ISet<T> collection, T item)
+        private bool AddLock<T>(ISet<T> set, T item)
         {
-            lock(collection)
+            lock (set)
             {
-                return collection.Add(item);
+                return set.Add(item);
+            }
+        }
+        private void AddLock<T>(ICollection<T> collection, T item)
+        {
+            lock (collection)
+            {
+                collection.Add(item);
             }
         }
 
@@ -124,6 +100,74 @@ namespace Microsoft.DotNet.Build.Tasks
         {
             // match nuget behavior
             return Path.GetFileName(Path.GetDirectoryName(projectJsonPath));
+        }
+
+        // Lightweight lock file parser that only reads the package identities
+        private static IEnumerable<PackageIdentity> ReadPackages(string lockFilePath)
+        {
+            using (var stream = File.OpenRead(lockFilePath))
+            using (var textReader = new StreamReader(stream))
+            using (var jsonReader = new JsonTextReader(textReader))
+            {
+                while (jsonReader.TokenType != JsonToken.StartObject)
+                {
+                    EnsureRead(jsonReader);
+                }
+
+                ReadToValue(jsonReader, JsonToken.PropertyName, "libraries");
+                EnsureRead(jsonReader); // StartObject
+                EnsureRead(jsonReader); // Property name
+
+                while (jsonReader.TokenType != JsonToken.EndObject)
+                {
+                    var packageString = jsonReader.Value as string;
+
+                    if (packageString == null)
+                    {
+                        throw new InvalidDataException($"Unexpected entry in {lockFilePath} at line {jsonReader.LineNumber}, position {jsonReader.LinePosition}.  Expected property name.");
+                    }
+
+                    var parts = packageString.Split('/');
+                    if (parts.Length != 2)
+                    {
+                        throw new InvalidDataException($"Unexpected entry in {lockFilePath} at line {jsonReader.LineNumber}, position {jsonReader.LinePosition}.  Expected string of format id/version.");
+                    }
+
+                    EnsureRead(jsonReader); // StartObject
+                    ReadToValue(jsonReader, JsonToken.PropertyName, "type");
+                    EnsureRead(jsonReader); // value
+                    if (jsonReader.Value.Equals("package"))
+                    {
+                        yield return new PackageIdentity(parts[0], NuGetVersion.Parse(parts[1]));
+                    }
+
+                    ReadToToken(jsonReader, JsonToken.EndObject); // Move to End
+                    EnsureRead(jsonReader); // next PropertyName
+                }
+            }
+        }
+
+        private static void ReadToValue(JsonTextReader jsonReader, JsonToken tokenType, object value)
+        {
+            while (jsonReader.Value == null || jsonReader.TokenType != tokenType || !jsonReader.Value.Equals(value))
+            {
+                EnsureRead(jsonReader);
+            }
+        }
+        private static void ReadToToken(JsonTextReader jsonReader, JsonToken tokenType)
+        {
+            while (jsonReader.TokenType != tokenType)
+            {
+                EnsureRead(jsonReader);
+            }
+        }
+
+        private static void EnsureRead(JsonTextReader reader)
+        {
+            if (!reader.Read())
+            {
+                throw new EndOfStreamException();
+            }
         }
     }
 }
