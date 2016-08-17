@@ -3,6 +3,7 @@
 
   <UsingTask TaskName="PrereleaseResolveNuGetPackageAssets" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ValidateProjectDependencyVersions" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="IsRestoreRequired" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
   <PropertyGroup>
     <ProjectJson Condition="'$(ProjectJson)'=='' and Exists('$(MSBuildProjectDirectory)/project.json')">$(MSBuildProjectDirectory)/project.json</ProjectJson>
@@ -27,7 +28,11 @@
 
     <Error Condition="'$(DnuRestoreCommand)'=='' and Exists('$(ProjectJson)')" Text="RestorePackages target needs a predefined DnuRestoreCommand property set in order to restore $(ProjectJson)" />
 
-    <Exec Condition="Exists('$(ProjectJson)')" Command="$(DnuRestoreCommand) &quot;$(ProjectJson)&quot;" StandardOutputImportance="Low" CustomErrorRegularExpression="^Unable to locate .*" />
+    <IsRestoreRequired ProjectJsons="$(ProjectJson)" PackagesFolder="$(PackagesDir)">
+      <Output TaskParameter="RestoreRequired" PropertyName="RestoreRequired" />
+    </IsRestoreRequired>
+
+    <Exec Condition="Exists('$(ProjectJson)') AND '$(RestoreRequired)' == 'true'" Command="$(DnuRestoreCommand) &quot;$(ProjectJson)&quot;" StandardOutputImportance="Low" CustomErrorRegularExpression="^Unable to locate .*" />
   </Target>
 
   <ItemGroup Condition="'$(ResolvePackages)'=='true' or '$(PrereleaseResolveNuGetPackages)'=='true'">
