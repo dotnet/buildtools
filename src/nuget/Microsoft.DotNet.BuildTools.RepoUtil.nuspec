@@ -22,7 +22,11 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="RepoUtil\repoutil.exe" target="tools" />
-    <file src="RepoUtil\repoutil.runtimeconfig.json" target="tools" />
+    <file src="RepoUtil\RepoUtil.exe" target="tools\netcoreapp1.0" />
+    <file src="RepoUtil\RepoUtil.runtimeconfig.json" target="tools\netcoreapp1.0" />
+    <file src="RepoUtil\*.dll" target="tools\netcoreapp1.0" />
+    <file src="RepoUtil.Desktop\RepoUtil.exe" target="tools\net46" />
+    <file src="RepoUtil.Desktop\RepoUtil.exe.config" target="tools\net46" />
+    <file src="RepoUtil.Desktop\*.dll" target="tools\net46" />
   </files>
 </package>

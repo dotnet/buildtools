@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>RepoUtil</RootNamespace>
-    <AssemblyName>repoutil</AssemblyName>
+    <AssemblyName>RepoUtil</AssemblyName>
     <NuGetRuntimeIdentifier>win7-x64</NuGetRuntimeIdentifier>
     <NuGetTargetMoniker>.NETCoreApp,Version=v1.0</NuGetTargetMoniker>
     <ProjectGuid>{1CA184D3-89CB-4074-BEC5-F8AEBA657D41}</ProjectGuid>
@@ -36,7 +36,7 @@
     <Compile Include="VerifyCommand.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="repoutil.runtimeconfig.json">
+    <None Include="RepoUtil.runtimeconfig.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="project.json" />
