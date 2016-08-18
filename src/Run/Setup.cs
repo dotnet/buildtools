@@ -150,10 +150,7 @@ namespace Microsoft.DotNet.Execute
         {
             string commandSetting = string.Empty;
 
-            if (Tools.ContainsKey(toolName))
-            {
-                commandSetting = Tools[toolName].osSpecific[Os]["defaultParameters"];
-            }
+            Tools[toolName].osSpecific[Os].TryGetValue("defaultParameters", out commandSetting);            
 
             foreach (KeyValuePair<string, string> parameters in commandParameters)
             {
@@ -271,14 +268,14 @@ namespace Microsoft.DotNet.Execute
             if (Tools.ContainsKey(toolname))
             {
                 SettingParameters["toolName"] = toolname;
-
-                if(!string.IsNullOrEmpty(Tools[toolname].osSpecific[os]["path"]))
+                string value = string.Empty;
+                if(Tools[toolname].osSpecific[os].TryGetValue("path", out value) && !string.IsNullOrEmpty(value))
                 {
-                    return Path.GetFullPath(Path.Combine(configPath, Tools[toolname].osSpecific[os]["path"]));
+                    return Path.GetFullPath(Path.Combine(configPath, value));
                 }
-                else if (!string.IsNullOrEmpty(Tools[toolname].osSpecific[os]["filesExtension"]))
+                else if (Tools[toolname].osSpecific[os].TryGetValue("filesExtension", out value) && !string.IsNullOrEmpty(value))
                 {
-                    string extension = Tools[toolname].osSpecific[os]["filesExtension"];
+                    string extension = value;
                     return Path.GetFullPath(Path.Combine(configPath, string.Format("{0}.{1}", project, extension)));
                 }
                 else

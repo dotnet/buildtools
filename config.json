@@ -171,13 +171,11 @@
       "osSpecific":{
         "windows": {
           "defaultParameters": "/nologo /verbosity:minimal /clp:Summary /maxcpucount /nodeReuse:false /l:BinClashLogger,Tools\\net45\\Microsoft.DotNet.Build.Tasks.dll;LogFile=binclash.log",
-          "path": "Tools/msbuild.cmd",
-          "filesExtension": ""
+          "path": "Tools/msbuild.cmd"
         },
         "unix":{
           "defaultParameters": "/nologo /verbosity:minimal /clp:Summary /maxcpucount /l:BinClashLogger,Tools/Microsoft.DotNet.Build.Tasks.dll;LogFile=binclash.log",
-          "path": "Tools/msbuild.sh",
-          "filesExtension": ""
+          "path": "Tools/msbuild.sh"
         }
       },
       "valueTypes": {
@@ -189,13 +187,9 @@
     "script": {
       "osSpecific":{
         "windows": {
-          "defaultParameters": "",
-          "path": "",
           "filesExtension": "cmd"
         },
         "unix":{
-          "defaultParameters": "",
-          "path": "",
           "filesExtension": "sh"
         }
       },
