@@ -149,6 +149,12 @@ namespace Microsoft.DotNet.Execute
             jsonSetup.prepareValues(os, executor.SettingParameters, executor.configFilePath);
             if (executor.DefineParameters(parseArgs, jsonSetup))
             {
+                if(string.IsNullOrEmpty(executor.CommandSelectedByUser))
+                {
+                    Console.Error.WriteLine("Error: No command was passed. Use -? for help.");
+                    return 1;
+                }
+
                 List<string> paramSelected = new List<string>();
                 foreach (KeyValuePair<string, string> param in executor.CommandParameters[executor.CommandSelectedByUser])
                 {
