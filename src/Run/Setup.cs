@@ -149,6 +149,12 @@ namespace Microsoft.DotNet.Execute
         private string BuildParametersForCommand(Dictionary<string, string> commandParameters, string toolName)
         {
             string commandSetting = string.Empty;
+
+            if (Tools.ContainsKey(toolName))
+            {
+                commandSetting = Tools[toolName].osSpecific[Os]["defaultParameters"];
+            }
+
             foreach (KeyValuePair<string, string> parameters in commandParameters)
             {
                 if (!parameters.Key.Equals("toolName") && !string.IsNullOrEmpty(parameters.Value))
@@ -266,14 +272,19 @@ namespace Microsoft.DotNet.Execute
             {
                 SettingParameters["toolName"] = toolname;
 
-                if (toolname.Equals("msbuild"))
+                if(!string.IsNullOrEmpty(Tools[toolname].osSpecific[os]["path"]))
                 {
-                    return Path.GetFullPath(Path.Combine(configPath, os.Equals("windows") ? Tools[toolname].Run["windows"] : Tools[toolname].Run["unix"]));
+                    return Path.GetFullPath(Path.Combine(configPath, Tools[toolname].osSpecific[os]["path"]));
                 }
-                else if (toolname.Equals("terminal"))
+                else if (!string.IsNullOrEmpty(Tools[toolname].osSpecific[os]["filesExtension"]))
                 {
-                    string extension = os.Equals("windows") ? Tools[toolname].Run["windows"] : Tools[toolname].Run["unix"];
+                    string extension = Tools[toolname].osSpecific[os]["filesExtension"];
                     return Path.GetFullPath(Path.Combine(configPath, string.Format("{0}.{1}", project, extension)));
+                }
+                else
+                {
+                    Console.Error.WriteLine("Error: The process {0} has empty values for path and filesExtension properties. It is mandatory that one of the two has a value.", toolname);
+                    return string.Empty;
                 }
             }
             Console.Error.WriteLine("Error: The process {0} is not specified in the Json file.", toolname);
@@ -404,7 +415,7 @@ namespace Microsoft.DotNet.Execute
 
     public class Tool
     {
-        public Dictionary<string, string> Run { get; set; }
+        public Dictionary<string, Dictionary<string, string>> osSpecific { get; set; }
         public Dictionary<string, string> ValueTypes { get; set; }
     }
 

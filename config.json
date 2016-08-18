@@ -30,12 +30,6 @@
       "values": [],
       "defaultValue": "/flp:v=normal"
     },
-    "MsBuildParameters": {
-      "description": "MsBuild building options.",
-      "valueType": "passThrough",
-      "values": [],
-      "defaultValue": "/nologo /maxcpucount /verbosity:minimal /nodeReuse:false"
-    },
     "Project": {
       "description": "Project where the commands are going to be applied.",
       "valueType": "passThrough",
@@ -86,15 +80,14 @@
         "verbose":{
           "description": "Passes /flp:v=diag to the msbuild command or the value passed by the user.",
           "settings":{
-            "MsBuildLogging": "/flp:v=diag"
+            "MsBuildLogging": "/flp:v=diag;LogFile=sync.log"
           }
         }
       },
       "defaultValues":{
         "toolName": "msbuild",
         "settings": {
-          "MsBuildParameters":"default",
-          "MsBuildLogging":"default"
+          "MsBuildLogging":"/flp:v=normal;LogFile=sync.log"
         }
       }
     },
@@ -140,7 +133,7 @@
       "defaultValues":{
         "toolName": "msbuild",
         "settings": {
-          "MsBuildParameters":"default"
+          "MsBuildLogging":"default"
         }
       }
     },
@@ -168,17 +161,24 @@
       "defaultValues":{
         "toolName": "msbuild",
         "settings": {
-          "MsBuildParameters":"default",
-          "MsBuildLogging":"default"
+          "MsBuildLogging":"/flp:v=normal;LogFile=clean.log"
         }
       }
     }
   },
   "tools": {
     "msbuild": {
-      "run": {
-        "windows": "Tools/msbuild.cmd",
-        "unix": "Tools/msbuild.sh"
+      "osSpecific":{
+        "windows": {
+          "defaultParameters": "/nologo /verbosity:minimal /clp:Summary /maxcpucount /nodeReuse:false /l:BinClashLogger,Tools\\net45\\Microsoft.DotNet.Build.Tasks.dll;LogFile=binclash.log",
+          "path": "Tools/msbuild.cmd",
+          "filesExtension": ""
+        },
+        "unix":{
+          "defaultParameters": "/nologo /verbosity:minimal /clp:Summary /maxcpucount /l:BinClashLogger,Tools/Microsoft.DotNet.Build.Tasks.dll;LogFile=binclash.log",
+          "path": "Tools/msbuild.sh",
+          "filesExtension": ""
+        }
       },
       "valueTypes": {
         "property": "/p:{name}={value}",
@@ -186,10 +186,18 @@
         "internal": "/{name}"
       }
     },
-    "terminal": {
-      "run": {
-        "windows": "cmd",
-        "unix": "sh"
+    "script": {
+      "osSpecific":{
+        "windows": {
+          "defaultParameters": "",
+          "path": "",
+          "filesExtension": "cmd"
+        },
+        "unix":{
+          "defaultParameters": "",
+          "path": "",
+          "filesExtension": "sh"
+        }
       },
       "valueTypes": {}
     }
