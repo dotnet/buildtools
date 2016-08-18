@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.props))\dir.props" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>RepoUtil</RootNamespace>
+    <AssemblyName>RepoUtil</AssemblyName>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <NuGetRuntimeIdentifier>win7-x64</NuGetRuntimeIdentifier>
+    <RepoUtilSrc>..\RepoUtil</RepoUtilSrc>
+    <ProjectGuid>{CFF34D7E-1221-44C2-B9C6-F19F61817063}</ProjectGuid>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(RepoUtilSrc)\ChangeCommand.cs" />
+    <Compile Include="$(RepoUtilSrc)\ConflictingPackagesException.cs" />
+    <Compile Include="$(RepoUtilSrc)\Constants.cs" />
+    <Compile Include="$(RepoUtilSrc)\ConsumesCommand.cs" />
+    <Compile Include="$(RepoUtilSrc)\FileName.cs" />
+    <Compile Include="$(RepoUtilSrc)\GenerateData.cs" />
+    <Compile Include="$(RepoUtilSrc)\GenerateUtil.cs" />
+    <Compile Include="$(RepoUtilSrc)\ICommand.cs" />
+    <Compile Include="$(RepoUtilSrc)\NuGetConfigUtil.cs" />
+    <Compile Include="$(RepoUtilSrc)\NuGetFeed.cs" />
+    <Compile Include="$(RepoUtilSrc)\NuGetPackage.cs" />
+    <Compile Include="$(RepoUtilSrc)\NuGetPackageChange.cs" />
+    <Compile Include="$(RepoUtilSrc)\NuGetPackageSource.cs" />
+    <Compile Include="$(RepoUtilSrc)\NuSpecUtil.cs" />
+    <Compile Include="$(RepoUtilSrc)\ProducesCommand.cs" />
+    <Compile Include="$(RepoUtilSrc)\Program.cs" />
+    <Compile Include="$(RepoUtilSrc)\ProjectJsonUtil.cs" />
+    <Compile Include="$(RepoUtilSrc)\RepoConfig.cs" />
+    <Compile Include="$(RepoUtilSrc)\RepoData.cs" />
+    <Compile Include="$(RepoUtilSrc)\UsageCommand.cs" />
+    <Compile Include="$(RepoUtilSrc)\ViewCommand.cs" />
+    <Compile Include="$(RepoUtilSrc)\VerifyCommand.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="project.json" />
+  </ItemGroup>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
+</Project>
