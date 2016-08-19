@@ -30,7 +30,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
             {
                 string originalValue = null;
 
-                Action replace = FileUtils.ReplaceFileContents(
+                Action update = FileUtils.GetUpdateFileContentsTask(
                     Path,
                     contents => ReplaceGroupValue(
                         Regex,
@@ -39,14 +39,14 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
                         newValue,
                         out originalValue));
 
-                if (replace != null)
+                if (update != null)
                 {
                     var messageLines = new[]
                     {
                         $"In '{Path}', '{originalValue}' must be '{newValue}' based on build info " +
                             $"'{string.Join(", ", usedBuildInfos.Select(info => info.Name))}'"
                     };
-                    yield return new DependencyUpdateTask(replace, usedBuildInfos, messageLines);
+                    yield return new DependencyUpdateTask(update, usedBuildInfos, messageLines);
                 }
             }
         }
