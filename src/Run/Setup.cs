@@ -149,6 +149,9 @@ namespace Microsoft.DotNet.Execute
         private string BuildParametersForCommand(Dictionary<string, string> commandParameters, string toolName)
         {
             string commandSetting = string.Empty;
+
+            Tools[toolName].osSpecific[Os].TryGetValue("defaultParameters", out commandSetting);            
+
             foreach (KeyValuePair<string, string> parameters in commandParameters)
             {
                 if (!parameters.Key.Equals("toolName") && !string.IsNullOrEmpty(parameters.Value))
@@ -259,23 +262,30 @@ namespace Microsoft.DotNet.Execute
         private string GetTool(Command commandToExecute, string os, string configPath, List<string> parametersSelectedByUser)
         {
             string toolname = commandToExecute.DefaultValues.ToolName;
-
             string project = GetProject(commandToExecute, parametersSelectedByUser);
 
-            if (Tools.ContainsKey(toolname))
+            Tool toolProperties = null;
+
+            if(Tools.TryGetValue(toolname, out toolProperties))
             {
                 SettingParameters["toolName"] = toolname;
-
-                if (toolname.Equals("msbuild"))
+                string value = string.Empty;
+                if (toolProperties.osSpecific[os].TryGetValue("path", out value) && !string.IsNullOrEmpty(value))
                 {
-                    return Path.GetFullPath(Path.Combine(configPath, os.Equals("windows") ? Tools[toolname].Run["windows"] : Tools[toolname].Run["unix"]));
+                    return Path.GetFullPath(Path.Combine(configPath, value));
                 }
-                else if (toolname.Equals("terminal"))
+                else if (toolProperties.osSpecific[os].TryGetValue("filesExtension", out value) && !string.IsNullOrEmpty(value))
                 {
-                    string extension = os.Equals("windows") ? Tools[toolname].Run["windows"] : Tools[toolname].Run["unix"];
+                    string extension = value;
                     return Path.GetFullPath(Path.Combine(configPath, string.Format("{0}.{1}", project, extension)));
                 }
+                else
+                {
+                    Console.Error.WriteLine("Error: The process {0} has empty values for path and filesExtension properties. It is mandatory that one of the two has a value.", toolname);
+                    return string.Empty;
+                }
             }
+
             Console.Error.WriteLine("Error: The process {0} is not specified in the Json file.", toolname);
             return string.Empty;
         }
@@ -404,7 +414,7 @@ namespace Microsoft.DotNet.Execute
 
     public class Tool
     {
-        public Dictionary<string, string> Run { get; set; }
+        public Dictionary<string, Dictionary<string, string>> osSpecific { get; set; }
         public Dictionary<string, string> ValueTypes { get; set; }
     }
 
