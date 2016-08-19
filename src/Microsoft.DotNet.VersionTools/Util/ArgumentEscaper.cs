@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Microsoft.DotNet.VersionTools.Util
 {
-    static class ArgumentEscaper
+    internal static class ArgumentEscaper
     {
         /// <summary>
         /// Undo the processing which took place to create string[] args in Main,

@@ -120,8 +120,10 @@
       <IsReferenceAsset Condition="'$(IsReferenceAssembly)' == 'true' OR '$(PackageAsRefAndLib)' == 'true'">true</IsReferenceAsset>
     </PropertyGroup>
 
-    <Error Condition="'$(IsReferenceAsset)' == 'true' AND '$(PackageAsRefAndLib)' != 'true' AND '$(PackageTargetRuntime)' != ''"
-           Text="Reference assemblies should not specify the PackageTargetRuntime property since runtimes cannot effect compile time assets."/>
+    <PropertyGroup>
+      <!-- Clear PackageTargetRuntime if it was set on a reference assembly -->
+      <PackageTargetRuntime Condition="'$(IsReferenceAsset)' == 'true' AND '$(PackageAsRefAndLib)' != 'true' AND '$(PackageTargetRuntime)' != ''"></PackageTargetRuntime>
+    </PropertyGroup>
 
     <!-- *** determine destination path for assets *** -->
     <PropertyGroup>

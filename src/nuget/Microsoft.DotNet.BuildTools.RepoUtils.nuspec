@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata minClientVersion="2.8.1">
+    <id>Microsoft.DotNet.BuildTools.RepoUtils</id>
+    <version>1.0.0-prerelease</version>
+    <title>Repository Produces/Consumes Utilities</title>
+    <authors>Microsoft</authors>
+    <owners>Microsoft</owners>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <licenseUrl>http://go.microsoft.com/fwlink/?LinkId=329770</licenseUrl>
+    <projectUrl>http://go.microsoft.com/fwlink/?LinkId=518631</projectUrl>
+    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
+    <summary>A collection of tools that can be used to generate and verify internal and external dependency information.</summary>
+    <description>This package provides utilities for implementing the repository produces/consumes API.  You should not need to reference this package from your project.</description>
+    <copyright>Copyright © Microsoft Corporation</copyright>
+    <tags></tags>
+    <dependencies>
+      <!--
+        Currently we redistribute the dependencies locally since nuget
+        has no support for treating packages as build dependencies.
+      -->
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="RepoUtil\RepoUtil.exe" target="tools\netcoreapp1.0" />
+    <file src="RepoUtil\RepoUtil.runtimeconfig.json" target="tools\netcoreapp1.0" />
+    <file src="RepoUtil\*.dll" target="tools\netcoreapp1.0" />
+    <file src="RepoUtil.Desktop\RepoUtil.exe" target="tools\net46" />
+    <file src="RepoUtil.Desktop\RepoUtil.exe.config" target="tools\net46" />
+    <file src="RepoUtil.Desktop\*.dll" target="tools\net46" />
+  </files>
+</package>

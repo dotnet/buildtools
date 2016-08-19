@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
@@ -113,6 +114,37 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     yield return contentItem.Path.Substring(0, dirLength);
                 }
             }
+        }
+
+        public static void ExamineAssets(ILog logger, string assetType, string package, string target, IEnumerable<string> items, out bool hasRealAsset, out bool hasPlaceHolder)
+        {
+            hasPlaceHolder = false;
+            hasRealAsset = false;
+            StringBuilder assetLog = new StringBuilder($"{assetType} assets for {package} on {target}: ");
+            if (items != null && items.Any())
+            {
+                foreach (var runtimeItem in items)
+                {
+                    assetLog.AppendLine();
+                    assetLog.Append($"  {runtimeItem}");
+
+                    if (!hasRealAsset && NuGetAssetResolver.IsPlaceholder(runtimeItem))
+                    {
+                        hasPlaceHolder = true;
+                    }
+                    else
+                    {
+                        hasRealAsset = true;
+                        hasPlaceHolder = false;
+                    }
+                }
+            }
+            else
+            {
+                assetLog.AppendLine();
+                assetLog.Append("  <none>");
+            }
+            logger.LogMessage(LogImportance.Low, assetLog.ToString());
         }
 
         public static bool IsPlaceholder(string path)

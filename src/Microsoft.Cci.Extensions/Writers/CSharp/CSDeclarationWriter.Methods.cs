@@ -50,6 +50,13 @@ namespace Microsoft.Cci.Writers.CSharp
             WriteEmptyBody();
         }
 
+        private void WriteTypeName(ITypeReference type, ITypeReference containingType, bool isDynamic = false)
+        {
+            var useKeywords = containingType.GetTypeName() != type.GetTypeName();
+
+            WriteTypeName(type, isDynamic: isDynamic, useTypeKeywords: useKeywords);
+        }
+
         private void WriteMethodDefinitionSignature(IMethodDefinition method, string name)
         {
             bool isOperator = method.IsConversionOperator();
@@ -58,7 +65,7 @@ namespace Microsoft.Cci.Writers.CSharp
             {
                 WriteAttributes(method.ReturnValueAttributes, true);
                 // We are ignoring custom modifiers right now, we might need to add them later.
-                WriteTypeName(method.Type, isDynamic: IsDynamic(method.ReturnValueAttributes));
+                WriteTypeName(method.Type, method.ContainingType, isDynamic: IsDynamic(method.ReturnValueAttributes));
             }
 
             WriteIdentifier(name);
@@ -66,19 +73,20 @@ namespace Microsoft.Cci.Writers.CSharp
             if (isOperator)
             {
                 WriteSpace();
-                WriteTypeName(method.Type);
+
+                WriteTypeName(method.Type, method.ContainingType);
             }
 
             Contract.Assert(!(method is IGenericMethodInstance), "Currently don't support generic method instances");
             if (method.IsGeneric)
                 WriteGenericParameters(method.GenericParameters);
 
-            WriteParameters(method.Parameters, extensionMethod: method.IsExtensionMethod(), acceptsExtraArguments: method.AcceptsExtraArguments);
+            WriteParameters(method.Parameters, method.ContainingType, extensionMethod: method.IsExtensionMethod(), acceptsExtraArguments: method.AcceptsExtraArguments);
             if (method.IsGeneric && !method.IsOverride() && !method.IsExplicitInterfaceMethod())
                 WriteGenericContraints(method.GenericParameters);
         }
 
-        private void WriteParameters(IEnumerable<IParameterDefinition> parameters, bool property = false, bool extensionMethod = false, bool acceptsExtraArguments = false)
+        private void WriteParameters(IEnumerable<IParameterDefinition> parameters, ITypeReference containingType, bool property = false, bool extensionMethod = false, bool acceptsExtraArguments = false)
         {
             string start = property ? "[" : "(";
             string end = property ? "]" : ")";
@@ -86,7 +94,7 @@ namespace Microsoft.Cci.Writers.CSharp
             WriteSymbol(start);
             _writer.WriteList(parameters, p =>
             {
-                WriteParameter(p, extensionMethod);
+                WriteParameter(p, containingType, extensionMethod);
                 extensionMethod = false;
             });
 
@@ -101,7 +109,7 @@ namespace Microsoft.Cci.Writers.CSharp
             WriteSymbol(end);
         }
 
-        private void WriteParameter(IParameterDefinition parameter, bool extensionMethod)
+        private void WriteParameter(IParameterDefinition parameter, ITypeReference containingType, bool extensionMethod)
         {
             WriteAttributes(parameter.Attributes, true);
 
@@ -126,7 +134,7 @@ namespace Microsoft.Cci.Writers.CSharp
                     WriteKeyword("ref");
             }
 
-            WriteTypeName(parameter.Type, isDynamic: IsDynamic(parameter.Attributes));
+            WriteTypeName(parameter.Type, containingType, isDynamic: IsDynamic(parameter.Attributes));
             WriteIdentifier(parameter.Name);
             if (parameter.IsOptional && parameter.HasDefaultValue)
             {
@@ -148,6 +156,9 @@ namespace Microsoft.Cci.Writers.CSharp
 
             if (method.IsStatic)
                 WriteKeyword("static");
+
+            if (method.IsPlatformInvoke)
+                WriteKeyword("extern");
 
             if (method.IsVirtual)
             {
@@ -171,7 +182,7 @@ namespace Microsoft.Cci.Writers.CSharp
 
         private void WriteMethodBody(IMethodDefinition method)
         {
-            if (method.IsAbstract || !_forCompilation)
+            if (method.IsAbstract || !_forCompilation || method.IsPlatformInvoke)
             {
                 WriteSymbol(";");
                 return;

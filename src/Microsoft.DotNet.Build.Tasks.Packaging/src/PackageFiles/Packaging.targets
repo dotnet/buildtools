@@ -111,6 +111,8 @@
   <UsingTask TaskName="PromoteReferenceDependencies" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="GetMinimumNETStandard" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="SplitDependenciesBySupport" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  <UsingTask TaskName="GetLastStablePackage" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  <UsingTask TaskName="HarvestPackage" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
 
   <!-- Determine if we actually need to build for this architecture -->
   <!-- Packages can specifically control their architecture by specifying the PackagePlatforms
@@ -301,12 +303,12 @@
     not be directly referenced by projects for implemtation dependencies. -->
   <Target Name="PreventImplementationReference">
     <ItemGroup Condition="'$(PreventImplementationReference)' == 'true'">
-      <PackageFile Include="$(PlaceholderFile)">
+      <File Include="$(PlaceholderFile)">
         <PackageId>$(Id)</PackageId>
         <PackageVersion>$(Version)</PackageVersion>
         <TargetPath Condition="'$(UseNetPlatform)' != 'true'">ref/netstandard</TargetPath>
         <TargetPath Condition="'$(UseNetPlatform)' == 'true'">ref/dotnet</TargetPath>
-      </PackageFile>
+      </File>
     </ItemGroup>
   </Target>
 
@@ -418,9 +420,59 @@
     </EnsureOOBFramework>
   </Target>
 
+  <Target Name="HarvestStablePackage"
+          Condition="'$(HarvestStablePackage)' != 'false'"
+          DependsOnTargets="EnsureOOBFramework;GetPkgProjPackageDependencies">
+    <ItemGroup>
+      <!-- Exclude any paths already included by the pkgproj -->
+      <HarvestExcludePaths Include="%(File.TargetPath)" KeepDuplicates="false" />
+
+      <_latestPackage Include="$(Id)">
+        <Version>$(Version)</Version>
+      </_latestPackage>
+      <_latestRuntimePackages Include="@(PkgProjDependency)" Condition="'%(PkgProjDependency.TargetRuntime)' != ''" KeepDuplicates="false" />
+    </ItemGroup>
+
+    <!-- Calculate the package version to harvest -->
+    <GetLastStablePackage Condition="'$(HarvestVersion)' == ''" LatestPackages="@(_latestPackage)" StablePackages="@(StablePackage)">
+      <Output  TaskParameter="LastStablePackages" ItemName="_lastStablePackage"/>
+    </GetLastStablePackage>
+
+    <PropertyGroup Condition="'$(HarvestVersion)' == ''">
+      <HarvestVersion>%(_lastStablePackage.Version)</HarvestVersion>
+    </PropertyGroup>
+
+    <!-- Calculate the runtime package versions to use for applicability evaluation -->
+    <GetLastStablePackage Condition="'@(HarvestRuntimePackages)' == ''" LatestPackages="@(_latestRuntimePackages)" StablePackages="@(StablePackage)">
+      <Output  TaskParameter="LastStablePackages" ItemName="HarvestRuntimePackages"/>
+    </GetLastStablePackage>
+
+    <PropertyGroup>
+      <HarvestFiles Condition="'$(HarvestFiles)' == ''">true</HarvestFiles>
+    </PropertyGroup>
+
+    <HarvestPackage PackageId="$(Id)"
+                    PackageVersion="$(HarvestVersion)"
+                    PackagesFolder="$(PackagesDir)"
+                    RuntimeFile="$(RuntimeIdGraphDefinitionFile)"
+                    RuntimePackages="@(HarvestRuntimePackages)"
+                    HarvestAssets="$(HarvestFiles)"
+                    PathsToExclude="@(HarvestExcludePaths)"
+                    PathsToSuppress="@(HarvestSuppressPaths)"
+                    Frameworks="@(DefaultValidateFramework)"
+                    Condition="'$(HarvestVersion)' != ''">
+      <Output TaskParameter="SupportedFrameworks" ItemName="_HarvestedSupportedFramework"/>
+      <Output TaskParameter="Files" ItemName="File"/>
+    </HarvestPackage>
+
+    <ItemGroup>
+      <SupportedFramework Include="@(_HarvestedSupportedFramework)" Exclude="@(NotSupportedOnTargetFramework)" />
+    </ItemGroup>
+  </Target>
+
   <Target Name="GetFiles"
           Returns="@(File)"
-          DependsOnTargets="ConvertItems;EnsureOOBFramework" />
+          DependsOnTargets="ConvertItems;EnsureOOBFramework;HarvestStablePackage" />
 
   <!-- Don't do any filtering of files.
        We explicitly determine package content so we do not need to
@@ -1000,6 +1052,7 @@
                      FrameworkListsPath="$(FrameworkListsPath)"
                      SkipGenerationCheck="$(SkipGenerationCheck)"
                      SkipSupportCheck="$(SkipSupportCheck)"
+                     Suppressions="@(ValidatePackageSuppression)"
                      SuppressionFile="$(ValidationSuppressionFile)"
                      UseNetPlatform="$(UseNetPlatform)"
                      ValidationReport="$(PackageReportPath)" />

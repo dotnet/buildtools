@@ -2,8 +2,8 @@
   "dependencies": {
     "NETStandard.Library": "1.6.0",
     "Newtonsoft.Json": "9.0.1",
-    "NuGet.Packaging": "3.5.0-rc-1590",
-    "NuGet.Versioning": "3.5.0-rc-1590",
+    "NuGet.Packaging": "3.5.0-rc1-final",
+    "NuGet.Versioning": "3.5.0-rc1-final",
     "System.Diagnostics.Process": "4.1.0",
     "System.Diagnostics.TraceSource": "4.0.0"
   },

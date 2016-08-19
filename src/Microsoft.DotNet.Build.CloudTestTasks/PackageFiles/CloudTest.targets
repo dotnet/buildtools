@@ -4,7 +4,6 @@
   <UsingTask TaskName="CreateAzureFileShare" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="GetPerfTestAssemblies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="SendJsonToDocumentDb" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
-  <UsingTask TaskName="SendToEventHub" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="SendToHelix" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="UploadToAzure" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="WriteItemsToJson" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
@@ -93,15 +92,9 @@
     <Error Condition="'$(CloudResultsAccountName)' == ''" Text="Missing required property CloudResultsAccountName." />
     <Error Condition="'$(CloudDropAccessToken)' == ''" Text="Missing required property CloudDropAccessToken." />
     <Error Condition="'$(CloudResultsAccessToken)' == ''" Text="Missing required property CloudResultsAccessToken." />
-    <Error Condition="'$(BuildIsOfficial)' == 'true' and '$(BuildIsOfficialEventHubPath)' == ''" Text="Missing required property BuildIsOfficialEventHubPath." />
-    <Error Condition="'$(BuildIsOfficial)' == 'true' and '$(BuildIsOfficialEventHubSharedAccessKeyName)' == ''" Text="Missing required property BuildIsOfficialEventHubSharedAccessKeyName." />
-    <Error Condition="'$(BuildIsOfficial)' == 'true' and '$(BuildIsOfficialEventHubSharedAccessKey)' == ''" Text="Missing required property BuildIsOfficialEventHubSharedAccessKey." />
-    <!-- TODO: Once we all users are no longer setting EventHubInfoMissing, we can remove this message, and the '$(EventHubInfoMissing)' == '' condition from the error following -->
-    <PropertyGroup>
-      <EventHubInfoMissing Condition="'$(EventHubPath)' == '' or '$(EventHubSharedAccessKey)' == '' or '$(EventHubSharedAccessKeyName)' == ''">true</EventHubInfoMissing>
-    </PropertyGroup>
-    <Warning Condition="'$(SkipNotifyEvent)' != 'true' and '$(HelixApiAccessKey)' == '' and '$(EventHubInfoMissing)' == '' " Text="EventHubPath and EventHubAccessKeys have been deprecated, use HelixApiAccessKey instead" />
-    <Error Condition="'$(SkipNotifyEvent)' != 'true' and '$(HelixApiAccessKey)' == '' and '$(EventHubInfoMissing)' == 'true' " Text="HelixApiAccessKey must be set to start Helix jobs" />
+
+    <Warning Condition="'$(EventHubPath)' != '' or '$(EventHubSharedAccessKey)' != '' or '$(EventHubSharedAccessKeyName)' != ''" Text="EventHubPath and EventHubAccessKeys are ignored, use HelixApiAccessKey instead" />
+    <Error Condition="'$(SkipNotifyEvent)' != 'true' and '$(HelixApiAccessKey)' == ''" Text="HelixApiAccessKey must be set to start Helix jobs" />
 
     <!-- gather the test archives for upload and filter based on FilterToTestTFM -->
     <ItemGroup>
@@ -233,8 +226,8 @@
 
     <ItemGroup>
       <FunctionalTest>
-        <Command Condition="'$(TargetsWindows)' == 'true'">$(HelixPythonPath) $(RunnerScript) --script RunTests.cmd %HELIX_CORRELATION_PAYLOAD% %HELIX_WORKITEM_ROOT%\execution</Command>
-        <Command Condition="'$(TargetsWindows)' != 'true'"> chmod +x $HELIX_WORKITEM_PAYLOAD/RunTests.sh &amp;&amp; $(HelixPythonPath) $(RunnerScript) --script RunTests.sh $HELIX_CORRELATION_PAYLOAD $HELIX_WORKITEM_ROOT/execution</Command>
+        <Command Condition="'$(TargetsWindows)' == 'true'">$(HelixPythonPath) $(RunnerScript) --script RunTests.cmd %HELIX_CORRELATION_PAYLOAD%</Command>
+        <Command Condition="'$(TargetsWindows)' != 'true'"> chmod +x $HELIX_WORKITEM_PAYLOAD/RunTests.sh &amp;&amp; $(HelixPythonPath) $(RunnerScript) --script RunTests.sh $HELIX_CORRELATION_PAYLOAD</Command>
         <CorrelationPayloadUris>[$(CorrelationPayloadUris)]</CorrelationPayloadUris>
         <PayloadUri>$(DropUri)$(Platform)$(ConfigurationGroup)/Tests/$([System.String]::Copy('%(RecursiveDir)').Replace('\', '/'))%(Filename)%(Extension)$(DropUriReadOnlyToken)</PayloadUri>
         <WorkItemId>%(Filename)</WorkItemId>
@@ -261,11 +254,11 @@
 
   <Target Name="CreatePerfTestListJson" DependsOnTargets="CreateAzureStorage" Condition="'$(Performance)' == 'true'">
     <PropertyGroup Condition="'$(TargetsWindows)' == 'true' AND '$(UseLegacyXunitPerfRunner)'!='true'">
-      <OtherRunnerScriptArgs>--script RunTests.cmd %HELIX_CORRELATION_PAYLOAD% %HELIX_WORKITEM_ROOT%\execution</OtherRunnerScriptArgs>
-
+      <OtherRunnerScriptArgs>--script RunTests.cmd %HELIX_CORRELATION_PAYLOAD%</OtherRunnerScriptArgs>
     </PropertyGroup>
+    
     <PropertyGroup Condition="'$(TargetsWindows)' != 'true' AND '$(UseLegacyXunitPerfRunner)'!='true'">
-      <OtherRunnerScriptArgs>--script RunTests.sh $HELIX_CORRELATION_PAYLOAD $HELIX_WORKITEM_ROOT/execution</OtherRunnerScriptArgs>
+      <OtherRunnerScriptArgs>--script RunTests.sh $HELIX_CORRELATION_PAYLOAD</OtherRunnerScriptArgs>
     </PropertyGroup>
 
     <!-- now gather the perf tests -->
@@ -423,34 +416,21 @@
     <WriteItemsToJson JsonFileName="%(TestListFile.BuildCompleteJson)" Items="@(BuildComplete)" />
   </Target>
 
-  <!-- send completion events -->
+  <!-- Send completion event.  All start messages are now sent to Helix API; Event Hub direct sending is now deprecated. -->
   <Target Name="SendCompletionEvent"
           AfterTargets="WriteCompletionEvent"
           Inputs="%(TestListFile.BuildCompleteJson)"
           Outputs="%(TestListFile.HelixJobUploadCompletePath)"
           Condition="'$(SkipNotifyEvent)' != 'true'">
-    <SendToEventHub Condition="'$(HelixApiAccessKey)' == ''"
-      EventHubPath="$(EventHubPath)"
-      EventData="%(TestListFile.BuildCompleteJson)"
-      EventHubSharedAccessKeyName="$(EventHubSharedAccessKeyName)"
-      EventHubSharedAccessKey="$(EventHubSharedAccessKey)"/>
     <SendToHelix Condition=" '$(HelixApiAccessKey)' != '' "
       AccessToken="$(HelixApiAccessKey)"
       ApiEndpoint="$(HelixApiEndpoint)"
       EventDataPath="%(TestListFile.BuildCompleteJson)">
       <Output TaskParameter="JobId" PropertyName="GeneratedCorrelationId" />
     </SendToHelix>
-    <PropertyGroup Condition="'$(HelixApiAccessKey)' == ''">
-      <GeneratedCorrelationId>%(TestListFile.CorrelationId)</GeneratedCorrelationId>
-    </PropertyGroup>
     <WriteLinesToFile File="%(TestListFile.HelixJobUploadCompletePath)" Overwrite="true" Lines="Correlation Id : $(GeneratedCorrelationId)"/>
-    <Message Condition="'$(HelixApiAccessKey)' == ''" Importance="high" Text="Started Helix job: CorrelationId = $(GeneratedCorrelationId)"/>
-    <SendToEventHub
-      Condition="'$(BuildIsOfficial)' == 'true'"
-      EventHubPath="$(BuildIsOfficialEventHubPath)"
-      EventHubSharedAccessKeyName="$(BuildIsOfficialEventHubSharedAccessKeyName)"
-      EventHubSharedAccessKey="$(BuildIsOfficialEventHubSharedAccessKey)"
-      EventData="%(TestListFile.OfficialBuildJson)"/>
+    <Message Condition="'$(HelixApiAccessKey)' == ''" Importance="High" Text="Started Helix job: CorrelationId = $(GeneratedCorrelationId)"/>
+    
     <!-- Upload the Correlation Id to the test drop container for tracking purposes-->
     <PropertyGroup>
       <CorrelationFileName>correlation_id-$(ConfigurationGroup)-$(TestNugetRuntimeId).txt</CorrelationFileName>

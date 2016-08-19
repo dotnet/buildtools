@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace Microsoft.DotNet.VersionTools.Util
 {
-    struct CommandResult
+    internal struct CommandResult
     {
         public static readonly CommandResult Empty = new CommandResult();
 

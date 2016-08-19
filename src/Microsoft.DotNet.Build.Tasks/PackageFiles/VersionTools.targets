@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <PropertyGroup>
+    <!-- Cache of build info files retrieved from versions repository. -->
+    <BuildInfoCacheDir>$(ToolsDir)BuildInfoCache/</BuildInfoCacheDir>
+  </PropertyGroup>
+
   <!-- Task to update the dotnet/versions repository. -->
   <UsingTask TaskName="UpdatePublishedVersions" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
 
@@ -18,7 +23,7 @@
                              VersionsRepoOwner="$(VersionsRepoOwner)" />
   </Target>
 
-  <!-- Task to perform automatic dependency updates. -->
+  <!-- Task to update dependencies to expected values. -->
   <UsingTask TaskName="UpdateDependencies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
 
   <ItemGroup Condition="'$(NotifyGitHubUsers)'!=''">
@@ -29,14 +34,40 @@
     <UpdateDependencies DependencyBuildInfo="@(DependencyBuildInfo)"
                         ProjectJsonFiles="@(ProjectJsonFiles)"
                         XmlUpdateStep="@(XmlUpdateStep)"
-                        ProjectRepoName="$(ProjectRepoName)"
-                        ProjectRepoOwner="$(ProjectRepoOwner)"
-                        ProjectRepoBranch="$(ProjectRepoBranch)"
-                        GitHubAuthToken="$(GitHubAuthToken)"
-                        GitHubUser="$(GitHubUser)"
-                        GitHubEmail="$(GitHubEmail)"
-                        GitHubAuthor="$(GitHubAuthor)"
-                        NotifyGitHubUsers="@(NotifyGitHubUsers)"
-                        AlwaysCreateNewPullRequest="$(AlwaysCreateNewPullRequest)" />
+                        BuildInfoCacheDir="$(BuildInfoCacheDir)" />
+  </Target>
+
+  <!-- Task to perform dependency verification. -->
+  <UsingTask TaskName="VerifyDependencies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+
+  <Target Name="VerifyDependencies" Condition="'$(SkipVerifyPackageVersions)'!='true'">
+    <!-- Add message so it's clear what's happening when building with verbosity:minimal. For example, "sync -p". -->
+    <Message Importance="High" Text="[$([System.DateTime]::Now.ToString('HH:mm:ss.ff'))] Verifying all auto-upgradeable dependencies..." />
+
+    <VerifyDependencies DependencyBuildInfo="@(DependencyBuildInfo)"
+                        ProjectJsonFiles="@(ProjectJsonFiles)"
+                        XmlUpdateStep="@(XmlUpdateStep)"
+                        BuildInfoCacheDir="$(BuildInfoCacheDir)" />
+
+    <Message Importance="High" Text="[$([System.DateTime]::Now.ToString('HH:mm:ss.ff'))] Verifying all auto-upgradeable dependencies... Done." />
+  </Target>
+
+  <!-- Task to create a dependency update pull request. -->
+  <UsingTask TaskName="UpdateDependenciesAndSubmitPullRequest" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+
+  <Target Name="UpdateDependenciesAndSubmitPullRequest">
+    <UpdateDependenciesAndSubmitPullRequest DependencyBuildInfo="@(DependencyBuildInfo)"
+                                            ProjectJsonFiles="@(ProjectJsonFiles)"
+                                            XmlUpdateStep="@(XmlUpdateStep)"
+                                            ProjectRepoName="$(ProjectRepoName)"
+                                            ProjectRepoOwner="$(ProjectRepoOwner)"
+                                            ProjectRepoBranch="$(ProjectRepoBranch)"
+                                            GitHubAuthToken="$(GitHubAuthToken)"
+                                            GitHubUser="$(GitHubUser)"
+                                            GitHubEmail="$(GitHubEmail)"
+                                            GitHubAuthor="$(GitHubAuthor)"
+                                            NotifyGitHubUsers="@(NotifyGitHubUsers)"
+                                            CurrentRefXmlPath="$(CurrentRefXmlPath)"
+                                            AlwaysCreateNewPullRequest="$(AlwaysCreateNewPullRequest)" />
   </Target>
 </Project>

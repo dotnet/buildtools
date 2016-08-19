@@ -55,4 +55,15 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
         public string Name { get; set; }
         public string Email { get; set; }
     }
+
+    public class GitReference
+    {
+        public string Ref { get; set; }
+        public GitReferenceObject Object { get; set; }
+    }
+
+    public class GitReferenceObject
+    {
+        public string Sha { get; set; }
+    }
 }

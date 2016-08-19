@@ -13,8 +13,10 @@ IF [%BUILDTOOLS_NET45_TARGET_RUNTIME%]==[] set BUILDTOOLS_NET45_TARGET_RUNTIME=w
 set BUILDTOOLS_PACKAGE_DIR=%~dp0
 set MICROBUILD_VERSION=0.2.0
 set PORTABLETARGETS_VERSION=0.1.1-dev
-set ROSLYNCOMPILERS_VERSION=1.3.0-beta1-20160429-01
+set ROSLYNCOMPILERS_VERSION=2.0.0-beta3
 set MSBUILD_CONTENT_JSON={"dependencies": { "MicroBuild.Core": "%MICROBUILD_VERSION%", "Microsoft.Portable.Targets": "%PORTABLETARGETS_VERSION%", "Microsoft.Net.Compilers": "%ROSLYNCOMPILERS_VERSION%"},"frameworks": {"netcoreapp1.0": {},"net46": {}}}
+set INIT_TOOLS_RESTORE_ARGS=--source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json %INIT_TOOLS_RESTORE_ARGS%
+set TOOLRUNTIME_RESTORE_ARGS=--source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json %INIT_TOOLS_RESTORE_ARGS%
 
 if not exist "%PROJECT_DIR%" (
   echo ERROR: Cannot find project root path at [%PROJECT_DIR%]. Please pass in the source directory as the 1st parameter.
@@ -30,7 +32,7 @@ ROBOCOPY "%BUILDTOOLS_PACKAGE_DIR%\." "%TOOLRUNTIME_DIR%" /E
 
 set TOOLRUNTIME_PROJECTJSON=%BUILDTOOLS_PACKAGE_DIR%\tool-runtime\project.json
 @echo on
-call "%DOTNET_CMD%" restore "%TOOLRUNTIME_PROJECTJSON%" --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json
+call "%DOTNET_CMD%" restore "%TOOLRUNTIME_PROJECTJSON%" %TOOLRUNTIME_RESTORE_ARGS%
 set RESTORE_ERROR_LEVEL=%ERRORLEVEL%
 @echo off
 if not [%RESTORE_ERROR_LEVEL%]==[0] (
@@ -59,7 +61,7 @@ if not exist "%PACKAGES_DIR%\generated" mkdir "%PACKAGES_DIR%\generated"
 set PORTABLETARGETS_PROJECTJSON=%PACKAGES_DIR%\generated\project.json
 echo %MSBUILD_CONTENT_JSON% > "%PORTABLETARGETS_PROJECTJSON%"
 @echo on
-call "%DOTNET_CMD%" restore "%PORTABLETARGETS_PROJECTJSON%" --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json --packages "%PACKAGES_DIR%\."
+call "%DOTNET_CMD%" restore "%PORTABLETARGETS_PROJECTJSON%" %INIT_TOOLS_RESTORE_ARGS% --packages "%PACKAGES_DIR%\."
 set RESTORE_PORTABLETARGETS_ERROR_LEVEL=%ERRORLEVEL%
 @echo off
 if not [%RESTORE_PORTABLETARGETS_ERROR_LEVEL%]==[0] (

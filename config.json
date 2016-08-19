@@ -34,7 +34,7 @@
       "description": "MsBuild building options.",
       "valueType": "passThrough",
       "values": [],
-      "defaultValue": "/nologo /maxcpucount /verbosity:minimal"
+      "defaultValue": "/nologo /maxcpucount /verbosity:minimal /nodeReuse:false"
     },
     "Project": {
       "description": "Project where the commands are going to be applied.",
