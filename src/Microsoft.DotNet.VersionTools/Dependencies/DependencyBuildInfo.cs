@@ -20,13 +20,30 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
         /// </summary>
         public bool UpgradeStableVersions { get; }
 
+        /// <summary>
+        /// Package id/version pairs of this dependency build info. May be different from the
+        /// BuildInfo's package dictionary based on dependency requirements.
+        /// </summary>
+        public Dictionary<string, string> RawPackages { get; }
+
+        /// <summary>
+        /// Parsed copies of packages in RawPackages.
+        /// </summary>
         public IEnumerable<PackageIdentity> Packages { get; }
 
-        public DependencyBuildInfo(BuildInfo buildInfo, bool upgradeStableVersions)
+        public DependencyBuildInfo(
+            BuildInfo buildInfo,
+            bool upgradeStableVersions,
+            IEnumerable<string> disabledPackages)
         {
             BuildInfo = buildInfo;
             UpgradeStableVersions = upgradeStableVersions;
-            Packages = buildInfo.LatestPackages
+
+            RawPackages = buildInfo.LatestPackages
+                .Where(pair => !disabledPackages.Contains(pair.Key))
+                .ToDictionary(pair => pair.Key, pair => pair.Value);
+
+            Packages = RawPackages
                 .Select(pair => new PackageIdentity(pair.Key, new NuGetVersion(pair.Value)))
                 .ToArray();
         }
