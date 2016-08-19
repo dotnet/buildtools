@@ -30,6 +30,12 @@
       "values": [],
       "defaultValue": "/flp:v=normal"
     },
+    "MsBuildParameters": {
+      "description": "MsBuild building options.",
+      "valueType": "passThrough",
+      "values": [],
+      "defaultValue": "/nologo /maxcpucount /verbosity:minimal /nodeReuse:false"
+    },
     "Project": {
       "description": "Project where the commands are going to be applied.",
       "valueType": "passThrough",
@@ -80,14 +86,15 @@
         "verbose":{
           "description": "Passes /flp:v=diag to the msbuild command or the value passed by the user.",
           "settings":{
-            "MsBuildLogging": "/flp:v=diag;LogFile=sync.log"
+            "MsBuildLogging": "/flp:v=diag"
           }
         }
       },
       "defaultValues":{
         "toolName": "msbuild",
         "settings": {
-          "MsBuildLogging":"/flp:v=normal;LogFile=sync.log"
+          "MsBuildParameters":"default",
+          "MsBuildLogging":"default"
         }
       }
     },
@@ -133,7 +140,7 @@
       "defaultValues":{
         "toolName": "msbuild",
         "settings": {
-          "MsBuildLogging":"default"
+          "MsBuildParameters":"default"
         }
       }
     },
@@ -161,22 +168,17 @@
       "defaultValues":{
         "toolName": "msbuild",
         "settings": {
-          "MsBuildLogging":"/flp:v=normal;LogFile=clean.log"
+          "MsBuildParameters":"default",
+          "MsBuildLogging":"default"
         }
       }
     }
   },
   "tools": {
     "msbuild": {
-      "osSpecific":{
-        "windows": {
-          "defaultParameters": "/nologo /verbosity:minimal /clp:Summary /maxcpucount /nodeReuse:false /l:BinClashLogger,Tools\\net45\\Microsoft.DotNet.Build.Tasks.dll;LogFile=binclash.log",
-          "path": "Tools/msbuild.cmd"
-        },
-        "unix":{
-          "defaultParameters": "/nologo /verbosity:minimal /clp:Summary /maxcpucount /l:BinClashLogger,Tools/Microsoft.DotNet.Build.Tasks.dll;LogFile=binclash.log",
-          "path": "Tools/msbuild.sh"
-        }
+      "run": {
+        "windows": "Tools/msbuild.cmd",
+        "unix": "Tools/msbuild.sh"
       },
       "valueTypes": {
         "property": "/p:{name}={value}",
@@ -184,14 +186,10 @@
         "internal": "/{name}"
       }
     },
-    "script": {
-      "osSpecific":{
-        "windows": {
-          "filesExtension": "cmd"
-        },
-        "unix":{
-          "filesExtension": "sh"
-        }
+    "terminal": {
+      "run": {
+        "windows": "cmd",
+        "unix": "sh"
       },
       "valueTypes": {}
     }
