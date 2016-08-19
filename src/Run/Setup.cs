@@ -262,18 +262,19 @@ namespace Microsoft.DotNet.Execute
         private string GetTool(Command commandToExecute, string os, string configPath, List<string> parametersSelectedByUser)
         {
             string toolname = commandToExecute.DefaultValues.ToolName;
-
             string project = GetProject(commandToExecute, parametersSelectedByUser);
 
-            if (Tools.ContainsKey(toolname))
+            Tool toolProperties = null;
+
+            if(Tools.TryGetValue(toolname, out toolProperties))
             {
                 SettingParameters["toolName"] = toolname;
                 string value = string.Empty;
-                if(Tools[toolname].osSpecific[os].TryGetValue("path", out value) && !string.IsNullOrEmpty(value))
+                if (toolProperties.osSpecific[os].TryGetValue("path", out value) && !string.IsNullOrEmpty(value))
                 {
                     return Path.GetFullPath(Path.Combine(configPath, value));
                 }
-                else if (Tools[toolname].osSpecific[os].TryGetValue("filesExtension", out value) && !string.IsNullOrEmpty(value))
+                else if (toolProperties.osSpecific[os].TryGetValue("filesExtension", out value) && !string.IsNullOrEmpty(value))
                 {
                     string extension = value;
                     return Path.GetFullPath(Path.Combine(configPath, string.Format("{0}.{1}", project, extension)));
@@ -284,6 +285,7 @@ namespace Microsoft.DotNet.Execute
                     return string.Empty;
                 }
             }
+
             Console.Error.WriteLine("Error: The process {0} is not specified in the Json file.", toolname);
             return string.Empty;
         }
