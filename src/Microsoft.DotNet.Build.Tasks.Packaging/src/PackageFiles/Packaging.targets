@@ -7,6 +7,7 @@
   -->
 
   <PropertyGroup>
+    <PackageVersion Condition="'$(PackageVersion)' == '' AND '$(Version)' != ''">$(Version)</PackageVersion>
     <PreReleaseLabel Condition="'$(PreReleaseLabel)' == ''">rc2</PreReleaseLabel>
     <IncludeBuildNumberInPackageVersion Condition="'$(IncludeBuildNumberInPackageVersion)' == ''">true</IncludeBuildNumberInPackageVersion>
 
@@ -272,7 +273,7 @@
       <_FilesToPackage Remove="@(_FilesToPackage)" Condition="'$(ExcludeReferenceAssets)' == 'true' AND '%(_FilesToPackage.IsReferenceAsset)' == 'true'" />
       <File Include="@(_FilesToPackage)">
         <PackageId>$(Id)</PackageId>
-        <PackageVersion>$(Version)</PackageVersion>
+        <PackageVersion>$(PackageVersion)</PackageVersion>
         <!-- Some packages support legacy portable profiles where dependencies are provided by targeting pack -->
         <HarvestDependencies Condition="!$([System.String]::new('%(_FilesToPackage.TargetFramework)').StartsWith('portable-'))">true</HarvestDependencies>
       </File>
@@ -297,7 +298,7 @@
     <ItemGroup Condition="'$(PreventImplementationReference)' == 'true'">
       <File Include="$(PlaceholderFile)">
         <PackageId>$(Id)</PackageId>
-        <PackageVersion>$(Version)</PackageVersion>
+        <PackageVersion>$(PackageVersion)</PackageVersion>
         <TargetPath Condition="'$(UseNetPlatform)' != 'true'">ref/netstandard</TargetPath>
         <TargetPath Condition="'$(UseNetPlatform)' == 'true'">ref/dotnet</TargetPath>
       </File>
@@ -330,13 +331,13 @@
     <ItemGroup>
       <File Include="$(PlaceholderFile)">
         <PackageId>$(Id)</PackageId>
-        <PackageVersion>$(Version)</PackageVersion>
+        <PackageVersion>$(PackageVersion)</PackageVersion>
         <TargetPath Condition="'$(_targetRuntime)' != ''">runtimes/$(_targetRuntime)/lib/$(_target)</TargetPath>
         <TargetPath Condition="'$(_targetRuntime)' == ''">lib/$(_target)</TargetPath>
       </File>
       <File Include="$(PlaceholderFile)" Condition="'$(_targetRef)' == 'true'">
         <PackageId>$(Id)</PackageId>
-        <PackageVersion>$(Version)</PackageVersion>
+        <PackageVersion>$(PackageVersion)</PackageVersion>
         <TargetPath>ref/$(_target)</TargetPath>
       </File>
       <FrameworkReference Condition="'%(InboxOnTargetFramework.AsFrameworkReference)' == 'true'" Include="$(Id)">
@@ -420,7 +421,7 @@
       <HarvestExcludePaths Include="%(File.TargetPath)" KeepDuplicates="false" />
 
       <_latestPackage Include="$(Id)">
-        <Version>$(Version)</Version>
+        <Version>$(PackageVersion)</Version>
       </_latestPackage>
       <_latestRuntimePackages Include="@(PkgProjDependency)" Condition="'%(PkgProjDependency.TargetRuntime)' != ''" KeepDuplicates="false" />
     </ItemGroup>
@@ -481,7 +482,7 @@
       <PackageFile Include="@(File)" Condition="'%(File.IsSourceCodeFile)'!='true'" />
       <PackageFile Condition="'%(PackageFile.PackageId)' == ''">
         <PackageId>$(Id)</PackageId>
-        <PackageVersion>$(Version)</PackageVersion>
+        <PackageVersion>$(PackageVersion)</PackageVersion>
       </PackageFile>
 
       <!-- Include Sources. Deduplicate so the nuspec doesn't contain multiple entries for each source file. -->
@@ -570,7 +571,7 @@
       <PackageFile Condition="'$(RuntimeFileSource)' != ''" Remove="$(RuntimeFileSource)"/>
       <PackageFile Include="$(RuntimeFilePath)">
         <PackageId>$(Id)</PackageId>
-        <PackageVersion>$(Version)</PackageVersion>
+        <PackageVersion>$(PackageVersion)</PackageVersion>
         <IsLibrary>false</IsLibrary>
       </PackageFile>
     </ItemGroup>
@@ -767,7 +768,7 @@
     <ItemGroup Condition="'@(PackageFile)' == ''">
       <PackageFile Include="$(PlaceholderFile)">
         <PackageId>$(Id)</PackageId>
-        <PackageVersion>$(Version)</PackageVersion>
+        <PackageVersion>$(PackageVersion)</PackageVersion>
         <IsLibrary>false</IsLibrary>
       </PackageFile>
     </ItemGroup>
@@ -779,7 +780,7 @@
   <!-- Walks every project gathering its AssemblyVersion, choosing the highest -->
   <!-- Skipped if the package explicitly defines a version -->
   <Target Name="GetAssemblyVersionFromProjects"
-          Condition="$(Version) == ''"
+          Condition="$(PackageVersion) == ''"
           DependsOnTargets="GetFiles">
 
     <GetPackageVersion Files="@(File)">
@@ -795,12 +796,12 @@
         DependsOnTargets="CreateVersionFileDuringBuild;GetAssemblyVersionFromProjects">
 
     <Error Text="No version could be detected.  Either specify the Version property or provide at least one managed assembly."
-           Condition="'$(Version)' == '' AND '$(_AssemblyVersion)' == ''" />
+           Condition="'$(PackageVersion)' == '' AND '$(_AssemblyVersion)' == ''" />
 
     <ItemGroup>
       <_thisPackage Include="$(Id)">
-        <Version Condition="'$(Version)' != ''">$(Version)</Version>
-        <Version Condition="'$(Version)' == ''">$(_AssemblyVersion)</Version>
+        <Version Condition="'$(PackageVersion)' != ''">$(PackageVersion)</Version>
+        <Version Condition="'$(PackageVersion)' == ''">$(_AssemblyVersion)</Version>
       </_thisPackage>
     </ItemGroup>
 
@@ -811,7 +812,7 @@
     </ApplyPreReleaseSuffix>
 
     <PropertyGroup>
-      <Version>%(_thisPackageFinal.Version)</Version>
+      <PackageVersion>%(_thisPackageFinal.Version)</PackageVersion>
     </PropertyGroup>
   </Target>
 
@@ -831,7 +832,7 @@
 
     <ItemGroup>
       <_PackageIdentity Include="$(Id)">
-        <Version>$(Version)</Version>
+        <Version>$(PackageVersion)</Version>
         <TargetFramework Condition="'$(PackageTargetFramework)' != ''">$(PackageTargetFramework)</TargetFramework>
         <TargetRuntime Condition="'$(PackageTargetRuntime)' != ''">$(PackageTargetRuntime)</TargetRuntime>
         <MinimumNETStandard Condition="'$(MinimumNETStandard)' != ''">$(MinimumNETStandard)</MinimumNETStandard>
@@ -1048,7 +1049,7 @@
                      Frameworks="@(ValidateFramework)"
                      PackageId="$(Id)"
                      PackageIndexes="@(PackageIndex)"
-                     PackageVersion="$(Version)"
+                     PackageVersion="$(PackageVersion)"
                      RuntimeFile="$(RuntimeIdGraphDefinitionFile)"
                      SkipGenerationCheck="$(SkipGenerationCheck)"
                      SkipIndexCheck="$(SkipIndexCheck)"
@@ -1094,7 +1095,7 @@
                     OutputFileName="$(NuSpecPath)"
                     MinClientVersion="$(MinClientVersion)"
                     Id="$(Id)"
-                    Version="$(Version)"
+                    Version="$(PackageVersion)"
                     Title="$(Title)"
                     Authors="$(Authors)"
                     Owners="$(Owners)"
@@ -1118,7 +1119,7 @@
 
   <Target Name="CreatePackage"
           Inputs="$(NuSpecPath)"
-          Outputs="$(PackageOutputPath)$(Id).$(Version).nupkg">
+          Outputs="$(PackageOutputPath)$(Id).$(PackageVersion).nupkg">
 
     <ItemGroup>
       <_missingFiles Include="@(PackageFile)" Condition="!Exists(%(FullPath))"/>
@@ -1139,7 +1140,7 @@
                AdditionalSymbolPackageExcludes="@(AdditionalSymbolPackageExcludes)"
                Condition="'$(_SkipCreatePackage)' != 'true'"/>
     <!-- Create a marker that records the path to the generated package -->
-    <WriteLinesToFile Lines="$(PackageOutputPath)$(Id).$(Version).nupkg;$(SymbolPackageOutputPath)$(Id).$(Version).symbols.nupkg"
+    <WriteLinesToFile Lines="$(PackageOutputPath)$(Id).$(PackageVersion).nupkg;$(SymbolPackageOutputPath)$(Id).$(PackageVersion).symbols.nupkg"
                       File="$(NuSpecPath).pkgpath"
                       Overwrite="true"
                       Condition="'$(_SkipCreatePackage)' != 'true'"/>
@@ -1155,7 +1156,7 @@
            Text="The PackageIndexFile property is not set.  Please set this property to point to the path of the packageIndex.json file for your repo." />
 
     <UpdatePackageIndex PackageIndexFile="$(PackageIndexFile)"
-                        Packages="$(PackageOutputPath)$(Id).$(Version).nupkg" />
+                        Packages="$(PackageOutputPath)$(Id).$(PackageVersion).nupkg" />
   </Target>
 
   <!-- Updates the packageIndex with information from the multiple sources for the entire repo -->
