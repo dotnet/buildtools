@@ -22,12 +22,14 @@
   <ItemGroup>
     <Compile Include="GetApplicableAssetsFromPackageReports.cs" />
     <Compile Include="GetLastStablePackage.cs" />
+    <Compile Include="UpdatePackageIndex.cs" />
     <Compile Include="HarvestPackage.cs" />
     <Compile Include="GetApplicableAssetsFromPackages.cs" />
     <Compile Include="GetMinimumNETStandard.cs" />
     <Compile Include="NugetPropertyStringProvider.cs" />
     <Compile Include="GetRuntimeJsonValues.cs" />
     <Compile Include="GetRuntimeTargets.cs" />
+    <Compile Include="PackageIndex.cs" />
     <Compile Include="SplitDependenciesBySupport.cs" />
     <Compile Include="GenerateNetStandardSupportTable.cs" />
     <Compile Include="PromoteReferenceDependencies.cs" />

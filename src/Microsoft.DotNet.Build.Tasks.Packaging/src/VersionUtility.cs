@@ -22,10 +22,18 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
         public static Version GetAssemblyVersion(string assemblyPath)
         {
+            using (var fileStream = new FileStream(assemblyPath, FileMode.Open, FileAccess.Read, FileShare.Delete | FileShare.Read))
+            {
+                return GetAssemblyVersion(fileStream);
+            }
+        }
+
+        public static Version GetAssemblyVersion(Stream assemblyStream)
+        {
             Version result = null;
             try
             {
-                using (PEReader peReader = new PEReader(new FileStream(assemblyPath, FileMode.Open, FileAccess.Read, FileShare.Delete | FileShare.Read)))
+                using (PEReader peReader = new PEReader(assemblyStream, PEStreamOptions.LeaveOpen))
                 {
                     if (peReader.HasMetadata)
                     {
@@ -40,6 +48,48 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
 
             return result;
+        }
+
+        public static Version As3PartVersion(Version version)
+        {
+            int build = version.Build;
+
+            if (build == -1)
+            {
+                // we have a 2-part version
+                build = 0;
+            }
+            else if (version.Revision == -1)
+            {
+                // we already have a 3-part version
+                return version;
+            }
+
+            return new Version(version.Major, version.Minor, build);
+        }
+
+        public static Version As4PartVersion(Version version)
+        {
+            int build = version.Build, revision = version.Revision;
+
+            if (build == -1)
+            {
+                // we have a 2-part version
+                build = 0;
+                revision = 0;
+            }
+            else if (revision == -1)
+            {
+                // we have a 3-part version
+                revision = 0;
+            }
+            else
+            {
+                // we already have a 4-part version
+                return version;
+            }
+
+            return new Version(version.Major, version.Minor, build, revision);
         }
     }
 }

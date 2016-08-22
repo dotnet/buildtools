@@ -6,6 +6,7 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
@@ -15,73 +16,51 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
     /// </summary>
     public class ApplyPreReleaseSuffix : PackagingTask
     {
-        public ITaskItem[] StablePackages
-        {
-            get;
-            set;
-        }
-
+        /// <summary>
+        /// Original dependencies without pre-release specifier.
+        /// </summary>
         [Required]
-        public ITaskItem[] OriginalPackages
-        {
-            get;
-            set;
-        }
+        public ITaskItem[] OriginalPackages { get; set; }
 
-        public bool RevStableToPrerelease
-        {
-            get;
-            set;
-        }
-
+        /// <summary>
+        /// Pre-release suffix for this build.
+        /// </summary>
         [Required]
-        public string PreReleaseSuffix
-        {
-            get;
-            set;
-        }
+        public string PreReleaseSuffix { get; set; }
 
+        /// <summary>
+        /// Package index files used to define stable package list.
+        /// </summary>
+        [Required]
+        public ITaskItem[] PackageIndexes { get; set; }
+
+        /// <summary>
+        /// Updated dependencies whit pre-release specifier where package version is not yet stable.
+        /// </summary>
         [Output]
-        public ITaskItem[] UpdatedPackages
-        {
-            get;
-            set;
-        }
+        public ITaskItem[] UpdatedPackages { get; set; }
 
         public override bool Execute()
         {
-            if (null == StablePackages)
-            {
-                StablePackages = new ITaskItem[0];
-            }
-
             if (null == OriginalPackages || OriginalPackages.Length == 0)
             {
-                Log.LogError("OriginalPackages argument must be specified");
+                Log.LogError($"{nameof(OriginalPackages)} argument must be specified");
                 return false;
             }
 
             if (String.IsNullOrEmpty(PreReleaseSuffix))
             {
-                Log.LogError("PreReleaseSuffix argument must be specified");
+                Log.LogError($"{nameof(PreReleaseSuffix)} argument must be specified");
                 return false;
             }
 
-            // build up a map of stable versions
-            Dictionary<string, Version> stablePackageVersions = new Dictionary<string, Version>();
-            foreach (var stablePackage in StablePackages)
+            if (PackageIndexes == null || PackageIndexes.Length == 0)
             {
-                string stablePackageId = stablePackage.ItemSpec;
-                Version newVersion = ParseAs3PartVersion(stablePackage.GetMetadata("Version"));
-                Version existingVersion = null;
-
-                // if we don't have a version or the new version is greater assign it
-                if (!stablePackageVersions.TryGetValue(stablePackageId, out existingVersion) ||
-                    (newVersion > existingVersion))
-                {
-                    stablePackageVersions[stablePackageId] = newVersion;
-                }
+                Log.LogError($"{nameof(PackageIndexes)} must be specified");
+                return false;
             }
+
+            PackageIndex.Current.Merge(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
 
             List<ITaskItem> updatedPackages = new List<ITaskItem>();
 
@@ -97,26 +76,15 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                 TaskItem updatedPackage = new TaskItem(originalPackage);
                 Version packageVersion = ParseAs3PartVersion(originalPackage.GetMetadata("Version"));
-                Version stableVersion = null;
 
-                // if the id is not in the stable versions, or the stable version is lower append pre-release
-                if (!stablePackageVersions.TryGetValue(packageId, out stableVersion) ||
-                    stableVersion < packageVersion)
+                if (!PackageIndex.Current.IsStable(packageId, packageVersion))
                 {
-                    // pre-release, set with suffix
-                    updatedPackage.SetMetadata("Version", packageVersion.ToString() + PreReleaseSuffix);
-                }
-                else if (RevStableToPrerelease)
-                {
-                    // stable contract, but we want to rev the package version as a workaround
-                    // until we are able to actually rev the assembly version
-                    packageVersion = new Version(packageVersion.Major, packageVersion.Minor, packageVersion.Build + 1);
                     // pre-release, set with suffix
                     updatedPackage.SetMetadata("Version", packageVersion.ToString() + PreReleaseSuffix);
                 }
                 else
                 {
-                    // stable, just set the 3 part version witout suffix
+                    // stable, just set the 3 part version without suffix
                     updatedPackage.SetMetadata("Version", packageVersion.ToString());
                 }
 

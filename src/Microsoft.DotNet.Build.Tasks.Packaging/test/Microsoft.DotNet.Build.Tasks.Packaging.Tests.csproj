@@ -30,6 +30,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="packageIndex.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="project.json" />
     <None Include="$(PackagesDir)Microsoft.NETCore.Platforms\1.0.1\runtime.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

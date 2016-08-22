@@ -19,14 +19,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// </summary>
         [Required]
         public ITaskItem[] LatestPackages { get; set; }
-        
+
         /// <summary>
-        /// List of previously shipped packages.
-        ///   Identity: Package ID
-        ///   Version: Package version.
+        /// Package index files used to define stable packages.
         /// </summary>
         [Required]
-        public ITaskItem[] StablePackages { get; set; }
+        public ITaskItem[] PackageIndexes { get; set; }
 
         /// <summary>
         /// Latest version from StablePackages for all packages in LatestPackages.
@@ -42,9 +40,16 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 return true;
             }
 
-            Dictionary<string, Version> latestPackages = new Dictionary<string, Version>();
-            Dictionary<string, Version> lastStablePackages = new Dictionary<string, Version>();
+            if (PackageIndexes == null || PackageIndexes.Length == 0)
+            {
+                Log.LogError($"{nameof(PackageIndexes)} must be specified");
+                return false;
+            }
+
+            PackageIndex.Current.Merge(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
             
+            List<ITaskItem> lastStablePackages = new List<ITaskItem>();
+
             foreach(var latestPackage in LatestPackages)
             {
                 var packageId = latestPackage.ItemSpec;
@@ -56,41 +61,21 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     Log.LogMessage($"Could not parse version {versionString} for LatestPackage {packageId}, will use latest stable.");
                 }
 
-                latestPackages[packageId] = nuGetVersion?.Version;
-            }
+                var latestVersion = nuGetVersion?.Version;
 
-            foreach(var stablePackage in StablePackages)
-            {
-                var packageId = stablePackage.ItemSpec;
-
-                Version latestVersion;
-                if (!latestPackages.TryGetValue(packageId, out latestVersion))
+                PackageInfo info;
+                if (PackageIndex.Current.Packages.TryGetValue(packageId, out info))
                 {
-                    continue;
-                }
+                    var candidateVersions = (latestVersion == null) ? info.StableVersions : info.StableVersions.Where(sv => sv < latestVersion);
 
-                var versionString = stablePackage.GetMetadata("Version");
-                Version stableVersion;
-                if (versionString == null || !Version.TryParse(versionString, out stableVersion))
-                {
-                    Log.LogError($"Could not parse version {versionString} for StablePackage {packageId}");
-                    continue;
-                }
-
-                // need a version less than current version
-                if (latestVersion != null && stableVersion >= latestVersion)
-                {
-                    continue;
-                }
-
-                Version lastStableVersion;
-                if (!lastStablePackages.TryGetValue(packageId, out lastStableVersion) || lastStableVersion < stableVersion)
-                {
-                    lastStablePackages[packageId] = stableVersion;
+                    if (candidateVersions.Any())
+                    {
+                        lastStablePackages.Add(CreateItem(packageId, candidateVersions.Max()));
+                    }
                 }
             }
 
-            LastStablePackages = lastStablePackages.Select(p => CreateItem(p.Key, p.Value)).ToArray();
+            LastStablePackages = lastStablePackages.ToArray();
 
             return !Log.HasLoggedErrors;
         }
