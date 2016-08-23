@@ -95,7 +95,11 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                 .GetMetadata("UpdateStableVersions")
                 .Equals("true", StringComparison.OrdinalIgnoreCase);
 
-            return new DependencyBuildInfo(info, updateStaticDependencies);
+            string[] disabledPackages = item
+                .GetMetadata("DisabledPackages")
+                .Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+
+            return new DependencyBuildInfo(info, updateStaticDependencies, disabledPackages);
         }
 
         private static BuildInfo CreateBuildInfo(ITaskItem item, string cacheDir)
