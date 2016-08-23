@@ -7,6 +7,7 @@
   -->
 
   <PropertyGroup>
+    <PackageVersion Condition="'$(StableVersion)' != ''">$(StableVersion)</PackageVersion>
     <PackageVersion Condition="'$(PackageVersion)' == '' AND '$(Version)' != ''">$(Version)</PackageVersion>
     <PreReleaseLabel Condition="'$(PreReleaseLabel)' == ''">rc2</PreReleaseLabel>
     <IncludeBuildNumberInPackageVersion Condition="'$(IncludeBuildNumberInPackageVersion)' == ''">true</IncludeBuildNumberInPackageVersion>
@@ -806,14 +807,15 @@
       </_thisPackage>
     </ItemGroup>
 
-    <ApplyPreReleaseSuffix OriginalPackages="@(_thisPackage)" 
+    <ApplyPreReleaseSuffix Condition="'$(StableVersion)' == ''"
+                           OriginalPackages="@(_thisPackage)" 
                            StablePackages="@(StablePackage)"
                            PackageIndexes="@(PackageIndex)"
                            PreReleaseSuffix="$(VersionSuffix)" >
       <Output TaskParameter="UpdatedPackages" ItemName="_thisPackageFinal"/>
     </ApplyPreReleaseSuffix>
 
-    <PropertyGroup>
+    <PropertyGroup Condition="'$(StableVersion)' == ''">
       <PackageVersion>%(_thisPackageFinal.Version)</PackageVersion>
     </PropertyGroup>
   </Target>
