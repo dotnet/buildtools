@@ -105,7 +105,8 @@
   <UsingTask TaskName="GetLastStablePackage" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="HarvestPackage" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="UpdatePackageIndex" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-
+  <UsingTask TaskName="GetPackageFromModule" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  
   <!-- Determine if we actually need to build for this architecture -->
   <!-- Packages can specifically control their architecture by specifying the PackagePlatforms
        property as a semi-colon delimited list.
@@ -625,16 +626,12 @@
       </_FilePackageReference>
     </ItemGroup>
 
-    <ItemGroup Condition="'@(_FileReferencedNativeLibraries)' != ''">
-      <!-- intersect with NativeLibrary and add Package metadata from NativeLibrary, preserving native lib file name in metadata -->
-      <_FileReferencedNativeLibrariesWithPackage Include="@(_FileReferencedNativeLibraries)"
-                                                 Condition="'@(_FileReferencedNativeLibraries)' == '@(NativeLibrary)' AND '%(Identity)' != ''">
-        <Package>@(NativeLibrary->'%(Package)')</Package>
-        <NativeLibrary>%(Identity)</NativeLibrary>
-      </_FileReferencedNativeLibrariesWithPackage>
-
-      <_FilePackageReference Include="@(_FileReferencedNativeLibrariesWithPackage->'%(Package)')" />
-    </ItemGroup>
+    <GetPackageFromModule Condition="'@(_FileReferencedNativeLibraries)' != ''"
+                          ModulesReferenced="@(_FileReferencedNativeLibraries)"
+                          ModulePackages="@(NativeLibrary)"
+                          PackageIndexes="@(PackageIndex)">
+      <Output TaskParameter="PackagesReferenced" ItemName="_FilePackageReference" />
+    </GetPackageFromModule>
 
     <ItemGroup>
       <FilePackageDependency Include="@(_FilePackageReference)" />
