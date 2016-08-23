@@ -146,7 +146,7 @@ namespace Microsoft.DotNet.Execute
             }
             string os = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "windows": "unix";
 
-            jsonSetup.prepareValues(os, executor.SettingParameters, executor.configFilePath);
+            jsonSetup.PrepareValues(os, executor.SettingParameters, executor.configFilePath);
             if (executor.DefineParameters(parseArgs, jsonSetup))
             {
                 if(string.IsNullOrEmpty(executor.CommandSelectedByUser))
