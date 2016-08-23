@@ -125,6 +125,11 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             get;
             set;
         }
+        public bool SkipIndexCheck
+        {
+            get;
+            set;
+        }
 
         public bool SkipSupportCheck
         {
@@ -162,6 +167,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         }
 
         /// <summary>
+        /// Package index files used to define package version mapping.
+        /// </summary>
+        [Required]
+        public ITaskItem[] PackageIndexes { get; set; }
+
+        /// <summary>
         /// property bag of error suppressions
         /// </summary>
         private Dictionary<Suppression, HashSet<string>> _suppressions;
@@ -191,6 +202,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 ValidateSupport();
             }
 
+            ValidateIndex();
 
             return !Log.HasLoggedErrors;
         }
@@ -418,6 +430,44 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             if (!String.IsNullOrEmpty(ValidationReport))
             {
                 report.Save(ValidationReport);
+            }
+        }
+
+        private void ValidateIndex()
+        {
+            if (SkipIndexCheck)
+            {
+                return;
+            }
+
+            if (PackageIndexes == null || PackageIndexes.Length == 0)
+            {
+                return;
+            }
+
+            PackageIndex.Current.Merge(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
+
+            PackageInfo info;
+            if (!PackageIndex.Current.Packages.TryGetValue(PackageId, out info))
+            {
+                Log.LogError($"PackageIndex from {String.Join(", ", PackageIndexes.Select(i => i.ItemSpec))} is missing an entry for package {PackageId}.  Please run /t:UpdatePackageIndex on this project to commit an update.");
+                return;
+            }
+
+            var thisPackageFiles = _validateFiles[PackageId];
+            var refFiles = thisPackageFiles.Where(f => f.TargetPath.StartsWith("ref/", StringComparison.OrdinalIgnoreCase));
+
+            if (!refFiles.Any())
+            {
+                refFiles = thisPackageFiles.Where(f => f.TargetPath.StartsWith("lib/", StringComparison.OrdinalIgnoreCase));
+            }
+
+            foreach (var refFileVersion in refFiles.Where(r => r.Version != null).Select(r => VersionUtility.As4PartVersion(r.Version)).Distinct())
+            {
+                if (!info.AssemblyVersionInPackageVersion.ContainsKey(refFileVersion))
+                {
+                    Log.LogError($"PackageIndex from {String.Join(", ", PackageIndexes.Select(i => i.ItemSpec))} is missing an assembly version entry for {refFileVersion} for package {PackageId}.  Please run /t:UpdatePackageIndex on this project to commit an update.");
+                }
             }
         }
 
