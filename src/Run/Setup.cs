@@ -12,8 +12,8 @@ namespace Microsoft.DotNet.Execute
 {
     public class Setup
     {
-        private const string runQuietReservedKeyword = "RunQuiet";
-        private const string runToolSettingValueTypeReservedKeyword = "runToolSetting";
+        private const string RunQuietReservedKeyword = "RunQuiet";
+        private const string RunToolSettingValueTypeReservedKeyword = "runToolSetting";
 
         public Dictionary<string, string> ToolSettings { get; set; }
         public Dictionary<string, Setting> Settings { get; set; }
@@ -47,7 +47,7 @@ namespace Microsoft.DotNet.Execute
 
         private bool IsReservedKeyword(string keyword)
         {
-            if(keyword.Equals(runQuietReservedKeyword))
+            if(keyword.Equals(RunQuietReservedKeyword))
             {
                 return true;
             }
@@ -154,12 +154,12 @@ namespace Microsoft.DotNet.Execute
             int returnCode = ValidateSettings();
 
             ToolSettings = Settings.Where(s => s.Value.ValueType == null  ||
-                                               s.Value.ValueType.Equals(runToolSettingValueTypeReservedKeyword)
+                                               s.Value.ValueType.Equals(RunToolSettingValueTypeReservedKeyword)
                                                ).ToDictionary(s => s.Key, s => string.Empty) ?? new Dictionary<string, string>();
             // A dev may have overriden the default values for a tool setting, but not specified the ValueType
             foreach(var key in ToolSettings.Keys)
             {
-                Settings[key].ValueType = runToolSettingValueTypeReservedKeyword;
+                Settings[key].ValueType = RunToolSettingValueTypeReservedKeyword;
             }
 
             // Parse run tool settings for any settings which do not apply to a Command, this allows us to have run tool settings
@@ -171,17 +171,17 @@ namespace Microsoft.DotNet.Execute
         private void SetRunToolSettingsDefaults()
         {
             // If RunQuiet is already defined in config.json, don't override it
-            if (!Settings.ContainsKey(runQuietReservedKeyword))
+            if (!Settings.ContainsKey(RunQuietReservedKeyword))
             {
                 Setting runQuietSetting = new Setting()
                 {
                     Values = new List<string>() { "True", "False" },
-                    ValueType = runToolSettingValueTypeReservedKeyword,
+                    ValueType = RunToolSettingValueTypeReservedKeyword,
                     Description = "Run tool specific setting.  Set to True to only display output from the executing command.  Default, False",
                     DefaultValue = "false"
                 };
 
-                Settings.Add(runQuietReservedKeyword, runQuietSetting);
+                Settings.Add(RunQuietReservedKeyword, runQuietSetting);
             }
 
         }
@@ -191,7 +191,7 @@ namespace Microsoft.DotNet.Execute
             ParseRunToolSettings(commandSelectedByUser);
             string runQuietValue;
             bool runQuiet = false;
-            if (ToolSettings.TryGetValue(runQuietReservedKeyword, out runQuietValue))
+            if (ToolSettings.TryGetValue(RunQuietReservedKeyword, out runQuietValue))
             {
                 runQuiet = runQuietValue.Equals("true", StringComparison.OrdinalIgnoreCase);
             }
@@ -439,7 +439,7 @@ namespace Microsoft.DotNet.Execute
             {
                 commandOption = string.Format(" {0}", toolName.Equals("console") ? "" : value);
             }
-            else if(type.Equals(runToolSettingValueTypeReservedKeyword)) { /* do nothing */ }
+            else if(type.Equals(RunToolSettingValueTypeReservedKeyword)) { /* do nothing */ }
             else
             {
                 Tool toolFormat;
