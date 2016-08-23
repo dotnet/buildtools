@@ -12,7 +12,8 @@ namespace Microsoft.DotNet.Execute
 {
     public class Setup
     {
-        private static readonly string runQuietReservedKeyword = "RunQuiet";
+        private const string runQuietReservedKeyword = "RunQuiet";
+        private const string runToolSettingValueTypeReservedKeyword = "runToolSetting";
 
         public Dictionary<string, string> ToolSettings { get; set; }
         public Dictionary<string, Setting> Settings { get; set; }
@@ -21,6 +22,37 @@ namespace Microsoft.DotNet.Execute
         public Dictionary<string, string> SettingParameters { get; set; }
         public string Os { get; set; }
         public string ConfigurationFilePath { get; set; }
+
+        private int ValidateSettings()
+        {
+            int returnCode = 0;
+            foreach(var key in Settings.Keys)
+            {
+                if (!IsReservedKeyword(key))
+                {
+                    if (Settings[key].ValueType == null)
+                    {
+                        Console.Error.WriteLine("Setting '{0}' is missing the required ValueType property.", key);
+                        returnCode = 1;
+                    }
+                    if(Settings[key].Values == null)
+                    {
+                        Console.Error.WriteLine("Setting '{0}' is missing the required Values property.", key);
+                        returnCode = 1;
+                    }
+                }
+            }
+            return returnCode;
+        }
+
+        private bool IsReservedKeyword(string keyword)
+        {
+            if(keyword.Equals(runQuietReservedKeyword))
+            {
+                return true;
+            }
+            return false;
+        }
 
         private string ParseSettingValue(string inputValue)
         {
@@ -61,45 +93,34 @@ namespace Microsoft.DotNet.Execute
             return value;
         }
 
-        private void ParseRunToolSettings(string commandSelectedByUser)
+        private void ParseRunToolSettings(string commandSelectedByUser = null)
         {
-            string tempValue;
             Setting tempSetting;
             Command tempCommand;
-            var keys = ToolSettings.Keys.Select(k => k.ToString()).ToArray();
-            foreach(var toolSetting in keys)
+            foreach(var toolSetting in ToolSettings.Keys.Select(k => k.ToString()).ToArray())
             {
+                string tempValue = null;
                 // Attempt to get run tool setting value from parameters
-                if (SettingParameters.TryGetValue(toolSetting, out tempValue))
+                SettingParameters.TryGetValue(toolSetting, out tempValue);
+                ToolSettings[toolSetting] = tempValue;
+
+                // Attempt to get run tool setting value from command section
+                if (string.IsNullOrEmpty(ToolSettings[toolSetting]) && commandSelectedByUser != null)
                 {
-                    if (!string.IsNullOrEmpty(tempValue))
+                    if (Commands.TryGetValue(commandSelectedByUser, out tempCommand))
                     {
+                        tempCommand.DefaultValues.Settings.TryGetValue(toolSetting, out tempValue);
                         ToolSettings[toolSetting] = tempValue;
                     }
-                    else
-                    {
-                        // Attempt to get run tool setting value from command section
-                        if (Commands.TryGetValue(commandSelectedByUser, out tempCommand))
-                        {
-                            tempCommand.DefaultValues.Settings.TryGetValue(toolSetting, out tempValue);
-                            if (!string.IsNullOrEmpty(tempValue))
-                            {
-                                ToolSettings[toolSetting] = tempValue;
-                            }
-                            else
-                            {
-                                // Attempt to get run tool setting value from settings section
-                                if (Settings.TryGetValue(toolSetting, out tempSetting))
-                                {
-                                    ToolSettings[toolSetting] = tempSetting.DefaultValue;
-                                }
-                            }
-                        }
-                    }
+                }
+                // Attempt to get run tool setting value from settings section
+                if (string.IsNullOrEmpty(ToolSettings[toolSetting]))
+                {
+                    Settings.TryGetValue(toolSetting, out tempSetting);
+                    ToolSettings[toolSetting] = tempSetting.DefaultValue;
                 }
             }
         }
-
 
         private string FindSettingValue(string valueToFind)
         {
@@ -121,21 +142,30 @@ namespace Microsoft.DotNet.Execute
             return null;
         }
 
-        public void PrepareValues(string os, Dictionary<string, string> parameters, string configFile)
+        public int PrepareValues(string os, Dictionary<string, string> parameters, string configFile)
         {
             SettingParameters = new Dictionary<string, string>(parameters);
             Os = os;
             ConfigurationFilePath = configFile;
-            // Add defaults for run tool settings if they haven't been define din config.json
+            // Add defaults for run tool settings if they haven't been defined in config.json
             SetRunToolSettingsDefaults();
-            ToolSettings = Settings.Where(s => s.Value.ValueType == null ||
-                                               s.Value.ValueType.Equals("runToolSetting")
+
+            // Validate Settings before parsing out ToolSettings
+            int returnCode = ValidateSettings();
+
+            ToolSettings = Settings.Where(s => s.Value.ValueType == null  ||
+                                               s.Value.ValueType.Equals(runToolSettingValueTypeReservedKeyword)
                                                ).ToDictionary(s => s.Key, s => string.Empty) ?? new Dictionary<string, string>();
             // A dev may have overriden the default values for a tool setting, but not specified the ValueType
             foreach(var key in ToolSettings.Keys)
             {
-                Settings[key].ValueType = "runToolSetting";
+                Settings[key].ValueType = runToolSettingValueTypeReservedKeyword;
             }
+
+            // Parse run tool settings for any settings which do not apply to a Command, this allows us to have run tool settings
+            // which are outside the scope of a command.
+            ParseRunToolSettings();
+            return returnCode;
         }
 
         private void SetRunToolSettingsDefaults()
@@ -146,7 +176,7 @@ namespace Microsoft.DotNet.Execute
                 Setting runQuietSetting = new Setting()
                 {
                     Values = new List<string>() { "True", "False" },
-                    ValueType = "runToolSetting",
+                    ValueType = runToolSettingValueTypeReservedKeyword,
                     Description = "Run tool specific setting.  Set to True to only display output from the executing command.  Default, False",
                     DefaultValue = "false"
                 };
@@ -163,7 +193,7 @@ namespace Microsoft.DotNet.Execute
             bool runQuiet = false;
             if (ToolSettings.TryGetValue(runQuietReservedKeyword, out runQuietValue))
             {
-                runQuiet = runQuietValue.Equals("true", StringComparison.OrdinalIgnoreCase) ? true : false;
+                runQuiet = runQuietValue.Equals("true", StringComparison.OrdinalIgnoreCase);
             }
             CompleteCommand commandToRun = BuildCommand(commandSelectedByUser, parametersSelectedByUser);
             if (commandToRun != null)
@@ -409,7 +439,7 @@ namespace Microsoft.DotNet.Execute
             {
                 commandOption = string.Format(" {0}", toolName.Equals("console") ? "" : value);
             }
-            else if(type.Equals("runToolSetting")) { /* do nothing */ }
+            else if(type.Equals(runToolSettingValueTypeReservedKeyword)) { /* do nothing */ }
             else
             {
                 Tool toolFormat;
