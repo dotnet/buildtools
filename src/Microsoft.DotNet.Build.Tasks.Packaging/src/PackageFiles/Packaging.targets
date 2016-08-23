@@ -429,6 +429,7 @@
     <!-- Calculate the package version to harvest -->
     <GetLastStablePackage Condition="'$(HarvestVersion)' == ''" 
                           LatestPackages="@(_latestPackage)" 
+                          StablePackages="@(StablePackage)"
                           PackageIndexes="@(PackageIndex)">
       <Output  TaskParameter="LastStablePackages" ItemName="_lastStablePackage"/>
     </GetLastStablePackage>
@@ -440,6 +441,7 @@
     <!-- Calculate the runtime package versions to use for applicability evaluation -->
     <GetLastStablePackage Condition="'@(HarvestRuntimePackages)' == ''" 
                           LatestPackages="@(_latestRuntimePackages)" 
+                          StablePackages="@(StablePackage)"
                           PackageIndexes="@(PackageIndex)">
       <Output  TaskParameter="LastStablePackages" ItemName="HarvestRuntimePackages"/>
     </GetLastStablePackage>
@@ -710,19 +712,21 @@
       <Output TaskParameter="PromotedDependencies" ItemName="FilePackageDependency" />
     </PromoteReferenceDependencies>
 
-    <Error Condition="'@(PackageIndex)' == '' AND '@(FilePackageDependency)' != ''"
-           Text="The PackageIndex item is not defined: ensure you have imported Microsoft.Private.PackageBaseLine.props from the Microsoft.Private.PackageBaseLine package" />
-    <ApplyBaseLine OriginalDependencies="@(FilePackageDependency)" 
+    <Error Condition="'@(PackageIndex)' == '' AND '@(BaseLinePackage)' == '' AND '@(FilePackageDependency)' != '' AND '$(BaseLinePackageDependencies)' != 'false'"
+           Text="Neither PackageIndex nor BaseLinePackage items are defined: ensure you have imported Microsoft.Private.PackageBaseLine.props from the Microsoft.Private.PackageBaseLine package" />
+    <ApplyBaseLine OriginalDependencies="@(FilePackageDependency)"
+                   BaseLinePackages="@(BaseLinePackage)"
                    PackageIndexes="@(PackageIndex)"
                    Apply="$(BaseLinePackageDependencies)">
       <Output TaskParameter="BaseLinedDependencies" ItemName="_BaseLinedDependencies" />
     </ApplyBaseLine>
 
 
-    <Error Condition="'@(_BaseLinedDependencies)' != '' AND '@(PackageIndex)' == ''" 
-           Text="The PackageIndex item is not defined: ensure you have imported Microsoft.Private.PackageBaseLine.props from the Microsoft.Private.PackageBaseLine package" />
+    <Error Condition="'@(_BaseLinedDependencies)' != '' AND '@(PackageIndex)' == '' AND '@(StablePackage)' == ''" 
+           Text="Neither PackageIndex nor StablePackage items are defined: ensure you have imported Microsoft.Private.PackageBaseLine.props from the Microsoft.Private.PackageBaseLine package" />
     <ApplyPreReleaseSuffix Condition="'@(_BaseLinedDependencies)' != ''" 
                            OriginalPackages="@(_BaseLinedDependencies)" 
+                           StablePackages="@(StablePackage)"
                            PackageIndexes="@(PackageIndex)"
                            PreReleaseSuffix="$(VersionSuffix)">
       <Output TaskParameter="UpdatedPackages" ItemName="Dependency"/>
@@ -806,6 +810,7 @@
     </ItemGroup>
 
     <ApplyPreReleaseSuffix OriginalPackages="@(_thisPackage)" 
+                           StablePackages="@(StablePackage)"
                            PackageIndexes="@(PackageIndex)"
                            PreReleaseSuffix="$(VersionSuffix)" >
       <Output TaskParameter="UpdatedPackages" ItemName="_thisPackageFinal"/>

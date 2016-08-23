@@ -24,9 +24,15 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         public ITaskItem[] OriginalDependencies { get; set; }
 
         /// <summary>
+        /// Permitted package baseline versions.
+        ///   Identity: Package ID
+        ///   Version: Package version.
+        /// </summary>
+        public ITaskItem[] BaseLinePackages { get; set; }
+
+        /// <summary>
         /// Package index files used to define baseline, and assembly to package version mapping.
         /// </summary>
-        [Required]
         public ITaskItem[] PackageIndexes { get; set; }
 
         /// <summary>
@@ -39,12 +45,64 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         
         public override bool Execute()
         {
-            if (PackageIndexes == null || PackageIndexes.Length == 0)
+            if (PackageIndexes != null && PackageIndexes.Length > 0)
             {
-                Log.LogError($"{nameof(PackageIndexes)} must be specified");
-                return false;
+                GetBaseLinedDependenciesFromIndex();
+            }
+            else
+            {
+                GetBaseLinedDependenciesFromBaseLinePackages();
             }
 
+            return !Log.HasLoggedErrors;
+        }
+
+        public void GetBaseLinedDependenciesFromBaseLinePackages()
+        {
+            Dictionary<string, SortedSet<Version>> baseLineVersions = new Dictionary<string, SortedSet<Version>>();
+            foreach (var baseLinePackage in BaseLinePackages)
+            {
+                SortedSet<Version> versions = null;
+                if (!baseLineVersions.TryGetValue(baseLinePackage.ItemSpec, out versions))
+                {
+                    baseLineVersions[baseLinePackage.ItemSpec] = versions = new SortedSet<Version>();
+                }
+                versions.Add(new Version(baseLinePackage.GetMetadata("Version")));
+            }
+
+            List<ITaskItem> baseLinedDependencies = new List<ITaskItem>();
+
+            foreach (var dependency in OriginalDependencies)
+            {
+                if (Apply)
+                {
+                    SortedSet<Version> dependencyBaseLineVersions = null;
+                    Version requestedVersion = null;
+                    Version.TryParse(dependency.GetMetadata("Version"), out requestedVersion);
+
+                    if (baseLineVersions.TryGetValue(dependency.ItemSpec, out dependencyBaseLineVersions))
+                    {
+                        // if no version is requested, choose the highest.  Otherwise choose the first that is 
+                        // greater than or equal to the version requested.
+                        Version baseLineVersion = requestedVersion == null ?
+                            dependencyBaseLineVersions.Last() :
+                            dependencyBaseLineVersions.FirstOrDefault(v => v >= requestedVersion);
+
+                        if (baseLineVersion != null)
+                        {
+                            dependency.SetMetadata("Version", baseLineVersion.ToString(3));
+                        }
+                    }
+                }
+
+                baseLinedDependencies.Add(dependency);
+            }
+
+            BaseLinedDependencies = baseLinedDependencies.ToArray();
+        }
+
+        public void GetBaseLinedDependenciesFromIndex()
+        {
             PackageIndex.Current.Merge(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
 
             List<ITaskItem> baseLinedDependencies = new List<ITaskItem>();
@@ -61,7 +119,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 {
                     packageVersion = PackageIndex.Current.GetPackageVersionForAssemblyVersion(packageId, assemblyVersion);
                 }
-                
+
                 if (Apply &&
                     PackageIndex.Current.TryGetBaseLineVersion(packageId, out baseLineVersion) &&
                     (packageVersion == null || baseLineVersion > packageVersion))
@@ -79,7 +137,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             BaseLinedDependencies = baseLinedDependencies.ToArray();
 
-            return !Log.HasLoggedErrors;
         }
     }
 }

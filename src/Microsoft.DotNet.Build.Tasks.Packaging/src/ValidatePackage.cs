@@ -442,7 +442,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             if (PackageIndexes == null || PackageIndexes.Length == 0)
             {
-                Log.LogError($"{nameof(PackageIndexes)} must be specified");
                 return;
             }
 

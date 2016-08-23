@@ -16,6 +16,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
     /// </summary>
     public class ApplyPreReleaseSuffix : PackagingTask
     {
+        private Dictionary<string, Version> _stablePackageVersions;
+
         /// <summary>
         /// Original dependencies without pre-release specifier.
         /// </summary>
@@ -33,6 +35,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// </summary>
         [Required]
         public ITaskItem[] PackageIndexes { get; set; }
+
+        /// <summary>
+        /// List of previously shipped packages.
+        ///   Identity: Package ID
+        ///   Version: Package version.
+        /// </summary>
+        public ITaskItem[] StablePackages { get; set; }
 
         /// <summary>
         /// Updated dependencies whit pre-release specifier where package version is not yet stable.
@@ -54,13 +63,14 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 return false;
             }
 
-            if (PackageIndexes == null || PackageIndexes.Length == 0)
+            if (PackageIndexes != null || PackageIndexes.Length > 0)
             {
-                Log.LogError($"{nameof(PackageIndexes)} must be specified");
-                return false;
+                PackageIndex.Current.Merge(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
             }
-
-            PackageIndex.Current.Merge(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
+            else
+            {
+                LoadStablePackages();
+            }
 
             List<ITaskItem> updatedPackages = new List<ITaskItem>();
 
@@ -77,7 +87,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 TaskItem updatedPackage = new TaskItem(originalPackage);
                 Version packageVersion = ParseAs3PartVersion(originalPackage.GetMetadata("Version"));
 
-                if (!PackageIndex.Current.IsStable(packageId, packageVersion))
+                if (!IsStable(packageId, packageVersion))
                 {
                     // pre-release, set with suffix
                     updatedPackage.SetMetadata("Version", packageVersion.ToString() + PreReleaseSuffix);
@@ -94,6 +104,43 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             UpdatedPackages = updatedPackages.ToArray();
 
             return !Log.HasLoggedErrors;
+        }
+
+        private void LoadStablePackages()
+        {
+            // build up a map of stable versions
+            _stablePackageVersions = new Dictionary<string, Version>();
+
+            foreach (var stablePackage in StablePackages.NullAsEmpty())
+            {
+                string stablePackageId = stablePackage.ItemSpec;
+                Version newVersion = ParseAs3PartVersion(stablePackage.GetMetadata("Version"));
+                Version existingVersion = null;
+
+                // if we don't have a version or the new version is greater assign it
+                if (!_stablePackageVersions.TryGetValue(stablePackageId, out existingVersion) ||
+                    (newVersion > existingVersion))
+                {
+                    _stablePackageVersions[stablePackageId] = newVersion;
+                }
+            }
+        }
+
+        private bool IsStable(string packageId, Version packageVersion)
+        {
+            bool isStable;
+
+            if (_stablePackageVersions != null)
+            {
+                Version stableVersion;
+                isStable = _stablePackageVersions.TryGetValue(packageId, out stableVersion) && stableVersion >= packageVersion;
+            }
+            else
+            {
+                isStable = PackageIndex.Current.IsStable(packageId, packageVersion);
+            }
+
+            return isStable;
         }
 
         private static Version ParseAs3PartVersion(string versionString)
