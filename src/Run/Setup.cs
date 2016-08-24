@@ -177,7 +177,7 @@ namespace Microsoft.DotNet.Execute
                 {
                     Values = new List<string>() { "True", "False" },
                     ValueType = RunToolSettingValueTypeReservedKeyword,
-                    Description = "Run tool specific setting.  Set to True to only display output from the executing command.  Default, False",
+                    Description = "Run tool specific setting.  Set to True to only display output from the executing command.",
                     DefaultValue = "false"
                 };
 
