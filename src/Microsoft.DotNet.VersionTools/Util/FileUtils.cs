@@ -17,7 +17,7 @@ namespace Microsoft.DotNet.VersionTools.Util
         /// </summary>
         /// <param name="path">Path of the file to change.</param>
         /// <param name="replacement">A function that takes file contents as input and returns the desired replacement.</param>
-        public static Action ReplaceFileContents(string path, Func<string, string> replacement)
+        public static Action GetUpdateFileContentsTask(string path, Func<string, string> replacement)
         {
             string contents;
             Encoding encoding;

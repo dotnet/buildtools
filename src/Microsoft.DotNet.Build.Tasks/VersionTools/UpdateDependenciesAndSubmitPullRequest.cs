@@ -15,8 +15,6 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 {
     public class UpdateDependenciesAndSubmitPullRequest : BaseDependenciesTask
     {
-        private const string s_currentRef = "CurrentRef";
-
         public string ProjectRepoOwner { get; set; }
 
         [Required]
@@ -51,9 +49,14 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 
             foreach (ITaskItem item in DependencyBuildInfo)
             {
-                if (!string.IsNullOrEmpty(item.GetMetadata(s_currentRef)))
+                if (!string.IsNullOrEmpty(item.GetMetadata(CurrentRefMetadataName)))
                 {
-                    item.SetMetadata(s_currentRef, masterSha);
+                    item.SetMetadata(CurrentRefMetadataName, masterSha);
+                }
+                string autoUpgradeBranch = item.GetMetadata(AutoUpgradeBranchMetadataName);
+                if (!string.IsNullOrEmpty(autoUpgradeBranch))
+                {
+                    item.SetMetadata(CurrentBranchMetadataName, autoUpgradeBranch);
                 }
             }
 
@@ -61,31 +64,29 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                 CreateUpdaters().ToArray(),
                 CreateBuildInfoDependencies().ToArray());
 
+            // Update CurrentRef and CurrentBranch for each applicable build info used.
             if (!string.IsNullOrEmpty(CurrentRefXmlPath))
             {
-                // Update the build info commit sha for each applicable build info used.
                 foreach (BuildInfo info in updateResults.UsedBuildInfos)
                 {
                     ITaskItem infoItem = FindDependencyBuildInfo(info.Name);
-                    if (string.IsNullOrEmpty(infoItem.GetMetadata(s_currentRef)))
+
+                    if (!string.IsNullOrEmpty(infoItem.GetMetadata(CurrentRefMetadataName)))
                     {
-                        continue;
+                        UpdateProperty(
+                            CurrentRefXmlPath,
+                            $"{info.Name}{CurrentRefMetadataName}",
+                            masterSha);
                     }
 
-                    Regex upgrader = CreateXmlUpdateRegex($"{info.Name}{s_currentRef}", s_currentRef);
-
-                    Action replace = FileUtils.ReplaceFileContents(
-                        CurrentRefXmlPath,
-                        contents =>
-                        {
-                            Match m = upgrader.Match(contents);
-                            Group g = m.Groups[s_currentRef];
-
-                            return contents
-                                .Remove(g.Index, g.Length)
-                                .Insert(g.Index, masterSha);
-                        });
-                    replace();
+                    string autoUpgradeBranch = infoItem.GetMetadata(AutoUpgradeBranchMetadataName);
+                    if (!string.IsNullOrEmpty(autoUpgradeBranch))
+                    {
+                        UpdateProperty(
+                            CurrentRefXmlPath,
+                            $"{info.Name}{CurrentBranchMetadataName}",
+                            autoUpgradeBranch);
+                    }
                 }
             }
 
@@ -120,6 +121,25 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
         private ITaskItem FindDependencyBuildInfo(string name)
         {
             return DependencyBuildInfo.SingleOrDefault(item => item.ItemSpec == name);
+        }
+
+        private void UpdateProperty(string path, string elementName, string newValue)
+        {
+            const string valueGroup = "valueGroup";
+            Action updateAction = FileUtils.GetUpdateFileContentsTask(
+                path,
+                contents =>
+                {
+                    Group g = CreateXmlUpdateRegex(elementName, valueGroup)
+                        .Match(contents)
+                        .Groups[valueGroup];
+
+                    return contents
+                        .Remove(g.Index, g.Length)
+                        .Insert(g.Index, newValue);
+                });
+            // There may not be an task to perform for the value to be up to date: allow null.
+            updateAction?.Invoke();
         }
     }
 }
