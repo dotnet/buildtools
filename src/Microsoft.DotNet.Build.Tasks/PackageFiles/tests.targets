@@ -298,7 +298,7 @@
   </Target>
 
   <Target Name="CheckTestPlatforms"
-          AfterTargets="Test">
+          BeforeTargets="Test">
     <GetTargetMachineInfo Condition="'$(TargetOS)' == ''">
       <Output TaskParameter="TargetOS" PropertyName="TargetOS" />
     </GetTargetMachineInfo>
