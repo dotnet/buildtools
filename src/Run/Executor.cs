@@ -146,24 +146,26 @@ namespace Microsoft.DotNet.Execute
             }
             string os = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "windows": "unix";
 
-            jsonSetup.prepareValues(os, executor.SettingParameters, executor.configFilePath);
-            if (executor.DefineParameters(parseArgs, jsonSetup))
+            if (jsonSetup.PrepareValues(os, executor.SettingParameters, executor.configFilePath) == 0)
             {
-                if(string.IsNullOrEmpty(executor.CommandSelectedByUser))
+                if (executor.DefineParameters(parseArgs, jsonSetup))
                 {
-                    Console.Error.WriteLine("Error: No command was passed. Use -? for help.");
-                    return 1;
-                }
-
-                List<string> paramSelected = new List<string>();
-                foreach (KeyValuePair<string, string> param in executor.CommandParameters[executor.CommandSelectedByUser])
-                {
-                    if (!string.IsNullOrEmpty(param.Value))
+                    if (string.IsNullOrEmpty(executor.CommandSelectedByUser))
                     {
-                        paramSelected.Add(param.Key);
+                        Console.Error.WriteLine("Error: No command was passed. Use -? for help.");
+                        return 1;
                     }
+
+                    List<string> paramSelected = new List<string>();
+                    foreach (KeyValuePair<string, string> param in executor.CommandParameters[executor.CommandSelectedByUser])
+                    {
+                        if (!string.IsNullOrEmpty(param.Value))
+                        {
+                            paramSelected.Add(param.Key);
+                        }
+                    }
+                    return jsonSetup.ExecuteCommand(executor.CommandSelectedByUser, paramSelected);
                 }
-                return jsonSetup.ExecuteCommand(executor.CommandSelectedByUser, paramSelected);
             }
             //There was an error when parsing the user input, Define Parameters is in charge of printing an error message.
             return 1;
