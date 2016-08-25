@@ -7,8 +7,8 @@
   -->
 
   <PropertyGroup>
-    <Version Condition="'$(StableVersion)' != ''">$(StableVersion)</Version>
-
+    <PackageVersion Condition="'$(StableVersion)' != ''">$(StableVersion)</PackageVersion>
+    <PackageVersion Condition="'$(PackageVersion)' == '' AND '$(Version)' != ''">$(Version)</PackageVersion>
     <PreReleaseLabel Condition="'$(PreReleaseLabel)' == ''">rc2</PreReleaseLabel>
     <IncludeBuildNumberInPackageVersion Condition="'$(IncludeBuildNumberInPackageVersion)' == ''">true</IncludeBuildNumberInPackageVersion>
 
@@ -21,8 +21,7 @@
     -->
     <ProjectProperties></ProjectProperties>
 
-    <PackageRevStableToPrerelease Condition="'$(PackageRevStableToPrerelease)' == ''">false</PackageRevStableToPrerelease>
-    <DependencyRevStableToPrerelease Condition="'$(PackageRevStableToPrerelease)' == ''">false</DependencyRevStableToPrerelease>
+    <BaseLinePackageDependencies Condition="'$(BaseLinePackageDependencies)' == ''">true</BaseLinePackageDependencies>
 
     <!-- By default we'll build libraries referenced by packages -->
     <BuildPackageLibraryReferences Condition="'$(BuildPackageLibraryReferences)' == ''">true</BuildPackageLibraryReferences>
@@ -88,13 +87,6 @@
     <PlatformPackageVersion Condition="'$(PlatformPackageVersion)' == ''">1.0.1</PlatformPackageVersion>
   </PropertyGroup>
 
-  <!-- If this package explicitly sets the StableVersion then add it to the stable list -->
-  <ItemGroup Condition="'$(StableVersion)' != ''">
-    <StablePackage Include="$(Id)">
-      <Version>$(StableVersion)</Version>
-    </StablePackage>
-  </ItemGroup>
-
   <UsingTask TaskName="ApplyPreReleaseSuffix" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="GetAssemblyReferences" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="SplitReferences" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
@@ -113,7 +105,9 @@
   <UsingTask TaskName="SplitDependenciesBySupport" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="GetLastStablePackage" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="HarvestPackage" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-
+  <UsingTask TaskName="UpdatePackageIndex" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  <UsingTask TaskName="GetPackageFromModule" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  
   <!-- Determine if we actually need to build for this architecture -->
   <!-- Packages can specifically control their architecture by specifying the PackagePlatforms
        property as a semi-colon delimited list.
@@ -133,6 +127,7 @@
     <ShouldCreatePackage Condition="'$(ShouldCreatePackage)' == ''">$(ShouldGenerateNuSpec)</ShouldCreatePackage>
     <BuildDependsOn Condition="'$(ShouldGenerateNuSpec)' == 'true'">GenerateNuSpec</BuildDependsOn>
     <BuildDependsOn Condition="'$(ShouldCreatePackage)' == 'true'">$(BuildDependsOn);CreatePackage</BuildDependsOn>
+    <BuildDependsOn>$(BuildDependsOn);ValidatePackage</BuildDependsOn>
   </PropertyGroup>
 
   <!-- Redefine build to just create the NuSpec only, we'll create the package during ArcProjects phase -->
@@ -280,7 +275,7 @@
       <_FilesToPackage Remove="@(_FilesToPackage)" Condition="'$(ExcludeReferenceAssets)' == 'true' AND '%(_FilesToPackage.IsReferenceAsset)' == 'true'" />
       <File Include="@(_FilesToPackage)">
         <PackageId>$(Id)</PackageId>
-        <PackageVersion>$(Version)</PackageVersion>
+        <PackageVersion>$(PackageVersion)</PackageVersion>
         <!-- Some packages support legacy portable profiles where dependencies are provided by targeting pack -->
         <HarvestDependencies Condition="!$([System.String]::new('%(_FilesToPackage.TargetFramework)').StartsWith('portable-'))">true</HarvestDependencies>
       </File>
@@ -305,7 +300,7 @@
     <ItemGroup Condition="'$(PreventImplementationReference)' == 'true'">
       <File Include="$(PlaceholderFile)">
         <PackageId>$(Id)</PackageId>
-        <PackageVersion>$(Version)</PackageVersion>
+        <PackageVersion>$(PackageVersion)</PackageVersion>
         <TargetPath Condition="'$(UseNetPlatform)' != 'true'">ref/netstandard</TargetPath>
         <TargetPath Condition="'$(UseNetPlatform)' == 'true'">ref/dotnet</TargetPath>
       </File>
@@ -338,13 +333,13 @@
     <ItemGroup>
       <File Include="$(PlaceholderFile)">
         <PackageId>$(Id)</PackageId>
-        <PackageVersion>$(Version)</PackageVersion>
+        <PackageVersion>$(PackageVersion)</PackageVersion>
         <TargetPath Condition="'$(_targetRuntime)' != ''">runtimes/$(_targetRuntime)/lib/$(_target)</TargetPath>
         <TargetPath Condition="'$(_targetRuntime)' == ''">lib/$(_target)</TargetPath>
       </File>
       <File Include="$(PlaceholderFile)" Condition="'$(_targetRef)' == 'true'">
         <PackageId>$(Id)</PackageId>
-        <PackageVersion>$(Version)</PackageVersion>
+        <PackageVersion>$(PackageVersion)</PackageVersion>
         <TargetPath>ref/$(_target)</TargetPath>
       </File>
       <FrameworkReference Condition="'%(InboxOnTargetFramework.AsFrameworkReference)' == 'true'" Include="$(Id)">
@@ -428,13 +423,16 @@
       <HarvestExcludePaths Include="%(File.TargetPath)" KeepDuplicates="false" />
 
       <_latestPackage Include="$(Id)">
-        <Version>$(Version)</Version>
+        <Version>$(PackageVersion)</Version>
       </_latestPackage>
       <_latestRuntimePackages Include="@(PkgProjDependency)" Condition="'%(PkgProjDependency.TargetRuntime)' != ''" KeepDuplicates="false" />
     </ItemGroup>
 
     <!-- Calculate the package version to harvest -->
-    <GetLastStablePackage Condition="'$(HarvestVersion)' == ''" LatestPackages="@(_latestPackage)" StablePackages="@(StablePackage)">
+    <GetLastStablePackage Condition="'$(HarvestVersion)' == ''" 
+                          LatestPackages="@(_latestPackage)" 
+                          StablePackages="@(StablePackage)"
+                          PackageIndexes="@(PackageIndex)">
       <Output  TaskParameter="LastStablePackages" ItemName="_lastStablePackage"/>
     </GetLastStablePackage>
 
@@ -443,7 +441,10 @@
     </PropertyGroup>
 
     <!-- Calculate the runtime package versions to use for applicability evaluation -->
-    <GetLastStablePackage Condition="'@(HarvestRuntimePackages)' == ''" LatestPackages="@(_latestRuntimePackages)" StablePackages="@(StablePackage)">
+    <GetLastStablePackage Condition="'@(HarvestRuntimePackages)' == ''" 
+                          LatestPackages="@(_latestRuntimePackages)" 
+                          StablePackages="@(StablePackage)"
+                          PackageIndexes="@(PackageIndex)">
       <Output  TaskParameter="LastStablePackages" ItemName="HarvestRuntimePackages"/>
     </GetLastStablePackage>
 
@@ -485,7 +486,7 @@
       <PackageFile Include="@(File)" Condition="'%(File.IsSourceCodeFile)'!='true'" />
       <PackageFile Condition="'%(PackageFile.PackageId)' == ''">
         <PackageId>$(Id)</PackageId>
-        <PackageVersion>$(Version)</PackageVersion>
+        <PackageVersion>$(PackageVersion)</PackageVersion>
       </PackageFile>
 
       <!-- Include Sources. Deduplicate so the nuspec doesn't contain multiple entries for each source file. -->
@@ -574,7 +575,7 @@
       <PackageFile Condition="'$(RuntimeFileSource)' != ''" Remove="$(RuntimeFileSource)"/>
       <PackageFile Include="$(RuntimeFilePath)">
         <PackageId>$(Id)</PackageId>
-        <PackageVersion>$(Version)</PackageVersion>
+        <PackageVersion>$(PackageVersion)</PackageVersion>
         <IsLibrary>false</IsLibrary>
       </PackageFile>
     </ItemGroup>
@@ -626,16 +627,12 @@
       </_FilePackageReference>
     </ItemGroup>
 
-    <ItemGroup Condition="'@(_FileReferencedNativeLibraries)' != ''">
-      <!-- intersect with NativeLibrary and add Package metadata from NativeLibrary, preserving native lib file name in metadata -->
-      <_FileReferencedNativeLibrariesWithPackage Include="@(_FileReferencedNativeLibraries)"
-                                                 Condition="'@(_FileReferencedNativeLibraries)' == '@(NativeLibrary)' AND '%(Identity)' != ''">
-        <Package>@(NativeLibrary->'%(Package)')</Package>
-        <NativeLibrary>%(Identity)</NativeLibrary>
-      </_FileReferencedNativeLibrariesWithPackage>
-
-      <_FilePackageReference Include="@(_FileReferencedNativeLibrariesWithPackage->'%(Package)')" />
-    </ItemGroup>
+    <GetPackageFromModule Condition="'@(_FileReferencedNativeLibraries)' != ''"
+                          ModulesReferenced="@(_FileReferencedNativeLibraries)"
+                          ModulePackages="@(NativeLibrary)"
+                          PackageIndexes="@(PackageIndex)">
+      <Output TaskParameter="PackagesReferenced" ItemName="_FilePackageReference" />
+    </GetPackageFromModule>
 
     <ItemGroup>
       <FilePackageDependency Include="@(_FilePackageReference)" />
@@ -713,19 +710,23 @@
       <Output TaskParameter="PromotedDependencies" ItemName="FilePackageDependency" />
     </PromoteReferenceDependencies>
 
-    <Error Condition="'@(BaseLinePackage)' == '' AND '@(FilePackageDependency)' != '' AND '$(BaseLinePackageDependencies)' != 'false'"
-           Text="The BaseLinePackage item is not defined: ensure you have imported Microsoft.Private.PackageBaseLine.props from the Microsoft.Private.PackageBaseLine package" />
-    <ApplyBaseLine OriginalDependencies="@(FilePackageDependency)" BaseLinePackages="@(BaseLinePackage)" Condition="'$(BaseLinePackageDependencies)' != 'false'">
+    <Error Condition="'@(PackageIndex)' == '' AND '@(BaseLinePackage)' == '' AND '@(FilePackageDependency)' != '' AND '$(BaseLinePackageDependencies)' != 'false'"
+           Text="Neither PackageIndex nor BaseLinePackage items are defined: ensure you have imported Microsoft.Private.PackageBaseLine.props from the Microsoft.Private.PackageBaseLine package" />
+    <ApplyBaseLine OriginalDependencies="@(FilePackageDependency)"
+                   BaseLinePackages="@(BaseLinePackage)"
+                   PackageIndexes="@(PackageIndex)"
+                   Apply="$(BaseLinePackageDependencies)">
       <Output TaskParameter="BaseLinedDependencies" ItemName="_BaseLinedDependencies" />
     </ApplyBaseLine>
 
-    <!-- if not baselining, flow the dependencies unmodified -->
-    <ItemGroup Condition="'$(BaseLinePackageDependencies)' == 'false'">
-      <_BaseLinedDependencies Include="@(FilePackageDependency)" />
-    </ItemGroup>
 
-    <Error Condition="'@(_BaseLinedDependencies)' != '' AND '@(StablePackage)' == ''" Text="The StablePackage item is not defined: ensure you have imported Microsoft.Private.PackageBaseLine.props from the Microsoft.Private.PackageBaseLine package" />
-    <ApplyPreReleaseSuffix Condition="'@(_BaseLinedDependencies)' != ''" StablePackages="@(StablePackage)" OriginalPackages="@(_BaseLinedDependencies)" PreReleaseSuffix="$(VersionSuffix)" RevStableToPrerelease="$(DependencyRevStableToPrerelease)">
+    <Error Condition="'@(_BaseLinedDependencies)' != '' AND '@(PackageIndex)' == '' AND '@(StablePackage)' == ''" 
+           Text="Neither PackageIndex nor StablePackage items are defined: ensure you have imported Microsoft.Private.PackageBaseLine.props from the Microsoft.Private.PackageBaseLine package" />
+    <ApplyPreReleaseSuffix Condition="'@(_BaseLinedDependencies)' != ''" 
+                           OriginalPackages="@(_BaseLinedDependencies)" 
+                           StablePackages="@(StablePackage)"
+                           PackageIndexes="@(PackageIndex)"
+                           PreReleaseSuffix="$(VersionSuffix)">
       <Output TaskParameter="UpdatedPackages" ItemName="Dependency"/>
     </ApplyPreReleaseSuffix>
   </Target>
@@ -769,7 +770,7 @@
     <ItemGroup Condition="'@(PackageFile)' == ''">
       <PackageFile Include="$(PlaceholderFile)">
         <PackageId>$(Id)</PackageId>
-        <PackageVersion>$(Version)</PackageVersion>
+        <PackageVersion>$(PackageVersion)</PackageVersion>
         <IsLibrary>false</IsLibrary>
       </PackageFile>
     </ItemGroup>
@@ -781,7 +782,7 @@
   <!-- Walks every project gathering its AssemblyVersion, choosing the highest -->
   <!-- Skipped if the package explicitly defines a version -->
   <Target Name="GetAssemblyVersionFromProjects"
-          Condition="$(Version) == ''"
+          Condition="$(PackageVersion) == ''"
           DependsOnTargets="GetFiles">
 
     <GetPackageVersion Files="@(File)">
@@ -797,21 +798,25 @@
         DependsOnTargets="CreateVersionFileDuringBuild;GetAssemblyVersionFromProjects">
 
     <Error Text="No version could be detected.  Either specify the Version property or provide at least one managed assembly."
-           Condition="'$(Version)' == '' AND '$(_AssemblyVersion)' == ''" />
+           Condition="'$(PackageVersion)' == '' AND '$(_AssemblyVersion)' == ''" />
 
     <ItemGroup>
       <_thisPackage Include="$(Id)">
-        <Version Condition="'$(Version)' != ''">$(Version)</Version>
-        <Version Condition="'$(Version)' == ''">$(_AssemblyVersion)</Version>
+        <Version Condition="'$(PackageVersion)' != ''">$(PackageVersion)</Version>
+        <Version Condition="'$(PackageVersion)' == ''">$(_AssemblyVersion)</Version>
       </_thisPackage>
     </ItemGroup>
 
-    <ApplyPreReleaseSuffix StablePackages="@(StablePackage)" OriginalPackages="@(_thisPackage)" PreReleaseSuffix="$(VersionSuffix)" RevStableToPrerelease="$(PackageRevStableToPrerelease)">
+    <ApplyPreReleaseSuffix Condition="'$(StableVersion)' == ''"
+                           OriginalPackages="@(_thisPackage)" 
+                           StablePackages="@(StablePackage)"
+                           PackageIndexes="@(PackageIndex)"
+                           PreReleaseSuffix="$(VersionSuffix)" >
       <Output TaskParameter="UpdatedPackages" ItemName="_thisPackageFinal"/>
     </ApplyPreReleaseSuffix>
 
-    <PropertyGroup>
-      <Version>%(_thisPackageFinal.Version)</Version>
+    <PropertyGroup Condition="'$(StableVersion)' == ''">
+      <PackageVersion>%(_thisPackageFinal.Version)</PackageVersion>
     </PropertyGroup>
   </Target>
 
@@ -831,7 +836,7 @@
 
     <ItemGroup>
       <_PackageIdentity Include="$(Id)">
-        <Version>$(Version)</Version>
+        <Version>$(PackageVersion)</Version>
         <TargetFramework Condition="'$(PackageTargetFramework)' != ''">$(PackageTargetFramework)</TargetFramework>
         <TargetRuntime Condition="'$(PackageTargetRuntime)' != ''">$(PackageTargetRuntime)</TargetRuntime>
         <MinimumNETStandard Condition="'$(MinimumNETStandard)' != ''">$(MinimumNETStandard)</MinimumNETStandard>
@@ -1043,32 +1048,22 @@
     </ItemGroup>
 
     <ValidatePackage ContractName="$(BaseId)"
-                     PackageId="$(Id)"
-                     PackageVersion="$(Version)"
                      Files="@(PackageAsset)"
-                     SupportedFrameworks="@(SupportedFramework)"
-                     Frameworks="@(ValidateFramework)"
-                     RuntimeFile="$(RuntimeIdGraphDefinitionFile)"
                      FrameworkListsPath="$(FrameworkListsPath)"
+                     Frameworks="@(ValidateFramework)"
+                     PackageId="$(Id)"
+                     PackageIndexes="@(PackageIndex)"
+                     PackageVersion="$(PackageVersion)"
+                     RuntimeFile="$(RuntimeIdGraphDefinitionFile)"
                      SkipGenerationCheck="$(SkipGenerationCheck)"
+                     SkipIndexCheck="$(SkipIndexCheck)"
                      SkipSupportCheck="$(SkipSupportCheck)"
+                     SupportedFrameworks="@(SupportedFramework)"
                      Suppressions="@(ValidatePackageSuppression)"
                      SuppressionFile="$(ValidationSuppressionFile)"
                      UseNetPlatform="$(UseNetPlatform)"
                      ValidationReport="$(PackageReportPath)" />
 
-    <!-- Validate that this package version is part of the baseline -->
-    <ItemGroup>
-      <_thisPackageBaseLine Include="@(BaseLinePackage)" Condition="'$(Id)' == '%(Identity)'" />
-    </ItemGroup>
-    <PropertyGroup>
-      <_VersionWithoutPreRelease>$(Version)</_VersionWithoutPreRelease>
-      <_VersionWithoutPreRelease Condition="$(Version.Contains('-'))">$(Version.SubString(0, $(Version.IndexOf('-'))))</_VersionWithoutPreRelease>
-      <BaseLinePropsUpdateMessage Condition="'$(BaseLinePropsFile)' != ''">  Please update '$(BaseLinePropsFile)'.</BaseLinePropsUpdateMessage>
-    </PropertyGroup>
-
-    <Error Condition="'$(SkipBaseLineCheck)' != 'true' AND '@(_thisPackageBaseLine)' != '' AND '@(_thisPackageBaseLine->WithMetadataValue('Version', '$(_VersionWithoutPreRelease)'))' == ''"
-           Text="This package's version '$(_VersionWithoutPreRelease)' is not part of any BaseLine '@(_thisPackageBaseLine->'%(Version)')'.$(BaseLinePropsUpdateMessage)" />
   </Target>
 
   <Target Name="GetValidationReport" DependsOnTargets="ValidatePackage" Returns="$(PackageReportPath)" />
@@ -1094,7 +1089,7 @@
   <Target Name="GetPackagingOutputs" />
 
   <Target Name="GenerateNuSpec"
-          DependsOnTargets="GetPackageDependencies;GetPackageFiles;GetPackageMetadata;GenerateRuntimeDependencies;EnsureEmptyPackage;ValidatePackage">
+          DependsOnTargets="GetPackageDependencies;GetPackageFiles;GetPackageMetadata;GenerateRuntimeDependencies;EnsureEmptyPackage">
     <!-- Please Note:
          In order to avoid incremental build issues this target will always run.
          However, the task will make sure that it doesn't touch the file if the
@@ -1104,7 +1099,7 @@
                     OutputFileName="$(NuSpecPath)"
                     MinClientVersion="$(MinClientVersion)"
                     Id="$(Id)"
-                    Version="$(Version)"
+                    Version="$(PackageVersion)"
                     Title="$(Title)"
                     Authors="$(Authors)"
                     Owners="$(Owners)"
@@ -1128,7 +1123,7 @@
 
   <Target Name="CreatePackage"
           Inputs="$(NuSpecPath)"
-          Outputs="$(PackageOutputPath)$(Id).$(Version).nupkg">
+          Outputs="$(PackageOutputPath)$(Id).$(PackageVersion).nupkg">
 
     <ItemGroup>
       <_missingFiles Include="@(PackageFile)" Condition="!Exists(%(FullPath))"/>
@@ -1149,9 +1144,42 @@
                AdditionalSymbolPackageExcludes="@(AdditionalSymbolPackageExcludes)"
                Condition="'$(_SkipCreatePackage)' != 'true'"/>
     <!-- Create a marker that records the path to the generated package -->
-    <WriteLinesToFile Lines="$(PackageOutputPath)$(Id).$(Version).nupkg;$(SymbolPackageOutputPath)$(Id).$(Version).symbols.nupkg"
+    <WriteLinesToFile Lines="$(PackageOutputPath)$(Id).$(PackageVersion).nupkg;$(SymbolPackageOutputPath)$(Id).$(PackageVersion).symbols.nupkg"
                       File="$(NuSpecPath).pkgpath"
                       Overwrite="true"
                       Condition="'$(_SkipCreatePackage)' != 'true'"/>
+  </Target>
+
+
+  <!-- Updates the packageIndex with information from the built package for this project -->
+  <!-- Intentionally not sequenced, invoked directly through /t:UpdatePackageIndex -->
+  <Target Name="UpdatePackageIndex"
+          DependsOnTargets="CalculatePackageVersion">
+
+    <Error Condition="'$(PackageIndexFile)' == ''"
+           Text="The PackageIndexFile property is not set.  Please set this property to point to the path of the packageIndex.json file for your repo." />
+
+    <UpdatePackageIndex PackageIndexFile="$(PackageIndexFile)"
+                        Packages="$(PackageOutputPath)$(Id).$(PackageVersion).nupkg" />
+  </Target>
+
+  <!-- Updates the packageIndex with information from the multiple sources for the entire repo -->
+  <!-- Intentionally not sequenced, invoked directly through /t:UpdateRepoPackageIndex -->
+  <Target Name="UpdateRepoPackageIndex">
+    <Error Condition="'$(PackageIndexFile)' == ''"
+           Text="The PackageIndexFile property is not set.  Please set this property to point to the path of the packageIndex.json file for your repo." />
+
+    <!-- Set PackageFolders to point to the directories to index, this directories may contain nupkgs or expanded nupkgs -->
+    <!-- Set PackageIds to the list of package Ids to consider from PackageFolders -->
+    <!-- Set BaseLinePackage to packageId identity with 'Version' metadata to define the set of packages which should set their baseline to a particular version -->
+    <!-- Set StablePackage to packageId identity with 'Version' metadata to define the set of packages which should be set as stable -->
+    <!-- Set ModuleToPackage to module name identity with 'Package' metadata to define mappings from native modules to package IDs which contain those -->
+
+    <UpdatePackageIndex PackageIndexFile="$(PackageIndexFile)"
+                        PackageIds="@(PackageIds)"
+                        PackageFolders="@(PackageFolders)"
+                        BaselinePackages="@(BaselinePackage)"
+                        StablePackages="@(StablePackage)"
+                        ModuleToPackages="@(ModuleToPackage)" />
   </Target>
 </Project>

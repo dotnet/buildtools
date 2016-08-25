@@ -32,7 +32,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
                 {
                     IEnumerable<DependencyChange> dependencyChanges = null;
 
-                    Action replace = FileUtils.ReplaceFileContents(
+                    Action update = FileUtils.GetUpdateFileContentsTask(
                         projectJsonFile,
                         contents => ReplaceAllDependencyVersions(
                             contents,
@@ -41,10 +41,10 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
                             out dependencyChanges));
 
                     // The output json may be different even if there weren't any changes made.
-                    if (replace != null && dependencyChanges.Any())
+                    if (update != null && dependencyChanges.Any())
                     {
                         tasks.Add(new DependencyUpdateTask(
-                            replace,
+                            update,
                             dependencyChanges.Select(change => change.BuildInfo),
                             dependencyChanges.Select(change => $"In '{projectJsonFile}', {change.ToString()}")));
                     }

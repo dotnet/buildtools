@@ -17,8 +17,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
             out IEnumerable<BuildInfo> usedBuildInfos)
         {
             var matchingBuildInfo = dependencyBuildInfos
-                .Select(d => d.BuildInfo)
-                .FirstOrDefault(d => d.LatestPackages.ContainsKey(PackageId));
+                .FirstOrDefault(d => d.RawPackages.ContainsKey(PackageId));
 
             if (matchingBuildInfo == null)
             {
@@ -28,9 +27,9 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
                 return $"DEPENDENCY '{PackageId}' NOT FOUND";
             }
 
-            usedBuildInfos = new[] { matchingBuildInfo };
+            usedBuildInfos = new[] { matchingBuildInfo.BuildInfo };
 
-            return matchingBuildInfo.LatestPackages[PackageId];
+            return matchingBuildInfo.RawPackages[PackageId];
         }
     }
 }

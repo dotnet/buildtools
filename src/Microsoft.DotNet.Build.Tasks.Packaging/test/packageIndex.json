@@ -1,0 +1,7 @@
+﻿{
+  "Packages": {
+    "System.Runtime": {
+      "BaselineVersion": "4.0.21"
+    }
+  }
+}

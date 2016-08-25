@@ -16,6 +16,16 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 {
     public abstract class BaseDependenciesTask : Task
     {
+        internal const string RawUrlMetadataName = "RawUrl";
+        internal const string RawVersionsBaseUrlMetadataName = "RawVersionsBaseUrl";
+        internal const string BuildInfoPathMetadataName = "BuildInfoPath";
+        internal const string CurrentRefMetadataName = "CurrentRef";
+        internal const string CurrentBranchMetadataName = "CurrentBranch";
+        internal const string PackageIdMetadataName = "PackageId";
+        internal const string VersionMetadataName = "Version";
+
+        internal const string AutoUpgradeBranchMetadataName = "Version";
+
         [Required]
         public ITaskItem[] DependencyBuildInfo { get; set; }
 
@@ -95,26 +105,37 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                 .GetMetadata("UpdateStableVersions")
                 .Equals("true", StringComparison.OrdinalIgnoreCase);
 
-            return new DependencyBuildInfo(info, updateStaticDependencies);
+            string[] disabledPackages = item
+                .GetMetadata("DisabledPackages")
+                .Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+
+            return new DependencyBuildInfo(info, updateStaticDependencies, disabledPackages);
         }
 
         private static BuildInfo CreateBuildInfo(ITaskItem item, string cacheDir)
         {
-            string rawUrl = item.GetMetadata("RawUrl");
+            string rawUrl = item.GetMetadata(RawUrlMetadataName);
 
             if (!string.IsNullOrEmpty(rawUrl))
             {
                 return BuildInfo.Get(item.ItemSpec, rawUrl);
             }
 
-            string rawVersionsBaseUrl = item.GetMetadata("RawVersionsBaseUrl");
-            string buildInfoPath = item.GetMetadata("BuildInfoPath");
-            string currentRef = item.GetMetadata("CurrentRef");
+            string rawVersionsBaseUrl = item.GetMetadata(RawVersionsBaseUrlMetadataName);
+            string buildInfoPath = item.GetMetadata(BuildInfoPathMetadataName);
+            string currentRef = item.GetMetadata(CurrentRefMetadataName);
+            // Optional
+            string currentBranch = item.GetMetadata(CurrentBranchMetadataName);
 
             if (!string.IsNullOrEmpty(rawVersionsBaseUrl) &&
                 !string.IsNullOrEmpty(buildInfoPath) &&
                 !string.IsNullOrEmpty(currentRef))
             {
+                if (!string.IsNullOrEmpty(currentBranch))
+                {
+                    buildInfoPath = $"{buildInfoPath}/{currentBranch}";
+                }
+
                 return BuildInfo.CachedGet(
                     item.ItemSpec,
                     rawVersionsBaseUrl,
@@ -123,8 +144,8 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                     cacheDir);
             }
 
-            string packageId = item.GetMetadata("PackageId");
-            string version = item.GetMetadata("Version");
+            string packageId = item.GetMetadata(PackageIdMetadataName);
+            string version = item.GetMetadata(VersionMetadataName);
 
             if (!string.IsNullOrEmpty(packageId) &&
                 !string.IsNullOrEmpty(version))

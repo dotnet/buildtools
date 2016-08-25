@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 
@@ -11,12 +12,47 @@ namespace Microsoft.DotNet.Execute
 {
     public class Setup
     {
+        private const string RunQuietReservedKeyword = "RunQuiet";
+        private const string RunToolSettingValueTypeReservedKeyword = "runToolSetting";
+
+        public Dictionary<string, string> ToolSettings { get; set; }
         public Dictionary<string, Setting> Settings { get; set; }
         public Dictionary<string, Command> Commands { get; set; }
         public Dictionary<string, Tool> Tools { get; set; }
         public Dictionary<string, string> SettingParameters { get; set; }
         public string Os { get; set; }
         public string ConfigurationFilePath { get; set; }
+
+        private int ValidateSettings()
+        {
+            int returnCode = 0;
+            foreach(var key in Settings.Keys)
+            {
+                if (!IsReservedKeyword(key))
+                {
+                    if (Settings[key].ValueType == null)
+                    {
+                        Console.Error.WriteLine("Setting '{0}' is missing the required ValueType property.", key);
+                        returnCode = 1;
+                    }
+                    if(Settings[key].Values == null)
+                    {
+                        Console.Error.WriteLine("Setting '{0}' is missing the required Values property.", key);
+                        returnCode = 1;
+                    }
+                }
+            }
+            return returnCode;
+        }
+
+        private bool IsReservedKeyword(string keyword)
+        {
+            if(keyword.Equals(RunQuietReservedKeyword))
+            {
+                return true;
+            }
+            return false;
+        }
 
         private string ParseSettingValue(string inputValue)
         {
@@ -57,6 +93,35 @@ namespace Microsoft.DotNet.Execute
             return value;
         }
 
+        private void ParseRunToolSettings(string commandSelectedByUser = null)
+        {
+            Setting tempSetting;
+            Command tempCommand;
+            foreach(var toolSetting in ToolSettings.Keys.Select(k => k.ToString()).ToArray())
+            {
+                string tempValue = null;
+                // Attempt to get run tool setting value from parameters
+                SettingParameters.TryGetValue(toolSetting, out tempValue);
+                ToolSettings[toolSetting] = tempValue;
+
+                // Attempt to get run tool setting value from command section
+                if (string.IsNullOrEmpty(ToolSettings[toolSetting]) && commandSelectedByUser != null)
+                {
+                    if (Commands.TryGetValue(commandSelectedByUser, out tempCommand))
+                    {
+                        tempCommand.DefaultValues.Settings.TryGetValue(toolSetting, out tempValue);
+                        ToolSettings[toolSetting] = tempValue;
+                    }
+                }
+                // Attempt to get run tool setting value from settings section
+                if (string.IsNullOrEmpty(ToolSettings[toolSetting]))
+                {
+                    Settings.TryGetValue(toolSetting, out tempSetting);
+                    ToolSettings[toolSetting] = tempSetting.DefaultValue;
+                }
+            }
+        }
+
         private string FindSettingValue(string valueToFind)
         {
             Setting value;
@@ -77,38 +142,90 @@ namespace Microsoft.DotNet.Execute
             return null;
         }
 
-        public void prepareValues(string os, Dictionary<string, string> parameters, string configFile)
+        public int PrepareValues(string os, Dictionary<string, string> parameters, string configFile)
         {
             SettingParameters = new Dictionary<string, string>(parameters);
             Os = os;
             ConfigurationFilePath = configFile;
+            // Add defaults for run tool settings if they haven't been defined in config.json
+            SetRunToolSettingsDefaults();
+
+            // Validate Settings before parsing out ToolSettings
+            int returnCode = ValidateSettings();
+
+            ToolSettings = Settings.Where(s => s.Value.ValueType == null  ||
+                                               s.Value.ValueType.Equals(RunToolSettingValueTypeReservedKeyword)
+                                               ).ToDictionary(s => s.Key, s => string.Empty) ?? new Dictionary<string, string>();
+            // A dev may have overriden the default values for a tool setting, but not specified the ValueType
+            foreach(var key in ToolSettings.Keys)
+            {
+                Settings[key].ValueType = RunToolSettingValueTypeReservedKeyword;
+            }
+
+            // Parse run tool settings for any settings which do not apply to a Command, this allows us to have run tool settings
+            // which are outside the scope of a command.
+            ParseRunToolSettings();
+            return returnCode;
+        }
+
+        private void SetRunToolSettingsDefaults()
+        {
+            // If RunQuiet is already defined in config.json, don't override it
+            if (!Settings.ContainsKey(RunQuietReservedKeyword))
+            {
+                Setting runQuietSetting = new Setting()
+                {
+                    Values = new List<string>() { "True", "False" },
+                    ValueType = RunToolSettingValueTypeReservedKeyword,
+                    Description = "Run tool specific setting.  Set to True to only display output from the executing command.",
+                    DefaultValue = "false"
+                };
+
+                Settings.Add(RunQuietReservedKeyword, runQuietSetting);
+            }
+
         }
 
         public int ExecuteCommand(string commandSelectedByUser, List<string> parametersSelectedByUser)
         {
+            ParseRunToolSettings(commandSelectedByUser);
+            string runQuietValue;
+            bool runQuiet = false;
+            if (ToolSettings.TryGetValue(RunQuietReservedKeyword, out runQuietValue))
+            {
+                runQuiet = runQuietValue.Equals("true", StringComparison.OrdinalIgnoreCase);
+            }
             CompleteCommand commandToRun = BuildCommand(commandSelectedByUser, parametersSelectedByUser);
             if (commandToRun != null)
             {
-                Console.ForegroundColor = ConsoleColor.DarkYellow;
-                Console.WriteLine("Running: {0} {1}", commandToRun.ToolCommand, commandToRun.ParametersCommand);
-                Console.ResetColor();
+                if (!runQuiet)
+                {
+                    PrintColorMessage(ConsoleColor.DarkYellow, "Running: {0} {1}", commandToRun.ToolCommand, commandToRun.ParametersCommand);
+                }
 
                 int result = RunProcess.ExecuteProcess(commandToRun.ToolCommand, commandToRun.ParametersCommand);
-                if (result == 0)
+                if (!runQuiet)
                 {
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine("Build Succeeded.");
+                    if (result == 0)
+                    {
+                        PrintColorMessage(ConsoleColor.Green, "Build Succeeded.");
+                    }
+                    else
+                    {
+                        PrintColorMessage(ConsoleColor.Red, "Build Failed.");
+                    }
                 }
-                else
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Build Failed.");
-                }
-                Console.ResetColor();
 
                 return result;
             }
             return 1;
+        }
+
+        private void PrintColorMessage(ConsoleColor color, string message, params object [] args)
+        {
+            Console.ForegroundColor = color;
+            Console.WriteLine(message, args);
+            Console.ResetColor();
         }
 
         private CompleteCommand BuildCommand(string commandSelectedByUser, List<string> parametersSelectedByUser, Dictionary<string, string> parameters = null)
@@ -149,6 +266,9 @@ namespace Microsoft.DotNet.Execute
         private string BuildParametersForCommand(Dictionary<string, string> commandParameters, string toolName)
         {
             string commandSetting = string.Empty;
+
+            Tools[toolName].osSpecific[Os].TryGetValue("defaultParameters", out commandSetting);            
+
             foreach (KeyValuePair<string, string> parameters in commandParameters)
             {
                 if (!parameters.Key.Equals("toolName") && !string.IsNullOrEmpty(parameters.Value))
@@ -259,23 +379,30 @@ namespace Microsoft.DotNet.Execute
         private string GetTool(Command commandToExecute, string os, string configPath, List<string> parametersSelectedByUser)
         {
             string toolname = commandToExecute.DefaultValues.ToolName;
-
             string project = GetProject(commandToExecute, parametersSelectedByUser);
 
-            if (Tools.ContainsKey(toolname))
+            Tool toolProperties = null;
+
+            if(Tools.TryGetValue(toolname, out toolProperties))
             {
                 SettingParameters["toolName"] = toolname;
-
-                if (toolname.Equals("msbuild"))
+                string value = string.Empty;
+                if (toolProperties.osSpecific[os].TryGetValue("path", out value) && !string.IsNullOrEmpty(value))
                 {
-                    return Path.GetFullPath(Path.Combine(configPath, os.Equals("windows") ? Tools[toolname].Run["windows"] : Tools[toolname].Run["unix"]));
+                    return Path.GetFullPath(Path.Combine(configPath, value));
                 }
-                else if (toolname.Equals("terminal"))
+                else if (toolProperties.osSpecific[os].TryGetValue("filesExtension", out value) && !string.IsNullOrEmpty(value))
                 {
-                    string extension = os.Equals("windows") ? Tools[toolname].Run["windows"] : Tools[toolname].Run["unix"];
+                    string extension = value;
                     return Path.GetFullPath(Path.Combine(configPath, string.Format("{0}.{1}", project, extension)));
                 }
+                else
+                {
+                    Console.Error.WriteLine("Error: The process {0} has empty values for path and filesExtension properties. It is mandatory that one of the two has a value.", toolname);
+                    return string.Empty;
+                }
             }
+
             Console.Error.WriteLine("Error: The process {0} is not specified in the Json file.", toolname);
             return string.Empty;
         }
@@ -312,6 +439,7 @@ namespace Microsoft.DotNet.Execute
             {
                 commandOption = string.Format(" {0}", toolName.Equals("console") ? "" : value);
             }
+            else if(type.Equals(RunToolSettingValueTypeReservedKeyword)) { /* do nothing */ }
             else
             {
                 Tool toolFormat;
@@ -404,7 +532,7 @@ namespace Microsoft.DotNet.Execute
 
     public class Tool
     {
-        public Dictionary<string, string> Run { get; set; }
+        public Dictionary<string, Dictionary<string, string>> osSpecific { get; set; }
         public Dictionary<string, string> ValueTypes { get; set; }
     }
 

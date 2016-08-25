@@ -518,7 +518,11 @@ namespace GenFacades
 
                 if (assembly.ExportedTypes == null)
                     assembly.ExportedTypes = new List<IAliasForType>();
-                assembly.ExportedTypes.Add(alias);
+                // Make sure that the typeforward doesn't already exist in the ExportedTypes
+                if (!assembly.ExportedTypes.Any(t => t.AliasedType.RefDocId() == alias.AliasedType.RefDocId()))
+                    assembly.ExportedTypes.Add(alias);
+                else
+                    throw new FacadeGenerationException($"{seedType.FullName()} typeforward already exists");
             }
 
             private void AddWin32VersionResource(string contractLocation, Assembly facade)
