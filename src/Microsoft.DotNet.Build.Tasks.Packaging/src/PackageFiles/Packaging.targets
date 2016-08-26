@@ -127,7 +127,7 @@
     <ShouldCreatePackage Condition="'$(ShouldCreatePackage)' == ''">$(ShouldGenerateNuSpec)</ShouldCreatePackage>
     <BuildDependsOn Condition="'$(ShouldGenerateNuSpec)' == 'true'">GenerateNuSpec</BuildDependsOn>
     <BuildDependsOn Condition="'$(ShouldCreatePackage)' == 'true'">$(BuildDependsOn);CreatePackage</BuildDependsOn>
-    <BuildDependsOn>$(BuildDependsOn);ValidatePackage</BuildDependsOn>
+    <BuildDependsOn Condition="'$(ShouldCreatePackage)' == 'true' OR '$(ShouldGenerateNuSpec)' == 'true'">$(BuildDependsOn);ValidatePackage</BuildDependsOn>
   </PropertyGroup>
 
   <!-- Redefine build to just create the NuSpec only, we'll create the package during ArcProjects phase -->
