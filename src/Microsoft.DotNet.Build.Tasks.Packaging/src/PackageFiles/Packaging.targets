@@ -107,6 +107,7 @@
   <UsingTask TaskName="HarvestPackage" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="UpdatePackageIndex" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="GetPackageFromModule" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  <UsingTask TaskName="FilterUnknownPackages" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   
   <!-- Determine if we actually need to build for this architecture -->
   <!-- Packages can specifically control their architecture by specifying the PackagePlatforms
@@ -605,18 +606,19 @@
                      TargetFramework="$(_TargetFramework)"
                      FrameworkListsPath="$(FrameworkListsPath)">
       <Output TaskParameter="FrameworkReferences" ItemName="_FileFrameworkReference"/>
-      <Output TaskParameter="PackageReferences" ItemName="_FilePackageReference"/>
+      <Output TaskParameter="PackageReferences" ItemName="_FilePackageReferenceUnfiltered"/>
     </SplitReferences>
+    
+    <FilterUnknownPackages Condition="'@(_FilePackageReferenceUnfiltered)' != ''"
+                           OriginalDependencies="@(_FilePackageReferenceUnfiltered)"
+                           BaseLinePackages="@(BaseLinePackage)"
+                           PackageIndexes="@(PackageIndex)">
+      <Output TaskParameter="FilteredDependencies" ItemName="_FilePackageReference" />
+    </FilterUnknownPackages>
+                           
 
     <ItemGroup Condition="'@(_FilePackageReference)' != ''">
       <_FilePackageReference Remove="corefx;mscorlib;System;System.Core;System.Xml;Windows" />
-
-      <_FilePackageReferencePrivate Include="@(_FilePackageReference)"
-                                    Condition="$([System.String]::new('%(Identity)').StartsWith('System.Private.'))"/>
-
-      <!-- exclude any System.Private dependencies that aren't known packages, where known packages are in BaseLinePackage -->
-      <PackageDependencyExclude Include="@(_FilePackageReferencePrivate)" Exclude="@(BaseLinePackage)" />
-      <_FilePackageReference Remove="@(PackageDependencyExclude)"/>
 
       <!-- Projects may specify additional references by assembly name & identity that we'll process
            applying pre-release logic -->
