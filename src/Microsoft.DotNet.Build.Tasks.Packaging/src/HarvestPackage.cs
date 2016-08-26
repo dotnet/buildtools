@@ -307,16 +307,39 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             Files = harvestedFiles.ToArray();
         }
 
+        private string[] _pathsToExclude = null;
         private bool ShouldExclude(string packagePath)
         {
-            return ShouldSuppress(packagePath) || (PathsToExclude != null &&
-                PathsToExclude.Any(p => packagePath.StartsWith(p, StringComparison.OrdinalIgnoreCase)));
+            if (_pathsToExclude == null)
+            {
+                _pathsToExclude = PathsToExclude.NullAsEmpty().Select(EnsureTrailingSlash).ToArray();
+            }
+
+            return ShouldSuppress(packagePath) ||
+                _pathsToExclude.Any(p => packagePath.StartsWith(p, StringComparison.OrdinalIgnoreCase));
         }
 
+        private string[] _pathsToSuppress = null;
         private bool ShouldSuppress(string packagePath)
         {
-            return PathsToSuppress != null &&
-                PathsToSuppress.Any(p => packagePath.StartsWith(p, StringComparison.OrdinalIgnoreCase));
+            if (_pathsToSuppress == null)
+            {
+                _pathsToSuppress = PathsToSuppress.NullAsEmpty().Select(EnsureTrailingSlash).ToArray();
+            }
+
+            return _pathsToSuppress.Any(p => packagePath.StartsWith(p, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static string EnsureTrailingSlash(string source)
+        {
+            if (source.Length < 1 || source[source.Length - 1] == '\\' || source[source.Length - 1] == '/')
+            {
+                return source;
+            }
+            else
+            {
+                return source + '/';
+            }
         }
 
         private static string GetTargetFrameworkFromPackagePath(string path)
