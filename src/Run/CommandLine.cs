@@ -762,8 +762,7 @@ class CommandLine
                     }
                 }
             }
-
-            if (hasQualifiers)
+            else if (hasQualifiers)
             {
                 sb.AppendLine().Append("  Actions:").AppendLine();
 
@@ -779,6 +778,11 @@ class CommandLine
                         Wrap(sb, commandSettingsHelp, QualifierSyntaxWidth + 7, new string(' ', QualifierSyntaxWidth + 7), maxLineWidth, false);
                     }
                 }
+            }
+            else
+            {
+                string commandSettingsHelp = _setupContent.GetHelpCommand(parameterSetParameter.Name);
+                Wrap(sb, commandSettingsHelp, QualifierSyntaxWidth + 7, new string(' ', QualifierSyntaxWidth + 7), maxLineWidth, false);
             }
 
             string globalQualifiers = null;
