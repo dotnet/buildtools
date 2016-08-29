@@ -312,7 +312,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         {
             if (_pathsToExclude == null)
             {
-                _pathsToExclude = PathsToExclude.NullAsEmpty().Select(EnsureTrailingSlash).ToArray();
+                _pathsToExclude = PathsToExclude.NullAsEmpty().Select(EnsureDirectory).ToArray();
             }
 
             return ShouldSuppress(packagePath) ||
@@ -324,22 +324,48 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         {
             if (_pathsToSuppress == null)
             {
-                _pathsToSuppress = PathsToSuppress.NullAsEmpty().Select(EnsureTrailingSlash).ToArray();
+                _pathsToSuppress = PathsToSuppress.NullAsEmpty().Select(EnsureDirectory).ToArray();
             }
 
             return _pathsToSuppress.Any(p => packagePath.StartsWith(p, StringComparison.OrdinalIgnoreCase));
         }
 
-        private static string EnsureTrailingSlash(string source)
+        private static string EnsureDirectory(string source)
         {
+            string result;
+
             if (source.Length < 1 || source[source.Length - 1] == '\\' || source[source.Length - 1] == '/')
             {
-                return source;
+                // already have a directory
+                result = source;
             }
             else
             {
-                return source + '/';
+                // could be a directory or file
+                var extension = Path.GetExtension(source);
+
+                if (extension != null && extension.Length > 0 && includedExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
+                {
+                    // it's a file, find the directory portion
+                    var fileName = Path.GetFileName(source);
+                    if (fileName.Length != source.Length)
+                    {
+                        result = source.Substring(0, source.Length - fileName.Length);
+                    }
+                    else
+                    {
+                        // no directory portion, just return as-is
+                        result = source;
+                    }
+                }
+                else
+                {
+                    // it's a directory, add the slash
+                    result = source + '/';
+                }
             }
+
+            return result;
         }
 
         private static string GetTargetFrameworkFromPackagePath(string path)
