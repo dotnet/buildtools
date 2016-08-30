@@ -21,6 +21,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="FilterUnknownPackages.cs" />
+    <Compile Include="GetPackageDestination.cs" />
     <Compile Include="GetApplicableAssetsFromPackageReports.cs" />
     <Compile Include="GetLastStablePackage.cs" />
     <Compile Include="GetPackageFromModule.cs" />
@@ -59,7 +60,6 @@
     <Compile Include="PackagingTask.cs" />
     <Compile Include="SplitReferences.cs" />
     <Compile Include="ValidatePackage.cs" />
-    <Compile Include="ValidatePackageTargetFramework.cs" />
     <Compile Include="ValidationReport.cs" />
     <Compile Include="VersionUtility.cs" />
   </ItemGroup>
