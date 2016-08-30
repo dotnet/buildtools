@@ -410,20 +410,13 @@ namespace Microsoft.DotNet.Execute
         private string GetProject(Command commandToExecute, List<string> parametersSelectedByUser)
         {
             string project = string.Empty;
-            bool moreThanOneProject = false;
+            
             if(parametersSelectedByUser != null)
             {
-                foreach (string param in parametersSelectedByUser)
+                if (parametersSelectedByUser.Count(p => commandToExecute.Alias[p].Settings.TryGetValue("Project", out project)) > 1)
                 {
-                    if (commandToExecute.Alias[param].Settings.TryGetValue("Project", out project))
-                    {
-                        if (moreThanOneProject)
-                        {
-                            Console.Error.WriteLine("Error: There can only be one project execution per command.");
-                            return string.Empty;
-                        }
-                        moreThanOneProject = true;
-                    }
+                    Console.Error.WriteLine("Error: There can only be one project execution per command.");
+                    return string.Empty;
                 }
             }
             
