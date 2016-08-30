@@ -7,8 +7,8 @@
     <RuntimeIdGraphDefinitionFile Condition="'$(RuntimeIdGraphDefinitionFile)' == ''">$(MSBuildThisFileDirectory)runtime.json</RuntimeIdGraphDefinitionFile>
   </PropertyGroup>
 
-  <UsingTask TaskName="ValidatePackageTargetFramework" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="GetApplicableAssetsFromPackages" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  <UsingTask TaskName="GetPackageDestination" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
 
   <Target Name="UpdatePkgProjProjectReferences" BeforeTargets="AssignProjectConfiguration">
     <!-- Update PkgProj references to call the GetPackageAssets target -->
@@ -108,57 +108,41 @@
     </ItemGroup>
 
     <PropertyGroup>
-      <IsNetFxLibrary Condition="'$(IsNetFxLibrary)' == '' AND $(PackageTargetFramework.StartsWith('net4', StringComparison.OrdinalIgnoreCase))">true</IsNetFxLibrary>
-      
       <!-- Desktop libraries that contain types in classic assemblies need to be included in ref
          so that the types unify with the classic assemblies from the targeting pack. -->
-      <PackageAsRefAndLib Condition="'$(PackageAsRefAndLib)' == '' AND '$(IsPartialFacadeAssembly)' == 'true' AND '$(IsNetFxLibrary)' == 'true'">true</PackageAsRefAndLib>
+      <PackageDesktopAsRef Condition="'$(PackageDesktopAsRef)' == ''">$(IsPartialFacadeAssembly)</PackageDesktopAsRef>
+      <PackageDesktopAsRef Condition="'$(PackageAsRefAndLib)' != ''">$(PackageAsRefAndLib)</PackageDesktopAsRef>
+      
+      <!-- Desktop libraries should also be packaged without a RID to work in packages.config projects -->
+      <PackageDesktopAsLib Condition="'$(PackageDesktopAsLib)' == ''">true</PackageDesktopAsLib>
 
       <!-- A reference asset is any file contributed from a project that is contributing a reference,
            not just the file in the ref folder. -->
-      <IsReferenceAsset>false</IsReferenceAsset>
-      <IsReferenceAsset Condition="'$(IsReferenceAssembly)' == 'true' OR '$(PackageAsRefAndLib)' == 'true'">true</IsReferenceAsset>
+      <IsReferenceAsset Condition="'$(IsReferenceAsset)' == ''">$(IsReferenceAssembly)</IsReferenceAsset>
+      <IsReferenceAsset Condition="'$(IsReferenceAsset)' == ''">false</IsReferenceAsset>
     </PropertyGroup>
+    
+    <!-- *** determine destination path for assets *** 
+         Order of precedence
+           @(PackageDestination) - used verbatim, must set identity to path and TargetFramework to target moniker.
 
-    <PropertyGroup>
-      <!-- Clear PackageTargetRuntime if it was set on a reference assembly -->
-      <PackageTargetRuntime Condition="'$(IsReferenceAsset)' == 'true' AND '$(PackageAsRefAndLib)' != 'true' AND '$(PackageTargetRuntime)' != ''"></PackageTargetRuntime>
-    </PropertyGroup>
-
-    <!-- *** determine destination path for assets *** -->
-    <PropertyGroup>
-      <_packageTargetRefLib>lib</_packageTargetRefLib>
-      <_packageTargetRefLib Condition="'$(IsReferenceAssembly)' == 'true'">ref</_packageTargetRefLib>
-
-      <!-- no path or runtime, but framework: lib/{txm}-->
-      <PackageTargetPath Condition="'$(PackageTargetPath)' == '' AND '$(PackageTargetRuntime)' == '' AND '$(PackageTargetFramework)' != ''">$(_packageTargetRefLib)/$(PackageTargetFramework)</PackageTargetPath>
-
-      <!-- no path but runtime and framework: runtimes/{rid}/lib/{txm}-->
-      <PackageTargetPath Condition="'$(PackageTargetPath)' == '' AND '$(PackageTargetFramework)' != '' AND '$(PackageTargetRuntime)' != ''">runtimes/$(PackageTargetRuntime)/lib/$(PackageTargetFramework)</PackageTargetPath>
-    </PropertyGroup>
-
-    <!-- specifying $(PackageTargetPath) overrides defaults and project specific items -->
-    <ItemGroup Condition="'$(PackageTargetPath)' != ''">
-      <!-- remove anything specified by the project-->
-      <PackageDestination Remove="@(PackageDestination)" />
-
-      <!-- only use $(PackageTargetPath) -->
-      <PackageDestination Include="$(PackageTargetPath)">
-        <TargetFramework Condition="'$(PackageTargetFramework)' != ''">$(PackageTargetFramework)</TargetFramework>
-      </PackageDestination>
-      
-      <!-- RID-specific desktop libraries should also be packaged without a RID to work in packages.config projects -->
-      <PackageDestination Condition="'$(IsNetFxLibrary)' == 'true' AND '$(PackageTargetRuntime)' != '' AND '$(ExludeNetFxLibraryFromLib)' != 'true'" Include="lib/$(PackageTargetFramework)">
-        <TargetFramework>$(PackageTargetFramework)</TargetFramework>
-      </PackageDestination>
-      
-      <PackageDestination Condition="'$(PackageAsRefAndLib)' == 'true'" Include="ref/$(PackageTargetFramework)">
-        <TargetFramework>$(PackageTargetFramework)</TargetFramework>
-      </PackageDestination>
-    </ItemGroup>
+           $(PackageTargetFramework) & @(PackageTargetFramework) - combined to specify target monikers and optionally target runtime.  Path is calculated.
+           $(NuGetTargetMoniker) - specifies target moniker if nothing else is specified.  Path is calculated.
+    -->
+    <GetPackageDestination Condition="'@(PackageDestination)' == ''"
+                           PackageTargetFrameworks="$(PackageTargetFramework);@(PackageTargetFramework)"
+                           PackageTargetRuntime="$(PackageTargetRuntime)"
+                           NuGetTargetMoniker="$(NuGetTargetMoniker)"
+                           IsReferenceAssembly="$(IsReferenceAssembly)"
+                           PackageDesktopAsRef="$(PackageDesktopAsRef)"
+                           PackageDesktopAsLib="$(PackageDesktopAsLib)"
+                           SuppressPackageTargetFrameworkCompatibility="@(SuppressPackageTargetFrameworkCompatibility)">
+      <Output TaskParameter="PackageDestinations" ItemName="PackageDestination" />
+      <Output TaskParameter="IsReferenceAsset" PropertyName="IsReferenceAsset" />
+    </GetPackageDestination>
 
     <!-- fail if not specified by the project  -->
-    <Error Condition="'@(PackageDestination)' == ''" Text="Error could not determine packaging destination.  Please set either PackageTargetFramework property or PackageDestination item." />
+    <Error Condition="'@(PackageDestination)' == ''" Text="Error could not determine packaging destination.  Please set either PackageTargetFramework property, PackageTargetFramework item, NuGetTargetMoniker property or PackageDestination item." />
 
     <!-- *** include assets *** -->
     <ItemGroup>
@@ -200,24 +184,4 @@
       </FilesToPackage>
     </ItemGroup>
   </Target>
-
-  <Target Name="ValidatePackageTargetFramework"
-          Inputs="$(MSBuildAllProjects);@(CustomAdditionalCompileInputs);@(ReferencePath)"
-          Outputs="@(IntermediateAssembly)"
-          Condition="'$(PackageTargetFramework)' != '' AND '$(SkipValidatePackageTargetFramework)' != 'true'"
-          AfterTargets="ResolveReferences">
-    <ItemGroup Condition="'@(ValidateIgnoreReference)' == ''">
-      <ValidateIgnoreReference Include="mscorlib;System.Private.CoreLib;System.Private.Uri;Windows" />
-    </ItemGroup>
-
-    <ValidatePackageTargetFramework AssemblyName="$(AssemblyName)"
-                                    AssemblyVersion="$(AssemblyVersion)"
-                                    GenerationDefinitionsFile="$(GenerationDefinitionFile)"
-                                    PackageTargetFramework="$(PackageTargetFramework)"
-                                    DirectReferences="@(ReferencePath)"
-                                    CandidateReferences="@(ReferencePath);@(IndirectReference)"
-                                    IgnoredReferences="@(ValidateIgnoreReference)"
-                                    UseNetPlatform="$(UseNetPlatform)"/>
-  </Target>
-
 </Project>
