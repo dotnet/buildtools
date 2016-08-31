@@ -80,8 +80,11 @@
       <Output Condition="'$(TargetOS)'==''" TaskParameter="TargetOS" PropertyName="TargetOS" />
     </GetTargetMachineInfo>
 
+    <PropertyGroup>
+      <TestWithLocalNativeLibraries Condition="'$(TestWithLocalLibraries)'=='true'">true</TestWithLocalNativeLibraries>
+    </PropertyGroup>
     <!-- Test using locally built shim libraries. -->
-    <ItemGroup Condition="'$(TestWithLocalLibraries)'=='true'">
+    <ItemGroup Condition="'$(TestWithLocalNativeLibraries)'=='true'">
       <TestCopyLocal Include="$(BaseOutputPath)$(TargetOS).$(TargetArch).$(ConfigurationGroup)/Native/*.*" />
     </ItemGroup>
 
