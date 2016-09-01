@@ -1,10 +1,10 @@
 {
   "dependencies": {
-    "Microsoft.Cci": "4.0.0-rc3-24128-00",
+    "Microsoft.Cci": "4.0.0-rc3-24214-00",
     "Microsoft.Composition": "1.0.30",
     "System.Diagnostics.Contracts": "4.0.0",
-    "System.Diagnostics.TraceSource": "4.0.0-rc3-24128-00",
-    "NETStandard.Library": "1.5.0-rc2-24027"
+    "System.Diagnostics.TraceSource": "4.0.0",
+    "NETStandard.Library": "1.6.0"
   },
   "frameworks": {
     "netstandard1.3": {

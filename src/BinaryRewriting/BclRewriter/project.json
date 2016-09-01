@@ -1,9 +1,9 @@
 {
   "dependencies": {
-    "Microsoft.Cci": "4.0.0-rc3-24128-00",
+    "Microsoft.Cci": "4.0.0-rc3-24214-00",
     "Microsoft.NETCore.App": {
       "type": "platform",
-      "version": "1.0.0-rc2-3002702"
+      "version": "1.0.0"
     }
   },
   "frameworks": {
