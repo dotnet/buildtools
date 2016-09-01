@@ -82,7 +82,7 @@
       <Link>FrameworkLists\%(RecursiveDir)%(FileName)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="$(PackagesDir)Microsoft.NETCore.Platforms\1.0.1-$(CoreFxExpectedPrerelease)\runtime.json">
+    <None Include="$(PackagesDir)Microsoft.NETCore.Platforms\$(MicrosoftNETCorePlatformsVersion)\runtime.json">
       <Link>PackageFiles\runtime.json</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
