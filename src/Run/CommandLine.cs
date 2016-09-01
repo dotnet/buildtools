@@ -750,7 +750,7 @@ class CommandLine
 
             if (hasParameters)
             {
-                sb.AppendLine().Append("  Parameters:").AppendLine();
+                sb.AppendLine().Append("Parameters:").AppendLine();
                 for (int i = parameterSetBody; i < _parameterDescriptions.Count; i++)
                 {
                     CommandLineParameter parameter = _parameterDescriptions[i];
@@ -764,7 +764,7 @@ class CommandLine
             }
             else if (hasQualifiers)
             {
-                sb.AppendLine().Append("  Actions:").AppendLine();
+                sb.AppendLine().Append("Actions:").AppendLine();
 
                 for (int i = parameterSetBody; i < _parameterDescriptions.Count; i++)
                 {
@@ -775,14 +775,14 @@ class CommandLine
                     {
                         ParameterHelp(parameter, sb, QualifierSyntaxWidth, maxLineWidth);
                         string commandSettingsHelp = _setupContent.GetHelpCommand(parameterSetParameter.Name, parameter.Name);
-                        Wrap(sb, commandSettingsHelp, QualifierSyntaxWidth + 7, new string(' ', QualifierSyntaxWidth + 7), maxLineWidth, false);
+                        Wrap(sb, commandSettingsHelp, QualifierSyntaxWidth, new string(' ', QualifierSyntaxWidth), maxLineWidth, false);
                     }
                 }
             }
             else
             {
                 string commandSettingsHelp = _setupContent.GetHelpCommand(parameterSetParameter.Name);
-                Wrap(sb, commandSettingsHelp, QualifierSyntaxWidth + 7, new string(' ', QualifierSyntaxWidth + 7), maxLineWidth, false);
+                Wrap(sb, commandSettingsHelp, QualifierSyntaxWidth, new string(' ', QualifierSyntaxWidth), maxLineWidth, false);
             }
 
             string globalQualifiers = null;
@@ -1690,7 +1690,7 @@ class CommandLine
         private static void ParameterHelp(CommandLineParameter parameter, StringBuilder sb, int firstColumnWidth, int maxLineWidth)
         {
             // TODO alias information.
-            sb.Append("    ").Append(parameter.Syntax().PadRight(firstColumnWidth)).Append(' ');
+            sb.Append(parameter.Syntax().PadRight(firstColumnWidth));
             string helpText = parameter.HelpText;
             string defValue = string.Empty;
 
@@ -1707,13 +1707,13 @@ class CommandLine
             {
                 if (!string.IsNullOrEmpty(parameter.DefaultValue))
                 {
-                    helpText += "\n => Default value: " + parameter.DefaultValue.ToString();
+                    helpText += "\n=> Default value: " + parameter.DefaultValue.ToString();
                 }
             }
 
             if (parameter.LegalValues.Count > 0)
-                helpText = helpText + "\n => Legal values: [" + string.Join(", ", parameter.LegalValues) + "].";
-            Wrap(sb, helpText, firstColumnWidth + 5, new string(' ', firstColumnWidth + 5), maxLineWidth, true);
+                helpText = helpText + "\n=> Legal values: [" + string.Join(", ", parameter.LegalValues) + "].";
+            Wrap(sb, helpText, firstColumnWidth, new string(' ', firstColumnWidth), maxLineWidth, true);
         }
         private static void Wrap(StringBuilder sb, string text, int startColumn, string linePrefix, int maxLineWidth, bool first)
         {
@@ -1778,7 +1778,7 @@ class CommandLine
                 if (parameter.IsParameterSet)
                     break;
                 if (parameter.IsNamed)
-                    ParameterHelp(parameter, sb, QualifierSyntaxWidth, maxLineWidth);
+                    ParameterHelp(parameter, sb, GlobalQualifierSyntaxWidth, maxLineWidth);
             }
             return sb.ToString();
         }
@@ -1821,6 +1821,7 @@ class CommandLine
         // does this.  It is only done when help is needed, so it is not here in the common scenario.
         private List<CommandLineParameter> _parameterDescriptions;
         private int _qualifierSyntaxWidth;       // When printing help, how much indent any line wraps.
+        private int _globalQualifierSyntaxWidth;
         public int QualifierSyntaxWidth
         {
             get
@@ -1832,14 +1833,49 @@ class CommandLine
                     if (_parameterDescriptions != null)
                     {
                         int maxSyntaxWidth = 0;
+                        bool qualifierStart = false;
                         foreach (CommandLineParameter parameter in _parameterDescriptions)
-                            maxSyntaxWidth = Math.Max(maxSyntaxWidth, parameter.Syntax().Length);
-                        _qualifierSyntaxWidth = Math.Max(8, maxSyntaxWidth + 1); // +1 leaves an extra space
+                        {
+                            if (parameter.IsParameterSet)
+                            {
+                                qualifierStart = true;
+                            }
+                            if(qualifierStart)
+                            {
+                                maxSyntaxWidth = Math.Max(maxSyntaxWidth, parameter.Syntax().Length);
+                            }
+                        }
+                        _qualifierSyntaxWidth = Math.Max(8, maxSyntaxWidth + 2); // +2 leaves two extra spaces
                     }
                 }
                 return _qualifierSyntaxWidth;
             }
         }
+
+        public int GlobalQualifierSyntaxWidth
+        {
+            get
+            {
+                // Find the optimal size for the 'first column' of the help text.
+                if (_globalQualifierSyntaxWidth == 0)
+                {
+                    _globalQualifierSyntaxWidth = 35;
+                    if (_parameterDescriptions != null)
+                    {
+                        int maxSyntaxWidth = 0;
+                        foreach (CommandLineParameter parameter in _parameterDescriptions)
+                        {
+                            if (parameter.IsParameterSet)
+                                break;
+                            maxSyntaxWidth = Math.Max(maxSyntaxWidth, parameter.Syntax().Length);
+                        }
+                        _globalQualifierSyntaxWidth = Math.Max(8, maxSyntaxWidth + 2); // +2 leaves two extra spaces
+                    }
+                }
+                return _globalQualifierSyntaxWidth;
+            }
+        }
+
 
 
         /// <summary>
