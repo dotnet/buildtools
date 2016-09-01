@@ -31,6 +31,7 @@
     <Compile Include="Extensions\ApiKind.cs" />
     <Compile Include="Extensions\ApiKindExtensions.cs" />
     <Compile Include="Extensions\AssemblyIdentityHelpers.cs" />
+    <Compile Include="Extensions\FakeCustomAttribute.cs" />
     <Compile Include="Filters\AttributeMarkedFilter.cs" />
     <Compile Include="Filters\AttributesFilter.cs" />
     <Compile Include="Filters\BaselineDifferenceFilter.cs" />

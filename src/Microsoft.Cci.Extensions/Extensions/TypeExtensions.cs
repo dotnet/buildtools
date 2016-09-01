@@ -258,6 +258,15 @@ namespace Microsoft.Cci.Extensions
             throw new NotImplementedException("Called .Name on a currently unsupported type definition!");
         }
 
+        public static string FullName(this ICustomAttribute attribute)
+        {
+            FakeCustomAttribute fca = attribute as FakeCustomAttribute;
+            if (fca != null)
+                return fca.FullTypeName;
+
+            return attribute.Type.FullName();
+        }
+
         public static string FullName(this IReference reference)
         {
             Contract.Requires(reference != null);

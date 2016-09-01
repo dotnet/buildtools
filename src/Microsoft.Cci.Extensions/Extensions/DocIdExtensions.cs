@@ -12,6 +12,10 @@ namespace Microsoft.Cci.Extensions
     {
         public static string DocId(this ICustomAttribute attribute)
         {
+            FakeCustomAttribute fca = attribute as FakeCustomAttribute;
+            if (fca != null)
+                return fca.DocId;
+
             return attribute.Type.DocId();
         }
 

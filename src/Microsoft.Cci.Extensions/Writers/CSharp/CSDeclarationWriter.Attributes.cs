@@ -52,21 +52,30 @@ namespace Microsoft.Cci.Writers.CSharp
             if (!writeInline)
                 _writer.WriteLine();
         }
+        private static FakeCustomAttribute s_methodImpl = new FakeCustomAttribute("System.Runtime.CompilerServices", "MethodImpl");
+        private static FakeCustomAttribute s_dllImport = new FakeCustomAttribute("System.Runtime.InteropServices", "DllImport");
+
         private void WriteMethodPseudoCustomAttributes(IMethodDefinition method)
         {
             // Decided not to put more information (parameters) here as that would have introduced a lot of noise.
             if (method.IsPlatformInvoke)
             {
-                string typeName = _forCompilation ? "System.Runtime.InteropServices.DllImport" : "DllImport";
-                WriteFakeAttribute(typeName, writeInline: true, parameters: "\"" + method.PlatformInvokeData.ImportModule.Name.Value + "\"");
+                if (IncludeAttribute(s_dllImport))
+                {
+                    string typeName = _forCompilation ? s_dllImport.FullTypeName : s_dllImport.TypeName;
+                    WriteFakeAttribute(typeName, writeInline: true, parameters: "\"" + method.PlatformInvokeData.ImportModule.Name.Value + "\"");
+                }
             }
 
             var ops = CreateMethodImplOptions(method);
             if (ops != default(System.Runtime.CompilerServices.MethodImplOptions))
             {
-                string typeName = _forCompilation ? "System.Runtime.CompilerServices.MethodImpl" : "MethodImpl";
-                string enumValue = _forCompilation ? string.Join("|", ops.ToString().Split('|').Select(x => "System.Runtime.CompilerServices.MethodImplOptions." + x)) : ops.ToString();
-                WriteFakeAttribute(typeName, writeInline: true, parameters: enumValue);
+                if (IncludeAttribute(s_methodImpl))
+                {
+                    string typeName = _forCompilation ? s_methodImpl.FullTypeName : s_methodImpl.TypeName;
+                    string enumValue = _forCompilation ? string.Join("|", ops.ToString().Split('|').Select(x => "System.Runtime.CompilerServices.MethodImplOptions." + x)) : ops.ToString();
+                    WriteFakeAttribute(typeName, writeInline: true, parameters: enumValue);
+                }
             }
         }
 
@@ -364,7 +373,7 @@ namespace Microsoft.Cci.Writers.CSharp
 
         private static bool ExcludeSpecialAttribute(ICustomAttribute c)
         {
-            string typeName = c.Type.FullName();
+            string typeName = c.FullName();
 
             switch (typeName)
             {
