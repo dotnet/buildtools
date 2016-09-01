@@ -35,25 +35,33 @@ namespace GenAPI
                 return 1;
             }
 
-            using (TextWriter output = GetOutput())
-            using (IStyleSyntaxWriter syntaxWriter = GetSyntaxWriter(output))
-            {
-                if (!String.IsNullOrEmpty(s_headerFile))
-                {
-                    if (!File.Exists(s_headerFile))
-                    {
-                        Console.WriteLine("ERROR: header file '{0}' does not exist", s_headerFile);
-                        return 1;
-                    }
+            string headerText = GetHeaderText();
+            bool loopPerAssembly = Directory.Exists(s_out);
 
-                    using (TextReader headerText = File.OpenText(s_headerFile))
+            if (loopPerAssembly)
+            {
+                foreach (var assembly in assemblies)
+                {
+                    using (TextWriter output = GetOutput(GetFilename(assembly)))
+                    using (IStyleSyntaxWriter syntaxWriter = GetSyntaxWriter(output))
                     {
-                        output.Write(headerText.ReadToEnd());
+                        if (headerText != null)
+                            output.Write(headerText);
+                        ICciWriter writer = GetWriter(output, syntaxWriter);
+                        writer.WriteAssemblies(new IAssembly[] { assembly });
                     }
                 }
-
-                ICciWriter writer = GetWriter(output, syntaxWriter);
-                writer.WriteAssemblies(assemblies);
+            }
+            else
+            { 
+                using (TextWriter output = GetOutput())
+                using (IStyleSyntaxWriter syntaxWriter = GetSyntaxWriter(output))
+                {
+                    if (headerText != null)
+                        output.Write(headerText);
+                    ICciWriter writer = GetWriter(output, syntaxWriter);
+                    writer.WriteAssemblies(assemblies);
+                }
             }
 
             return 0;
@@ -64,13 +72,60 @@ namespace GenAPI
             Console.WriteLine("Unable to resolve assembly '{0}' referenced by '{1}'.", e.Unresolved.ToString(), e.Referrer.ToString());
         }
 
-        private static TextWriter GetOutput()
+        private static string GetHeaderText()
+        {
+            if (!String.IsNullOrEmpty(s_headerFile))
+            {
+                if (!File.Exists(s_headerFile))
+                {
+                    Console.WriteLine("ERROR: header file '{0}' does not exist", s_headerFile);
+                }
+
+                using (TextReader headerText = File.OpenText(s_headerFile))
+                {
+                    return headerText.ReadToEnd();
+                }
+            }
+            return null;
+        }
+
+        private static TextWriter GetOutput(string filename = "")
         {
             // If this is a null, empty, whitespace, or a directory use console
-            if (string.IsNullOrWhiteSpace(s_out) || Directory.Exists(s_out))
+            if (string.IsNullOrWhiteSpace(s_out))
                 return Console.Out;
 
+            if (Directory.Exists(s_out) && !string.IsNullOrEmpty(filename))
+            {
+                return File.CreateText(Path.Combine(s_out, filename));
+            }
+
             return File.CreateText(s_out);
+        }
+
+        private static string GetFilename(IAssembly assembly)
+        {
+            string name = assembly.Name.Value;
+            switch (s_writer)
+            {
+                case WriterType.DocIds:
+                case WriterType.TypeForwards:
+                    return name + ".txt";
+
+                case WriterType.TypeList:
+                case WriterType.CSDecl:
+                default:
+                    switch (s_syntaxWriter)
+                    {
+                        case SyntaxWriterType.Xml:
+                            return name + ".xml";
+                        case SyntaxWriterType.Html:
+                            return name + ".html";
+                        case SyntaxWriterType.Text:
+                        default:
+                            return name + ".cs";
+                    }
+            }
         }
 
         private static ICciWriter GetWriter(TextWriter output, IStyleSyntaxWriter syntaxWriter)
@@ -124,6 +179,11 @@ namespace GenAPI
                 includeFilter = new IntersectionFilter(includeFilter, new DocIdExcludeListFilter(s_excludeApiList));
             }
 
+            if (!string.IsNullOrWhiteSpace(s_excludeAttributesList))
+            {
+                includeFilter = new IntersectionFilter(includeFilter, new ExcludeAttributesFilter(s_excludeAttributesList));
+            }
+
             return includeFilter;
         }
 
@@ -164,6 +224,7 @@ namespace GenAPI
         private static SyntaxWriterType s_syntaxWriter = SyntaxWriterType.Text;
         private static string s_apiList;
         private static string s_excludeApiList;
+        private static string s_excludeAttributesList;
         private static string s_headerFile;
         private static string s_out;
         private static string s_libPath;
@@ -183,11 +244,12 @@ namespace GenAPI
                 parser.DefineOptionalQualifier("apiList", ref s_apiList, "(-al) Specify a api list in the DocId format of which APIs to include.");
                 parser.DefineAliases("excludeApiList", "xal");
                 parser.DefineOptionalQualifier("excludeApiList", ref s_excludeApiList, "(-xal) Specify a api list in the DocId format of which APIs to exclude.");
+                parser.DefineOptionalQualifier("excludeAttributesList", ref s_excludeAttributesList, "Specify a list in the DocId format of which attributes should be excluded from being applied on apis.");
                 parser.DefineAliases("writer", "w");
                 parser.DefineOptionalQualifier<WriterType>("writer", ref s_writer, "(-w) Specify the writer type to use.");
                 parser.DefineAliases("syntax", "s");
                 parser.DefineOptionalQualifier<SyntaxWriterType>("syntax", ref s_syntaxWriter, "(-s) Specific the syntax writer type. Only used if the writer is CSDecl");
-                parser.DefineOptionalQualifier("out", ref s_out, "Output path. Default is the console.");
+                parser.DefineOptionalQualifier("out", ref s_out, "Output path. Default is the console. Can specify an existing directory as well and then a file will be created for each assembly with the matching name of the assembly.");
                 parser.DefineAliases("headerFile", "h");
                 parser.DefineOptionalQualifier("headerFile", ref s_headerFile, "(-h) Specify a file with header content to prepend to output.");
                 parser.DefineAliases("apiOnly", "api");
