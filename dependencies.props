@@ -1,0 +1,79 @@
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Source of truth for dependency tooling: the commit hash of the dotnet/versions master branch as of the last auto-upgrade. -->
+  <PropertyGroup>
+    <CoreFxCurrentRef>b6fe7bf0d879e7a750b15e90743d5191e3b478de</CoreFxCurrentRef>
+    <CoreClrCurrentRef>a8be270baa206a3d87112b7912869661b0c46f0a</CoreClrCurrentRef>
+    <ProjectKTfsCurrentRef>b6fe7bf0d879e7a750b15e90743d5191e3b478de</ProjectKTfsCurrentRef>
+  </PropertyGroup>
+
+  <!-- Auto-upgraded properties for each build info dependency. -->
+  <PropertyGroup>
+    <MicrosoftNETCorePlatformsVersion>1.0.1</MicrosoftNETCorePlatformsVersion>
+  </PropertyGroup>
+
+  <!-- Package dependency verification/auto-upgrade configuration. -->
+  <PropertyGroup>
+    <BaseDotNetBuildInfo>build-info/dotnet/</BaseDotNetBuildInfo>
+    <DependencyBranch>release/1.0.0</DependencyBranch>
+    <CurrentRefXmlPath>$(MSBuildThisFileFullPath)</CurrentRefXmlPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <RemoteDependencyBuildInfo Include="CoreFx">
+      <BuildInfoPath>$(BaseDotNetBuildInfo)corefx/$(DependencyBranch)</BuildInfoPath>
+      <CurrentRef>$(CoreFxCurrentRef)</CurrentRef>
+    </RemoteDependencyBuildInfo>
+    <RemoteDependencyBuildInfo Include="CoreClr">
+      <BuildInfoPath>$(BaseDotNetBuildInfo)coreclr/$(DependencyBranch)</BuildInfoPath>
+      <CurrentRef>$(CoreClrCurrentRef)</CurrentRef>
+    </RemoteDependencyBuildInfo>
+    <RemoteDependencyBuildInfo Include="ProjectKTfs">
+      <BuildInfoPath>$(BaseDotNetBuildInfo)projectk-tfs/$(DependencyBranch)</BuildInfoPath>
+      <CurrentRef>$(ProjectKTfsCurrentRef)</CurrentRef>
+    </RemoteDependencyBuildInfo>
+
+    <DependencyBuildInfo Include="@(RemoteDependencyBuildInfo)">
+      <RawVersionsBaseUrl>https://raw.githubusercontent.com/dotnet/versions</RawVersionsBaseUrl>
+    </DependencyBuildInfo>
+
+    <XmlUpdateStep Include="Microsoft.NETCore.Platforms">
+      <Path>$(MSBuildThisFileFullPath)</Path>
+      <ElementName>MicrosoftNETCorePlatformsVersion</ElementName>
+      <PackageId>Microsoft.NETCore.Platforms</PackageId>
+    </XmlUpdateStep>
+  </ItemGroup>
+
+  <!-- Set up dependencies on packages that aren't found in a BuildInfo. -->
+  <ItemGroup>
+    <!--
+      Don't verify xunit dependencies. There are multiple versions in the repository and it's not
+      yet known which is correct. https://github.com/dotnet/buildtools/issues/1004
+
+    <XUnitDependency Include="xunit"/>
+    <XUnitDependency Include="xunit.runner.utility"/>
+    <XUnitDependency Include="xunit.runner.console"/>
+    <StaticDependency Include="@(XUnitDependency)">
+      <Version>2.2.0-beta2-build3300</Version>
+    </StaticDependency>
+    -->
+
+    <NuGetDependency Include="NuGet.Client"/>
+    <NuGetDependency Include="NuGet.Packaging"/>
+    <NuGetDependency Include="NuGet.ProjectModel"/>
+    <NuGetDependency Include="NuGet.Versioning"/>
+    <StaticDependency Include="@(NuGetDependency)">
+      <Version>3.5.0-rc1-final</Version>
+    </StaticDependency>
+
+    <NETCoreDependency Include="Microsoft.NETCore.App"/>
+    <NETCoreDependency Include="Microsoft.NETCore.TestHost"/>
+    <StaticDependency Include="@(NETCoreDependency)">
+      <Version>1.0.0</Version>
+    </StaticDependency>
+
+    <DependencyBuildInfo Include="@(StaticDependency)">
+      <PackageId>%(Identity)</PackageId>
+      <UpdateStableVersions>true</UpdateStableVersions>
+    </DependencyBuildInfo>
+  </ItemGroup>
+</Project>
