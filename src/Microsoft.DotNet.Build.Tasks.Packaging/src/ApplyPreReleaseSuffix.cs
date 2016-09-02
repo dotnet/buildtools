@@ -62,7 +62,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 return false;
             }
 
-            if (PackageIndexes != null || PackageIndexes.Length > 0)
+            if (PackageIndexes != null && PackageIndexes.Length > 0)
             {
                 PackageIndex.Current.Merge(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
             }
