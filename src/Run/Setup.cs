@@ -208,11 +208,11 @@ namespace Microsoft.DotNet.Execute
                 {
                     if (result == 0)
                     {
-                        PrintColorMessage(ConsoleColor.Green, "Build Succeeded.");
+                        PrintColorMessage(ConsoleColor.Green, "Command execution succeeded.");
                     }
                     else
                     {
-                        PrintColorMessage(ConsoleColor.Red, "Build Failed.");
+                        PrintColorMessage(ConsoleColor.Red, "Command execution failed with exit code {0}.", result);
                     }
                 }
 
@@ -410,20 +410,16 @@ namespace Microsoft.DotNet.Execute
         private string GetProject(Command commandToExecute, List<string> parametersSelectedByUser)
         {
             string project = string.Empty;
-            bool moreThanOneProject = false;
-            foreach (string param in parametersSelectedByUser)
+            
+            if(parametersSelectedByUser != null)
             {
-                if (commandToExecute.Alias[param].Settings.TryGetValue("Project", out project))
+                if (parametersSelectedByUser.Count(p => commandToExecute.Alias[p].Settings.TryGetValue("Project", out project)) > 1)
                 {
-                    if (moreThanOneProject)
-                    {
-                        Console.Error.WriteLine("Error: There can only be one project execution per command.");
-                        return string.Empty;
-                    }
-                    moreThanOneProject = true;
+                    Console.Error.WriteLine("Error: There can only be one project execution per command.");
+                    return string.Empty;
                 }
             }
-
+            
             if (string.IsNullOrEmpty(project))
             {
                 project = commandToExecute.DefaultValues.Project;
@@ -466,15 +462,19 @@ namespace Microsoft.DotNet.Execute
             {
                 StringBuilder sb = new StringBuilder();
                 Dictionary<string, string> commandParametersToPrint = new Dictionary<string, string>();
+                List<string> aliasList = null;
 
                 sb.AppendLine().Append("Settings: ").AppendLine();
-                sb.Append(GetHelpAlias(commandToPrint.Alias[alias].Settings, commandParametersToPrint));
 
-                //sb.AppendLine().Append("Default Settings for action (values can be overwritten): ").AppendLine();
+                if (!string.IsNullOrEmpty(alias))
+                {
+                    sb.Append(GetHelpAlias(commandToPrint.Alias[alias].Settings, commandParametersToPrint));
+                    aliasList = new List<string>(alias.Split(' '));
+                }
+
                 sb.Append(GetHelpAlias(commandToPrint.DefaultValues.Settings, commandParametersToPrint));
-
-                CompleteCommand completeCommand = BuildCommand(commandName, new List<string>(alias.Split(' ')), commandParametersToPrint);
-
+                CompleteCommand completeCommand = BuildCommand(commandName, aliasList, commandParametersToPrint);
+                
                 sb.AppendLine().Append("It will run: ").AppendLine();
                 sb.Append(string.Format("{0} {1}", completeCommand.ToolCommand, completeCommand.ParametersCommand));
                 return sb.ToString();
