@@ -32,7 +32,7 @@ EXIT /B %ERRORLEVEL%
 :: ======== CopyAndCheck subroutine ====
 :copyandcheck
 IF EXIST %2 (
-exit /b 0
+  del %2
 )
 mklink /H %2 %1 > NUL 2>&1
 IF %ERRORLEVEL% == 1 (
