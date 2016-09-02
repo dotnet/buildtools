@@ -22,6 +22,9 @@
     <Compile Include="Setup.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="run.runtimeconfig.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="project.json" />
   </ItemGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
