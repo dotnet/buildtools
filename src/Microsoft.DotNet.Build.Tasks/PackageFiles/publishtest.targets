@@ -75,7 +75,7 @@
       </TestCopyLocal>
     </ItemGroup>
 
-    <GetTargetMachineInfo Condition="'$(TestWithLocalLibraries)'=='true'">
+    <GetTargetMachineInfo Condition="'$(TestWithLocalLibraries)'=='true' Or '$(TestWithLocalNativeLibraries)'=='true'">
       <Output Condition="'$(TargetArch)'==''" TaskParameter="TargetArch" PropertyName="TargetArch" />
       <Output Condition="'$(TargetOS)'==''" TaskParameter="TargetOS" PropertyName="TargetOS" />
     </GetTargetMachineInfo>
