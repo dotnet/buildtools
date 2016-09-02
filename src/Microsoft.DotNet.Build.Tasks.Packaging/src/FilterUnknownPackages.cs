@@ -44,7 +44,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
             else
             {
-                var baseLinePackageIds = new HashSet<string>(BaseLinePackages.Select(b => b.ItemSpec));
+                var baseLinePackageIds = new HashSet<string>(BaseLinePackages.NullAsEmpty().Select(b => b.ItemSpec));
                 isKnownPackage = packageId => baseLinePackageIds.Contains(packageId);
             }
 
