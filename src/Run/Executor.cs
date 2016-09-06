@@ -4,9 +4,9 @@
 
 using Newtonsoft.Json;
 using System;
-using System.Reflection;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using Microsoft.Fx.CommandLine;
 using System.Runtime.InteropServices;
 
@@ -25,24 +25,22 @@ namespace Microsoft.DotNet.Execute
         {
             SettingParameters = new Dictionary<string, string>();
             CommandParameters = new Dictionary<string, Dictionary<string, string>>();
-            string executorDirectory = Path.GetDirectoryName(typeof(Executor).GetTypeInfo().Assembly.Location);
-            configFilePath = Path.GetFullPath(Path.Combine(executorDirectory, @".."));
+
+            // to maintain compatibility with old behavior
+            var legacyConfigPath = Directory.GetParent(Path.GetDirectoryName(typeof(Executor).GetTypeInfo().Assembly.Location)).Name;
+            if (File.Exists(Path.Combine(legacyConfigPath, configFileName)))
+                configFilePath = legacyConfigPath;
+            else
+                configFilePath = Directory.GetCurrentDirectory();
         }
 
-        public Executor(string configFile=null)
+        public Executor(string configFile) : this()
         {
-            SettingParameters = new Dictionary<string, string>();
-            CommandParameters = new Dictionary<string, Dictionary<string, string>>();
+            if (string.IsNullOrEmpty(configFile))
+                throw new ArgumentException("The configFile parameter cannot be null or empty.");
 
-            if (configFile == null)
-            {
-                string executorDirectory = Path.GetDirectoryName(typeof(Executor).GetTypeInfo().Assembly.Location);
-                configFilePath = Path.GetFullPath(Path.Combine(executorDirectory, @".."));
-            }
-            else
-            {
-                configFilePath = Path.GetDirectoryName(configFile);
-            }
+            configFilePath = Path.GetDirectoryName(configFile);
+            configFileName = Path.GetFileName(configFile);
         }
 
         public Setup OpenFile()
@@ -64,6 +62,10 @@ namespace Microsoft.DotNet.Execute
                 {
                     Console.WriteLine(e.Message);
                 }
+            }
+            else
+            {
+                Console.WriteLine($"The specified config file '{configFile}' does not exist.");
             }
             return null;
         }
@@ -126,7 +128,7 @@ namespace Microsoft.DotNet.Execute
         {
             string[] parseArgs;
             Executor executor;
-            if(args.Length > 0 && args[0].Contains("config.json"))
+            if(args.Length > 0 && args[0].EndsWith(".json"))
             {
                 executor = new Executor(args[0]);
                 parseArgs = new string[args.Length - 1];
