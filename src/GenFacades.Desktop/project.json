@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "Microsoft.Cci": "4.0.0-rc3-24214-00",
+    "Microsoft.Cci": "4.0.0-rc4-24217-00",
     "System.Collections": "4.0.10",
     "System.Console": "4.0.0",
     "System.Diagnostics.Debug": "4.0.10",
