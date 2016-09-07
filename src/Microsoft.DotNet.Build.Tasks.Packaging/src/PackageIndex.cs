@@ -18,6 +18,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
         public Dictionary<string, string> ModulesToPackages { get; set; } = new Dictionary<string, string>();
 
+        public string PreRelease { get; set; }
+
         [JsonIgnore]
         public HashSet<string> IndexSources { get; set; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -90,18 +92,39 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 return;
             }
 
+            // if pre-release is set on this index and different than the other
+            // move pre-release to individual infos
+            if (PreRelease != null && !PreRelease.Equals(other.PreRelease))
+            {
+                foreach(var info in Packages.Values)
+                {
+                    if (info.PreRelease == null)
+                    {
+                        info.PreRelease = PreRelease;
+                    }
+                }
+
+                PreRelease = null;
+            }
+
             foreach(var otherPackage in other.Packages)
             {
                 var otherInfo = otherPackage.Value;
-                PackageInfo existingInfo;
+                PackageInfo info;
 
-                if (Packages.TryGetValue(otherPackage.Key, out existingInfo))
+                if (Packages.TryGetValue(otherPackage.Key, out info))
                 {
-                    existingInfo.Merge(otherInfo);
+                    info.Merge(otherInfo);
                 }
                 else
                 {
-                    Packages[otherPackage.Key] = otherInfo;
+                    Packages[otherPackage.Key] = info = otherInfo;
+                }
+
+                // if pre-release is set on the other index and doesn't match the value of the info, set it
+                if (other.PreRelease != null && !other.PreRelease.Equals(info.PreRelease))
+                {
+                    info.PreRelease = other.PreRelease;
                 }
             }
 
@@ -143,6 +166,24 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             return isStable;
         }
 
+        public string GetPreRelease(string packageId)
+        {
+            PackageInfo info;
+            string preRelease = null;
+
+            if (Packages.TryGetValue(packageId, out info))
+            {
+                preRelease = info.PreRelease;
+            }
+
+            if (preRelease == null)
+            {
+                preRelease = PreRelease;
+            }
+
+            return preRelease;
+        }
+
         public Version GetPackageVersionForAssemblyVersion(string packageId, Version assemblyVersion)
         {
             PackageInfo info;
@@ -177,6 +218,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
         public bool ShouldSerializeAssemblyVersionInPackageVersion() { return AssemblyVersionInPackageVersion.Count > 0; }
 
+        public string PreRelease { get; set; }
+
         public void Merge(PackageInfo other)
         {
             StableVersions.UnionWith(other.StableVersions);
@@ -185,6 +228,11 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             {
                 // prefer other over existing
                 BaselineVersion = other.BaselineVersion;
+            }
+
+            if (other.PreRelease != null)
+            {
+                PreRelease = other.PreRelease;
             }
 
             foreach (var assemblyVersionInPackage in other.AssemblyVersionInPackageVersion)
