@@ -56,7 +56,7 @@ The data in the output is further grouped by operating system.  Builds of the sa
 
 In the case the `consumes` output doesn't want to take advantage of OS specific dependencies it can specify `"os-all"` as a catch all. 
 
-In addition to artifacts the consume feed can also optionally list any machine prerequitsites needed to build or test the repo:
+In addition to artifacts the consume feed can also optionally list any machine prerequisites needed to build or test the repo:
 
 ``` json
 "prereq": { 
@@ -93,21 +93,21 @@ Like `consumes` the `produces` output is also grouped by the operating system:
 }
 ```
 
-A ful sample output for `produces` is available in the Samples section.
+A full sample output for `produces` is available in the Samples section.
 
 ### change
 
 The `change` command is used to alter the floating build dependencies section.  It can establish new versions of NuGet packages, new locations to find file artifacts, different NuGet feeds, etc ...  
 
-This is the command which allow us to use the build output of one repo as the input of a dependent repo.  The first repo can build using a new output version (say beta5) and dependent repos can be changed to accept this new version.  
+This is the command which allow us to use the build output of one repo as the input of a dependent repo.  The first repo can build using a new output version (say beta5) and dependent repos can be changed to accept this new version.
 
-This command operates by providing json whose format is a subset of the output of `consumes`.  In particular it will provide the `"dependencies.floating"` section.  
+This command is operated by providing it json whose format is a subset of the output of `consumes`.  In particular it takes the `"dependencies.floating"` section.
 
 ``` json
 "dependencies" {
     "floating": { 
         "nuget": {
-            "packages" {
+            "packages": {
                 "MicroBuild.Core": "0.2.0",
                 "Microsoft.NETCore.Platforms": "1.0.1"
             }
@@ -118,14 +118,14 @@ This command operates by providing json whose format is a subset of the output o
 
 A tool responsible for composing repos would ideally:
 
-1. Execute `run.cmd consumes` and capture the output.
-2. Alter the NuGet package versions in the json to have the correct build identifier: beta5, RTM, etc ..
-3. Execute `run.cmd change` and pass in the altered output.
+1. Execute `consumes` and capture the output.
+2. Alter the NuGet package versions in the captured json to have the desired values: beta5, RTM, etc
+3. Execute `change` and pass in the altered json.
 
 
 ### publish
 
-The `publish` command takes a json input that describes the locations artifacts should be published to.  The input to this command is the output of `produces` that is augmented with location information.  
+The `publish` command takes a json input that describes the locations artifacts should be published to: the output of `produces` augmented with location information.
 
 ## Artifact Specification
 
@@ -159,12 +159,12 @@ Example:
 }
 ```
 
-### File 
+### Files
 
 Any file which is not a NuGet package should be listed as a file artifact.  These can be downloaded from the web or copied from local places on the hard drive.  Each type of file entry will have a name uniquely identifying the artifact and a kind property specifying the remainder of the properties:
 
-    - uri: a property named `"uri"` will contain an absolute Uri for the artifact.
-    - filesystem: a property named `"location"` will contain an OS specific file path for the artifact.
+- uri: a property named `"uri"` will contain an absolute Uri for the artifact.
+- filesystem: a property named `"location"` will contain an OS specific file path for the artifact.
 
 Example: 
 
@@ -177,6 +177,10 @@ Example:
     "run.exe": { 
         "kind": "filesystem",
         "location": "c:\\tools\\run.exe"
+    },
+    "bootstrap.ps1": {
+        "kind": "uri",
+        "uri": "https://raw.githubusercontent.com/dotnet/buildtools/master/bootstrap/bootstrap.ps1"
     }
 }
 ```
@@ -201,7 +205,7 @@ Example:
                             "value": "https://dotnet.myget.org/F/dotnet-core/api/v3/index.json"
                         }
                     ],
-                    "packages" {
+                    "packages": {
                         "MicroBuild.Core": "0.2.0",
                         "Microsoft.NETCore.Platforms": "1.0.1"
                     }
@@ -232,7 +236,7 @@ Example:
 {
     "os-all": {
         "nuget": {
-            "packages" {
+            "packages": {
                 "MicroBuild.Core": "0.2.0",
                 "Microsoft.NETCore.Platforms": "1.0.1"
             }
