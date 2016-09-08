@@ -59,6 +59,11 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// </summary>
         public ITaskItem[] PackageFolders { get; set; }
 
+        /// <summary>
+        /// Pre-release version to use for all pre-release packages covered by this index.
+        /// </summary>
+        public string PreRelease { get; set; }
+
         public override bool Execute()
         {
             string indexFilePath = PackageIndexFile.GetMetadata("FullPath");
@@ -132,6 +137,11 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     var package = moduleToPackage.GetMetadata("Package");
                     index.ModulesToPackages[moduleToPackage.ItemSpec] = package;
                 }
+            }
+
+            if (!String.IsNullOrEmpty(PreRelease))
+            {
+                index.PreRelease = PreRelease;
             }
 
             index.Save(indexFilePath);
