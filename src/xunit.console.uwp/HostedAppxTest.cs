@@ -105,7 +105,7 @@ namespace Xunit.UwpClient
             SetupManifestForXunit(manifestPath);
             GetManifestInfoFromFile(appxFactory, manifestPath);
             Console.WriteLine("Registering: " + manifestPath);
-            RegisterAppx(new Uri(manifestPath));
+            RegisterAppx(new Uri(Path.GetFullPath(manifestPath)));
         }
 
         private static void RegisterAppx(Uri manifestUri)
@@ -134,9 +134,11 @@ namespace Xunit.UwpClient
             }
             IntPtr pid;
             Console.WriteLine("Activating: " + appUserModelId);
-            var hri = activationManager.ActivateApplication(appUserModelId, this.argsToPass, ACTIVATEOPTIONS.AO_NOERRORUI | ACTIVATEOPTIONS.AO_NOSPLASHSCREEN, out pid);
+            var hr = activationManager.ActivateApplication(appUserModelId, this.argsToPass, ACTIVATEOPTIONS.AO_NOERRORUI | ACTIVATEOPTIONS.AO_NOSPLASHSCREEN, out pid);
             var timer = Stopwatch.StartNew();
-            Console.WriteLine("UWP Install HRESULT: " + hri);
+            Console.WriteLine("UWP Activation HRESULT: " + hr);
+            if (hr == 0)
+            {
             var p = Process.GetProcessById(pid.ToInt32());
             Console.WriteLine("Running {0} in process {1} at {2}", p.ProcessName, pid, DateTimeOffset.Now);
             while (timer.ElapsedMilliseconds < timeout.TotalMilliseconds && !p.HasExited)
@@ -150,36 +152,42 @@ namespace Xunit.UwpClient
                 p.Kill();
             }
             Console.WriteLine($"Finished waiting for {pid} at {DateTimeOffset.Now}, clean exit: {cleanExit}");
+            }
           
             var resultPath = Path.Combine(Environment.GetEnvironmentVariable("LOCALAPPDATA"), "Packages", appUserModelId.Substring(0, appUserModelId.IndexOf('!')), "LocalState", "testResults.xml");
             var logsPath = Path.Combine(Environment.GetEnvironmentVariable("LOCALAPPDATA"), "Packages", appUserModelId.Substring(0, appUserModelId.IndexOf('!')), "LocalState", "logs.txt");
                 
-            
-            var destinationPath = Path.Combine(Directory.GetCurrentDirectory(), Path.GetFileName(resultPath));
-            var logsDestinationPath = Path.Combine(Directory.GetCurrentDirectory(), Path.GetFileName(logsPath));
+            var destinationResultPath = Path.Combine(Directory.GetCurrentDirectory(), Path.GetFileName(resultPath));
+            var destinationLogsPath = Path.Combine(Directory.GetCurrentDirectory(), Path.GetFileName(logsPath));
             if (File.Exists(resultPath))
             {
                 Console.WriteLine($"Copying {resultPath} to test directory");
-                File.Copy(resultPath, destinationPath, true);
-                PrintTestResults(destinationPath);
+                File.Copy(resultPath, destinationResultPath, true);
+                PrintTestResults(destinationResultPath);
             }
             else
             {
-                Console.WriteLine("No results found at  {logsPath}, copying logs ");
+                Console.WriteLine($"No results found at {resultPath}"); 
             }
             if (File.Exists(logsPath))
             {
-                File.Copy(logsPath, logsDestinationPath, true);
-                PrintLogResults(logsDestinationPath);
+                File.Copy(logsPath, destinationLogsPath, true);
+                PrintLogResults(destinationLogsPath);
             }
             else
             {
-                Console.WriteLine($"No logs found at  {logsPath} ");
+                Console.WriteLine($"No logs found at {logsPath}");
             }
-            Console.WriteLine("Cleaning up...");
-            File.Delete(resultPath);
-            File.Delete(logsPath);
 
+            Console.WriteLine("Cleaning up...");
+            if (File.Exists(resultPath))
+            {
+            File.Delete(resultPath);
+            }
+            if (File.Exists(logsPath))
+            {
+            File.Delete(logsPath);
+            }
             return ReturnCode;
         }
 

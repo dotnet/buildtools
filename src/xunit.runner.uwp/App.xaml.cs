@@ -199,7 +199,7 @@ namespace XunitUwpRunner
             Window.Current.Activate();
 
             // Run tests for assemblies in current directory
-            RunTests(e.Arguments);
+            Task.Run(() => RunTests(e.Arguments));
         }
 
         /// <summary>
