@@ -60,7 +60,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         public void GetBaseLinedDependenciesFromBaseLinePackages()
         {
             Dictionary<string, SortedSet<Version>> baseLineVersions = new Dictionary<string, SortedSet<Version>>();
-            foreach (var baseLinePackage in BaseLinePackages)
+            foreach (var baseLinePackage in BaseLinePackages.NullAsEmpty())
             {
                 SortedSet<Version> versions = null;
                 if (!baseLineVersions.TryGetValue(baseLinePackage.ItemSpec, out versions))

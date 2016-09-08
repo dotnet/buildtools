@@ -24,7 +24,8 @@
   <files>
     <file src="RepoUtil\RepoUtil.exe" target="tools\netcoreapp1.0" />
     <file src="RepoUtil\RepoUtil.runtimeconfig.json" target="tools\netcoreapp1.0" />
-    <file src="RepoUtil\*.dll" target="tools\netcoreapp1.0" />
+    <file src="RepoUtil\Newtonsoft.Json.dll" target="tools\netcoreapp1.0" />
+    <file src="RepoUtil\System.Runtime.Serialization.Primitives.dll" target="tools\netcoreapp1.0" />
     <file src="RepoUtil.Desktop\RepoUtil.exe" target="tools\net46" />
     <file src="RepoUtil.Desktop\RepoUtil.exe.config" target="tools\net46" />
     <file src="RepoUtil.Desktop\*.dll" target="tools\net46" />

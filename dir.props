@@ -57,24 +57,7 @@
     <TestRuntimeProjectLockJson Condition="'$(TestRuntimeProjectLockJson)' == ''">$(SourceDir)Microsoft.DotNet.Build.Tasks/PackageFiles/test-runtime/project.lock.json</TestRuntimeProjectLockJson>
   </PropertyGroup>
 
-  <!-- Package dependency validation -->
-  <PropertyGroup>
-    <ValidatePackageVersions>true</ValidatePackageVersions>
-    <ProhibitFloatingDependencies>true</ProhibitFloatingDependencies>
-    <CoreFxExpectedPrerelease>rc3-24128-00</CoreFxExpectedPrerelease>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <ValidationPattern Include="^(?i)((System\..%2A)|(Microsoft\.Cci)|(Microsoft\.CSharp)|(Microsoft\.Win32\..%2A)|(Microsoft\.VisualBasic))(?&lt;!TestData)$">
-      <ExpectedPrerelease>$(CoreFxExpectedPrerelease)</ExpectedPrerelease>
-    </ValidationPattern>
-    <ValidationPattern Include="^(?i)xunit$">
-      <ExpectedVersion>2.1.0</ExpectedVersion>
-    </ValidationPattern>
-    <ValidationPattern Include="^(?i)(NuGet\..%2A)$">
-      <ExpectedVersion>3.5.0-rc1-final</ExpectedVersion>
-    </ValidationPattern>
-  </ItemGroup>
+  <Import Project="$(ProjectDir)dependencies.props" />
 
   <!-- list of nuget package sources passed to nuget.exe -->
   <ItemGroup>

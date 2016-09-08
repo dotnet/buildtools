@@ -200,7 +200,7 @@
       <IncludedFileForRunnerScript Include="@(_TestCopyLocalByFileNameWithoutDuplicates)"
                                    Condition="'$(TestWithoutNativeImages)' != 'true' Or !$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').EndsWith('.ni.dll'))" >
         <PackageRelativePath Condition="'%(_TestCopyLocalByFileNameWithoutDuplicates.NugetPackageId)' != ''">$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').Replace('$(PackagesDir)',''))</PackageRelativePath>
-        <UseAbsolutePath Condition="'$(TestWithLocalLibraries)'=='true'">$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').StartsWith('$(BinDir)'))</UseAbsolutePath>
+        <UseAbsolutePath Condition="'$(TestWithLocalLibraries)'=='true' Or '$(TestWithLocalNativeLibraries)'=='true'">$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').StartsWith('$(BinDir)'))</UseAbsolutePath>
       </IncludedFileForRunnerScript>
     </ItemGroup>
 

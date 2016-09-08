@@ -11,16 +11,15 @@
         "Microsoft.Build": "0.1.0-preview-00024-160610",
         "Microsoft.Net.Compilers.netcore": "2.0.0-beta3",
         "Microsoft.Net.Compilers.Targets.NetCore": "0.1.5-dev",
-        "Microsoft.Cci": "4.0.0-rc3-24128-00",
+        "Microsoft.Cci": "4.0.0-rc4-24217-00",
         "Microsoft.Composition": "1.0.30",
         "System.Diagnostics.Process": "4.1.0",
-        "System.Diagnostics.TextWriterTraceListener": "4.0.0-rc3-24128-00",
+        "System.Diagnostics.TextWriterTraceListener": "4.0.0",
         "System.Diagnostics.TraceSource": "4.0.0",
-        "System.Net.Http": "4.1.0",
         "System.Runtime.Serialization.Primitives": "4.1.1",
         "Newtonsoft.Json": "9.0.1",
         "NETStandard.Library": {
-          "version": "1.6.0",
+          "version": "1.6.1-beta-24506-02",
           "exclude": "runtime"
         }
       },
@@ -31,7 +30,7 @@
     },
     "net45": {
       "dependencies": {
-        "Microsoft.NETCore.Windows.ApiSets": "1.0.1-rc3-24128-00"
+        "Microsoft.NETCore.Windows.ApiSets": "1.0.1"
       }
     }
   },
@@ -40,10 +39,12 @@
     "debian.8-x64": {},
     "fedora.23-x64": {},
     "opensuse.13.2-x64": {},
+    "opensuse.42.1-x64": {},
     "osx.10.10-x64": {},
     "rhel.7-x64": {},
     "ubuntu.14.04-x64": {},
     "ubuntu.16.04-x64": {},
+    "ubuntu.16.10-x64": {},
     "win7-x64": {},
     "win7-x86": {}
   }

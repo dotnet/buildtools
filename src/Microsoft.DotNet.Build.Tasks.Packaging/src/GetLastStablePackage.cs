@@ -30,7 +30,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// <summary>
         /// Package index files used to define stable packages.
         /// </summary>
-        [Required]
         public ITaskItem[] PackageIndexes { get; set; }
         
         /// <summary>
@@ -78,7 +77,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 latestPackages[packageId] = nuGetVersion?.Version;
             }
 
-            foreach (var stablePackage in StablePackages)
+            foreach (var stablePackage in StablePackages.NullAsEmpty())
             {
                 var packageId = stablePackage.ItemSpec;
 
