@@ -7746,3 +7746,16 @@ XmlLite.dll!CreateXmlReaderInputWithEncodingName
 XmlLite.dll!CreateXmlWriter
 XmlLite.dll!CreateXmlWriterOutputWithEncodingCodePage
 XmlLite.dll!CreateXmlWriterOutputWithEncodingName
+ext-ms-win-shell32-shellfolders-l1-1-0.dll!PathCleanupSpec
+ext-ms-win-shell32-shellfolders-l1-1-0.dll!PathIsExe
+ext-ms-win-shell32-shellfolders-l1-1-0.dll!SHGetDesktopFolder
+ext-ms-win-shell32-shellfolders-l1-1-0.dll!SHGetFileInfoW
+ext-ms-win-shell32-shellfolders-l1-1-0.dll!SHGetFolderLocation
+ext-ms-win-shell32-shellfolders-l1-1-0.dll!SHGetFolderPathA
+ext-ms-win-shell32-shellfolders-l1-1-0.dll!SHGetFolderPathAndSubDirW
+ext-ms-win-shell32-shellfolders-l1-1-0.dll!SHGetFolderPathW
+ext-ms-win-shell32-shellfolders-l1-1-0.dll!SHGetInstanceExplorer
+ext-ms-win-shell32-shellfolders-l1-1-0.dll!SHGetKnownFolderPath
+ext-ms-win-shell32-shellfolders-l1-1-0.dll!SHGetSpecialFolderPathA
+ext-ms-win-shell32-shellfolders-l1-1-0.dll!SHGetSpecialFolderPathW
+ext-ms-win-shell32-shellfolders-l1-1-0.dll!SHSetKnownFolderPath
