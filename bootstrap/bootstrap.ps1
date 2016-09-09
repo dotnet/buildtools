@@ -26,7 +26,7 @@ $initCliLocalPath = Join-Path $ToolsLocalPath $initCliScript
 # blow away the tools directory so we can start from a known state
 if (Test-Path $ToolsLocalPath)
 {
-    rd -recurse $ToolsLocalPath
+    rd -recurse -force $ToolsLocalPath
 }
 mkdir $ToolsLocalPath | Out-Null
 
@@ -66,14 +66,16 @@ $pjContent = $pjContent + "}, `"frameworks`": { `"netcoreapp1.0`": { } } }"
 $pjContent | Out-File $projectJson
 
 # now restore the packages
-$packageSource = "https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json"
+$buildToolsSource = "https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json"
+$nugetOrgSource = "https://api.nuget.org/v3/index.json"
 if ($env:buildtools_source -ne $null)
 {
-    $packageSource = $env:buildtools_source
+    $buildToolsSource = $env:buildtools_source
 }
 $packagesPath = Join-Path $RepositoryRoot "packages"
 $dotNetExe = Join-Path $cliLocalPath "dotnet.exe"
-$process = Start-Process -Wait -NoNewWindow -FilePath $dotNetExe -ArgumentList "restore $projectJson --packages $packagesPath --source $packageSource" -PassThru
+$restoreArgs = "restore $projectJson --packages $packagesPath --source $buildToolsSource --source $nugetOrgSource"
+$process = Start-Process -Wait -NoNewWindow -FilePath $dotNetExe -ArgumentList $restoreArgs -PassThru
 if ($process.ExitCode -ne 0)
 {
     exit $process.ExitCode
