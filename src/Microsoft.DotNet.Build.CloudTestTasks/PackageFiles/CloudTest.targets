@@ -88,6 +88,7 @@
     <Error Condition="'$(TestProduct)' == ''" Text="Missing required property TestProduct." />
     <Error Condition="'$(BuildMoniker)' == ''" Text="Missing required property BuildMoniker." />
     <Error Condition="'$(Branch)' == ''" Text="Missing required property Branch." />
+
     <Error Condition="'$(CloudDropAccountName)' == ''" Text="Missing required property CloudDropAccountName." />
     <Error Condition="'$(CloudResultsAccountName)' == ''" Text="Missing required property CloudResultsAccountName." />
     <Error Condition="'$(CloudDropAccessToken)' == ''" Text="Missing required property CloudDropAccessToken." />
@@ -96,25 +97,69 @@
     <Warning Condition="'$(EventHubPath)' != '' or '$(EventHubSharedAccessKey)' != '' or '$(EventHubSharedAccessKeyName)' != ''" Text="EventHubPath and EventHubAccessKeys are ignored, use HelixApiAccessKey instead" />
     <Error Condition="'$(SkipNotifyEvent)' != 'true' and '$(HelixApiAccessKey)' == ''" Text="HelixApiAccessKey must be set to start Helix jobs" />
 
-    <!-- gather the test archives for upload and filter based on FilterToTestTFM -->
+    <!-- gather the test archives for this build -->
     <ItemGroup>
-      <UnfilteredTestArchives Include="$(TestArchivesRoot)**/*.zip" >
+      <OSPlatformTestArchives Include="$(TestArchivesRoot)**/*.zip" >
         <OSPlatformConfig>$(OSPlatformConfig)</OSPlatformConfig>
-      </UnfilteredTestArchives>
-      <UnfilteredTestArchives Include="$(AnyOSTestArchivesRoot)**/*.zip" >
+      </OSPlatformTestArchives>
+      <AnyOSPlatformTestArchives Include="$(AnyOSTestArchivesRoot)**/*.zip" >
         <OSPlatformConfig>$(AnyOSPlatformConfig)</OSPlatformConfig>
-      </UnfilteredTestArchives>
+      </AnyOSPlatformTestArchives>
       <!-- Only include Unix folders if supported by the current target OS -->
-      <UnfilteredTestArchives Condition="'$(TargetsUnix)' == 'true'" Include="$(UnixTestArchivesRoot)**/*.zip" >
+      <UnixPlatformTestArchives Condition="'$(TargetsUnix)' == 'true'" Include="$(UnixTestArchivesRoot)**/*.zip" >
         <OSPlatformConfig>$(UnixPlatformConfig)</OSPlatformConfig>
-      </UnfilteredTestArchives>
+      </UnixPlatformTestArchives>
     </ItemGroup>
+
+    <PropertyGroup>
+        <OSPlatformTestArchivesListFile>$(TestArchivesRoot)/$(OSPlatformConfig)-Test-Archive-ListUri.txt</OSPlatformTestArchivesListFile>
+        <AnyOSPlatformTestArchivesListFile>$(AnyOSTestArchivesRoot)/$(AnyOSPlatformConfig)-Test-Archive-List.txt</AnyOSPlatformTestArchivesListFile>
+        <UnixPlatformTestArchivesListFile>$(UnixTestArchivesRoot)/$(UnixPlatformConfig)-Test-Archive-List.txt</UnixPlatformTestArchivesListFile>
+    </PropertyGroup>
+
+    <!-- This is where we craft our archive Listes. These will sit at the base of the uploaded package. -->
+    <WriteLinesToFile 
+        File="$(OSPlatformTestArchivesListFile)"
+        Lines="@(OSPlatformTestArchives -> '%(Filename)%(Extension)')"
+        Overwrite="true"
+        Condition="Exists('$(TestArchivesRoot)')"
+        Encoding="Unicode" />
+    
+    <WriteLinesToFile 
+        File="$(AnyOSPlatformTestArchivesListFile)"
+        Lines="@(AnyOSPlatformTestArchives -> '%(Filename)%(Extension)')"
+        Overwrite="true"
+        Condition="Exists('$(AnyOSTestArchivesRoot)')"
+        Encoding="Unicode" />
+
+    <WriteLinesToFile 
+        File="$(UnixPlatformTestArchivesListFile)"
+        Lines="@(UnixPlatformTestArchives -> '%(Filename)%(Extension)')"
+        Overwrite="true"
+        Condition="Exists('$(UnixTestArchivesRoot)')"
+        Encoding="Unicode" />
+   
+    <ItemGroup>
+      <ForUpload Include="$(OSPlatformTestArchivesListFile)" Condition="Exists('$(OSPlatformTestArchivesListFile)')"/>
+      <ForUpload Include="$(AnyOSPlatformTestArchivesListFile)" Condition="Exists('$(AnyOSPlatformTestArchivesListFile)')"/>
+      <ForUpload Include="$(UnixPlatformTestArchivesListFile)" Condition="Exists('$(UnixPlatformTestArchivesListFile)')" />
+    </ItemGroup>
+
+   <!-- The unfiltered tests is the union of all of the tests archives we've selected -->
+    <ItemGroup>   
+      <UnfilteredTestArchives Include="@(OSPlatformTestArchives);@(AnyOSPlatformTestArchivesListFile);@(UnixPlatformTestArchives)" />
+    </ItemGroup>
+
+    <Message Text="Full, Unfiltered Test Archive Collection :: @(UnfilteredTestArchives)" Importance="Low" />
+
+    <!-- If we wish to filter tests that we upload, then altering the FilterToTestTFM and FilterToOSGroup is where to do it at. -->
     <FilterForUpload UnfilteredUploadItems="@(UnfilteredTestArchives)"
              FilterToTestTFM="$(FilterToTestTFM)"
              FilterToOSGroup="$(FilterToOSGroup)" 
              BinDir="$(BinDir)">
         <Output TaskParameter="FilteredUploadItems" PropertyName="ForUploadList" />
     </FilterForUpload>
+
     <CreateItem Include="$(ForUploadList)">
       <Output TaskParameter="Include" ItemName="ForUpload"/>
     </CreateItem>
@@ -147,6 +192,7 @@
       <RunnerScripts Include="$(ToolsDir)RunnerScripts/**/*.sh" />
       <RunnerScripts Include="$(ToolsDir)RunnerScripts/**/*.txt" />
     </ItemGroup>
+    
     <Copy SourceFiles="@(RunnerScripts)"
           DestinationFiles="@(RunnerScripts->'$(SupplementalPayloadDir)RunnerScripts/%(RecursiveDir)%(Filename)%(Extension)')"
           SkipUnchangedFiles="true" />
