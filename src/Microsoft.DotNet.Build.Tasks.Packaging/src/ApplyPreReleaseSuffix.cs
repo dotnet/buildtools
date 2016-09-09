@@ -89,7 +89,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 if (!IsStable(packageId, packageVersion))
                 {
                     // pre-release, set with suffix
-                    updatedPackage.SetMetadata("Version", packageVersion.ToString() + PreReleaseSuffix);
+                    updatedPackage.SetMetadata("Version", packageVersion.ToString() + GetSuffix(packageId));
                 }
                 else
                 {
@@ -140,6 +140,11 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
 
             return isStable;
+        }
+
+        private string GetSuffix(string packageId)
+        {
+            return PackageIndex.Current.GetPreRelease(packageId) ?? PreReleaseSuffix;
         }
 
         private static Version ParseAs3PartVersion(string versionString)
