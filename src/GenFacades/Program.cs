@@ -314,7 +314,7 @@ namespace GenFacades
             // Make note that all type forwards (including nested) implement INamespaceAliasForType, so do
             // not be tempted to filter using it, instead, we look at the aliased type to them.
             var typeForwardsToForward = contractAssembly.ExportedTypes.Select(alias => alias.AliasedType)
-                                                                      .OfType<INamespaceTypeReference>();
+                                                                      .OfType<INamedTypeReference>();
 
             var typesToForward = contractAssembly.GetAllTypes().Where(t => TypeHelper.IsVisibleOutsideAssembly(t))
                                                                .OfType<INamespaceTypeDefinition>();
