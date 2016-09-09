@@ -249,8 +249,15 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             Version existingPackageVersion;
             if (AssemblyVersionInPackageVersion.TryGetValue(assemblyVersion, out existingPackageVersion))
             {
-                // prefer the lowest versioned package which first exposed this API version
-                if (existingPackageVersion > packageVersion)
+                bool existingStable = StableVersions.Contains(existingPackageVersion);
+                bool updateStable = StableVersions.Contains(packageVersion);
+                
+                // always prefer a stable package over unstable package
+                // use the highest unstable package version
+                // use the lowest stable package version
+                if ((updateStable && !existingStable) || // update to stable from unstable
+                    (updateStable && existingStable && packageVersion < existingPackageVersion) || // update to lower stable
+                    (!updateStable && !existingStable && packageVersion > existingPackageVersion)) // update to higher non-stable version                
                 {
                     AssemblyVersionInPackageVersion[assemblyVersion] = packageVersion;
                 }

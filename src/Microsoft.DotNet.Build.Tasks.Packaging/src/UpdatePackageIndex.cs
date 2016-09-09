@@ -228,9 +228,22 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             if (assemblyVersions != null)
             {
-                foreach(var assemblyVersion in assemblyVersions.Where(v => v != null))
+                var assmVersions = new HashSet<Version>(assemblyVersions.Where(v => v != null));
+
+                foreach(var assemblyVersion in assmVersions)
                 {
                     info.AddAssemblyVersionInPackage(assemblyVersion, packageVersion);
+                }
+
+                // remove any assembly mappings which claim to be in this package version, but aren't in the assemblyList
+                var orphanedAssemblyVersions = info.AssemblyVersionInPackageVersion
+                                                    .Where(pair => pair.Value == packageVersion && !assmVersions.Contains(pair.Key))
+                                                    .Select(pair => pair.Key)
+                                                    .ToArray();
+
+                foreach(var orphanedAssemblyVersion in orphanedAssemblyVersions)
+                {
+                    info.AssemblyVersionInPackageVersion.Remove(orphanedAssemblyVersion);
                 }
             }
         }
