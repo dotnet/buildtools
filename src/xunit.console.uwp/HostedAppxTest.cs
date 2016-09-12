@@ -195,9 +195,8 @@ namespace Xunit.UwpClient
         {
             using (StreamReader reader = new StreamReader(destinationPath))
             {
-                Console.WriteLine("ERROR LOG:");
+                Console.WriteLine("UWP App Log:");
                 Console.WriteLine(reader.ReadToEnd());
-                //this will error out as there is no tests results file
             }
         }
 
