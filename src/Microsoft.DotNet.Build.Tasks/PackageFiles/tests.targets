@@ -262,7 +262,9 @@
           Command="$(TestPath)%(TestNugetTargetMoniker.Folder)/$(RunnerScriptName) $(PackagesDir)"
           WorkingDirectory="$(TestPath)%(TestNugetTargetMoniker.Folder)"
           CustomErrorRegularExpression="Failed: [^0]"
-          ContinueOnError="true">
+          ContinueOnError="true"
+          IgnoreStandardErrorWarningFormat="true"
+          >
       <Output PropertyName="TestRunExitCode" TaskParameter="ExitCode" />
     </Exec>
 
