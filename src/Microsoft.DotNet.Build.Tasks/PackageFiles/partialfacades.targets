@@ -24,6 +24,7 @@
     <GenFacadesInputAssembly>$(GenFacadesInputPath)$(TargetName)$(TargetExt)</GenFacadesInputAssembly>
     <GenFacadesInputSymbols>$(GenFacadesInputPath)$(TargetName).pdb</GenFacadesInputSymbols>
     <GenFacadesOutputPath>$(IntermediateOutputPath)</GenFacadesOutputPath>
+    <GenFacadesResponseFile>$(GenFacadesInputPath)genfacades.rsp</GenFacadesResponseFile>
   </PropertyGroup>
 
   <!-- FillPartialFacade
@@ -47,11 +48,14 @@
     <PropertyGroup>
       <GenFacadesArgs>$(GenFacadesArgs) -partialFacadeAssemblyPath:"$(GenFacadesInputAssembly)"</GenFacadesArgs>
       <GenFacadesArgs>$(GenFacadesArgs) -contracts:"%(ResolvedMatchingContract.Identity)"</GenFacadesArgs>
-      <GenFacadesArgs>$(GenFacadesArgs) -seeds:"@(GenFacadesSeeds, ';')"</GenFacadesArgs>
+      <GenFacadesArgs>$(GenFacadesArgs) -seeds:"@(GenFacadesSeeds, ',')"</GenFacadesArgs>
       <GenFacadesArgs>$(GenFacadesArgs) -facadePath:"$(GenFacadesOutputPath.TrimEnd('/'))"</GenFacadesArgs>
       <GenFacadesArgs Condition="'$(DebugSymbols)' == 'false' OR '$(DebugType)'=='Portable'">$(GenFacadesArgs) -producePdb:false</GenFacadesArgs>
       <GenFacadesArgs Condition="'@(SeedTypePreference)' != ''">$(GenFacadesArgs) -preferSeedType:"@(SeedTypePreference->'%(Identity)=%(Assembly)', ',')"</GenFacadesArgs>
     </PropertyGroup>
+
+    <MakeDir Directories="$(GenFacadesInputPath)" />
+    <WriteLinesToFile File="$(GenFacadesResponseFile)" Lines="$(GenFacadesArgs)" Overwrite="true" />
 
     <!-- Move the assembly into a subdirectory for GenFacades -->
     <Move SourceFiles="$(PartialFacadeAssemblyPath)"
@@ -68,11 +72,12 @@
       <GenFacadesCmd>$(ToolHostCmd) "$(ToolsDir)GenFacades.exe"</GenFacadesCmd>
     </PropertyGroup>
 
-    <Exec Command="$(GenFacadesCmd) $(GenFacadesArgs)" WorkingDirectory="$(ToolRuntimePath)" />
+    <Exec Command="$(GenFacadesCmd) @&quot;$(GenFacadesResponseFile)&quot;" WorkingDirectory="$(ToolRuntimePath)" />
 
     <ItemGroup>
       <FileWrites Include="$(GenFacadesInputAssembly)" />
       <FileWrites Include="$(GenFacadesInputSymbols)" />
+      <FileWrites Include="$(GenFacadesResponseFile)" />
     </ItemGroup>
   </Target>
 

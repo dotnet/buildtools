@@ -39,21 +39,29 @@
     </MSBuild>
 
     <ItemGroup>
-      <_DependencyDirectories Include="@(ReferencePath->'%(RootDir)%(Directory)')" />
+      <_DependencyDirectoriesTemp Include="@(ReferencePath->'%(RootDir)%(Directory)')" />
+      <!-- Remove duplicate directories by batching over them -->
+      <_DependencyDirectories Include="%(_DependencyDirectoriesTemp.Identity)" />
       <_ContractDependencyDirectories Include="@(ReferenceAssemblyReferencePath->'%(RootDir)%(Directory)')" />
     </ItemGroup>
 
     <PropertyGroup>
-      <_ApiCompatCmd>$(ToolHostCmd) "$(ToolsDir)ApiCompat.exe" "$(ReferenceAssembly)" </_ApiCompatCmd>
-      <_ApiCompatCmd>$(_ApiCompatCmd) -contractDepends:"@(_ContractDependencyDirectories);"</_ApiCompatCmd>
-      <_ApiCompatCmd>$(_ApiCompatCmd) -implDirs:"$(IntermediateOutputPath);@(_DependencyDirectories);"</_ApiCompatCmd>
-      <_ApiCompatCmd Condition="'$(BaselineAllAPICompatError)'!='true' and Exists('$(ApiCompatBaseline)')">$(_ApiCompatCmd) -baseline:"$(ApiCompatBaseline)"</_ApiCompatCmd>
-      <_ApiCompatCmd Condition="'$(BaselineAllAPICompatError)'=='true'">$(_ApiCompatCmd) &gt; $(ApiCompatBaseline)</_ApiCompatCmd>
+      <ApiCompatArgs>$(ApiCompatArgs) "$(ReferenceAssembly)"</ApiCompatArgs>
+      <ApiCompatArgs>$(ApiCompatArgs) -contractDepends:"@(_ContractDependencyDirectories),"</ApiCompatArgs>
+      <ApiCompatArgs>$(ApiCompatArgs) -implDirs:"$(IntermediateOutputPath),@(_DependencyDirectories, ','),"</ApiCompatArgs>
+      <ApiCompatArgs Condition="'$(BaselineAllAPICompatError)'!='true' and Exists('$(ApiCompatBaseline)')">$(ApiCompatArgs) -baseline:"$(ApiCompatBaseline)"</ApiCompatArgs>
+      <ApiCompatBaselineAll Condition="'$(BaselineAllAPICompatError)'=='true'">&gt; $(ApiCompatBaseline)</ApiCompatBaselineAll>
       <ApiCompatExitCode>0</ApiCompatExitCode>
+
+      <ApiCompatResponseFile>$(IntermediateOutputPath)apicompat.rsp</ApiCompatResponseFile>
+      <ApiCompatCmd>$(ToolHostCmd) "$(ToolsDir)ApiCompat.exe"</ApiCompatCmd>
     </PropertyGroup>
 
+    <MakeDir Directories="$(IntermediateOutputPath)" />
+    <WriteLinesToFile File="$(ApiCompatResponseFile)" Lines="$(ApiCompatArgs)" Overwrite="true" />
+
     <Exec Condition="Exists('$(ReferenceAssembly)')"
-          Command="$(_ApiCompatCmd)"
+          Command="$(ApiCompatCmd) @&quot;$(ApiCompatResponseFile)&quot; $(ApiCompatBaselineAll)"
           CustomErrorRegularExpression="^[a-zA-Z]+ :"
           StandardOutputImportance="Low"
           IgnoreExitCode="true"
