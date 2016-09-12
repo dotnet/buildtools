@@ -7,6 +7,7 @@ using Microsoft.Build.Utilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Frameworks;
+using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -462,12 +463,34 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 refFiles = thisPackageFiles.Where(f => f.TargetPath.StartsWith("lib/", StringComparison.OrdinalIgnoreCase));
             }
 
-            foreach (var refFileVersion in refFiles.Where(r => r.Version != null).Select(r => VersionUtility.As4PartVersion(r.Version)).Distinct())
+            var thisPackageVersion = VersionUtility.As3PartVersion(NuGetVersion.Parse(PackageVersion).Version);
+            var refFileVersions = new HashSet<Version>(refFiles.Where(r => r.Version != null).Select(r => VersionUtility.As4PartVersion(r.Version)));
+
+            foreach (var refFileVersion in refFileVersions)
             {
-                if (!info.AssemblyVersionInPackageVersion.ContainsKey(refFileVersion))
+                Version refPackageVersion;
+
+                // determine if we're missing a mapping for this package
+                if (!info.AssemblyVersionInPackageVersion.TryGetValue(refFileVersion, out refPackageVersion))
                 {
                     Log.LogError($"PackageIndex from {String.Join(", ", PackageIndexes.Select(i => i.ItemSpec))} is missing an assembly version entry for {refFileVersion} for package {PackageId}.  Please run /t:UpdatePackageIndex on this project to commit an update.");
                 }
+                else
+                {
+                    // determine if we have a mapping for an unstable package and that unstable package is not this one
+                    if (!info.StableVersions.Contains(refPackageVersion) && refPackageVersion != thisPackageVersion)
+                    {
+                        Log.LogError($"PackageIndex from {String.Join(", ", PackageIndexes.Select(i => i.ItemSpec))} indicates that assembly version {refFileVersion} is contained in non-stable package version {refPackageVersion} which differs from this package version {thisPackageVersion}.");
+                    }
+                }
+            }
+
+            var orphanedAssemblyVersions = info.AssemblyVersionInPackageVersion
+                                                .Where(pair => pair.Value == thisPackageVersion && !refFileVersions.Contains(pair.Key))
+                                                .Select(pair => pair.Key);
+            if (orphanedAssemblyVersions.Any())
+            {
+                Log.LogError($"PackageIndex from {String.Join(", ", PackageIndexes.Select(i => i.ItemSpec))} is has an assembly version entry(s) for {String.Join(", ", orphanedAssemblyVersions)} which are no longer in package {PackageId}.  Please run /t:UpdatePackageIndex on this project to commit an update.");
             }
         }
 
