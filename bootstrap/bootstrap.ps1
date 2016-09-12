@@ -85,15 +85,23 @@ if ($process.ExitCode -ne 0)
 foreach ($tool in $tools)
 {
     $name, $version = $tool.split("=")
-    $destination = Join-Path $ToolsLocalPath $name
-    if (Test-Path (Join-Path $packagesPath "$name\$version\tools\netcoreapp1.0"))
+
+    # at present we have the following conventions when staging package content:
+    #   1.  if a package contains a "tools" directory then recursively copy its contents
+    #       to a directory named the package ID that's under $ToolsLocalPath.
+    #   2.  if a package contains a "libs" directory then recursively copy its contents
+    #       under the $ToolsLocalPath directory.
+    #   3.  if a package contains a file "lib\init-tools.cmd" execute it.
+
+    if (Test-Path (Join-Path $packagesPath "$name\$version\tools"))
     {
+        $destination = Join-Path $ToolsLocalPath $name
         mkdir $destination | Out-Null
-        copy (Join-Path $packagesPath "$name\$version\tools\netcoreapp1.0\*") $destination
+        copy (Join-Path $packagesPath "$name\$version\tools\*") $destination -recurse
     }
     elseif (Test-Path (Join-Path $packagesPath "$name\$version\lib"))
     {
-        copy (Join-Path $packagesPath "$name\$version\lib\*") $ToolsLocalPath
+        copy (Join-Path $packagesPath "$name\$version\lib\*") $ToolsLocalPath -recurse
     }
 
     if (Test-Path (Join-Path $packagesPath "$name\$version\lib\init-tools.cmd"))
