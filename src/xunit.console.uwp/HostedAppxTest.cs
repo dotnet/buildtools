@@ -86,7 +86,7 @@ namespace Xunit.UwpClient
             else
             {
                 Console.WriteLine("DLL mode");
-                
+
                 Console.WriteLine("Using temp dir: " + tempDir);
                 RecurseCopy(Path.Combine(Directory.GetCurrentDirectory()), Path.GetFullPath(tempDir));
 
@@ -96,7 +96,7 @@ namespace Xunit.UwpClient
                     Console.WriteLine("Assembly to be tested: " + a.AssemblyFilename);
                     File.Copy(a.AssemblyFilename, Path.Combine(tempDir, Path.GetFileName(a.AssemblyFilename)), true);
                 }
-            
+
                 argsToPass = string.Join("\x1F", originalArgs);
                 Console.WriteLine("Arguments passed: " + argsToPass);
             }
@@ -139,24 +139,29 @@ namespace Xunit.UwpClient
             Console.WriteLine("UWP Activation HRESULT: " + hr);
             if (hr == 0)
             {
-            var p = Process.GetProcessById(pid.ToInt32());
-            Console.WriteLine("Running {0} in process {1} at {2}", p.ProcessName, pid, DateTimeOffset.Now);
-            while (timer.ElapsedMilliseconds < timeout.TotalMilliseconds && !p.HasExited)
+                var p = Process.GetProcessById(pid.ToInt32());
+                Console.WriteLine($"Running {p.ProcessName} in process {pid} at {DateTimeOffset.Now}");
+                while (timer.ElapsedMilliseconds < timeout.TotalMilliseconds && !p.HasExited)
+                {
+                    Thread.Sleep(1000);
+                }
+                var cleanExit = p.HasExited;
+                if (!cleanExit)
+                {
+                    Console.WriteLine($"Killing {pid}");
+                    p.Kill();
+                    ReturnCode = -1;
+                }
+                Console.WriteLine($"Finished waiting for {pid} at {DateTimeOffset.Now}, clean exit: {cleanExit}");
+            }
+            else
             {
-                Thread.Sleep(1000);
+                ReturnCode = -1;
             }
-            var cleanExit = p.HasExited;
-            if (!cleanExit)
-            {
-                Console.WriteLine("Killing {0}", pid);
-                p.Kill();
-            }
-            Console.WriteLine($"Finished waiting for {pid} at {DateTimeOffset.Now}, clean exit: {cleanExit}");
-            }
-          
+
             var resultPath = Path.Combine(Environment.GetEnvironmentVariable("LOCALAPPDATA"), "Packages", appUserModelId.Substring(0, appUserModelId.IndexOf('!')), "LocalState", "testResults.xml");
             var logsPath = Path.Combine(Environment.GetEnvironmentVariable("LOCALAPPDATA"), "Packages", appUserModelId.Substring(0, appUserModelId.IndexOf('!')), "LocalState", "logs.txt");
-                
+
             var destinationResultPath = Path.Combine(Directory.GetCurrentDirectory(), Path.GetFileName(resultPath));
             var destinationLogsPath = Path.Combine(Directory.GetCurrentDirectory(), Path.GetFileName(logsPath));
             if (File.Exists(resultPath))
@@ -167,7 +172,7 @@ namespace Xunit.UwpClient
             }
             else
             {
-                Console.WriteLine($"No results found at {resultPath}"); 
+                Console.WriteLine($"No results found at {resultPath}");
             }
             if (File.Exists(logsPath))
             {
@@ -182,11 +187,11 @@ namespace Xunit.UwpClient
             Console.WriteLine("Cleaning up...");
             if (File.Exists(resultPath))
             {
-            File.Delete(resultPath);
+                File.Delete(resultPath);
             }
             if (File.Exists(logsPath))
             {
-            File.Delete(logsPath);
+                File.Delete(logsPath);
             }
             return ReturnCode;
         }
@@ -201,12 +206,12 @@ namespace Xunit.UwpClient
         }
 
         private void PrintTestResults(string destinationPath)
-        { 
+        {
             XElement root = XElement.Load(destinationPath);
             IEnumerable<XElement> address =
                 from el in root.Descendants("assembly")
                 select el;
-            if (address!=null && address.Any())
+            if (address != null && address.Any())
             {
                 foreach (XElement el in address)
                 {
