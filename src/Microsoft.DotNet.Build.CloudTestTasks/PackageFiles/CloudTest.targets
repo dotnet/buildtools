@@ -70,8 +70,8 @@
     <HelixSource Condition="'$(HelixSource)'=='' And '$(IsOfficial)'=='' And '$(TestProduct)'!='' And '$(Branch)'!=''">pr/$(TestProduct)/$(Branch)/</HelixSource>
     <HelixSource Condition="'$(HelixSource)'==''">pr/unknown/</HelixSource>
     <_UseUpdatedHelixApi Condition="'$(HelixJobType)'!=''">true</_UseUpdatedHelixApi>
-    <HelixApiEndpoint Condition="'$(_UseUpdatedHelixApi)'=='true'">https://helixview.azurewebsites.net/api/2016-06-28/jobs</HelixApiEndpoint>
-    <HelixApiEndpoint Condition="'$(HelixApiEndpoint)'==''">https://helixview.azurewebsites.net/api/jobs</HelixApiEndpoint>
+    <HelixApiEndpoint Condition="'$(_UseUpdatedHelixApi)'=='true'">https://helix.dot.net/api/2016-06-28/jobs</HelixApiEndpoint>
+    <HelixApiEndpoint Condition="'$(HelixApiEndpoint)'==''">https://helix.dot.net/api/jobs</HelixApiEndpoint>
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)CloudTest.Perf.targets" Condition="'$(Performance)' == 'true'" />
