@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <UsingTask TaskName="Produces" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.VersionTools.dll" />
+  <UsingTask TaskName="UpdateProducesTask" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.VersionTools.dll" />
+
+  <!-- Entry target for producing and publishing produces.json -->
+  <Target Name="GenerateProduces"
+          DependsOnTargets="GenerateProducesJson;PublishProducesJsonToVersionsRepo" />
+  
+  <!-- Generate the produces.json file (ProducesJsonFilename) based on a drop location (ProducesPublishFolder) -->
+  <Target Name="GenerateProducesJson"
+          Condition="Exists('$(ProducesPublishFolder)')">
+    <Produces Folder="$(ProducesPublishFolder)"
+              OutputFile="$(ProducesJsonFilename)" />
+  </Target>
+
+  <!-- Publish results to the Versions repo -->
+  <Target Name="PublishProducesJsonToVersionsRepo"
+          Condition="'$(VersionsRepoAuthToken)' != '' and '$(VersionsRepoPath)' != ''">
+    <UpdateProducesTask AuthToken="$(VersionsRepoAuthToken)"
+                        User="$(VersionsRepoUser)"
+                        Email="$(VersionsRepoUserEmail)"
+                        ProducesJsonFilename="$(ProducesJsonFilename)"
+                        VersionsRepoPath="$(VersionsRepoPath)" />
+  </Target>
+</Project>

@@ -7,4 +7,6 @@
   -->
   <Import Project="$(MSBuildThisFileDirectory)CloudTest.targets" Condition="'$(EnableCloudTest)' == 'true'" />
 
+  <!-- Repo API imports -->
+  <Import Project="$(MSBuildThisFileDirectory)Produces.targets" />
 </Project>

@@ -17,6 +17,8 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
+    <None Include="Produces\PackageFiles\Produces.props" />
+    <None Include="Produces\PackageFiles\Produces.targets" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
@@ -47,7 +49,12 @@
     <Compile Include="Dependencies\ProjectJsonUpdater.cs" />
     <Compile Include="Automation\VersionsRepoUpdater.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
   <Target Name="AfterBuild">
+    <ItemGroup>
+      <PackageFiles Include="$(MSBuildThisProjectDirectory)Produces\PackageFiles\**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PackageFiles)" DestinationFolder="$(OutputPath)\PackageFiles\%(RecursiveDir)" SkipUnchangedFiles="true" />
   </Target>
 </Project>
