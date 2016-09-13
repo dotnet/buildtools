@@ -32,7 +32,7 @@ namespace XunitUwpRunner
             
             string[] args = arguments.Split(new[] { '\x1F' }, StringSplitOptions.RemoveEmptyEntries);
             log = string.Empty;
-            log += "Args: " + args + "\n";
+            log += "Args: " + string.Join(" ", args) + "\n";
             var commandLine = CommandLine.Parse(args);
             if (commandLine.Debug)
             {
