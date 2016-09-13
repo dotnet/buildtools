@@ -100,7 +100,7 @@ namespace Microsoft.DotNet.VersionTools.Automation
             }
         }
 
-        private async Task UpdateGitHubFileAsync(string path, string newFileContent, string commitMessage)
+        internal async Task UpdateGitHubFileAsync(string path, string newFileContent, string commitMessage)
         {
             using (GitHubClient client = new GitHubClient(_gitHubAuth))
             {
