@@ -311,10 +311,10 @@ namespace GenFacades
 
         private static IEnumerable<string> EnumerateDocIdsToForward(IAssembly contractAssembly)
         {
-            // Make note that all type forwards (including nested) implement INamespaceAliasForType, so do
-            // not be tempted to filter using it, instead, we look at the aliased type to them.
+            // Use INamedTypeReference instead of INamespaceTypeReference in order to also include nested
+            // class type-forwards.
             var typeForwardsToForward = contractAssembly.ExportedTypes.Select(alias => alias.AliasedType)
-                                                                      .OfType<INamespaceTypeReference>();
+                                                                      .OfType<INamedTypeReference>();
 
             var typesToForward = contractAssembly.GetAllTypes().Where(t => TypeHelper.IsVisibleOutsideAssembly(t))
                                                                .OfType<INamespaceTypeDefinition>();
