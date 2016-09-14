@@ -62,7 +62,7 @@ namespace Microsoft.DotNet.VersionTools.Produces
             }
             if (objectRoot.Count == 0)
             {
-                Console.WriteLine("Produces did not generate any output. No artifacts found at {0}, skipping writing {1}", Folder, OutputFile);
+                Console.WriteLine("Produces did not generate any output. No artifacts found at {0}, skipped writing {1}", Folder, OutputFile);
             }
             else
             {
