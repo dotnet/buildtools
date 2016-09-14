@@ -22,6 +22,10 @@ namespace Microsoft.DotNet.VersionTools.Produces
 
         public override bool Execute()
         {
+            if (!System.IO.File.Exists(ProducesJsonFilename))
+            {
+                return false;
+            }
             GitHubAuth gitHubAuth = new GitHubAuth(AuthToken, User, Email);
             _versionsRepoUpdater = new VersionsRepoUpdater(gitHubAuth, User ?? "dotnet");
             System.Threading.Tasks.Task task = UpdateProducesAsync(ProducesJsonFilename, VersionsRepoPath);

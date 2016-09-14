@@ -16,7 +16,7 @@
 
   <!-- Publish results to the Versions repo -->
   <Target Name="PublishProducesJsonToVersionsRepo"
-          Condition="'$(VersionsRepoAuthToken)' != '' and '$(VersionsRepoPath)' != ''">
+          Condition="'$(VersionsRepoAuthToken)' != '' and '$(VersionsRepoPath)' != '' and Exists('$(ProducesJsonFilename)')">
     <UpdateProducesTask AuthToken="$(VersionsRepoAuthToken)"
                         User="$(VersionsRepoUser)"
                         Email="$(VersionsRepoUserEmail)"
