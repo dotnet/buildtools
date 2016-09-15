@@ -47,7 +47,7 @@
 
     <PropertyGroup>
       <ApiCompatArgs>$(ApiCompatArgs) "$(ReferenceAssembly)"</ApiCompatArgs>
-      <ApiCompatArgs>$(ApiCompatArgs) -contractDepends:"@(_ContractDependencyDirectories),"</ApiCompatArgs>
+      <ApiCompatArgs>$(ApiCompatArgs) -contractDepends:"@(_ContractDependencyDirectories, ','),"</ApiCompatArgs>
       <ApiCompatArgs>$(ApiCompatArgs) -implDirs:"$(IntermediateOutputPath),@(_DependencyDirectories, ','),"</ApiCompatArgs>
       <ApiCompatArgs Condition="'$(BaselineAllAPICompatError)'!='true' and Exists('$(ApiCompatBaseline)')">$(ApiCompatArgs) -baseline:"$(ApiCompatBaseline)"</ApiCompatArgs>
       <ApiCompatBaselineAll Condition="'$(BaselineAllAPICompatError)'=='true'">&gt; $(ApiCompatBaseline)</ApiCompatBaselineAll>
