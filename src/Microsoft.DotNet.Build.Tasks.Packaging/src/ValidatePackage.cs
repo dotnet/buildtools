@@ -456,7 +456,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
 
             var thisPackageFiles = _validateFiles[PackageId];
-            var refFiles = thisPackageFiles.Where(f => f.TargetPath.StartsWith("ref/", StringComparison.OrdinalIgnoreCase));
+            var refFiles = thisPackageFiles.Where(f => f.TargetPath.StartsWith("ref/", StringComparison.OrdinalIgnoreCase)).Where(r => !NuGetAssetResolver.IsPlaceholder(r.TargetPath));
 
             if (!refFiles.Any())
             {

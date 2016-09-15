@@ -159,19 +159,14 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 return;
             }
 
-            string refFolder = Path.Combine(path, "ref");
+            var refFiles = Directory.EnumerateFiles(Path.Combine(path, "ref"), "*.dll", SearchOption.AllDirectories);
 
-            if (!Directory.Exists(refFolder))
+            if (!refFiles.Any())
             {
-                refFolder = Path.Combine(path, "lib");
+                refFiles = Directory.EnumerateFiles(Path.Combine(path, "lib"), "*.dll", SearchOption.AllDirectories);
             }
 
-            IEnumerable<Version> assemblyVersions = null;
-            if (Directory.Exists(refFolder))
-            {
-                assemblyVersions = Directory.EnumerateFiles(refFolder, "*.dll", SearchOption.AllDirectories)
-                    .Select(f => VersionUtility.GetAssemblyVersion(f));
-            }
+            var assemblyVersions = refFiles.Select(f => VersionUtility.GetAssemblyVersion(f));
 
             UpdateFromValues(index, id, version, assemblyVersions);
         }
@@ -193,7 +188,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     return;
                 }
 
-                var refFiles = reader.GetFiles("ref");
+                var refFiles = reader.GetFiles("ref").Where(r => !NuGetAssetResolver.IsPlaceholder(r));
 
                 if (!refFiles.Any())
                 {
