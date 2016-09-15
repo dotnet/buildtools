@@ -11,6 +11,7 @@
     <DefineConstants>$(DefineConstants);COREFX</DefineConstants>
     <NuGetRuntimeIdentifier>win7-x64</NuGetRuntimeIdentifier>
     <NuGetTargetMoniker>.NETCoreApp,Version=v1.0</NuGetTargetMoniker>
+    <DebugEngines>{2E36F1D4-B23C-435D-AB41-18E608940038}</DebugEngines>
   </PropertyGroup>
 
   <!-- Default configurations to help VS understand the configurations -->

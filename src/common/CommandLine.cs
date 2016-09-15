@@ -590,11 +590,26 @@ class CommandLine
 #endif
         public CommandLineParser(string commandLine)
         {
+            _args = new List<string>();
             ParseWords(commandLine);
         }
         public CommandLineParser(string[] args)
         {
-            _args = new List<string>(args);
+            _args = new List<string>();
+            _seenExeArg = true;
+
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i][0] == '@')
+                {
+                    // Parse response files
+                    ParseWords(args[i]);
+                }
+                else
+                {
+                    _args.Add(args[i]);
+                }
+            }
         }
 
         /// <summary>
@@ -909,8 +924,6 @@ class CommandLine
         /// <param name="commandLine"></param>
         private void ParseWords(string commandLine)
         {
-            // TODO review this carefully.
-            _args = new List<string>();
             int wordStartIndex = -1;
             bool hasExcapedQuotes = false;
             bool isResponseFile = false;
