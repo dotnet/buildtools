@@ -60,6 +60,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
         public void GetLastStablePackagesFromStablePackages()
         {
+            Dictionary<string, ITaskItem> originalItems = new Dictionary<string, ITaskItem>();
             Dictionary<string, Version> latestPackages = new Dictionary<string, Version>();
             Dictionary<string, Version> lastStablePackages = new Dictionary<string, Version>();
 
@@ -75,6 +76,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 }
 
                 latestPackages[packageId] = nuGetVersion?.Version;
+                originalItems[packageId] = latestPackage;
             }
 
             foreach (var stablePackage in StablePackages.NullAsEmpty())
@@ -95,7 +97,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     continue;
                 }
 
-                // need a version less than current version
+                // only consider a stable version less or equal to than current version
                 if (latestVersion != null && stableVersion >= latestVersion)
                 {
                     continue;
@@ -108,7 +110,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 }
             }
 
-            LastStablePackages = lastStablePackages.Select(p => CreateItem(p.Key, p.Value)).ToArray();
+            LastStablePackages = lastStablePackages.Select(p => CreateItem(originalItems[p.Key], p.Value)).ToArray();
         }
 
         public void GetLastStablePackagesFromIndex()
@@ -137,7 +139,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                     if (candidateVersions.Any())
                     {
-                        lastStablePackages.Add(CreateItem(packageId, candidateVersions.Max()));
+                        lastStablePackages.Add(CreateItem(latestPackage, candidateVersions.Max()));
                     }
                 }
             }
@@ -146,9 +148,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
         }
 
-        private ITaskItem CreateItem(string id, Version version)
+        private ITaskItem CreateItem(ITaskItem originalItem, Version version)
         {
-            var item = new TaskItem(id);
+            var item = new TaskItem(originalItem);
             item.SetMetadata("Version", version.ToString(3));
             return item;
         }
