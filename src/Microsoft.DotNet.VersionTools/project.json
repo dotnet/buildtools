@@ -1,8 +1,5 @@
 ﻿{
   "dependencies": {
-    "Microsoft.Build.Framework": "0.1.0-preview-00022",
-    "Microsoft.Build.Tasks.Core": "0.1.0-preview-00022",
-    "Microsoft.Build.Utilities.Core": "0.1.0-preview-00022",
     "NETStandard.Library": "1.6.0",
     "Newtonsoft.Json": "9.0.1",
     "NuGet.Packaging": "3.5.0-rc1-final",
@@ -11,8 +8,6 @@
     "System.Diagnostics.TraceSource": "4.0.0"
   },
   "frameworks": {
-    "netstandard1.5": {
-      "imports": "dnxcore50"
-    }
+    "netstandard1.5": {}
   }
 }

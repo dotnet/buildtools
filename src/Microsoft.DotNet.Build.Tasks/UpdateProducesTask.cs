@@ -5,7 +5,7 @@
 using Microsoft.Build.Framework;
 using Microsoft.DotNet.VersionTools.Automation;
 
-namespace Microsoft.DotNet.VersionTools.Produces
+namespace Microsoft.DotNet.Build.Tasks
 {
     public class UpdateProducesTask : Microsoft.Build.Utilities.Task
     {

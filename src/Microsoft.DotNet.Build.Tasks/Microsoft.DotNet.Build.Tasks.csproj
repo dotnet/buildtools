@@ -40,12 +40,14 @@
     <Compile Include="ParseTestCoverageInfo.cs" />
     <Compile Include="PreprocessFile.cs" />
     <Compile Include="Preprocessor.cs" />
+    <Compile Include="Produces.cs" />
     <Compile Include="ReadSigningRequired.cs" />
     <Compile Include="RemoveDuplicatesWithLastOneWinsPolicy.cs" />
     <Compile Include="PrereleaseResolveNuGetPackageAssets.cs" />
     <Compile Include="SignTypeItem.cs" />
     <Compile Include="UpdatePackageDependencyVersion.cs" />
     <Compile Include="IsRestoreRequired.cs" />
+    <Compile Include="UpdateProducesTask.cs" />
     <Compile Include="ValidateExactRestore.cs" />
     <Compile Include="VersionTools\BaseDependenciesTask.cs" />
     <Compile Include="VersionTools\MsBuildTraceListener.cs" />

@@ -45,6 +45,5 @@
     <file src="Microsoft.DotNet.Build.Tasks.Packaging.Desktop\NuGet.*.dll" target="lib\net45" />
     <file src="Microsoft.DotNet.VersionTools\Microsoft.DotNet.VersionTools.dll" target="lib" />
     <file src="Microsoft.DotNet.VersionTools.net45\Microsoft.DotNet.VersionTools.dll" target="lib\net45" />
-    <file src="Microsoft.Dotnet.VersionTools\PackageFiles\**\*.*" target="lib" />
   </files>
 </package>
