@@ -9,16 +9,16 @@ namespace Microsoft.DotNet.VersionTools.Produces
 {
     public class UpdateProducesTask : Microsoft.Build.Utilities.Task
     {
-        private VersionsRepoUpdater _versionsRepoUpdater;
+        VersionsRepoUpdater _versionsRepoUpdater;
 
         [Required]
         public string AuthToken { get; set; }
-        public string User { get; set; }
-        public string Email { get; set; }
         [Required]
         public string ProducesJsonFilename { get; set; }
         [Required]
         public string VersionsRepoPath { get; set; }
+        public string User { get; set; }
+        public string Email { get; set; }
 
         public override bool Execute()
         {

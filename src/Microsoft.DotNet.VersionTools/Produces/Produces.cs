@@ -74,9 +74,7 @@ namespace Microsoft.DotNet.VersionTools.Produces
         private JProperty CreatePackageJProperty(string nupkg)
         {
             PackageArchiveReader archive = new PackageArchiveReader(nupkg);
-
             var id = archive.GetIdentity();
-            
             return new JProperty(id.Id, id.Version.ToString());
         }
     }
