@@ -12,19 +12,5 @@ if not defined VisualStudioVersion (
 )
 
 :Run
-:: Restore the Tools directory
-call %~dp0init-tools.cmd
-if NOT [%ERRORLEVEL%]==[0] (
-  exit /b 1
-)
-
-set _toolRuntime=%~dp0Tools
-set _dotnet=%_toolRuntime%\dotnetcli\dotnet.exe
-
-echo Running: %_dotnet% %_toolRuntime%\run.exe %*
-call %_dotnet% %_toolRuntime%\run.exe %~dp0config.json %*
-if NOT [%ERRORLEVEL%]==[0] (
-  exit /b 1
-)
-
-exit /b 0
+powershell -NoProfile -ExecutionPolicy unrestricted -Command "%~dp0run.ps1 %*"
+exit /b %ERRORLEVEL%
