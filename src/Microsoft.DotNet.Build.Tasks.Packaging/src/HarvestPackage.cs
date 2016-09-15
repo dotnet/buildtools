@@ -67,7 +67,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         ///   Identity: Framework
         ///   RuntimeIDs: Semi-colon seperated list of runtime IDs
         /// </summary>
-        [Required]
         public ITaskItem[] Frameworks { get; set; }
 
 
@@ -109,7 +108,10 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     HarvestFilesFromPackage();
                 }
 
-                HarvestSupportedFrameworks();
+                if (Frameworks != null && Frameworks.Length > 0)
+                {
+                    HarvestSupportedFrameworks();
+                }
             }
 
             return !Log.HasLoggedErrors;
