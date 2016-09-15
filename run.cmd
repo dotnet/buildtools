@@ -12,5 +12,5 @@ if not defined VisualStudioVersion (
 )
 
 :Run
-powershell -NoProfile -ExecutionPolicy unrestricted -Command "%~dp0run.ps1 %*"
+powershell -NoProfile -ExecutionPolicy unrestricted -Command "%~dp0run.ps1 -- %*"
 exit /b %ERRORLEVEL%
