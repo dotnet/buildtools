@@ -26,6 +26,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             TargetPath = item.GetMetadata("TargetPath");
             Package = item.GetMetadata("PackageId");
             PackageVersion = item.GetMetadata("PackageVersion");
+            IsDll = Path.GetExtension(SourcePath).Equals(".dll", StringComparison.OrdinalIgnoreCase);
+            IsRef = TargetPath.StartsWith("ref/", StringComparison.OrdinalIgnoreCase);
 
             // determine if we need to append filename to TargetPath
             // see https://docs.nuget.org/create/nuspec-reference#specifying-files-to-include-in-the-package
@@ -68,7 +70,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                         Version.TryParse(versionString, out _version);
                     }
 
-                    if (_version == null && File.Exists(SourcePath))
+                    if (_version == null && IsDll && File.Exists(SourcePath))
                     {
                         _version = VersionUtility.GetAssemblyVersion(SourcePath);
                     }
@@ -78,6 +80,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
         }
 
+        public bool IsDll { get; }
+        public bool IsRef { get; }
         public ITaskItem OriginalItem { get; }
         public string SourcePath { get; }
         public string SourceProject { get; }

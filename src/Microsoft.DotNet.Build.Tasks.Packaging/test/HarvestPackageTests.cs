@@ -99,9 +99,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
 
             Assert.Equal(0, _log.ErrorsLogged);
             Assert.Equal(0, _log.WarningsLogged);
-            Assert.Equal(4, task.Files.Length);
-            Assert.Equal("netstandard1.0", task.Files[0].GetMetadata("TargetFramework"));
-            Assert.Equal("1.2.0.0", task.Files[0].GetMetadata("AssemblyVersion"));
+            Assert.Equal(4, task.HarvestedFiles.Length);
+            Assert.Equal("netstandard1.0", task.HarvestedFiles[0].GetMetadata("TargetFramework"));
+            Assert.Equal("1.2.0.0", task.HarvestedFiles[0].GetMetadata("AssemblyVersion"));
             Assert.Equal(_frameworks.Length, task.SupportedFrameworks.Length);
         }
 
@@ -125,8 +125,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
 
             Assert.Equal(0, _log.ErrorsLogged);
             Assert.Equal(0, _log.WarningsLogged);
-            Assert.Equal(17, task.Files.Length);
-            Assert.Equal("4.0.0.0", task.Files[0].GetMetadata("AssemblyVersion"));
+            Assert.Equal(17, task.HarvestedFiles.Length);
+            Assert.Equal("4.0.0.0", task.HarvestedFiles[0].GetMetadata("AssemblyVersion"));
             Assert.Equal(6, task.SupportedFrameworks.Length);
         }
 
@@ -155,8 +155,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
 
             Assert.Equal(0, _log.ErrorsLogged);
             Assert.Equal(0, _log.WarningsLogged);
-            Assert.Equal(79, task.Files.Length);
-            Assert.True(task.Files.Any(f => f.GetMetadata("AssemblyVersion") == "4.1.0.0"));
+            Assert.Equal(79, task.HarvestedFiles.Length);
+            Assert.True(task.HarvestedFiles.Any(f => f.GetMetadata("AssemblyVersion") == "4.1.0.0"));
             Assert.Equal(_frameworks.Length, task.SupportedFrameworks.Length);
             Assert.All(task.SupportedFrameworks, f => Assert.NotEqual("unknown", f.GetMetadata("Version")));
         }

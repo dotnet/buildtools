@@ -420,9 +420,6 @@
           Condition="'$(HarvestStablePackage)' != 'false'"
           DependsOnTargets="EnsureOOBFramework;GetPkgProjPackageDependencies">
     <ItemGroup>
-      <!-- Exclude any paths already included by the pkgproj -->
-      <HarvestExcludePaths Include="%(File.TargetPath)" KeepDuplicates="false" />
-
       <_latestPackage Include="$(Id)">
         <Version>$(PackageVersion)</Version>
       </_latestPackage>
@@ -464,7 +461,8 @@
     <HarvestPackage PackageId="$(Id)"
                     PackageVersion="$(HarvestVersion)"
                     PackagesFolder="$(PackagesDir)"
-                    RuntimeFile="$(RuntimeIdGraphDefinitionFile)"
+                    Files="@(File)"
+                    RuntimeFile="$(RuntimeIdGraphDefinitionFile)" 
                     RuntimePackages="@(HarvestRuntimePackages);@(HarvestAdditionalPackages)"
                     HarvestAssets="$(HarvestFiles)"
                     PathsToExclude="@(HarvestExcludePaths)"
@@ -472,19 +470,26 @@
                     Frameworks="@(DefaultValidateFramework)"
                     Condition="'$(HarvestVersion)' != ''">
       <Output TaskParameter="SupportedFrameworks" ItemName="_HarvestedSupportedFramework"/>
-      <Output TaskParameter="Files" ItemName="File"/>
+      <Output TaskParameter="HarvestedFiles" ItemName="_harvestedFiles"/>
+      <Output TaskParameter="UpdatedFiles" ItemName="_updatedFiles" />
     </HarvestPackage>
+
+    <ItemGroup Condition="'@(_harvestedFiles)' != ''">
+      <File Remove="@(File)"/>
+      <File Include="@(_updatedFiles);@(_harvestedFiles)"/>
+    </ItemGroup>
 
     <!-- Harvest files from HarvestAdditionalPackages, but don't calculate support-->
     <HarvestPackage PackageId="%(HarvestAdditionalPackages.Identity)"
                     PackageVersion="%(HarvestAdditionalPackages.Version)"
                     PackagesFolder="$(PackagesDir)"
+                    Files="@(File)"
                     RuntimeFile="$(RuntimeIdGraphDefinitionFile)"
                     HarvestAssets="$(HarvestFiles)"
                     PathsToExclude="@(HarvestExcludePaths);%(HarvestAdditionalPackages.ExcludePaths)"
                     PathsToSuppress="@(HarvestSuppressPaths);%(HarvestAdditionalPackages.SuppressPaths)"
                     Condition="'@(HarvestAdditionalPackages)' != ''" >
-      <Output TaskParameter="Files" ItemName="File"/>
+      <Output TaskParameter="HarvestedFiles" ItemName="File"/>
     </HarvestPackage>
     
     <ItemGroup>

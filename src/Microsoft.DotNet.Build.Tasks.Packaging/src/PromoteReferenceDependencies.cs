@@ -62,6 +62,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                         // This should never happen and indicates a bug in the package.  If a package contains references,
                         // all implementations should have an applicable reference assembly.
                         Log.LogError($"Could not find applicable reference assembly for implementation framework {implementationFx} from reference frameworks {string.Join(", ", referenceSets.Keys)}");
+                        continue;
                     }
 
                     foreach (var reference in referenceSets[nearestReferenceFx])

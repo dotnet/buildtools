@@ -386,9 +386,10 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                                     }
 
                                     if (fx.Framework == FrameworkConstants.FrameworkIdentifiers.Net &&
+                                        referenceAssemblyVersion != null &&
                                         !referenceAssemblyVersion.Equals(implementationVersion))
                                     {
-                                        Log.LogError($"{ContractName} has a higher runtime version ({implementationVersion}) than compile version ({referenceAssemblyVersion}) on .NET Desktop framework {target}.  This will break bindingRedirects.");
+                                        Log.LogError($"{ContractName} has a higher runtime version ({implementationVersion}) than compile version ({referenceAssemblyVersion}) on .NET Desktop framework {target}.  This will break bindingRedirects.  If the live reference was replaced with a harvested reference you may need to set <Preserve>true</Preserve> on your reference assembly ProjectReference.");
                                     }
 
                                     string fileName = Path.GetFileName(implementationAssembly);
@@ -886,30 +887,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             foreach (var generation in generationsToValidate)
             {
                 _frameworks.Add(generation.Key, generation.Value);
-            }
-
-            // for every generation supported explcitly in implementation, ensure
-            // it can be targeted by PCL.
-            foreach (var packageGroup in _resolver.GetAllRuntimeItems())
-            {
-                var allGenerationalImplementations = packageGroup.Value
-                    .Where(contentGroup => FrameworkUtilities.IsGenerationMoniker(contentGroup.Properties[PropertyNames.TargetFrameworkMoniker] as NuGetFramework))
-                    .SelectMany(contentGroup => contentGroup.Items.Select(item => _targetPathToPackageItem[AggregateNuGetAssetResolver.AsPackageSpecificTargetPath(packageGroup.Key, item.Path)]));
-
-                foreach (var generationalImplementation in allGenerationalImplementations)
-                {
-                    NuGetFramework generation = generationalImplementation.TargetFramework;
-                    if (_frameworks.ContainsKey(generation))
-                    {
-                        continue;
-                    }
-
-                    Version supportedVersion = generationalImplementation.Version;
-
-                    Log.LogMessage(LogImportance.Low, $"Validating {generation} for {ContractName}, {supportedVersion} since it is supported by {generationalImplementation.TargetPath}");
-
-                    _frameworks.Add(generation, new ValidationFramework(generation) { SupportedVersion = supportedVersion });
-                }
             }
         }
 
