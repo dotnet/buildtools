@@ -69,25 +69,40 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// </summary>
         public ITaskItem[] Frameworks { get; set; }
 
+        /// <summary>
+        /// Files already in the package.
+        ///   Identity: path to file
+        ///   AssemblyVersion: version of assembly
+        ///   TargetFramework: target framework moniker to use for harvesting file's dependencies
+        ///   TargetPath: path of file in package
+        ///   IsReferenceAsset: true for files in Ref.
+        /// </summary>
+        public ITaskItem[] Files { get; set; }
 
         /// <summary>
         /// Frameworks that were supported by previous package version.
-        ///     Identity: Framework
-        ///     Version: Assembly version if supported
+        ///   Identity: Framework
+        ///   Version: Assembly version if supported
         /// </summary>
         [Output]
         public ITaskItem[] SupportedFrameworks { get; set; }
 
         /// <summary>
         /// Files harvested from previous package version.
-        ///     Identity: path to file
-        ///     AssemblyVersion: version of assembly
-        ///     TargetFramework: target framework moniker to use for harvesting file's dependencies
-        ///     TargetPath: path of file in package
-        ///     IsReferenceAsset: true for files in Ref.
+        ///   Identity: path to file
+        ///   AssemblyVersion: version of assembly
+        ///   TargetFramework: target framework moniker to use for harvesting file's dependencies
+        ///   TargetPath: path of file in package
+        ///   IsReferenceAsset: true for files in Ref.
         /// </summary>
         [Output]
-        public ITaskItem[] Files { get; set; }
+        public ITaskItem[] HarvestedFiles { get; set; }
+
+        /// <summary>
+        /// When Files are specified, contains the updated set of files, with removals.
+        /// </summary>
+        [Output]
+        public ITaskItem[] UpdatedFiles { get; set; }
 
         /// <summary>
         /// Generates a table in markdown that lists the API version supported by 
@@ -134,7 +149,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 var pathToPackage = Path.Combine(PackagesFolder, packageDir);
                 if (!Directory.Exists(pathToPackage))
                 {
-                    Log.LogMessage($"Will not harvest files & support from package {packageDir} because {pathToPackage} does not exist.");
+                    Log.LogMessage(LogImportance.Low, $"Will not harvest files & support from package {packageDir} because {pathToPackage} does not exist.");
                     result = false;
                 }
             }
@@ -253,7 +268,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                     supportedFramework.SetMetadata("Version", version);
 
-                    Log.LogMessage($"Validating version {version} for {supportedFramework.ItemSpec} because it was supported by {PackageId}/{PackageVersion}.");
+                    Log.LogMessage(LogImportance.Low, $"Validating version {version} for {supportedFramework.ItemSpec} because it was supported by {PackageId}/{PackageVersion}.");
 
                     supportedFrameworks.Add(supportedFramework);
                 }
@@ -262,7 +277,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             SupportedFrameworks = supportedFrameworks.ToArray();
         }
 
-        private static string[] includedExtensions = new[] { ".dll", ".xml", "._" };
         public void HarvestFilesFromPackage()
         {
             string pathToPackage = Path.Combine(PackagesFolder, PackageId, PackageVersion);
@@ -273,32 +287,122 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 return;
             }
 
+            var livePackageFiles = Files.NullAsEmpty()
+                .Where(f => IsIncludedExtension(f.GetMetadata("Extension")))
+                .Select(f => new PackageItem(f))
+                .ToDictionary(p => p.TargetPath, StringComparer.OrdinalIgnoreCase);
+
             var harvestedFiles = new List<ITaskItem>();
-            foreach (var extension in includedExtensions)
+            var removeFiles = new List<ITaskItem>();
+
+            // make sure we preserve refs that match desktop assemblies
+            var liveDesktopDlls = livePackageFiles.Values.Where(pi => pi.IsDll && pi.TargetFramework?.Framework == FrameworkConstants.FrameworkIdentifiers.Net);
+            var desktopRefVersions = liveDesktopDlls.Where(d => d.IsRef && d.Version != null).Select(d => d.Version);
+            var desktopLibVersions = liveDesktopDlls.Where(d => !d.IsRef && d.Version != null).Select(d => d.Version);
+            
+            // find destkop assemblies with no matching lib.
+            var preserveRefVersion = new HashSet<Version>(desktopLibVersions);
+            preserveRefVersion.ExceptWith(desktopRefVersions);
+
+            foreach (var extension in s_includedExtensions)
             {
                 foreach (var packageFile in Directory.EnumerateFiles(pathToPackage, $"*{extension}", SearchOption.AllDirectories))
                 {
                     string packagePath = packageFile.Substring(pathToPackage.Length + 1).Replace('\\', '/');
 
+                    // determine if we should include this file from the harvested package
+
+                    // exclude if its specifically set for exclusion
                     if (ShouldExclude(packagePath))
                     {
-                        Log.LogMessage($"Preferring live build of package path {packagePath} over the asset from last stable package.");
+                        Log.LogMessage(LogImportance.Low, $"Excluding package path {packagePath}.");
                         continue;
+                    }
+
+                    var assemblyVersion = extension == s_dll ? VersionUtility.GetAssemblyVersion(packageFile) : null;
+                    PackageItem liveFile = null;
+
+                    // determine if the harvested file clashes with a live built file
+                    // we'll prefer the harvested reference assembly so long as it's the same API
+                    // version and not required to match implementation 1:1 as is the case for desktop
+                    if (livePackageFiles.TryGetValue(packagePath, out liveFile))
+                    {
+                        // Not a dll, not a ref, or not a versioned assembly: prefer live built file.
+                        if (extension != s_dll || !liveFile.IsRef || assemblyVersion == null || liveFile.Version == null)
+                        {
+                            Log.LogMessage(LogImportance.Low, $"Preferring live build of package path {packagePath} over the asset from last stable package.");
+                            continue;
+                        }
+
+                        // preserve desktop references to ensure bindingRedirects will work.
+                        if (liveFile.TargetFramework.Framework == FrameworkConstants.FrameworkIdentifiers.Net)
+                        {
+                            Log.LogMessage(LogImportance.Low, $"Preferring live build of package path {packagePath} over the asset from last stable package for desktop framework.");
+                            continue;
+                        }
+
+                        // as above but handle the case where a netstandard ref may be used for a desktop impl.
+                        if (preserveRefVersion.Contains(liveFile.Version))
+                        {
+                            Log.LogMessage(LogImportance.Low, $"Preferring live build of package path {packagePath} over the asset from last stable package for desktop framework.");
+                            continue;
+                        }
+
+                        // preserve references with a different major.minor version
+                        if (assemblyVersion.Major != liveFile.Version.Major || 
+                            assemblyVersion.Minor != liveFile.Version.Minor)
+                        {
+                            Log.LogMessage(LogImportance.Low, $"Preferring live build of reference {packagePath} over the asset from last stable package since the live build is a different API version.");
+                            continue;
+                        }
+
+                        // preserve references that specifically set the preserve metadata.
+                        bool preserve = false;
+                        bool.TryParse(liveFile.OriginalItem.GetMetadata("Preserve"), out preserve);
+                        if (preserve)
+                        {
+                            Log.LogMessage(LogImportance.Low, $"Preferring live build of reference {packagePath} over the asset from last stable package since Preserve was set to true.");
+                            continue;
+                        }
+
+                        // replace the live file with the harvested one, removing both the live file and PDB from the
+                        // file list.
+                        Log.LogMessage($"Using reference {packagePath} from last stable package {PackageId}/{PackageVersion} rather than the built reference {liveFile.SourcePath} since it is the same API version.  Set <Preserve>true</Preserve> on {liveFile.SourceProject} if you'd like to avoid this..");
+                        removeFiles.Add(liveFile.OriginalItem);
+
+                        PackageItem livePdbFile;
+                        if (livePackageFiles.TryGetValue(Path.ChangeExtension(packagePath, ".pdb"), out livePdbFile))
+                        {
+                            removeFiles.Add(livePdbFile.OriginalItem);
+                        }
                     }
                     else
                     {
-                        Log.LogMessage($"Including {packagePath} from last stable package {PackageId}/{PackageVersion}.");
+                        Log.LogMessage(LogImportance.Low, $"Including {packagePath} from last stable package {PackageId}/{PackageVersion}.");
                     }
 
                     var item = new TaskItem(packageFile);
-                    var targetPath = Path.GetDirectoryName(packagePath).Replace('\\', '/');
-                    item.SetMetadata("TargetPath", targetPath);
-                    item.SetMetadata("TargetFramework", GetTargetFrameworkFromPackagePath(targetPath));
-                    item.SetMetadata("HarvestDependencies", "true");
-                    item.SetMetadata("IsReferenceAsset", IsReferencePackagePath(targetPath).ToString());
-                    var assemblyVersion = VersionUtility.GetAssemblyVersion(packageFile);
+
+                    if (liveFile?.OriginalItem != null)
+                    {
+                        // preserve all the meta-data from the live file that was replaced.
+                        liveFile.OriginalItem.CopyMetadataTo(item);
+                    }
+                    else
+                    {
+                        var targetPath = Path.GetDirectoryName(packagePath).Replace('\\', '/');
+                        item.SetMetadata("TargetPath", targetPath);
+                        string targetFramework = GetTargetFrameworkFromPackagePath(targetPath);
+                        item.SetMetadata("TargetFramework", targetFramework);
+                        // only harvest for non-portable frameworks, matches logic in packaging.targets.
+                        bool harvestDependencies = !targetFramework.StartsWith("portable-");
+                        item.SetMetadata("HarvestDependencies", harvestDependencies.ToString());
+                        item.SetMetadata("IsReferenceAsset", IsReferencePackagePath(targetPath).ToString());
+                    }
+
                     if (assemblyVersion != null)
                     {
+                        // overwrite whatever metadata may have been copied from the live file.
                         item.SetMetadata("AssemblyVersion", assemblyVersion.ToString());
                     }
 
@@ -306,7 +410,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 }
             }
 
-            Files = harvestedFiles.ToArray();
+            HarvestedFiles = harvestedFiles.ToArray();
+
+            if (Files != null)
+            {
+                UpdatedFiles = Files.Except(removeFiles).ToArray();
+            }
         }
 
         private string[] _pathsToExclude = null;
@@ -346,7 +455,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 // could be a directory or file
                 var extension = Path.GetExtension(source);
 
-                if (extension != null && extension.Length > 0 && includedExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
+                if (IsIncludedExtension(extension))
                 {
                     // it's a file, find the directory portion
                     var fileName = Path.GetFileName(source);
@@ -391,6 +500,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
 
             return null;
+        }
+
+        private static string s_dll = ".dll";
+        private static string[] s_includedExtensions = new[] { s_dll, ".pdb", ".xml", "._" };
+        private static bool IsIncludedExtension(string extension)
+        {
+            return extension != null && extension.Length > 0 && s_includedExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase);
         }
 
         private static bool IsReferencePackagePath(string path)
