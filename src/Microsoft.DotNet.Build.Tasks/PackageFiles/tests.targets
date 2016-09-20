@@ -67,7 +67,7 @@
       <Folder>netcoreapp1.1</Folder>
     </TestNugetTargetMoniker>
     <TestNugetTargetMoniker Include=".NETFramework,Version=v4.6.3" Condition="'$(TestTFM)' == 'net463'">
-      <Folder>net462</Folder>
+      <Folder>net463</Folder>
     </TestNugetTargetMoniker>
     <TestNugetTargetMoniker Include=".NETFramework,Version=v4.6.2" Condition="'$(TestTFM)' == 'net462'">
       <Folder>net462</Folder>
@@ -85,7 +85,7 @@
       <Folder>net451</Folder>
     </TestNugetTargetMoniker>
     <TestNugetTargetMoniker Include=".NETFramework,Version=v4.5.2" Condition="'$(TestTFM)' == 'net452'">
-      <Folder>net451</Folder>
+      <Folder>net452</Folder>
     </TestNugetTargetMoniker>
     <!-- Project template for UWP Apps uses uap10.0, this mapping allows support for the Debug and Release scenarios -->
     <TestNugetTargetMoniker Include="UAP,Version=v10.0" Condition="'$(TestTFM)' == 'netcore50aot'">
