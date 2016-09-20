@@ -260,10 +260,9 @@
     </PropertyGroup>
 
     <!-- the project json and runner script files need to be included in the archive -->
-    <Copy SourceFiles="$(ProjectJson);$(ProjectLockJson)" DestinationFolder="$(OutDir)" />
-    <Copy SourceFiles="$(OutputPathForScriptGenerator)" DestinationFolder="$(OutDir)" />
+    <Copy SourceFiles="$(ProjectJson);$(ProjectLockJson)" DestinationFolder="$(TestPath)%(TestNugetTargetMoniker.Folder)" />
     <MakeDir Directories="$(TestArchiveDir)" />
-    <ZipFileCreateFromDirectory SourceDirectory="$(OutDir)" DestinationArchive="$(TestArchiveDir)$(TestProjectName).zip" OverwriteDestination="true" />
+    <ZipFileCreateFromDirectory SourceDirectory="$(TestPath)%(TestNugetTargetMoniker.Folder)" DestinationArchive="$(TestArchiveDir)$(TestProjectName).zip" OverwriteDestination="true" />
   </Target>
 
 </Project>
