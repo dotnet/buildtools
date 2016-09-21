@@ -105,6 +105,10 @@
   <Target Name="ConvertCommonMetadataToAdditionalProperties" BeforeTargets="AssignProjectConfiguration">
     <!-- list each append as a seperate item to force re-evaluation of AdditionalProperties metadata -->
     <ItemGroup>
+      <ProjectReference>
+        <UndefineProperties>%(ProjectReference.UndefineProperties);Configuration</UndefineProperties>
+      </ProjectReference>
+
       <!-- Set some basic configuration properties and pass them along to ProjectReference's -->
       <ProjectReference>
         <OSGroup Condition="'%(ProjectReference.OSGroup)'=='' and '$(OSGroup)'!='' and '$(OSGroup)'!='AnyOS'">$(OSGroup)</OSGroup>
@@ -119,6 +123,9 @@
       </ProjectReference>
       <ProjectReference>
         <AdditionalProperties Condition="'%(ProjectReference.OSGroup)'!=''">OSGroup=%(ProjectReference.OSGroup);%(ProjectReference.AdditionalProperties)</AdditionalProperties>
+      </ProjectReference>
+      <ProjectReference>
+        <AdditionalProperties>ConfigurationGroup=$(ConfigurationGroup);%(ProjectReference.AdditionalProperties)</AdditionalProperties>
       </ProjectReference>
 
       <!-- Packaging property shortcuts -->
