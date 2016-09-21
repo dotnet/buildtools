@@ -12,17 +12,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
     /// <summary>
     /// Promotes dependencies from reference (ref) assembly TargetFramework to the implementation (lib) assembly 
-    /// TargetFramework.  NuGet only ever chooses a single dependencyGroup from a package.  Often the TFM of the 
-    /// implementation and reference differ so in order to ensure the dependencies from the reference assembly are
-    /// also applicable in all circumstances that the implementation is applicable we need to copy the reference
-    /// dependencies to the implementation group.  Usually this is redundant since the implementation must expose
-    /// the surface area of the reference, but it is needed in two circumstances:
-    ///   1. The implementation is a facade and doesn't reference the contracts.
-    ///   2. We supress implementation dependencies with exclude=compile, but persist the reference dependencies.
+    /// TargetFramework and vice versa.  
+    /// NuGet only ever chooses a single dependencyGroup from a package.  Often the TFM of the implementation and 
+    /// reference differ so in order to ensure the correct dependencies are applied we have to promote dependencies
+    /// from a less specific ref to the more specific lib, and from a less specific lib to a more specific ref.
     /// </summary>
-    public class PromoteReferenceDependencies : PackagingTask
+    public class PromoteDependencies : PackagingTask
     {
-        private const string IsReferenceMetadataName = "IsReferenceAsset";
         private const string TargetFrameworkMetadataName = "TargetFramework";
 
         [Required]
@@ -38,42 +34,45 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         {
             List<ITaskItem> promotedDependencies = new List<ITaskItem>();
 
-            var implementationFxs = Dependencies.Select(d => d.GetMetadata("TargetFramework")).Distinct();
+            var dependencies = Dependencies.Select(d => new Dependency(d)).ToArray();
 
-            var actualDependencies = Dependencies.Where(d => d.ItemSpec != "_._").Select(d => new Dependency(d)).ToArray();
-            var referenceSets = actualDependencies.Where(d => d.IsReference).GroupBy(d => d.TargetFramework).ToDictionary(g => NuGetFramework.Parse(g.Key), g => g.ToArray());
-            var candidateFxs = referenceSets.Keys.ToArray();
+            var refSets = dependencies.Where(d => d.Id != "_._").Where(d => d.IsReference).GroupBy(d => d.TargetFramework).ToDictionary(g => NuGetFramework.Parse(g.Key), g => g.ToArray());
+            var refFxs = refSets.Keys.ToArray();
 
-            if (candidateFxs.Length != 0)
+            var libSets = dependencies.Where(d => !d.IsReference).GroupBy(d => d.TargetFramework).ToDictionary(g => NuGetFramework.Parse(g.Key), g => g.ToArray());
+            var libFxs = libSets.Keys.ToArray();
+
+
+            if (libFxs.Length > 0)
             {
-                foreach (var implementationFx in implementationFxs)
+                foreach (var refFx in refFxs)
                 {
-                    NuGetFramework fx = NuGetFramework.Parse(implementationFx);
-                    if (referenceSets.ContainsKey(fx))
+                    // find best lib (if any)
+                    var nearestLibFx = FrameworkUtilities.GetNearest(refFx, libFxs);
+
+                    if (nearestLibFx != null && !nearestLibFx.Equals(refFx))
                     {
-                        // if this implementation assembly fx  has a matching reference fx skip promotion
-                        continue;
+                        promotedDependencies.AddRange(CopyDependencies(libSets[nearestLibFx], refFx));
                     }
+                }
+            }
 
-                    var nearestReferenceFx = FrameworkUtilities.GetNearest(fx, candidateFxs);
+            if (refFxs.Length > 0)
+            {
+                foreach (var libFx in libFxs)
+                {
+                    // find best lib (if any)
+                    var nearestRefFx = FrameworkUtilities.GetNearest(libFx, refFxs);
 
-                    if (nearestReferenceFx == null)
+                    if (nearestRefFx == null && !nearestRefFx.Equals(libFx))
                     {
                         // This should never happen and indicates a bug in the package.  If a package contains references,
                         // all implementations should have an applicable reference assembly.
-                        Log.LogError($"Could not find applicable reference assembly for implementation framework {implementationFx} from reference frameworks {string.Join(", ", referenceSets.Keys)}");
-                        continue;
+                        Log.LogError($"Could not find applicable reference assembly for implementation framework {libFx} from reference frameworks {string.Join(", ", refFxs.Select(f => f.GetShortFolderName()))}");
                     }
-
-                    foreach (var reference in referenceSets[nearestReferenceFx])
+                    else
                     {
-                        var promotedDependency = new TaskItem(reference.OriginalItem);
-                        promotedDependency.SetMetadata(TargetFrameworkMetadataName, implementationFx);
-
-                        if (!Frameworks.IsInbox(FrameworkListsPath, implementationFx, reference.Id, reference.Version))
-                        {
-                            promotedDependencies.Add(promotedDependency);
-                        }
+                        promotedDependencies.AddRange(CopyDependencies(refSets[nearestRefFx], libFx));
                     }
                 }
             }
@@ -83,15 +82,26 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             return !Log.HasLoggedErrors;
         }
 
+        private IEnumerable<ITaskItem> CopyDependencies(IEnumerable<Dependency> dependencies, NuGetFramework targetFramework)
+        {
+            foreach (var dependency in dependencies)
+            {
+                if (!Frameworks.IsInbox(FrameworkListsPath, targetFramework, dependency.Id, dependency.Version))
+                {
+                    var copiedDepenedency = new TaskItem(dependency.OriginalItem);
+                    copiedDepenedency.SetMetadata(TargetFrameworkMetadataName, targetFramework.GetShortFolderName());
+                    yield return copiedDepenedency;
+                }
+            }
+        }
+
         private class Dependency
         {
             public Dependency(ITaskItem item)
             {
                 Id = item.ItemSpec;
                 Version = item.GetMetadata("Version");
-                bool isReference = false;
-                bool.TryParse(item.GetMetadata(IsReferenceMetadataName), out isReference);
-                IsReference = isReference;
+                IsReference = item.GetMetadata("TargetPath").StartsWith("ref/", System.StringComparison.OrdinalIgnoreCase);
                 TargetFramework = item.GetMetadata(TargetFrameworkMetadataName);
                 OriginalItem = item;
             }

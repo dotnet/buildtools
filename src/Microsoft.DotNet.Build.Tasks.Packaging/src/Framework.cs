@@ -241,6 +241,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
         public static bool IsInbox(string frameworkListsPath, NuGetFramework framework, string assemblyName, string assemblyVersion)
         {
+            if (framework.Framework == FrameworkConstants.FrameworkIdentifiers.UAP || 
+                (framework.Framework == FrameworkConstants.FrameworkIdentifiers.NetCore && framework.Version >= FrameworkConstants.CommonFrameworks.NetCore50.Version))
+            {
+                // UAP & netcore50 or higher are completely OOB, despite being compatible with netcore4x which has inbox assemblies
+                return false;
+            }
+
             // if no version is specified just use 0.0.0.0 to evaluate for any version of the contract
             Version version = FrameworkUtilities.Ensure4PartVersion(String.IsNullOrEmpty(assemblyVersion) ? new Version(0, 0, 0, 0) : new Version(assemblyVersion));
             FrameworkSet fxs = GetInboxFrameworks(frameworkListsPath);
