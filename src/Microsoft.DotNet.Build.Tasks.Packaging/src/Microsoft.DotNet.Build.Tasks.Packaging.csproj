@@ -38,7 +38,6 @@
     <Compile Include="PromoteReferenceDependencies.cs" />
     <Compile Include="CreateTrimDependencyGroups.cs" />
     <Compile Include="ApplyBaseLine.cs" />
-    <Compile Include="EnsureOOBFramework.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Framework.cs" />
     <Compile Include="FrameworkUtilities.cs" />
