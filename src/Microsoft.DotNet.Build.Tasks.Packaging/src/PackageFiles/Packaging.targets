@@ -94,13 +94,12 @@
   <UsingTask TaskName="GetPackageDescription" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="GetInboxFrameworks" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="GetPackageVersion" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-  <UsingTask TaskName="EnsureOOBFramework" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="ValidatePackage" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="CreateTrimDependencyGroups" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="GenerateNuSpec" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="NuGetPack" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="ApplyBaseLine" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-  <UsingTask TaskName="PromoteReferenceDependencies" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  <UsingTask TaskName="PromoteDependencies" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="GetMinimumNETStandard" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="SplitDependenciesBySupport" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="GetLastStablePackage" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
@@ -400,25 +399,9 @@
     </ItemGroup>
   </Target>
 
-  <!-- Ensures that OOB frameworks aren't obscured by placeholders for inbox frameworks
-       This is needed because nuget treats portable implementations as having less
-       precedence than platform specific implementations of any version and we
-       put a place-holder in the platform specific folder when an asset is inbox. -->
-  <ItemGroup>
-    <OutOfBoxFramework Include="netcore50">
-      <RuntimeId>win10</RuntimeId>
-    </OutOfBoxFramework>
-  </ItemGroup>
-  <Target Name="EnsureOOBFramework"
-          DependsOnTargets="AddPlaceholders;ConvertItems">
-    <EnsureOOBFramework Condition="'@(OutOfBoxFramework)' != ''" OOBFrameworks="@(OutOfBoxFramework)" Files="@(File)" RuntimeJson="$(RuntimeIdGraphDefinitionFile)" RuntimeId="$(PackageTargetRuntime)">
-      <Output TaskParameter="AdditionalFiles" ItemName="File" />
-    </EnsureOOBFramework>
-  </Target>
-
   <Target Name="HarvestStablePackage"
           Condition="'$(HarvestStablePackage)' != 'false'"
-          DependsOnTargets="EnsureOOBFramework;GetPkgProjPackageDependencies">
+          DependsOnTargets="ConvertItems;GetPkgProjPackageDependencies">
     <ItemGroup>
       <_latestPackage Include="$(Id)">
         <Version>$(PackageVersion)</Version>
@@ -499,7 +482,7 @@
 
   <Target Name="GetFiles"
           Returns="@(File)"
-          DependsOnTargets="ConvertItems;EnsureOOBFramework;HarvestStablePackage" />
+          DependsOnTargets="ConvertItems;HarvestStablePackage" />
 
   <!-- Don't do any filtering of files.
        We explicitly determine package content so we do not need to
@@ -730,12 +713,12 @@
       <Output TaskParameter="TrimmedDependencies" ItemName="FilePackageDependency" />
     </CreateTrimDependencyGroups>
 
-    <!-- Promote reference dependencies to implementation TargetFrameworks -->
-    <PromoteReferenceDependencies Dependencies="@(FilePackageDependency)"
-                                  FrameworkListsPath="$(FrameworkListsPath)"
-                                  Condition="'@(FilePackageDependency)' != ''">
+    <!-- Promote dependencies from ref to lib and vice-versa -->
+    <PromoteDependencies Dependencies="@(FilePackageDependency)"
+                         FrameworkListsPath="$(FrameworkListsPath)"
+                         Condition="'@(FilePackageDependency)' != ''">
       <Output TaskParameter="PromotedDependencies" ItemName="FilePackageDependency" />
-    </PromoteReferenceDependencies>
+    </PromoteDependencies>
 
     <Error Condition="'@(PackageIndex)' == '' AND '@(BaseLinePackage)' == '' AND '@(FilePackageDependency)' != '' AND '$(BaseLinePackageDependencies)' != 'false'"
            Text="Neither PackageIndex nor BaseLinePackage items are defined: ensure you have imported Microsoft.Private.PackageBaseLine.props from the Microsoft.Private.PackageBaseLine package" />
