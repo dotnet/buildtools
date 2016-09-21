@@ -112,7 +112,7 @@
     </ItemGroup>
 
     <PropertyGroup>
-        <OSPlatformTestArchivesListFile>$(TestArchivesRoot)/$(OSPlatformConfig)-Test-Archive-ListUri.txt</OSPlatformTestArchivesListFile>
+        <OSPlatformTestArchivesListFile>$(TestArchivesRoot)/$(OSPlatformConfig)-Test-Archive-List.txt</OSPlatformTestArchivesListFile>
         <AnyOSPlatformTestArchivesListFile>$(AnyOSTestArchivesRoot)/$(AnyOSPlatformConfig)-Test-Archive-List.txt</AnyOSPlatformTestArchivesListFile>
         <UnixPlatformTestArchivesListFile>$(UnixTestArchivesRoot)/$(UnixPlatformConfig)-Test-Archive-List.txt</UnixPlatformTestArchivesListFile>
     </PropertyGroup>
