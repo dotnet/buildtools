@@ -99,7 +99,7 @@
   <UsingTask TaskName="GenerateNuSpec" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="NuGetPack" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="ApplyBaseLine" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-  <UsingTask TaskName="PromoteReferenceDependencies" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  <UsingTask TaskName="PromoteDependencies" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="GetMinimumNETStandard" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="SplitDependenciesBySupport" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="GetLastStablePackage" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
@@ -713,12 +713,12 @@
       <Output TaskParameter="TrimmedDependencies" ItemName="FilePackageDependency" />
     </CreateTrimDependencyGroups>
 
-    <!-- Promote reference dependencies to implementation TargetFrameworks -->
-    <PromoteReferenceDependencies Dependencies="@(FilePackageDependency)"
-                                  FrameworkListsPath="$(FrameworkListsPath)"
-                                  Condition="'@(FilePackageDependency)' != ''">
+    <!-- Promote dependencies from ref to lib and vice-versa -->
+    <PromoteDependencies Dependencies="@(FilePackageDependency)"
+                         FrameworkListsPath="$(FrameworkListsPath)"
+                         Condition="'@(FilePackageDependency)' != ''">
       <Output TaskParameter="PromotedDependencies" ItemName="FilePackageDependency" />
-    </PromoteReferenceDependencies>
+    </PromoteDependencies>
 
     <Error Condition="'@(PackageIndex)' == '' AND '@(BaseLinePackage)' == '' AND '@(FilePackageDependency)' != '' AND '$(BaseLinePackageDependencies)' != 'false'"
            Text="Neither PackageIndex nor BaseLinePackage items are defined: ensure you have imported Microsoft.Private.PackageBaseLine.props from the Microsoft.Private.PackageBaseLine package" />

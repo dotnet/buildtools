@@ -35,7 +35,7 @@
     <Compile Include="PackageIndex.cs" />
     <Compile Include="SplitDependenciesBySupport.cs" />
     <Compile Include="GenerateNetStandardSupportTable.cs" />
-    <Compile Include="PromoteReferenceDependencies.cs" />
+    <Compile Include="PromoteDependencies.cs" />
     <Compile Include="CreateTrimDependencyGroups.cs" />
     <Compile Include="ApplyBaseLine.cs" />
     <Compile Include="Extensions.cs" />
