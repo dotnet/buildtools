@@ -258,7 +258,7 @@
     <!-- Only rebuild project references when specified -->
     <MSBuild Targets="Build"
              BuildInParallel="$(BuildInParallel)"
-             Condition="'$(BuildPackageLibraryReferences)' == 'true' AND '$(DesignTimeBuild)' == 'false'"
+             Condition="'$(BuildPackageLibraryReferences)' == 'true' AND '$(DesignTimeBuild)' != 'true'"
              Projects="@(_NonPkgProjProjectReference)"
              Properties="$(ProjectProperties)"
              ContinueOnError="WarnAndContinue"/>
