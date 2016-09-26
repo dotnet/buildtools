@@ -262,7 +262,7 @@ namespace Microsoft.Cci.Writers.CSharp
             if (baseType == null)
                 return;
 
-            var ctors = baseType.Methods.Where(m => m.IsConstructor && _filter.Include(m));
+            var ctors = baseType.Methods.Where(m => m.IsConstructor && _filter.Include(m) && !m.Attributes.Any(a => a.IsObsoleteWithUsageTreatedAsCompilationError()));
 
             var defaultCtor = ctors.Where(c => c.ParameterCount == 0);
 

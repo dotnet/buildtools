@@ -630,5 +630,33 @@ namespace Microsoft.Cci.Extensions
 
             return true;
         }
+
+        public static bool IsObsoleteWithUsageTreatedAsCompilationError(this ICustomAttribute attribute)
+        {
+            if (attribute.Type.FullName() != typeof(ObsoleteAttribute).FullName)
+            {
+                return false;
+            }
+
+            if (attribute.Arguments == null || attribute.Arguments.Count() != 2)
+            {
+                return false;
+            }
+
+            IMetadataConstant messageArgument = attribute.Arguments.ElementAt(0) as IMetadataConstant;
+            IMetadataConstant errorArgument = attribute.Arguments.ElementAt(1) as IMetadataConstant;
+
+            if (messageArgument == null || errorArgument == null)
+            {
+                return false;
+            }
+
+            if (!(messageArgument.Value is string && errorArgument.Value is bool))
+            {
+                return false;
+            }
+
+            return (bool)errorArgument.Value;
+        }
     }
 }
