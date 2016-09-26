@@ -55,8 +55,8 @@ namespace Microsoft.DotNet.Build.Tasks
             catch (Exception e)
             {
                 // We have 2 log calls because we want a nice error message but we also want to capture the callstack in the log.
-                Log.LogError("An exception has occurred while trying to decompress '{0}' into '{1}'.", SourceArchive, DestinationDirectory);
-                Log.LogErrorFromException(e, /*show stack=*/ true, /*show detail=*/ true, DestinationDirectory);
+                Log.LogError("An exception has occured while trying to decompress '{0}' into '{1}'.", SourceArchive, DestinationDirectory);
+                Log.LogMessage(MessageImportance.Low, e.ToString());
                 return false;
             }
             return true;
