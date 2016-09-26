@@ -139,7 +139,6 @@ namespace XunitUwpRunner
                 {
                     await sw.WriteAsync(data);
                 }
-                stream.Flush();
             }
         }
 
