@@ -275,13 +275,13 @@ namespace Microsoft.DotNet.Build.Tasks
            } 
         }
 
-        private JToken GetFrameworkDependenciesSection(JObject projectJsonRoot, string framework = null)
+        private JObject GetFrameworkDependenciesSection(JObject projectJsonRoot, string framework = null)
         {
             if(string.IsNullOrWhiteSpace(framework))
             {
-                return projectJsonRoot["dependencies"];
+                return (JObject) projectJsonRoot["dependencies"];
             }
-            return projectJsonRoot.SelectToken("frameworks." + NewtonsoftEscapeJProperty(framework) + ".dependencies");
+            return (JObject) projectJsonRoot["frameworks"][framework]["dependencies"];
         }
 
         // Generate the combines dependencies from the projectjson jObject and from AdditionalDependencies
@@ -311,7 +311,30 @@ namespace Microsoft.DotNet.Build.Tasks
                             JProperty addProperty;
                             if (nuGetVersion != null)
                             {
-                                addProperty = new JProperty(property.Name, nuGetVersion.ToString());
+                                //If the dependency is of the form 
+                                // "Dependency" : {
+                                // "version": "3.1.4-beta-23456-00",
+                                // "include": "compile"
+                                //  }
+                                if (property.Value.Type==JTokenType.Object)
+                                {
+                                    JObject jo = property.Value as JObject;
+
+                                    if (jo["version"] != null)
+                                    {
+                                        jo.Remove("version");
+                                        jo.Add("version", nuGetVersion.ToString());
+                                    }
+                                    else
+                                    {
+                                        Log.LogMessage("Ignoring Dependency '{0}', property does not have a version", property.Name);
+                                    }
+                                    addProperty = new JProperty(property.Name, jo);
+                                }
+                                else
+                                {
+                                    addProperty = new JProperty(property.Name, nuGetVersion.ToString());
+                                }
                             }
                             else
                             {
