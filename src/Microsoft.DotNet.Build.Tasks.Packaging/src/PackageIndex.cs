@@ -244,6 +244,14 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
         }
 
+        public void AddAssemblyVersionsInPackage(IEnumerable<Version> assemblyVersions, Version packageVersion)
+        {
+            foreach (var assemblyVersion in assemblyVersions)
+            {
+                AddAssemblyVersionInPackage(assemblyVersion, packageVersion);
+            }
+        }
+
         public void AddAssemblyVersionInPackage(Version assemblyVersion, Version packageVersion)
         {
             Version existingPackageVersion;
