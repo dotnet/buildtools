@@ -508,9 +508,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     // not in the native module map, see if any of the modules in this package are present
                     // (with a different package, as would be the case for runtime-specific packages)
                     var moduleNames = allDlls.Select(d => Path.GetFileNameWithoutExtension(d.SourcePath));
-                    if (!moduleNames.Any(m => PackageIndex.Current.ModulesToPackages.ContainsKey(m)))
+                    if (moduleNames.Any() && !moduleNames.Any(m => PackageIndex.Current.ModulesToPackages.ContainsKey(m)))
                     {
-                        Log.LogError($"PackageIndex from {String.Join(", ", PackageIndexes.Select(i => i.ItemSpec))} is missing ModulesToPackages entry(s) for {String.Join(", ", allDlls)} to package {moduleNames}.  Please add a an entry for the appropriate package.");
+                        Log.LogError($"PackageIndex from {String.Join(", ", PackageIndexes.Select(i => i.ItemSpec))} is missing ModulesToPackages entry(s) for {String.Join(", ", allDlls)} to package {PackageId}.  Please add a an entry for the appropriate package.");
                     }
                 }
 
