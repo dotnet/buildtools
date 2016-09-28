@@ -250,7 +250,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 orphanedAssemblyVersions = orphanedAssemblyVersions.Except(runtimeAssemblyVersions);
             }
 
-            foreach (var orphanedAssemblyVersion in orphanedAssemblyVersions)
+            foreach (var orphanedAssemblyVersion in orphanedAssemblyVersions.ToArray())
             {
                 info.AssemblyVersionInPackageVersion.Remove(orphanedAssemblyVersion);
             }
