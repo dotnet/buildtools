@@ -159,16 +159,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 return;
             }
 
-            var refFiles = Directory.EnumerateFiles(Path.Combine(path, "ref"), "*.dll", SearchOption.AllDirectories);
+            var dlls = Directory.EnumerateFiles(path, "*.dll", SearchOption.AllDirectories);
 
-            if (!refFiles.Any())
-            {
-                refFiles = Directory.EnumerateFiles(Path.Combine(path, "lib"), "*.dll", SearchOption.AllDirectories);
-            }
+            var assemblyVersions = dlls.Select(f => VersionUtility.GetAssemblyVersion(f));
+            var dllNames = dlls.Select(f => Path.GetFileNameWithoutExtension(f)).Distinct();
 
-            var assemblyVersions = refFiles.Select(f => VersionUtility.GetAssemblyVersion(f));
-
-            UpdateFromValues(index, id, version, assemblyVersions);
+            UpdateFromValues(index, id, version, assemblyVersions, dllNames);
         }
 
         private void UpdateFromPackage(PackageIndex index, string packagePath, bool filter = false)
@@ -176,6 +172,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             string id;
             NuGetVersion version;
             IEnumerable<Version> assemblyVersions;
+            IEnumerable<string> dllNames;
 
             using (var reader = new PackageArchiveReader(packagePath))
             {
@@ -188,14 +185,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     return;
                 }
 
-                var refFiles = reader.GetFiles("ref").Where(r => !NuGetAssetResolver.IsPlaceholder(r));
+                var dlls = reader.GetFiles().Where(f => Path.GetExtension(f).Equals(".dll", StringComparison.OrdinalIgnoreCase));
 
-                if (!refFiles.Any())
-                {
-                    refFiles = reader.GetFiles("lib");
-                }
-
-                assemblyVersions = refFiles.Select(refFile =>
+                assemblyVersions = dlls.Select(refFile =>
                 {
                     using (var refStream = reader.GetStream(refFile))
                     using (var memStream = new MemoryStream())
@@ -205,12 +197,14 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                         return VersionUtility.GetAssemblyVersion(memStream);
                     }
                 }).ToArray();
+
+                dllNames = dlls.Select(f => Path.GetFileNameWithoutExtension(f)).Distinct().ToArray();
             }
 
-            UpdateFromValues(index, id, version, assemblyVersions);
+            UpdateFromValues(index, id, version, assemblyVersions, dllNames);
         }
 
-        private void UpdateFromValues(PackageIndex index, string id, NuGetVersion version, IEnumerable<Version> assemblyVersions)
+        private void UpdateFromValues(PackageIndex index, string id, NuGetVersion version, IEnumerable<Version> assemblyVersions, IEnumerable<string> dllNames)
         {
             PackageInfo info = GetOrCreatePackageInfo(index, id);
 
@@ -221,24 +215,55 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 info.StableVersions.Add(packageVersion);
             }
 
-            if (assemblyVersions != null)
+            var assmVersions = new HashSet<Version>(assemblyVersions.NullAsEmpty().Where(v => v != null));
+
+            // add any new assembly versions
+            info.AddAssemblyVersionsInPackage(assmVersions, packageVersion);
+
+            // try to find an identity package to also add a mapping in the case this is a runtime package
+            if (id.StartsWith("runtime."))
             {
-                var assmVersions = new HashSet<Version>(assemblyVersions.Where(v => v != null));
-
-                foreach(var assemblyVersion in assmVersions)
+                foreach (var dllName in dllNames)
                 {
-                    info.AddAssemblyVersionInPackage(assemblyVersion, packageVersion);
+                    PackageInfo identityInfo;
+                    if (index.Packages.TryGetValue(dllName, out identityInfo))
+                    {
+                        identityInfo.AddAssemblyVersionsInPackage(assmVersions, packageVersion);
+                    }
                 }
+            }
 
-                // remove any assembly mappings which claim to be in this package version, but aren't in the assemblyList
-                var orphanedAssemblyVersions = info.AssemblyVersionInPackageVersion
-                                                    .Where(pair => pair.Value == packageVersion && !assmVersions.Contains(pair.Key))
-                                                    .Select(pair => pair.Key)
-                                                    .ToArray();
+            // remove any assembly mappings which claim to be in this package version, but aren't in the assemblyList
+            var orphanedAssemblyVersions = info.AssemblyVersionInPackageVersion
+                                                .Where(pair => pair.Value == packageVersion && !assmVersions.Contains(pair.Key))
+                                                .Select(pair => pair.Key);
 
-                foreach(var orphanedAssemblyVersion in orphanedAssemblyVersions)
+            if (orphanedAssemblyVersions.Any())
+            {
+                // make sure these aren't coming from a runtime package.
+                var runtimeAssemblyVersions = index.Packages
+                    .Where(p => p.Key.StartsWith("runtime.") && p.Key.EndsWith(id))
+                    .SelectMany(p => p.Value.AssemblyVersionInPackageVersion)
+                    .Where(pair => pair.Value == packageVersion)
+                    .Select(pair => pair.Key);
+
+                orphanedAssemblyVersions = orphanedAssemblyVersions.Except(runtimeAssemblyVersions);
+            }
+
+            foreach (var orphanedAssemblyVersion in orphanedAssemblyVersions)
+            {
+                info.AssemblyVersionInPackageVersion.Remove(orphanedAssemblyVersion);
+            }
+
+            // if no assemblies are present in this package nor were ever present
+            if (assmVersions.Count == 0 &&
+                info.AssemblyVersionInPackageVersion.Count == 0)
+            {
+                // if in the native module map
+                if (index.ModulesToPackages.Values.Any(p => p.Equals(id)))
                 {
-                    info.AssemblyVersionInPackageVersion.Remove(orphanedAssemblyVersion);
+                    // ensure the baseline is set
+                    info.BaselineVersion = packageVersion;
                 }
             }
         }

@@ -190,15 +190,16 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             LoadSuppressions();
             LoadFiles();
             LogPackageContent();
-            LoadSupport();
-
-            if (!SkipGenerationCheck)
-            {
-                ValidateGenerations();
-            }
 
             if (!SkipSupportCheck)
             {
+                LoadSupport();
+
+                if (!SkipGenerationCheck)
+                {
+                    ValidateGenerations();
+                }
+
                 // TODO: need to validate dependencies.
                 ValidateSupport();
             }
@@ -456,42 +457,63 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 return;
             }
 
-            var thisPackageFiles = _validateFiles[PackageId];
-            var refFiles = thisPackageFiles.Where(f => f.TargetPath.StartsWith("ref/", StringComparison.OrdinalIgnoreCase)).Where(r => !NuGetAssetResolver.IsPlaceholder(r.TargetPath));
-
-            if (!refFiles.Any())
-            {
-                refFiles = thisPackageFiles.Where(f => f.TargetPath.StartsWith("lib/", StringComparison.OrdinalIgnoreCase));
-            }
+            var allDlls = _validateFiles.SelectMany(pf => pf.Value.Where(f => f.IsDll));
+            var allAssemblies = allDlls.Where(f => f.Version != null);
+            var assemblyVersions = new HashSet<Version>(allAssemblies.Select(f => VersionUtility.As4PartVersion(f.Version)));
 
             var thisPackageVersion = VersionUtility.As3PartVersion(NuGetVersion.Parse(PackageVersion).Version);
-            var refFileVersions = new HashSet<Version>(refFiles.Where(r => r.Version != null).Select(r => VersionUtility.As4PartVersion(r.Version)));
 
-            foreach (var refFileVersion in refFileVersions)
+            foreach (var fileVersion in assemblyVersions)
             {
-                Version refPackageVersion;
+                Version packageVersion;
 
                 // determine if we're missing a mapping for this package
-                if (!info.AssemblyVersionInPackageVersion.TryGetValue(refFileVersion, out refPackageVersion))
+                if (!info.AssemblyVersionInPackageVersion.TryGetValue(fileVersion, out packageVersion))
                 {
-                    Log.LogError($"PackageIndex from {String.Join(", ", PackageIndexes.Select(i => i.ItemSpec))} is missing an assembly version entry for {refFileVersion} for package {PackageId}.  Please run /t:UpdatePackageIndex on this project to commit an update.");
+                    Log.LogError($"PackageIndex from {String.Join(", ", PackageIndexes.Select(i => i.ItemSpec))} is missing an assembly version entry for {fileVersion} for package {PackageId}.  Please run /t:UpdatePackageIndex on this project to commit an update.");
                 }
                 else
                 {
                     // determine if we have a mapping for an unstable package and that unstable package is not this one
-                    if (!info.StableVersions.Contains(refPackageVersion) && refPackageVersion != thisPackageVersion)
+                    if (!info.StableVersions.Contains(packageVersion) && packageVersion != thisPackageVersion)
                     {
-                        Log.LogError($"PackageIndex from {String.Join(", ", PackageIndexes.Select(i => i.ItemSpec))} indicates that assembly version {refFileVersion} is contained in non-stable package version {refPackageVersion} which differs from this package version {thisPackageVersion}.");
+                        Log.LogError($"PackageIndex from {String.Join(", ", PackageIndexes.Select(i => i.ItemSpec))} indicates that assembly version {fileVersion} is contained in non-stable package version {packageVersion} which differs from this package version {thisPackageVersion}.");
                     }
                 }
             }
 
             var orphanedAssemblyVersions = info.AssemblyVersionInPackageVersion
-                                                .Where(pair => pair.Value == thisPackageVersion && !refFileVersions.Contains(pair.Key))
+                                                .Where(pair => pair.Value == thisPackageVersion && !assemblyVersions.Contains(pair.Key))
                                                 .Select(pair => pair.Key);
             if (orphanedAssemblyVersions.Any())
             {
                 Log.LogError($"PackageIndex from {String.Join(", ", PackageIndexes.Select(i => i.ItemSpec))} is has an assembly version entry(s) for {String.Join(", ", orphanedAssemblyVersions)} which are no longer in package {PackageId}.  Please run /t:UpdatePackageIndex on this project to commit an update.");
+            }
+
+            // if no assemblies are present in this package nor were ever present
+            if (assemblyVersions.Count == 0 && 
+                info.AssemblyVersionInPackageVersion.Count == 0)
+            {
+                // if in the native module map
+                if (PackageIndex.Current.ModulesToPackages.Values.Any(p => p.Equals(PackageId)))
+                {
+                    // ensure the baseline is set
+                    if (info.BaselineVersion != thisPackageVersion)
+                    {
+                        Log.LogError($"PackageIndex from {String.Join(", ", PackageIndexes.Select(i => i.ItemSpec))} is missing an baseline entry(s) for native module {PackageId}.  Please run /t:UpdatePackageIndex on this project to commit an update.");
+                    }
+                }
+                else
+                {
+                    // not in the native module map, see if any of the modules in this package are present
+                    // (with a different package, as would be the case for runtime-specific packages)
+                    var moduleNames = allDlls.Select(d => Path.GetFileNameWithoutExtension(d.SourcePath));
+                    if (!moduleNames.Any(m => PackageIndex.Current.ModulesToPackages.ContainsKey(m)))
+                    {
+                        Log.LogError($"PackageIndex from {String.Join(", ", PackageIndexes.Select(i => i.ItemSpec))} is missing ModulesToPackages entry(s) for {String.Join(", ", allDlls)} to package {moduleNames}.  Please add a an entry for the appropriate package.");
+                    }
+                }
+
             }
         }
 
