@@ -131,7 +131,7 @@
 
   <Target Name="AddDependenciesToProjectJson"
           DependsOnTargets="GatherProjectReferenceForProjectJson;DetermineProjectJsonPath"
-          Condition="'@(_InjectProjectReferenceDependency)' != ''">
+          Condition="'@(_InjectProjectReferenceDependency)' != '' and '$(RestoreDuringBuild)' != 'false'">
 
     <!-- If VersionsFiles were passed on the command-line, convert them to an item group -->
     <ItemGroup>
