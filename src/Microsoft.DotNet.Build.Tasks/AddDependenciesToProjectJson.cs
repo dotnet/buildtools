@@ -391,9 +391,13 @@ namespace Microsoft.DotNet.Build.Tasks
 
         private static void WriteProject(JObject projectRoot, string projectJsonPath)
         {
-            string projectJson = JsonConvert.SerializeObject(projectRoot, Formatting.Indented);
-            Directory.CreateDirectory(Path.GetDirectoryName(projectJsonPath));
-            File.WriteAllText(projectJsonPath, projectJson + Environment.NewLine); 
+            string projectJson = JsonConvert.SerializeObject(projectRoot, Formatting.Indented) + Environment.NewLine;
+
+            if (!File.Exists(projectJsonPath) || !projectJson.Equals(File.ReadAllText(projectJsonPath)))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(projectJsonPath));
+                File.WriteAllText(projectJsonPath, projectJson);
+            }
         }
 
         /* JProperties are encapsulated with "['" and "']" to assist with matching Paths which
