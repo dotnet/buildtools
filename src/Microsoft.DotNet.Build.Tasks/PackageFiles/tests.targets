@@ -106,7 +106,7 @@
     <XunitOptions Condition="'$(Performance)'!='true'">$(XunitOptions) -notrait Benchmark=true</XunitOptions>
 
     <XunitOptions Condition="'$(UseDotNetNativeToolchain)'=='true'">$(XunitOptions) -redirectoutput</XunitOptions>
-    
+
     <XunitOptions Condition="'$(TestTFM)'!=''">$(XunitOptions) -notrait category=non$(TestTFM)tests</XunitOptions>
     <XunitOptions Condition="'$(XunitMaxThreads)'!=''">$(XunitOptions) -maxthreads $(XunitMaxThreads)</XunitOptions>
     <XunitTestAssembly Condition="'$(XunitTestAssembly)' == ''">$(TargetFileName)</XunitTestAssembly>
@@ -151,7 +151,7 @@
   -->
   <Target Name="RunTestsForProject"
           DependsOnTargets="DiscoverTestInputs;CheckTestCategories"
-          AfterTargets="CheckTestCategories"
+          Condition="'$(TestDisabled)' != 'true'"
           Inputs="@(RunTestsForProjectInputs)"
           Outputs="$(TestsSuccessfulSemaphore);$(TestPath)%(TestNugetTargetMoniker.Folder)/$(XunitResultsFileName);$(CoverageOutputFilePath)"
           >
@@ -258,8 +258,7 @@
       ScriptOutputPath ="$(OutputPathForScriptGenerator)"
     />
 
-    <Exec Condition="'$(TestDisabled)'!='true'"
-          Command="$(TestPath)%(TestNugetTargetMoniker.Folder)/$(RunnerScriptName) $(PackagesDir)"
+    <Exec Command="$(TestPath)%(TestNugetTargetMoniker.Folder)/$(RunnerScriptName) $(PackagesDir)"
           WorkingDirectory="$(TestPath)%(TestNugetTargetMoniker.Folder)"
           CustomErrorRegularExpression="Failed: [^0]"
           ContinueOnError="true"
@@ -274,8 +273,7 @@
   </Target>
 
   <!-- Needs to run before RunTestsForProject target as it computes categories and set TestDisabled -->
-  <Target Name="CheckTestCategories"
-          AfterTargets="CheckTestPlatforms">
+  <Target Name="CheckTestCategories">
 
     <!-- Default behavior is to disable OuterLoop and failing tests if not specified in WithCategories. -->
     <ItemGroup>
@@ -300,8 +298,7 @@
             Files="$(TestsSuccessfulSemaphore)" />
   </Target>
 
-  <Target Name="CheckTestPlatforms"
-          BeforeTargets="Test">
+  <Target Name="CheckTestPlatforms">
     <GetTargetMachineInfo Condition="'$(TargetOS)' == ''">
       <Output TaskParameter="TargetOS" PropertyName="TargetOS" />
     </GetTargetMachineInfo>
@@ -311,4 +308,22 @@
     <Message Condition="'%(UnsupportedPlatformsItems.Identity)' == '$(TargetOS)'"
       Text="Skipping tests in $(AssemblyName) because it is not supported on $(TargetOS)" />
   </Target>
+
+  <Target Name="SetupTestProperties" DependsOnTargets="CheckTestPlatforms;CheckTestCategories" />
+
+  <PropertyGroup>
+    <TestDependsOn>
+      $(TestDependsOn);
+      DiscoverTestInputs;
+      SetupTestProperties;
+      CopyTestToTestDirectory;
+      RunTestsForProject;
+      ArchiveTestBuild
+    </TestDependsOn>
+  </PropertyGroup>
+
+  <Target Name="Test"
+          DependsOnTargets="$(TestDependsOn)">
+  </Target>
+
 </Project>

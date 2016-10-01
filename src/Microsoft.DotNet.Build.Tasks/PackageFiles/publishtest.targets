@@ -13,7 +13,6 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PrepareForRunDependsOn Condition="'$(IsTestProject)'=='true'">$(PrepareForRunDependsOn);CopyTestToTestDirectory;CreateTestNuGetPackage;ArchiveTestBuild</PrepareForRunDependsOn>
     <TestArchitecture Condition="'$(TestArchitecture)' == ''">x64</TestArchitecture>
     <TestNugetRuntimeId Condition="'$(TestNugetRuntimeId)' == ''">win7-$(TestArchitecture)</TestNugetRuntimeId>
   </PropertyGroup>
@@ -55,7 +54,7 @@
                                TargetMonikers="@(TestNugetTargetMoniker)">
       <Output TaskParameter="ResolvedCopyLocalItems" ItemName="TestCopyLocal" />
     </PrereleaseResolveNuGetPackageAssets>
-    
+
     <ItemGroup Condition="'$(TestWithCore)' != 'true'">
       <_TestCopyLocalXunitFiles Include="$(PackagesDir)xunit.runner.console\2.1.0\tools\*.exe" />
       <_TestCopyLocalXunitFiles Include="$(PackagesDir)xunit.runner.console\2.1.0\tools\*.dll" />
@@ -65,7 +64,7 @@
         <Private>false</Private>
       </TestCopyLocal>
     </ItemGroup>
-    
+
     <ItemGroup Condition="'$(TestAppX)' == 'true'">
       <_TestCopyLocalAppXRunner Include="$(PackagesDir)microsoft.xunit.runner.uwp\$(AppXRunnerVersion)\**\*.*"/>
       <TestCopyLocal Include="@(_TestCopyLocalAppXRunner)">
@@ -217,11 +216,11 @@
   </Target>
 
   <!-- Workaround for VS execution:  This will form the same list and copy the same files as
-       copied via RunTests script so VS can work when the test dir is initially clean. 
+       copied via RunTests script so VS can work when the test dir is initially clean.
        -->
   <Target Name="CopyRunnerScriptFiles" Condition="'$(BuildingInsideVisualStudio)'=='true'"
         AfterTargets="CopySupplementalTestData">
-     <!-- This was copied from RunTestsForProject in tests.targets 
+     <!-- This was copied from RunTestsForProject in tests.targets
           The RunTestsForProject target does not execute in VS context and would be confused by the script based runner.
           _TestCopyLocalByFileNameWithoutDuplicates are the precise items that are fed to the runner script generation code.
      -->
@@ -235,7 +234,7 @@
       </_IncludedFileForTestsInVS>
       <_DestinationsForTestsInVS Include="@(_IncludedFileForTestsInVS->'$(TestPath)$(TestNugetTargetMonikerFolder)\%(Filename)%(Extension)')" />
     </ItemGroup>
-    
+
     <Copy
       SourceFiles="@(_IncludedFileForTestsInVS  -> '%(SourcePath)')"
       DestinationFiles="@(_DestinationsForTestsInVS)"
@@ -245,7 +244,7 @@
       RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
       UseHardlinksIfPossible="true">
       <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
-    </Copy>    
+    </Copy>
   </Target>
 
     <!-- archive the test binaries along with some supporting files -->
