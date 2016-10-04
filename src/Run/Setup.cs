@@ -528,6 +528,7 @@ namespace Microsoft.DotNet.Execute
     {
         public Dictionary<string, AliasPerCommand> Alias { get; set; }
         public DefaultValuesPerCommand DefaultValues { get; set; }
+        public string DefaultAlias { get; set; }
     }
 
     public class Tool
