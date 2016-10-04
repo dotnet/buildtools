@@ -521,6 +521,7 @@ namespace Microsoft.DotNet.Execute
     {
         public string Project { get; set; }
         public string ToolName { get; set; }
+        public string DefaultAlias { get; set; }
         public Dictionary<string, string> Settings { get; set; }
     }
 
