@@ -172,7 +172,7 @@ namespace Microsoft.DotNet.Execute
                     // behavior at this point may be unexpected.
                     if (paramSelected.Count == 0 && executor.CommandParameters[executor.CommandSelectedByUser].Count > 0)
                     {
-                        string defaultAlias = jsonSetup.Commands[executor.CommandSelectedByUser].DefaultAlias;
+                        string defaultAlias = jsonSetup.Commands[executor.CommandSelectedByUser].DefaultValues.DefaultAlias;
                         if (!string.IsNullOrEmpty(defaultAlias))
                         {
                             Console.WriteLine($"No parameter selected, using default alias '{defaultAlias}'");
