@@ -5,7 +5,7 @@
     <BuildToolsTaskDir Condition="'$(BuildToolsTaskDir)' == ''">$(ToolsDir)</BuildToolsTaskDir>
   
     <!-- A number of the imports below depend on these default properties -->
-    <IsTestProject Condition="'$(IsTestProject)'=='' And $(MSBuildProjectName.ToLowerInvariant().EndsWith('.tests'))">true</IsTestProject>
+    <IsTestProject Condition="'$(IsTestProject)'=='' And $(MSBuildProjectName.EndsWith('.tests', StringComparison.OrdinalIgnoreCase))">true</IsTestProject>
 
     <AssemblyVersion Condition="'$(AssemblyVersion)'==''">999.999.999.999</AssemblyVersion>
     <CLSCompliant Condition="'$(CLSCompliant)'=='' and '$(IsTestProject)'=='true'">false</CLSCompliant>

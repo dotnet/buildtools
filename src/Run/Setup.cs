@@ -247,7 +247,8 @@ namespace Microsoft.DotNet.Execute
             if (parameters == null)
             {
                 if (BuildRequiredValueSettingsForCommand(commandToExecute, parametersSelectedByUser, SettingParameters) &&
-                    BuildDefaultValueSettingsForCommand(commandToExecute, SettingParameters))
+                    BuildDefaultValueSettingsForCommand(commandToExecute, SettingParameters) &&
+                    ValidExtraParametersForCommand(ExtraParameters, SettingParameters))
                 {
                     string commandParameters = $"{BuildParametersForCommand(SettingParameters, SettingParameters["toolName"])} {ExtraParameters}";
                     CompleteCommand completeCommand = new CompleteCommand(commandTool, commandParameters);
@@ -327,6 +328,51 @@ namespace Microsoft.DotNet.Execute
                     Console.Error.WriteLine("Error: The setting {0} is not specified in the Json file.", optSetting.Key);
                     return false;
                 }
+            }
+            return true;
+        }
+
+        private bool ValidExtraParametersForCommand(string extraParameters, Dictionary<string, string> commandValues)
+        {
+            int namePos, valuePos;
+            string tempParam, name, value;
+            if (string.IsNullOrEmpty(extraParameters))
+            {
+                return true;
+            }
+
+            string[] extraA = extraParameters.Split(' ');
+            foreach (string param in extraA)
+            {
+                namePos = 0;
+                valuePos = param.Length;
+                tempParam = param;
+
+                namePos = param.IndexOf(":");
+                if (namePos != -1)
+                {
+                    tempParam = param.Substring(namePos + 1);
+                }
+
+                valuePos = tempParam.IndexOf("=");
+                if (valuePos != -1)
+                {
+                    name = tempParam.Substring(0, valuePos);
+                    value = tempParam.Substring(valuePos + 1);
+                }
+                else
+                {
+                    name = tempParam;
+                    value = string.Empty;
+                }
+
+                string paramValue;
+                if (commandValues.TryGetValue(name, out paramValue) && !string.IsNullOrEmpty(paramValue) && !paramValue.Equals("default") && !value.Equals(paramValue))
+                {
+                    Console.Error.WriteLine("Error: The value for setting {0} can't be overwriten.", name);
+                    return false;
+                }
+
             }
             return true;
         }
