@@ -175,7 +175,7 @@
     </PropertyGroup>
 
     <!-- verify the test archives were created -->
-    <Error Condition="'@(ForUpload->Count())' == '0'" Text="Didn't find any test archives in supplied folders." />
+    <Warning Condition="'@(ForUpload->Count())' == '0'" Text="Didn't find any test archives in supplied folders!!! Review logs to see where test archive(s) were placed and fix." />
     <!-- add relative blob path metadata -->
     <ItemGroup>
       <ForUpload>
