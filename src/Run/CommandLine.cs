@@ -20,8 +20,8 @@ namespace Microsoft.Fx.CommandLine
     /// The code:CommandLineParser is a utility for parsing command lines. Command lines consist of three basic
     /// entities. A command can have any (or none) of the following (separated by whitespace of any size).
     ///
-    ///    * PARAMETERS - this are non-space strings. They are positional (logicaly they are numbered). Strings
-    ///        with space can be specified by enclosing in double quotes.
+    ///    * PARAMETERS - these are non-space strings. They are positional (logicaly they are numbered). Strings
+    ///        with whitespace can be specified by enclosing in double quotes.
     ///
     ///    * QUALIFIERS - Qualifiers are name-value pairs. The following syntax is supported.
     ///        * -QUALIFIER
@@ -30,8 +30,8 @@ namespace Microsoft.Fx.CommandLine
     ///        * -QUALIFIER VALUE
     ///
     ///      The end of a value is delimited by space. Again values with spaces can be encoded by enclosing them
-    ///      the value (or the whole qualifer-value string), in double quotes. The first form (where a value is
-    ///      not specified is only available for boolean qualifiers, and boolean values can not use the form where
+    ///      within the value (or the whole qualifer-value string), in double quotes. The first form (where a value is
+    ///      not specified) is only available for boolean qualifiers, and boolean values can not use the form where
     ///      the qualifer and value are separated by space. The '/' character can also be used instead of the '-'
     ///      to begin a qualifier.
     ///
@@ -51,22 +51,24 @@ namespace Microsoft.Fx.CommandLine
     /// independent of one another. For example a for example For example a program might have 'checkin'
     /// 'checkout' 'list' commands, and each of these commands has a different set of parameters that are needed
     /// and qualifiers that are allowed. (for example checkout will take a list of file names, list needs nothing,
-    /// and checkin needs a comment). Additionally some qualifiers (like say -dataBaseName can apply to any of hte
-    /// commands). Thus You would like to say that the following command lines are legal
+    /// and checkin needs a comment). Additionally some qualifiers (like say -dataBaseName can apply to any of the
+    /// commands). 
+    /// 
+    /// The following command lines are legal:
     ///
     ///     * EXE -checkout MyFile1 MyFile -dataBaseName:MyDatabase
     ///     * EXE -dataBaseName:MyDatabase -list
     ///     * EXE -comment "Specifying the comment first" -checkin
     ///     * EXE -checkin -comment "Specifying the comment afterward"
     ///
-    /// But the following are not
+    /// But the following are not:
     ///
     ///     * EXE -checkout
     ///     * EXE -checkout -comment "hello"
     ///     * EXE -list MyFile
     ///
-    /// You do this by specifying 'checkout', 'list' and 'checkin' as parameters sets. On the command line they
-    /// look like boolean qualifiers, however they have additional sematantics. They must come before any
+    /// You do this by specifying 'checkout', 'list' and 'checkin' as parameter sets. On the command line they
+    /// look like boolean qualifiers, however they have additional semantics. They must come before any
     /// positional parameters (because they affect whether the parameters are allowed and what they are named),
     /// and they are mutually exclusive. Each parameter set gets its own set of parameter definitions, and
     /// qualifiers can either be associated with a particular parameter set (like -comment) or global to all
@@ -81,7 +83,7 @@ namespace Microsoft.Fx.CommandLine
     ///
     /// #DefaultParameterSet
     ///
-    /// One parameters set (which has the empty string name), is special in that it is used when no other
+    /// One parameter set (which has the empty string name), is special in that it is used when no other
     /// parameter set is matched. This is the default parameter set. For example, if -checkout was defined to be
     /// the default parameter set, then the following would be legal.
     ///
@@ -97,7 +99,7 @@ namespace Microsoft.Fx.CommandLine
     /// Because whitespace can separate a qualifier from its value AND Qualifier from each other, and because
     /// parameter values might start with a dash (and thus look like qualifiers), the syntax is ambiguous. It is
     /// disambigutated with the following rules.
-    ///     * The command line is parsed into 'arguments' that are spearated by whitespace. Any string enclosed
+    ///     * The command line is parsed into 'arguments' that are separated by whitespace. Any string enclosed
     ///         in "" will be a single argument even if it has embedded whitespace. Double quote characters can
     ///         be specified by \" (and a \" literal can be specified by \\" etc).
     ///     * Arguments are parsed into qualifiers. This parsing stops if a '--' argument is found. Thus all
@@ -155,18 +157,18 @@ namespace Microsoft.Fx.CommandLine
 #endif
     /// #RequiredAndOptional
     ///
-    /// Parameters and qualifiers can be specified as required (the default), or optional. Makeing the default
-    /// required was choses to make any mistakes 'obvious' since the parser will fail if a required parameter is
+    /// Parameters and qualifiers can be specified as required (the default), or optional. Making the default
+    /// required was chosen to make any mistakes 'obvious' since the parser will fail if a required parameter is
     /// not present (if the default was optional, it would be easy to make what should have been a required
     /// qualifier optional, leading to business logic failiure).
     ///
     /// #ParsedValues
     ///
-    /// The class was designed maximize programmer convinience. For each parameter, only one call is needed to
+    /// The class was designed maximize programmer convenience. For each parameter, only one call is needed to
     /// both define the parameter, its help message, and retrive its (strong typed) value. For example
     ///
     ///      * int count = 5;
-    ///      * parser.DefineOptionalQualifier("count", ref count, "help for optional debugs qualifier");
+    ///      * parser.DefineOptionalQualifier("count", ref count, "help for optional count qualifier");
     ///
     /// Defines a qualifier 'count' and will place its value in the local variable 'count' as a integer. Default
     /// values are supported by doing nothing, so in the example above the default value will be 5.
@@ -175,10 +177,10 @@ namespace Microsoft.Fx.CommandLine
     /// string argument and returning that type. This is true for all primtive types, DateTime, Enumerations, and
     /// any user defined type that follows this convention.
     ///
-    /// Array types: The parser has special knowedge of arrays. If the type of a qualifier is an array, then the
+    /// Array types: The parser has special knowledge of arrays. If the type of a qualifier is an array, then the
     /// string value is assumed to be a ',' separated list of strings which will be parsed as the element type of
     /// the array. In addition to the ',' syntax, it is also legal to specify the qualifier more than once. For
-    /// example given the defintion
+    /// example given the definition
     ///
     ///      * int[] counts;
     ///      * parser.DefineOptionalQualifier("counts", ref counts, "help for optional counts qualifier");
@@ -232,7 +234,7 @@ namespace Microsoft.Fx.CommandLine
     /// Since this is stuff that all applications will likely need the
     /// code:CommandLineParser.ParseForConsoleApplication was created to do all of this for you, thus making it
     /// super-easy to make a production quality parser (and concentrate on getting your application logic instead
-    /// of command line parsing. Here is an example which defines a 'Ping' command. If you will notice there are
+    /// of command line parsing). Here is an example which defines a 'Ping' command. If you will notice there are
     /// very few lines of code that are not expressing something very specific to this applications. This is how
     /// it should be!
 #if EXAMPLE2
@@ -263,7 +265,7 @@ namespace Microsoft.Fx.CommandLine
     /// don't need to be passed around to many routines.  In general, however it is often a better idea to
     /// create a class whose sole purpose is to act as a repository for the parsed arguments.   This also nicely
     /// separates all command line processing into a single class.   This is how the ping example would look  in
-    /// that style. Notice that the main program no longer holds any command line processing logic.  and that
+    /// that style. Notice that the main program no longer holds any command line processing logic, and that
     /// 'commandLine' can be passed to other routines in bulk easily.
 #if EXAMPLE3
 class CommandLineParserExample3
@@ -298,7 +300,7 @@ class CommandLine
     {
         /// <summary>
         /// If you are building a console Application, there is a common structure to parsing arguments. You want
-        /// the text formated and output for console windows, and you want /? to be wired up to do this. All
+        /// the text formatted and output for console windows, and you want /? to be wired up to do this. All
         /// errors should be caught and displayed in a nice way.  This routine does this 'boiler plate'.
         /// </summary>
         /// <param name="parseBody">parseBody is the body of the parsing that this outer shell does not provide.
@@ -594,8 +596,7 @@ class CommandLine
 
         public static string ExtraParameters
         {
-            get { return _extraparameters; }
-            set { _extraparameters = value; }
+            get { return _extraParameters; }
         }
 
         // These routines are typically are not needed because ParseArgsForConsoleApp does the work.
@@ -636,7 +637,6 @@ class CommandLine
             
             if (unusedParameters.Count > 0)
             {
-                //_extraparameters = string.Join(" ", unusedParameters);
                 throw new CommandLineParserException("Parameter not recognized: " + unusedParameters[0] + ".");
             }
                 
@@ -1101,7 +1101,7 @@ class CommandLine
                         }
                     }
                     if (nextPos >= 0)
-                        _dashedParameterEncodedPositions[name] = SetMulitple(nextPos);
+                        _dashedParameterEncodedPositions[name] = SetMultiple(nextPos);
                     else
                         _dashedParameterEncodedPositions.Remove(name);
                 }
@@ -1109,7 +1109,7 @@ class CommandLine
             return ret;
         }
 
-        // Phase 2 parsing works into things that look like qualifiers (but without  knowledge of which qualifiers the command supports)
+        // Phase 2 parsing works into things that look like qualifiers (but without knowledge of which qualifiers the command supports)
         /// <summary>
         /// Find the locations of all arguments that look like named parameters.
         /// </summary>
@@ -1138,7 +1138,7 @@ class CommandLine
                             extraP[j] = _args[i];
                             _args[i] = null;
                         }
-                        _extraparameters = string.Join(" ", extraP);
+                        _extraParameters = string.Join(" ", extraP);
                         break;
                     }
                     if (name == "?")        // Did the user request help?
@@ -1164,7 +1164,7 @@ class CommandLine
                     }
                     int position = i;
                     if (_dashedParameterEncodedPositions.TryGetValue(name, out position))
-                        position = SetMulitple(position);
+                        position = SetMultiple(position);
                     else
                         position = i;
                     _dashedParameterEncodedPositions[name] = position;
@@ -1199,7 +1199,7 @@ class CommandLine
             return false;
         }
 
-        // Phase 3, processing user defintions of qualifiers parameter sets etc.
+        // Phase 3, processing user defintions of qualifiers, parameter sets, etc.
         /// <summary>
         /// returns the index in the 'args' array of the next instance of the 'name' qualifier.   returns -1 if there is
         /// no next instance of the qualifer.
@@ -1223,7 +1223,7 @@ class CommandLine
             if (_aliasDefinitions != null)
                 _aliasDefinitions.TryGetValue(name, out alaises);
 
-            int occuranceCount = 0;
+            int occurenceCount = 0;
             List<Array> arrayValues = null;
             for (;;)
             {
@@ -1277,16 +1277,16 @@ class CommandLine
                     arrayValues.Add((Array)ret);
                     ret = null;
                 }
-                else if (occuranceCount > 0 && !_lastQualifierWins)
+                else if (occurenceCount > 0 && !_lastQualifierWins)
                     throw new CommandLineParserException("Parameter " + name + " specified more than once.");
-                occuranceCount++;
+                occurenceCount++;
             }
 
-            if (occuranceCount == 0 && isRequired)
+            if (occurenceCount == 0 && isRequired)
                 throw new CommandLineParserException("Required named parameter " + name + " not present.");
 
             if (arrayValues != null)
-                ret = ConcatinateArrays(type, arrayValues);
+                ret = ConcatenateArrays(type, arrayValues);
             return ret;
         }
         private object DefineParameter(string name, Type type, object parameterValue, string helpText, bool isRequired)
@@ -1298,7 +1298,7 @@ class CommandLine
             if (!isRequired)
                 _optionalPositionalArgEncountered = true;
             else if (_optionalPositionalArgEncountered)
-                throw new CommandLineParserDesignerException("Optional positional parameters can't preceed required positional parameters");
+                throw new CommandLineParserDesignerException("Optional positional parameters can't precede required positional parameters");
 
             _positionalArgEncountered = true;
             if (_mustParseHelpStrings)
@@ -1424,7 +1424,7 @@ class CommandLine
             return ret;
         }
 
-        private Array ConcatinateArrays(Type arrayType, List<Array> arrays)
+        private Array ConcatenateArrays(Type arrayType, List<Array> arrays)
         {
             int totalCount = 0;
             for (int i = 0; i < arrays.Count; i++)
@@ -1651,7 +1651,7 @@ class CommandLine
         }
         /// <summary>
         /// prints a string to the console in a nice way.  In particular it
-        /// displays a sceeen full of data and then as user to type a space to continue.
+        /// displays a screen full of data and then as user to type a space to continue.
         /// </summary>
         /// <param name="helpString"></param>
         private static void DisplayStringToConsole(string helpString)
@@ -1809,13 +1809,13 @@ class CommandLine
         // TODO expose the ability to change this?
         private static char[] s_separators = new char[] { ':', '=' };
 
-        // tweeks the user can specify
+        // tweaks the user can specify
         private bool _noDashOnParameterSets = true;
         private bool _noSpaceOnQualifierValues;
         private string[] _parameterSetsWhereQualifiersMustBeFirst;
         private bool _qualifiersUseOnlyDash = true;
         private bool _lastQualifierWins;
-        private static string _extraparameters;
+        private static string _extraParameters;
 
         // In order to produce help, we need to remember everything useful about all the parameters.  This list
         // does this.  It is only done when help is needed, so it is not here in the common scenario.
@@ -1876,8 +1876,6 @@ class CommandLine
             }
         }
 
-
-
         /// <summary>
         /// Qualifiers can have aliases (e.g. for short names).  This holds these aliases.
         /// </summary>
@@ -1891,7 +1889,7 @@ class CommandLine
         private Dictionary<string, int> _dashedParameterEncodedPositions;
         // We steal the top bit to prepresent whether the parameter occurs more than once.
         private const int MultiplePositions = unchecked((int)0x80000000);
-        private static int SetMulitple(int encodedPos) { return encodedPos | MultiplePositions; }
+        private static int SetMultiple(int encodedPos) { return encodedPos | MultiplePositions; }
         private static int GetPosition(int encodedPos) { return encodedPos & ~MultiplePositions; }
         private static bool IsMulitple(int encodedPos) { return (encodedPos & MultiplePositions) != 0; }
 

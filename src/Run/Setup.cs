@@ -22,11 +22,12 @@ namespace Microsoft.DotNet.Execute
         public Dictionary<string, string> SettingParameters { get; set; }
         public string Os { get; set; }
         public string ConfigurationFilePath { get; set; }
+        public string ExtraParameters { get; set; }
 
         private int ValidateSettings()
         {
             int returnCode = 0;
-            foreach(var key in Settings.Keys)
+            foreach (var key in Settings.Keys)
             {
                 if (!IsReservedKeyword(key))
                 {
@@ -35,7 +36,7 @@ namespace Microsoft.DotNet.Execute
                         Console.Error.WriteLine("Setting '{0}' is missing the required ValueType property.", key);
                         returnCode = 1;
                     }
-                    if(Settings[key].Values == null)
+                    if (Settings[key].Values == null)
                     {
                         Console.Error.WriteLine("Setting '{0}' is missing the required Values property.", key);
                         returnCode = 1;
@@ -47,7 +48,7 @@ namespace Microsoft.DotNet.Execute
 
         private bool IsReservedKeyword(string keyword)
         {
-            if(keyword.Equals(RunQuietReservedKeyword))
+            if (keyword.Equals(RunQuietReservedKeyword))
             {
                 return true;
             }
@@ -97,7 +98,7 @@ namespace Microsoft.DotNet.Execute
         {
             Setting tempSetting;
             Command tempCommand;
-            foreach(var toolSetting in ToolSettings.Keys.Select(k => k.ToString()).ToArray())
+            foreach (var toolSetting in ToolSettings.Keys.Select(k => k.ToString()).ToArray())
             {
                 string tempValue = null;
                 // Attempt to get run tool setting value from parameters
@@ -153,11 +154,11 @@ namespace Microsoft.DotNet.Execute
             // Validate Settings before parsing out ToolSettings
             int returnCode = ValidateSettings();
 
-            ToolSettings = Settings.Where(s => s.Value.ValueType == null  ||
+            ToolSettings = Settings.Where(s => s.Value.ValueType == null ||
                                                s.Value.ValueType.Equals(RunToolSettingValueTypeReservedKeyword)
                                                ).ToDictionary(s => s.Key, s => string.Empty) ?? new Dictionary<string, string>();
             // A dev may have overriden the default values for a tool setting, but not specified the ValueType
-            foreach(var key in ToolSettings.Keys)
+            foreach (var key in ToolSettings.Keys)
             {
                 Settings[key].ValueType = RunToolSettingValueTypeReservedKeyword;
             }
@@ -221,7 +222,7 @@ namespace Microsoft.DotNet.Execute
             return 1;
         }
 
-        private void PrintColorMessage(ConsoleColor color, string message, params object [] args)
+        private void PrintColorMessage(ConsoleColor color, string message, params object[] args)
         {
             Console.ForegroundColor = color;
             Console.WriteLine(message, args);
@@ -246,10 +247,9 @@ namespace Microsoft.DotNet.Execute
             if (parameters == null)
             {
                 if (BuildRequiredValueSettingsForCommand(commandToExecute, parametersSelectedByUser, SettingParameters) &&
-                    BuildDefaultValueSettingsForCommand(commandToExecute, SettingParameters) &&
-                    ValidExtraParametersForCommand(SettingParameters["ExtraParameters"], SettingParameters))
+                    BuildDefaultValueSettingsForCommand(commandToExecute, SettingParameters))
                 {
-                    string commandParameters = BuildParametersForCommand(SettingParameters, SettingParameters["toolName"]);
+                    string commandParameters = $"{BuildParametersForCommand(SettingParameters, SettingParameters["toolName"])} {ExtraParameters}";
                     CompleteCommand completeCommand = new CompleteCommand(commandTool, commandParameters);
                     return completeCommand;
                 }
@@ -267,7 +267,7 @@ namespace Microsoft.DotNet.Execute
         {
             string commandSetting = string.Empty;
 
-            Tools[toolName].osSpecific[Os].TryGetValue("defaultParameters", out commandSetting);            
+            Tools[toolName].osSpecific[Os].TryGetValue("defaultParameters", out commandSetting);
 
             foreach (KeyValuePair<string, string> parameters in commandParameters)
             {
@@ -331,51 +331,6 @@ namespace Microsoft.DotNet.Execute
             return true;
         }
 
-        private bool ValidExtraParametersForCommand(string extraParameters, Dictionary<string, string> commandValues)
-        {
-            int namePos, valuePos;
-            string tempParam, name, value;
-            if (string.IsNullOrEmpty(extraParameters))
-            {
-                return true;
-            }
-
-            string[] extraA = extraParameters.Split(' ');
-            foreach (string param in extraA)
-            {
-                namePos = 0;
-                valuePos = param.Length;
-                tempParam = param;
-
-                namePos = param.IndexOf(":");
-                if (namePos != -1)
-                {
-                    tempParam = param.Substring(namePos + 1);
-                }
-
-                valuePos = tempParam.IndexOf("=");
-                if (valuePos != -1)
-                {
-                    name = tempParam.Substring(0, valuePos);
-                    value = tempParam.Substring(valuePos + 1);
-                }
-                else
-                {
-                    name = tempParam;
-                    value = string.Empty;
-                }
-
-                string paramValue;
-                if (commandValues.TryGetValue(name, out paramValue) && !string.IsNullOrEmpty(paramValue) && !paramValue.Equals("default") && !value.Equals(paramValue))
-                {
-                    Console.Error.WriteLine("Error: The value for setting {0} can't be overwriten.", name);
-                    return false;
-                }
-
-            }
-            return true;
-        }
-
         private string GetTool(Command commandToExecute, string os, string configPath, List<string> parametersSelectedByUser)
         {
             string toolname = commandToExecute.DefaultValues.ToolName;
@@ -383,7 +338,7 @@ namespace Microsoft.DotNet.Execute
 
             Tool toolProperties = null;
 
-            if(Tools.TryGetValue(toolname, out toolProperties))
+            if (Tools.TryGetValue(toolname, out toolProperties))
             {
                 SettingParameters["toolName"] = toolname;
                 string value = string.Empty;
@@ -410,8 +365,8 @@ namespace Microsoft.DotNet.Execute
         private string GetProject(Command commandToExecute, List<string> parametersSelectedByUser)
         {
             string project = string.Empty;
-            
-            if(parametersSelectedByUser != null)
+
+            if (parametersSelectedByUser != null)
             {
                 if (parametersSelectedByUser.Count(p => commandToExecute.Alias[p].Settings.TryGetValue("Project", out project)) > 1)
                 {
@@ -419,7 +374,7 @@ namespace Microsoft.DotNet.Execute
                     return string.Empty;
                 }
             }
-            
+
             if (string.IsNullOrEmpty(project))
             {
                 project = commandToExecute.DefaultValues.Project;
@@ -435,7 +390,7 @@ namespace Microsoft.DotNet.Execute
             {
                 commandOption = string.Format(" {0}", toolName.Equals("console") ? "" : value);
             }
-            else if(type.Equals(RunToolSettingValueTypeReservedKeyword)) { /* do nothing */ }
+            else if (type.Equals(RunToolSettingValueTypeReservedKeyword)) { /* do nothing */ }
             else
             {
                 Tool toolFormat;
@@ -474,7 +429,7 @@ namespace Microsoft.DotNet.Execute
 
                 sb.Append(GetHelpAlias(commandToPrint.DefaultValues.Settings, commandParametersToPrint));
                 CompleteCommand completeCommand = BuildCommand(commandName, aliasList, commandParametersToPrint);
-                
+
                 sb.AppendLine().Append("It will run: ").AppendLine();
                 sb.Append(string.Format("{0} {1}", completeCommand.ToolCommand, completeCommand.ParametersCommand));
                 return sb.ToString();
