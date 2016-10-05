@@ -8,7 +8,6 @@
     "NuGet.Packaging": "3.5.0-rc1-final",
     "NuGet.ProjectModel": "3.5.0-rc1-final",
     "NuGet.Versioning": "3.5.0-rc1-final",
-    "NuProj": "0.10.4-beta-gf7fc34e7d8",
     "System.Diagnostics.TraceSource": "4.0.0",
     "System.Dynamic.Runtime": "4.0.11",
     "System.Linq.Parallel": "4.0.1",

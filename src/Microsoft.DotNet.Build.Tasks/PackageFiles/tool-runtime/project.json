@@ -2,7 +2,6 @@
   "frameworks": {
     "netcoreapp1.0": {
       "dependencies": {
-        "NuProj": "0.10.4-beta-gf7fc34e7d8",
         "MSBuild": "0.1.0-preview-00024-160610",
         "Microsoft.Build.Framework": "0.1.0-preview-00024-160610",
         "Microsoft.Build.Tasks.Core": "0.1.0-preview-00024-160610",

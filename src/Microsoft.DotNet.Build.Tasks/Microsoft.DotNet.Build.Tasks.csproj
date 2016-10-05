@@ -86,15 +86,9 @@
   </ItemGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
   <Target Name="AfterBuild">
-    <PropertyGroup>
-      <!-- This version should be kept up to date with project.json -->
-      <NuProjVersion>0.10.4-beta-gf7fc34e7d8</NuProjVersion>
-    </PropertyGroup>
     <ItemGroup>
       <PackageFiles Include="$(MSBuildThisProjectDirectory)PackageFiles\**\*.*" />
-      <NuProjFiles Include="$(PackagesDir)NuProj\$(NuProjVersion)\tools\**\*.*" />
     </ItemGroup>
     <Copy SourceFiles="@(PackageFiles)" DestinationFolder="$(OutputPath)\PackageFiles\%(RecursiveDir)" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(NuProjFiles)" DestinationFolder="$(OutputPath)\NuProj\%(RecursiveDir)" SkipUnchangedFiles="true" />
   </Target>
 </Project>
