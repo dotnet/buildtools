@@ -209,13 +209,14 @@
                                  Condition="'$(TestWithoutNativeImages)' != 'true' Or !$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').EndsWith('.ni.dll'))" >
         <PackageRelativePath Condition="'%(_TestCopyLocalByFileNameWithoutDuplicates.NugetPackageId)' != ''">$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').Replace('$(PackagesDir)',''))</PackageRelativePath>
         <UseAbsolutePath Condition="'$(TestWithLocalLibraries)'=='true'">$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').StartsWith('$(BinDir)'))</UseAbsolutePath>
+        <DestinationPath>$(TestPath)$(TestNugetTargetMonikerFolder)\%(Filename)%(Extension)</DestinationPath>
       </_IncludedFileForTestsInVS>
-      <_DestinationsForTestsInVS Include="@(_IncludedFileForTestsInVS->'$(TestPath)$(TestNugetTargetMonikerFolder)\%(Filename)%(Extension)')" />
+      <_IncludedFileForTestsInVs Remove="@(_IncludedFileForTestsInVS)" Condition="Exists('%(DestinationPath)')" />
     </ItemGroup>
 
     <Copy
       SourceFiles="@(_IncludedFileForTestsInVS  -> '%(SourcePath)')"
-      DestinationFiles="@(_DestinationsForTestsInVS)"
+      DestinationFiles="@(_IncludedFileForTestsInVS->'%(DestinationPath)')"
       SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
       OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
       Retries="$(CopyRetryCount)"
