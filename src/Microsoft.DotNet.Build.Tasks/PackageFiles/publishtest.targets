@@ -194,8 +194,10 @@
   <!-- Workaround for VS execution:  This will form the same list and copy the same files as
        copied via RunTests script so VS can work when the test dir is initially clean.
        -->
-  <Target Name="CopyRunnerScriptFiles" Condition="'$(BuildingInsideVisualStudio)'=='true'"
-        AfterTargets="CopySupplementalTestData">
+  <PropertyGroup Condition="'$(BuildingInsideVisualStudio)'=='true'">
+    <PrepareForRunDependsOn>$(PrepareForRunDependsOn);CopyDefaultTestAssetsForVS</PrepareForRunDependsOn>
+  </PropertyGroup>
+  <Target Name="CopyDefaultTestAssetsForVS" DependsOnTargets="CopyTestToTestDirectory;CopySupplementalTestData">
      <!-- This was copied from RunTestsForProject in tests.targets
           The RunTestsForProject target does not execute in VS context and would be confused by the script based runner.
           _TestCopyLocalByFileNameWithoutDuplicates are the precise items that are fed to the runner script generation code.
@@ -207,13 +209,14 @@
                                  Condition="'$(TestWithoutNativeImages)' != 'true' Or !$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').EndsWith('.ni.dll'))" >
         <PackageRelativePath Condition="'%(_TestCopyLocalByFileNameWithoutDuplicates.NugetPackageId)' != ''">$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').Replace('$(PackagesDir)',''))</PackageRelativePath>
         <UseAbsolutePath Condition="'$(TestWithLocalLibraries)'=='true'">$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').StartsWith('$(BinDir)'))</UseAbsolutePath>
+        <DestinationPath>$(TestPath)$(TestNugetTargetMonikerFolder)\%(Filename)%(Extension)</DestinationPath>
       </_IncludedFileForTestsInVS>
-      <_DestinationsForTestsInVS Include="@(_IncludedFileForTestsInVS->'$(TestPath)$(TestNugetTargetMonikerFolder)\%(Filename)%(Extension)')" />
+      <_IncludedFileForTestsInVs Remove="@(_IncludedFileForTestsInVS)" Condition="Exists('%(DestinationPath)')" />
     </ItemGroup>
 
     <Copy
       SourceFiles="@(_IncludedFileForTestsInVS  -> '%(SourcePath)')"
-      DestinationFiles="@(_DestinationsForTestsInVS)"
+      DestinationFiles="@(_IncludedFileForTestsInVS->'%(DestinationPath)')"
       SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
       OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
       Retries="$(CopyRetryCount)"
