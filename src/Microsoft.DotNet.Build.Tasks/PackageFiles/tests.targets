@@ -135,7 +135,7 @@
     <StartArguments Condition="'$(StartArguments)'==''">$(TestArguments) -wait -parallel none</StartArguments>
   </PropertyGroup>
 
-  <Target Name="DiscoverTestInputs" DependsOnTargets="ResolveProjectReferences;ResolveAssemblyReferences;GetCopyToOutputDirectoryItems">
+  <Target Name="DiscoverTestInputs" DependsOnTargets="ResolveReferences;GetCopyToOutputDirectoryItems">
     <ItemGroup>
       <RunTestsForProjectInputs Include="@(ReferenceCopyLocalPaths)" />
       <RunTestsForProjectInputs Include="@(Content)" />
