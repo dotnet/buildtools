@@ -86,41 +86,44 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             LoadFiles();
 
+            CompileAssets = null;
             // find the best framework
             foreach (var compileFx in compileFxs)
             {
-                CompileAssets = _resolver.ResolveCompileAssets(compileFx)
-                                         .Where(ca => !NuGetAssetResolver.IsPlaceholder(ca))
-                                         .Select(ca => PackageItemAsResolvedAsset(_targetPathToPackageItem[ca]))
-                                         .ToArray();
+                var compileAssets = _resolver.ResolveCompileAssets(compileFx);
 
-                if (CompileAssets.Any())
+                if (compileAssets.Any())
                 {
+                    CompileAssets = compileAssets.Where(ca => !NuGetAssetResolver.IsPlaceholder(ca))
+                        .Select(ca => PackageItemAsResolvedAsset(_targetPathToPackageItem[ca]))
+                        .ToArray();
                     Log.LogMessage($"Resolved compile assets from {compileFx.ToString()}: {String.Join(";", CompileAssets.Select(c => c.ItemSpec))}");
                     break;
                 }
             }
 
-            if (!CompileAssets.Any())
+            if (CompileAssets == null)
             {
                 Log.LogError($"Could not locate compile assets for any of the frameworks {String.Join(";", compileFxs.Select(fx => fx.ToString()))}");
             }
 
+            RuntimeAssets = null;
             foreach (var runtimeFx in runtimeFxs)
             {
-                RuntimeAssets = _resolver.ResolveRuntimeAssets(runtimeFx, TargetRuntime)
-                                         .Where(ra => !NuGetAssetResolver.IsPlaceholder(ra))
-                                         .SelectMany(ra => PackageItemAndSymbolsAsResolvedAsset(_targetPathToPackageItem[ra]))
-                                         .ToArray();
+                var runtimeAssets = _resolver.ResolveRuntimeAssets(runtimeFx, TargetRuntime);
 
-                if (RuntimeAssets.Any())
+                if (runtimeAssets.Any())
                 {
+                    RuntimeAssets = runtimeAssets.Where(ra => !NuGetAssetResolver.IsPlaceholder(ra))
+                        .SelectMany(ra => PackageItemAndSymbolsAsResolvedAsset(_targetPathToPackageItem[ra]))
+                        .ToArray();
+
                     Log.LogMessage($"Resolved runtime assets from {runtimeFx.ToString()}: {String.Join(";", RuntimeAssets.Select(r => r.ItemSpec))}");
                     break;
                 }
             }
 
-            if (!RuntimeAssets.Any())
+            if (RuntimeAssets == null)
             {
                 Log.LogError($"Could not locate runtime assets for any of the frameworks {String.Join(";", runtimeFxs.Select(fx => fx.ToString()))}");
             }
