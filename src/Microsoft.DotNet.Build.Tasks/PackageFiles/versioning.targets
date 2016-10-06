@@ -217,13 +217,20 @@
 
   <PropertyGroup>
     <GetNuGetPackageVersionsDependsOn>$(GetNuGetPackageVersionsDependsOn);CreateVersionInfoFile</GetNuGetPackageVersionsDependsOn>
+    <TraversalBuildDependsOn>CreateVersionInfoFile;$(TraversalBuildDependsOn)</TraversalBuildDependsOn>
+  </PropertyGroup>
+    
+  <PropertyGroup>
+    <SyncInfoDirectory>$(ObjDir)</SyncInfoDirectory>
+    <SyncInfoFile>$(SyncInfoDirectory)version.txt</SyncInfoFile>
   </PropertyGroup>
   
   <Target Name="CreateVersionInfoFile"
-          DependsOnTargets="GetLatestCommitHash">
-    <PropertyGroup>
-      <SyncInfoFile>$(PackagesBasePath)\version.txt</SyncInfoFile>
-    </PropertyGroup>
+          DependsOnTargets="GetLatestCommitHash"
+          Inputs="$(LatestCommit)"
+          Outputs="$(SyncInfoFile)">
+    <MakeDir Condition="!Exists('$(SyncInfoDirectory)')"
+             Directories="$(SyncInfoDirectory)" />
     <WriteLinesToFile
       Condition="'$(LatestCommit)' != ''"
       File="$(SyncInfoFile)"
