@@ -1,7 +1,10 @@
 param
 (
-    [string]$RepositoryRoot,
-    [string]$ToolsLocalPath,
+    [Parameter(Mandatory=$false)][string]$RepositoryRoot = $PSScriptRoot,
+    [Parameter(Mandatory=$false)][string]$ToolsLocalPath = (Join-Path $RepositoryRoot "Tools"),
+    [Parameter(Mandatory=$false)][string]$CliLocalPath = (Join-Path $ToolsLocalPath "dotnetcli"),
+    [Parameter(Mandatory=$false)][string]$SharedFrameworkSymlinkPath = (Join-Path $ToolsLocalPath "dotnetcli\shared\Microsoft.NETCore.App\version"),
+    [Parameter(Mandatory=$false)][string]$SharedFrameworkVersion = "<auto>",
     [switch]$Force = $false
 )
 
@@ -42,8 +45,8 @@ $rootCliVersion = Join-Path $RepositoryRoot ".cliversion"
 $dotNetCliVersion = Get-Content $rootCliVersion
 
 # now execute the script
-$cliLocalPath = Join-Path $ToolsLocalPath "dotnetcli"
-Invoke-Expression "$initCliLocalPath -Version $dotNetCliVersion -InstallDir $cliLocalPath"
+Write-Host "$initCliLocalPath -Version $dotNetCliVersion -InstallDir $CliLocalPath"
+Invoke-Expression "$initCliLocalPath -Version $dotNetCliVersion -InstallDir $CliLocalPath"
 if ($LastExitCode -ne 0)
 {
     Write-Output "The .NET CLI installation failed with exit code $LastExitCode"
@@ -52,9 +55,18 @@ if ($LastExitCode -ne 0)
 
 # create a junction to the shared FX version directory. this is
 # so we have a stable path to dotnet.exe regardless of version.
-$junctionTarget = Join-Path $toolsLocalPath "dotnetcli\shared\Microsoft.NETCore.App\1.0.0"
-$junctionName = Join-Path $toolsLocalPath "dotnetcli\shared\Microsoft.NETCore.App\version"
-cmd.exe /c mklink /j $junctionName $junctionTarget | Out-Null
+if ($SharedFrameworkVersion -eq "<auto>")
+{
+    $runtimesPath = Join-Path $CliLocalPath "shared\Microsoft.NETCore.App"
+    $SharedFrameworkVersion = Get-ChildItem $runtimesPath -Directory | % { New-Object System.Version($_) } | Sort-Object -Descending | Select-Object -First 1
+}
+$junctionTarget = Join-Path $runtimesPath $SharedFrameworkVersion
+$junctionParent = Split-Path $SharedFrameworkSymlinkPath -Parent
+if (-Not (Test-Path $junctionParent))
+{
+    mkdir $junctionParent | Out-Null
+}
+cmd.exe /c mklink /j $SharedFrameworkSymlinkPath $junctionTarget | Out-Null
 
 # create a project.json for the packages to restore
 $projectJson = Join-Path $ToolsLocalPath "project.json"
