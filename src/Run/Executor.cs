@@ -111,9 +111,9 @@ namespace Microsoft.DotNet.Execute
                         CommandParameters[comm.Key] = new Dictionary<string, string>(param);
                     }
                 }, args, setupInformation);
-                SettingParameters["ExtraParameters"] = CommandLineParser.ExtraParameters;
                 CommandSelectedByUser = userCommand;
                 setupInformation.SettingParameters = SettingParameters;
+                setupInformation.ExtraParameters = CommandLineParser.ExtraParameters;
                 return result;
             }
             catch (Exception e)
