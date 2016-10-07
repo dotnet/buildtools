@@ -58,7 +58,10 @@
     <HelixJobType Condition="'$(FilterToTestTFM)'=='netcore50' and $(TestNugetRuntimeId.Contains('aot'))">test/functional/ilc</HelixJobType>
     <HelixJobType Condition="$(FilterToTestTFM.Contains('net46'))">test/functional/desktop/cli</HelixJobType>
     <HelixJobType Condition="'$(HelixJobType)'=='' And '$(Performance)'=='true'">test/functional/perf/cli</HelixJobType>
-    <HelixJobType Condition="'$(HelixJobType)'==''">test/functional/cli</HelixJobType>
+    <HelixJobType Condition="'$(HelixJobType)'==''">test/functional/cli</HelixJobType>    
+    <HelixSource Condition="'$(HelixSource)'=='' And '$(IsOfficial)'!='' And '$(TestProduct)'!='' And '$(Branch)'!=''">official/$(TestProduct)/$(Branch)</HelixSource>
+    <HelixSource Condition="'$(HelixSource)'=='' And '$(IsOfficial)'=='' And '$(TestProduct)'!='' And '$(Branch)'!=''">pr/$(TestProduct)/$(Branch)</HelixSource>
+    <HelixSource Condition="'$(HelixSource)'==''">pr/unknown</HelixSource>
     <_UseUpdatedHelixApi Condition="'$(HelixJobType)'!=''">true</_UseUpdatedHelixApi>
     <HelixApiEndpoint Condition="'$(_UseUpdatedHelixApi)'=='true'">https://helixview.azurewebsites.net/api/2016-06-28/jobs</HelixApiEndpoint>
     <HelixApiEndpoint Condition="'$(HelixApiEndpoint)'==''">https://helixview.azurewebsites.net/api/jobs</HelixApiEndpoint>
@@ -349,9 +352,7 @@
         <Build Condition="'$(IsOfficial)'=='true'">$(OfficialBuildId)</Build>
         <Build Condition="'$(Build)'==''">$(CurrentDate)</Build>
         <Type>$(HelixJobType)</Type>
-        <Source Condition="'$(HelixSource)'=='' And '$(IsOfficial)'!='' And '$(TestProduct)'!='' And '$(Branch)'!=''">official/$(TestProduct)/$(Branch)</Source>
-        <Source Condition="'$(HelixSource)'=='' And '$(TestProduct)'!='' And '$(Branch)'!=''">pr/$(TestProduct)/$(Branch)</Source>
-        <Source Condition="'$(HelixSource)'!=''">$(HelixSource)</Source>
+        <Source>$(HelixSource)</Source>
         <Properties>{"architecture": "$(Platform)", "configuration", "$(Configuration)"}</Properties>
       </BuildCompleteTemplateV2>
       <BuildComplete Condition="'$(_UseUpdatedHelixApi)'=='true'" Include="@(BuildCompleteTemplateV2)"/>
