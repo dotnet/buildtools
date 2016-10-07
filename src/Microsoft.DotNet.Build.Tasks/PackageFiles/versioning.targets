@@ -217,12 +217,12 @@
 
   <PropertyGroup>
     <GetNuGetPackageVersionsDependsOn>$(GetNuGetPackageVersionsDependsOn);CreateVersionInfoFile</GetNuGetPackageVersionsDependsOn>
-    <TraversalBuildDependsOn>CreateVersionInfoFile;$(TraversalBuildDependsOn)</TraversalBuildDependsOn>
+    <BeforeTraversalBuildDependsOn>CreateVersionInfoFile;$(BeforeTraversalBuildDependsOn)</BeforeTraversalBuildDependsOn>
   </PropertyGroup>
     
   <PropertyGroup>
-    <SyncInfoDirectory>$(ObjDir)</SyncInfoDirectory>
-    <SyncInfoFile>$(SyncInfoDirectory)version.txt</SyncInfoFile>
+    <SyncInfoDirectory Condition="'$(SyncInfoDirectory)' == ''">$(ObjDir)</SyncInfoDirectory>
+    <SyncInfoFile Condition="'$(SyncInfoFile)' == ''">$(SyncInfoDirectory)version.txt</SyncInfoFile>
   </PropertyGroup>
   
   <Target Name="CreateVersionInfoFile"
