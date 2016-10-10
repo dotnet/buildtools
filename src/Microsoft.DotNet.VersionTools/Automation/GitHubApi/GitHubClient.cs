@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,6 +21,13 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
         private static JsonSerializerSettings s_jsonSettings = new JsonSerializerSettings
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver()
+        };
+
+        private static readonly string[] s_rateLimitHeaderNames =
+        {
+            "X-RateLimit-Limit",
+            "X-RateLimit-Remaining",
+            "X-RateLimit-Reset"
         };
 
         private GitHubAuth _auth;
@@ -66,7 +74,7 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             var bodyContent = new StringContent(updateFileBody);
             using (HttpResponseMessage response = await _httpClient.PutAsync(fileUrl, bodyContent))
             {
-                response.EnsureSuccessStatusCode();
+                await EnsureSuccessfulAsync(response);
                 Trace.TraceInformation("Updated the file successfully.");
             }
         }
@@ -90,7 +98,7 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             var bodyContent = new StringContent(createPrBody);
             using (HttpResponseMessage response = await _httpClient.PostAsync(pullUrl, bodyContent))
             {
-                response.EnsureSuccessStatusCode();
+                await EnsureSuccessfulAsync(response);
 
                 Trace.TraceInformation($"Created pull request.");
                 Trace.TraceInformation($"Pull request page: {await GetPullRequestUrlAsync(response)}");
@@ -126,7 +134,7 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
 
             using (HttpResponseMessage response = await _httpClient.SendAsync(request))
             {
-                response.EnsureSuccessStatusCode();
+                await EnsureSuccessfulAsync(response);
 
                 Trace.TraceInformation($"Updated pull request #{number}.");
                 Trace.TraceInformation($"Pull request page: {await GetPullRequestUrlAsync(response)}");
@@ -147,7 +155,7 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
 
             using (HttpResponseMessage response = await _httpClient.GetAsync(queryUrl))
             {
-                response.EnsureSuccessStatusCode();
+                await EnsureSuccessfulAsync(response);
 
                 var queryResponse = JsonConvert.DeserializeObject<GitHubIssueQueryResponse>(
                     await response.Content.ReadAsStringAsync(),
@@ -171,7 +179,7 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
 
             using (HttpResponseMessage response = await _httpClient.GetAsync(pullRequestUrl))
             {
-                response.EnsureSuccessStatusCode();
+                await EnsureSuccessfulAsync(response);
 
                 return JsonConvert.DeserializeObject<GitHubPullRequest>(
                     await response.Content.ReadAsStringAsync(),
@@ -191,7 +199,7 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             var bodyContent = new StringContent(commentBody);
             using (HttpResponseMessage response = await _httpClient.PostAsync(url, bodyContent))
             {
-                response.EnsureSuccessStatusCode();
+                await EnsureSuccessfulAsync(response);
             }
         }
 
@@ -201,7 +209,7 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
 
             using (HttpResponseMessage response = await _httpClient.GetAsync(url))
             {
-                response.EnsureSuccessStatusCode();
+                await EnsureSuccessfulAsync(response);
                 Trace.TraceInformation($"Got info about commit {sha} in {project.Segments}");
 
                 return JsonConvert.DeserializeObject<GitCommit>(
@@ -216,7 +224,7 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
 
             using (HttpResponseMessage response = await _httpClient.GetAsync(url))
             {
-                response.EnsureSuccessStatusCode();
+                await EnsureSuccessfulAsync(response);
                 Trace.TraceInformation($"Got info about ref {@ref} in {project.Segments}");
 
                 return JsonConvert.DeserializeObject<GitReference>(
@@ -228,6 +236,29 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
         public void Dispose()
         {
             _httpClient.Dispose();
+        }
+
+        private static async Task EnsureSuccessfulAsync(HttpResponseMessage response)
+        {
+            foreach (string headerName in s_rateLimitHeaderNames)
+            {
+                IEnumerable<string> headerValues;
+                if (response.Headers.TryGetValues(headerName, out headerValues))
+                {
+                    Trace.TraceInformation($"{headerName}: {string.Join(", ", headerValues)}");
+                }
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string failureContent = await response.Content.ReadAsStringAsync();
+                string message = $"Response code does not indicate success: {(int)response.StatusCode} ({response.StatusCode})";
+                if (!string.IsNullOrWhiteSpace(failureContent))
+                {
+                    message += $" with content: {failureContent}";
+                }
+                throw new HttpRequestException(message);
+            }
         }
 
         private static async Task<string> GetPullRequestUrlAsync(HttpResponseMessage response)
