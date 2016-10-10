@@ -217,7 +217,6 @@
 
   <PropertyGroup>
     <GetNuGetPackageVersionsDependsOn>$(GetNuGetPackageVersionsDependsOn);CreateVersionInfoFile</GetNuGetPackageVersionsDependsOn>
-    <BeforeTraversalBuildDependsOn>CreateVersionInfoFile;$(BeforeTraversalBuildDependsOn)</BeforeTraversalBuildDependsOn>
   </PropertyGroup>
     
   <PropertyGroup>
@@ -227,6 +226,7 @@
   
   <Target Name="CreateVersionInfoFile"
           DependsOnTargets="GetLatestCommitHash"
+          BeforeTargets="BuildAllProjects"
           Inputs="$(LatestCommit)"
           Outputs="$(SyncInfoFile)">
     <MakeDir Condition="!Exists('$(SyncInfoDirectory)')"
