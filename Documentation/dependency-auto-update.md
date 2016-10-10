@@ -11,7 +11,7 @@ The [versions repo (dotnet/versions)][dotnet/versions] stores information about 
 
 [Maestro][Maestro] detects changes to files in GitHub and kicks off tasks depending on the file that changed, according to [subscriptions.json][subscriptions]. For dependency auto-update, the relevent files are the build-info files in dotnet/versions.
 
-VSTS builds are used to execute the auto-update pull request generation task. The naming scheme for these build definitions for CoreFX, CoreCLR, and WCF is Maestro-<Project>GeneralExecutor.
+VSTS builds are used to execute the auto-update pull request generation task. The naming scheme for these build definitions for CoreFX, CoreCLR, and WCF is `Maestro-<Project>GeneralExecutor`.
 
 [VersionTools][VersionTools] is a library that can update and verify dependencies, commit and push changes, and make pull requests. The main BuildTools package includes "wrapper" targets/tasks that run this library, and the library's DLL.
 
