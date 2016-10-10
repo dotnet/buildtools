@@ -151,7 +151,6 @@
   -->
   <Target Name="RunTestsForProject"
           DependsOnTargets="DiscoverTestInputs;CheckTestCategories"
-          Condition="'$(TestDisabled)' != 'true'"
           Inputs="@(RunTestsForProjectInputs)"
           Outputs="$(TestsSuccessfulSemaphore);$(TestPath)%(TestNugetTargetMoniker.Folder)/$(XunitResultsFileName);$(CoverageOutputFilePath)"
           >
@@ -259,6 +258,7 @@
     />
 
     <Exec Command="$(TestPath)%(TestNugetTargetMoniker.Folder)/$(RunnerScriptName) $(PackagesDir)"
+          Condition="'$(TestDisabled)' != 'true'"
           WorkingDirectory="$(TestPath)%(TestNugetTargetMoniker.Folder)"
           CustomErrorRegularExpression="Failed: [^0]"
           ContinueOnError="true"
