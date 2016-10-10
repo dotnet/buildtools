@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Versioning;
+using System.Net.Http;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
@@ -20,7 +21,7 @@ namespace Microsoft.DotNet.Build.Tasks
     /// 2. Provide a versions files, this becomes the source of package versions
     /// If both a package drop and a version file are provided, then the package drop takes precedent over the version file.
     /// </summary>
-    public class AddDependenciesToProjectJson : Task
+    public class AddDependenciesToProjectJson : Microsoft.Build.Utilities.Task
     {
         // Additional Dependencies to add to the project.json. May Optionally contain a version.
         // Will Override dependencies present in the project if there is a conflict.
@@ -92,10 +93,6 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 foreach (var versionsFile in VersionsFiles)
                 {
-                    if (!File.Exists(versionsFile))
-                    {
-                        Log.LogError("Version file {0} does not exist.", versionsFile);
-                    }
                     AddPackageItemsToDictionary(ref packageInformation, GatherPackageInformationFromVersionsFile(versionsFile, comparer));
                 }
             }
@@ -198,15 +195,34 @@ namespace Microsoft.DotNet.Build.Tasks
             }
         }
 
-        // A versions file is of the form https://github.com/dotnet/versions/blob/master/build-info/dotnet/corefx/master/Latest_Packages.txt
+        private static async System.Threading.Tasks.Task<string> GetFileAsync(string uri)
+        {
+            string contents = string.Empty;
+            using (var stream = (File.Exists(uri)) ? File.OpenRead(uri) : await new HttpClient().GetStreamAsync(uri))
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                contents = await reader.ReadToEndAsync();
+            }
+            return contents;
+        }
+
+        // A versions file is of the form https://raw.githubusercontent.com/dotnet/versions/master/build-info/dotnet/corefx/master/Latest_Packages.txt
         private Dictionary<string, PackageItem> GatherPackageInformationFromVersionsFile(string versionsFile, VersionComparer comparer = null)
         {
             Dictionary<string, PackageItem> packageItems = new Dictionary<string, PackageItem>();
-            if (!File.Exists(versionsFile))
+
+            string contents = string.Empty;
+            try
             {
-                Log.LogError("Specified versions file ({0}) does not exist.", versionsFile);
+                contents = GetFileAsync(versionsFile).Result;
             }
-            var lines = File.ReadAllLines(versionsFile);
+            catch (AggregateException ae)
+            {
+                Log.LogError("Error: Unable to open '{0}', either the file does not exist locally or there is a network issue accessing that URI.", versionsFile);
+                throw ae;
+            }
+            var lines = contents.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+
             foreach(string line in lines)
             { 
                 if(!string.IsNullOrWhiteSpace(line))
