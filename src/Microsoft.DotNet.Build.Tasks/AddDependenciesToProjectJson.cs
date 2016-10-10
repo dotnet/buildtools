@@ -197,13 +197,11 @@ namespace Microsoft.DotNet.Build.Tasks
 
         private static async System.Threading.Tasks.Task<string> GetFileAsync(string uri)
         {
-            string contents = string.Empty;
             using (var stream = (File.Exists(uri)) ? File.OpenRead(uri) : await new HttpClient().GetStreamAsync(uri))
             using (StreamReader reader = new StreamReader(stream))
             {
-                contents = await reader.ReadToEndAsync();
+                return await reader.ReadToEndAsync();
             }
-            return contents;
         }
 
         // A versions file is of the form https://raw.githubusercontent.com/dotnet/versions/master/build-info/dotnet/corefx/master/Latest_Packages.txt
