@@ -218,12 +218,19 @@
   <PropertyGroup>
     <GetNuGetPackageVersionsDependsOn>$(GetNuGetPackageVersionsDependsOn);CreateVersionInfoFile</GetNuGetPackageVersionsDependsOn>
   </PropertyGroup>
+    
+  <PropertyGroup>
+    <SyncInfoDirectory Condition="'$(SyncInfoDirectory)' == ''">$(ObjDir)</SyncInfoDirectory>
+    <SyncInfoFile Condition="'$(SyncInfoFile)' == ''">$(SyncInfoDirectory)version.txt</SyncInfoFile>
+  </PropertyGroup>
   
   <Target Name="CreateVersionInfoFile"
-          DependsOnTargets="GetLatestCommitHash">
-    <PropertyGroup>
-      <SyncInfoFile>$(PackagesBasePath)\version.txt</SyncInfoFile>
-    </PropertyGroup>
+          DependsOnTargets="GetLatestCommitHash"
+          BeforeTargets="BuildAllProjects"
+          Inputs="$(LatestCommit)"
+          Outputs="$(SyncInfoFile)">
+    <MakeDir Condition="!Exists('$(SyncInfoDirectory)')"
+             Directories="$(SyncInfoDirectory)" />
     <WriteLinesToFile
       Condition="'$(LatestCommit)' != ''"
       File="$(SyncInfoFile)"
