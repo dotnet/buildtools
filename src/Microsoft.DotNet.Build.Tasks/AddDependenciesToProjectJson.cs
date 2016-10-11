@@ -91,9 +91,9 @@ namespace Microsoft.DotNet.Build.Tasks
             // Retrieve package information from a versions file
             if (VersionsFiles != null)
             {
-                foreach (var versionsFile in VersionsFiles)
+                foreach (var versionsUri in VersionsFiles.Select(v => new Uri(v)))
                 {
-                    AddPackageItemsToDictionary(ref packageInformation, GatherPackageInformationFromVersionsFile(versionsFile, comparer));
+                    AddPackageItemsToDictionary(ref packageInformation, GatherPackageInformationFromVersionsFile(versionsUri, comparer));
                 }
             }
 
@@ -195,28 +195,40 @@ namespace Microsoft.DotNet.Build.Tasks
             }
         }
 
-        private static async System.Threading.Tasks.Task<string> GetFileAsync(string uri)
+        private static async System.Threading.Tasks.Task<Stream> GetStream(Uri uri)
         {
-            using (var stream = (File.Exists(uri)) ? File.OpenRead(uri) : await new HttpClient().GetStreamAsync(uri))
+            if(uri.Scheme == "file")
+            {
+                return new FileStream(uri.LocalPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            }
+            else
+            {
+                return await new HttpClient().GetStreamAsync(uri);
+            }
+        }
+
+        private static async System.Threading.Tasks.Task<string> GetFileAsync(Uri uri)
+        {
+            using (var stream = GetStream(uri).Result)
             using (StreamReader reader = new StreamReader(stream))
             {
                 return await reader.ReadToEndAsync();
             }
         }
 
-        // A versions file is of the form https://raw.githubusercontent.com/dotnet/versions/master/build-info/dotnet/corefx/master/Latest_Packages.txt
-        private Dictionary<string, PackageItem> GatherPackageInformationFromVersionsFile(string versionsFile, VersionComparer comparer = null)
+        // A versions file is of the form https://raw.githubusercontent.com/dotnet/versions/master/build-info/dotnet/corefx/release/1.0.0/LKG_Packages.txt
+        private Dictionary<string, PackageItem> GatherPackageInformationFromVersionsFile(Uri uri, VersionComparer comparer = null)
         {
             Dictionary<string, PackageItem> packageItems = new Dictionary<string, PackageItem>();
 
             string contents = string.Empty;
             try
             {
-                contents = GetFileAsync(versionsFile).Result;
+                contents = GetFileAsync(uri).Result;
             }
             catch (AggregateException ae)
             {
-                Log.LogError("Error: Unable to open '{0}', either the file does not exist locally or there is a network issue accessing that URI.", versionsFile);
+                Log.LogError("Error: Unable to open '{0}', either the file does not exist locally or there is a network issue accessing that URI.", uri.ToString());
                 throw ae;
             }
             var lines = contents.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
