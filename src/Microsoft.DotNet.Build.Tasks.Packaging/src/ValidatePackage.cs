@@ -240,40 +240,38 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         private void ValidateSupport()
         {
             var runtimeFxSuppression = GetSuppressionValues(Suppression.PermitRuntimeTargetMonikerMismatch) ?? new HashSet<string>();
-            ValidationReport report = null;
-            if (ValidationReport != null)
-            {
-                report = CreateValidationReport();
-            }
-
+            ValidationReport report = Packaging.ValidationReport.Load(ValidationReport);
+            
             // validate support for each TxM:RID
             foreach (var validateFramework in _frameworks.Values)
             {
                 NuGetFramework fx = validateFramework.Framework;
                 Version supportedVersion = validateFramework.SupportedVersion;
 
-                var compileAssetPaths = _resolver.ResolveCompileAssets(fx, PackageId);
-                bool hasCompileAsset, hasCompilePlaceHolder;
-                NuGetAssetResolver.ExamineAssets(Log, "Compile", ContractName, fx.ToString(), compileAssetPaths, out hasCompileAsset, out hasCompilePlaceHolder);
-
-                if (report != null && validateFramework.RuntimeIds.All(rid => !String.IsNullOrEmpty(rid)))
+                Target compileTarget;
+                if (!report.Targets.TryGetValue(fx.ToString(), out compileTarget))
                 {
-                    // Add Framework only (compile) target if all RIDs are non-empty.
-                    // This acts as a compile target for a framework that requires a RID for runtime.
-                    var reportTarget = new Target()
-                    {
-                        Framework = fx.ToString(),
-                        RuntimeID = null,
-                        CompileAssets = compileAssetPaths.Where(c => !NuGetAssetResolver.IsPlaceholder(c)).Select(c => GetPackageAssetFromTargetPath(c)).ToArray()
-                    };
-                    report.Targets.Add(fx.ToString(), reportTarget);
+                    Log.LogError($"Missing target {fx.ToString()} from validation report {ValidationReport}");
+                    continue;
                 }
 
+                var compileAssetPaths = compileTarget.CompileAssets.Select(ca => ca.PackagePath);
+                bool hasCompileAsset, hasCompilePlaceHolder;
+                NuGetAssetResolver.ExamineAssets(Log, "Compile", ContractName, fx.ToString(), compileAssetPaths, out hasCompileAsset, out hasCompilePlaceHolder);
+                
                 // resolve/test for each RID associated with this framework.
                 foreach (string runtimeId in validateFramework.RuntimeIds)
                 {
                     string target = String.IsNullOrEmpty(runtimeId) ? fx.ToString() : $"{fx}/{runtimeId}";
-                    var runtimeAssetPaths = _resolver.ResolveRuntimeAssets(fx, runtimeId);
+
+                    Target runtimeTarget;
+                    if (!report.Targets.TryGetValue(target, out runtimeTarget))
+                    {
+                        Log.LogError($"Missing target {target} from validation report {ValidationReport}");
+                        continue;
+                    }
+
+                    var runtimeAssetPaths = runtimeTarget.RuntimeAssets.Select(ra => ra.PackagePath);
 
                     bool hasRuntimeAsset, hasRuntimePlaceHolder;
                     NuGetAssetResolver.ExamineAssets(Log, "Runtime", ContractName, target, runtimeAssetPaths, out hasRuntimeAsset, out hasRuntimePlaceHolder);
@@ -299,18 +297,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     }
                     else
                     {
-                        if (report != null)
-                        {
-                            var reportTarget = new Target()
-                            {
-                                Framework = fx.ToString(),
-                                RuntimeID = runtimeId,
-                                CompileAssets = compileAssetPaths.Where(c => !NuGetAssetResolver.IsPlaceholder(c)).Select(c => GetPackageAssetFromTargetPath(c)).ToArray(),
-                                RuntimeAssets = runtimeAssetPaths.Where(r => !NuGetAssetResolver.IsPlaceholder(r)).Select(r => GetPackageAssetFromTargetPath(r)).ToArray()
-                            };
-                            report.Targets.Add(target, reportTarget);
-                        }
-
                         if (validateFramework.IsInbox)
                         {
                             if (!hasCompileAsset && !hasCompilePlaceHolder)
@@ -340,7 +326,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                             }
                             else
                             {
-                                var referenceAssemblies = compileAssetPaths.Where(IsDll);
+                                var referenceAssemblies = compileTarget.CompileAssets.Where(ca => IsDll(ca.PackagePath));
 
                                 if (referenceAssemblies.Count() > 1)
                                 {
@@ -349,7 +335,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                                 foreach (var referenceAssembly in referenceAssemblies)
                                 {
-                                    referenceAssemblyVersion = _targetPathToPackageItem[referenceAssembly].Version;
+                                    referenceAssemblyVersion = referenceAssembly.Version;
 
                                     if (!VersionUtility.IsCompatibleApiVersion(supportedVersion, referenceAssemblyVersion))
                                     {
@@ -364,13 +350,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                             }
                             else
                             {
-                                var implementationAssemblies = runtimeAssetPaths.Where(IsDll);
+                                var implementationAssemblies = runtimeTarget.RuntimeAssets.Where(ra => IsDll(ra.PackagePath));
 
-                                Dictionary<string, string> implementationFiles = new Dictionary<string, string>();
+                                Dictionary<string, PackageAsset> implementationFiles = new Dictionary<string, PackageAsset>();
                                 foreach (var implementationAssembly in implementationAssemblies)
                                 {
-                                    var packageItem = _targetPathToPackageItem[implementationAssembly];
-                                    Version implementationVersion = packageItem.Version;
+                                    Version implementationVersion = implementationAssembly.Version;
 
                                     if (!VersionUtility.IsCompatibleApiVersion(supportedVersion, implementationVersion))
                                     {
@@ -393,7 +378,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                                         Log.LogError($"{ContractName} has a higher runtime version ({implementationVersion}) than compile version ({referenceAssemblyVersion}) on .NET Desktop framework {target}.  This will break bindingRedirects.  If the live reference was replaced with a harvested reference you may need to set <Preserve>true</Preserve> on your reference assembly ProjectReference.");
                                     }
 
-                                    string fileName = Path.GetFileName(implementationAssembly);
+                                    string fileName = Path.GetFileName(implementationAssembly.PackagePath);
                                     
                                     if (implementationFiles.ContainsKey(fileName))
                                     {
@@ -404,7 +389,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                                         implementationFiles[fileName] = implementationAssembly;
                                     }
 
-                                    if (packageItem.TargetFramework != fx && !runtimeFxSuppression.Contains(fx.ToString()))
+                                    if (!implementationAssembly.Equals(fx) && !runtimeFxSuppression.Contains(fx.ToString()))
                                     {
                                         // the selected asset wasn't an exact framework match, let's see if we have an exact match in any other runtime asset.                                        
                                         var matchingFxAssets = _targetPathToPackageItem.Values.Where(i => i.TargetFramework == fx &&  // exact framework
@@ -413,11 +398,11 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                                                                                                          // Is implementation
                                                                                                          (i.TargetPath.StartsWith("lib") || i.TargetPath.StartsWith("runtimes")) &&
                                                                                                          // is not the same source file as was already selected
-                                                                                                         i.SourcePath != packageItem.SourcePath);
+                                                                                                         i.SourcePath != implementationAssembly.LocalPath);
 
                                         if (matchingFxAssets.Any())
                                         {
-                                            Log.LogError($"When targeting {target} {ContractName} will use {implementationAssembly} which targets {packageItem.TargetFramework.GetShortFolderName()}  but {String.Join(";", matchingFxAssets.Select(i => i.TargetPath))} targets {fx.GetShortFolderName()} specifically.");
+                                            Log.LogError($"When targeting {target} {ContractName} will use {implementationAssembly} which targets {implementationAssembly.TargetFramework.GetShortFolderName()}  but {String.Join(";", matchingFxAssets.Select(i => i.TargetPath))} targets {fx.GetShortFolderName()} specifically.");
                                         }
                                     }
                                 }
@@ -429,11 +414,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             // Set output items
             AllSupportedFrameworks = _frameworks.Values.Where(fx => fx.SupportedVersion != null).Select(fx => fx.ToItem()).OrderBy(i => i.ItemSpec).ToArray();
-
-            if (!String.IsNullOrEmpty(ValidationReport))
-            {
-                report.Save(ValidationReport);
-            }
         }
 
         private void ValidateIndex()
@@ -910,35 +890,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             {
                 _frameworks.Add(generation.Key, generation.Value);
             }
-        }
-
-        private ValidationReport CreateValidationReport()
-        {
-            return new ValidationReport()
-            {
-                Id = PackageId,
-                Version = PackageVersion,
-                SupportedFrameworks = _frameworks.OrderBy(fx => fx.Key.ToString())
-                                                .Where(fx => fx.Value.SupportedVersion != null)
-                                                .ToDictionary(fx => fx.Key.ToString(), fx => GetVersionString(fx.Value.SupportedVersion))
-            };
-
-        }
-
-        private PackageAsset GetPackageAssetFromTargetPath(string targetPath)
-        {
-            PackageItem packageItem = null;
-            if (!_targetPathToPackageItem.TryGetValue(targetPath, out packageItem))
-            {
-                throw new ArgumentException($"Could not find source item for {targetPath}", nameof(targetPath));
-            }
-
-            return new PackageAsset()
-            {
-                LocalPath = packageItem.SourcePath,
-                SourceProject = packageItem.SourceProject,
-                PackagePath = packageItem.TargetPath
-            };
         }
 
         private string GetVersionString(Version version)

@@ -25,6 +25,7 @@
     <Compile Include="GetApplicableAssetsFromPackageReports.cs" />
     <Compile Include="GetLastStablePackage.cs" />
     <Compile Include="GetPackageFromModule.cs" />
+    <Compile Include="GeneratePackageReport.cs" />
     <Compile Include="UpdatePackageIndex.cs" />
     <Compile Include="HarvestPackage.cs" />
     <Compile Include="GetApplicableAssetsFromPackages.cs" />

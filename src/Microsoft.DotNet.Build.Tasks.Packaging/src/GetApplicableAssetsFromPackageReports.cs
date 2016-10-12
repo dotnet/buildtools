@@ -35,6 +35,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         [Output]
         public ITaskItem[] RuntimeAssets { get; set; }
 
+        [Output]
+        public ITaskItem[] BuildProjects { get; set; }
+
         /// <summary>
         /// Generates a table in markdown that lists the API version supported by 
         /// various packages at all levels of NETStandard.
@@ -58,8 +61,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             string targetString = String.IsNullOrEmpty(TargetRuntime) ? fx.ToString() : $"{fx}/{TargetRuntime}";
 
-            List<ITaskItem> compileAssets = new List<ITaskItem>();
-            List<ITaskItem> runtimeAssets = new List<ITaskItem>();
+            var compileAssets = new List<ITaskItem>();
+            var runtimeAssets = new List<ITaskItem>();
+            var buildProjects = new List<BuildProject>();
 
             foreach (var reportPath in PackageReports)
             {
@@ -69,7 +73,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 if (report.Targets.TryGetValue(targetString, out target))
                 {
                     compileAssets.AddRange(target.CompileAssets.Select(c => ItemFromApplicableAsset(c, report.Id, report.Version)));
+                    buildProjects.AddRange(target.CompileAssets.Select(c => c.SourceProject).Where(bp => bp != null));
                     runtimeAssets.AddRange(target.RuntimeAssets.Select(r => ItemFromApplicableAsset(r, report.Id, report.Version)));
+                    buildProjects.AddRange(target.RuntimeAssets.Select(r => r.SourceProject).Where(bp => bp != null));
                 }
                 else
                 {
@@ -79,13 +85,14 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             CompileAssets = compileAssets.ToArray();
             RuntimeAssets = runtimeAssets.ToArray();
+            BuildProjects = buildProjects.Distinct().Select(bp => bp.ToItem()).ToArray();
 
             return !Log.HasLoggedErrors;
         }
         private ITaskItem ItemFromApplicableAsset(PackageAsset asset, string id, string version)
         {
             var item = new TaskItem(asset.LocalPath);
-            item.SetMetadata("SourceProject", asset.SourceProject);
+            item.SetMetadata("SourceProject", asset.SourceProject?.Project);
             item.SetMetadata("PackagePath", asset.PackagePath);
             item.SetMetadata("NuGetPackageId", id);
             item.SetMetadata("NuGetPackageVersion", version);
