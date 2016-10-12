@@ -147,7 +147,7 @@
 
    <!-- The unfiltered tests is the union of all of the tests archives we've selected -->
     <ItemGroup>   
-      <UnfilteredTestArchives Include="@(OSPlatformTestArchives);@(AnyOSPlatformTestArchivesListFile);@(UnixPlatformTestArchives)" />
+      <UnfilteredTestArchives Include="@(OSPlatformTestArchives);@(AnyOSPlatformTestArchives);@(UnixPlatformTestArchives)" />
     </ItemGroup>
 
     <Message Text="Full, Unfiltered Test Archive Collection :: @(UnfilteredTestArchives)" Importance="Low" />

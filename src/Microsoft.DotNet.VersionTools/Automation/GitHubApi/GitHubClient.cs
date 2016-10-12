@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,6 +21,13 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
         private static JsonSerializerSettings s_jsonSettings = new JsonSerializerSettings
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver()
+        };
+
+        private static readonly string[] s_rateLimitHeaderNames =
+        {
+            "X-RateLimit-Limit",
+            "X-RateLimit-Remaining",
+            "X-RateLimit-Reset"
         };
 
         private GitHubAuth _auth;
@@ -34,6 +42,28 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             _httpClient.DefaultRequestHeaders.Add("Accept", "application/vnd.github.v3+json");
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"token {auth.AuthToken}");
             _httpClient.DefaultRequestHeaders.Add("User-Agent", auth.User);
+        }
+
+        public async Task<GitHubContents> GetGitHubFileAsync(
+            string path,
+            GitHubBranch branch)
+        {
+            string url = $"https://api.github.com/repos/{branch.Project.Segments}/contents/{path}?ref=heads/{branch.Name}";
+
+            Trace.TraceInformation($"Getting contents of '{path}' using '{url}'");
+
+            using (HttpResponseMessage response = await _httpClient.GetAsync(url))
+            {
+                return await DeserializeSuccessfulAsync<GitHubContents>(response);
+            }
+        }
+
+        public async Task<string> GetGitHubFileContentsAsync(
+            string path,
+            GitHubBranch branch)
+        {
+            GitHubContents file = await GetGitHubFileAsync(path, branch);
+            return FromBase64(file.Content);
         }
 
         public async Task PutGitHubFileAsync(
@@ -66,7 +96,7 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             var bodyContent = new StringContent(updateFileBody);
             using (HttpResponseMessage response = await _httpClient.PutAsync(fileUrl, bodyContent))
             {
-                response.EnsureSuccessStatusCode();
+                await EnsureSuccessfulAsync(response);
                 Trace.TraceInformation("Updated the file successfully.");
             }
         }
@@ -90,7 +120,7 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             var bodyContent = new StringContent(createPrBody);
             using (HttpResponseMessage response = await _httpClient.PostAsync(pullUrl, bodyContent))
             {
-                response.EnsureSuccessStatusCode();
+                await EnsureSuccessfulAsync(response);
 
                 Trace.TraceInformation($"Created pull request.");
                 Trace.TraceInformation($"Pull request page: {await GetPullRequestUrlAsync(response)}");
@@ -126,7 +156,7 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
 
             using (HttpResponseMessage response = await _httpClient.SendAsync(request))
             {
-                response.EnsureSuccessStatusCode();
+                await EnsureSuccessfulAsync(response);
 
                 Trace.TraceInformation($"Updated pull request #{number}.");
                 Trace.TraceInformation($"Pull request page: {await GetPullRequestUrlAsync(response)}");
@@ -147,7 +177,7 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
 
             using (HttpResponseMessage response = await _httpClient.GetAsync(queryUrl))
             {
-                response.EnsureSuccessStatusCode();
+                await EnsureSuccessfulAsync(response);
 
                 var queryResponse = JsonConvert.DeserializeObject<GitHubIssueQueryResponse>(
                     await response.Content.ReadAsStringAsync(),
@@ -171,11 +201,7 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
 
             using (HttpResponseMessage response = await _httpClient.GetAsync(pullRequestUrl))
             {
-                response.EnsureSuccessStatusCode();
-
-                return JsonConvert.DeserializeObject<GitHubPullRequest>(
-                    await response.Content.ReadAsStringAsync(),
-                    s_jsonSettings);
+                return await DeserializeSuccessfulAsync<GitHubPullRequest>(response);
             }
         }
 
@@ -191,7 +217,7 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             var bodyContent = new StringContent(commentBody);
             using (HttpResponseMessage response = await _httpClient.PostAsync(url, bodyContent))
             {
-                response.EnsureSuccessStatusCode();
+                await EnsureSuccessfulAsync(response);
             }
         }
 
@@ -201,12 +227,8 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
 
             using (HttpResponseMessage response = await _httpClient.GetAsync(url))
             {
-                response.EnsureSuccessStatusCode();
-                Trace.TraceInformation($"Got info about commit {sha} in {project.Segments}");
-
-                return JsonConvert.DeserializeObject<GitCommit>(
-                    await response.Content.ReadAsStringAsync(),
-                    s_jsonSettings);
+                Trace.TraceInformation($"Getting info about commit {sha} in {project.Segments}");
+                return await DeserializeSuccessfulAsync<GitCommit>(response);
             }
         }
 
@@ -216,18 +238,109 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
 
             using (HttpResponseMessage response = await _httpClient.GetAsync(url))
             {
-                response.EnsureSuccessStatusCode();
-                Trace.TraceInformation($"Got info about ref {@ref} in {project.Segments}");
+                Trace.TraceInformation($"Getting info about ref {@ref} in {project.Segments}");
+                return await DeserializeSuccessfulAsync<GitReference>(response);
+            }
+        }
 
-                return JsonConvert.DeserializeObject<GitReference>(
-                    await response.Content.ReadAsStringAsync(),
-                    s_jsonSettings);
+        public async Task<GitTree> PostTreeAsync(GitHubProject project, string baseTree, GitObject[] tree)
+        {
+            string body = JsonConvert.SerializeObject(new
+            {
+                base_tree = baseTree,
+                tree
+            }, Formatting.Indented, s_jsonSettings);
+
+            string url = $"https://api.github.com/repos/{project.Segments}/git/trees";
+
+            var bodyContent = new StringContent(body);
+            using (HttpResponseMessage response = await _httpClient.PostAsync(url, bodyContent))
+            {
+                Trace.TraceInformation($"Posting new tree to {project.Segments}");
+                return await DeserializeSuccessfulAsync<GitTree>(response);
+            }
+        }
+
+        public async Task<GitCommit> PostCommitAsync(
+            GitHubProject project,
+            string message,
+            string tree,
+            string[] parents)
+        {
+            string body = JsonConvert.SerializeObject(new
+            {
+                message,
+                tree,
+                parents
+            }, Formatting.Indented);
+
+            string url = $"https://api.github.com/repos/{project.Segments}/git/commits";
+
+            var bodyContent = new StringContent(body);
+            using (HttpResponseMessage response = await _httpClient.PostAsync(url, bodyContent))
+            {
+                Trace.TraceInformation($"Posting new commit for tree '{tree}' with parents '{string.Join(", ", parents)}' to {project.Segments}");
+                return await DeserializeSuccessfulAsync<GitCommit>(response);
+            }
+        }
+
+        public async Task<GitReference> PatchReferenceAsync(GitHubProject project, string @ref, string sha, bool force)
+        {
+            string body = JsonConvert.SerializeObject(new
+            {
+                sha,
+                force
+            }, Formatting.Indented);
+
+            string url = $"https://api.github.com/repos/{project.Segments}/git/refs/{@ref}";
+
+            var bodyContent = new StringContent(body);
+            HttpRequestMessage request = new HttpRequestMessage(new HttpMethod("PATCH"), url)
+            {
+                Content = bodyContent
+            };
+            using (HttpResponseMessage response = await _httpClient.SendAsync(request))
+            {
+                Trace.TraceInformation($"Patching reference '{@ref}' to '{sha}' with force={force} in {project.Segments}");
+                return await DeserializeSuccessfulAsync<GitReference>(response);
             }
         }
 
         public void Dispose()
         {
             _httpClient.Dispose();
+        }
+
+        private static async Task<T> DeserializeSuccessfulAsync<T>(HttpResponseMessage response)
+        {
+            await EnsureSuccessfulAsync(response);
+
+            return JsonConvert.DeserializeObject<T>(
+                await response.Content.ReadAsStringAsync(),
+                s_jsonSettings);
+        }
+
+        private static async Task EnsureSuccessfulAsync(HttpResponseMessage response)
+        {
+            foreach (string headerName in s_rateLimitHeaderNames)
+            {
+                IEnumerable<string> headerValues;
+                if (response.Headers.TryGetValues(headerName, out headerValues))
+                {
+                    Trace.TraceInformation($"{headerName}: {string.Join(", ", headerValues)}");
+                }
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string failureContent = await response.Content.ReadAsStringAsync();
+                string message = $"Response code does not indicate success: {(int)response.StatusCode} ({response.StatusCode})";
+                if (!string.IsNullOrWhiteSpace(failureContent))
+                {
+                    message += $" with content: {failureContent}";
+                }
+                throw new HttpRequestException(message);
+            }
         }
 
         private static async Task<string> GetPullRequestUrlAsync(HttpResponseMessage response)
@@ -237,5 +350,6 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
         }
 
         private static string ToBase64(string value) => Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
+        private static string FromBase64(string value) => Encoding.UTF8.GetString(Convert.FromBase64String(value));
     }
 }

@@ -5,13 +5,19 @@
 using Microsoft.DotNet.VersionTools.Automation.GitHubApi;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace Microsoft.DotNet.VersionTools.Automation
 {
     public class VersionsRepoUpdater
     {
+        private const int MaxTries = 10;
+        private const int RetryMillisecondsDelay = 5000;
+
         private GitHubAuth _gitHubAuth;
         private GitHubProject _project;
 
@@ -42,11 +48,13 @@ namespace Microsoft.DotNet.VersionTools.Automation
 
         /// <param name="updateLatestVersion">If true, updates Latest.txt with a prerelease moniker. If there isn't one, makes the file empty.</param>
         /// <param name="updateLatestPackageList">If true, updates Latest_Packages.txt.</param>
+        /// <param name="updateLastBuildPackageList">If true, updates Last_Build_Packages.txt, and enables keeping old packages in Latest_Packages.txt.</param>
         public async Task UpdateBuildInfoAsync(
             IEnumerable<string> packagePaths,
             string versionsRepoPath,
             bool updateLatestPackageList = true,
-            bool updateLatestVersion = true)
+            bool updateLatestVersion = true,
+            bool updateLastBuildPackageList = true)
         {
             if (packagePaths == null)
             {
@@ -68,46 +76,131 @@ namespace Microsoft.DotNet.VersionTools.Automation
                 .FirstOrDefault(prerelease => !string.IsNullOrEmpty(prerelease))
                 ?? "";
 
-            if (updateLatestPackageList)
+            Dictionary<string, string> packageDictionary = packages.ToDictionary(
+                    t => t.Id,
+                    t => t.Version);
+
+            using (GitHubClient client = new GitHubClient(_gitHubAuth))
             {
-                string packageInfoFileContent = string.Join(
-                    Environment.NewLine,
-                    packages
-                        .OrderBy(t => t.Id)
-                        .Select(t => $"{t.Id} {t.Version}"));
-
-                string packageInfoFilePath = $"{versionsRepoPath}/Latest_Packages.txt";
-                string message = $"Updating Latest_Packages.txt at {versionsRepoPath} for {prereleaseVersion}";
-
-                await UpdateGitHubFileAsync(packageInfoFilePath, packageInfoFileContent, message);
-            }
-
-            if (updateLatestVersion)
-            {
-                string latestFilePath = $"{versionsRepoPath}/Latest.txt";
-
-                string message = $"Updating Latest.txt at {versionsRepoPath}";
-                if (string.IsNullOrEmpty(prereleaseVersion))
+                for (int i = 0; i < MaxTries; i++)
                 {
-                    message += ". No prerelease versions published.";
-                }
-                else
-                {
-                    message += $" for {prereleaseVersion}";
-                }
+                    try
+                    {
+                        // Master commit to use as new commit's parent.
+                        string masterRef = "heads/master";
+                        GitReference currentMaster = await client.GetReferenceAsync(_project, masterRef);
+                        string masterSha = currentMaster.Object.Sha;
 
-                await UpdateGitHubFileAsync(latestFilePath, prereleaseVersion, message);
+                        List<GitObject> objects = new List<GitObject>();
+
+                        if (updateLastBuildPackageList)
+                        {
+                            objects.Add(new GitObject
+                            {
+                                Path = $"{versionsRepoPath}/Last_Build_Packages.txt",
+                                Type = GitObject.TypeBlob,
+                                Mode = GitObject.ModeFile,
+                                Content = CreatePackageListFile(packageDictionary)
+                            });
+                        }
+
+                        if (updateLatestPackageList)
+                        {
+                            string latestPackagesPath = $"{versionsRepoPath}/Latest_Packages.txt";
+
+                            var allPackages = new Dictionary<string, string>(packageDictionary);
+
+                            if (updateLastBuildPackageList)
+                            {
+                                Dictionary<string, string> existingPackages = await GetPackagesAsync(client, latestPackagesPath);
+
+                                // Add each existing package if there isn't a new package with the same id.
+                                foreach (var package in existingPackages)
+                                {
+                                    if (!allPackages.ContainsKey(package.Key))
+                                    {
+                                        allPackages[package.Key] = package.Value;
+                                    }
+                                }
+                            }
+
+                            objects.Add(new GitObject
+                            {
+                                Path = latestPackagesPath,
+                                Type = GitObject.TypeBlob,
+                                Mode = GitObject.ModeFile,
+                                Content = CreatePackageListFile(allPackages)
+                            });
+                        }
+
+                        if (updateLatestVersion)
+                        {
+                            objects.Add(new GitObject
+                            {
+                                Path = $"{versionsRepoPath}/Latest.txt",
+                                Type = GitObject.TypeBlob,
+                                Mode = GitObject.ModeFile,
+                                Content = prereleaseVersion
+                            });
+                        }
+
+                        string message = $"Updating {versionsRepoPath}";
+                        if (string.IsNullOrEmpty(prereleaseVersion))
+                        {
+                            message += ". No prerelease versions published.";
+                        }
+                        else
+                        {
+                            message += $" for {prereleaseVersion}";
+                        }
+
+                        GitTree tree = await client.PostTreeAsync(_project, masterSha, objects.ToArray());
+                        GitCommit commit = await client.PostCommitAsync(_project, message, tree.Sha, new[] { masterSha });
+
+                        // Only fast-forward. Don't overwrite other changes: throw exception instead.
+                        await client.PatchReferenceAsync(_project, masterRef, commit.Sha, force: false);
+
+                        Trace.TraceInformation($"Committed build-info update on attempt {i + 1}.");
+                        break;
+                    }
+                    catch (HttpRequestException ex)
+                    {
+                        int nextTry = i + 1;
+                        if (nextTry < MaxTries)
+                        {
+                            Trace.TraceInformation($"Encountered exception committing build-info update: {ex.Message}");
+                            Trace.TraceInformation($"Trying again in {RetryMillisecondsDelay}ms. {MaxTries - nextTry} tries left.");
+                            await Task.Delay(RetryMillisecondsDelay);
+                        }
+                        else
+                        {
+                            Trace.TraceInformation("Encountered exception committing build-info update.");
+                            throw;
+                        }
+                    }
+                }
             }
         }
 
-        private async Task UpdateGitHubFileAsync(string path, string newFileContent, string commitMessage)
+        private async Task<Dictionary<string, string>> GetPackagesAsync(GitHubClient client, string path)
         {
-            using (GitHubClient client = new GitHubClient(_gitHubAuth))
-            {
-                string fileUrl = $"https://api.github.com/repos/{_project.Segments}/contents/{path}";
+            string latestPackages = await client.GetGitHubFileContentsAsync(
+                path,
+                new GitHubBranch("master", _project));
 
-                await client.PutGitHubFileAsync(fileUrl, commitMessage, newFileContent);
+            using (var reader = new StringReader(latestPackages))
+            {
+                return await BuildInfo.ReadPackageListAsync(reader);
             }
+        }
+
+        private static string CreatePackageListFile(Dictionary<string, string> packages)
+        {
+            return string.Join(
+                   Environment.NewLine,
+                   packages
+                       .OrderBy(t => t.Key)
+                       .Select(t => $"{t.Key} {t.Value}"));
         }
     }
 }

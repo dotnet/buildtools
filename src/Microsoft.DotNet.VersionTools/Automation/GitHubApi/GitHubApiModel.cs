@@ -43,6 +43,12 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
         public int Number { get; set; }
     }
 
+    public class GitHubContents
+    {
+        public string Sha { get; set; }
+        public string Content { get; set; }
+    }
+
     public class GitCommit
     {
         public string Sha { get; set; }
@@ -65,5 +71,23 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
     public class GitReferenceObject
     {
         public string Sha { get; set; }
+    }
+
+    public class GitTree
+    {
+        public string Sha { get; set; }
+    }
+
+    public class GitObject
+    {
+        public const string TypeBlob = "blob";
+
+        public const string ModeFile = "100644";
+
+        public string Path { get; set; }
+        public string Mode { get; set; }
+        public string Type { get; set; }
+        public string Sha { get; set; }
+        public string Content { get; set; }
     }
 }

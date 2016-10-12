@@ -131,7 +131,7 @@ namespace Microsoft.DotNet.VersionTools
             return $"{rawRepoUrl}/{gitRef}/{buildInfoPath}";
         }
 
-        private static async Task<Dictionary<string, string>> ReadPackageListAsync(TextReader reader)
+        public static async Task<Dictionary<string, string>> ReadPackageListAsync(TextReader reader)
         {
             var packages = new Dictionary<string, string>();
             string currentLine;
