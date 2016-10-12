@@ -106,13 +106,13 @@ namespace Microsoft.DotNet.VersionTools.Automation
 
                         if (updateLatestPackageList)
                         {
-                            string path = $"{versionsRepoPath}/Latest_Packages.txt";
+                            string latestPackagesPath = $"{versionsRepoPath}/Latest_Packages.txt";
 
                             var allPackages = new Dictionary<string, string>(packageDictionary);
 
                             if (updateLastBuildPackageList)
                             {
-                                Dictionary<string, string> existingPackages = await GetPackagesAsync(client, path);
+                                Dictionary<string, string> existingPackages = await GetPackagesAsync(client, latestPackagesPath);
 
                                 // Add each existing package if there isn't a new package with the same id.
                                 foreach (var package in existingPackages)
@@ -126,7 +126,7 @@ namespace Microsoft.DotNet.VersionTools.Automation
 
                             objects.Add(new GitObject
                             {
-                                Path = path,
+                                Path = latestPackagesPath,
                                 Type = GitObject.TypeBlob,
                                 Mode = GitObject.ModeFile,
                                 Content = CreatePackageListFile(allPackages)
