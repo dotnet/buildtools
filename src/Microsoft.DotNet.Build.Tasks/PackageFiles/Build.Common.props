@@ -35,4 +35,6 @@
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)Roslyn.Common.props" />
+
+  <Import Project="$(MSBuildThisFileDirectory)Produces.props" />
 </Project>
