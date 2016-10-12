@@ -207,40 +207,31 @@ namespace Microsoft.DotNet.Build.Tasks
             }
         }
 
-        private static async System.Threading.Tasks.Task<string> GetFileAsync(Uri uri)
-        {
-            using (var stream = GetStream(uri).Result)
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                return await reader.ReadToEndAsync();
-            }
-        }
-
         // A versions file is of the form https://raw.githubusercontent.com/dotnet/versions/master/build-info/dotnet/corefx/release/1.0.0/LKG_Packages.txt
         private Dictionary<string, PackageItem> GatherPackageInformationFromVersionsFile(Uri uri, VersionComparer comparer = null)
         {
             Dictionary<string, PackageItem> packageItems = new Dictionary<string, PackageItem>();
 
-            string contents = string.Empty;
             try
             {
-                contents = GetFileAsync(uri).Result;
+                using (var streamReader = new StreamReader(GetStream(uri).Result))
+                {
+                    while (!streamReader.EndOfStream)
+                    {
+                        string line = streamReader.ReadLine();
+                        if (!string.IsNullOrWhiteSpace(line))
+                        {
+                            string[] packageVersionTokens = line.Split(' ');
+                            PackageItem packageItem = CreatePackageItem(packageVersionTokens[0], packageVersionTokens[1]);
+                            AddPackageItemToDictionary(packageItems, packageItem);
+                        }
+                    }
+                }
             }
-            catch (AggregateException ae)
+            catch (AggregateException)
             {
                 Log.LogError("Error: Unable to open '{0}', either the file does not exist locally or there is a network issue accessing that URI.", uri.ToString());
-                throw ae;
-            }
-            var lines = contents.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
-
-            foreach(string line in lines)
-            { 
-                if(!string.IsNullOrWhiteSpace(line))
-                {
-                    string [] packageVersionTokens = line.Split(' ');
-                    PackageItem packageItem = CreatePackageItem(packageVersionTokens[0], packageVersionTokens[1]);
-                    AddPackageItemToDictionary(packageItems, packageItem);
-                }
+                throw;
             }
             return packageItems;
         }
