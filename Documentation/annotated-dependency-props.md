@@ -1,6 +1,6 @@
 # Annotated dependencies.props
 
-This file is used in CoreFX, CoreCLR, WCF, and BuildTools, and it isn't immediately clear how it's used for auto-updates, and how it's updated by auto-update. Below is a breakdown of [corefx's master dependencies.props](https://github.com/dotnet/corefx/blob/b57a43bb40fc2099e91d641a8b4f8c76a46afe6a/dependencies.props):
+This file is used in CoreFX, CoreCLR, WCF, and BuildTools, located in the repository root. Below is a breakdown of [corefx's master dependencies.props](https://github.com/dotnet/corefx/blob/b57a43bb40fc2099e91d641a8b4f8c76a46afe6a/dependencies.props). It is used for dependency auto-upgrade and dependency verification.
 
 ``` xml
 <PropertyGroup>
