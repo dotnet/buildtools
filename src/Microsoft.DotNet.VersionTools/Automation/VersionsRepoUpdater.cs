@@ -5,14 +5,19 @@
 using Microsoft.DotNet.VersionTools.Automation.GitHubApi;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace Microsoft.DotNet.VersionTools.Automation
 {
     public class VersionsRepoUpdater
     {
+        private const int MaxTries = 10;
+        private const int RetryMillisecondsDelay = 5000;
+
         private GitHubAuth _gitHubAuth;
         private GitHubProject _project;
 
@@ -77,79 +82,103 @@ namespace Microsoft.DotNet.VersionTools.Automation
 
             using (GitHubClient client = new GitHubClient(_gitHubAuth))
             {
-                // Master commit to use as new commit's parent.
-                string masterRef = "heads/master";
-                GitReference currentMaster = await client.GetReferenceAsync(_project, masterRef);
-                string masterSha = currentMaster.Object.Sha;
-
-                List<GitObject> objects = new List<GitObject>();
-
-                if (updateLastBuildPackageList)
+                for (int i = 0; i < MaxTries; i++)
                 {
-                    objects.Add(new GitObject
+                    try
                     {
-                        Path = $"{versionsRepoPath}/Last_Build_Packages.txt",
-                        Type = GitObject.TypeBlob,
-                        Mode = GitObject.ModeFile,
-                        Content = CreatePackageListFile(packageDictionary)
-                    });
-                }
+                        // Master commit to use as new commit's parent.
+                        string masterRef = "heads/master";
+                        GitReference currentMaster = await client.GetReferenceAsync(_project, masterRef);
+                        string masterSha = currentMaster.Object.Sha;
 
-                if (updateLatestPackageList)
-                {
-                    string path = $"{versionsRepoPath}/Latest_Packages.txt";
+                        List<GitObject> objects = new List<GitObject>();
 
-                    var allPackages = new Dictionary<string, string>(packageDictionary);
-
-                    if (updateLastBuildPackageList)
-                    {
-                        Dictionary<string, string> existingPackages = await GetPackagesAsync(client, path);
-
-                        // Add each existing package if there isn't a new package with the same id.
-                        foreach (var package in existingPackages)
+                        if (updateLastBuildPackageList)
                         {
-                            if (!allPackages.ContainsKey(package.Key))
+                            objects.Add(new GitObject
                             {
-                                allPackages[package.Key] = package.Value;
+                                Path = $"{versionsRepoPath}/Last_Build_Packages.txt",
+                                Type = GitObject.TypeBlob,
+                                Mode = GitObject.ModeFile,
+                                Content = CreatePackageListFile(packageDictionary)
+                            });
+                        }
+
+                        if (updateLatestPackageList)
+                        {
+                            string path = $"{versionsRepoPath}/Latest_Packages.txt";
+
+                            var allPackages = new Dictionary<string, string>(packageDictionary);
+
+                            if (updateLastBuildPackageList)
+                            {
+                                Dictionary<string, string> existingPackages = await GetPackagesAsync(client, path);
+
+                                // Add each existing package if there isn't a new package with the same id.
+                                foreach (var package in existingPackages)
+                                {
+                                    if (!allPackages.ContainsKey(package.Key))
+                                    {
+                                        allPackages[package.Key] = package.Value;
+                                    }
+                                }
                             }
+
+                            objects.Add(new GitObject
+                            {
+                                Path = path,
+                                Type = GitObject.TypeBlob,
+                                Mode = GitObject.ModeFile,
+                                Content = CreatePackageListFile(allPackages)
+                            });
+                        }
+
+                        if (updateLatestVersion)
+                        {
+                            objects.Add(new GitObject
+                            {
+                                Path = $"{versionsRepoPath}/Latest.txt",
+                                Type = GitObject.TypeBlob,
+                                Mode = GitObject.ModeFile,
+                                Content = prereleaseVersion
+                            });
+                        }
+
+                        string message = $"Updating {versionsRepoPath}";
+                        if (string.IsNullOrEmpty(prereleaseVersion))
+                        {
+                            message += ". No prerelease versions published.";
+                        }
+                        else
+                        {
+                            message += $" for {prereleaseVersion}";
+                        }
+
+                        GitTree tree = await client.PostTreeAsync(_project, masterSha, objects.ToArray());
+                        GitCommit commit = await client.PostCommitAsync(_project, message, tree.Sha, new[] { masterSha });
+
+                        // Only fast-forward. Don't overwrite other changes: throw exception instead.
+                        await client.PatchReferenceAsync(_project, masterRef, commit.Sha, force: false);
+
+                        Trace.TraceInformation($"Committed build-info update on attempt {i + 1}.");
+                        break;
+                    }
+                    catch (HttpRequestException ex)
+                    {
+                        int nextTry = i + 1;
+                        if (nextTry < MaxTries)
+                        {
+                            Trace.TraceInformation($"Encountered exception committing build-info update: {ex.Message}");
+                            Trace.TraceInformation($"Trying again in {RetryMillisecondsDelay}ms. {MaxTries - nextTry} tries left.");
+                            await Task.Delay(RetryMillisecondsDelay);
+                        }
+                        else
+                        {
+                            Trace.TraceInformation("Encountered exception committing build-info update.");
+                            throw;
                         }
                     }
-
-                    objects.Add(new GitObject
-                    {
-                        Path = path,
-                        Type = GitObject.TypeBlob,
-                        Mode = GitObject.ModeFile,
-                        Content = CreatePackageListFile(allPackages)
-                    });
                 }
-
-                if (updateLatestVersion)
-                {
-                    objects.Add(new GitObject
-                    {
-                        Path = $"{versionsRepoPath}/Latest.txt",
-                        Type = GitObject.TypeBlob,
-                        Mode = GitObject.ModeFile,
-                        Content = prereleaseVersion
-                    });
-                }
-
-                string message = $"Updating {versionsRepoPath}";
-                if (string.IsNullOrEmpty(prereleaseVersion))
-                {
-                    message += ". No prerelease versions published.";
-                }
-                else
-                {
-                    message += $" for {prereleaseVersion}";
-                }
-
-                GitTree tree = await client.PostTreeAsync(_project, masterSha, objects.ToArray());
-                GitCommit commit = await client.PostCommitAsync(_project, message, tree.Sha, new[] { masterSha });
-
-                // Only fast-forward. Don't overwrite other changes: throw exception instead.
-                await client.PatchReferenceAsync(_project, masterRef, commit.Sha, force: false);
             }
         }
 
