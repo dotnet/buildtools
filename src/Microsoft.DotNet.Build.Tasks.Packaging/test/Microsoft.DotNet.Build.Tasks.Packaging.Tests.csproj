@@ -19,7 +19,6 @@
     <Compile Include="HarvestPackageTests.cs" />
     <Compile Include="NugetPropertyStringProviderTests.cs" />
     <Compile Include="NuGetAssetResolverTests.cs" />
-    <Compile Include="GenerationsTests.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="TestBuildEngine.cs" />
   </ItemGroup>

@@ -64,9 +64,6 @@
     <Compile Include="VersionUtility.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="PackageFiles\Generations.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="PackageFiles\Packaging.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
