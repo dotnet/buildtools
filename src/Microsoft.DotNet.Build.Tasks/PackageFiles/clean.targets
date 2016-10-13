@@ -4,6 +4,8 @@
   <PropertyGroup>
     <UserLocalFolder Condition="'$(OsEnvironment)'=='Windows_NT'">$(LocalAppData)/</UserLocalFolder>
     <UserLocalFolder Condition="'$(OsEnvironment)'!='Windows_NT'">$(HOME)/.local/share/</UserLocalFolder>
+    <UserProfileFolder Condition="'$(OsEnvironment)'=='Windows_NT'">$(UserProfile)</UserProfileFolder>
+    <UserProfileFolder Condition="'$(OsEnvironment)'!='Windows_NT'">$(HOME)</UserProfileFolder>
   </PropertyGroup>
 
   <Target Name="CleanPackages">
@@ -12,8 +14,7 @@
 
   <Target Name="CleanPackagesCache">
     <RemoveDir Directories="$(UserLocalFolder)NuGet/Cache/;$(UserLocalFolder)NuGet/v3-cache/;$(UserLocalFolder)dnu/cache/" />
-    <!-- On Windows, there may also be a package cache under the user profile -->
-    <RemoveDir Condition="'$(OsEnvironment)'=='Windows_NT'" Directories="$(UserProfile)\.nuget\packages" />
+    <RemoveDir Directories="$(UserProfileFolder)/.nuget/packages" />
   </Target>
 
 </Project>
