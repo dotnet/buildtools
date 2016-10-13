@@ -17,16 +17,20 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         {
             OriginalItem = item;
             SourcePath = item.GetMetadata("FullPath");
-            SourceProject = item.GetMetadata("MSBuildSourceProjectFile");
-            string fx = item.GetMetadata("TargetFramework");
-            if (!String.IsNullOrWhiteSpace(fx))
+            SourceProject = GetMetadata("MSBuildSourceProjectFile");
+            string value = GetMetadata("TargetFramework");
+            if (!String.IsNullOrWhiteSpace(value))
             {
-                TargetFramework = NuGetFramework.Parse(fx);
+                TargetFramework = NuGetFramework.Parse(value);
             }
-            TargetPath = item.GetMetadata("TargetPath");
-            Package = item.GetMetadata("PackageId");
-            PackageVersion = item.GetMetadata("PackageVersion");
+            TargetPath = item.GetMetadata(nameof(TargetPath));
+            AdditionalProperties = GetMetadata(nameof(AdditionalProperties));
+            UndefineProperties = GetMetadata(nameof(UndefineProperties));
+            HarvestedFrom = GetMetadata(nameof(HarvestedFrom));
+            Package = GetMetadata("PackageId");
+            PackageVersion = GetMetadata("PackageVersion");
             IsDll = Path.GetExtension(SourcePath).Equals(".dll", StringComparison.OrdinalIgnoreCase);
+            IsPlaceholder = NuGetAssetResolver.IsPlaceholder(SourcePath);
             IsRef = TargetPath.StartsWith("ref/", StringComparison.OrdinalIgnoreCase);
 
             // determine if we need to append filename to TargetPath
@@ -81,14 +85,24 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         }
 
         public bool IsDll { get; }
+        public bool IsPlaceholder { get; }
         public bool IsRef { get; }
         public ITaskItem OriginalItem { get; }
         public string SourcePath { get; }
         public string SourceProject { get; }
+        public string AdditionalProperties { get; }
+        public string UndefineProperties { get; }
+        public string HarvestedFrom { get; }
         public NuGetFramework TargetFramework { get; }
         public string TargetDirectory { get; }
         public string TargetPath { get; }
         public string Package { get; }
         public string PackageVersion { get; }
+
+        private string GetMetadata(string name)
+        {
+            var value = OriginalItem.GetMetadata(name);
+            return (value?.Length > 0) ? value : null;
+        }
     }
 }

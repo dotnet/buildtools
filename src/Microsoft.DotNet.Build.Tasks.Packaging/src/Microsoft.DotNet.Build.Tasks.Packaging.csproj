@@ -25,6 +25,7 @@
     <Compile Include="GetApplicableAssetsFromPackageReports.cs" />
     <Compile Include="GetLastStablePackage.cs" />
     <Compile Include="GetPackageFromModule.cs" />
+    <Compile Include="GeneratePackageReport.cs" />
     <Compile Include="UpdatePackageIndex.cs" />
     <Compile Include="HarvestPackage.cs" />
     <Compile Include="GetApplicableAssetsFromPackages.cs" />
@@ -59,13 +60,10 @@
     <Compile Include="PackagingTask.cs" />
     <Compile Include="SplitReferences.cs" />
     <Compile Include="ValidatePackage.cs" />
-    <Compile Include="ValidationReport.cs" />
+    <Compile Include="PackageReport.cs" />
     <Compile Include="VersionUtility.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="PackageFiles\Generations.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="PackageFiles\Packaging.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>

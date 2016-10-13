@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
@@ -57,6 +58,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         [Output]
         public ITaskItem[] RuntimeAssets { get; set; }
 
+        [Output]
+        public ITaskItem[] BuildProjects { get; set; }
+
         /// <summary>
         /// Generates a table in markdown that lists the API version supported by 
         /// various packages at all levels of NETStandard.
@@ -86,6 +90,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             LoadFiles();
 
+            var buildProjects = new List<BuildProject>();
             CompileAssets = null;
             // find the best framework
             foreach (var compileFx in compileFxs)
@@ -94,9 +99,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                 if (compileAssets.Any())
                 {
-                    CompileAssets = compileAssets.Where(ca => !NuGetAssetResolver.IsPlaceholder(ca))
-                        .Select(ca => PackageItemAsResolvedAsset(_targetPathToPackageItem[ca]))
-                        .ToArray();
+                    var compileItems = compileAssets.Where(ca => !NuGetAssetResolver.IsPlaceholder(ca))
+                                                    .Select(ca => _targetPathToPackageItem[ca]);
+
+                    buildProjects.AddRange(compileItems.Select(ci => BuildProjectFromPackageItem(ci)).Where(bp => bp != null));
+
+                    CompileAssets = compileItems.Select(ci => PackageItemAsResolvedAsset(ci)).ToArray();
+
                     Log.LogMessage($"Resolved compile assets from {compileFx.ToString()}: {String.Join(";", CompileAssets.Select(c => c.ItemSpec))}");
                     break;
                 }
@@ -114,9 +123,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                 if (runtimeAssets.Any())
                 {
-                    RuntimeAssets = runtimeAssets.Where(ra => !NuGetAssetResolver.IsPlaceholder(ra))
-                        .SelectMany(ra => PackageItemAndSymbolsAsResolvedAsset(_targetPathToPackageItem[ra]))
-                        .ToArray();
+                    var runtimeItems = runtimeAssets.Where(ra => !NuGetAssetResolver.IsPlaceholder(ra))
+                                                    .Select(ra => _targetPathToPackageItem[ra]);
+
+                    buildProjects.AddRange(runtimeItems.Select(ri => BuildProjectFromPackageItem(ri)).Where(bp => bp != null));
+
+                    RuntimeAssets = runtimeItems.Select(ri => PackageItemAsResolvedAsset(ri)).ToArray();
 
                     Log.LogMessage($"Resolved runtime assets from {runtimeFx.ToString()}: {String.Join(";", RuntimeAssets.Select(r => r.ItemSpec))}");
                     break;
@@ -127,6 +139,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             {
                 Log.LogError($"Could not locate runtime assets for any of the frameworks {String.Join(";", runtimeFxs.Select(fx => fx.ToString()))}");
             }
+
+            BuildProjects = buildProjects.Distinct().Select(bp => bp.ToItem()).ToArray();
 
             return !Log.HasLoggedErrors;
         }
@@ -197,7 +211,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 var pdbItem = new TaskItem(Path.ChangeExtension(packageItem.OriginalItem.ItemSpec, ".pdb"));
                 packageItem.OriginalItem.CopyMetadataTo(pdbItem);
                 SetPackageMetadata(pdbItem, packageItem);
-                
+
                 if (!String.IsNullOrEmpty(packageItem.TargetPath))
                 {
                     pdbItem.SetMetadata("TargetPath", Path.ChangeExtension(packageItem.TargetPath, ".pdb"));
@@ -214,6 +228,21 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             item.SetMetadata("NuGetPackageId", packageItem.Package);
             item.SetMetadata("NuGetPackageVersion", packageItem.PackageVersion);
             return item;
+        }
+
+        public static BuildProject BuildProjectFromPackageItem(PackageItem packageItem)
+        {
+            if (packageItem.SourceProject == null)
+            {
+                return null;
+            }
+
+            return new BuildProject()
+            {
+                Project = packageItem.SourceProject,
+                AdditionalProperties = packageItem.AdditionalProperties,
+                UndefineProperties = packageItem.UndefineProperties
+            };
         }
     }
 }

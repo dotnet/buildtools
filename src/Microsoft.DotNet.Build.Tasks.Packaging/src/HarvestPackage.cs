@@ -406,6 +406,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                         item.SetMetadata("AssemblyVersion", assemblyVersion.ToString());
                     }
 
+                    item.SetMetadata("HarvestedFrom", $"{PackageId}/{PackageVersion}/{packagePath}");
+
                     harvestedFiles.Add(item);
                 }
             }
