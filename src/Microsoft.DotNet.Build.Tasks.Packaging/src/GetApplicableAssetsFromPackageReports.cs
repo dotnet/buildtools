@@ -67,7 +67,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             foreach (var reportPath in PackageReports)
             {
-                var report = ValidationReport.Load(reportPath);
+                var report = PackageReport.Load(reportPath);
 
                 Target target = null;
                 if (report.Targets.TryGetValue(targetString, out target))

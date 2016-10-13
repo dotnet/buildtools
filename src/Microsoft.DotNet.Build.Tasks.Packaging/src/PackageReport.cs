@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 
 namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
-    public class ValidationReport
+    public class PackageReport
     {
-        public ValidationReport()
+        public PackageReport()
         {
             Targets = new Dictionary<string, Target>();
         }
@@ -24,6 +24,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
         public Dictionary<string, string> SupportedFrameworks { get; set; }
         public Dictionary<string,Target> Targets { get; set; }
+        public PackageAsset[] UnusedAssets { get; set; }
 
         public void Save(string path)
         {
@@ -46,7 +47,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
         }
 
-        public static ValidationReport Load(string path)
+        public static PackageReport Load(string path)
         {
             using (var file = File.OpenText(path))
             using (var jsonTextReader = new JsonTextReader(file))
@@ -54,7 +55,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 var serializer = new JsonSerializer();
                 serializer.Converters.Add(new VersionConverter());
                 serializer.Converters.Add(new NuGetFrameworkConverter());
-                return serializer.Deserialize<ValidationReport>(jsonTextReader);
+                return serializer.Deserialize<PackageReport>(jsonTextReader);
             }
         }
     }

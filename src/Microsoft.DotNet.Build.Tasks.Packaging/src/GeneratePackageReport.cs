@@ -18,6 +18,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         private AggregateNuGetAssetResolver _resolver;
         private Dictionary<NuGetFramework, string[]> _frameworks;
         private NuGetAssetResolver _resolverWithoutPlaceholders;
+        private HashSet<string> _unusedTargetPaths;
 
         [Required]
         public string PackageId
@@ -69,7 +70,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// JSON file describing results of validation
         /// </summary>
         [Required]
-        public string ValidationReport
+        public string ReportFile
         {
             get;
             set;
@@ -80,7 +81,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             LoadFiles();
             LoadFrameworks();
 
-            var report = new ValidationReport()
+            var report = new PackageReport()
             {
                 Id = PackageId,
                 Version = PackageVersion,
@@ -98,6 +99,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                 bool hasCompileAsset, hasCompilePlaceHolder;
                 NuGetAssetResolver.ExamineAssets(Log, "Compile", package, fx.ToString(), compileAssets, out hasCompileAsset, out hasCompilePlaceHolder);
+                MarkUsed(compileAssets);
 
                 // start by making sure it has some asset available for compile
                 var isSupported = hasCompileAsset || hasCompilePlaceHolder;
@@ -123,6 +125,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                     bool hasRuntimeAsset, hasRuntimePlaceHolder;
                     NuGetAssetResolver.ExamineAssets(Log, "Runtime", package, target, runtimeAssets, out hasRuntimeAsset, out hasRuntimePlaceHolder);
+                    MarkUsed(runtimeAssets);
 
                     if (!FrameworkUtilities.IsGenerationMoniker(fx) && !fx.IsPCL)
                     {
@@ -165,7 +168,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 }
             }
 
-            report.Save(ValidationReport);
+            report.UnusedAssets = _unusedTargetPaths.Select(tp => GetPackageAssetFromTargetPath(tp)).ToArray();
+
+            report.Save(ReportFile);
 
             return !Log.HasLoggedErrors;
         }
@@ -200,7 +205,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 _frameworks.Add(fx, runtimeIds);
             }
 
-            // validate for any TFMs explicitly targeted
+            // inspect any TFMs explicitly targeted
             var fileFrameworks = _targetPathToPackageItem.Values.Select(f => f.TargetFramework).Distinct(NuGetFramework.Comparer).Where(f => f != null);
             foreach(var fileFramework in fileFrameworks)
             {
@@ -210,7 +215,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 }
             }
 
-            // validate for TFMs inbox
+            // inspect any TFMs inbox
             var frameworkData = FrameworkSet.Load(FrameworkListsPath);
             var inboxFrameworks = frameworkData.Frameworks.SelectMany(f => f.Value)
                 .Where(fx => fx.Assemblies.ContainsKey(PackageId))
@@ -224,12 +229,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 }
             }
 
-            // validate for derived TFMs
+            // inspect for derived TFMs
             var expander = new FrameworkExpander();
             foreach(var framework in _frameworks.Keys.ToArray())
             {
                 var derivedFxs = expander.Expand(framework);
-                //.Where(fx => fx.Framework == FrameworkConstants.FrameworkIdentifiers.NetStandard)
+
                 foreach (var derivedFx in derivedFxs)
                 {
                     if (!_frameworks.ContainsKey(derivedFx))
@@ -277,17 +282,19 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             // build a map to translate back to source file from resolved asset
             // we use package-specific paths since we're resolving a set of packages.
             _targetPathToPackageItem = new Dictionary<string, PackageItem>();
-            foreach (var packageFiles in packageItems)
+            _unusedTargetPaths = new HashSet<string>();
+            foreach (var packageSpecificItems in packageItems)
             {
-                foreach (PackageItem validateFile in packageFiles.Value)
+                foreach (PackageItem packageItem in packageSpecificItems.Value)
                 {
-                    string packageSpecificTargetPath = AggregateNuGetAssetResolver.AsPackageSpecificTargetPath(packageFiles.Key, validateFile.TargetPath);
+                    string packageSpecificTargetPath = AggregateNuGetAssetResolver.AsPackageSpecificTargetPath(packageSpecificItems.Key, packageItem.TargetPath);
 
                     if (_targetPathToPackageItem.ContainsKey(packageSpecificTargetPath))
                     {
-                        Log.LogError($"Files {_targetPathToPackageItem[packageSpecificTargetPath].SourcePath} and {validateFile.SourcePath} have the same TargetPath {packageSpecificTargetPath}.");
+                        Log.LogError($"Files {_targetPathToPackageItem[packageSpecificTargetPath].SourcePath} and {packageItem.SourcePath} have the same TargetPath {packageSpecificTargetPath}.");
                     }
-                    _targetPathToPackageItem[packageSpecificTargetPath] = validateFile;
+                    _targetPathToPackageItem[packageSpecificTargetPath] = packageItem;
+                    _unusedTargetPaths.Add(packageSpecificTargetPath);
                 }
             }
 
@@ -340,11 +347,18 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             return packageAsset;
         }
 
+        private void MarkUsed(IEnumerable<string> targetPaths)
+        {
+            foreach(var targetPath in targetPaths)
+            {
+                _unusedTargetPaths.Remove(targetPath);
+            }
+        }
 
-        private class ValidationFramework
+        private class SupportFramework
         {
             private static readonly string[] s_nullRidList = new string[] { null };
-            public ValidationFramework(NuGetFramework framework)
+            public SupportFramework(NuGetFramework framework)
             {
                 Framework = framework;
                 RuntimeIds = s_nullRidList;

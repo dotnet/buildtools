@@ -41,25 +41,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         }
 
         /// <summary>
-        /// List of files in the package.
-        ///   Identity: source path
-        ///   TargetPath: path inside package
-        ///   TargetFramework: target moniker of asset
-        ///   Package: In the case that we are considering multiple packages
-        ///            supporting the same contract, this will distinguish
-        ///            files coming from other packages and in a different
-        ///            resolution scope.
-        ///            All pacakges will be considered when validating 
-        ///            support and checking for binclashes.
-        /// </summary>
-        [Required]
-        public ITaskItem[] Files
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
         /// Frameworks supported by this package
         ///   Identity: name of framework, can suffx '+' to indicate all later frameworks under validation.
         ///   RuntimeIDs: Semi-colon seperated list of runtime IDs.  If specified overrides the value specified in Frameworks.
@@ -162,7 +143,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// <summary>
         /// JSON file describing results of validation
         /// </summary>
-        public string ValidationReport {
+        public string ReportFile
+        {
             get;
             set;
         }
@@ -177,19 +159,16 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// property bag of error suppressions
         /// </summary>
         private Dictionary<Suppression, HashSet<string>> _suppressions;
-        private Dictionary<string, List<PackageItem>> _validateFiles;
         private Dictionary<NuGetFramework, ValidationFramework> _frameworks;
         private FrameworkSet _frameworkSet;
-        private AggregateNuGetAssetResolver _resolver;
-        private Dictionary<string, PackageItem> _targetPathToPackageItem;
+        private PackageReport _report;
         private string _generationIdentifier = FrameworkConstants.FrameworkIdentifiers.NetStandard;
         private static Version s_maxVersion = new Version(int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue);
 
         public override bool Execute()
         {
             LoadSuppressions();
-            LoadFiles();
-            LogPackageContent();
+            LoadReport();
 
             if (!SkipSupportCheck)
             {
@@ -212,14 +191,14 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         private void ValidateGenerations()
         {
             // get the generation of all portable implementation dlls.
-            var allRuntimeGenerations = _resolver.GetAllRuntimeItems().Values
-                .SelectMany(groups => groups.Select(group => group.Properties[PropertyNames.TargetFrameworkMoniker] as NuGetFramework))
-                .Where(fx => fx != null && fx.Framework == _generationIdentifier)
+            var allRuntimeGenerations = _report.Targets.Values.SelectMany(t => t.RuntimeAssets.NullAsEmpty())
+                .Select(r => r.TargetFramework)
+                .Where(fx => fx != null && fx.Framework == _generationIdentifier && fx.Version != null)
                 .Select(fx => fx.Version);
 
             // get the generation of all supported frameworks (some may have framework specific implementations
             // or placeholders).
-            var allSupportedGenerations = _frameworks.Values.Where(vf => vf.SupportedVersion != null && FrameworkUtilities.IsGenerationMoniker(vf.Framework))
+            var allSupportedGenerations = _frameworks.Values.Where(vf => vf.SupportedVersion != null && FrameworkUtilities.IsGenerationMoniker(vf.Framework) && vf.Framework.Version != null)
                 .Select(vf => vf.Framework.Version);
 
             // find the minimum supported version as the minimum of any generation explicitly implemented 
@@ -228,20 +207,20 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             Version minSupportedGeneration = allRuntimeGenerations.Concat(allSupportedGenerations).Min();
 
             // validate API version against generation for all files
-            foreach (var validateFile in _validateFiles.SelectMany(packageFileSet => packageFileSet.Value)
-                .Where(f => IsDll(f.SourcePath) && FrameworkUtilities.IsGenerationMoniker(f.TargetFramework)))
+            foreach (var compileAsset in _report.Targets.Values.SelectMany(t => t.CompileAssets)
+                .Where(f => IsDll(f.LocalPath) && FrameworkUtilities.IsGenerationMoniker(f.TargetFramework)))
             {
-                if (validateFile.TargetFramework.Version < minSupportedGeneration)
+                if (compileAsset.TargetFramework.Version < minSupportedGeneration)
                 {
-                    Log.LogError($"Invalid generation {validateFile.TargetFramework.Version} for {validateFile.SourcePath}, must be at least {minSupportedGeneration} based on the implementations in the package.  If you meant to target the lower generation you may be missing an implementation for a framework on that lower generation.  If not you should raise the generation of the reference assembly to match that of the lowest supported generation of all implementations/placeholders.");
+                    Log.LogError($"Invalid generation {compileAsset.TargetFramework.Version} for {compileAsset.LocalPath}, must be at least {minSupportedGeneration} based on the implementations in the package.  If you meant to target the lower generation you may be missing an implementation for a framework on that lower generation.  If not you should raise the generation of the reference assembly to match that of the lowest supported generation of all implementations/placeholders.");
                 }
             }
         }
+
         private void ValidateSupport()
         {
             var runtimeFxSuppression = GetSuppressionValues(Suppression.PermitRuntimeTargetMonikerMismatch) ?? new HashSet<string>();
-            ValidationReport report = Packaging.ValidationReport.Load(ValidationReport);
-            
+
             // validate support for each TxM:RID
             foreach (var validateFramework in _frameworks.Values)
             {
@@ -249,9 +228,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 Version supportedVersion = validateFramework.SupportedVersion;
 
                 Target compileTarget;
-                if (!report.Targets.TryGetValue(fx.ToString(), out compileTarget))
+                if (!_report.Targets.TryGetValue(fx.ToString(), out compileTarget))
                 {
-                    Log.LogError($"Missing target {fx.ToString()} from validation report {ValidationReport}");
+                    Log.LogError($"Missing target {fx.ToString()} from validation report {ReportFile}");
                     continue;
                 }
 
@@ -265,9 +244,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     string target = String.IsNullOrEmpty(runtimeId) ? fx.ToString() : $"{fx}/{runtimeId}";
 
                     Target runtimeTarget;
-                    if (!report.Targets.TryGetValue(target, out runtimeTarget))
+                    if (!_report.Targets.TryGetValue(target, out runtimeTarget))
                     {
-                        Log.LogError($"Missing target {target} from validation report {ValidationReport}");
+                        Log.LogError($"Missing target {target} from validation report {ReportFile}");
                         continue;
                     }
 
@@ -339,7 +318,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                                     if (!VersionUtility.IsCompatibleApiVersion(supportedVersion, referenceAssemblyVersion))
                                     {
-                                        Log.LogError($"{ContractName} should support API version {supportedVersion} on {target} but {referenceAssembly} was found to support {referenceAssemblyVersion?.ToString() ?? "<unknown version>"}.");
+                                        Log.LogError($"{ContractName} should support API version {supportedVersion} on {target} but {referenceAssembly.LocalPath} was found to support {referenceAssemblyVersion?.ToString() ?? "<unknown version>"}.");
                                     }
                                 }
                             }
@@ -359,7 +338,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                                     if (!VersionUtility.IsCompatibleApiVersion(supportedVersion, implementationVersion))
                                     {
-                                        Log.LogError($"{ContractName} should support API version {supportedVersion} on {target} but {implementationAssembly} was found to support {implementationVersion?.ToString() ?? "<unknown version>"}.");
+                                        Log.LogError($"{ContractName} should support API version {supportedVersion} on {target} but {implementationAssembly.LocalPath} was found to support {implementationVersion?.ToString() ?? "<unknown version>"}.");
                                     }
 
                                     // Previously we only permitted compatible mismatch if Suppression.PermitHigherCompatibleImplementationVersion was specified
@@ -382,7 +361,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                                     
                                     if (implementationFiles.ContainsKey(fileName))
                                     {
-                                        Log.LogError($"{ContractName} includes both {implementationAssembly} and {implementationFiles[fileName]} an on {target} which have the same name and will clash when both packages are used.");
+                                        Log.LogError($"{ContractName} includes both {implementationAssembly.LocalPath} and {implementationFiles[fileName].LocalPath} an on {target} which have the same name and will clash when both packages are used.");
                                     }
                                     else
                                     {
@@ -392,17 +371,17 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                                     if (!implementationAssembly.Equals(fx) && !runtimeFxSuppression.Contains(fx.ToString()))
                                     {
                                         // the selected asset wasn't an exact framework match, let's see if we have an exact match in any other runtime asset.                                        
-                                        var matchingFxAssets = _targetPathToPackageItem.Values.Where(i => i.TargetFramework == fx &&  // exact framework
-                                                                                                         // Same file
-                                                                                                         Path.GetFileName(i.TargetPath).Equals(fileName, StringComparison.OrdinalIgnoreCase) &&
-                                                                                                         // Is implementation
-                                                                                                         (i.TargetPath.StartsWith("lib") || i.TargetPath.StartsWith("runtimes")) &&
-                                                                                                         // is not the same source file as was already selected
-                                                                                                         i.SourcePath != implementationAssembly.LocalPath);
+                                        var matchingFxAssets = _report.UnusedAssets.Where(i => i.TargetFramework == fx &&  // exact framework
+                                                                                          // Same file
+                                                                                          Path.GetFileName(i.PackagePath).Equals(fileName, StringComparison.OrdinalIgnoreCase) &&
+                                                                                          // Is implementation
+                                                                                          (i.PackagePath.StartsWith("lib") || i.PackagePath.StartsWith("runtimes")) &&
+                                                                                          // is not the same source file as was already selected
+                                                                                          i.LocalPath != implementationAssembly.LocalPath);
 
                                         if (matchingFxAssets.Any())
                                         {
-                                            Log.LogError($"When targeting {target} {ContractName} will use {implementationAssembly} which targets {implementationAssembly.TargetFramework.GetShortFolderName()}  but {String.Join(";", matchingFxAssets.Select(i => i.TargetPath))} targets {fx.GetShortFolderName()} specifically.");
+                                            Log.LogError($"When targeting {target} {ContractName} will use {implementationAssembly.LocalPath} which targets {implementationAssembly.TargetFramework.GetShortFolderName()}  but {String.Join(";", matchingFxAssets.Select(i => i.PackagePath))} targets {fx.GetShortFolderName()} specifically.");
                                         }
                                     }
                                 }
@@ -437,7 +416,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 return;
             }
 
-            var allDlls = _validateFiles.SelectMany(pf => pf.Value.Where(f => f.IsDll));
+            var allDlls = _report.Targets.Values.SelectMany(t => t.CompileAssets.NullAsEmpty().Concat(t.RuntimeAssets.NullAsEmpty()));
             var allAssemblies = allDlls.Where(f => f.Version != null);
             var assemblyVersions = new HashSet<Version>(allAssemblies.Select(f => VersionUtility.As4PartVersion(f.Version)));
 
@@ -487,7 +466,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 {
                     // not in the native module map, see if any of the modules in this package are present
                     // (with a different package, as would be the case for runtime-specific packages)
-                    var moduleNames = allDlls.Select(d => Path.GetFileNameWithoutExtension(d.SourcePath));
+                    var moduleNames = allDlls.Select(d => Path.GetFileNameWithoutExtension(d.LocalPath));
                     if (moduleNames.Any() && !moduleNames.Any(m => PackageIndex.Current.ModulesToPackages.ContainsKey(m)))
                     {
                         Log.LogError($"PackageIndex from {String.Join(", ", PackageIndexes.Select(i => i.ItemSpec))} is missing ModulesToPackages entry(s) for {String.Join(", ", allDlls)} to package {PackageId}.  Please add a an entry for the appropriate package.");
@@ -592,79 +571,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             _suppressions[key] = values;
         }
 
-        private void LoadFiles()
+        private void LoadReport()
         {
-            _validateFiles = new Dictionary<string, List<PackageItem>>();
-            foreach (var file in Files)
-            {
-                try
-                {
-                    var validateFile = new PackageItem(file);
-
-                    if (String.IsNullOrWhiteSpace(validateFile.TargetPath))
-                    {
-                        Log.LogError($"{validateFile.TargetPath} is missing TargetPath metadata");
-                    }
-
-                    if (IsDll(validateFile.SourcePath))
-                    {
-                        if (validateFile.TargetFramework == null)
-                        {
-                            Log.LogError($"{validateFile.SourcePath} is missing TargetFramework metadata");
-                        }
-                        else if (validateFile.TargetPath.IndexOf(validateFile.TargetFramework.GetShortFolderName(), StringComparison.OrdinalIgnoreCase) == -1)
-                        {
-                            Log.LogError($"{validateFile.SourcePath} specifies TargetFramework {validateFile.TargetFramework} but TargetPath {validateFile.TargetPath} is missing the {validateFile.TargetFramework.GetShortFolderName()} qualifier");
-                        }
-                    }
-
-                    if (!_validateFiles.ContainsKey(validateFile.Package))
-                    {
-                        _validateFiles[validateFile.Package] = new List<PackageItem>();
-                    }
-                    _validateFiles[validateFile.Package].Add(validateFile);
-                }
-                catch (Exception ex)
-                {
-                    Log.LogError($"Could not parse File {file.ItemSpec}. {ex}");
-                    // skip it.
-                }
-            }
-
-            // build a map to translate back to source file from resolved asset
-            // we use package-specific paths since we're resolving a set of packages.
-            _targetPathToPackageItem = new Dictionary<string, PackageItem>();
-            foreach (var packageFiles in _validateFiles)
-            {
-                foreach (PackageItem validateFile in packageFiles.Value)
-                {
-                    string packageSpecificTargetPath = AggregateNuGetAssetResolver.AsPackageSpecificTargetPath(packageFiles.Key, validateFile.TargetPath);
-
-                    if (_targetPathToPackageItem.ContainsKey(packageSpecificTargetPath))
-                    {
-                        Log.LogError($"Files {_targetPathToPackageItem[packageSpecificTargetPath].SourcePath} and {validateFile.SourcePath} have the same TargetPath {packageSpecificTargetPath}.");
-                    }
-                    _targetPathToPackageItem[packageSpecificTargetPath] = validateFile;
-                }
-            }
-
-            _resolver = new AggregateNuGetAssetResolver(RuntimeFile);
-            foreach (string packageId in _validateFiles.Keys)
-            {
-                _resolver.AddPackageItems(packageId, _validateFiles[packageId].Select(f => f.TargetPath));
-            }
-        }
-
-        private void LogPackageContent()
-        {
-            foreach (var packageId in _validateFiles.Keys)
-            {
-                Log.LogMessage(LogImportance.Low, $"Package {packageId}");
-                foreach (var targetPath in _validateFiles[packageId].Select(pi => pi.TargetPath))
-                {
-                    Log.LogMessage(LogImportance.Low, $"  {targetPath}");
-                }
-            }
+            _report = PackageReport.Load(ReportFile);
         }
 
         private void LoadSupport()

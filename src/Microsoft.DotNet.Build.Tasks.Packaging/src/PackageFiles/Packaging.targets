@@ -1030,8 +1030,9 @@
     </ItemGroup>
   </Target>
   
-  <Target Name="GeneratePackageReport"
-          DependsOnTargets="GetPackageAssets">
+  <Target Name="GetPackageReport"
+          DependsOnTargets="GetPackageAssets"
+          Returns="$(PackageReportPath)">
     <GeneratePackageReport
                      PackageId="$(Id)"
                      PackageVersion="$(PackageVersion)"
@@ -1039,11 +1040,11 @@
                      Frameworks="@(DefaultValidateFramework)"
                      RuntimeFile="$(RuntimeIdGraphDefinitionFile)"
                      FrameworkListsPath="$(FrameworkListsPath)"
-                     ValidationReport="$(PackageReportPath)" />
+                     ReportFile="$(PackageReportPath)" />
   </Target>
 
   <Target Name="ValidatePackage"
-          DependsOnTargets="GetPackageAssets;GeneratePackageReport"
+          DependsOnTargets="GetPackageReport"
           Condition="'$(SkipValidatePackage)' != 'true'">
 
     <ItemGroup>
@@ -1071,7 +1072,6 @@
     </ItemGroup>
 
     <ValidatePackage ContractName="$(BaseId)"
-                     Files="@(PackageAsset)"
                      FrameworkListsPath="$(FrameworkListsPath)"
                      Frameworks="@(ValidateFramework)"
                      PackageId="$(Id)"
@@ -1085,11 +1085,9 @@
                      Suppressions="@(ValidatePackageSuppression)"
                      SuppressionFile="$(ValidationSuppressionFile)"
                      UseNetPlatform="$(UseNetPlatform)"
-                     ValidationReport="$(PackageReportPath)" />
+                     ReportFile="$(PackageReportPath)" />
 
   </Target>
-
-  <Target Name="GetValidationReport" DependsOnTargets="ValidatePackage" Returns="$(PackageReportPath)" />
 
   <!-- Required by Common.Targets when evaluating projectReferences -->
   <Target Name="GetNativeManifest" />

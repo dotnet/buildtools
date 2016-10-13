@@ -74,7 +74,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 row.Name = Path.GetFileNameWithoutExtension(reportPath);
                 row.SuportedVersions = new SortedSet<NETStandardApiVersion>();
 
-                var report = ValidationReport.Load(reportPath);
+                var report = PackageReport.Load(reportPath);
 
                 foreach(var supportedFramework in report.SupportedFrameworks)
                 {

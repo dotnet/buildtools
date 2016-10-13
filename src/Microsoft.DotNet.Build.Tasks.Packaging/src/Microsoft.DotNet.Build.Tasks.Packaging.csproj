@@ -60,7 +60,7 @@
     <Compile Include="PackagingTask.cs" />
     <Compile Include="SplitReferences.cs" />
     <Compile Include="ValidatePackage.cs" />
-    <Compile Include="ValidationReport.cs" />
+    <Compile Include="PackageReport.cs" />
     <Compile Include="VersionUtility.cs" />
   </ItemGroup>
   <ItemGroup>
