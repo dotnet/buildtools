@@ -158,7 +158,7 @@ dotnetInstallPath="$toolsLocalPath/$initCliScript"
 # blow away the tools directory so we can start from a known state
 if [ -d $toolsLocalPath ]; then
     # if the bootstrap.sh script was downloaded to the tools directory don't delete it
-    find $toolsLocalPath -type f -not -name boostrap.sh -exec rm -f {} \;
+    find $toolsLocalPath -type f -not -name bootstrap.sh -exec rm -f {} \;
 else
     mkdir $toolsLocalPath
 fi
@@ -185,19 +185,20 @@ fi
 
 if [ $sharedFxVersion = "<auto>" ]; then
     runtimesPath="$cliInstallPath/shared/Microsoft.NETCore.App"
-    sharedFxVersion=`ls $runtimesPath | sort --version-sort -r | head -n 1`
+    # OSX doesn't support --version-sort, https://stackoverflow.com/questions/21394536/how-to-simulate-sort-v-on-mac-osx
+    sharedFxVersion=`ls $runtimesPath | sed 's/^[0-9]\./0&/; s/\.\([0-9]\)$/.0\1/; s/\.\([0-9]\)\./.0\1./g; s/\.\([0-9]\)\./.0\1./g' | sort -r | sed 's/^0// ; s/\.0/./g' | head -n 1`
 fi
 
 # create a junction to the shared FX version directory. this is
 # so we have a stable path to dotnet.exe regardless of version.
 junctionTarget="$runtimesPath/$sharedFxVersion"
-junctionParent="$(dirname "$junctionTarget")"
+junctionParent="$(dirname "$symlinkPath")"
 
 if [ ! -d $junctionParent ]; then
     mkdir -p $junctionParent
 fi
 
-ln -s $symlinkPath $junctionTarget
+ln -s $junctionTarget $symlinkPath
 
 # create a project.json for the packages to restore
 projectJson="$toolsLocalPath/project.json"
