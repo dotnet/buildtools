@@ -323,7 +323,7 @@ namespace Microsoft.DotNet.Build.Tasks
                                     if (jo["version"] != null)
                                     {
                                         jo.Remove("version");
-                                        jo.Add("version", nuGetVersion.ToString());
+                                        jo["version"] = nuGetVersion.ToString();
                                     }
                                     else
                                     {

@@ -38,14 +38,14 @@
     </ResolveNuGetPackagesDependsOn>
   </PropertyGroup>
   
-    <PropertyGroup>
+  <PropertyGroup>
       <GenerateTestProjectJsonDependsOn Condition="'$(SkipGenerateTestProjectJson)'=='false'">
         ExtractProjectReferences;
         GatherProjectReferenceForProjectJson;
         DetermineProjectJsonPath;
         AddDependenciesToProjectJson
       </GenerateTestProjectJsonDependsOn>
-    </PropertyGroup>
+  </PropertyGroup>
  
   <Target Name="GenerateTestProjectJson" DependsOnTargets="$(GenerateTestProjectJsonDependsOn)" />
 
