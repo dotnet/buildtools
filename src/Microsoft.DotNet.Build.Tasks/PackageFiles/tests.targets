@@ -206,6 +206,8 @@
     <MakeDir Directories="$(OutputFolderForTestDependencies)" />
     <PropertyGroup>
       <_TestDependencyListRoot>$(AssemblyName)-$(OSGroup).$(Platform).$(ConfigurationGroup)</_TestDependencyListRoot>
+      <_TestDependencyListRoot Condition="'$(TargetGroup)' != ''">$(_TestDependencyListRoot).$(TargetGroup)</_TestDependencyListRoot>
+      <_TestDependencyListRoot Condition="'$(TargetGroup)' == ''">$(_TestDependencyListRoot).default</_TestDependencyListRoot>
       <_TestDependencyListRoot Condition="'$(TestTFM)' != ''">$(_TestDependencyListRoot).$(TestTFM)</_TestDependencyListRoot>
       <_TestDependencyListFileName>$(_TestDependencyListRoot).dependencylist.txt</_TestDependencyListFileName>
       <TestDependencyListFilePath>$(OutputFolderForTestDependencies)/$(_TestDependencyListFileName)</TestDependencyListFilePath>
