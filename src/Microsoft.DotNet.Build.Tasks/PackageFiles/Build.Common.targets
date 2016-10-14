@@ -265,4 +265,6 @@
       <Compile Include="$(BlockReflectionAtributeFile)" />  
     </ItemGroup>
   </Target>
+  
+  <Import Project="$(CustomAfterBuildCommonTargets)" Condition="Exists('$(CustomAfterBuildCommonTargets)')"/>
 </Project>
