@@ -39,7 +39,7 @@
   </PropertyGroup>
   
   <PropertyGroup>
-    <GenerateTestProjectJsonDependsOn Condition="'$(SkipGenerateTestProjectJson)'=='false'">
+    <GenerateTestProjectJsonDependsOn Condition="'$(SkipGenerateTestProjectJson)'!='true'">
       ExtractProjectReferences;
       GatherProjectReferenceForProjectJson;
       DetermineProjectJsonPath;
