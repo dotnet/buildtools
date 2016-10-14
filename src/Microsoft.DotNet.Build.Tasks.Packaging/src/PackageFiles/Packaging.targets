@@ -71,6 +71,7 @@
     <NuSpecOutputPath Condition="'$(NuSpecOutputPath)' == ''">$(PackageOutputPath)specs/</NuSpecOutputPath>
     <NuSpecPath>$(NuSpecOutputPath)$(Id)$(NuspecSuffix).nuspec</NuSpecPath>
     <PackageReportDir Condition="'$(PackageReportDir)' == ''">$(PackageOutputPath)reports/</PackageReportDir>
+    <PackageLayoutDir Condition="'$(PackageLayoutDir)' == ''">$(PackageOutputPath)layout/</PackageLayoutDir>
     <PackageReportPath>$(PackageReportDir)$(Id)$(NuspecSuffix).json</PackageReportPath>
     <TargetPath>$(NuSpecPath)</TargetPath>
     <RuntimeFilePath Condition="'$(RuntimeFilePath)' == ''">$(NuSpecOutputPath)$(Id)$(NuspecSuffix)/runtime.json</RuntimeFilePath>
@@ -110,6 +111,8 @@
   <UsingTask TaskName="FilterUnknownPackages" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="GeneratePackageReport" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="InstallPackageFromFile" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="GetLayoutFiles" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+
   
   <!-- Determine if we actually need to build for this architecture -->
   <!-- Packages can specifically control their architecture by specifying the PackagePlatforms
@@ -1251,4 +1254,28 @@
                         ModuleToPackages="@(ModuleToPackage)" />
   </Target>
 
+  <Target Name="CreateLayout"
+          Condition="'$(IsRuntimePackage)' != 'true'"
+          DependsOnTargets="GetPackageReport">
+
+    <GetLayoutFiles PackageReports="$(PackageReportPath)"
+                    DestinationDirectory="$(PackageLayoutDir)">
+      <Output TaskParameter="LayoutFiles" ItemName="LayoutFiles"/>
+    </GetLayoutFiles>
+
+    <ItemGroup>
+      <_missingLayoutFiles Include="@(LayoutFiles)" Condition="!Exists('%(FullPath)')" />
+      <LayoutFiles Remove="@(_missingLayoutFiles)" />
+    </ItemGroup>
+
+    <Message Text="Skipping '%(_missingLayoutFiles.FullPath) because it does not exist." Condition="'@(_missingLayoutFiles)' != ''" />
+
+    <Copy SourceFiles="@(LayoutFiles)"
+          DestinationFiles="@(LayoutFiles->'%(Destination)')"
+          SkipUnchangedFiles="true"
+          OverwriteReadOnlyFiles="true"
+          Retries="$(CopyRetryCount)"
+          RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
+          UseHardlinksIfPossible="true" />
+  </Target>
 </Project>
