@@ -248,7 +248,15 @@ namespace Microsoft.Cci.Writers.CSharp
 
             if (value == null)
             {
-                WriteKeyword("null", noSpace: true);
+                if (type.IsValueType)
+                {
+                    // Write default(T) for value types
+                    WriteDefaultOf(type);
+                }
+                else
+                {
+                    WriteKeyword("null", noSpace: true);
+                }
             }
             else if (type.ResolvedType.IsEnum)
             {
