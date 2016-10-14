@@ -39,12 +39,12 @@
   </PropertyGroup>
   
   <PropertyGroup>
-      <GenerateTestProjectJsonDependsOn Condition="'$(SkipGenerateTestProjectJson)'=='false'">
-        ExtractProjectReferences;
-        GatherProjectReferenceForProjectJson;
-        DetermineProjectJsonPath;
-        AddDependenciesToProjectJson
-      </GenerateTestProjectJsonDependsOn>
+    <GenerateTestProjectJsonDependsOn Condition="'$(SkipGenerateTestProjectJson)'=='false'">
+      ExtractProjectReferences;
+      GatherProjectReferenceForProjectJson;
+      DetermineProjectJsonPath;
+      AddDependenciesToProjectJson
+    </GenerateTestProjectJsonDependsOn>
   </PropertyGroup>
  
   <Target Name="GenerateTestProjectJson" DependsOnTargets="$(GenerateTestProjectJsonDependsOn)" />
