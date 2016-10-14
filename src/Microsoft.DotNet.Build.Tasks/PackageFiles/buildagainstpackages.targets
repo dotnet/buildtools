@@ -37,8 +37,17 @@
       DetermineProjectJsonPath;
     </ResolveNuGetPackagesDependsOn>
   </PropertyGroup>
-
-  <Target Name="GenerateTestProjectJson" DependsOnTargets="ExtractProjectReferences;GatherProjectReferenceForProjectJson;DetermineProjectJsonPath;AddDependenciesToProjectJson" />
+  
+  <PropertyGroup>
+    <GenerateTestProjectJsonDependsOn Condition="'$(SkipGenerateTestProjectJson)'=='false'">
+      ExtractProjectReferences;
+      GatherProjectReferenceForProjectJson;
+      DetermineProjectJsonPath;
+      AddDependenciesToProjectJson
+    </GenerateTestProjectJsonDependsOn>
+  </PropertyGroup>
+ 
+  <Target Name="GenerateTestProjectJson" DependsOnTargets="$(GenerateTestProjectJsonDependsOn)" />
 
   <Target Name="GenerateAllTestProjectJsons" DependsOnTargets="GenerateTestProjectJson" />
 
