@@ -107,11 +107,22 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
     public class Target
     {
+        private static readonly PackageAsset[] s_emptyPackageAsset = new PackageAsset[0];
+        public Target()
+        {
+            CompileAssets = RuntimeAssets = NativeAssets = s_emptyPackageAsset;
+        }
+
         public string Framework { get; set; }
         public string RuntimeID { get; set; }
 
         public PackageAsset[] CompileAssets { get; set; }
         public PackageAsset[] RuntimeAssets { get; set; }
+        public PackageAsset[] NativeAssets { get; set; }
+
+        public bool ShouldSerializeCompileAssets() { return CompileAssets != null && CompileAssets.Length != 0; }
+        public bool ShouldSerializeRuntimeAssets() { return RuntimeAssets != null && RuntimeAssets.Length != 0; }
+        public bool ShouldSerializeNativeAssets() { return NativeAssets != null && NativeAssets.Length != 0; }
     }
 
     public class PackageAsset
