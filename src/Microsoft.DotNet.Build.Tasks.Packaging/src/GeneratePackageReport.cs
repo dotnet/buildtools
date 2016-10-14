@@ -134,12 +134,16 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                         isSupported &= hasCompilePlaceHolder == hasRuntimePlaceHolder;
                     }
 
+                    var nativeAssets = _resolver.ResolveNativeAssets(fx, runtimeId);
+                    MarkUsed(nativeAssets);
+
                     var reportTarget = new Target()
                     {
                         Framework = fx.ToString(),
                         RuntimeID = runtimeId,
                         CompileAssets = compileAssets.Select(c => GetPackageAssetFromTargetPath(c)).ToArray(),
-                        RuntimeAssets = runtimeAssets.Select(r => GetPackageAssetFromTargetPath(r)).ToArray()
+                        RuntimeAssets = runtimeAssets.Select(r => GetPackageAssetFromTargetPath(r)).ToArray(),
+                        NativeAssets = nativeAssets.Select(n => GetPackageAssetFromTargetPath(n)).ToArray()
                     };
                     report.Targets[target] = reportTarget;
                 }
@@ -254,7 +258,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 {
                     var packageItem = new PackageItem(file);
 
-                    if (!packageItem.IsDll && !packageItem.IsPlaceholder)
+                    if (!packageItem.TargetPath.StartsWith("runtimes") &&  !packageItem.IsDll && !packageItem.IsPlaceholder)
                     {
                         continue;
                     }

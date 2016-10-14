@@ -253,6 +253,24 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             return resolvedAssets;
         }
 
+        public IReadOnlyDictionary<string, ContentItemGroup> GetNativeItems(NuGetFramework framework, string runtimeIdentifier)
+        {
+            var managedCriteria = _conventions.Criteria.ForFrameworkAndRuntime(framework, runtimeIdentifier);
+
+            NuGetAssetResolver.FixCriteria(managedCriteria);
+
+            Dictionary<string, ContentItemGroup> resolvedAssets = new Dictionary<string, ContentItemGroup>();
+
+            foreach (var package in _packages.Keys)
+            {
+                resolvedAssets.Add(package,
+                    _packages[package].FindBestItemGroup(managedCriteria,
+                        _conventions.Patterns.NativeLibraries));
+            }
+
+            return resolvedAssets;
+        }
+
         public IReadOnlyDictionary<string, IEnumerable<ContentItemGroup>> GetAllRuntimeItems()
         {
             Dictionary<string, IEnumerable<ContentItemGroup>> resolvedAssets = new Dictionary<string, IEnumerable<ContentItemGroup>>();
@@ -272,6 +290,23 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             foreach (var packageId in allRuntimeItems.Keys)
             {
                 var packageAssets = allRuntimeItems[packageId];
+                if (packageAssets == null)
+                {
+                    continue;
+                }
+
+                foreach (var packageAsset in packageAssets.Items)
+                {
+                    yield return AsPackageSpecificTargetPath(packageId, packageAsset.Path);
+                }
+            }
+        }
+        public IEnumerable<string> ResolveNativeAssets(NuGetFramework framework, string runtimeId)
+        {
+            var allNativeItems = GetNativeItems(framework, runtimeId);
+            foreach (var packageId in allNativeItems.Keys)
+            {
+                var packageAssets = allNativeItems[packageId];
                 if (packageAssets == null)
                 {
                     continue;
