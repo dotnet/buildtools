@@ -15,6 +15,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Versioning;
 using System.Text;
+using System.Xml.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
@@ -111,6 +112,23 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             using (var file = File.Create(OutputFileName))
             {
                 manifest.Save(file, false);
+
+                if (Serviceable)
+                {
+                    // temporary workaround until we have NuGet support
+                    // read the nuspec
+                    file.Seek(0, SeekOrigin.Begin);
+                    var document = XDocument.Load(file);
+
+                    // add serviceable element under metadata
+                    var ns = document.Root.GetDefaultNamespace();
+                    var metadata = document.Root.Element(ns + "metadata");
+                    metadata.Add(new XElement(ns + "serviceable", "true"));
+
+                    // replace contents
+                    file.SetLength(0);
+                    document.Save(file);
+                }
             }
         }
 
