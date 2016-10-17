@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- Repo API Compose commands -->
+
+  <Target Name="Consumes">
+    <WriteFileToStandardOutput Path="$(ConsumesJsonPath)" />
+  </Target>
+
+  <Target Name="Change"
+          DependsOnTargets="WriteConsumesJson;
+                            GenerateConsumesJsonBuildInfos;
+                            UpdateDependenciesFromChange" />
+
+  <Target Name="Verify"
+          DependsOnTargets="GenerateConsumesJsonBuildInfos;
+                            VerifyDependencies" />
+
+  <!--
+    Updates the Consumes output based on the state of the project. Useful to add many stable
+    dependencies at once, for example after a release.
+  -->
+  <Target Name="UpdateConsumes" DependsOnTargets="GenerateConsumesJsonBuildInfos">
+    <PropertyGroup>
+      <NewDependencyType Condition="'$(NewDependencyType)'==''">fixed</NewDependencyType>
+    </PropertyGroup>
+
+    <UpdateConsumes ConsumesJsonPath="$(ConsumesJsonPath)"
+                    ConsumesRuntimeName="$(ConsumesRuntimeName)"
+                    NewDependencyType="$(NewDependencyType)"
+                    NewPrereleaseDependencyType="$(NewPrereleaseDependencyType)"
+                    ProjectJsonFiles="@(ProjectJsonFiles)"
+                    DependencyBuildInfo="@(DependencyBuildInfo)" />
+  </Target>
+
+  <!--
+    Uses Change to update to versions in a build-info in the dotnet versions repository.
+  -->
+  <Target Name="ChangeToBuildInfo"
+          DependsOnTargets="GenerateUpdatedConsumesJson;
+                            Change" />
+
+  <Target Name="ChangeToBuildInfoAndSubmitPullRequest"
+          DependsOnTargets="EnableSubmitPullRequest;
+                            ChangeToBuildInfo" />
+
+  <!-- Utilities to reuse existing dependency tools. -->
+  <UsingTask TaskName="GatherStandardInput" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="GenerateConsumesJsonBuildInfos" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="GenerateUpdatedConsumesJson" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="UpdateConsumes" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="WriteFileToStandardOutput" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+
+  <Target Name="GenerateConsumesJsonBuildInfos">
+    <PropertyGroup>
+      <ConsumesRuntimeName Condition="'$(ConsumesRuntimeName)'==''">os-all</ConsumesRuntimeName>
+
+      <!-- Enable strict dependency checks. -->
+      <AllowOnlySpecifiedPackages>true</AllowOnlySpecifiedPackages>
+    </PropertyGroup>
+
+    <GenerateConsumesJsonBuildInfos ConsumesJsonPath="$(ConsumesJsonPath)"
+                                    ConsumesRuntimeName="$(ConsumesRuntimeName)">
+      <Output TaskParameter="DependencyBuildInfo" ItemName="ConsumesDependencyBuildInfo" />
+    </GenerateConsumesJsonBuildInfos>
+
+    <ItemGroup>
+      <DependencyBuildInfo Include="@(ConsumesDependencyBuildInfo)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Writes consumes.json using input from stdin or the value of BuildInfoConsumesJsonContent. -->
+  <Target Name="WriteConsumesJson">
+    <GatherStandardInput WriteFilePath="$(ConsumesJsonPath)"
+                         Condition="'$(BuildInfoConsumesJsonContent)'==''"/>
+
+    <WriteLinesToFile File="$(ConsumesJsonPath)"
+                      Lines="$(BuildInfoConsumesJsonContent)"
+                      Overwrite="true"
+                      Condition="'$(BuildInfoConsumesJsonContent)'!=''" />
+  </Target>
+
+  <Target Name="GenerateUpdatedConsumesJson">
+    <GenerateUpdatedConsumesJson ConsumesJsonPath="$(ConsumesJsonPath)"
+                                 RemoteDependencyBuildInfo="@(RemoteDependencyBuildInfo)"
+                                 UseVersionsRepoAutoUpdateRef="$(UseVersionsRepoAutoUpdateRef)">
+      <Output TaskParameter="BuildInfoConsumesJsonContent" PropertyName="BuildInfoConsumesJsonContent" />
+    </GenerateUpdatedConsumesJson>
+  </Target>
+
+  <!-- Targets to select between UpdateDependencies and UpdateDependenciesAndSubmitPullRequest. -->
+  <Target Name="EnableSubmitPullRequest">
+    <PropertyGroup>
+      <SubmitPullRequest>true</SubmitPullRequest>
+      <!-- When creating a pull request, get the version from master. -->
+      <UseVersionsRepoAutoUpdateRef Condition="'$(UseVersionsRepoAutoUpdateRef)'==''">true</UseVersionsRepoAutoUpdateRef>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="UpdateDependenciesFromChange"
+          DependsOnTargets="RunUpdateDependenciesFromChange;
+                            RunUpdateDependenciesAndSubmitPullRequestFromChange"/>
+  
+  <Target Name="RunUpdateDependenciesFromChange"
+          Condition="'$(SubmitPullRequest)'!='true'"
+          DependsOnTargets="UpdateDependencies"/>
+
+  <Target Name="RunUpdateDependenciesAndSubmitPullRequestFromChange"
+          Condition="'$(SubmitPullRequest)'=='true'"
+          DependsOnTargets="UpdateDependenciesAndSubmitPullRequest"/>
+</Project>

@@ -18,6 +18,11 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
     {
         public IEnumerable<string> ProjectJsonPaths { get; }
 
+        /// <summary>
+        /// When true, it is invalid to have a dependency with no entries in any buildinfo.
+        /// </summary>
+        public bool AllowOnlySpecifiedPackages { get; set; }
+
         public ProjectJsonUpdater(IEnumerable<string> projectJsonPaths)
         {
             ProjectJsonPaths = projectJsonPaths;
@@ -30,7 +35,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
             {
                 try
                 {
-                    IEnumerable<DependencyChange> dependencyChanges = null;
+                    PackageDependencyChange[] dependencyChanges = null;
 
                     Action update = FileUtils.GetUpdateFileContentsTask(
                         projectJsonFile,
@@ -40,13 +45,12 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
                             dependencyBuildInfos,
                             out dependencyChanges));
 
-                    // The output json may be different even if there weren't any changes made.
-                    if (update != null && dependencyChanges.Any())
+                    if (dependencyChanges.Any())
                     {
-                        tasks.Add(new DependencyUpdateTask(
-                            update,
-                            dependencyChanges.Select(change => change.BuildInfo),
-                            dependencyChanges.Select(change => $"In '{projectJsonFile}', {change.ToString()}")));
+                        tasks.Add(new PackageDependencyUpdateTask(
+                            dependencyChanges,
+                            projectJsonFile,
+                            update));
                     }
                 }
                 catch (Exception e)
@@ -61,13 +65,13 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
             string input,
             string projectJsonFile,
             IEnumerable<DependencyBuildInfo> buildInfos,
-            out IEnumerable<DependencyChange> dependencyChanges)
+            out PackageDependencyChange[] dependencyChanges)
         {
             JObject projectRoot = JObject.Parse(input);
 
             dependencyChanges = FindAllDependencyProperties(projectRoot)
                     .Select(dependencyProperty => ReplaceDependencyVersion(projectJsonFile, dependencyProperty, buildInfos))
-                    .Where(buildInfo => buildInfo != null)
+                    .Where(change => change != null)
                     .ToArray();
 
             return JsonConvert.SerializeObject(projectRoot, Formatting.Indented) + Environment.NewLine;
@@ -75,70 +79,108 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
 
         /// <summary>
         /// Replaces the single dependency with the updated version, if it matches any of the
-        /// dependencies that need to be updated. Stops on the first updated value found.
+        /// dependencies that need to be updated.
         /// </summary>
-        /// <returns>The BuildInfo used to change the value, or null if there was no change.</returns>
-        private DependencyChange ReplaceDependencyVersion(
+        /// <returns>Info about how the value was changed, or null if there was no change.</returns>
+        private PackageDependencyChange ReplaceDependencyVersion(
             string projectJsonFile,
             JProperty dependencyProperty,
             IEnumerable<DependencyBuildInfo> parsedBuildInfos)
         {
             string id = dependencyProperty.Name;
-            foreach (DependencyBuildInfo info in parsedBuildInfos)
+
+            NuGetVersion version = ParsePackageVersion(dependencyProperty);
+            if (version == null)
             {
-                foreach (PackageIdentity packageInfo in info.Packages)
+                // It's ok to skip if the dependency target is to a project.
+                if ((string)dependencyProperty.Value["target"] != "project")
                 {
-                    if (id != packageInfo.Id)
-                    {
-                        continue;
-                    }
-
-                    string oldVersion;
-                    if (dependencyProperty.Value is JObject)
-                    {
-                        oldVersion = (string)dependencyProperty.Value["version"];
-                    }
-                    else
-                    {
-                        oldVersion = (string)dependencyProperty.Value;
-                    }
-                    VersionRange parsedOldVersionRange;
-                    if (!VersionRange.TryParse(oldVersion, out parsedOldVersionRange))
-                    {
-                        Trace.TraceWarning($"Couldn't parse '{oldVersion}' for package '{id}' in '{projectJsonFile}'. Skipping.");
-                        continue;
-                    }
-                    NuGetVersion oldNuGetVersion = parsedOldVersionRange.MinVersion;
-
-                    if (oldNuGetVersion == packageInfo.Version)
-                    {
-                        // Versions match, no update to make.
-                        continue;
-                    }
-
-                    if (oldNuGetVersion.IsPrerelease || info.UpgradeStableVersions)
-                    {
-                        string newVersion = packageInfo.Version.ToNormalizedString();
-                        if (dependencyProperty.Value is JObject)
-                        {
-                            dependencyProperty.Value["version"] = newVersion;
-                        }
-                        else
-                        {
-                            dependencyProperty.Value = newVersion;
-                        }
-
-                        return new DependencyChange
-                        {
-                            BuildInfo = info.BuildInfo,
-                            PackageId = id,
-                            Before = oldNuGetVersion,
-                            After = packageInfo.Version
-                        };
-                    }
+                    Trace.TraceWarning(
+                        "Couldn't parse dependency version of package " +
+                        $"'{id}' in '{projectJsonFile}' (skipping)");
                 }
+                return null;
+            }
+
+            string dependencyString = $"'{id} {version}' in '{projectJsonFile}'";
+
+            MatchingPackage[] matchingPackageInfos = FindMatchingPackages(parsedBuildInfos, id).ToArray();
+
+            if (matchingPackageInfos.Any(p => version == p.Package.Version))
+            {
+                // Version of package matches a specified one exactly: no update to make.
+                return null;
+            }
+
+            // An update is needed. Allow updating to a stable version if enabled for the source buildinfo.
+            var targetPackageInfo = matchingPackageInfos
+                .Where(info => version.IsPrerelease || info.SourceBuildInfo.UpgradeStableVersions)
+                .OrderByDescending(info => info.Package.Version.IsPrerelease)
+                .ThenBy(info => info.Package.Version)
+                .FirstOrDefault();
+
+            if (targetPackageInfo == null)
+            {
+                if (AllowOnlySpecifiedPackages)
+                {
+                    // Package not specified and no upgrade found.
+                    return new PackageDependencyChange(null, id, version, null);
+                }
+                return null;
+            }
+
+            SetPackageVersion(dependencyProperty, targetPackageInfo.Package.Version);
+            return new PackageDependencyChange(
+                targetPackageInfo.SourceBuildInfo.BuildInfo,
+                id,
+                version,
+                targetPackageInfo.Package.Version);
+        }
+
+        private static NuGetVersion ParsePackageVersion(JProperty property)
+        {
+            string version;
+            if (property.Value is JObject)
+            {
+                version = (string)property.Value["version"];
+            }
+            else
+            {
+                version = (string)property.Value;
+            }
+
+            VersionRange parsedVersionRange;
+            if (version != null && VersionRange.TryParse(version, out parsedVersionRange))
+            {
+                return parsedVersionRange.MinVersion;
             }
             return null;
+        }
+
+        private static void SetPackageVersion(JProperty property, NuGetVersion version)
+        {
+            string newVersion = version.ToNormalizedString();
+            if (property.Value is JObject)
+            {
+                property.Value["version"] = newVersion;
+            }
+            else
+            {
+                property.Value = newVersion;
+            }
+        }
+
+        private static IEnumerable<MatchingPackage> FindMatchingPackages(
+            IEnumerable<DependencyBuildInfo> buildInfos,
+            string packageId)
+        {
+            return buildInfos.SelectMany(info => info.Packages
+                .Where(p => p.Id == packageId)
+                .Select(p => new MatchingPackage
+                {
+                    Package = p,
+                    SourceBuildInfo = info
+                }));
         }
 
         private static IEnumerable<JProperty> FindAllDependencyProperties(JObject projectJsonRoot)
@@ -151,18 +193,10 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
                 .SelectMany(o => o.Children<JProperty>());
         }
 
-        private class DependencyChange
+        private class MatchingPackage
         {
-            public BuildInfo BuildInfo { get; set; }
-            public string PackageId { get; set; }
-            public NuGetVersion Before { get; set; }
-            public NuGetVersion After { get; set; }
-
-            public override string ToString()
-            {
-                return $"'{PackageId} {Before.ToNormalizedString()}' must be " +
-                    $"'{After.ToNormalizedString()}' ({BuildInfo.Name})";
-            }
+            public PackageIdentity Package { get; set; }
+            public DependencyBuildInfo SourceBuildInfo { get; set; }
         }
     }
 }

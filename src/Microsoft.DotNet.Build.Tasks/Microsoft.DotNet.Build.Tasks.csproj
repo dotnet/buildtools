@@ -18,6 +18,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="BinClashLogger.cs" />
+    <Compile Include="Compose\ConsumesHelpers.cs" />
+    <Compile Include="Compose\GenerateUpdatedConsumesJson.cs" />
+    <Compile Include="Compose\UpdateConsumes.cs" />
+    <Compile Include="Compose\WriteFileToStandardOutput.cs" />
+    <Compile Include="Compose\GatherStandardInput.cs" />
+    <Compile Include="Compose\GenerateConsumesJsonBuildInfos.cs" />
     <Compile Include="Delegates.cs" />
     <Compile Include="ExceptionFromResource.cs" />
     <Compile Include="ExecWithMutex.cs" />

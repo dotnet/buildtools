@@ -21,7 +21,12 @@ namespace Microsoft.DotNet.VersionTools.Automation
 
         public string GetSuggestedCommitMessage()
         {
-            var orderedInfos = UsedBuildInfos.OrderBy(info => info.Name).ToArray();
+            var orderedInfos = UsedBuildInfos
+                .Where(info =>
+                    !string.IsNullOrWhiteSpace(info.Name) &&
+                    !string.IsNullOrWhiteSpace(info.LatestReleaseVersion))
+                .OrderBy(info => info.Name)
+                .ToArray();
 
             string updatedDependencyNames = string.Join(", ", orderedInfos.Select(d => d.Name));
             string updatedDependencyVersions = string.Join(", ", orderedInfos.Select(d => d.LatestReleaseVersion));

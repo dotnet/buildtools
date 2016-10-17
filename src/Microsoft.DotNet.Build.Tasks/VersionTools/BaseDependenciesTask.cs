@@ -20,9 +20,12 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
         internal const string RawVersionsBaseUrlMetadataName = "RawVersionsBaseUrl";
         internal const string BuildInfoPathMetadataName = "BuildInfoPath";
         internal const string CurrentRefMetadataName = "CurrentRef";
+        internal const string VersionsRepoAutoUpdateRefMetadataName = "VersionsRepoAutoUpdateRef";
         internal const string CurrentBranchMetadataName = "CurrentBranch";
         internal const string PackageIdMetadataName = "PackageId";
         internal const string VersionMetadataName = "Version";
+        internal const string LatestReleaseVersionMetadataName = "LatestReleaseVersion";
+        internal const string UpdateStableVersionsMetadataName = "UpdateStableVersions";
 
         internal const string AutoUpgradeBranchMetadataName = "Version";
 
@@ -32,6 +35,8 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
         public ITaskItem[] ProjectJsonFiles { get; set; }
 
         public ITaskItem[] XmlUpdateStep { get; set; }
+
+        public bool AllowOnlySpecifiedPackages { get; set; }
 
         public string BuildInfoCacheDir { get; set; }
 
@@ -58,7 +63,10 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
         {
             if (ProjectJsonFiles != null && ProjectJsonFiles.Any())
             {
-                yield return new ProjectJsonUpdater(ProjectJsonFiles.Select(item => item.ItemSpec));
+                yield return new ProjectJsonUpdater(ProjectJsonFiles.Select(item => item.ItemSpec))
+                {
+                    AllowOnlySpecifiedPackages = AllowOnlySpecifiedPackages
+                };
             }
 
             foreach (ITaskItem step in XmlUpdateStep ?? Enumerable.Empty<ITaskItem>())
@@ -97,12 +105,12 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                 ?? Enumerable.Empty<DependencyBuildInfo>();
         }
 
-        private static DependencyBuildInfo CreateBuildInfoDependency(ITaskItem item, string cacheDir)
+        public static DependencyBuildInfo CreateBuildInfoDependency(ITaskItem item, string cacheDir)
         {
             BuildInfo info = CreateBuildInfo(item, cacheDir);
 
             bool updateStaticDependencies = item
-                .GetMetadata("UpdateStableVersions")
+                .GetMetadata(UpdateStableVersionsMetadataName)
                 .Equals("true", StringComparison.OrdinalIgnoreCase);
 
             string[] disabledPackages = item
@@ -157,6 +165,18 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                     {
                         [packageId] = version
                     }
+                };
+            }
+
+            string latestReleaseVersion = item.GetMetadata(LatestReleaseVersionMetadataName);
+
+            if (!string.IsNullOrEmpty(latestReleaseVersion))
+            {
+                return new BuildInfo
+                {
+                    Name = item.ItemSpec,
+                    LatestPackages = new Dictionary<string, string>(),
+                    LatestReleaseVersion = latestReleaseVersion
                 };
             }
 

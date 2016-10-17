@@ -34,6 +34,7 @@
     <UpdateDependencies DependencyBuildInfo="@(DependencyBuildInfo)"
                         ProjectJsonFiles="@(ProjectJsonFiles)"
                         XmlUpdateStep="@(XmlUpdateStep)"
+                        AllowOnlySpecifiedPackages="$(AllowOnlySpecifiedPackages)"
                         BuildInfoCacheDir="$(BuildInfoCacheDir)" />
   </Target>
 
@@ -47,6 +48,7 @@
     <VerifyDependencies DependencyBuildInfo="@(DependencyBuildInfo)"
                         ProjectJsonFiles="@(ProjectJsonFiles)"
                         XmlUpdateStep="@(XmlUpdateStep)"
+                        AllowOnlySpecifiedPackages="$(AllowOnlySpecifiedPackages)"
                         BuildInfoCacheDir="$(BuildInfoCacheDir)" />
 
     <Message Importance="High" Text="[$([System.DateTime]::Now.ToString('HH:mm:ss.ff'))] Verifying all auto-upgradeable dependencies... Done." />
@@ -59,6 +61,7 @@
     <UpdateDependenciesAndSubmitPullRequest DependencyBuildInfo="@(DependencyBuildInfo)"
                                             ProjectJsonFiles="@(ProjectJsonFiles)"
                                             XmlUpdateStep="@(XmlUpdateStep)"
+                                            AllowOnlySpecifiedPackages="$(AllowOnlySpecifiedPackages)"
                                             ProjectRepoName="$(ProjectRepoName)"
                                             ProjectRepoOwner="$(ProjectRepoOwner)"
                                             ProjectRepoBranch="$(ProjectRepoBranch)"
