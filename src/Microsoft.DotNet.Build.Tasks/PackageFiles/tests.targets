@@ -12,6 +12,13 @@
     <TestsSuccessfulSemaphore>tests.passed</TestsSuccessfulSemaphore>
   </PropertyGroup>
 
+  <!-- In case that TestPath is not yet set, default it here -->
+  <PropertyGroup>
+    <TestTargetOutputRelPath Condition="'$(TestTargetOutputRelPath)'=='' And '$(TargetGroup)'!='' And '$(TestTFM)'!=''">$(TargetGroup).$(TestTFM)/</TestTargetOutputRelPath>
+    <TestTargetOutputRelPath Condition="'$(TestTargetOutputRelPath)'=='' And '$(TargetGroup)'=='' And '$(TestTFM)'!=''">default.$(TestTFM)/</TestTargetOutputRelPath>
+    <TestPath Condition="'$(TestPath)'==''">$(TestWorkingDir)$(OSPlatformConfig)/$(MSBuildProjectName)/$(TestTargetOutputRelPath)</TestPath>
+  </PropertyGroup>
+
   <ItemGroup>
     <!-- Split semicolon separated lists -->
     <WithCategoriesItems Include="$(WithCategories)" />
