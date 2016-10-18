@@ -599,17 +599,31 @@
           Condition="'$(OmitDependencies)' != 'true'"
           Inputs="%(File.Identity);%(File.TargetFramework)"
           Outputs="fake">
+
+    <PropertyGroup>
+      <_TargetFramework>%(File.TargetFramework)</_TargetFramework>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <_harvestFile Include="@(File)" Condition="'%(File.HarvestDependencies)' == 'true' and '%(File.Extension)' == '.dll'" />
+      <_missingHarvestFile Include="@(_harvestFile)" Condition="!Exists('%(FullPath)')" />
+      <_harvestFile Remove="@(_missingHarvestFile)" Condition="'$(AllowPartialPackages)' == 'true'" />
+
+      <!-- add a fake dependency to represent the dependencies of any missing file 
+           this will prevent the package from installing on that platform. -->
+      <FilePackageDependency Include="Unavailable" Condition="'$(AllowPartialPackages)' == 'true' AND '@(_missingHarvestFile)' != '' AND '$(_TargetFramework)' != ''">
+        <TargetFramework>$(_TargetFramework)</TargetFramework>
+        <Version>0.0.0-unavailable</Version>
+      </FilePackageDependency>
+    </ItemGroup>
+
     <!-- Generate package references based on assembly dependencies -->
-    <GetAssemblyReferences Assemblies="@(File)" Condition="'%(File.HarvestDependencies)' == 'true' and '%(File.Extension)' == '.dll'">
+    <GetAssemblyReferences Assemblies="@(_harvestFile)">
       <Output TaskParameter="ReferencedAssemblies"
               ItemName="_FileReferencedAssemblies"/>
       <Output TaskParameter="ReferencedNativeLibraries"
               ItemName="_FileReferencedNativeLibraries"/>
     </GetAssemblyReferences>
-
-    <PropertyGroup>
-      <_TargetFramework>%(File.TargetFramework)</_TargetFramework>
-    </PropertyGroup>
 
     <SplitReferences References="@(_FileReferencedAssemblies)"
                      TargetFramework="$(_TargetFramework)"
@@ -1111,6 +1125,20 @@
 
   <Target Name="GenerateNuSpec"
           DependsOnTargets="GetPackageDependencies;GetPackageFiles;GetPackageMetadata;GenerateRuntimeDependencies;EnsureEmptyPackage">
+
+    <ItemGroup>
+      <_packageFile Include="@(PackageFile)" />
+      <_missingPackageFile Include="@(PackageFile)" Condition="!Exists('%(FullPath)')" />
+      <_packageFile Remove="@(_missingPackageFile)" Condition="'$(AllowPartialPackages)' == 'true'" />
+
+      <!-- replace any missing files with placeholders -->
+      <_packageFile Include="@(_missingPackageFile->'$(PlaceHolderFile)')" Condition="'$(AllowPartialPackages)' == 'true'" />
+    </ItemGroup>
+
+    <PropertyGroup  Condition="'$(AllowPartialPackages)' == 'true' AND '@(_missingPackageFile)' != ''">
+      <Description>WARNING: This package is missing files @(_missingPackageFile->'%(TargetPath)/%(Filename)%(Extension)') %0A$(Description)</Description>
+    </PropertyGroup>
+    
     <!-- Please Note:
          In order to avoid incremental build issues this target will always run.
          However, the task will make sure that it doesn't touch the file if the
@@ -1138,7 +1166,7 @@
                     Dependencies="@(Dependency)"
                     References="@(Reference)"
                     FrameworkReferences="@(FrameworkReference)"
-                    Files="@(PackageFile)"
+                    Files="@(_packageFile)"
                     Serviceable="$(Serviceable)"/>
   </Target>
 
