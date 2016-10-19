@@ -28,7 +28,4 @@
         </group>
     </dependencies>
   </metadata>
-  <files>
-    <file src="Microsoft.DotNet.BuildTools.TestSuite\runtime.json" />
-  </files>
 </package>
