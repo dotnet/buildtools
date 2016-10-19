@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata minClientVersion="2.8.1">
+    <id>Microsoft.DotNet.BuildTools.VstsBuildsApi</id>
+    <version>1.0.26-prerelease</version>
+    <title>Microsoft DotNet VSTS Builds REST APIs</title>
+    <authors>Microsoft</authors>
+    <owners>Microsoft</owners>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <licenseUrl>http://go.microsoft.com/fwlink/?LinkId=329770</licenseUrl>
+    <projectUrl>http://go.microsoft.com/fwlink/?LinkId=518631</projectUrl>
+    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
+    <summary>.NET Core Framework Build Tools</summary>
+    <description>This package provides VSTS REST API support.</description>
+    <copyright>Copyright © Microsoft Corporation</copyright>
+    <tags></tags>
+    <dependencies>
+      <group targetFramework="netstandard1.5">
+        <dependency id="NETStandard.Library" version="1.6.0" />
+        <dependency id="Newtonsoft.Json" version="9.0.1" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="Microsoft.DotNet.Build.VstsBuildsApi\*.dll" target="lib\netstandard1.5" />
+    <file src="Microsoft.DotNet.Build.VstsBuildsApi.net45\*.dll" target="lib\net45" />
+  </files>
+</package>

@@ -51,6 +51,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.runner.uwp", "xunit.r
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.DotNet.VersionTools", "Microsoft.DotNet.VersionTools\Microsoft.DotNet.VersionTools.csproj", "{8D524FA5-A8C5-4EBD-BA8B-2A4FED03EE58}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.DotNet.Build.VstsBuildsApi", "Microsoft.DotNet.Build.VSTSBuildsApi\Microsoft.DotNet.Build.VstsBuildsApi.csproj", "{DD658734-88B2-48AD-8ADC-69D5C5798D9B}"  
+EndProject  
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -346,3 +348,4 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal
+
