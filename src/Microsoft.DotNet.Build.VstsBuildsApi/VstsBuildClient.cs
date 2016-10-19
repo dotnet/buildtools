@@ -63,17 +63,17 @@ namespace VstsBuildsApi
         {
             var key = string.Join("_", _collectionIdentifier, definition["name"].ToString());
             definition["name"] = key;
-            var vstsDefinitions = await VstsRetrieveDefinitionsListByNameAndPathAsync(definition).ConfigureAwait(false);
+            IReadOnlyList<JObject> vstsDefinitions = await VstsRetrieveDefinitionsListByNameAndPathAsync(definition).ConfigureAwait(false);
 
             if (vstsDefinitions.Count == 0)
             {
                 /* Create */
-                var vstsDefinition = await VstsCreateDefinitionAsync(definition).ConfigureAwait(false);
+                JObject vstsDefinition = await VstsCreateDefinitionAsync(definition).ConfigureAwait(false);
                 return vstsDefinition["id"].ToString();
             }
             else if(vstsDefinitions.Count == 1)
             {
-                var vstsDefinition = await VstsRetrieveDefinitionByIdAsync(vstsDefinitions[0]).ConfigureAwait(false);
+                JObject vstsDefinition = await VstsRetrieveDefinitionByIdAsync(vstsDefinitions[0]).ConfigureAwait(false);
 
                 /* Update */
                 if (!IsSameContents(definition, vstsDefinition))
