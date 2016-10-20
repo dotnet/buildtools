@@ -34,7 +34,7 @@ namespace Xunit.ConsoleClient
                 if (args.Length == 0 || args[0] == "-?")
                 {
                     PrintUsage();
-                    return 1;
+                    return 2;
                 }
 
 #if !NETCORE
@@ -95,17 +95,17 @@ namespace Xunit.ConsoleClient
                     Console.WriteLine();
                 }
 
-                return failCount;
+                return failCount > 0 ? 1 : 0;
             }
             catch (ArgumentException ex)
             {
                 Console.WriteLine("error: {0}", ex.Message);
-                return 1;
+                return 3;
             }
             catch (BadImageFormatException ex)
             {
                 Console.WriteLine("{0}", ex.Message);
-                return 1;
+                return 4;
             }
             finally
             {
