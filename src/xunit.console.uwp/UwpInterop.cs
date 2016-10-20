@@ -1,18 +1,11 @@
-﻿using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
 using System.Runtime.InteropServices.ComTypes;
 using System.Runtime.CompilerServices;
 
 namespace Xunit.UwpClient
 {
-        internal enum ACTIVATEOPTIONS
+    internal enum ACTIVATEOPTIONS
         {
             AO_NONE = 0x00000000,
             AO_DESIGNMODE = 0x00000001,
