@@ -61,7 +61,7 @@ namespace VstsBuildsApi
         /// <returns>Created or updated build definition id</returns>
         private async Task<string> CreateOrUpdateDefinitionAsync(JObject definition)
         {
-            var key = string.Join("_", _collectionIdentifier, definition["name"].ToString());
+            var key = _collectionIdentifier + "_" + definition["name"].ToString();
             definition["name"] = key;
             IReadOnlyList<JObject> vstsDefinitions = await VstsRetrieveDefinitionsListByNameAndPathAsync(definition).ConfigureAwait(false);
 
@@ -76,7 +76,7 @@ namespace VstsBuildsApi
                 JObject vstsDefinition = await VstsRetrieveDefinitionByIdAsync(vstsDefinitions[0]).ConfigureAwait(false);
 
                 /* Update */
-                if (!IsSameContents(definition, vstsDefinition))
+                if (!IsDefinitionContentSubsetEquivalent(definition, vstsDefinition))
                 {
                     definition["revision"] = vstsDefinition["revision"];
                     definition["id"] = vstsDefinition["id"];
@@ -208,22 +208,33 @@ namespace VstsBuildsApi
             throw new HttpRequestException(string.Format("Response code {0} received from {1} is not a valid response.", response.StatusCode, response.RequestMessage.RequestUri));
         }
 
-        private static bool IsSameContents(JObject definition1, JObject definition2)
+        /// <summary>
+        /// Validates that definition1 is a content equivalent subset of definition2
+        /// </summary>
+        private static bool IsDefinitionContentSubsetEquivalent(JObject definition1, JObject definition2)
         {
-            JObject _definition1 = (JObject)definition1.DeepClone();
-            JObject _definition2 = (JObject)definition2.DeepClone();
+            JObject clonedDefinition1 = (JObject)definition1.DeepClone();
+            JObject clonedDefinition2 = (JObject)definition2.DeepClone();
 
-            RemoveJObjectToken("_links", _definition1, _definition2);
-            RemoveJObjectToken("project", _definition1, _definition2);
-            RemoveJObjectToken("comment", _definition1, _definition2);
-            RemoveJObjectToken("revision", _definition1, _definition2);
-            RemoveJObjectToken("id", _definition1, _definition2);
-            RemoveJObjectToken("uri", _definition1, _definition2);
-            RemoveJObjectToken("path", _definition1, _definition2);
-            RemoveJObjectToken("createdDate", _definition1, _definition2);
-            RemoveJObjectToken("url", _definition1, _definition2);
+            RemoveJObjectToken("_links", clonedDefinition1, clonedDefinition2);
+            RemoveJObjectToken("comment", clonedDefinition1, clonedDefinition2);
+            RemoveJObjectToken("revision", clonedDefinition1, clonedDefinition2);
+            RemoveJObjectToken("id", clonedDefinition1, clonedDefinition2);
+            RemoveJObjectToken("uri", clonedDefinition1, clonedDefinition2);
+            RemoveJObjectToken("path", clonedDefinition1, clonedDefinition2);
+            RemoveJObjectToken("createdDate", clonedDefinition1, clonedDefinition2);
+            RemoveJObjectToken("url", clonedDefinition1, clonedDefinition2);
 
-            return JToken.DeepEquals(_definition1, _definition2);
+            // Compare only the child tokens present in the first definition to the corresponding contents of the second definition
+            // The second definition may contain additional tokens which we don't care about.
+            foreach(var childToken in clonedDefinition1.Children())
+            {
+                if(!JToken.DeepEquals(childToken.First, clonedDefinition2[childToken.Path]))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         private static void RemoveJObjectToken(string tokenName, params JObject[] jObjects)
