@@ -57,6 +57,7 @@
     <Compile Include="VisitProjectDependencies.cs" />
     <Compile Include="ValidateProjectDependencyVersions.cs" />
     <Compile Include="WriteSigningRequired.cs" />
+    <Compile Include="WriteVisualBasicDefineResponseFile.cs" />
     <Compile Include="ZipFileCreateFromDependencyLists.cs" />
     <Compile Include="ZipFileExtractToDirectory.cs" />
     <Compile Include="ZipFileCreateFromDirectory.cs" />
