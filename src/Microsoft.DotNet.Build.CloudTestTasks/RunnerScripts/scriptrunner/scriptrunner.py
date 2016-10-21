@@ -13,8 +13,6 @@ from helix_test_execution import HelixTestExecution
 
 log = helix.logs.get_logger()
 
-WORKITEM_PASSED = 0
-WORKITEM_FAILED = 1
 
 def main(args=None):
     def _main(settings, optlist, args):
@@ -83,9 +81,8 @@ def main(args=None):
         else:
             log.error("Error: No exception thrown, but XUnit results not created")
             test_executor.report_error(settings, failure_type="XUnitTestFailure")
-            return WORKITEM_FAILED
 
-        return WORKITEM_PASSED
+        return return_code
 
     return command_main(_main, ['script='], args)
 
