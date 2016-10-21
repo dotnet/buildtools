@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Windows.ApplicationModel;
-using Windows.Storage;
-using Xunit.Abstractions;
 using Xunit.ConsoleClient;
 
 namespace Xunit.Shared
