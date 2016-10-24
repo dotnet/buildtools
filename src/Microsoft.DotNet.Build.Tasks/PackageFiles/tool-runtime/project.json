@@ -18,7 +18,7 @@
         "System.Runtime.Serialization.Primitives": "4.1.1",
         "Newtonsoft.Json": "9.0.1",
         "NETStandard.Library": {
-          "version": "1.6.1-beta-24506-02",
+          "version": "1.6.2-beta-24625-02",
           "exclude": "runtime"
         }
       },
@@ -37,6 +37,7 @@
     "centos.7-x64": {},
     "debian.8-x64": {},
     "fedora.23-x64": {},
+    "fedora.24-x64": {},
     "opensuse.13.2-x64": {},
     "opensuse.42.1-x64": {},
     "osx.10.10-x64": {},
