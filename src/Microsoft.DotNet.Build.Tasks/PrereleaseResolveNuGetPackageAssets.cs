@@ -47,6 +47,8 @@ namespace Microsoft.DotNet.Build.Tasks
         private readonly List<ITaskItem> _contentItems = new List<ITaskItem>();
         private readonly List<ITaskItem> _fileWrites = new List<ITaskItem>();
 
+        private readonly List<string> _packageFolders = new List<string>();
+
         private readonly Dictionary<string, string> _projectReferencesToOutputBasePaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         #region UnitTestSupport
@@ -75,6 +77,13 @@ namespace Microsoft.DotNet.Build.Tasks
 
             _reportExceptionsToMSBuildLogger = false;
         }
+
+          // For unit testing.
+         internal IEnumerable<string> GetPackageFolders()
+         {
+             return _packageFolders;
+         }
+ 
         #endregion
 
         /// <summary>
@@ -236,12 +245,34 @@ namespace Microsoft.DotNet.Build.Tasks
                 lockFile = JObject.Load(new JsonTextReader(streamReader));
             }
 
+            PopulatePackageFolders(lockFile);
+
             PopulateProjectReferenceMaps();
             GetReferences(lockFile);
             GetCopyLocalItems(lockFile);
             GetAnalyzers(lockFile);
             GetReferencedPackages(lockFile);
             ProduceContentAssets(lockFile);
+        }
+
+        private void PopulatePackageFolders(JObject lockFile)
+        {
+            // If we explicitly were given a path, let's use that
+            if (!string.IsNullOrEmpty(NuGetPackagesDirectory))
+            {
+                _packageFolders.Add(NuGetPackagesDirectory);
+            }
+
+            // Newer versions of NuGet can now specify the final list of locations in the lock file
+            var packageFolders = lockFile["packageFolders"] as JObject;
+
+            if (packageFolders != null)
+            {
+                foreach (var packageFolder in packageFolders.Properties())
+                {
+                    _packageFolders.Add(packageFolder.Name);
+                }
+            }
         }
 
         private void PopulateProjectReferenceMaps()
@@ -860,15 +891,18 @@ namespace Microsoft.DotNet.Build.Tasks
 
         private string GetNuGetPackagePath(string packageId, string packageVersion)
         {
-            string packagesFolder = GetNuGetPackagesPath();
-            string packagePath = Path.Combine(packagesFolder, packageId, packageVersion);
-
-            if (!_directoryExists(packagePath))
+            foreach (var packagesFolder in _packageFolders)
             {
-                throw new ExceptionFromResource(nameof(Strings.PackageFolderNotFound), packageId, packageVersion, packagesFolder);
+                string packagePath = Path.Combine(packagesFolder, packageId, packageVersion);
+
+                if (_directoryExists(packagePath))
+                {
+                    return packagePath;
+                }
             }
 
-            return packagePath;
+           throw new ExceptionFromResource(nameof(Strings.PackageFolderNotFound), packageId, packageVersion,
+                        string.Join(", ", _packageFolders));
         }
 
         private string GetNuGetPackagesPath()

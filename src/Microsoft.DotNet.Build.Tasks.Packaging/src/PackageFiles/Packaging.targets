@@ -66,6 +66,7 @@
   <PropertyGroup>
     <PackageOutputPath Condition="'$(PackageOutputPath)' == ''">$(BaseOutputPath)pkg/</PackageOutputPath>
     <SymbolPackageOutputPath Condition="'$(SymbolPackageOutputPath)' == ''">$(BaseOutputPath)symbolpkg/</SymbolPackageOutputPath>
+    <PackageInstallPath Condition="'$(PackageOutputPath)' == ''">$(BaseOutputPath)localpkg/</PackageInstallPath>
     <OutputPath>$(PackageOutputPath)</OutputPath>
     <NuSpecOutputPath Condition="'$(NuSpecOutputPath)' == ''">$(PackageOutputPath)specs/</NuSpecOutputPath>
     <NuSpecPath>$(NuSpecOutputPath)$(Id)$(NuspecSuffix).nuspec</NuSpecPath>
@@ -108,6 +109,7 @@
   <UsingTask TaskName="GetPackageFromModule" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="FilterUnknownPackages" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="GeneratePackageReport" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  <UsingTask TaskName="InstallPackageFromFile" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
   
   <!-- Determine if we actually need to build for this architecture -->
   <!-- Packages can specifically control their architecture by specifying the PackagePlatforms
@@ -1192,13 +1194,30 @@
                AdditionalLibPackageExcludes="@(AdditionalLibPackageExcludes)"
                AdditionalSymbolPackageExcludes="@(AdditionalSymbolPackageExcludes)"
                Condition="'$(_SkipCreatePackage)' != 'true'"/>
+        
     <!-- Create a marker that records the path to the generated package -->
-    <WriteLinesToFile Lines="$(PackageOutputPath)$(Id).$(PackageVersion).nupkg;$(SymbolPackageOutputPath)$(Id).$(PackageVersion).symbols.nupkg"
+    <WriteLinesToFile Lines="$(PackageOutputPath)$(Id).$(PackageVersion).nupkg;$(SymbolPackageOutputPath)$(Id).$(PackageVersion).nupkg"
                       File="$(NuSpecPath).pkgpath"
                       Overwrite="true"
                       Condition="'$(_SkipCreatePackage)' != 'true'"/>
   </Target>
+  
+  <!-- Installs locally built package into a packageinstalldir for consuming -->
+  <!-- Overwrites previous installs, supports only one version installed -->
+  <Target Name="InstallLocallyBuiltPackages"
+          Condition="$(SkipInstallLocallyBuiltPackages)!='true'"
+          AfterTargets="CreatePackage">
+    
+    <Error Text="Package not installed as it was not found at $(PackageOutputPath)$(Id).$(PackageVersion).nupkg" 
+           Condition="!Exists('$(PackageOutputPath)$(Id).$(PackageVersion).nupkg')" />
+    
+    <!-- Force overwrite install directory of package to allow only one version installed -->
+    <RemoveDir Directories="$(PackageInstallPath)\$(Id)" />
 
+    <InstallPackageFromFile PackageFile="$(PackageOutputPath)$(Id).$(PackageVersion).nupkg"
+                            PackagesFolder="$(PackageInstallPath)" />
+      
+  </Target>
 
   <!-- Updates the packageIndex with information from the built package for this project -->
   <!-- Intentionally not sequenced, invoked directly through /t:UpdatePackageIndex -->
@@ -1231,4 +1250,5 @@
                         StablePackages="@(StablePackage)"
                         ModuleToPackages="@(ModuleToPackage)" />
   </Target>
+
 </Project>
