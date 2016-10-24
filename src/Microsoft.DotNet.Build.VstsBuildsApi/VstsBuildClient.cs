@@ -19,6 +19,17 @@ namespace VstsBuildsApi
         private string _collectionIdentifier;
         private string _credentials;
 
+        private static readonly string[] s_InstanceIdentifiableField = new string[] { "_links",
+                                                                                      "authoredBy",
+                                                                                      "comment",
+                                                                                      "createdDate",
+                                                                                      "id",
+                                                                                      "path",
+                                                                                      "revision",
+                                                                                      "uri",
+                                                                                      "url"
+                                                                                      };
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -78,13 +89,10 @@ namespace VstsBuildsApi
                 /* Update */
                 if (!IsDefinitionContentSubsetEquivalent(definition, vstsDefinition))
                 {
-                    definition["revision"] = vstsDefinition["revision"];
-                    definition["id"] = vstsDefinition["id"];
-                    definition["uri"] = vstsDefinition["uri"];
-                    definition["path"] = vstsDefinition["path"];
-                    definition["createdDate"] = vstsDefinition["createdDate"];
-                    definition["url"] = vstsDefinition["url"];
-                    definition["comment"] = "Automated update";
+                    foreach(var fieldName in s_InstanceIdentifiableField)
+                    {
+                        definition[fieldName] = vstsDefinition[fieldName];
+                    }
 
                     vstsDefinition = await VstsUpdateDefinitionAsync(definition).ConfigureAwait(false);
                 }
@@ -114,7 +122,7 @@ namespace VstsBuildsApi
             string requestUri = $"DefaultCollection/{VstsBuildsApiBase(definition)}/_apis/build/definitions/{definition["id"].ToString()}?api-version=2.0";
 
             HttpContent content = new StringContent(JsonConvert.SerializeObject(definition), System.Text.Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await GetClient(definition["url"].ToString()).PutAsync(requestUri, content);
+            HttpResponseMessage response = await GetClient(definition["project"]["url"].ToString()).PutAsync(requestUri, content);
             ProcessResponseStatusCode(response);
             return JObject.Parse(await response.Content.ReadAsStringAsync());
         }
@@ -125,18 +133,12 @@ namespace VstsBuildsApi
         private async Task<JObject> VstsCreateDefinitionAsync(JObject definition)
         {
             /* Remove definition instance identifiable information */
-            RemoveJObjectToken("revison", definition);
-            RemoveJObjectToken("uri", definition);
-            RemoveJObjectToken("createdDate", definition);
-            RemoveJObjectToken("comment", definition);
-            RemoveJObjectToken("_links", definition);
-            RemoveJObjectToken("authoredBy", definition);
-            RemoveJObjectToken("id", definition);
+            RemoveIdentifiableInformation(definition);
 
             string requestUri = $"DefaultCollection/{VstsBuildsApiBase(definition)}/_apis/build/definitions?api-version=2.0";
 
             HttpContent content = new StringContent(JsonConvert.SerializeObject(definition), Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await GetClient(definition["url"].ToString()).PostAsync(requestUri, content);
+            HttpResponseMessage response = await GetClient(definition["project"]["url"].ToString()).PostAsync(requestUri, content);
             ProcessResponseStatusCode(response);
             return JObject.Parse(await response.Content.ReadAsStringAsync());
 
@@ -149,7 +151,7 @@ namespace VstsBuildsApi
         {
             string requestUri = $"DefaultCollection/{VstsBuildsApiBase(definition)}/_apis/build/definitions/{definition["id"].ToString()}?api-version=2.0";
 
-            HttpResponseMessage response = await GetClient(definition["url"].ToString()).GetAsync(requestUri);
+            HttpResponseMessage response = await GetClient(definition["project"]["url"].ToString()).GetAsync(requestUri);
             ProcessResponseStatusCode(response);
             return JObject.Parse(await response.Content.ReadAsStringAsync());
         }
@@ -161,7 +163,7 @@ namespace VstsBuildsApi
         {
             string requestUri = $"DefaultCollection/{VstsBuildsApiBase(definition)}/_apis/build/definitions?api-version=2.0&name={definition["name"].ToString()}";
 
-            HttpResponseMessage response = await GetClient(definition["url"].ToString()).GetAsync(requestUri);
+            HttpResponseMessage response = await GetClient(definition["project"]["url"].ToString()).GetAsync(requestUri);
             ProcessResponseStatusCode(response);
             string json = await response.Content.ReadAsStringAsync();
             JObject definitionsJObject = JObject.Parse(json);
@@ -216,14 +218,7 @@ namespace VstsBuildsApi
             JObject clonedDefinition1 = (JObject)definition1.DeepClone();
             JObject clonedDefinition2 = (JObject)definition2.DeepClone();
 
-            RemoveJObjectToken("_links", clonedDefinition1, clonedDefinition2);
-            RemoveJObjectToken("comment", clonedDefinition1, clonedDefinition2);
-            RemoveJObjectToken("revision", clonedDefinition1, clonedDefinition2);
-            RemoveJObjectToken("id", clonedDefinition1, clonedDefinition2);
-            RemoveJObjectToken("uri", clonedDefinition1, clonedDefinition2);
-            RemoveJObjectToken("path", clonedDefinition1, clonedDefinition2);
-            RemoveJObjectToken("createdDate", clonedDefinition1, clonedDefinition2);
-            RemoveJObjectToken("url", clonedDefinition1, clonedDefinition2);
+            RemoveIdentifiableInformation(clonedDefinition1, clonedDefinition2);
 
             // Compare only the child tokens present in the first definition to the corresponding contents of the second definition
             // The second definition may contain additional tokens which we don't care about.
@@ -235,6 +230,14 @@ namespace VstsBuildsApi
                 }
             }
             return true;
+        }
+
+        private static void RemoveIdentifiableInformation(params JObject[] jObjects)
+        {
+            foreach(var fieldName in s_InstanceIdentifiableField)
+            {
+                RemoveJObjectToken(fieldName, jObjects);
+            }
         }
 
         private static void RemoveJObjectToken(string tokenName, params JObject[] jObjects)
