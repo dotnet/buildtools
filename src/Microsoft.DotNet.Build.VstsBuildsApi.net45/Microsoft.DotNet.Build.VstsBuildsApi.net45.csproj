@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <NuGetRuntimeIdentifier>win7-x64</NuGetRuntimeIdentifier>
+    <CopyNuGetImplementations>true</CopyNuGetImplementations>
+    <ImportedProjectRelativePath>..\Microsoft.DotNet.Build.VstsBuildsApi\</ImportedProjectRelativePath>
+  </PropertyGroup>
+  <Import Project="$(ImportedProjectRelativePath)Microsoft.DotNet.Build.VstsBuildsApi.csproj" />
+  <PropertyGroup>
+    <NuGetTargetMoniker>.NETFramework,Version=v4.5</NuGetTargetMoniker>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+</Project>
