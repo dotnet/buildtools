@@ -122,7 +122,7 @@ namespace VstsBuildsApi
             string requestUri = $"DefaultCollection/{VstsBuildsApiBase(definition)}/_apis/build/definitions/{definition["id"].ToString()}?api-version=2.0";
 
             HttpContent content = new StringContent(JsonConvert.SerializeObject(definition), System.Text.Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await GetClient(definition["project"]["url"].ToString()).PutAsync(requestUri, content);
+            HttpResponseMessage response = await GetClient(GetVstsBuildsApiUrl(definition)).PutAsync(requestUri, content);
             ProcessResponseStatusCode(response);
             return JObject.Parse(await response.Content.ReadAsStringAsync());
         }
@@ -138,7 +138,7 @@ namespace VstsBuildsApi
             string requestUri = $"DefaultCollection/{VstsBuildsApiBase(definition)}/_apis/build/definitions?api-version=2.0";
 
             HttpContent content = new StringContent(JsonConvert.SerializeObject(definition), Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await GetClient(definition["project"]["url"].ToString()).PostAsync(requestUri, content);
+            HttpResponseMessage response = await GetClient(GetVstsBuildsApiUrl(definition)).PostAsync(requestUri, content);
             ProcessResponseStatusCode(response);
             return JObject.Parse(await response.Content.ReadAsStringAsync());
 
@@ -151,7 +151,7 @@ namespace VstsBuildsApi
         {
             string requestUri = $"DefaultCollection/{VstsBuildsApiBase(definition)}/_apis/build/definitions/{definition["id"].ToString()}?api-version=2.0";
 
-            HttpResponseMessage response = await GetClient(definition["project"]["url"].ToString()).GetAsync(requestUri);
+            HttpResponseMessage response = await GetClient(GetVstsBuildsApiUrl(definition)).GetAsync(requestUri);
             ProcessResponseStatusCode(response);
             return JObject.Parse(await response.Content.ReadAsStringAsync());
         }
@@ -163,7 +163,7 @@ namespace VstsBuildsApi
         {
             string requestUri = $"DefaultCollection/{VstsBuildsApiBase(definition)}/_apis/build/definitions?api-version=2.0&name={definition["name"].ToString()}";
 
-            HttpResponseMessage response = await GetClient(definition["project"]["url"].ToString()).GetAsync(requestUri);
+            HttpResponseMessage response = await GetClient(GetVstsBuildsApiUrl(definition)).GetAsync(requestUri);
             ProcessResponseStatusCode(response);
             string json = await response.Content.ReadAsStringAsync();
             JObject definitionsJObject = JObject.Parse(json);
@@ -186,6 +186,11 @@ namespace VstsBuildsApi
         private string VstsBuildsApiBase(JObject definition)
         {
             return definition["project"]["name"].ToString();
+        }
+
+        private string GetVstsBuildsApiUrl(JObject definition)
+        {
+            return definition["project"]["url"].ToString();
         }
 
         private HttpClient GetClient(string url)
