@@ -110,7 +110,7 @@ namespace Microsoft.DotNet.Execute
                         }
                         CommandParameters[comm.Key] = new Dictionary<string, string>(param);
                     }
-                }, args, setupInformation);
+                }, args, GetHelpTextDictionaries(setupInformation));
                 CommandSelectedByUser = userCommand;
                 setupInformation.SettingParameters = SettingParameters;
                 setupInformation.ExtraParameters = CommandLineParser.ExtraParameters;
@@ -122,6 +122,23 @@ namespace Microsoft.DotNet.Execute
                 return false;
             }
 
+        }
+
+        private Dictionary<string, Dictionary<string, string>> GetHelpTextDictionaries(Setup setupInformation)
+        {
+            Dictionary<string, Dictionary<string, string>> helpText = new Dictionary<string, Dictionary<string, string>>();
+            foreach (string commandSet in setupInformation.Commands.Keys)
+            {
+                Dictionary<string, string> aliasHelpText = new Dictionary<string, string>();
+                foreach (string commandAlias in setupInformation.Commands[commandSet].Alias.Keys)
+                {
+                    aliasHelpText.Add(commandAlias, setupInformation.GetHelpCommand(commandSet, commandAlias));
+                }
+                // Default / no alias one:
+                aliasHelpText.Add(string.Empty, setupInformation.GetHelpCommand(commandSet));
+                helpText.Add(commandSet, aliasHelpText);
+            }
+            return helpText;
         }
 
         public static int Main(string[] args)
