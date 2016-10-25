@@ -38,7 +38,10 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     if (peReader.HasMetadata)
                     {
                         MetadataReader reader = peReader.GetMetadataReader();
-                        result = reader.GetAssemblyDefinition().Version;
+                        if (reader.IsAssembly)
+                        {
+                            result = reader.GetAssemblyDefinition().Version;
+                        }
                     }
                 }
             }
