@@ -111,7 +111,7 @@
           AfterTargets="RunTestsForProject"
           Condition="'$(AnalyzePerfResults)' == 'true' and Exists('$(PerfRunOutputFile)')">
     <Exec Command="$(PerfAnalysisReportCommand)"
-          WorkingDirectory="$(TestPath)%(TestNugetTargetMoniker.Folder)"
+          WorkingDirectory="$(TestPath)"
           ContinueOnError="false">
       <Output PropertyName="PerfTestRunExitCode" TaskParameter="ExitCode" />
     </Exec>

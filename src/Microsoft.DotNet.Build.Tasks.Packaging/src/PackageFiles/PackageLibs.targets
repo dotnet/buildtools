@@ -33,7 +33,7 @@
   <Target Name="ResolvePkgProjReferences" Condition="'@(PkgProjAsset)' != ''" DependsOnTargets="$(ResolvePkgProjReferencesDependsOn)">
     <GetApplicableAssetsFromPackages PackageAssets="@(PkgProjAsset)" 
                                      TargetMonikers="$(NuGetTargetMoniker)"
-                                     RuntimeTargetMonikers="@(TestNuGetTargetMoniker)"
+                                     RuntimeTargetMonikers="$(TestNuGetTargetMoniker)"
                                      TargetRuntime="$(TestNugetRuntimeId)"
                                      RuntimeFile="$(RuntimeIdGraphDefinitionFile)">
       <Output TaskParameter="CompileAssets" ItemName="Reference" />

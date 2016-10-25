@@ -12,6 +12,13 @@
     <TestsSuccessfulSemaphore>tests.passed</TestsSuccessfulSemaphore>
   </PropertyGroup>
 
+  <!-- In case that TestPath is not yet set, default it here -->
+  <PropertyGroup>
+    <TestTargetOutputRelPath Condition="'$(TestTargetOutputRelPath)'=='' And '$(TargetGroup)'!='' And '$(TestTFM)'!=''">$(TargetGroup).$(TestTFM)/</TestTargetOutputRelPath>
+    <TestTargetOutputRelPath Condition="'$(TestTargetOutputRelPath)'=='' And '$(TargetGroup)'=='' And '$(TestTFM)'!=''">default.$(TestTFM)/</TestTargetOutputRelPath>
+    <TestPath Condition="'$(TestPath)'==''">$(TestWorkingDir)$(OSPlatformConfig)/$(MSBuildProjectName)/$(TestTargetOutputRelPath)</TestPath>
+  </PropertyGroup>
+
   <ItemGroup>
     <!-- Split semicolon separated lists -->
     <WithCategoriesItems Include="$(WithCategories)" />
@@ -58,43 +65,20 @@
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.uwp.exe</XunitExecutable>
   </PropertyGroup>
 
-  <ItemGroup>
+  <PropertyGroup>
     <!-- Table to track mapping between TestNugetTargetMoniker and the corresponding TestTFM -->
-    <TestNugetTargetMoniker Include=".NETCoreApp,Version=v1.0" Condition="'$(TestTFM)' == 'netcoreapp1.0'">
-      <Folder>netcoreapp1.0</Folder>
-    </TestNugetTargetMoniker>
-    <TestNugetTargetMoniker Include=".NETCoreApp,Version=v1.1" Condition="'$(TestTFM)' == 'netcoreapp1.1'">
-      <Folder>netcoreapp1.1</Folder>
-    </TestNugetTargetMoniker>
-    <TestNugetTargetMoniker Include=".NETFramework,Version=v4.6.3" Condition="'$(TestTFM)' == 'net463'">
-      <Folder>net463</Folder>
-    </TestNugetTargetMoniker>
-    <TestNugetTargetMoniker Include=".NETFramework,Version=v4.6.2" Condition="'$(TestTFM)' == 'net462'">
-      <Folder>net462</Folder>
-    </TestNugetTargetMoniker>
-    <TestNugetTargetMoniker Include=".NETFramework,Version=v4.6.1" Condition="'$(TestTFM)' == 'net461'">
-      <Folder>net461</Folder>
-    </TestNugetTargetMoniker>
-    <TestNugetTargetMoniker Include=".NETFramework,Version=v4.6" Condition="'$(TestTFM)' == 'net46'">
-      <Folder>net46</Folder>
-    </TestNugetTargetMoniker>
-    <TestNugetTargetMoniker Include=".NETFramework,Version=v4.5" Condition="'$(TestTFM)' == 'net45'">
-      <Folder>net45</Folder>
-    </TestNugetTargetMoniker>
-    <TestNugetTargetMoniker Include=".NETFramework,Version=v4.5.1" Condition="'$(TestTFM)' == 'net451'">
-      <Folder>net451</Folder>
-    </TestNugetTargetMoniker>
-    <TestNugetTargetMoniker Include=".NETFramework,Version=v4.5.2" Condition="'$(TestTFM)' == 'net452'">
-      <Folder>net452</Folder>
-    </TestNugetTargetMoniker>
+    <TestNugetTargetMoniker Condition="'$(TestTFM)' == 'netcoreapp1.0'">.NETCoreApp,Version=v1.0</TestNugetTargetMoniker>
+    <TestNugetTargetMoniker Condition="'$(TestTFM)' == 'netcoreapp1.1'">.NETCoreApp,Version=v1.1</TestNugetTargetMoniker>
+    <TestNugetTargetMoniker Condition="'$(TestTFM)' == 'net463'">.NETFramework,Version=v4.6.3</TestNugetTargetMoniker>
+    <TestNugetTargetMoniker Condition="'$(TestTFM)' == 'net462'">.NETFramework,Version=v4.6.2</TestNugetTargetMoniker>
+    <TestNugetTargetMoniker Condition="'$(TestTFM)' == 'net461'">.NETFramework,Version=v4.6.1</TestNugetTargetMoniker>
+    <TestNugetTargetMoniker Condition="'$(TestTFM)' == 'net46'">.NETFramework,Version=v4.6</TestNugetTargetMoniker>
+    <TestNugetTargetMoniker Condition="'$(TestTFM)' == 'net45'">.NETFramework,Version=v4.5</TestNugetTargetMoniker>
+    <TestNugetTargetMoniker Condition="'$(TestTFM)' == 'net451'">.NETFramework,Version=v4.5.1</TestNugetTargetMoniker>
+    <TestNugetTargetMoniker Condition="'$(TestTFM)' == 'net452'">.NETFramework,Version=v4.5.2</TestNugetTargetMoniker>
     <!-- Project template for UWP Apps uses uap10.0, this mapping allows support for the Debug and Release scenarios -->
-    <TestNugetTargetMoniker Include="UAP,Version=v10.0" Condition="'$(TestTFM)' == 'netcore50aot'">
-      <Folder>netcore50aot</Folder>
-    </TestNugetTargetMoniker>
-    <TestNugetTargetMoniker Include="UAP,Version=v10.0" Condition="'$(TestTFM)' == 'netcore50'">
-      <Folder>netcore50</Folder>
-    </TestNugetTargetMoniker>
-  </ItemGroup>
+    <TestNugetTargetMoniker Condition="'$(TestTFM)' == 'netcore50aot' Or '$(TestTFM)' == 'netcore50'">UAP,Version=v10.0</TestNugetTargetMoniker>
+  </PropertyGroup>
 
   <!-- General xunit options -->
   <PropertyGroup>
@@ -152,7 +136,7 @@
   <Target Name="RunTestsForProject"
           DependsOnTargets="DiscoverTestInputs;CheckTestCategories"
           Inputs="@(RunTestsForProjectInputs)"
-          Outputs="$(TestsSuccessfulSemaphore);$(TestPath)%(TestNugetTargetMoniker.Folder)/$(XunitResultsFileName);$(CoverageOutputFilePath)"
+          Outputs="$(TestsSuccessfulSemaphore);$(TestPath)/$(XunitResultsFileName);$(CoverageOutputFilePath)"
           >
 
     <ItemGroup>
@@ -186,7 +170,7 @@
     <PropertyGroup>
       <TestCommandLine Condition="'$(TargetOS)'!='Windows_NT'" >$(TestCommandLine.Replace('$(TestHostExecutable)', './corerun'))</TestCommandLine>
       <TestCommandLine>$(TestCommandLine.Replace('{XunitTraitOptions}', '$(XunitTraitOptions)'))</TestCommandLine>
-      <OutputFolderForScriptGenerator>$(TestPath)%(TestNugetTargetMoniker.Folder)</OutputFolderForScriptGenerator>
+      <OutputFolderForScriptGenerator>$(TestPath)</OutputFolderForScriptGenerator>
       <OutputPathForScriptGenerator>$(OutputFolderForScriptGenerator)/$(RunnerScriptName)</OutputPathForScriptGenerator>
       <OutputFolderForTestDependencies>$(BinDir)/TestDependencies</OutputFolderForTestDependencies>
     </PropertyGroup>
@@ -259,9 +243,9 @@
       ScriptOutputPath ="$(OutputPathForScriptGenerator)"
     />
 
-    <Exec Command="$(TestPath)%(TestNugetTargetMoniker.Folder)/$(RunnerScriptName) $(PackagesDir)"
+    <Exec Command="$(TestPath)/$(RunnerScriptName) $(PackagesDir)"
           Condition="'$(TestDisabled)' != 'true'"
-          WorkingDirectory="$(TestPath)%(TestNugetTargetMoniker.Folder)"
+          WorkingDirectory="$(TestPath)"
           CustomErrorRegularExpression="Failed: [^0]"
           ContinueOnError="true"
           IgnoreStandardErrorWarningFormat="true"
@@ -269,7 +253,7 @@
       <Output PropertyName="TestRunExitCode" TaskParameter="ExitCode" />
     </Exec>
 
-    <Delete Condition="'$(DeletePerfDataFile)' == 'true'" Files="$(TestPath)%(TestNugetTargetMoniker.Folder)/$(EventTracerDataFile)" />
+    <Delete Condition="'$(DeletePerfDataFile)' == 'true'" Files="$(TestPath)/$(EventTracerDataFile)" />
     <Error Condition="'$(TestDisabled)'!='true' And '$(TestRunExitCode)' != '0'" Text="One or more tests failed while running tests from '$(MSBuildProjectName)' please check log for details!" />
     <Touch Condition="'$(TestRunExitCode)' == '0'" Files="$(TestsSuccessfulSemaphore)" AlwaysCreate="true" />
   </Target>
@@ -293,7 +277,7 @@
     <PropertyGroup>
       <TestsSuccessfulSemaphore Condition="'@(RunWithTraits)' != ''">$(TestsSuccessfulSemaphore).with.@(RunWithTraits, '.')</TestsSuccessfulSemaphore>
       <TestsSuccessfulSemaphore Condition="'@(RunWithoutTraits)' != ''">$(TestsSuccessfulSemaphore).without.@(RunWithoutTraits, '.')</TestsSuccessfulSemaphore>
-      <TestsSuccessfulSemaphore>$(TestPath)%(TestNugetTargetMoniker.Folder)/$(TestsSuccessfulSemaphore)</TestsSuccessfulSemaphore>
+      <TestsSuccessfulSemaphore>$(TestPath)/$(TestsSuccessfulSemaphore)</TestsSuccessfulSemaphore>
     </PropertyGroup>
 
     <Delete Condition="'$(ForceRunTests)'=='true' And Exists($(TestsSuccessfulSemaphore))"

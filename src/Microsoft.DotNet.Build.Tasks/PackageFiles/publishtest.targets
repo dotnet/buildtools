@@ -27,7 +27,7 @@
                                RuntimeIdentifier="$(TestNugetRuntimeId)"
                                ProjectLanguage="$(Language)"
                                ProjectLockFile="$(ProjectLockJson)"
-                               TargetMonikers="@(TestNugetTargetMoniker)">
+                               TargetMonikers="$(TestNugetTargetMoniker)">
       <Output TaskParameter="ResolvedCopyLocalItems" ItemName="TestCopyLocal" />
     </PrereleaseResolveNuGetPackageAssets>
 
@@ -111,19 +111,15 @@
       <CreateHardLinksForCopyTestToTestDirectoryIfPossible Condition="'$(CreateHardLinksForCopyTestToTestDirectoryIfPossible)'==''">$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)</CreateHardLinksForCopyTestToTestDirectoryIfPossible>
     </PropertyGroup>
 
-    <PropertyGroup>
-      <TestNugetTargetMonikerFolder>%(TestNugetTargetMoniker.Folder)</TestNugetTargetMonikerFolder>
-    </PropertyGroup>
-
     <ItemGroup>
       <SourcesToCopyToTestDir Include="@(RunTestsForProjectInputs)" />
-      <DestinationsForTestDir Include="@(RunTestsForProjectInputs->'$(TestPath)$(TestNugetTargetMonikerFolder)\%(Filename)%(Extension)')" />
+      <DestinationsForTestDir Include="@(RunTestsForProjectInputs->'$(TestPath)\%(Filename)%(Extension)')" />
 
       <SourcesToCopyToTestDir Include="@(ContentWithTargetPath)" />
-      <DestinationsForTestDir Include="@(ContentWithTargetPath->'$(TestPath)$(TestNugetTargetMonikerFolder)\%(TargetPath)')" />
+      <DestinationsForTestDir Include="@(ContentWithTargetPath->'$(TestPath)\%(TargetPath)')" />
 
       <SourcesToCopyToTestDir Include="@(OverridenRuntimeContent)" />
-      <DestinationsForTestDir Include="@(OverridenRuntimeContent->'$(TestPath)$(TestNugetTargetMonikerFolder)\%(Filename)%(Extension)')" />
+      <DestinationsForTestDir Include="@(OverridenRuntimeContent->'$(TestPath)\%(Filename)%(Extension)')" />
     </ItemGroup>
 
     <Copy
@@ -138,8 +134,8 @@
       <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
     </Copy>
 
-    <Exec Condition="'$(OS)'=='Unix' and Exists('$(TestPath)%(TestNugetTargetMoniker.Folder)/corerun')"
-          Command="chmod a+x &quot;$(TestPath)%(TestNugetTargetMoniker.Folder)/corerun&quot;" />
+    <Exec Condition="'$(OS)'=='Unix' and Exists('$(TestPath)/corerun')"
+          Command="chmod a+x &quot;$(TestPath)/corerun&quot;" />
 
   </Target>
 
@@ -148,12 +144,7 @@
     Copies supplemental test data to the build output and test directories.
   -->
   <Target Name="CopySupplementalTestData"
-          AfterTargets="CopyTestToTestDirectory"
-          Inputs="@(SupplementalTestData)"
-          Outputs="%(TestNugetTargetMoniker.Folder)">
-    <PropertyGroup>
-      <TestNugetTargetMonikerFolder>%(TestNugetTargetMoniker.Folder)</TestNugetTargetMonikerFolder>
-    </PropertyGroup>
+          AfterTargets="CopyTestToTestDirectory">
     <!-- coalesce supplemental test data items with and without DestinationDir metadata -->
     <ItemGroup>
       <_SupplementalTestData Include="@(SupplementalTestData)" Condition="'%(DestinationDir)' != ''">
@@ -164,7 +155,7 @@
       </_SupplementalTestData>
     </ItemGroup>
     <ItemGroup>
-      <SupplementalTestDataTestDir Include="@(_SupplementalTestData->'$(TestPath)$(TestNugetTargetMonikerFolder)/%(DestinationDir)%(Filename)%(Extension)')" />
+      <SupplementalTestDataTestDir Include="@(_SupplementalTestData->'$(TestPath)/%(DestinationDir)%(Filename)%(Extension)')" />
       <SupplementalTestDataOutDir Include="@(_SupplementalTestData->'$(OutDir)%(DestinationDir)%(Filename)%(Extension)')" />
     </ItemGroup>
     <Copy
@@ -209,7 +200,7 @@
                                  Condition="'$(TestWithoutNativeImages)' != 'true' Or !$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').EndsWith('.ni.dll'))" >
         <PackageRelativePath Condition="'%(_TestCopyLocalByFileNameWithoutDuplicates.NugetPackageId)' != ''">$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').Replace('$(PackagesDir)',''))</PackageRelativePath>
         <UseAbsolutePath Condition="'$(TestWithLocalLibraries)'=='true'">$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').StartsWith('$(BinDir)'))</UseAbsolutePath>
-        <DestinationPath>$(TestPath)$(TestNugetTargetMonikerFolder)\%(Filename)%(Extension)</DestinationPath>
+        <DestinationPath>$(TestPath)\%(Filename)%(Extension)</DestinationPath>
       </_IncludedFileForTestsInVS>
       <_IncludedFileForTestsInVs Remove="@(_IncludedFileForTestsInVS)" Condition="Exists('%(DestinationPath)')" />
     </ItemGroup>
@@ -238,9 +229,9 @@
     </PropertyGroup>
 
     <!-- the project json and runner script files need to be included in the archive -->
-    <Copy SourceFiles="$(ProjectJson);$(ProjectLockJson)" DestinationFolder="$(TestPath)%(TestNugetTargetMoniker.Folder)" />
+    <Copy SourceFiles="$(ProjectJson);$(ProjectLockJson)" DestinationFolder="$(TestPath)" />
     <MakeDir Directories="$(TestArchiveDir)" />
-    <ZipFileCreateFromDirectory SourceDirectory="$(TestPath)%(TestNugetTargetMoniker.Folder)" DestinationArchive="$(TestArchiveDir)$(TestProjectName).zip" OverwriteDestination="true" />
+    <ZipFileCreateFromDirectory SourceDirectory="$(TestPath)" DestinationArchive="$(TestArchiveDir)$(TestProjectName).zip" OverwriteDestination="true" />
   </Target>
 
 </Project>
