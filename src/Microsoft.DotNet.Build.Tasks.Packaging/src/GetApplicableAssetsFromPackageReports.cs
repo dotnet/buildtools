@@ -92,7 +92,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         private ITaskItem ItemFromApplicableAsset(PackageAsset asset, string id, string version)
         {
             var item = new TaskItem(asset.LocalPath);
-            item.SetMetadata("SourceProject", asset.SourceProject?.Project);
             item.SetMetadata("PackagePath", asset.PackagePath);
             item.SetMetadata("NuGetPackageId", id);
             item.SetMetadata("NuGetPackageVersion", version);
