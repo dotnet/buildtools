@@ -304,7 +304,7 @@ class CommandLine
         /// <param name="parseBody">parseBody is the body of the parsing that this outer shell does not provide.
         /// in this delegate, you should be defining all the command line parameters using calls to Define* methods.
         ///  </param>
-        public static bool ParseForConsoleApplication(Action<CommandLineParser> parseBody, string[] args, Dictionary<string, Dictionary<string, string>> customHelpText)
+        public static bool ParseForConsoleApplication(Action<CommandLineParser> parseBody, string[] args, Dictionary<string, Dictionary<string, string>> customHelpText, string customIntroText = "")
         {
             return Parse(parseBody, parser =>
             {
@@ -315,7 +315,7 @@ class CommandLine
                     parameterSetTofocusOn = null;
                 }
 
-                helpString = parser.GetIntroTextForHelp(GetConsoleWidth() - 1).ToString();
+                helpString = customIntroText;
                 helpString += parser.GetHelp(GetConsoleWidth() - 1, parameterSetTofocusOn, true);
                 DisplayStringToConsole(helpString);
             }, (parser, ex) =>
@@ -746,16 +746,21 @@ class CommandLine
                 }
             }
 
-            if (parameterSetBody == 0 && parameterSetName != String.Empty)
+            if (parameterSetBody == 0 && parameterSetName != String.Empty) 
+            {
                 return String.Empty;
+            }
 
             // At this point parameterSetBody and globalParametersEnd are properly set. Start generating strings
             StringBuilder sb = new StringBuilder();
 
             // Create the 'Usage' line;
             string appName = GetEntryAssemblyName();
-            string command = parameterSetParameter.Syntax();
-            sb.Append(command).AppendLine().AppendLine();
+            if (parameterSetParameter != null)
+            {
+                string command = parameterSetParameter.Syntax();
+                sb.Append(command).AppendLine().AppendLine();
+            }
 
             sb.Append("Usage: ").Append(appName);
             if (parameterSetName.Length > 0)
@@ -1632,26 +1637,6 @@ class CommandLine
                 throw new CommandLineParserException(sb.ToString());
             }
         }
-
-        private StringBuilder GetIntroTextForHelp(int maxLineWidth)
-        {
-            string appName = GetEntryAssemblyName();
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine();
-            string text = "The Run Command Tool is now in charge of running the dev workflow steps. Each step has its own command and set of actions that are listed below.  " +
-                "You could also pass Global Settings to the commands.";
-            Wrap(sb, text, 0, String.Empty, maxLineWidth, true);
-            text = "To pass additional parameters that are not described in the Global Settings section, use `--`. After this command, the Run Command Tool will stop processing arguments and will pass all the information as it is to the selected command.";
-            Wrap(sb, text, 0, String.Empty, maxLineWidth, true);
-            text = "The information comes from a config.json file. By default the file is in the root of the repo. Otherwise the first parameter should be the path to the config.json file.";
-            Wrap(sb, text, 0, String.Empty, maxLineWidth, true);
-            text = "For more information about the Run Command Tool: https://github.com/dotnet/buildtools/blob/master/Documentation/RunCommand.md";
-            Wrap(sb, text, 0, String.Empty, maxLineWidth, true);
-            sb.AppendLine().AppendLine().Append("Syntax: run [Command] [Action] (global settings)");
-            sb.AppendLine().Append('-', maxLineWidth - 1).AppendLine();
-            return sb;
-        }
-
 
         /// <summary>
         /// Return a string giving the help for the command, word wrapped at 'maxLineWidth'

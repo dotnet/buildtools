@@ -9,6 +9,7 @@ using System.IO;
 using System.Reflection;
 using Microsoft.Fx.CommandLine;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Microsoft.DotNet.Execute
 {
@@ -41,6 +42,20 @@ namespace Microsoft.DotNet.Execute
 
             configFilePath = Path.GetDirectoryName(configFile);
             configFileName = Path.GetFileName(configFile);
+        }
+
+        private String GetIntroTextForHelp()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine();
+            sb.AppendLine("The Run Command Tool is now in charge of running the dev workflow steps. Each step has its own command and set of actions that are listed below.  " +
+                "You could also pass Global Settings to the commands.");
+            sb.AppendLine("To pass additional parameters that are not described in the Global Settings section, use `--`. After this command, the Run Command Tool will stop processing arguments and will pass all the information as it is to the selected command.");
+            sb.AppendLine("The information comes from a config.json file. By default the file is in the root of the repo. Otherwise the first parameter should be the path to the config.json file.");
+            sb.AppendLine("For more information about the Run Command Tool: https://github.com/dotnet/buildtools/blob/master/Documentation/RunCommand.md");
+            sb.AppendLine().AppendLine().Append("Syntax: run [Command] [Action] (global settings)");
+            sb.AppendLine().Append('-', 80).AppendLine();
+            return sb.ToString();
         }
 
         public Setup OpenFile()
@@ -110,7 +125,7 @@ namespace Microsoft.DotNet.Execute
                         }
                         CommandParameters[comm.Key] = new Dictionary<string, string>(param);
                     }
-                }, args, GetHelpTextDictionaries(setupInformation));
+                }, args, GetHelpTextDictionaries(setupInformation), GetIntroTextForHelp());
                 CommandSelectedByUser = userCommand;
                 setupInformation.SettingParameters = SettingParameters;
                 setupInformation.ExtraParameters = CommandLineParser.ExtraParameters;
