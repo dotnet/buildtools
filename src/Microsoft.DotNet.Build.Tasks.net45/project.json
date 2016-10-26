@@ -2,9 +2,9 @@
   "dependencies": {
     "Microsoft.NETCore.Platforms": "1.0.1",
     "Newtonsoft.Json": "9.0.1",
-    "NuGet.Packaging": "3.5.0-rc1-final",
-    "NuGet.ProjectModel": "3.5.0-rc1-final",
-    "NuGet.Versioning": "3.5.0-rc1-final",
+    "NuGet.Packaging": "3.6.0-rc-1987",
+    "NuGet.ProjectModel": "3.6.0-rc-1987",
+    "NuGet.Versioning": "3.6.0-rc-1987",
     "System.Collections.Immutable": "1.1.37",
     "System.Reflection.Metadata": "1.1.0",
     "System.Runtime.InteropServices.RuntimeInformation": "4.0.0"
