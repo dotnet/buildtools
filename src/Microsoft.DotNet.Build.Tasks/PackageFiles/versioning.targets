@@ -205,7 +205,7 @@
   </Target>
 
   <Target Name="GetLatestCommitHash" Condition="'$(LatestCommit)'==''">
-    <Exec Command="git rev-parse HEAD 2>&amp;1" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
+    <Exec Command="git rev-parse HEAD 2>&amp;1" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true" EchoOff="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="LatestCommit" />
       <Output TaskParameter="ExitCode" PropertyName="LatestCommitExitCode" />
     </Exec>
@@ -284,11 +284,11 @@
       <VersionHostName Condition="'$(VersionHostName)'==''">$(COMPUTERNAME)</VersionHostName>
     </PropertyGroup>
 
-    <Exec Command="whoami" Condition="'$(OSEnvironment)'!='Windows_NT' AND '$(VersionUserName)'==''" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
+    <Exec Command="whoami" Condition="'$(OSEnvironment)'!='Windows_NT' AND '$(VersionUserName)'==''" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true" EchoOff="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="VersionUserName" />
       <Output TaskParameter="ExitCode" PropertyName="UserNameExitCode" />
     </Exec>
-    <Exec Command="hostname" Condition="'$(OSEnvironment)'!='Windows_NT' AND '$(VersionHostName)'==''" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
+    <Exec Command="hostname" Condition="'$(OSEnvironment)'!='Windows_NT' AND '$(VersionHostName)'==''" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true" EchoOff="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="VersionHostName" />
       <Output TaskParameter="ExitCode" PropertyName="HostNameExitCode" />
     </Exec>
@@ -328,7 +328,7 @@
       <GitCommand Condition="'$(OsEnvironment)'!='Windows_NT'">git show -s --format=%25cd --date=short HEAD</GitCommand>
     </PropertyGroup>
       
-    <Exec Command="$(GitCommand)" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
+    <Exec Command="$(GitCommand)" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true" EchoOff="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="VersionSeedDate" />
       <Output TaskParameter="ExitCode" PropertyName="GitCommandExitCode" />
     </Exec>
