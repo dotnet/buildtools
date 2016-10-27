@@ -56,9 +56,9 @@ if ($LastExitCode -ne 0)
 
 # create a junction to the shared FX version directory. this is
 # so we have a stable path to dotnet.exe regardless of version.
+$runtimesPath = Join-Path $CliLocalPath "shared\Microsoft.NETCore.App"
 if ($SharedFrameworkVersion -eq "<auto>")
 {
-    $runtimesPath = Join-Path $CliLocalPath "shared\Microsoft.NETCore.App"
     $SharedFrameworkVersion = Get-ChildItem $runtimesPath -Directory | % { New-Object System.Version($_) } | Sort-Object -Descending | Select-Object -First 1
 }
 $junctionTarget = Join-Path $runtimesPath $SharedFrameworkVersion
@@ -67,7 +67,10 @@ if (-Not (Test-Path $junctionParent))
 {
     mkdir $junctionParent | Out-Null
 }
-cmd.exe /c mklink /j $SharedFrameworkSymlinkPath $junctionTarget | Out-Null
+if (-Not (Test-Path $SharedFrameworkSymlinkPath))
+{
+    cmd.exe /c mklink /j $SharedFrameworkSymlinkPath $junctionTarget | Out-Null
+}
 
 # create a project.json for the packages to restore
 $projectJson = Join-Path $ToolsLocalPath "project.json"
