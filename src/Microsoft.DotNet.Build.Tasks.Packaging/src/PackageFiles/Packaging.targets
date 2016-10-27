@@ -615,7 +615,7 @@
            this will prevent the package from installing on that platform. -->
       <FilePackageDependency Include="Unavailable" Condition="'$(AllowPartialPackages)' == 'true' AND '@(_missingHarvestFile)' != '' AND '$(_TargetFramework)' != ''">
         <TargetFramework>$(_TargetFramework)</TargetFramework>
-        <Version>0.0.0-unavailable</Version>
+        <Version>0.0.0</Version>
       </FilePackageDependency>
     </ItemGroup>
 
