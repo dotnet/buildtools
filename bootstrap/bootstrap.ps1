@@ -5,6 +5,7 @@ param
     [Parameter(Mandatory=$false)][string]$CliLocalPath = (Join-Path $ToolsLocalPath "dotnetcli"),
     [Parameter(Mandatory=$false)][string]$SharedFrameworkSymlinkPath = (Join-Path $ToolsLocalPath "dotnetcli\shared\Microsoft.NETCore.App\version"),
     [Parameter(Mandatory=$false)][string]$SharedFrameworkVersion = "<auto>",
+    [Parameter(Mandatory=$false)][string]$Architecture = "<auto>",
     [switch]$Force = $false
 )
 
@@ -24,7 +25,7 @@ if ((Test-Path $bootstrapComplete) -and !(Compare-Object (Get-Content $rootToolV
 }
 
 $initCliScript = "dotnet-install.ps1"
-$initCliLocalPath = Join-Path $ToolsLocalPath $initCliScript
+$dotnetInstallPath = Join-Path $ToolsLocalPath $initCliScript
 
 # blow away the tools directory so we can start from a known state
 if (Test-Path $ToolsLocalPath)
@@ -38,15 +39,15 @@ else
 }
 
 # download CLI boot-strapper script
-Invoke-WebRequest "https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0/scripts/obtain/dotnet-install.ps1" -OutFile $initCliLocalPath
+Invoke-WebRequest "https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0/scripts/obtain/dotnet-install.ps1" -OutFile $dotnetInstallPath
 
 # load the version of the CLI
 $rootCliVersion = Join-Path $RepositoryRoot ".cliversion"
 $dotNetCliVersion = Get-Content $rootCliVersion
 
 # now execute the script
-Write-Host "$initCliLocalPath -Version $dotNetCliVersion -InstallDir $CliLocalPath"
-Invoke-Expression "$initCliLocalPath -Version $dotNetCliVersion -InstallDir $CliLocalPath"
+Write-Host "$dotnetInstallPath -Version $dotNetCliVersion -InstallDir $CliLocalPath -Architecture ""$Architecture"""
+Invoke-Expression "$dotnetInstallPath -Version $dotNetCliVersion -InstallDir $CliLocalPath -Architecture ""$Architecture"""
 if ($LastExitCode -ne 0)
 {
     Write-Output "The .NET CLI installation failed with exit code $LastExitCode"
