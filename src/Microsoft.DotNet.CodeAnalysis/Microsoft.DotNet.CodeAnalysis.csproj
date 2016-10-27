@@ -35,5 +35,8 @@
       <PackageFiles Include="$(MSBuildThisProjectDirectory)PackageFiles\**\*.*" />
     </ItemGroup>
     <Copy SourceFiles="@(PackageFiles)" DestinationFolder="$(OutputPath)\PackageFiles\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(Analyzer)" DestinationFolder="$(OutputPath)\Analyzers\" SkipUnchangedFiles="true">
+      <Output TaskParameter="CopiedFiles" ItemName="FileWrites"/>
+    </Copy>
   </Target>
 </Project>

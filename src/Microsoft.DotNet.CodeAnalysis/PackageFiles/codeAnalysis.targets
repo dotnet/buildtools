@@ -21,7 +21,18 @@
     <ValidPinvokeMappings Condition="'$(TargetGroup)'=='netcore50' or '$(TargetGroup)'=='netcore50aot' or '$(SupportsUWP)'=='true'">$(MSBuildThisFileDirectory)PinvokeAnalyzer_UWPApis.txt</ValidPinvokeMappings>
   </PropertyGroup>
 
-  <!-- If we have enabled analyzers we need to populate the right item groups -->
+  <PropertyGroup>
+    <!-- %24 = $ -->
+    <EnableFxCopAnalyzers Condition="$([System.Text.RegularExpressions.Regex]::IsMatch($(MSBuildProjectDirectory), 'src%24'))">true</EnableFxCopAnalyzers>
+    <EnableFxCopAnalyzers Condition="'$(EnableFxCopAnalyzers)' != 'true'">false</EnableFxCopAnalyzers>
+  </PropertyGroup>
+
+  <ItemGroup Condition="$(EnableFxCopAnalyzers)">
+    <Analyzer Include="$(CodeAnalyzerDir)*.dll" Exclude="$(CodeAnalyzerDir)Microsoft.DotNet.CodeAnalysis.dll"/>
+  </ItemGroup>
+  <PropertyGroup Condition="$(EnableFxCopAnalyzers)">
+    <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)' == ''">$(MSBuildThisFileDirectory)Default.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <ItemGroup Condition="'$(EnableDotnetAnalyzers)' == 'true'">
     <!-- Enable the Microsoft.Dotnet.CodeAnalysis.dll analyzer -->
     <Analyzer Include="$(CodeAnalyzerDir)Microsoft.DotNet.CodeAnalysis.dll"/>
@@ -37,16 +48,13 @@
     <DisabledAnalyzers Condition="'$(TargetsWindows)'=='true' and ($(TargetGroup.Contains('net46')) or $(TargetGroup.Contains('net45')))" Include="PinvokeAnalyzer" />
   </ItemGroup>
 
-  <PropertyGroup Condition="'$(EnableDotnetAnalyzers)' == 'true'">
-    <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)'==''">$(MSBuildThisFileDirectory)Microsoft.DotNet.CodeAnalysis.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-
   <!-- If we have specified any analyzers that need to be disabled write them into the file -->
   <Target Name="GenerateAnalyzerConfigFile" BeforeTargets="CoreCompile" Condition="'@(DisabledAnalyzers)'!='' and '$(EnableDotnetAnalyzers)' == 'true'" >
     <WriteLinesToFile File="$(IntermediateOutputPath)/disabledAnalyzers.config" Lines="@(DisabledAnalyzers)" Overwrite="true" />
 
     <ItemGroup>
       <AdditionalFiles Include="$(IntermediateOutputPath)/disabledAnalyzers.config"/>
+      <FileWrites Include="$(IntermediateOutputPath)/disabledAnalyzers.config"/>
     </ItemGroup>
   </Target>
 
