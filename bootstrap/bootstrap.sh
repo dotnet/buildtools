@@ -79,6 +79,7 @@ symlinkPath="<auto>"
 sharedFxVersion="<auto>"
 force=false
 forcedCliLocalPath="<none>"
+architecture="<auto>"
 
 while [ $# -ne 0 ]
 do
@@ -99,6 +100,10 @@ do
         -u|--useLocalCli|-[Uu]seLocalCli)
             shift
             forcedCliLocalPath="$1"
+            ;;
+        -a|--architecture|-[Aa]rchitecture)
+            shift
+            architecture="$1"
             ;;
         --sharedFrameworkSymlinkPath|--symlink|-[Ss]haredFrameworkSymlinkPath)
             shift
@@ -147,7 +152,7 @@ if [[ $force && -f $bootstrapComplete ]]; then
 fi
 
 # if the semaphore file exists and is identical to the specified version then exit
-if [[ -f $bootstrapComplete && `cmp $bootstrapComplete $rootToolVersions` ]]; then
+if [[ -f $bootstrapComplete && ! `cmp $bootstrapComplete $rootToolVersions` ]]; then
     say "$bootstrapComplete appears to show that bootstrapping is complete.  Use --force if you want to re-bootstrap."
     exit 0
 fi
@@ -175,8 +180,8 @@ if [ $forcedCliLocalPath = "<none>" ]; then
     dotNetCliVersion=`cat $rootCliVersion`
 
     # now execute the script
-    say_verbose "installing CLI: $dotnetInstallPath --version $dotNetCliVersion --install-dir $cliInstallPath"
-    $dotnetInstallPath --version "$dotNetCliVersion" --install-dir $cliInstallPath
+    say_verbose "installing CLI: $dotnetInstallPath --version \"$dotNetCliVersion\" --install-dir $cliInstallPath --architecture \"$architecture\""
+    $dotnetInstallPath --version "$dotNetCliVersion" --install-dir $cliInstallPath --architecture "$architecture"
     if [ $? != 0 ]; then
         say_err "The .NET CLI installation failed with exit code $?"
         exit $?
