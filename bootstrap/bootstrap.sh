@@ -221,7 +221,7 @@ nugetOrgSource="https://api.nuget.org/v3/index.json"
 
 packagesPath="$repoRoot/packages"
 dotNetExe="$cliInstallPath/dotnet"
-restoreArgs="restore $projectJson --packages $packagesPath --source $buildToolsSource --source $nugetOrgSource"
+restoreArgs="restore $projectJson --packages $packagesPath --source $buildToolsSource --source $nugetOrgSource ${__INIT_TOOLS_RESTORE_ARGS:-}"
 say_verbose "Running $dotNetExe $restoreArgs"
 $dotNetExe $restoreArgs
 if [ $? != 0 ]; then

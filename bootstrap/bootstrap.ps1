@@ -91,7 +91,7 @@ if ($env:buildtools_source -ne $null)
 }
 $packagesPath = Join-Path $RepositoryRoot "packages"
 $dotNetExe = Join-Path $cliLocalPath "dotnet.exe"
-$restoreArgs = "restore $projectJson --packages $packagesPath --source $buildToolsSource --source $nugetOrgSource"
+$restoreArgs = "restore $projectJson --packages $packagesPath --source $buildToolsSource --source $nugetOrgSource $($env:init_tools_restore_args)"
 $process = Start-Process -Wait -NoNewWindow -FilePath $dotNetExe -ArgumentList $restoreArgs -PassThru
 if ($process.ExitCode -ne 0)
 {
