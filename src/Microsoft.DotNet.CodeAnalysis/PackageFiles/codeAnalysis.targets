@@ -31,7 +31,7 @@
     <Analyzer Include="$(CodeAnalyzerDir)*.dll" Exclude="$(CodeAnalyzerDir)Microsoft.DotNet.CodeAnalysis.dll"/>
   </ItemGroup>
   <PropertyGroup Condition="$(EnableFxCopAnalyzers)">
-    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)Default.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)' == ''">$(MSBuildThisFileDirectory)Default.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup Condition="'$(EnableDotnetAnalyzers)' == 'true'">
     <!-- Enable the Microsoft.Dotnet.CodeAnalysis.dll analyzer -->
