@@ -75,7 +75,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     Log.LogMessage($"Could not parse version {versionString} for LatestPackage {packageId}, will use latest stable.");
                 }
 
-                latestPackages[packageId] = nuGetVersion?.Version;
+                latestPackages[packageId] = VersionUtility.As3PartVersion(nuGetVersion?.Version);
                 originalItems[packageId] = latestPackage;
             }
 
@@ -130,7 +130,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     Log.LogMessage($"Could not parse version {versionString} for LatestPackage {packageId}, will use latest stable.");
                 }
 
-                var latestVersion = nuGetVersion?.Version;
+                var latestVersion = VersionUtility.As3PartVersion(nuGetVersion?.Version);
 
                 PackageInfo info;
                 if (PackageIndex.Current.Packages.TryGetValue(packageId, out info))
