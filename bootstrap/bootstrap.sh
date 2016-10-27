@@ -74,10 +74,10 @@ download() {
 verbose=false
 repoRoot=`pwd`
 toolsLocalPath="<auto>"
-cliInstallPath="<auto>"
+cliLocalPath="<auto>"
 symlinkPath="<auto>"
 sharedFxVersion="<auto>"
-force=false
+force=
 forcedCliLocalPath="<none>"
 architecture="<auto>"
 
@@ -93,9 +93,9 @@ do
             shift
             toolsLocalPath="$1"
             ;;
-        -c|--cliInstallPath|-[Cc]liLocalPath)
+        -c|--cliInstallPath|--cliLocalPath|-[Cc]liLocalPath)
             shift
-            cliInstallPath="$1"
+            cliLocalPath="$1"
             ;;
         -u|--useLocalCli|-[Uu]seLocalCli)
             shift
@@ -131,11 +131,11 @@ if [ $toolsLocalPath = "<auto>" ]; then
     toolsLocalPath="$repoRoot/Tools"
 fi
 
-if [ $cliInstallPath = "<auto>" ]; then
+if [ $cliLocalPath = "<auto>" ]; then
     if [ $forcedCliLocalPath = "<none>" ]; then
-        cliInstallPath="$toolsLocalPath/dotnetcli"
+        cliLocalPath="$toolsLocalPath/dotnetcli"
     else
-        cliInstallPath=$forcedCliLocalPath
+        cliLocalPath=$forcedCliLocalPath
     fi
 fi
 
@@ -180,16 +180,16 @@ if [ $forcedCliLocalPath = "<none>" ]; then
     dotNetCliVersion=`cat $rootCliVersion`
 
     # now execute the script
-    say_verbose "installing CLI: $dotnetInstallPath --version \"$dotNetCliVersion\" --install-dir $cliInstallPath --architecture \"$architecture\""
-    $dotnetInstallPath --version "$dotNetCliVersion" --install-dir $cliInstallPath --architecture "$architecture"
+    say_verbose "installing CLI: $dotnetInstallPath --version \"$dotNetCliVersion\" --install-dir $cliLocalPath --architecture \"$architecture\""
+    $dotnetInstallPath --version "$dotNetCliVersion" --install-dir $cliLocalPath --architecture "$architecture"
     if [ $? != 0 ]; then
         say_err "The .NET CLI installation failed with exit code $?"
         exit $?
     fi
 fi
 
+runtimesPath="$cliLocalPath/shared/Microsoft.NETCore.App"
 if [ $sharedFxVersion = "<auto>" ]; then
-    runtimesPath="$cliInstallPath/shared/Microsoft.NETCore.App"
     # OSX doesn't support --version-sort, https://stackoverflow.com/questions/21394536/how-to-simulate-sort-v-on-mac-osx
     sharedFxVersion=`ls $runtimesPath | sed 's/^[0-9]\./0&/; s/\.\([0-9]\)$/.0\1/; s/\.\([0-9]\)\./.0\1./g; s/\.\([0-9]\)\./.0\1./g' | sort -r | sed 's/^0// ; s/\.0/./g' | head -n 1`
 fi
@@ -203,7 +203,9 @@ if [ ! -d $junctionParent ]; then
     mkdir -p $junctionParent
 fi
 
-ln -s $junctionTarget $symlinkPath
+if [ ! -e $symlinkPath ]; then
+    ln -s $junctionTarget $symlinkPath
+fi
 
 # create a project.json for the packages to restore
 projectJson="$toolsLocalPath/project.json"
@@ -220,7 +222,7 @@ buildToolsSource="${BUILDTOOLS_SOURCE:-https://dotnet.myget.org/F/dotnet-buildto
 nugetOrgSource="https://api.nuget.org/v3/index.json"
 
 packagesPath="$repoRoot/packages"
-dotNetExe="$cliInstallPath/dotnet"
+dotNetExe="$cliLocalPath/dotnet"
 restoreArgs="restore $projectJson --packages $packagesPath --source $buildToolsSource --source $nugetOrgSource"
 say_verbose "Running $dotNetExe $restoreArgs"
 $dotNetExe $restoreArgs
