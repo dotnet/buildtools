@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Text;
 using System.Collections.Generic;
 using System.IO;
-
 using System.Reflection;
 
 namespace Microsoft.Fx.CommandLine
@@ -19,8 +18,8 @@ namespace Microsoft.Fx.CommandLine
     /// The code:CommandLineParser is a utility for parsing command lines. Command lines consist of three basic
     /// entities. A command can have any (or none) of the following (separated by whitespace of any size).
     ///
-    ///    * PARAMETERS - this are non-space strings. They are positional (logicaly they are numbered). Strings
-    ///        with space can be specified by enclosing in double quotes.
+    ///    * PARAMETERS - these are non-space strings. They are positional (logicaly they are numbered). Strings
+    ///        with whitespace can be specified by enclosing in double quotes.
     ///
     ///    * QUALIFIERS - Qualifiers are name-value pairs. The following syntax is supported.
     ///        * -QUALIFIER
@@ -29,8 +28,8 @@ namespace Microsoft.Fx.CommandLine
     ///        * -QUALIFIER VALUE
     ///
     ///      The end of a value is delimited by space. Again values with spaces can be encoded by enclosing them
-    ///      the value (or the whole qualifer-value string), in double quotes. The first form (where a value is
-    ///      not specified is only available for boolean qualifiers, and boolean values can not use the form where
+    ///      within the value (or the whole qualifer-value string), in double quotes. The first form (where a value is
+    ///      not specified) is only available for boolean qualifiers, and boolean values can not use the form where
     ///      the qualifer and value are separated by space. The '/' character can also be used instead of the '-'
     ///      to begin a qualifier.
     ///
@@ -50,22 +49,24 @@ namespace Microsoft.Fx.CommandLine
     /// independent of one another. For example a for example For example a program might have 'checkin'
     /// 'checkout' 'list' commands, and each of these commands has a different set of parameters that are needed
     /// and qualifiers that are allowed. (for example checkout will take a list of file names, list needs nothing,
-    /// and checkin needs a comment). Additionally some qualifiers (like say -dataBaseName can apply to any of hte
-    /// commands). Thus You would like to say that the following command lines are legal
+    /// and checkin needs a comment). Additionally some qualifiers (like say -dataBaseName can apply to any of the
+    /// commands). 
+    /// 
+    /// The following command lines are legal:
     ///
     ///     * EXE -checkout MyFile1 MyFile -dataBaseName:MyDatabase
     ///     * EXE -dataBaseName:MyDatabase -list
     ///     * EXE -comment "Specifying the comment first" -checkin
     ///     * EXE -checkin -comment "Specifying the comment afterward"
     ///
-    /// But the following are not
+    /// But the following are not:
     ///
     ///     * EXE -checkout
     ///     * EXE -checkout -comment "hello"
     ///     * EXE -list MyFile
     ///
-    /// You do this by specifying 'checkout', 'list' and 'checkin' as parameters sets. On the command line they
-    /// look like boolean qualifiers, however they have additional sematantics. They must come before any
+    /// You do this by specifying 'checkout', 'list' and 'checkin' as parameter sets. On the command line they
+    /// look like boolean qualifiers, however they have additional semantics. They must come before any
     /// positional parameters (because they affect whether the parameters are allowed and what they are named),
     /// and they are mutually exclusive. Each parameter set gets its own set of parameter definitions, and
     /// qualifiers can either be associated with a particular parameter set (like -comment) or global to all
@@ -80,7 +81,7 @@ namespace Microsoft.Fx.CommandLine
     ///
     /// #DefaultParameterSet
     ///
-    /// One parameters set (which has the empty string name), is special in that it is used when no other
+    /// One parameter set (which has the empty string name), is special in that it is used when no other
     /// parameter set is matched. This is the default parameter set. For example, if -checkout was defined to be
     /// the default parameter set, then the following would be legal.
     ///
@@ -96,7 +97,7 @@ namespace Microsoft.Fx.CommandLine
     /// Because whitespace can separate a qualifier from its value AND Qualifier from each other, and because
     /// parameter values might start with a dash (and thus look like qualifiers), the syntax is ambiguous. It is
     /// disambigutated with the following rules.
-    ///     * The command line is parsed into 'arguments' that are spearated by whitespace. Any string enclosed
+    ///     * The command line is parsed into 'arguments' that are separated by whitespace. Any string enclosed
     ///         in "" will be a single argument even if it has embedded whitespace. Double quote characters can
     ///         be specified by \" (and a \" literal can be specified by \\" etc).
     ///     * Arguments are parsed into qualifiers. This parsing stops if a '--' argument is found. Thus all
@@ -154,18 +155,18 @@ namespace Microsoft.Fx.CommandLine
 #endif
     /// #RequiredAndOptional
     ///
-    /// Parameters and qualifiers can be specified as required (the default), or optional. Makeing the default
-    /// required was choses to make any mistakes 'obvious' since the parser will fail if a required parameter is
+    /// Parameters and qualifiers can be specified as required (the default), or optional. Making the default
+    /// required was chosen to make any mistakes 'obvious' since the parser will fail if a required parameter is
     /// not present (if the default was optional, it would be easy to make what should have been a required
     /// qualifier optional, leading to business logic failiure).
     ///
     /// #ParsedValues
     ///
-    /// The class was designed maximize programmer convinience. For each parameter, only one call is needed to
+    /// The class was designed maximize programmer convenience. For each parameter, only one call is needed to
     /// both define the parameter, its help message, and retrive its (strong typed) value. For example
     ///
     ///      * int count = 5;
-    ///      * parser.DefineOptionalQualifier("count", ref count, "help for optional debugs qualifier");
+    ///      * parser.DefineOptionalQualifier("count", ref count, "help for optional count qualifier");
     ///
     /// Defines a qualifier 'count' and will place its value in the local variable 'count' as a integer. Default
     /// values are supported by doing nothing, so in the example above the default value will be 5.
@@ -174,10 +175,10 @@ namespace Microsoft.Fx.CommandLine
     /// string argument and returning that type. This is true for all primtive types, DateTime, Enumerations, and
     /// any user defined type that follows this convention.
     ///
-    /// Array types: The parser has special knowedge of arrays. If the type of a qualifier is an array, then the
+    /// Array types: The parser has special knowledge of arrays. If the type of a qualifier is an array, then the
     /// string value is assumed to be a ',' separated list of strings which will be parsed as the element type of
     /// the array. In addition to the ',' syntax, it is also legal to specify the qualifier more than once. For
-    /// example given the defintion
+    /// example given the definition
     ///
     ///      * int[] counts;
     ///      * parser.DefineOptionalQualifier("counts", ref counts, "help for optional counts qualifier");
@@ -231,7 +232,7 @@ namespace Microsoft.Fx.CommandLine
     /// Since this is stuff that all applications will likely need the
     /// code:CommandLineParser.ParseForConsoleApplication was created to do all of this for you, thus making it
     /// super-easy to make a production quality parser (and concentrate on getting your application logic instead
-    /// of command line parsing. Here is an example which defines a 'Ping' command. If you will notice there are
+    /// of command line parsing). Here is an example which defines a 'Ping' command. If you will notice there are
     /// very few lines of code that are not expressing something very specific to this applications. This is how
     /// it should be!
 #if EXAMPLE2
@@ -262,7 +263,7 @@ namespace Microsoft.Fx.CommandLine
     /// don't need to be passed around to many routines.  In general, however it is often a better idea to
     /// create a class whose sole purpose is to act as a repository for the parsed arguments.   This also nicely
     /// separates all command line processing into a single class.   This is how the ping example would look  in
-    /// that style. Notice that the main program no longer holds any command line processing logic.  and that
+    /// that style. Notice that the main program no longer holds any command line processing logic, and that
     /// 'commandLine' can be passed to other routines in bulk easily.
 #if EXAMPLE3
 class CommandLineParserExample3
@@ -297,41 +298,57 @@ class CommandLine
     {
         /// <summary>
         /// If you are building a console Application, there is a common structure to parsing arguments. You want
-        /// the text formated and output for console windows, and you want /? to be wired up to do this. All
+        /// the text formatted and output for console windows, and you want /? to be wired up to do this. All
         /// errors should be caught and displayed in a nice way.  This routine does this 'boiler plate'.
         /// </summary>
         /// <param name="parseBody">parseBody is the body of the parsing that this outer shell does not provide.
         /// in this delegate, you should be defining all the command line parameters using calls to Define* methods.
         ///  </param>
-        public static bool ParseForConsoleApplication(Action<CommandLineParser> parseBody, string[] args)
+        public static bool ParseForConsoleApplication(Action<CommandLineParser> parseBody, string[] args, Dictionary<string, Dictionary<string, string>> customHelpText, string customIntroText = "")
         {
             return Parse(parseBody, parser =>
             {
                 var parameterSetTofocusOn = parser.HelpRequested;
+                string helpString;
                 if (parameterSetTofocusOn.Length == 0)
                 {
                     parameterSetTofocusOn = null;
                 }
 
-                string helpString = parser.GetHelp(GetConsoleWidth() - 1, parameterSetTofocusOn, true);
+                helpString = customIntroText;
+                helpString += parser.GetHelp(GetConsoleWidth() - 1, parameterSetTofocusOn, true);
                 DisplayStringToConsole(helpString);
             }, (parser, ex) =>
             {
-                Console.WriteLine("Error: " + ex.Message);
-                Console.WriteLine("Use -? for help.");
+                Console.Error.WriteLine("Error: " + ex.Message);
+                
+                Console.ForegroundColor = ConsoleColor.DarkYellow;
+                Console.WriteLine("Our dev workflow has changed! Use -? for help in the new options we have and how to pass parameters now.");
+                Console.ResetColor();
             },
-            args);
+            customHelpText, args);
         }
 
-        public static bool Parse(Action<CommandLineParser> parseBody, Action<CommandLineParser> helpHandler, Action<CommandLineParser, Exception> errorHandler, string[] args)
+        /// <summary>
+        ///  Overload for tools which do not provide extra help text.
+        /// </summary>
+        /// <param name="parseBody"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public static bool ParseForConsoleApplication(Action<CommandLineParser> parseBody, string[] args)
+        {
+            return ParseForConsoleApplication(parseBody, args, new Dictionary<string, Dictionary<string, string>>());
+        }
+
+        public static bool Parse(Action<CommandLineParser> parseBody, Action<CommandLineParser> helpHandler, Action<CommandLineParser, Exception> errorHandler, Dictionary<string, Dictionary<string, string>> customHelpText, string[] args)
         {
             var help = false;
-            CommandLineParser parser = new CommandLineParser(args);
-            parser.DefineOptionalQualifier("?", ref help, "Print this help guide.");
+            CommandLineParser parser = new CommandLineParser(args, customHelpText);
+            parser.DefineOptionalQualifier("?", ref help, "Print this help guide.", null, null);
 
             try
             {
-                // RawPrint the help.
+                // Raw-print the help.
                 if (parser.HelpRequested != null)
                 {
                     parser._skipParameterSets = true;
@@ -356,16 +373,16 @@ class CommandLine
         /// <summary>
         /// Qualifiers are command line parameters of the form -NAME:VALUE where NAME is an alphanumeric name and
         /// VALUE is a string. The parser also accepts -NAME: VALUE and -NAME VALUE but not -NAME : VALUE For
-        /// boolan parameters, the VALUE can be dropped (which means true), and a empty string VALUE means false.
+        /// boolean parameters, the VALUE can be dropped (which means true), and an empty string VALUE means false.
         /// Thus -NAME means the same as -NAME:true and -NAME: means the same as -NAME:false (and boolean
         /// qualifiers DONT allow -NAME true or -NAME false).
         ///
         /// The types that are supported are any type that has a static 'Parse' function that takes a string
         /// (this includes all primitive types as well as DateTime, and Enumerations, as well as arrays of
-        /// parsable types (values are comma separated without space).
+        /// parsable types (values are comma-separated without space).
         ///
-        /// Qualifiers that are defined BEFORE any parameter sets apply to ALL parameter sets.  qualifiers that
-        /// are defined AFTER a parameter set will apply only the the parameter set that preceeds them.
+        /// Qualifiers that are defined BEFORE any parameter sets apply to ALL parameter sets.  Qualifiers that
+        /// are defined AFTER a parameter set will apply only the the parameter set that precedes them.
         ///
         /// See code:#DefiningParametersAndQualifiers
         /// See code:#Overview
@@ -373,15 +390,49 @@ class CommandLine
         /// <param name="retVal">The place to put the parsed value</param>
         /// <param name="helpText">Text to print for this qualifier.  It will be word-wrapped.  Newlines indicate
         /// new paragraphs.</param>
+        /// <param name="defaultValue">Default value for parameter if not supplied</param>
+        /// <param name="legalValues">Acceptable values for qualifiers</param>
         /// </summary>
-        public void DefineOptionalQualifier<T>(string name, ref T retVal, string helpText)
+        public void DefineOptionalQualifier<T>(string name, ref T retVal, string helpText, string defaultValue, List<string> legalValues)
         {
-            object obj = DefineQualifier(name, typeof(T), retVal, helpText, false);
+            object obj = DefineQualifier(name, typeof(T), retVal, helpText, false, defaultValue, legalValues);
             if (obj != null)
                 retVal = (T)obj;
         }
+
+        /// <summary>
+        /// Define an optional qualifier with no default value or list of legal values 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="retVal"></param>
+        /// <param name="helpText"></param>
+        public void DefineOptionalQualifier<T>(string name, ref T retVal, string helpText)
+        {
+            object obj = DefineQualifier(name, typeof(T), retVal, helpText, false, string.Empty, null);
+            if (obj != null)
+                retVal = (T)obj;
+        }
+
         /// <summary>
         /// Like code:DeclareOptionalQualifier except it is an error if this parameter is not on the command line.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name">The name of the qualifer.</param>
+        /// <param name="retVal">The place to put the parsed value</param>
+        /// <param name="helpText">Text to print for this qualifer.  It will be word-wrapped.  Newlines indicate
+        /// new paragraphs.</param>
+        /// <param name="defaultValue"></param>
+        /// <param name="legalValues"></param>
+        public void DefineQualifier<T>(string name, ref T retVal, string helpText, string defaultValue, List<string> legalValues)
+        {
+            object obj = DefineQualifier(name, typeof(T), retVal, helpText, true, defaultValue, legalValues);
+            if (obj != null)
+                retVal = (T)obj;
+        }
+        
+        /// <summary>
+        /// Define an  qualifier with no default value or list of legal values
         /// <param name="name">The name of the qualifer.</param>
         /// <param name="retVal">The place to put the parsed value</param>
         /// <param name="helpText">Text to print for this qualifer.  It will be word-wrapped.  Newlines indicate
@@ -389,12 +440,13 @@ class CommandLine
         /// </summary>
         public void DefineQualifier<T>(string name, ref T retVal, string helpText)
         {
-            object obj = DefineQualifier(name, typeof(T), retVal, helpText, true);
+            object obj = DefineQualifier(name, typeof(T), retVal, helpText, true, string.Empty, null);
             if (obj != null)
                 retVal = (T)obj;
         }
+
         /// <summary>
-        /// Specify additional aliases for an qualifier.  This call must come BEFORE the call to
+        /// Specify additional aliases for a qualifier.  This call must come BEFORE the call to
         /// Define*Qualifier, since the definition needs to know about its aliases to do its job.
         /// </summary>
         public void DefineAliases(string officalName, params string[] alaises)
@@ -414,12 +466,11 @@ class CommandLine
         /// qualifier). These are given ordinal numbers (starting at 0). You should declare the parameter in the
         /// desired order.
         ///
-        ///
         /// See code:#DefiningParametersAndQualifiers
         /// See code:#Overview
         /// <param name="name">The name of the parameter.</param>
         /// <param name="retVal">The place to put the parsed value</param>
-        /// <param name="helpText">Text to print for this qualifer.  It will be word-wrapped.  Newlines indicate
+        /// <param name="helpText">Text to print for this qualifier.  It will be word-wrapped.  Newlines indicate
         /// new paragraphs.</param>
         /// </summary>
         public void DefineParameter<T>(string name, ref T retVal, string helpText)
@@ -445,7 +496,7 @@ class CommandLine
 
         /// <summary>
         /// A parameter set defines on of a set of 'commands' that decides how to parse the rest of the command
-        /// line.   If this 'command' is present on the command line then 'val' is assigned to 'retVal'.
+        /// line.  If this 'command' is present on the command line then 'val' is assigned to 'retVal'.
         /// Typically 'retVal' is a variable of a enumerated type (one for each command), and 'val' is one
         /// specific value of that enumeration.
         ///
@@ -482,8 +533,8 @@ class CommandLine
         }
         /// <summary>
         /// This variation of DefineDefaultParameterSet has a 'retVal' and 'val' parameters.  If the command
-        /// line does not match any of the other parameter set defintions, then 'val' is asigned to 'retVal'.
-        /// Typically 'retVal' is a variable of a enumerated type and 'val' is a value of that type.
+        /// line does not match any of the other parameter set defintions, then 'val' is assigned to 'retVal'.
+        /// Typically 'retVal' is a variable of an enumerated type and 'val' is a value of that type.
         ///
         /// * See code:DefineDefaultParameterSet for more.
         /// <param name="retVal">The place to put the parsed value</param>
@@ -502,8 +553,8 @@ class CommandLine
         // thereafter.
         /// <summary>
         /// By default parameter set specifiers must look like a qualifier (begin with a -), however setting
-        /// code:NoDashOnParameterSets will define a parameter set marker not to have any special prefix (just
-        /// the name itself.
+        /// code:NoDashOnParameterSets will define a parameter set marker to not have any special prefix (just
+        /// the name itself.)
         /// </summary>
         public bool NoDashOnParameterSets
         {
@@ -567,6 +618,7 @@ class CommandLine
             {
                 if (_qualifiersUseOnlyDash != value)
                     ThrowIfNotFirst("OnlyDashForQualifiers");
+
                 _qualifiersUseOnlyDash = value;
             }
         }
@@ -584,32 +636,23 @@ class CommandLine
             set { _lastQualifierWins = value; }
         }
 
+        public static string ExtraParameters
+        {
+            get { return _extraParameters; }
+        }
+
         // These routines are typically are not needed because ParseArgsForConsoleApp does the work.
-#if !COREFX
-        public CommandLineParser() : this(Environment.CommandLine) { }
-#endif
         public CommandLineParser(string commandLine)
         {
-            _args = new List<string>();
             ParseWords(commandLine);
         }
-        public CommandLineParser(string[] args)
-        {
-            _args = new List<string>();
-            _seenExeArg = true;
 
-            for (int i = 0; i < args.Length; i++)
-            {
-                if (args[i][0] == '@')
-                {
-                    // Parse response files
-                    ParseWords(args[i]);
-                }
-                else
-                {
-                    _args.Add(args[i]);
-                }
-            }
+        public CommandLineParser(string[] args) : this(args, new Dictionary<string, Dictionary<string, string>>()) {}
+
+        public CommandLineParser(string[] args, Dictionary<string, Dictionary<string, string>> customHelpText)
+        {
+            _args = new List<string>(args);
+            _customHelpText = customHelpText;            
         }
 
         /// <summary>
@@ -628,11 +671,20 @@ class CommandLine
             }
 
             // Find any 'unused' parameters;
-            while (_curPosition < _args.Count && _args[_curPosition] == null)
-                _curPosition++;
-
-            if (_curPosition < _args.Count)
-                throw new CommandLineParserException("Extra positional parameter: " + _args[_curPosition] + ".");
+            List<string> unusedParameters = new List<string>();
+            foreach(string param in _args)
+            {
+                if(!string.IsNullOrEmpty(param))
+                {
+                    unusedParameters.Add(param);
+                }
+            }
+            
+            if (unusedParameters.Count > 0)
+            {
+                throw new CommandLineParserException("Parameter not recognized: " + unusedParameters[0] + ".");
+            }
+                
 
             // TODO we should null out data structures we no longer need, to save space.
             // Not critical because in the common case, the parser as a whole becomes dead.
@@ -694,20 +746,28 @@ class CommandLine
                 }
             }
 
-            if (parameterSetBody == 0 && parameterSetName != String.Empty)
+            if (parameterSetBody == 0 && parameterSetName != String.Empty) 
+            {
                 return String.Empty;
+            }
 
             // At this point parameterSetBody and globalParametersEnd are properly set. Start generating strings
             StringBuilder sb = new StringBuilder();
 
             // Create the 'Usage' line;
             string appName = GetEntryAssemblyName();
+            if (parameterSetParameter != null)
+            {
+                string command = parameterSetParameter.Syntax();
+                sb.Append(command).AppendLine().AppendLine();
+            }
 
             sb.Append("Usage: ").Append(appName);
             if (parameterSetName.Length > 0)
             {
                 sb.Append(' ');
-                sb.Append(parameterSetParameter.Syntax(false, false));
+                sb.Append(command);
+                sb.Append(" [Action] (global settings)");
             }
 
             bool hasQualifiers = false;
@@ -721,53 +781,77 @@ class CommandLine
                 if (parameter.IsPositional)
                 {
                     hasParameters = true;
-                    sb.Append(' ').Append(parameter.Syntax(false, false));
+                    sb.Append(' ').Append(parameter.Syntax());
                 }
                 else
+                {
                     hasQualifiers = true;
+                    break;
+                }
             }
             sb.AppendLine();
 
             // Print the help for the command itself.
-            if (parameterSetParameter != null && !string.IsNullOrEmpty(parameterSetParameter.HelpText))
+            /*if (parameterSetParameter != null && !string.IsNullOrEmpty(parameterSetParameter.HelpText))
             {
                 sb.AppendLine();
-                if (parameterSetParameter != null && parameterSetParameter.HelpText != null)
-                    Wrap(sb.Append("  "), parameterSetParameter.HelpText, 2, "  ", maxLineWidth);
-            }
+                Wrap(sb.Append("  "), parameterSetParameter.HelpText, 2, "  ", maxLineWidth);
+            }*/
 
             if (hasParameters)
             {
-                sb.AppendLine().Append("  Parameters:").AppendLine();
+                sb.AppendLine().Append("Parameters:").AppendLine();
                 for (int i = parameterSetBody; i < _parameterDescriptions.Count; i++)
                 {
                     CommandLineParameter parameter = _parameterDescriptions[i];
                     if (parameter.IsParameterSet)
                         break;
                     if (parameter.IsPositional)
+                    {
                         ParameterHelp(parameter, sb, QualifierSyntaxWidth, maxLineWidth);
+                    }
                 }
             }
-
-            string globalQualifiers = null;
-            if (displayGlobalQualifiers)
-                globalQualifiers = GetHelpGlobalQualifiers(maxLineWidth);
-
-            if (hasQualifiers || !string.IsNullOrEmpty(globalQualifiers))
+            else if (hasQualifiers)
             {
-                sb.AppendLine().Append("  Qualifiers:").AppendLine();
+                sb.AppendLine().Append("Actions:").AppendLine();
+
                 for (int i = parameterSetBody; i < _parameterDescriptions.Count; i++)
                 {
                     CommandLineParameter parameter = _parameterDescriptions[i];
                     if (parameter.IsParameterSet)
                         break;
                     if (parameter.IsNamed)
+                    {
                         ParameterHelp(parameter, sb, QualifierSyntaxWidth, maxLineWidth);
+                        string usageKey = $"{parameterSetParameter.Name}-{parameter.Name}";
+
+                        if (_customHelpText.ContainsKey(parameterSetParameter.Name) && _customHelpText[parameterSetParameter.Name].ContainsKey(parameter.Name))
+                        { 
+                            Wrap(sb, _customHelpText[parameterSetParameter.Name][parameter.Name], QualifierSyntaxWidth, new string(' ', QualifierSyntaxWidth), maxLineWidth, false);
+                        }
+                    }
                 }
-                if (globalQualifiers != null)
-                    sb.Append(globalQualifiers);
+            }
+            else
+            {
+                if (_customHelpText.ContainsKey(parameterSetParameter.Name))
+                {
+                    Wrap(sb, _customHelpText[parameterSetParameter.Name][string.Empty], QualifierSyntaxWidth, new string(' ', QualifierSyntaxWidth), maxLineWidth, false);
+                }
             }
 
+            string globalQualifiers = null;
+            if (displayGlobalQualifiers)
+                globalQualifiers = GetHelpGlobalQualifiers(maxLineWidth);
+            if(!string.IsNullOrEmpty(globalQualifiers))
+            {
+                sb.AppendLine().Append('-', maxLineWidth - 1).AppendLine();
+                sb.Append("Global Settings:").AppendLine();
+                sb.AppendLine();
+                sb.Append(globalQualifiers);
+            }
+                
             return sb.ToString();
         }
         /// <summary>
@@ -779,7 +863,6 @@ class CommandLine
             set { _helpRequestedFor = value; _mustParseHelpStrings = true; }
         }
 
-
         #region private
         /// <summary>
         /// CommandLineParameter contains the 'full' information for a parameter or qualifier used for generating help.
@@ -789,7 +872,9 @@ class CommandLine
         {
             public string Name { get { return _name; } }
             public Type Type { get { return _type; } }
-            public object DefaultValue { get { return _defaultValue; } }
+            public string DefaultValue { get { return _defaultValue; } }
+            public List<string> LegalValues { get { return _legalValues; } }
+            public object Value { get { return _value; } }
             public bool IsRequired { get { return _isRequired; } }
             public bool IsPositional { get { return _isPositional; } }
             public bool IsNamed { get { return !_isPositional; } }
@@ -800,48 +885,16 @@ class CommandLine
                 return "<CommandLineParameter " +
                     "Name=\"" + _name + "\" " +
                     "Type=\"" + _type + "\" " +
+                    "DefaultValue=\"" + _defaultValue + "\" " +
                     "IsRequired=\"" + IsRequired + "\" " +
                     "IsPositional=\"" + IsPositional + "\" " +
                     "HelpText=\"" + HelpText + "\"/>";
             }
-            public string Syntax(bool printType, bool printDefaultValue)
+            public string Syntax()
             {
                 string ret = _name;
                 if (IsNamed)
                     ret = "-" + ret;
-                if (printType)
-                {
-                    // We print out arrays with the ... notiation, so we don't want the [] when we display the type
-                    Type displayType = Type;
-                    if (displayType.IsArray)
-                        displayType = displayType.GetElementType();
-                    if (displayType.GetTypeInfo().IsGenericType && displayType.GetGenericTypeDefinition() == typeof(Nullable<>))
-                        displayType = displayType.GetGenericArguments()[0];
-
-                    bool shouldPrint = true;
-                    // Bool type implied on named parameters
-                    if (IsNamed && _type == typeof(bool))
-                    {
-                        shouldPrint = false;
-                        if (_defaultValue != null && (bool)_defaultValue)
-                            shouldPrint = false;
-                    }
-                    // string type is implied on positional parameters
-                    if (IsPositional && displayType == typeof(string) && string.IsNullOrEmpty(_defaultValue as string))
-                        shouldPrint = false;
-
-                    if (shouldPrint)
-                    {
-                        ret = ret + (IsNamed ? ":" : ".") + displayType.Name.ToUpper();
-                        if (printDefaultValue && _defaultValue != null)
-                        {
-                            string defValue = _defaultValue.ToString();
-                            if (defValue.Length < 40)   // TODO is this reasonable?
-                                ret += "(" + defValue + ")";
-                        }
-                    }
-                }
-
                 if (Type.IsArray)
                     ret = ret + (IsNamed ? "," : " ") + "...";
 
@@ -851,20 +904,31 @@ class CommandLine
             }
 
             #region private
-            internal CommandLineParameter(string Name, object defaultValue, string helpText, Type type,
-                bool isRequired, bool isPositional, bool isParameterSet)
+            internal CommandLineParameter(string Name, object value, string helpText, Type type,
+                bool isRequired, bool isPositional, bool isParameterSet, List<string> legalvalues, string defaultValue = null)
             {
                 _name = Name;
+                _value = value;
                 _defaultValue = defaultValue;
                 _type = type;
                 _helpText = helpText;
                 _isRequired = isRequired;
                 _isPositional = isPositional;
                 _isParameterSet = isParameterSet;
+                if(legalvalues != null)
+                {
+                    _legalValues = new List<string>(legalvalues);
+                }
+                else
+                {
+                    _legalValues = new List<string>();
+                }
             }
 
             private string _name;
-            private object _defaultValue;
+            private object _value;
+            private string _defaultValue;
+            private List<string> _legalValues;
             private string _helpText;
             private Type _type;
             private bool _isRequired;
@@ -924,6 +988,8 @@ class CommandLine
         /// <param name="commandLine"></param>
         private void ParseWords(string commandLine)
         {
+            // TODO review this carefully.
+            _args = new List<string>();
             int wordStartIndex = -1;
             bool hasExcapedQuotes = false;
             bool isResponseFile = false;
@@ -1040,7 +1106,7 @@ class CommandLine
             }
         }
 
-        private int GetNextOccuranceQualifier(string name, string[] aliases)
+        private int GetNextOccurenceQualifier(string name, string[] aliases)
         {
             Debug.Assert(_args != null);
             Debug.Assert(_dashedParameterEncodedPositions != null);
@@ -1090,7 +1156,7 @@ class CommandLine
                         }
                     }
                     if (nextPos >= 0)
-                        _dashedParameterEncodedPositions[name] = SetMulitple(nextPos);
+                        _dashedParameterEncodedPositions[name] = SetMultiple(nextPos);
                     else
                         _dashedParameterEncodedPositions.Remove(name);
                 }
@@ -1098,7 +1164,7 @@ class CommandLine
             return ret;
         }
 
-        // Phase 2 parsing works into things that look like qualifiers (but without  knowledge of which qualifiers the command supports)
+        // Phase 2 parsing works into things that look like qualifiers (but without knowledge of which qualifiers the command supports)
         /// <summary>
         /// Find the locations of all arguments that look like named parameters.
         /// </summary>
@@ -1107,6 +1173,7 @@ class CommandLine
             _dashedParameterEncodedPositions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
             bool paramSetEncountered = false;
+            string parameterSet = string.Empty;
             for (int i = 0; i < _args.Count; i++)
             {
                 string arg = _args[i];
@@ -1116,27 +1183,43 @@ class CommandLine
                 string name = ParseParameterName(arg);
                 if (name != null)
                 {
-                    if (name.Length == 1 && IsDash(name[0]))
+                    if (IsDash(name[0]))
                     {
                         _args[i] = null;
+                        i++;
+                        string[] extraP = new string[_args.Count - i];
+                        for (int j = 0; i < _args.Count; i++, j++)
+                        {
+                            extraP[j] = _args[i];
+                            _args[i] = null;
+                        }
+                        _extraParameters = string.Join(" ", extraP);
                         break;
                     }
                     if (name == "?")        // Did the user request help?
                     {
                         _args[i] = null;
-                        _helpRequestedFor = String.Empty;
-                        if (i + 1 < _args.Count)
+                        if(paramSetEncountered)
+                        {
+                            _helpRequestedFor = parameterSet;
+                        }
+                        else
+                        {
+                            _helpRequestedFor = String.Empty;
+                        }
+                        
+                        /*if (i + 1 < _args.Count)
                         {
                             i++;
                             _helpRequestedFor = _args[i];
                             _args[i] = null;
-                        }
+                        }*/
                         _mustParseHelpStrings = true;
                         break;
                     }
                     int position = i;
                     if (_dashedParameterEncodedPositions.TryGetValue(name, out position))
-                        position = SetMulitple(position);
+                        position = SetMultiple(position);
                     else
                         position = i;
                     _dashedParameterEncodedPositions[name] = position;
@@ -1153,6 +1236,7 @@ class CommandLine
                         else if (IsParameterSetWithqualifiersMustBeFirst(String.Empty))        // Then we are the default parameter set
                             break;
                         paramSetEncountered = true;     // If we have hit a parameter, we must have hit a parameter set.
+                        parameterSet = arg;
                     }
                 }
             }
@@ -1170,12 +1254,12 @@ class CommandLine
             return false;
         }
 
-        // Phase 3, processing user defintions of qualifiers parameter sets etc.
+        // Phase 3, processing user defintions of qualifiers, parameter sets, etc.
         /// <summary>
         /// returns the index in the 'args' array of the next instance of the 'name' qualifier.   returns -1 if there is
         /// no next instance of the qualifer.
         /// </summary>
-        private object DefineQualifier(string name, Type type, object defaultValue, string helpText, bool isRequired)
+        private object DefineQualifier(string name, Type type, object qualifierValue, string helpText, bool isRequired, string defaultValue, List<string> legalValues)
         {
             Debug.Assert(_args != null);
             if (_dashedParameterEncodedPositions == null)
@@ -1183,22 +1267,22 @@ class CommandLine
 
             _qualiferEncountered = true;
             if (_mustParseHelpStrings)
-                AddHelp(new CommandLineParameter(name, defaultValue, helpText, type, isRequired, false, false));
+                AddHelp(new CommandLineParameter(name, qualifierValue, helpText, type, isRequired, false, false, legalValues, defaultValue));
             if (_skipDefinitions)
                 return null;
             if (_positionalArgEncountered && !_noSpaceOnQualifierValues)
-                throw new CommandLineParserDesignerException("Definitions of Named parameters must come before defintions of positional parameters");
+                throw new CommandLineParserDesignerException("Definitions of Named parameters must come before definitions of positional parameters");
 
             object ret = null;
-            string[] alaises = null;
+            string[] aliases = null;
             if (_aliasDefinitions != null)
-                _aliasDefinitions.TryGetValue(name, out alaises);
+                _aliasDefinitions.TryGetValue(name, out aliases);
 
-            int occuranceCount = 0;
+            int occurenceCount = 0;
             List<Array> arrayValues = null;
             for (;;)
             {
-                int position = GetNextOccuranceQualifier(name, alaises);
+                int position = GetNextOccurenceQualifier(name, aliases);
                 if (position < 0)
                     break;
 
@@ -1219,7 +1303,7 @@ class CommandLine
                 }
                 else if (value == null)
                 {
-                    int valuePos = position + 1;
+                    /*int valuePos = position + 1;
                     if (_noSpaceOnQualifierValues || valuePos >= _args.Count || _args[valuePos] == null)
                     {
                         string message = "Parameter " + name + " is missing a value.";
@@ -1237,7 +1321,8 @@ class CommandLine
                     if (value.Length > 0 && IsQualifier(value))
                         throw new CommandLineParserException("Use " + name + ":" + value + " if " + value +
                             " is meant to be value rather than a named parameter");
-                    _args[valuePos] = null;
+                    _args[valuePos] = null;*/
+                    value = string.IsNullOrEmpty(defaultValue) ? "true" : defaultValue;
                 }
                 ret = ParseValue(value, type, name);
                 if (type.IsArray)
@@ -1247,19 +1332,19 @@ class CommandLine
                     arrayValues.Add((Array)ret);
                     ret = null;
                 }
-                else if (occuranceCount > 0 && !_lastQualifierWins)
+                else if (occurenceCount > 0 && !_lastQualifierWins)
                     throw new CommandLineParserException("Parameter " + name + " specified more than once.");
-                occuranceCount++;
+                occurenceCount++;
             }
 
-            if (occuranceCount == 0 && isRequired)
+            if (occurenceCount == 0 && isRequired)
                 throw new CommandLineParserException("Required named parameter " + name + " not present.");
 
             if (arrayValues != null)
-                ret = ConcatinateArrays(type, arrayValues);
+                ret = ConcatenateArrays(type, arrayValues);
             return ret;
         }
-        private object DefineParameter(string name, Type type, object defaultValue, string helpText, bool isRequired)
+        private object DefineParameter(string name, Type type, object parameterValue, string helpText, bool isRequired)
         {
             Debug.Assert(_args != null);
             if (_dashedParameterEncodedPositions == null)
@@ -1268,11 +1353,11 @@ class CommandLine
             if (!isRequired)
                 _optionalPositionalArgEncountered = true;
             else if (_optionalPositionalArgEncountered)
-                throw new CommandLineParserDesignerException("Optional positional parameters can't preceed required positional parameters");
+                throw new CommandLineParserDesignerException("Optional positional parameters can't precede required positional parameters");
 
             _positionalArgEncountered = true;
             if (_mustParseHelpStrings)
-                AddHelp(new CommandLineParameter(name, defaultValue, helpText, type, isRequired, true, false));
+                AddHelp(new CommandLineParameter(name, parameterValue, helpText, type, isRequired, true, false, null));
             if (_skipDefinitions)
                 return null;
 
@@ -1338,7 +1423,7 @@ class CommandLine
                 _defaultParamSetEncountered = true;
 
             if (_mustParseHelpStrings)
-                AddHelp(new CommandLineParameter(name, null, helpText, typeof(bool), true, _noDashOnParameterSets, true));
+                AddHelp(new CommandLineParameter(name, null, helpText, typeof(bool), true, _noDashOnParameterSets, true, null));
             if (_skipParameterSets)
                 return false;
 
@@ -1394,7 +1479,7 @@ class CommandLine
             return ret;
         }
 
-        private Array ConcatinateArrays(Type arrayType, List<Array> arrays)
+        private Array ConcatenateArrays(Type arrayType, List<Array> arrays)
         {
             int totalCount = 0;
             for (int i = 0; i < arrays.Count; i++)
@@ -1553,7 +1638,6 @@ class CommandLine
             }
         }
 
-
         /// <summary>
         /// Return a string giving the help for the command, word wrapped at 'maxLineWidth'
         /// </summary>
@@ -1562,24 +1646,22 @@ class CommandLine
             // Do we have non-default parameter sets?
             bool hasParamSets = false;
             foreach (CommandLineParameter parameter in _parameterDescriptions)
+            {
                 if (parameter.IsParameterSet && parameter.Name != String.Empty)
+                {
                     hasParamSets = true;
-
+                    break;
+                }
+            }
+            
             if (!hasParamSets)
                 return GetHelp(maxLineWidth, String.Empty, true);
+
             StringBuilder sb = new StringBuilder();
-
-
-            string appName = GetEntryAssemblyName();
-            string intro = "The " + appName + " application has a number of commands associated with it, " +
-                "each with its own set of parameters and qualifiers.  They are listed below.  " +
-                "Options that are common to all commands are listed at the end.";
-            Wrap(sb, intro, 0, String.Empty, maxLineWidth);
-
+                        
             // Always print the default parameter set first.
             if (_defaultParamSetEncountered)
             {
-                sb.AppendLine().Append('-', maxLineWidth - 1).AppendLine();
                 sb.Append(GetHelp(maxLineWidth, String.Empty, false));
             }
 
@@ -1587,7 +1669,6 @@ class CommandLine
             {
                 if (parameter.IsParameterSet && parameter.Name.Length != 0)
                 {
-                    sb.AppendLine().Append('-', maxLineWidth - 1).AppendLine();
                     sb.Append(GetHelp(maxLineWidth, parameter.Name, false));
                 }
             }
@@ -1595,8 +1676,8 @@ class CommandLine
             string globalQualifiers = GetHelpGlobalQualifiers(maxLineWidth);
             if (globalQualifiers.Length > 0)
             {
-                sb.Append('-', maxLineWidth - 1).AppendLine();
-                sb.Append("Qualifiers global to all commands:").AppendLine();
+                sb.AppendLine().Append('-', maxLineWidth - 1).AppendLine();
+                sb.Append("Global settings to all commands:").AppendLine();
                 sb.AppendLine();
                 sb.Append(globalQualifiers);
             }
@@ -1605,7 +1686,7 @@ class CommandLine
         }
         /// <summary>
         /// prints a string to the console in a nice way.  In particular it
-        /// displays a sceeen full of data and then as user to type a space to continue.
+        /// displays a screen full of data and then as user to type a space to continue.
         /// </summary>
         /// <param name="helpString"></param>
         private static void DisplayStringToConsole(string helpString)
@@ -1644,17 +1725,36 @@ class CommandLine
         private static void ParameterHelp(CommandLineParameter parameter, StringBuilder sb, int firstColumnWidth, int maxLineWidth)
         {
             // TODO alias information.
-            sb.Append("    ").Append(parameter.Syntax(true, true).PadRight(firstColumnWidth)).Append(' ');
+            sb.Append(parameter.Syntax().PadRight(firstColumnWidth));
             string helpText = parameter.HelpText;
-            if (typeof(Enum).IsAssignableFrom(parameter.Type))
-                helpText = helpText + "  Legal values: " + string.Join(", ", Enum.GetNames(parameter.Type)) + ".";
-            Wrap(sb, helpText, firstColumnWidth + 5, new string(' ', firstColumnWidth + 5), maxLineWidth);
+            string defValue = string.Empty;
+
+            bool shouldPrint = true;
+            // Bool type implied on named parameters
+            if (parameter.IsNamed && parameter.Type == typeof(bool))
+            {
+                shouldPrint = false;
+                if (parameter.Value != null && (bool)parameter.Value)
+                    shouldPrint = false;
+            }
+
+            if (shouldPrint)
+            {
+                if (!string.IsNullOrEmpty(parameter.DefaultValue))
+                {
+                    helpText += "\n=> Default value: " + parameter.DefaultValue.ToString();
+                }
+            }
+
+            if (parameter.LegalValues.Count > 0)
+                helpText = helpText + "\n=> Legal values: [" + string.Join(", ", parameter.LegalValues) + "].";
+            Wrap(sb, helpText, firstColumnWidth, new string(' ', firstColumnWidth), maxLineWidth, true);
         }
-        private static void Wrap(StringBuilder sb, string text, int startColumn, string linePrefix, int maxLineWidth)
+        private static void Wrap(StringBuilder sb, string text, int startColumn, string linePrefix, int maxLineWidth, bool first)
         {
             if (text != null)
             {
-                bool first = true;
+                //bool first = true;
                 int column = startColumn;
                 string previousWord = String.Empty;
                 string[] paragraphs = text.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
@@ -1662,9 +1762,10 @@ class CommandLine
                 {
                     if (!first)
                     {
-                        sb.AppendLine().AppendLine();
                         column = 0;
+                        linePrefix = new string(' ', startColumn);
                     }
+                    
                     string[] words = paragraph.Split((char[])null, StringSplitOptions.RemoveEmptyEntries);        // Split on whitespace
                     foreach (string word in words)
                     {
@@ -1694,6 +1795,7 @@ class CommandLine
                         column += word.Length;
                         first = false;
                     }
+                    sb.AppendLine();
                 }
             }
             sb.AppendLine();
@@ -1711,37 +1813,24 @@ class CommandLine
                 if (parameter.IsParameterSet)
                     break;
                 if (parameter.IsNamed)
-                    ParameterHelp(parameter, sb, QualifierSyntaxWidth, maxLineWidth);
+                    ParameterHelp(parameter, sb, GlobalQualifierSyntaxWidth, maxLineWidth);
             }
             return sb.ToString();
         }
 
         private static int GetConsoleWidth()
         {
-#if COREFX
             return 120; // Can't retrieve console width in .NET Core
-#else
-            return Console.WindowWidth;
-#endif
         }
 
         private static int GetConsoleHeight()
         {
-#if COREFX
-            return 40; // Can't retrieve console height in .NET Core
-#else
-            return Console.WindowHeight;
-#endif
+            return 100; // Can't retrieve console height in .NET Core
         }
 
         private static string GetEntryAssemblyName()
         {
-#if COREFX
-            // Cannot use Assembly.GetEntryAssembly(). This assumes that CommandLine is compiled into your application.
-            Assembly entryAssembly = typeof(CommandLineParser).GetTypeInfo().Assembly;
-#else
             Assembly entryAssembly = Assembly.GetEntryAssembly();
-#endif
             if (entryAssembly != null)
             {
                 return Path.GetFileNameWithoutExtension(entryAssembly.ManifestModule.Name);
@@ -1755,17 +1844,19 @@ class CommandLine
         // TODO expose the ability to change this?
         private static char[] s_separators = new char[] { ':', '=' };
 
-        // tweeks the user can specify
-        private bool _noDashOnParameterSets;
+        // tweaks the user can specify
+        private bool _noDashOnParameterSets = true;
         private bool _noSpaceOnQualifierValues;
         private string[] _parameterSetsWhereQualifiersMustBeFirst;
         private bool _qualifiersUseOnlyDash = true;
         private bool _lastQualifierWins;
+        private static string _extraParameters;
 
         // In order to produce help, we need to remember everything useful about all the parameters.  This list
         // does this.  It is only done when help is needed, so it is not here in the common scenario.
         private List<CommandLineParameter> _parameterDescriptions;
         private int _qualifierSyntaxWidth;       // When printing help, how much indent any line wraps.
+        private int _globalQualifierSyntaxWidth;
         public int QualifierSyntaxWidth
         {
             get
@@ -1777,15 +1868,48 @@ class CommandLine
                     if (_parameterDescriptions != null)
                     {
                         int maxSyntaxWidth = 0;
+                        bool qualifierStart = false;
                         foreach (CommandLineParameter parameter in _parameterDescriptions)
-                            maxSyntaxWidth = Math.Max(maxSyntaxWidth, parameter.Syntax(true, true).Length);
-                        _qualifierSyntaxWidth = Math.Max(8, maxSyntaxWidth + 1); // +1 leaves an extra space
+                        {
+                            if (parameter.IsParameterSet)
+                            {
+                                qualifierStart = true;
+                            }
+                            if(qualifierStart)
+                            {
+                                maxSyntaxWidth = Math.Max(maxSyntaxWidth, parameter.Syntax().Length);
+                            }
+                        }
+                        _qualifierSyntaxWidth = Math.Max(8, maxSyntaxWidth + 2); // +2 leaves two extra spaces
                     }
                 }
                 return _qualifierSyntaxWidth;
             }
         }
 
+        public int GlobalQualifierSyntaxWidth
+        {
+            get
+            {
+                // Find the optimal size for the 'first column' of the help text.
+                if (_globalQualifierSyntaxWidth == 0)
+                {
+                    _globalQualifierSyntaxWidth = 35;
+                    if (_parameterDescriptions != null)
+                    {
+                        int maxSyntaxWidth = 0;
+                        foreach (CommandLineParameter parameter in _parameterDescriptions)
+                        {
+                            if (parameter.IsParameterSet)
+                                break;
+                            maxSyntaxWidth = Math.Max(maxSyntaxWidth, parameter.Syntax().Length);
+                        }
+                        _globalQualifierSyntaxWidth = Math.Max(8, maxSyntaxWidth + 2); // +2 leaves two extra spaces
+                    }
+                }
+                return _globalQualifierSyntaxWidth;
+            }
+        }
 
         /// <summary>
         /// Qualifiers can have aliases (e.g. for short names).  This holds these aliases.
@@ -1800,7 +1924,7 @@ class CommandLine
         private Dictionary<string, int> _dashedParameterEncodedPositions;
         // We steal the top bit to prepresent whether the parameter occurs more than once.
         private const int MultiplePositions = unchecked((int)0x80000000);
-        private static int SetMulitple(int encodedPos) { return encodedPos | MultiplePositions; }
+        private static int SetMultiple(int encodedPos) { return encodedPos | MultiplePositions; }
         private static int GetPosition(int encodedPos) { return encodedPos & ~MultiplePositions; }
         private static bool IsMulitple(int encodedPos) { return (encodedPos & MultiplePositions) != 0; }
 
@@ -1808,6 +1932,7 @@ class CommandLine
         // ultimately ends up only having positional parameters being non-null.
         private List<string> _args;
 
+        private Dictionary<string, Dictionary<string, string>> _customHelpText;
         private int _curPosition;                    // All arguments before this position have been processed.
         private bool _skipParameterSets;             // Have we found the parameter set qualifer, so we don't look at any others.
         private bool _skipDefinitions;               // Should we skip all subsequent definitions (typically until the next parameter set def)

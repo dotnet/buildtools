@@ -14,7 +14,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' " />
   <ItemGroup>
     <Compile Include="Executor.cs" />
-    <Compile Include="CommandLine.cs" />
+    <Compile Include="$(SourceDir)common/CommandLine.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Interop.cs" />
     <Compile Include="RunProcess.cs" />
