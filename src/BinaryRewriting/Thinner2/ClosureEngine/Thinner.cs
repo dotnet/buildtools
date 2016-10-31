@@ -180,7 +180,7 @@ namespace Thinner
                 }
 
                 String suggestions = possibleMatches.Count == 0 ? "No members of that name were found in the assembly." :
-                    "Look in the build log files for the signatures of " + possibleMatches.Count + " members matching that name.";
+                    "Look in the build log files for the signatures of " + possibleMatches.Count + " members matching that name. Spacing between arguments in xml matters!";
                 throw new Exception(String.Format("cannot load member {0} from class {1}.  {2}", fqmn, DeclaringType.Name, suggestions));
                 //Console.WriteLine("Error: Cannot load member: " + fqmn);
             }
