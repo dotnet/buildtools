@@ -74,7 +74,7 @@ namespace Microsoft.DotNet.VersionTools.Automation
             string prereleaseVersion = packages
                 .Select(t => t.Prerelease)
                 .FirstOrDefault(prerelease => !string.IsNullOrEmpty(prerelease))
-                ?? "";
+                ?? "stable";
 
             Dictionary<string, string> packageDictionary = packages.ToDictionary(
                     t => t.Id,
