@@ -1205,7 +1205,7 @@
   <!-- Installs locally built package into a packageinstalldir for consuming -->
   <!-- Overwrites previous installs, supports only one version installed -->
   <Target Name="InstallLocallyBuiltPackages"
-          Condition="'$(SkipInstallLocallyBuiltPackages)' != 'true'"
+          Condition="'$(SkipInstallLocallyBuiltPackages)' != 'true' AND '$(_SkipCreatePackage)' != 'true'"
           AfterTargets="CreatePackage">
     
     <Error Text="Package not installed as it was not found at $(PackageOutputPath)$(Id).$(PackageVersion).nupkg" 
