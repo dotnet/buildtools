@@ -36,9 +36,7 @@
 
   <PropertyGroup Condition="'$(TestWithCore)' == 'true' And '$(TestAppX)' != 'true'">
     <TestHostExecutable>CoreRun.exe</TestHostExecutable>
-    <TestHostDirectory>$(TestPath)$(TestTFM)/</TestHostDirectory>
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.netcore.exe</XunitExecutable>
-    <DebugTestFrameworkFolder>$(TestTFM)</DebugTestFrameworkFolder>
     <DebugEngines>{2E36F1D4-B23C-435D-AB41-18E608940038}</DebugEngines>
   </PropertyGroup>
 
@@ -57,7 +55,6 @@
 
   <PropertyGroup Condition="'$(TestWithCore)' != 'true' And '$(TestAppX)' != 'true'">
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.exe</XunitExecutable>
-    <DebugTestFrameworkFolder>net45</DebugTestFrameworkFolder>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TestAppX)' == 'true'">
@@ -113,9 +110,9 @@
 
   <!-- In VS (2015 Preview or later currently required): Debug to run unit tests on CoreCLR. -->
   <PropertyGroup Condition="'$(IsTestProject)'=='true'">
-    <StartWorkingDirectory Condition="'$(StartWorkingDirectory)'==''">$(TestPath)$(DebugTestFrameworkFolder)</StartWorkingDirectory>
+    <StartWorkingDirectory Condition="'$(StartWorkingDirectory)'==''">$(TestPath)</StartWorkingDirectory>
     <StartAction Condition="'$(StartAction)'==''">Program</StartAction>
-    <StartProgram Condition="'$(StartProgram)'==''">$(TestHostDirectory)$(TestProgram)</StartProgram>
+    <StartProgram Condition="'$(StartProgram)'==''">$(TestPath)$(TestProgram)</StartProgram>
     <StartArguments Condition="'$(StartArguments)'==''">$(TestArguments) -wait -parallel none</StartArguments>
   </PropertyGroup>
 
