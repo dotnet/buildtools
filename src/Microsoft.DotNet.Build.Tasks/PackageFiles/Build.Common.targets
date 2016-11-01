@@ -106,7 +106,7 @@
        the targets necessary to build tests with project references converted to package dependencies.
   -->
   <PropertyGroup>
-    <_BuildAgainstPackages Condition="'$(KeepAllProjectReferences)' != 'true' and '$(IsTestProject)' == 'true' and '$(MSBuildProjectExtension)' != '.builds' and '$(SkipBuildAgainstPackages)'!='true'">true</_BuildAgainstPackages>
+    <_BuildAgainstPackages Condition="'$(KeepAllProjectReferences)' != 'true' and '$(IsTestProject)' == 'true' and '$(MSBuildProjectExtension)' != '.builds' and '$(SkipBuildAgainstPackages)'!='true'">$(BuildTestsAgainstPackages)</_BuildAgainstPackages>
   </PropertyGroup>
   <!-- 
     Import the default package restore and resolve targets 
