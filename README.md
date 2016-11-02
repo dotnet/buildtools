@@ -1,6 +1,6 @@
 # .NET Core Build Tools
 
-[![Build status](http://dotnet-ci.cloudapp.net/job/dotnet_buildtools/job/master/job/innerloop/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_buildtools/job/master/job/innerloop/)
+[![Build status](https://ci.dot.net/job/dotnet_buildtools/job/master/job/innerloop/badge/icon)](https://ci.dot.net/job/dotnet_buildtools/job/master/job/innerloop/)
 
 [![Package](https://img.shields.io/dotnet.myget/dotnet-buildtools/v/Microsoft.DotNet.BuildTools.svg?label=Package)](https://dotnet.myget.org/gallery/dotnet-buildtools/)
 
