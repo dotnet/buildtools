@@ -115,7 +115,7 @@
           ContinueOnError="false">
       <Output PropertyName="PerfTestRunExitCode" TaskParameter="ExitCode" />
     </Exec>
-    <Message Text="Performance test analysis report is available at $(TestPath)$(DebugTestFrameworkFolder)/$(AnalysisReportFileName)" />
+    <Message Text="Performance test analysis report is available at $(TestPath)$(AnalysisReportFileName)" />
   </Target>
 
   <Target Name="WarnForDebugPerfConfiguration"
