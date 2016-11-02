@@ -129,9 +129,11 @@
     <ShouldGenerateNuSpec Condition="'$(PackagePlatforms)' == '' AND $(PackageTargetRuntime.Contains('-$(PackagePlatform)'))">true</ShouldGenerateNuSpec>
     <!-- build if PackagePlatforms is not specified and arch is x86 or AnyCPU -->
     <ShouldGenerateNuSpec Condition="'$(PackagePlatforms)' == '' AND ('$(PackagePlatform)' == 'x86' OR '$(PackagePlatform)' == 'AnyCPU')">true</ShouldGenerateNuSpec>
-    <!-- if we built a nuspec, also pack unless explicitly set -->
+    <!-- if we built a nuspec, also create layout and pack unless explicitly set -->
+    <ShouldCreateLayout Condition="'$(ShouldCreateLayout)' == ''">$(ShouldGenerateNuSpec)</ShouldCreateLayout>
     <ShouldCreatePackage Condition="'$(ShouldCreatePackage)' == ''">$(ShouldGenerateNuSpec)</ShouldCreatePackage>
     <BuildDependsOn Condition="'$(ShouldGenerateNuSpec)' == 'true'">GenerateNuSpec</BuildDependsOn>
+    <BuildDependsOn Condition="'$(ShouldCreateLayout)' == 'true'">$(BuildDependsOn);CreateLayout</BuildDependsOn>
     <BuildDependsOn Condition="'$(ShouldCreatePackage)' == 'true'">$(BuildDependsOn);CreatePackage</BuildDependsOn>
     <BuildDependsOn Condition="'$(ShouldCreatePackage)' == 'true' OR '$(ShouldGenerateNuSpec)' == 'true'">$(BuildDependsOn);GetPackageReport;ValidatePackage</BuildDependsOn>
   </PropertyGroup>
@@ -1258,7 +1260,12 @@
           Condition="'$(IsRuntimePackage)' != 'true'"
           DependsOnTargets="GetPackageReport">
 
+    <ItemGroup>
+      <LayoutFrameworks Condition="'@(LayoutFrameworks)' == ''" Include="NETCoreApp,Version=v1.1" />
+    </ItemGroup>
+
     <GetLayoutFiles PackageReports="$(PackageReportPath)"
+                    Frameworks="@(LayoutFrameworks)"
                     DestinationDirectory="$(PackageLayoutDir)">
       <Output TaskParameter="LayoutFiles" ItemName="LayoutFiles"/>
     </GetLayoutFiles>
