@@ -2,7 +2,7 @@
 
 ## Dependency version verification
 
-The dependencies in each project.json file are validated by a few rules in `dependencies.props` to ensure package versions across the repository stay in sync. Dependencies are normally verified before the NUuGet restore step, but to manually verify run the `VerifyDependencies` MSBuild target.
+The dependencies in each project.json file are validated by a few rules in `dependencies.props` to ensure package versions across the repository stay in sync. Dependencies are normally verified before the NuGet restore step, but to manually verify run the `VerifyDependencies` MSBuild target.
 
 Errors from failed dependency version validation are like the following:
 
