@@ -1026,7 +1026,7 @@
       <!-- map back to the project references -->
       <RuntimeDependencyProjectFullPath Include="@(RuntimeDependencyProject->'%(FullPath)')"/>
       <ProjectReferenceFullPath Include="@(ProjectReference->'%(FullPath)')"/>
-      <RuntimeProjectReference Include="@(ProjectReferenceFullPath)" Condition="'@(ProjectReferenceFullPath)' == '@(RuntimeDependencyProjectFullPath)' AND '%(Identity)' != ''"/>
+      <RuntimeProjectReference Include="@(ProjectReferenceFullPath)" Condition="'@(ProjectReferenceFullPath->Distinct())' == '@(RuntimeDependencyProjectFullPath)' AND '%(Identity)' != ''"/>
     </ItemGroup>
 
 
