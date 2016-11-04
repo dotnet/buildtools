@@ -376,14 +376,19 @@ namespace Microsoft.DotNet.Build.Tasks
                 {
                     NuGetVersion nuGetVersion = NuGetVersion.Parse(dependency.GetMetadata("Version"));
                     PackageItem packageItem = new PackageItem(name, nuGetVersion);
+                    bool? forceVersion = dependency.GetMetadata("ForceVersion")?.Equals("true", StringComparison.OrdinalIgnoreCase);
                     string version = packageItem.GetVersionString();
 
                     // a package version was provided, use its version information.
-                    if (packageInformation.ContainsKey(name))
+                    if (packageInformation.ContainsKey(name) && forceVersion!=true)
                     {
                         version = packageInformation[name].Version.ToString();
                     }
                     JProperty property = new JProperty(name, version);
+                    if (forceVersion == true && framework != null)
+                    {
+                        continue;
+                    }
                     returnDependenciesList.Add(name, property);
                 }
                 else
@@ -476,7 +481,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public string GetVersionString()
         {
-            return string.Join(".", _version.Major, _version.Minor, _version.Patch);
+            return _version.ToString();
         }
 
         public TaskItem ToTaskItem()
