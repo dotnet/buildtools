@@ -380,7 +380,7 @@ namespace Microsoft.DotNet.Build.Tasks
                     string version = packageItem.GetVersionString();
 
                     // a package version was provided, use its version information.
-                    if (packageInformation.ContainsKey(name) && forceVersion!=true)
+                    if (packageInformation.ContainsKey(name) && (bool) !forceVersion)
                     {
                         version = packageInformation[name].Version.ToString();
                     }

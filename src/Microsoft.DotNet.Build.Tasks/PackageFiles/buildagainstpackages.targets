@@ -3,7 +3,11 @@
   <UsingTask TaskName="AddDependenciesToProjectJson" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="GetPackageNumberFromPackageDrop" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="DumpItem" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
-
+  
+  <PropertyGroup>
+    <!-- PackageDrops is set to the bin folder where packages are built to generate the new test project.json for these -->
+    <PackagesDrops Condition="'$(PackagesDrops)' == ''">$(PackageOutputPath)</PackagesDrops>
+  </PropertyGroup>
   <ItemGroup>
     <_PackagesDrops Include="$(PackagesDrops)" />
   </ItemGroup>
