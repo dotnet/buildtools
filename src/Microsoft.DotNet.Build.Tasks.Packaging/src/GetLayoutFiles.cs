@@ -99,17 +99,11 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     if (rid == null)
                     {
                         // only consider compile assets for RID-less target
-                        foreach (var compileAsset in target.CompileAssets.Where(pa => !NuGetAssetResolver.IsPlaceholder(pa.LocalPath)))
-                        {
-                            layoutFiles.Add(CreateLayoutFile(compileAsset.LocalPath, "ref", fx));
-                        }
+                        layoutFiles.AddRange(CreateLayoutFiles(target.CompileAssets, "ref", fx, null, "Compile"));
                     }
 
-                    var runtimeAssets = target.RuntimeAssets.Concat(target.NativeAssets);
-                    foreach (var runtimeAsset in runtimeAssets.Where(pa => !NuGetAssetResolver.IsPlaceholder(pa.LocalPath)))
-                    {
-                        layoutFiles.Add(CreateLayoutFile(runtimeAsset.LocalPath, "runtime", fx, rid));
-                    }
+                    layoutFiles.AddRange(CreateLayoutFiles(target.RuntimeAssets, "runtime", fx, rid, "Runtime"));
+                    layoutFiles.AddRange(CreateLayoutFiles(target.NativeAssets, "runtime", fx, rid, "Native"));
                 }
             }
 
@@ -118,11 +112,20 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             return !Log.HasLoggedErrors;
         }
 
-        private ITaskItem CreateLayoutFile(string source, string subfolder, NuGetFramework framework, string rid = null)
+
+        private IEnumerable<ITaskItem> CreateLayoutFiles(IEnumerable<PackageAsset> assets, string subFolder, NuGetFramework framework, string rid, string assetType)
+        {
+            return assets.Where(a => !NuGetAssetResolver.IsPlaceholder(a.LocalPath))
+                .Select(a => CreateLayoutFile(a.LocalPath, subFolder, framework, rid, assetType));
+                 
+        }
+
+        private ITaskItem CreateLayoutFile(string source, string subfolder, NuGetFramework framework,  string rid, string assetType)
         {
             var item = new TaskItem(source);
 
-            var destination = Path.Combine(DestinationDirectory, subfolder, framework.GetShortFolderName());
+            string fx = framework.GetShortFolderName();
+            var destination = Path.Combine(DestinationDirectory, subfolder, fx);
 
             if (rid != null)
             {
@@ -132,6 +135,14 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             destination = Path.Combine(destination, Path.GetFileName(source));
 
             item.SetMetadata("Destination", destination);
+            item.SetMetadata("Framework", fx);
+
+            if (!String.IsNullOrEmpty(rid))
+            {
+                item.SetMetadata("RuntimeID", rid);
+            }
+
+            item.SetMetadata("AssetType", assetType);
 
             return item;
         }
