@@ -36,6 +36,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         public ITaskItem[] RuntimeAssets { get; set; }
 
         [Output]
+        public ITaskItem[] NativeAssets { get; set; }
+
+        [Output]
         public ITaskItem[] BuildProjects { get; set; }
 
         /// <summary>
@@ -63,6 +66,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             var compileAssets = new List<ITaskItem>();
             var runtimeAssets = new List<ITaskItem>();
+            var nativeAssets = new List<ITaskItem>();
             var buildProjects = new List<BuildProject>();
 
             foreach (var reportPath in PackageReports)
@@ -76,6 +80,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     buildProjects.AddRange(target.CompileAssets.Select(c => c.SourceProject).Where(bp => bp != null));
                     runtimeAssets.AddRange(target.RuntimeAssets.Select(r => ItemFromApplicableAsset(r, report.Id, report.Version)));
                     buildProjects.AddRange(target.RuntimeAssets.Select(r => r.SourceProject).Where(bp => bp != null));
+                    nativeAssets.AddRange(target.NativeAssets.Select(r => ItemFromApplicableAsset(r, report.Id, report.Version)));
+                    buildProjects.AddRange(target.NativeAssets.Select(r => r.SourceProject).Where(bp => bp != null));
                 }
                 else
                 {
@@ -85,6 +91,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             CompileAssets = compileAssets.ToArray();
             RuntimeAssets = runtimeAssets.ToArray();
+            NativeAssets = nativeAssets.ToArray();
             BuildProjects = buildProjects.Distinct().Select(bp => bp.ToItem()).ToArray();
 
             return !Log.HasLoggedErrors;
