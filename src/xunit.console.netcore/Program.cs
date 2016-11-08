@@ -13,6 +13,7 @@ namespace Xunit.ConsoleClient
     {
         volatile static bool cancel;
         static bool failed;
+        static bool hitPlatformNotSupportedForColor = false;
         static readonly ConcurrentDictionary<string, ExecutionSummary> completionMessages = new ConcurrentDictionary<string, ExecutionSummary>();
 
         [STAThread]
@@ -20,7 +21,7 @@ namespace Xunit.ConsoleClient
         {
             try
             {
-                Console.ForegroundColor = ConsoleColor.White;
+                SetConsoleForegroundColor(ConsoleColor.White);
 #if !NETCORE
                 var netVersion = Environment.Version;
 #else
@@ -29,7 +30,7 @@ namespace Xunit.ConsoleClient
                 Console.WriteLine("xUnit.net console test runner ({0}-bit .NET {1})", IntPtr.Size * 8, netVersion);
                 Console.WriteLine("Copyright (C) 2014 Outercurve Foundation.");
                 Console.WriteLine();
-                Console.ForegroundColor = ConsoleColor.Gray;
+                SetConsoleForegroundColor(ConsoleColor.Gray);
 
                 if (args.Length == 0 || args[0] == "-?")
                 {
@@ -109,7 +110,7 @@ namespace Xunit.ConsoleClient
             }
             finally
             {
-                Console.ResetColor();
+                ResetConsoleColor();
             }
         }
 
@@ -215,10 +216,10 @@ namespace Xunit.ConsoleClient
 
                 if (completionMessages.Count > 0)
                 {
-                    Console.ForegroundColor = ConsoleColor.White;
+                    SetConsoleForegroundColor(ConsoleColor.White);
                     Console.WriteLine();
                     Console.WriteLine("=== TEST EXECUTION SUMMARY ===");
-                    Console.ForegroundColor = ConsoleColor.Gray;
+                    SetConsoleForegroundColor(ConsoleColor.Gray);
 
                     var totalTestsRun = completionMessages.Values.Sum(summary => summary.Total);
                     var totalTestsFailed = completionMessages.Values.Sum(summary => summary.Failed);
@@ -331,9 +332,9 @@ namespace Xunit.ConsoleClient
                     {
                         lock (consoleLock)
                         {
-                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            SetConsoleForegroundColor(ConsoleColor.DarkYellow);
                             Console.WriteLine("Info:        {0} has no tests to run", Path.GetFileNameWithoutExtension(assembly.AssemblyFilename));
-                            Console.ForegroundColor = ConsoleColor.Gray;
+                            SetConsoleForegroundColor(ConsoleColor.Gray);
                         }
                     }
                     else
@@ -359,12 +360,49 @@ namespace Xunit.ConsoleClient
 
             lock (consoleLock)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
+                SetConsoleForegroundColor(ConsoleColor.Red);
                 Console.WriteLine("File not found: {0}", fileName);
-                Console.ForegroundColor = ConsoleColor.Gray;
+                SetConsoleForegroundColor(ConsoleColor.Gray);
             }
 
             return false;
         }
+
+        public static void SetConsoleForegroundColor(ConsoleColor value)
+        {
+            if (hitPlatformNotSupportedForColor)
+            {
+                return;
+            }
+
+            try
+            {
+                Console.ForegroundColor = value;
+            }
+            catch (PlatformNotSupportedException)
+            {
+                hitPlatformNotSupportedForColor = true;
+                Debug.WriteLine("Ignoring PlatformNotSupportedException from Console PAL");
+            }
+        }
+
+        public static void ResetConsoleColor()
+        {
+            if (hitPlatformNotSupportedForColor)
+            {
+                return;
+            }
+
+            try
+            {
+                Console.ResetColor();
+            }
+            catch (PlatformNotSupportedException)
+            {
+                hitPlatformNotSupportedForColor = true;
+                Debug.WriteLine("Ignoring PlatformNotSupportedException from Console PAL");
+            }
+        }
+
     }
 }
