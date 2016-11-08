@@ -128,7 +128,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                     buildProjects.AddRange(runtimeItems.Select(ri => BuildProjectFromPackageItem(ri)).Where(bp => bp != null));
 
-                    RuntimeAssets = runtimeItems.Select(ri => PackageItemAsResolvedAsset(ri)).ToArray();
+                    RuntimeAssets = runtimeItems.SelectMany(ri => PackageItemAndSymbolsAsResolvedAsset(ri)).ToArray();
 
                     Log.LogMessage($"Resolved runtime assets from {runtimeFx.ToString()}: {String.Join(";", RuntimeAssets.Select(r => r.ItemSpec))}");
                     break;
