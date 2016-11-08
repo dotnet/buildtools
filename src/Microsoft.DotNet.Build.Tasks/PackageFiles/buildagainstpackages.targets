@@ -104,25 +104,6 @@
       <_InjectProjectReference>%(_PackageProjectReference.FileName)</_InjectProjectReference>
     </PropertyGroup>
 
-    <ItemGroup>
-      <_AdditionalProperties Condition="'$(AssemblyVersionTransition)' != ''" Include="AssemblyVersionTransition=$(AssemblyVersionTransition);" />
-    </ItemGroup>
-
-    <!-- Evaluate the project references to determine the assembly version for the package dependency.
-         Only evaluate the project reference if we were not able to find an assembly version in "PackageDrops" -->
-    <MSBuild Condition="'%(_PackageProjectReference.Identity)' != ''"
-             Projects="%(_PackageProjectReference.Identity)"
-             Targets="GetAssemblyVersion"
-             Properties="@(_AdditionalProperties)">
-      <Output TaskParameter="TargetOutputs"
-              PropertyName="_EvaluatedAssemblyVersion" />
-    </MSBuild>
-    <PropertyGroup>
-      <_AssemblyVersion Condition="'$(_AssemblyVersion)' == ''">$(_EvaluatedAssemblyVersion)</_AssemblyVersion>
-    </PropertyGroup>
-
-    <Error Condition="'$(_AssemblyVersion)' == ''" Text="Unable to determine assembly version for project reference '%(_PackageProjectReference.Identity)'" />
-
     <PropertyGroup>
       <!-- Use the alternative PackageReferenceName metadata if available -->
       <_InjectProjectReferenceDependencyName Condition="'$(_PackageReferenceName)' == ''">%(_PackageProjectReference.FileName)</_InjectProjectReferenceDependencyName>
@@ -133,7 +114,6 @@
       <_InjectProjectReferenceDependency  Include="$(_InjectProjectReferenceDependencyName)">
         <Name>$(_InjectProjectReferenceDependencyName)</Name>
         <OriginalName>$(_InjectProjectReference)</OriginalName>
-        <Version>$(_AssemblyVersion)</Version>
         <FilePath>%(_PackageProjectReference.Identity)</FilePath>
         <TargetGroup>%(_PackageProjectReference.TargetGroup)</TargetGroup>
         </_InjectProjectReferenceDependency>
