@@ -135,7 +135,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 }
             }
 
-            if (RuntimeAssets == null)
+            if (!string.IsNullOrEmpty(TargetRuntime) && RuntimeAssets == null)
             {
                 Log.LogError($"Could not locate runtime assets for any of the frameworks {String.Join(";", runtimeFxs.Select(fx => fx.ToString()))}");
             }
