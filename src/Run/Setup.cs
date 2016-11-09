@@ -13,6 +13,7 @@ namespace Microsoft.DotNet.Execute
     public class Setup
     {
         private const string WhatIfReservedKeyword = "WhatIf";
+        private const string DryRunReservedKeyword = "dry-run";
         private const string RunQuietReservedKeyword = "RunQuiet";
         private const string RunToolSettingValueTypeReservedKeyword = "runToolSetting";
 
@@ -48,7 +49,9 @@ namespace Microsoft.DotNet.Execute
 
         private bool IsReservedKeyword(string keyword)
         {
-            if (keyword.Equals(RunQuietReservedKeyword, StringComparison.OrdinalIgnoreCase) || keyword.Equals(WhatIfReservedKeyword, StringComparison.OrdinalIgnoreCase))
+            if (keyword.Equals(RunQuietReservedKeyword, StringComparison.OrdinalIgnoreCase) 
+             || keyword.Equals(WhatIfReservedKeyword,   StringComparison.OrdinalIgnoreCase)
+             || keyword.Equals(DryRunReservedKeyword,   StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }
@@ -196,6 +199,19 @@ namespace Microsoft.DotNet.Execute
                 };
                 Settings.Add(WhatIfReservedKeyword, whatIfSetting);
             }
+            // Settings don't currently allow aliases, so until we have a real need to do so can just define two, 
+            // so as to support both -dry-run and -WhatIf style usage.
+            if (!Settings.ContainsKey(DryRunReservedKeyword))
+            {
+                Setting dryRunSetting = new Setting()
+                {
+                    Values = new List<string>() { "true", "false" },
+                    ValueType = RunToolSettingValueTypeReservedKeyword,
+                    Description = "Run tool specific setting.  Set to 'true' to only display commands chosen and not execute them",
+                    DefaultValue = string.Empty
+                };
+                Settings.Add(DryRunReservedKeyword, dryRunSetting);
+            }
         }
 
         public int ExecuteCommand(string commandSelectedByUser, List<string> parametersSelectedByUser)
@@ -211,6 +227,10 @@ namespace Microsoft.DotNet.Execute
             bool whatIf = false;
             if (ToolSettings.TryGetValue(WhatIfReservedKeyword, out whatIfValue))
             {
+                if (string.IsNullOrEmpty(whatIfValue))
+                {
+                    ToolSettings.TryGetValue(DryRunReservedKeyword, out whatIfValue);
+                }
                 whatIf = whatIfValue.Equals("true", StringComparison.OrdinalIgnoreCase);
             }
 
@@ -221,7 +241,7 @@ namespace Microsoft.DotNet.Execute
 
                 if (whatIf)
                 {
-                    PrintColorMessage(ConsoleColor.Yellow, "Will not execute ('WhatIf' specified)");
+                    PrintColorMessage(ConsoleColor.Yellow, "Showing command, will not execute:");
                     PrintColorMessage(ConsoleColor.Yellow, $"Command: {commandToRun.ToolCommand} {commandToRun.ParametersCommand}");
                 }
                 else
