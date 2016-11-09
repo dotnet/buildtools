@@ -5,9 +5,7 @@
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System.Runtime.InteropServices;
-using System;
-using System.IO;
-using System.Linq;
+using Microsoft.DotNet.PlatformAbstractions;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
@@ -18,6 +16,9 @@ namespace Microsoft.DotNet.Build.Tasks
 
         [Output]
         public string TargetArch { get; set; }
+
+        [Output]
+        public string RuntimeIdentifier { get; set; }
 
         public override bool Execute()
         {
@@ -47,6 +48,8 @@ namespace Microsoft.DotNet.Build.Tasks
                 TargetOS = "FreeBSD";
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Create("NETBSD")))
                 TargetOS = "NetBSD";
+
+            RuntimeIdentifier = Microsoft.DotNet.PlatformAbstractions.RuntimeEnvironment.GetRuntimeIdentifier();
 
             if (TargetArch == null)
             {

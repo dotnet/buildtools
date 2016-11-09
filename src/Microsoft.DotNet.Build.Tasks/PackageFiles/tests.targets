@@ -281,6 +281,19 @@
             Files="$(TestsSuccessfulSemaphore)" />
   </Target>
 
+  <Target Name="GetDefaultTestRid">
+    <GetTargetMachineInfo>
+      <Output TaskParameter="RuntimeIdentifier" PropertyName="DefaultTestNugetRuntimeId" />
+    </GetTargetMachineInfo>
+    <!-- On Windows, we always use win7-x64 as the default test RID because the build context,
+         usually 32-bit full-framework MSBuild, is not a good default test context. -->
+    <PropertyGroup>
+      <DefaultTestNugetRuntimeId Condition="$(DefaultTestNugetRuntimeId.StartsWith('win'))">win7-x64</DefaultTestNugetRuntimeId>
+      <TestArchitecture Condition="'$(TestArchitecture)' == ''">x64</TestArchitecture>
+      <TestNugetRuntimeId Condition="'$(TestNugetRuntimeId)' == ''">$(DefaultTestNugetRuntimeId)</TestNugetRuntimeId>
+    </PropertyGroup>
+  </Target>
+
   <Target Name="CheckTestPlatforms">
     <GetTargetMachineInfo Condition="'$(TargetOS)' == ''">
       <Output TaskParameter="TargetOS" PropertyName="TargetOS" />
@@ -292,7 +305,7 @@
       Text="Skipping tests in $(AssemblyName) because it is not supported on $(TargetOS)" />
   </Target>
 
-  <Target Name="SetupTestProperties" DependsOnTargets="CheckTestPlatforms;CheckTestCategories" />
+  <Target Name="SetupTestProperties" DependsOnTargets="GetDefaultTestRid;CheckTestPlatforms;CheckTestCategories" />
 
   <PropertyGroup>
     <TestDependsOn>
