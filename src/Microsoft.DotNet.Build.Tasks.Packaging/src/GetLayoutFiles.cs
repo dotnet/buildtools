@@ -96,14 +96,16 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                         continue;
                     }
 
+                    var fxFolder = fx.GetShortFolderName();
+
                     if (rid == null)
                     {
                         // only consider compile assets for RID-less target
-                        layoutFiles.AddRange(CreateLayoutFiles(target.CompileAssets, "ref", fx, null, "Compile"));
+                        layoutFiles.AddRange(CreateLayoutFiles(target.CompileAssets, $"ref\\{fxFolder}", "Compile"));
                     }
 
-                    layoutFiles.AddRange(CreateLayoutFiles(target.RuntimeAssets, "runtime", fx, rid, "Runtime"));
-                    layoutFiles.AddRange(CreateLayoutFiles(target.NativeAssets, "runtime", fx, rid, "Native"));
+                    layoutFiles.AddRange(CreateLayoutFiles(target.RuntimeAssets, $"runtimes\\{rid}\\lib\\{fxFolder}", "Runtime"));
+                    layoutFiles.AddRange(CreateLayoutFiles(target.NativeAssets, $"runtimes\\{rid}\\native", "Native"));
                 }
             }
 
@@ -113,38 +115,39 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         }
 
 
-        private IEnumerable<ITaskItem> CreateLayoutFiles(IEnumerable<PackageAsset> assets, string subFolder, NuGetFramework framework, string rid, string assetType)
+        private IEnumerable<ITaskItem> CreateLayoutFiles(IEnumerable<PackageAsset> assets, string subFolder, string assetType)
         {
             return assets.Where(a => !NuGetAssetResolver.IsPlaceholder(a.LocalPath))
-                .Select(a => CreateLayoutFile(a.LocalPath, subFolder, framework, rid, assetType));
+                .SelectMany(a => CreateLayoutFile(a.LocalPath, subFolder, assetType));
                  
         }
 
-        private ITaskItem CreateLayoutFile(string source, string subfolder, NuGetFramework framework,  string rid, string assetType)
+        static string[] s_symbolExtensions = { ".pdb", ".dwarf", ".dbg" };
+        private IEnumerable<ITaskItem> CreateLayoutFile(string source, string subfolder, string assetType)
         {
             var item = new TaskItem(source);
-
-            string fx = framework.GetShortFolderName();
-            var destination = Path.Combine(DestinationDirectory, subfolder, fx);
-
-            if (rid != null)
-            {
-                destination = Path.Combine(destination, rid);
-            }
-
-            destination = Path.Combine(destination, Path.GetFileName(source));
+            var destination = Path.Combine(DestinationDirectory, subfolder, Path.GetFileName(source));
 
             item.SetMetadata("Destination", destination);
-            item.SetMetadata("Framework", fx);
-
-            if (!String.IsNullOrEmpty(rid))
-            {
-                item.SetMetadata("RuntimeID", rid);
-            }
-
             item.SetMetadata("AssetType", assetType);
 
-            return item;
+            yield return item;
+
+            foreach(var symbolExtension in s_symbolExtensions)
+            {
+                var symbolSource = Path.ChangeExtension(source, symbolExtension);
+
+                if (File.Exists(symbolSource))
+                {
+                    var symbolItem = new TaskItem(symbolSource);
+                    var symbolDestination = Path.Combine(DestinationDirectory, subfolder, Path.GetFileName(symbolSource));
+
+                    symbolItem.SetMetadata("Destination", symbolDestination);
+                    symbolItem.SetMetadata("AssetType", assetType);
+
+                    yield return symbolItem;
+                }
+            }
         }
     }
 }
