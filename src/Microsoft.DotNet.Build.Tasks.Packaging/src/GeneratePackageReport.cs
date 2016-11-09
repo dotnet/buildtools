@@ -130,8 +130,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     if (!FrameworkUtilities.IsGenerationMoniker(fx) && !fx.IsPCL)
                     {
                         // only look at runtime assets for runnable frameworks.
-                        isSupported &= hasCompileAsset == hasRuntimeAsset;
-                        isSupported &= hasCompilePlaceHolder == hasRuntimePlaceHolder;
+                        isSupported &= (hasCompileAsset && hasRuntimeAsset) ||   // matching assets
+                            (hasCompilePlaceHolder && hasRuntimeAsset) ||        // private runtime
+                            (hasCompilePlaceHolder && hasRuntimePlaceHolder);    // placeholders
                     }
 
                     var nativeAssets = _resolver.ResolveNativeAssets(fx, runtimeId);
@@ -180,6 +181,19 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         }
 
         private static string[] s_noRids = new[] { string.Empty };
+        private static HashSet<string> s_ignoredFrameworks = new HashSet<string>()
+        {
+            FrameworkConstants.FrameworkIdentifiers.AspNet,
+            FrameworkConstants.FrameworkIdentifiers.AspNetCore,
+            FrameworkConstants.FrameworkIdentifiers.Dnx,
+            FrameworkConstants.FrameworkIdentifiers.DnxCore,
+            FrameworkConstants.FrameworkIdentifiers.DotNet,
+            FrameworkConstants.FrameworkIdentifiers.NetPlatform,
+            FrameworkConstants.FrameworkIdentifiers.NetStandardApp,
+            FrameworkConstants.FrameworkIdentifiers.Silverlight,
+            FrameworkConstants.FrameworkIdentifiers.Windows,
+            FrameworkConstants.FrameworkIdentifiers.WinRT
+        };
         private void LoadFrameworks()
         {
             _frameworks = new Dictionary<NuGetFramework, string[]>(NuGetFramework.Comparer);
@@ -241,6 +255,23 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                 foreach (var derivedFx in derivedFxs)
                 {
+                    if (derivedFx.IsDesktop() && derivedFx.HasProfile)
+                    {
+                        // skip desktop profiles
+                        continue;
+                    }
+
+                    if (derivedFx.Version.Major == 0 && derivedFx.Version.Minor == 0)
+                    {
+                        // skip unversioned frameworks
+                        continue;
+                    }
+
+                    if (s_ignoredFrameworks.Contains(derivedFx.Framework))
+                    {
+                        continue;
+                    }
+
                     if (!_frameworks.ContainsKey(derivedFx))
                     {
                         _frameworks.Add(derivedFx, s_noRids);

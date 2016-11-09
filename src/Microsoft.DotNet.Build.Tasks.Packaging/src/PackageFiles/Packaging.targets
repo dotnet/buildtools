@@ -71,6 +71,7 @@
     <NuSpecOutputPath Condition="'$(NuSpecOutputPath)' == ''">$(PackageOutputPath)specs/</NuSpecOutputPath>
     <NuSpecPath>$(NuSpecOutputPath)$(Id)$(NuspecSuffix).nuspec</NuSpecPath>
     <PackageReportDir Condition="'$(PackageReportDir)' == ''">$(PackageOutputPath)reports/</PackageReportDir>
+    <PackageLayoutDir Condition="'$(PackageLayoutDir)' == ''">$(PackageOutputPath)layout/</PackageLayoutDir>
     <PackageReportPath>$(PackageReportDir)$(Id)$(NuspecSuffix).json</PackageReportPath>
     <TargetPath>$(NuSpecPath)</TargetPath>
     <RuntimeFilePath Condition="'$(RuntimeFilePath)' == ''">$(NuSpecOutputPath)$(Id)$(NuspecSuffix)/runtime.json</RuntimeFilePath>
@@ -110,6 +111,9 @@
   <UsingTask TaskName="FilterUnknownPackages" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="GeneratePackageReport" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="InstallPackageFromFile" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="GetLayoutFiles" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  <UsingTask TaskName="VerifyClosure" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+
   
   <!-- Determine if we actually need to build for this architecture -->
   <!-- Packages can specifically control their architecture by specifying the PackagePlatforms
@@ -126,9 +130,11 @@
     <ShouldGenerateNuSpec Condition="'$(PackagePlatforms)' == '' AND $(PackageTargetRuntime.Contains('-$(PackagePlatform)'))">true</ShouldGenerateNuSpec>
     <!-- build if PackagePlatforms is not specified and arch is x86 or AnyCPU -->
     <ShouldGenerateNuSpec Condition="'$(PackagePlatforms)' == '' AND ('$(PackagePlatform)' == 'x86' OR '$(PackagePlatform)' == 'AnyCPU')">true</ShouldGenerateNuSpec>
-    <!-- if we built a nuspec, also pack unless explicitly set -->
+    <!-- if we built a nuspec, also create layout and pack unless explicitly set -->
+    <ShouldCreateLayout Condition="'$(ShouldCreateLayout)' == ''">$(ShouldGenerateNuSpec)</ShouldCreateLayout>
     <ShouldCreatePackage Condition="'$(ShouldCreatePackage)' == ''">$(ShouldGenerateNuSpec)</ShouldCreatePackage>
     <BuildDependsOn Condition="'$(ShouldGenerateNuSpec)' == 'true'">GenerateNuSpec</BuildDependsOn>
+    <BuildDependsOn Condition="'$(ShouldCreateLayout)' == 'true'">$(BuildDependsOn);CreateLayout</BuildDependsOn>
     <BuildDependsOn Condition="'$(ShouldCreatePackage)' == 'true'">$(BuildDependsOn);CreatePackage</BuildDependsOn>
     <BuildDependsOn Condition="'$(ShouldCreatePackage)' == 'true' OR '$(ShouldGenerateNuSpec)' == 'true'">$(BuildDependsOn);GetPackageReport;ValidatePackage</BuildDependsOn>
   </PropertyGroup>
@@ -928,7 +934,7 @@
       <RuntimeIDs>win7-x86;win7-x64;osx.10.11-x64;centos.7-x64;debian.8-x64;linuxmint.17-x64;opensuse.13.2-x64;rhel.7.2-x64;ubuntu.14.04-x64;ubuntu.16.04-x64</RuntimeIDs>
     </DefaultValidateFramework>
     <DefaultValidateFramework Include="netcoreapp1.1">
-      <RuntimeIDs>win7-x86;win7-x64;win10-arm64;osx.10.11-x64;centos.7-x64;debian.8-x64;linuxmint.17-x64;opensuse.13.2-x64;rhel.7.2-x64;ubuntu.14.04-x64;ubuntu.16.04-x64</RuntimeIDs>
+      <RuntimeIDs>win7-x86;win7-x64;win10-arm64;alpine.3.4.3-x64;osx.10.10-x64;osx.10.11-x64;centos.7-x64;debian.8-x64;fedora.23-x64;fedora.24-x64;linuxmint.17-x64;opensuse.13.2-x64;opensuse.42.1-x64;rhel.7-x64;rhel.7.2-x64;ubuntu.14.04-x64;ubuntu.16.04-x64;ubuntu.16.10-x64</RuntimeIDs>
     </DefaultValidateFramework>
 
     <DefaultValidateFramework Include="netcore50">
@@ -1251,4 +1257,33 @@
                         ModuleToPackages="@(ModuleToPackage)" />
   </Target>
 
+  <Target Name="CreateLayout"
+          Condition="'$(IsRuntimePackage)' != 'true'"
+          DependsOnTargets="GetPackageReport">
+
+    <ItemGroup>
+      <LayoutFrameworks Condition="'@(LayoutFrameworks)' == ''" Include="NETCoreApp,Version=v1.1" />
+    </ItemGroup>
+
+    <GetLayoutFiles PackageReports="$(PackageReportPath)"
+                    Frameworks="@(LayoutFrameworks)"
+                    DestinationDirectory="$(PackageLayoutDir)">
+      <Output TaskParameter="LayoutFiles" ItemName="LayoutFiles"/>
+    </GetLayoutFiles>
+
+    <ItemGroup>
+      <_missingLayoutFiles Include="@(LayoutFiles)" Condition="!Exists('%(FullPath)')" />
+      <LayoutFiles Remove="@(_missingLayoutFiles)" />
+    </ItemGroup>
+
+    <Message Text="Skipping '%(_missingLayoutFiles.FullPath) because it does not exist." Condition="'@(_missingLayoutFiles)' != ''" />
+
+    <Copy SourceFiles="@(LayoutFiles)"
+          DestinationFiles="@(LayoutFiles->'%(Destination)')"
+          SkipUnchangedFiles="true"
+          OverwriteReadOnlyFiles="true"
+          Retries="$(CopyRetryCount)"
+          RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
+          UseHardlinksIfPossible="true" />
+  </Target>
 </Project>

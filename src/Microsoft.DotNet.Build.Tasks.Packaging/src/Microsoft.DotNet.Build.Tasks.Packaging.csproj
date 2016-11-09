@@ -20,6 +20,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="GetLayoutFiles.cs" />
     <Compile Include="FilterUnknownPackages.cs" />
     <Compile Include="GetPackageDestination.cs" />
     <Compile Include="GetApplicableAssetsFromPackageReports.cs" />
@@ -61,6 +62,7 @@
     <Compile Include="SplitReferences.cs" />
     <Compile Include="ValidatePackage.cs" />
     <Compile Include="PackageReport.cs" />
+    <Compile Include="VerifyClosure.cs" />
     <Compile Include="VersionUtility.cs" />
   </ItemGroup>
   <ItemGroup>
