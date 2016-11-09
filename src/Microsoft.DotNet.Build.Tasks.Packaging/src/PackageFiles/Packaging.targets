@@ -112,6 +112,7 @@
   <UsingTask TaskName="GeneratePackageReport" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="InstallPackageFromFile" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
   <UsingTask TaskName="GetLayoutFiles" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
+  <UsingTask TaskName="VerifyClosure" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
 
   
   <!-- Determine if we actually need to build for this architecture -->
