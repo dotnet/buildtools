@@ -25,7 +25,7 @@
   <PropertyGroup>
     <!-- Resolve from pkgProjs before nuget packages -->
     <ResolveNugetPackagesDependsOn>$(ResolveNugetPackagesDependsOn);ResolvePkgProjReferences</ResolveNugetPackagesDependsOn>
-    <ResolvePkgProjReferencesDependsOn>ResolveProjectReferences</ResolvePkgProjReferencesDependsOn>
+    <ResolvePkgProjReferencesDependsOn>$(ResolvePkgProjReferencesDependsOn);ResolveProjectReferences</ResolvePkgProjReferencesDependsOn>
   </PropertyGroup>
 
   <!-- Resolves applicable files from all files in PkgProjs. Similar to ResolveNuGetPackageAssets, except operates on a file list
