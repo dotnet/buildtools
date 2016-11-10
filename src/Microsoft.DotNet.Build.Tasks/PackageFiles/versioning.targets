@@ -347,7 +347,7 @@
     </PropertyGroup>
     
     <!-- Since by default the file will get dropped at the obj dir, make sure that the dir is created already or else WriteLinesToFile will error. -->
-    <MakeDir Condition="!Exists('$(BuildVersionFilePath)')" Directories="$(BuildVersionFilePath)" />
+    <MakeDir Directories="$(BuildVersionFilePath)" />
       
     <WriteLinesToFile
       ContinueOnError="WarnAndContinue"
@@ -366,6 +366,7 @@
     </ItemGroup>
 
     <PropertyGroup>
+      <!-- Redefine AssemblyFileVersion because we just computed it. -->
       <AssemblyFileVersion>$(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)</AssemblyFileVersion>
     </PropertyGroup>
   </Target>
@@ -373,8 +374,6 @@
   <!-- This target will only be executed if BuildVersion.props doesn't exist yet -->
   <Target Name="CreateVersionFileDuringBuild" Condition="'$(SkipVersionGeneration)'!='true' AND '$(ShouldCreateVersionFileDuringBuild)'=='true'" DependsOnTargets="CreateOrUpdateCurrentVersionFile">
     <PropertyGroup Condition="'$(SkipVersionGeneration)'!='true'">
-      <BuildNumberMajor >$(GeneratedBuildNumberMajor)</BuildNumberMajor>
-      <BuildNumberMinor>$(GeneratedBuildNumberMinor)</BuildNumberMinor>
       <VersionSuffix Condition="'$(PreReleaseLabel)' != ''">-$(PreReleaseLabel)</VersionSuffix>
       <VersionSuffix Condition="'$(IncludeBuildNumberInPackageVersion)' == 'true'">$(VersionSuffix)-$(BuildNumberMajor)-$(BuildNumberMinor)</VersionSuffix>
     </PropertyGroup>
