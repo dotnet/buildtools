@@ -1258,7 +1258,7 @@
   </Target>
 
   <Target Name="CreateLayout"
-          Condition="'$(IsRuntimePackage)' != 'true'"
+          Condition="'$(IsRuntimePackage)' != 'true' AND '$(PackageTargetRuntime)' == ''"
           DependsOnTargets="GetPackageReport">
 
     <ItemGroup>
