@@ -52,6 +52,8 @@
       <GenFacadesArgs>$(GenFacadesArgs) -facadePath:"$(GenFacadesOutputPath.TrimEnd('/'))"</GenFacadesArgs>
       <GenFacadesArgs Condition="'$(DebugSymbols)' == 'false' OR '$(DebugType)'=='Portable'">$(GenFacadesArgs) -producePdb:false</GenFacadesArgs>
       <GenFacadesArgs Condition="'@(SeedTypePreference)' != ''">$(GenFacadesArgs) -preferSeedType:"@(SeedTypePreference->'%(Identity)=%(Assembly)', ',')"</GenFacadesArgs>
+      <GenFacadesArgs Condition="'$(GenFacadesIgnoreMissingTypes)' == 'true'">$(GenFacadesArgs) -ignoreMissingTypes</GenFacadesArgs>
+      <GenFacadesArgs Condition="'$(GenFacadesIgnoreBuildAndRevisionMismatch)' == 'true'">$(GenFacadesArgs) -ignoreBuildAndRevisionMismatch</GenFacadesArgs>
     </PropertyGroup>
 
     <MakeDir Directories="$(GenFacadesInputPath)" />

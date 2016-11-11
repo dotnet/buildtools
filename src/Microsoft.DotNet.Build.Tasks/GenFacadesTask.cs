@@ -68,7 +68,8 @@ namespace Microsoft.DotNet.Build.Tasks
                 string[] seedTypePreferencesUnsplit = null;
                 if (SeedTypePreferencesUnsplit != null)
                 {
-                    seedTypePreferencesUnsplit = SeedTypePreferencesUnsplit.Select(iti => iti.ItemSpec).ToArray();
+                    seedTypePreferencesUnsplit = SeedTypePreferencesUnsplit.Select(iti => $"{iti.ItemSpec}={iti.GetMetadata("Assembly")}").ToArray();
+                    Trace.WriteLine("seedTypePreferencesUnsplit: " + string.Join(" || ", seedTypePreferencesUnsplit));
                 }
 
                 Generator.Execute(

@@ -63,6 +63,8 @@
     <PropertyGroup>
       <ProducePdb>true</ProducePdb>
       <ProducePdb Condition="'$(DebugSymbols)' == 'false' OR '$(DebugType)'=='Portable'">false</ProducePdb>
+      <GenFacadesIgnoreMissingTypes Condition="'$(GenFacadesIgnoreMissingTypes)' == ''">false</GenFacadesIgnoreMissingTypes>
+      <GenFacadesIgnoreBuildAndRevisionMismatch Condition="'$(GenFacadesIgnoreBuildAndRevisionMismatch)' == ''">false</GenFacadesIgnoreBuildAndRevisionMismatch>
     </PropertyGroup>
 
     <GenFacadesTask
@@ -72,6 +74,8 @@
       FacadePath="$(GenFacadesOutputPath.TrimEnd('/'))"
       SeedTypePreferencesUnsplit="@(SeedTypePreference)"
       ProducePdb="$(ProducePdb)"
+      IgnoreMissingTypes="$(GenFacadesIgnoreMissingTypes)"
+      IgnoreBuildAndRevisionMismatch="$(GenFacadesIgnoreBuildAndRevisionMismatch)"
     />
 
     <ItemGroup>
