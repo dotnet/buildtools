@@ -14,7 +14,7 @@ using Microsoft.Cci.MutableCodeModel;
 
 namespace GenFacades
 {
-    public class GenFacades
+    public class Generator
     {
         private const uint ReferenceAssemblyFlag = 0x70;
 

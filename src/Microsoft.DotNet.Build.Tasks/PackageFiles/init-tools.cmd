@@ -48,11 +48,11 @@ if not [%TOOLRUNTIME_PUBLISH_ERROR_LEVEL%]==[0] (
 	exit /b %TOOLRUNTIME_PUBLISH_ERROR_LEVEL%
 )
 @echo on
-call "%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECTJSON%" -f net45 -r %BUILDTOOLS_NET45_TARGET_RUNTIME% -o "%TOOLRUNTIME_DIR%\net45"
+call "%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECTJSON%" -f net46 -r %BUILDTOOLS_NET45_TARGET_RUNTIME% -o "%TOOLRUNTIME_DIR%\net45"
 set NET45_PUBLISH_ERROR_LEVEL=%ERRORLEVEL%
 @echo off
 if not [%NET45_PUBLISH_ERROR_LEVEL%]==[0] (
-	echo ERROR: An error ocurred when running: '"%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECTJSON%" -f net45'. Please check above for more details.
+	echo ERROR: An error ocurred when running: '"%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECTJSON%" -f net46'. Please check above for more details.
 	exit /b %NET45_PUBLISH_ERROR_LEVEL%
 )
 

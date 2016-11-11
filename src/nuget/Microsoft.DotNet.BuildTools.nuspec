@@ -31,6 +31,7 @@
     <file src="BclRewriter\BclRewriter.exe" target="lib" />
     <file src="GenFacades.Console\GenFacades.exe" target="lib" />
     <file src="GenFacades.Core\GenFacades.Core.dll" target="lib" />
+    <file src="GenFacades.Core\GenFacades.Core.dll" target="lib/net45" />
     <file src="GenAPI\GenAPI.exe" target="lib" />
     <file src="ApiCompat\ApiCompat.exe" target="lib" />
     <file src="Microsoft.DotNet.CodeAnalysis\Microsoft.DotNet.CodeAnalysis.dll" target="lib\analyzers" />

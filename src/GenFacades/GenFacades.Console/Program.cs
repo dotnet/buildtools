@@ -50,7 +50,7 @@ namespace GenFacades
 
             CommandLineTraceHandler.Enable();
 
-            GenFacades.Execute(
+            Generator.Execute(
                 seeds,
                 contracts,
                 facadePath,

@@ -28,9 +28,13 @@
         "portable-net45+win8"
       ]
     },
-    "net45": {
+    "net46": {
       "dependencies": {
-        "Microsoft.NETCore.Windows.ApiSets": "1.0.1"
+        "Microsoft.Cci": "4.0.0-rc4-24217-00",
+        "Microsoft.NETCore.Windows.ApiSets": "1.0.1",
+        "System.IO.FileSystem": "4.0.1",
+        "System.Diagnostics.FileVersionInfo": "4.0.0",
+        "System.Diagnostics.TraceSource": "4.0.0",
       }
     }
   },

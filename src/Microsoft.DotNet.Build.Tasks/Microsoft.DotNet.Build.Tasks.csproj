@@ -32,6 +32,7 @@
     <Compile Include="GenerateCurrentVersion.cs" />
     <Compile Include="GenerateResourcesCode.cs" />
     <Compile Include="GenerateEncodingTable.cs" />
+    <Compile Include="GenFacadesTask.cs" />
     <Compile Include="GetPackageVersion.cs" />
     <Compile Include="GetPackageDependencies.cs" />
     <Compile Include="GetNextRevisionNumber.cs" />
@@ -82,9 +83,81 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
-    <None Include="PackageFiles\**\*.*" />
+    <None Include="PackageFiles\ApiCompat.runtimeconfig.json" />
+    <None Include="PackageFiles\ApiCompat.targets" />
+    <None Include="PackageFiles\AssemblyInfoPartial.cs" />
+    <None Include="PackageFiles\AssemblyInfoPartial.vb" />
+    <None Include="PackageFiles\BclRewriter.runtimeconfig.json" />
+    <None Include="PackageFiles\BlockReflectionAttribute.cs" />
+    <None Include="PackageFiles\Build.Common.props" />
+    <None Include="PackageFiles\Build.Common.targets" />
+    <None Include="PackageFiles\Build.Post.targets" />
+    <None Include="PackageFiles\buildagainstpackages.targets" />
+    <None Include="PackageFiles\BuildVersion.targets" />
+    <None Include="PackageFiles\checksum.rsp" />
+    <None Include="PackageFiles\clean.targets" />
+    <None Include="PackageFiles\CodeCoverage.targets" />
+    <None Include="PackageFiles\codeOptimization.targets" />
+    <None Include="PackageFiles\CommitBuildValues.targets" />
+    <None Include="PackageFiles\coreAssembly.rsp" />
+    <None Include="PackageFiles\csc.runtimeconfig.json" />
+    <None Include="PackageFiles\depProj.targets" />
+    <None Include="PackageFiles\dnxcore50\_._" />
+    <None Include="PackageFiles\ECMA.snk" />
+    <None Include="PackageFiles\encoding.targets" />
+    <None Include="PackageFiles\FrameworkTargeting.targets" />
+    <None Include="PackageFiles\GenAPI.runtimeconfig.json" />
+    <None Include="PackageFiles\GenFacades.runtimeconfig.json" />
+    <None Include="PackageFiles\gitpush.targets" />
+    <None Include="PackageFiles\IL.targets" />
+    <None Include="PackageFiles\init-tools.cmd" />
+    <None Include="PackageFiles\init-tools.sh" />
+    <None Include="PackageFiles\localization.targets" />
+    <None Include="PackageFiles\msbuild.cmd" />
+    <None Include="PackageFiles\MSBuild.runtimeconfig.json" />
+    <None Include="PackageFiles\msbuild.sh" />
+    <None Include="PackageFiles\MSFT.snk" />
+    <None Include="PackageFiles\NativeVersion.rc" />
+    <None Include="PackageFiles\netstandard1.0\_._" />
+    <None Include="PackageFiles\notsupported.targets" />
+    <None Include="PackageFiles\Open.snk" />
+    <None Include="PackageFiles\packageresolve.targets" />
+    <None Include="PackageFiles\packages.targets" />
+    <None Include="PackageFiles\partialfacades.exe.targets" />
+    <None Include="PackageFiles\partialfacades.targets" />
+    <None Include="PackageFiles\partialfacades.task.targets" />
+    <None Include="PackageFiles\PerfTesting.targets" />
+    <None Include="PackageFiles\PriConfig.xml" />
+    <None Include="PackageFiles\publishtest.targets" />
+    <None Include="PackageFiles\ReferenceAssemblies.props" />
+    <None Include="PackageFiles\ReferenceAssemblies.targets" />
+    <None Include="PackageFiles\resolveContract.targets" />
+    <None Include="PackageFiles\resources.targets" />
+    <None Include="PackageFiles\Roslyn.Common.props" />
+    <None Include="PackageFiles\RunnerTemplate.Unix.txt" />
+    <None Include="PackageFiles\RunnerTemplate.Windows.txt" />
+    <None Include="PackageFiles\scripts\docker\cleanup-docker.sh" />
+    <None Include="PackageFiles\sign.targets" />
+    <None Include="PackageFiles\Test.snk" />
+    <None Include="PackageFiles\tests.targets" />
+    <None Include="PackageFiles\tool-runtime\Program.cs" />
+    <None Include="PackageFiles\tool-runtime\project.json" />
+    <None Include="PackageFiles\tool-runtime\project.lock.json" />
+    <None Include="PackageFiles\toolruntime.targets" />
+    <None Include="PackageFiles\UpdateBuildValues.targets" />
+    <None Include="PackageFiles\vbc.runtimeconfig.json" />
+    <None Include="PackageFiles\versioning.targets" />
+    <None Include="PackageFiles\VersionTools.targets" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\GenFacades\GenFacades.Core\GenFacades.Core.csproj">
+      <Project>{e2fec393-c921-4dfa-83a4-9cfcd24bd9f2}</Project>
+      <Name>GenFacades.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.Cci.Extensions\Microsoft.Cci.Extensions.csproj">
+      <Project>{2179f9b5-1dba-4563-9402-a94de75ea9fa}</Project>
+      <Name>Microsoft.Cci.Extensions</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Microsoft.DotNet.VersionTools\Microsoft.DotNet.VersionTools.csproj">
       <Project>{8d524fa5-a8c5-4ebd-ba8b-2a4fed03ee58}</Project>
       <Name>Microsoft.DotNet.VersionTools</Name>
