@@ -251,7 +251,7 @@
     </Exec>
 
     <Delete Condition="'$(DeletePerfDataFile)' == 'true'" Files="$(TestPath)/$(EventTracerDataFile)" />
-    <Error Condition="'$(TestDisabled)'!='true' And '$(TestRunExitCode)' != '0'" Text="One or more tests failed while running tests from '$(MSBuildProjectName)' please check log for details!" />
+    <Error Condition="'$(TestDisabled)'!='true' And '$(TestRunExitCode)' != '0'" Text="One or more tests failed while running tests from '$(MSBuildProjectName)' please check $(TestPath)$(XunitResultsFileName) for details!" />
     <Touch Condition="'$(TestRunExitCode)' == '0'" Files="$(TestsSuccessfulSemaphore)" AlwaysCreate="true" />
   </Target>
 
