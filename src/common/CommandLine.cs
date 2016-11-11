@@ -1605,7 +1605,7 @@ class CommandLine
         }
         /// <summary>
         /// prints a string to the console in a nice way.  In particular it
-        /// displays a sceeen full of data and then as user to type a space to continue.
+        /// displays a sceeen full of data and then ask user to type Enter to continue.
         /// </summary>
         /// <param name="helpString"></param>
         private static void DisplayStringToConsole(string helpString)
@@ -1629,7 +1629,7 @@ class CommandLine
                 Console.Write(helpString.Substring(pos, nextPos - pos));
                 if (nextPos == helpString.Length)
                     break;
-                Console.Write("[Press space to continue...]");
+                Console.Write("[Press Enter to continue...]");
                 Console.Read();
                 Console.Write("\r                               \r");
                 pos = nextPos;
