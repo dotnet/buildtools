@@ -3,15 +3,14 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.props))\dir.props" />
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <OutputType>Library</OutputType>
     <RootNamespace>GenFacades</RootNamespace>
-    <AssemblyName>GenFacades</AssemblyName>
+    <AssemblyName>GenFacades.Core</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);COREFX</DefineConstants>
-    <NuGetRuntimeIdentifier>win7-x64</NuGetRuntimeIdentifier>
-    <NuGetTargetMoniker>.NETCoreApp,Version=v1.0</NuGetTargetMoniker>
+    <NuGetTargetMoniker>.NETStandard,Version=v1.3</NuGetTargetMoniker>
     <DebugEngines>{2E36F1D4-B23C-435D-AB41-18E608940038}</DebugEngines>
+    <ClsCompliant>false</ClsCompliant>
   </PropertyGroup>
 
   <!-- Default configurations to help VS understand the configurations -->
@@ -20,21 +19,8 @@
 
   <ItemGroup>
     <Compile Include="FacadeGenerationException.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="GenFacades.cs" />
     <Compile Include="VersionResourceSerializer.cs" />
-  </ItemGroup>
-
-  <!-- Common command-line helper sources -->
-  <ItemGroup>
-    <Compile Include="$(CommonPath)\CommandLine.cs">
-      <Link>Common\CommandLine.cs</Link>
-    </Compile>
-    <Compile Include="$(CommonPath)\CommandLineTraceHandler.cs">
-      <Link>Common\CommandLineTraceHandler.cs</Link>
-    </Compile>
-    <Compile Include="$(CommonPath)\ConsoleTraceListener.cs">
-      <Link>Common\ConsoleTraceListener.cs</Link>
-    </Compile>
   </ItemGroup>
 
   <ItemGroup>
@@ -42,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.CCI.Extensions\Microsoft.CCI.Extensions.csproj" />
+    <ProjectReference Include="..\..\Microsoft.CCI.Extensions\Microsoft.CCI.Extensions.csproj" />
   </ItemGroup>
 
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
