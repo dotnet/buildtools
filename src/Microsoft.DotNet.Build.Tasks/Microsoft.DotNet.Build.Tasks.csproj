@@ -24,6 +24,7 @@
     <Compile Include="GatherFoldersToRestore.cs" />
     <Compile Include="GenerateAssemblyList.cs" />
     <Compile Include="AddDependenciesToProjectJson.cs" />
+    <Compile Include="FilterRuntimesFromSupports.cs" />
     <Compile Include="GenerateTestExecutionScripts.cs" />
     <Compile Include="GenerateCurrentVersion.cs" />
     <Compile Include="GenerateResourcesCode.cs" />
