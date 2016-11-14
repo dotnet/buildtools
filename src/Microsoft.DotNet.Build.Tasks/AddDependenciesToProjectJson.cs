@@ -65,6 +65,15 @@ namespace Microsoft.DotNet.Build.Tasks
         [Required]
         public string OutputProjectJson { get; set; }
 
+        [Required]
+        public string SupportsFile { get; set; }
+
+        [Required]
+        public string TestRuntime { get; set; }
+
+        [Required]
+        public string TestTargetFramework { get; set; }
+
         private Regex _packageNameRegex;
 
         private VersionComparer comparer = new VersionComparer(VersionComparison.VersionRelease);
@@ -131,6 +140,11 @@ namespace Microsoft.DotNet.Build.Tasks
                 dependencies = GenerateDependencies(projectRoot, ExternalPackages, packageInformation, Frameworks[i]);
                 projectRoot = UpdateDependenciesProperty(projectRoot, dependencies, Frameworks[i]);
             }
+
+            var definedTfmRidPairs = FilterRuntimesFromSupports.GetAllTfmRidPairs(SupportsFile);
+            var applicableTfmRidPairs = FilterRuntimesFromSupports.FilterForApplicableTFMRIDPairs(definedTfmRidPairs, TestTargetFramework, TestRuntime);
+            projectRoot["supports"] = FilterRuntimesFromSupports.GenerateCustomSupportsClause(applicableTfmRidPairs);
+
             WriteProject(projectRoot, OutputProjectJson);
 
             return true;
