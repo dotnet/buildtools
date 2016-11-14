@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.Build.Framework;
@@ -20,9 +21,6 @@ namespace Microsoft.DotNet.Build.Tasks
         public string[] RuntimeIds { get; set; }
 
         [Required]
-        public string RuntimeGraphFile { get; set; }
-
-        [Required]
         public string SupportsFile { get; set; }
 
         [Required]
@@ -30,29 +28,23 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public override bool Execute()
         {
-            if (!File.Exists(RuntimeGraphFile))
-            {
-                Log.LogError("Cannot find specified runtime.json - '{0}'", RuntimeGraphFile);
-                return false;
-            }
-
             if (!File.Exists(SupportsFile))
             {
-                Log.LogError("Cannot find specified runtime.json - '{0}'", RuntimeGraphFile);
+                Log.LogError("Cannot find specified runtime.json - '{0}'", SupportsFile);
                 return false;
             }
 
-            RuntimeGraph runtimeGraph = ReadRuntimeGraph(RuntimeGraphFile);
-            RuntimeGraph supportsGraph = ReadRuntimeGraph(SupportsFile);
+            Debugger.Launch();
+
+            RuntimeGraph supportsGraph = JsonRuntimeFormat.ReadRuntimeGraph(SupportsFile);
 
             List<CompatibilityProfile> filteredSupports = new List<CompatibilityProfile>();
             List<CompatibilityProfile> filteredRuntimes = new List<CompatibilityProfile>();
 
-            if (Frameworks!=null && Frameworks.Length > 0)
+            if (Frameworks != null && Frameworks.Length > 0)
             {
                 foreach (var key in supportsGraph.Supports.Keys)
                 {
-                    var compat = DefaultCompatibilityProvider.Instance;
                     CompatibilityProfile compatibilityProfile = null;
                     supportsGraph.Supports.TryGetValue(key, out compatibilityProfile);
                     bool isFrameworkFiltered = false;
@@ -60,7 +52,7 @@ namespace Microsoft.DotNet.Build.Tasks
                     {
                         foreach (string tfm in Frameworks)
                         {
-                            if (compat.IsCompatible(NuGetFramework.Parse(tfm), tfmRidPair.Framework))
+                            if (NuGetFramework.Parse(tfm).Equals(tfmRidPair.Framework))
                             {
                                 isFrameworkFiltered = true;
                                 filteredSupports.Add(compatibilityProfile);
@@ -88,38 +80,31 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 foreach (var compatibilityProfile in filteredSupports)
                 {
-                    List<bool> toRemove = new List<bool>();
-                    List<FrameworkRuntimePair> frameworkRuntimePairs = new List<FrameworkRuntimePair>();
-                    foreach (var tfmRidPair in compatibilityProfile.RestoreContexts)
+                    for (int i = compatibilityProfile.RestoreContexts.Count - 1; i >= 0; i--)
                     {
-                        bool isRuntimeFiltered = false;
                         foreach (string runtimeId in RuntimeIds)
                         {
-                            if (runtimeGraph.AreCompatible(runtimeId, tfmRidPair.RuntimeIdentifier))
+                            if (!runtimeId.Equals(compatibilityProfile.RestoreContexts[i].RuntimeIdentifier))
                             {
-                                isRuntimeFiltered = true;
-                                break;
+                                compatibilityProfile.RestoreContexts.RemoveAt(i);
                             }
                         }
-                        toRemove.Add(isRuntimeFiltered);
                     }
-                    for (int i = 0, k = 0; i < toRemove.Count; i++)
+                    if (compatibilityProfile.RestoreContexts.Count > 0)
                     {
-                        if (!toRemove[i])
-                        {
-                            compatibilityProfile.RestoreContexts.RemoveAt(k);
-                        }
-                        else
-                        {
-                            k++;
-                        }
+                        filteredRuntimes.Add(compatibilityProfile);
                     }
-                    filteredRuntimes.Add(compatibilityProfile);
                 }
             }
             else
             {
                 filteredRuntimes = filteredSupports;
+            }
+
+            if (filteredRuntimes.Count == 0)
+            {
+                Log.LogError(
+                    "No compatible runtimes found in supports. Please select correct tfm/rid combination to restore or add it to the TestSuite runtime.json and test-runtime proejct.json.");
             }
 
             JObject projectJson = ReadProject(InputProjectJson);
@@ -137,7 +122,8 @@ namespace Microsoft.DotNet.Build.Tasks
                     }
                     else
                     {
-                        map.Add(tfmRidPair.Framework.GetShortFolderName(), new List<string>() { tfmRidPair.RuntimeIdentifier });
+                        map.Add(tfmRidPair.Framework.GetShortFolderName(),
+                            new List<string>() {tfmRidPair.RuntimeIdentifier});
                     }
                 }
                 var tfmRidsForSupports = new JObject();
@@ -148,10 +134,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 supportsClause[compatibilityProfile.Name] = tfmRidsForSupports;
             }
 
-            if (projectJson["supports"]!=null)
-            {
-                projectJson["supports"] = supportsClause;
-            }
+            projectJson["supports"] = supportsClause;
 
             string projectJsonRoot = JsonConvert.SerializeObject(projectJson, Formatting.Indented) + Environment.NewLine;
 
@@ -172,122 +155,6 @@ namespace Microsoft.DotNet.Build.Tasks
                 var serializer = new JsonSerializer();
                 return serializer.Deserialize<JObject>(projectJsonReader);
             }
-        }
-
-
-        public static RuntimeGraph ReadRuntimeGraph(string filePath)
-        {
-            using (var fileStream = File.OpenRead(filePath))
-            {
-                return ReadRuntimeGraph(fileStream);
-            }
-        }
-
-        public static RuntimeGraph ReadRuntimeGraph(Stream stream)
-        {
-            using (var streamReader = new StreamReader(stream))
-            {
-                return ReadRuntimeGraph(streamReader);
-            }
-        }
-
-        public static RuntimeGraph ReadRuntimeGraph(TextReader textReader)
-        {
-            using (var jsonReader = new JsonTextReader(textReader))
-            {
-                return ReadRuntimeGraph(JToken.Load(jsonReader));
-            }
-        }
-
-        public static RuntimeGraph ReadRuntimeGraph(JToken json)
-        {
-            return new RuntimeGraph(
-                EachProperty(json["runtimes"]).Select(ReadRuntimeDescription),
-                EachProperty(json["supports"]).Select(ReadCompatibilityProfile));
-        }
-
-        private static CompatibilityProfile ReadCompatibilityProfile(KeyValuePair<string, JToken> json)
-        {
-            var name = json.Key;
-            var sets = new List<FrameworkRuntimePair>();
-            foreach (var property in EachProperty(json.Value))
-            {
-                var profiles = ReadCompatibilitySets(property);
-                sets.AddRange(profiles);
-            }
-            return new CompatibilityProfile(name, sets);
-        }
-
-        private static IEnumerable<FrameworkRuntimePair> ReadCompatibilitySets(KeyValuePair<string, JToken> property)
-        {
-            var framework = NuGetFramework.Parse(property.Key);
-            switch (property.Value.Type)
-            {
-                case JTokenType.Array:
-                    foreach (var value in (JArray)property.Value)
-                    {
-                        yield return new FrameworkRuntimePair(framework, value.Value<string>());
-                    }
-                    break;
-                case JTokenType.String:
-                    yield return new FrameworkRuntimePair(framework, property.Value.ToString());
-                    break;
-                    // Other token types are not supported
-            }
-        }
-
-        private static RuntimeDescription ReadRuntimeDescription(KeyValuePair<string, JToken> json)
-        {
-            var name = json.Key;
-            IList<string> inheritedRuntimes = new List<string>();
-            IList<RuntimeDependencySet> additionalDependencies = new List<RuntimeDependencySet>();
-            foreach (var property in EachProperty(json.Value))
-            {
-                if (property.Key == "#import")
-                {
-                    var imports = property.Value as JArray;
-                    foreach (var import in imports)
-                    {
-                        inheritedRuntimes.Add(import.Value<string>());
-                    }
-                }
-                else
-                {
-                    var dependency = ReadRuntimeDependencySet(property);
-                    additionalDependencies.Add(dependency);
-                }
-            }
-            return new RuntimeDescription(name, inheritedRuntimes, additionalDependencies);
-        }
-
-        private static RuntimeDependencySet ReadRuntimeDependencySet(KeyValuePair<string, JToken> json)
-        {
-            return new RuntimeDependencySet(
-                json.Key,
-                EachProperty(json.Value).Select(ReadRuntimePackageDependency));
-        }
-
-        private static RuntimePackageDependency ReadRuntimePackageDependency(KeyValuePair<string, JToken> json)
-        {
-            return new RuntimePackageDependency(json.Key, VersionRange.Parse(json.Value.Value<string>()));
-        }
-
-        private static IEnumerable<KeyValuePair<string, JToken>> EachProperty(JToken json)
-        {
-            return (json as IEnumerable<KeyValuePair<string, JToken>>)
-                   ?? Enumerable.Empty<KeyValuePair<string, JToken>>();
-        }
-
-        private static IEnumerable<KeyValuePair<string, JToken>> EachProperty(JToken json, string defaultPropertyName)
-        {
-            return (json as IEnumerable<KeyValuePair<string, JToken>>)
-                   ?? new[] { new KeyValuePair<string, JToken>(defaultPropertyName, json) };
-        }
-
-        private static IEnumerable<JToken> EachArray(JToken json)
-        {
-            return (IEnumerable<JToken>)(json as JArray)
-                   ?? new[] { json };
         }
     }
 
