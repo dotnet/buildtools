@@ -3,11 +3,9 @@
   <UsingTask TaskName="AddDependenciesToProjectJson" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="GetPackageNumberFromPackageDrop" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="DumpItem" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
-  <UsingTask TaskName="FilterRuntimesFromSupports" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
   <ItemGroup>
     <_PackagesDrops Include="$(PackagesDrops)" />
-    <SupportsDefinitionFile Condition="'$(SupportsDefinitionFile)' == '' AND Exists('$(SrcDir)Microsoft.DotNet.BuildTools.TestSuite/runtime.json')">$(SrcDir)Microsoft.DotNet.BuildTools.TestSuite/runtime.json</SupportsDefinitionFile>
   </ItemGroup>
   <PropertyGroup>
     <!-- Note: escape msbuild characters with ascii escape codes.  < == %3C, > == %3E-->
@@ -146,8 +144,16 @@
 
     <!-- If VersionsFiles were passed on the command-line, convert them to an item group -->
     <ItemGroup>
-      <_VersionsFiles Include="$(VersionsFiles)" />
+      <_VersionsFiles Include="$(VersionsFiles)" />    
+      <SupportsDefinitionFileGroup Condition="'$(SupportsDefinitionFile)' == ''" Include="$(MSBuildThisFileDirectory)../packages/Microsoft.DotNet.BuildTools.TestSuite/**/runtime.json" />
     </ItemGroup>
+
+    <PropertyGroup>
+      <SupportsDefinitionFile>@(SupportsDefinitionFileGroup)</SupportsDefinitionFile>
+    </PropertyGroup>
+
+    
+    <Message Importance="High" Text="[$([System.DateTime]::Now.ToString('HH:mm:ss.ff'))] KARTHIKDEBUG supprots '$(SupportsDefinitionFile)' '$(TestNugetRuntimeId)' '$(TestTFM)'" />
 
     <AddDependenciesToProjectJson Condition="'$(ErrorNoVersion)' == ''"
                                   AdditionalDependencies="@(_InjectProjectReferenceDependency)"
@@ -160,24 +166,12 @@
                                   ExcludedRuntimes="@(ExcludedRuntimes)"
                                   ExternalPackages="@(ExternalPackage)"
                                   UseNewestAvailablePackages="$(UseNewestAvailablePackages)"
-                                   />
+                                  SupportsFile="$(SupportsDefinitionFile)"
+                                  TestRuntime="$(TestNugetRuntimeId)"
+                                  TestTargetFramework="$(TestTFM)"
+                                  />
 
     <Message Condition="'$(ErrorNoVersion)' == ''" Text="Generated project.json file - '$(ProjectJson)'" />
-  </Target>
-  
-  <Target Name="FilterRuntimesFromSupports"
-          DependsOnTargets="AddDependenciesToProjectJson;GatherProjectReferenceForProjectJson;DetermineProjectJsonPath"
-          Condition="'@(_InjectProjectReferenceDependency)' != '' and '$(RestoreDuringBuild)' != 'false'">
-    <!-- Filter Runtimes Based on the current platform -->
-    <ItemGroup>
-      <Runtimes Include="$(TestNugetRuntimeId)" />
-    </ItemGroup>
-    <FilterRuntimesFromSupports 
-        RuntimeIds="@(Runtimes)"
-        RuntimeGraphFile="$(RuntimeIdGraphDefinitionFile)"
-        SupportsFile="$(SupportsDefinitionFile)"
-        InputProjectJson="$(ProjectJson)"
-    />
   </Target>
 
   <Target Name="GenerateEvaluatedProjectFilePaths"

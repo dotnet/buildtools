@@ -27,17 +27,11 @@ namespace Microsoft.DotNet.Build.Tasks
             List<CompatibilityProfile> filteredRuntimes = new List<CompatibilityProfile>();
             foreach (var compatibilityProfile in tfmRidPairs)
             {
-                bool isFrameworkFiltered = false;
                 foreach (var tfmRidPair in compatibilityProfile.RestoreContexts)
                 {
                     if (NuGetFramework.Parse(framework).Equals(tfmRidPair.Framework))
                     {
-                        isFrameworkFiltered = true;
                         filteredSupports.Add(compatibilityProfile);
-                        break;
-                    }
-                    if (isFrameworkFiltered)
-                    {
                         break;
                     }
                 }
