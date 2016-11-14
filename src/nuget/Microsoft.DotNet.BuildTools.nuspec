@@ -19,9 +19,9 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="Microsoft.DotNet.Build.Tasks.net45\*.dll" exclude="Microsoft.DotNet.Build.Tasks.net45\Nuget.*.dll" target="lib\net45" />
+    <file src="Microsoft.DotNet.Build.Tasks.net45\*.dll" exclude="Microsoft.DotNet.Build.Tasks.net45\Nuget.*.dll" target="lib\net46" />
     <file src="Microsoft.DotNet.Build.CloudTestTasks\Microsoft.DotNet.Build.CloudTestTasks.dll" target="lib" />
-    <file src="Microsoft.DotNet.Build.CloudTestTasks.net45\Microsoft.DotNet.Build.CloudTestTasks.dll" target="lib\net45" />
+    <file src="Microsoft.DotNet.Build.CloudTestTasks.net45\Microsoft.DotNet.Build.CloudTestTasks.dll" target="lib\net46" />
     <file src="Microsoft.Dotnet.Build.CloudTestTasks\PackageFiles\**\*.*" target="lib" />
     <file src="Microsoft.Dotnet.Build.CloudTestTasks\RunnerScripts\**\*.*" target="lib\RunnerScripts" />
     <file src="Microsoft.DotNet.Build.Tasks\PackageFiles\**\*.*" target="lib" />
@@ -31,11 +31,11 @@
     <file src="BclRewriter\BclRewriter.exe" target="lib" />
     <file src="GenFacades.Console\GenFacades.exe" target="lib" />
     <file src="GenFacades.Core\GenFacades.Core.dll" target="lib" />
-    <file src="GenFacades.Core\GenFacades.Core.dll" target="lib/net45" />
+    <file src="GenFacades.Core\GenFacades.Core.dll" target="lib/net46" />
     <file src="GenAPI\GenAPI.exe" target="lib" />
     <file src="ApiCompat\ApiCompat.exe" target="lib" />
     <file src="Microsoft.DotNet.CodeAnalysis\Microsoft.DotNet.CodeAnalysis.dll" target="lib\analyzers" />
-    <file src="Microsoft.DotNet.CodeAnalysis.net45\Microsoft.DotNet.CodeAnalysis.dll" target="lib\net45\analyzers" />
+    <file src="Microsoft.DotNet.CodeAnalysis.net45\Microsoft.DotNet.CodeAnalysis.dll" target="lib\net46\analyzers" />
     <file src="Microsoft.DotNet.CodeAnalysis\PackageFiles\**\*.*" target="lib" />
     <file src="Microsoft.DotNet.CodeAnalysis\Analyzers\*.*" target="lib\analyzers" />
 
@@ -44,15 +44,15 @@
     <file src="Microsoft.DotNet.CodeAnalysis\Analyzers\Desktop.Analyzers.dll" target="lib" />
     <file src="Microsoft.DotNet.CodeAnalysis\Analyzers\System.Security.Cryptography.Hashing.Algorithms.Analyzers.dll" target="lib" />
 
-    <file src="Microsoft.DotNet.CodeAnalysis.net45\Analyzers\*.*" target="lib\net45\analyzers" />
+    <file src="Microsoft.DotNet.CodeAnalysis.net45\Analyzers\*.*" target="lib\net46\analyzers" />
     <file src="Microsoft.Cci.Extensions\Microsoft.Cci.Extensions.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks.Packaging\Microsoft.DotNet.Build.Tasks.Packaging.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks.Packaging\NuGet.*.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks.Packaging\FrameworkLists\**\*.*" target="lib\FrameworkLists" />
     <file src="Microsoft.DotNet.Build.Tasks.Packaging\PackageFiles\**\*.*" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks.Packaging.Desktop\Microsoft.DotNet.Build.Tasks.Packaging.dll" target="lib\net45" />
-    <file src="Microsoft.DotNet.Build.Tasks.Packaging.Desktop\NuGet.*.dll" target="lib\net45" />
+    <file src="Microsoft.DotNet.Build.Tasks.Packaging.Desktop\Microsoft.DotNet.Build.Tasks.Packaging.dll" target="lib\net46" />
+    <file src="Microsoft.DotNet.Build.Tasks.Packaging.Desktop\NuGet.*.dll" target="lib\net46" />
     <file src="Microsoft.DotNet.VersionTools\Microsoft.DotNet.VersionTools.dll" target="lib" />
-    <file src="Microsoft.DotNet.VersionTools.net45\Microsoft.DotNet.VersionTools.dll" target="lib\net45" />
+    <file src="Microsoft.DotNet.VersionTools.net45\Microsoft.DotNet.VersionTools.dll" target="lib\net46" />
   </files>
 </package>

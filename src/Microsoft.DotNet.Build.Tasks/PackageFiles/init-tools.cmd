@@ -9,7 +9,7 @@ if [%PACKAGES_DIR%] == [] set PACKAGES_DIR=%TOOLRUNTIME_DIR%
 :: Remove quotes to the packages directory
 set PACKAGES_DIR=%PACKAGES_DIR:"=%
 IF [%BUILDTOOLS_TARGET_RUNTIME%]==[] set BUILDTOOLS_TARGET_RUNTIME=win7-x64
-IF [%BUILDTOOLS_NET45_TARGET_RUNTIME%]==[] set BUILDTOOLS_NET45_TARGET_RUNTIME=win7-x86
+IF [%BUILDTOOLS_NET46_TARGET_RUNTIME%]==[] set BUILDTOOLS_NET46_TARGET_RUNTIME=win7-x86
 set BUILDTOOLS_PACKAGE_DIR=%~dp0
 set MICROBUILD_VERSION=0.2.0
 set PORTABLETARGETS_VERSION=0.1.1-dev
@@ -48,12 +48,12 @@ if not [%TOOLRUNTIME_PUBLISH_ERROR_LEVEL%]==[0] (
 	exit /b %TOOLRUNTIME_PUBLISH_ERROR_LEVEL%
 )
 @echo on
-call "%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECTJSON%" -f net46 -r %BUILDTOOLS_NET45_TARGET_RUNTIME% -o "%TOOLRUNTIME_DIR%\net45"
-set NET45_PUBLISH_ERROR_LEVEL=%ERRORLEVEL%
+call "%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECTJSON%" -f net46 -r %BUILDTOOLS_NET46_TARGET_RUNTIME% -o "%TOOLRUNTIME_DIR%\net46"
+set NET46_PUBLISH_ERROR_LEVEL=%ERRORLEVEL%
 @echo off
-if not [%NET45_PUBLISH_ERROR_LEVEL%]==[0] (
+if not [%NET46_PUBLISH_ERROR_LEVEL%]==[0] (
 	echo ERROR: An error ocurred when running: '"%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECTJSON%" -f net46'. Please check above for more details.
-	exit /b %NET45_PUBLISH_ERROR_LEVEL%
+	exit /b %NET46_PUBLISH_ERROR_LEVEL%
 )
 
 :: Copy Portable Targets Over to ToolRuntime
@@ -72,6 +72,6 @@ Robocopy "%PACKAGES_DIR%\Microsoft.Portable.Targets\%PORTABLETARGETS_VERSION%\co
 Robocopy "%PACKAGES_DIR%\MicroBuild.Core\%MICROBUILD_VERSION%\build\." "%TOOLRUNTIME_DIR%\." /E
 
 :: Copy Roslyn Compilers Over to ToolRuntime
-Robocopy "%PACKAGES_DIR%\Microsoft.Net.Compilers\%ROSLYNCOMPILERS_VERSION%\." "%TOOLRUNTIME_DIR%\net45\roslyn\." /E
+Robocopy "%PACKAGES_DIR%\Microsoft.Net.Compilers\%ROSLYNCOMPILERS_VERSION%\." "%TOOLRUNTIME_DIR%\net46\roslyn\." /E
 
 exit /b 0
