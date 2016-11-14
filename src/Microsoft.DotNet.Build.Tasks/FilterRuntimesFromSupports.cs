@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using NuGet.Frameworks;
 using NuGet.RuntimeModel;
 using NuGet.Versioning;
+using Microsoft.DotNet.Build.Common.Desktop;
 using Task = Microsoft.Build.Utilities.Task;
 
 namespace Microsoft.DotNet.Build.Tasks
@@ -28,6 +29,8 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public override bool Execute()
         {
+            AssemblyResolver.Enable();
+
             if (!File.Exists(SupportsFile))
             {
                 Log.LogError("Cannot find specified runtime.json - '{0}'", SupportsFile);
