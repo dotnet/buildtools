@@ -45,6 +45,11 @@ Invoke-WebRequest "https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0/script
 $rootCliVersion = Join-Path $RepositoryRoot ".cliversion"
 $dotNetCliVersion = Get-Content $rootCliVersion
 
+if (-Not (Test-Path $CliLocalPath))
+{
+    mkdir $CliLocalPath | Out-Null
+}
+
 # now execute the script
 Write-Host "$dotnetInstallPath -Version $dotNetCliVersion -InstallDir $CliLocalPath -Architecture ""$Architecture"""
 Invoke-Expression "$dotnetInstallPath -Version $dotNetCliVersion -InstallDir $CliLocalPath -Architecture ""$Architecture"""

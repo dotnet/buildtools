@@ -179,6 +179,10 @@ if [ $forcedCliLocalPath = "<none>" ]; then
     rootCliVersion="$repoRoot/.cliversion"
     dotNetCliVersion=`cat $rootCliVersion`
 
+    if [ ! -e $cliLocalPath ]; then
+        mkdir -p "$cliLocalPath"
+    fi
+
     # now execute the script
     say_verbose "installing CLI: $dotnetInstallPath --version \"$dotNetCliVersion\" --install-dir $cliLocalPath --architecture \"$architecture\""
     $dotnetInstallPath --version "$dotNetCliVersion" --install-dir $cliLocalPath --architecture "$architecture"
