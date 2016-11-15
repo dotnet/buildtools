@@ -1,4 +1,8 @@
-﻿using Microsoft.Build.Utilities;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.Build.Utilities;
 using Microsoft.Build.Framework;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -64,6 +68,15 @@ namespace Microsoft.DotNet.Build.Tasks
         // The directory to put the generated project.json in
         [Required]
         public string OutputProjectJson { get; set; }
+
+        [Required]
+        public string SupportsFile { get; set; }
+
+        [Required]
+        public string TestRuntime { get; set; }
+
+        [Required]
+        public string TestTargetFramework { get; set; }
 
         private Regex _packageNameRegex;
 
@@ -131,6 +144,11 @@ namespace Microsoft.DotNet.Build.Tasks
                 dependencies = GenerateDependencies(projectRoot, ExternalPackages, packageInformation, Frameworks[i]);
                 projectRoot = UpdateDependenciesProperty(projectRoot, dependencies, Frameworks[i]);
             }
+
+            var definedTfmRidPairs = FilterRuntimesFromSupports.GetAllTfmRidPairs(SupportsFile);
+            var applicableTfmRidPairs = FilterRuntimesFromSupports.FilterForApplicableTFMRIDPairs(definedTfmRidPairs, TestTargetFramework, TestRuntime);
+            projectRoot["supports"] = FilterRuntimesFromSupports.GenerateCustomSupportsClause(applicableTfmRidPairs);
+
             WriteProject(projectRoot, OutputProjectJson);
 
             return true;

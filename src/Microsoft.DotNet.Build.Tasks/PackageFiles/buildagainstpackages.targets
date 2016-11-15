@@ -139,13 +139,16 @@
   </Target>
 
   <Target Name="AddDependenciesToProjectJson"
-          DependsOnTargets="GatherProjectReferenceForProjectJson;DetermineProjectJsonPath"
+          DependsOnTargets="GatherProjectReferenceForProjectJson;DetermineProjectJsonPath;GetDefaultTestRid"
           Condition="'@(_InjectProjectReferenceDependency)' != '' and '$(RestoreDuringBuild)' != 'false'">
-
+          
     <!-- If VersionsFiles were passed on the command-line, convert them to an item group -->
     <ItemGroup>
       <_VersionsFiles Include="$(VersionsFiles)" />
     </ItemGroup>
+    <PropertyGroup>
+      <SupportsDefinitionFile Condition="'$(SupportsDefinitionFile)' == '' and Exists('$(CommonTestProjectJson)')">$(CommonTestProjectJson)</SupportsDefinitionFile>
+    </PropertyGroup>
 
     <AddDependenciesToProjectJson Condition="'$(ErrorNoVersion)' == ''"
                                   AdditionalDependencies="@(_InjectProjectReferenceDependency)"
@@ -158,7 +161,10 @@
                                   ExcludedRuntimes="@(ExcludedRuntimes)"
                                   ExternalPackages="@(ExternalPackage)"
                                   UseNewestAvailablePackages="$(UseNewestAvailablePackages)"
-                                   />
+                                  SupportsFile="$(SupportsDefinitionFile)"
+                                  TestRuntime="$(TestNugetRuntimeId)"
+                                  TestTargetFramework="$(FilterToTestTFM)"
+                                  />
 
     <Message Condition="'$(ErrorNoVersion)' == ''" Text="Generated project.json file - '$(ProjectJson)'" />
   </Target>

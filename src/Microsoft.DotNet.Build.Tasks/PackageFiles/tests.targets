@@ -3,7 +3,6 @@
 
   <!-- This is the target that copies the test assets to the test output -->
   <Import Project="$(MSBuildThisFileDirectory)publishtest.targets" />
-  <UsingTask TaskName="GetTargetMachineInfo" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="GenerateTestExecutionScripts" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <!-- Which categories of tests to run by default -->
   <PropertyGroup>
@@ -280,24 +279,7 @@
     <Delete Condition="'$(ForceRunTests)'=='true' And Exists($(TestsSuccessfulSemaphore))"
             Files="$(TestsSuccessfulSemaphore)" />
   </Target>
-
-  <Target Name="GetDefaultTestRid">
-    <GetTargetMachineInfo>
-      <Output TaskParameter="RuntimeIdentifier" PropertyName="DefaultTestNugetRuntimeId" />
-    </GetTargetMachineInfo>
-    <!-- On Windows, we always use win7-x64 as the default test RID because the build context,
-         usually 32-bit full-framework MSBuild, is not a good default test context. -->
-    <PropertyGroup>
-      <DefaultTestNugetRuntimeId Condition="$(DefaultTestNugetRuntimeId.StartsWith('win'))">win7-x64</DefaultTestNugetRuntimeId>
-      <TestArchitecture Condition="'$(TestArchitecture)' == ''">x64</TestArchitecture>
-      <TestNugetRuntimeId Condition="'$(TestNugetRuntimeId)' == ''">$(DefaultTestNugetRuntimeId)</TestNugetRuntimeId>
-    </PropertyGroup>
-  </Target>
-
-  <PropertyGroup>
-    <ResolvePkgProjReferencesDependsOn>GetDefaultTestRid;$(ResolvePkgProjReferencesDependsOn)</ResolvePkgProjReferencesDependsOn>
-  </PropertyGroup>
-
+  
   <Target Name="CheckTestPlatforms">
     <GetTargetMachineInfo Condition="'$(TargetOS)' == ''">
       <Output TaskParameter="TargetOS" PropertyName="TargetOS" />
