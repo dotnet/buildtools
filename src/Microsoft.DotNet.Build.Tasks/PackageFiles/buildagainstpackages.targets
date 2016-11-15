@@ -144,16 +144,11 @@
 
     <!-- If VersionsFiles were passed on the command-line, convert them to an item group -->
     <ItemGroup>
-      <_VersionsFiles Include="$(VersionsFiles)" />    
-      <SupportsDefinitionFileGroup Condition="'$(SupportsDefinitionFile)' == ''" Include="$(MSBuildThisFileDirectory)../packages/Microsoft.DotNet.BuildTools.TestSuite/**/runtime.json" />
+      <_VersionsFiles Include="$(VersionsFiles)" />
     </ItemGroup>
-
     <PropertyGroup>
-      <SupportsDefinitionFile>@(SupportsDefinitionFileGroup)</SupportsDefinitionFile>
+      <SupportsDefinitionFile Condition="'$(SupportsDefinitionFile)' == ''">$(CommonTestProjectJson)</SupportsDefinitionFile>
     </PropertyGroup>
-
-    
-    <Message Importance="High" Text="[$([System.DateTime]::Now.ToString('HH:mm:ss.ff'))] KARTHIKDEBUG supprots '$(SupportsDefinitionFile)' '$(TestNugetRuntimeId)' '$(TestTFM)'" />
 
     <AddDependenciesToProjectJson Condition="'$(ErrorNoVersion)' == ''"
                                   AdditionalDependencies="@(_InjectProjectReferenceDependency)"
@@ -168,7 +163,7 @@
                                   UseNewestAvailablePackages="$(UseNewestAvailablePackages)"
                                   SupportsFile="$(SupportsDefinitionFile)"
                                   TestRuntime="$(TestNugetRuntimeId)"
-                                  TestTargetFramework="$(TestTFM)"
+                                  TestTargetFramework="$(FilterToTestTFM)"
                                   />
 
     <Message Condition="'$(ErrorNoVersion)' == ''" Text="Generated project.json file - '$(ProjectJson)'" />

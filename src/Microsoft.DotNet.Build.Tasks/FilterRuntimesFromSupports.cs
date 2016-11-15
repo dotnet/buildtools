@@ -1,87 +1,57 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using NuGet.Frameworks;
 using NuGet.RuntimeModel;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
+    public class TfmRidPair
+    {
+        public TfmRidPair(string tfm, string rid)
+        {
+            framework = tfm;
+            runtimeIdentifier = rid;
+        }
+        public string framework { get; set; }
+        public string runtimeIdentifier { get; set; }
+    }
     public partial class FilterRuntimesFromSupports
     {
-        public static List<CompatibilityProfile> GetAllTfmRidPairs(string supportsFile)
+        public static List<TfmRidPair> GetAllTfmRidPairs(string supportsFile)
         {
             RuntimeGraph supportsGraph = JsonRuntimeFormat.ReadRuntimeGraph(supportsFile);
-            List<CompatibilityProfile> tfmRidPairs = new List<CompatibilityProfile>();
+            List<TfmRidPair> tfmRidPairs = new List<TfmRidPair>();
             foreach (var key in supportsGraph.Supports.Keys)
             {
                 CompatibilityProfile compatibilityProfile = null;
                 supportsGraph.Supports.TryGetValue(key, out compatibilityProfile);
-                tfmRidPairs.Add(compatibilityProfile);
+                foreach (var tfmRidPair in compatibilityProfile.RestoreContexts)
+                {
+                    tfmRidPairs.Add(new TfmRidPair(tfmRidPair.Framework.GetShortFolderName(), tfmRidPair.RuntimeIdentifier));
+                }
             }
             return tfmRidPairs;
         }
 
-        public static List<CompatibilityProfile> FilterForApplicableTFMRIDPairs(List<CompatibilityProfile> tfmRidPairs,
+        public static List<TfmRidPair> FilterForApplicableTFMRIDPairs(List<TfmRidPair> tfmRidPairs,
             string framework, string runtimeIdentifier)
         {
-            List<CompatibilityProfile> filteredSupports = new List<CompatibilityProfile>();
-            List<CompatibilityProfile> filteredRuntimes = new List<CompatibilityProfile>();
-            foreach (var compatibilityProfile in tfmRidPairs)
-            {
-                foreach (var tfmRidPair in compatibilityProfile.RestoreContexts)
-                {
-                    if (NuGetFramework.Parse(framework).Equals(tfmRidPair.Framework))
-                    {
-                        filteredSupports.Add(compatibilityProfile);
-                        break;
-                    }
-                }
-            }
-
-            foreach (var compatibilityProfile in filteredSupports)
-            {
-                for (int i = compatibilityProfile.RestoreContexts.Count - 1; i >= 0; i--)
-                {
-                    if (!runtimeIdentifier.Equals(compatibilityProfile.RestoreContexts[i].RuntimeIdentifier))
-                    {
-                        compatibilityProfile.RestoreContexts.RemoveAt(i);
-                    }
-                }
-                if (compatibilityProfile.RestoreContexts.Count > 0)
-                {
-                    filteredRuntimes.Add(compatibilityProfile);
-                }
-            }
-
-            return filteredRuntimes;
+            tfmRidPairs.RemoveAll(x => !framework.Equals(x.framework));
+            tfmRidPairs.RemoveAll(x => !runtimeIdentifier.Equals(x.runtimeIdentifier));
+            
+            return tfmRidPairs;
         }
 
-        public static JObject GenerateCustomSupportsClause(List<CompatibilityProfile> applicableTfmRidPairs)
+        public static JObject GenerateCustomSupportsClause(List<TfmRidPair> applicableTfmRidPairs)
         { 
             JObject supportsClause = new JObject();
-            foreach (var compatibilityProfile in applicableTfmRidPairs)
+            var tfmRidsForSupports = new JObject();
+            foreach (var tfmRidPair in applicableTfmRidPairs)
             {
-                Dictionary<string, List<string>> map = new Dictionary<string, List<string>>();
-                foreach (var tfmRidPair in compatibilityProfile.RestoreContexts)
-                {
-                    if (map.ContainsKey(tfmRidPair.Framework.GetShortFolderName()))
-                    {
-                        List<string> str = new List<string>();
-                        map.TryGetValue(tfmRidPair.Framework.GetShortFolderName(), out str);
-                        str.Add(tfmRidPair.RuntimeIdentifier);
-                    }
-                    else
-                    {
-                        map.Add(tfmRidPair.Framework.GetShortFolderName(),
-                            new List<string>() {tfmRidPair.RuntimeIdentifier});
-                    }
-                }
-                var tfmRidsForSupports = new JObject();
-                foreach (var item in map)
-                {
-                    tfmRidsForSupports[item.Key] = new JArray(item.Value);
-                }
-                supportsClause[compatibilityProfile.Name] = tfmRidsForSupports;
+                tfmRidsForSupports[tfmRidPair.framework] = new JArray(tfmRidPair.runtimeIdentifier);
             }
+            supportsClause["corefx.Test"] = tfmRidsForSupports;
             return supportsClause;
         }
     }
