@@ -25,7 +25,7 @@ namespace Microsoft.DotNet.Build.Tasks
         {
             if (_warningsLogged)
             {
-                throw new Exception("Warings were logged, failing the build.");
+                throw new Exception("Warnings were logged, failing the build.");
             }
         }
     }
