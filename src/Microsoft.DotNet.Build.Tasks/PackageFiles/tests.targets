@@ -251,7 +251,7 @@
     </Exec>
 
     <Delete Condition="'$(DeletePerfDataFile)' == 'true'" Files="$(TestPath)/$(EventTracerDataFile)" />
-    <Error Condition="'$(TestDisabled)'!='true' And '$(TestRunExitCode)' != '0'" Text="One or more tests failed while running tests from '$(MSBuildProjectName)' please check $(TestPath)$(XunitResultsFileName) for details!" />
+    <Error Condition="'$(TestDisabled)'!='true' And '$(TestRunExitCode)' != '0'" Text="One or more tests failed while running tests from '$(MSBuildProjectName)' please check log for details!" />
     <Touch Condition="'$(TestRunExitCode)' == '0'" Files="$(TestsSuccessfulSemaphore)" AlwaysCreate="true" />
   </Target>
 
@@ -280,24 +280,7 @@
     <Delete Condition="'$(ForceRunTests)'=='true' And Exists($(TestsSuccessfulSemaphore))"
             Files="$(TestsSuccessfulSemaphore)" />
   </Target>
-
-  <Target Name="GetDefaultTestRid">
-    <GetTargetMachineInfo>
-      <Output TaskParameter="RuntimeIdentifier" PropertyName="DefaultTestNugetRuntimeId" />
-    </GetTargetMachineInfo>
-    <!-- On Windows, we always use win7-x64 as the default test RID because the build context,
-         usually 32-bit full-framework MSBuild, is not a good default test context. -->
-    <PropertyGroup>
-      <DefaultTestNugetRuntimeId Condition="$(DefaultTestNugetRuntimeId.StartsWith('win'))">win7-x64</DefaultTestNugetRuntimeId>
-      <TestArchitecture Condition="'$(TestArchitecture)' == ''">x64</TestArchitecture>
-      <TestNugetRuntimeId Condition="'$(TestNugetRuntimeId)' == ''">$(DefaultTestNugetRuntimeId)</TestNugetRuntimeId>
-    </PropertyGroup>
-  </Target>
-
-  <PropertyGroup>
-    <ResolvePkgProjReferencesDependsOn>GetDefaultTestRid;$(ResolvePkgProjReferencesDependsOn)</ResolvePkgProjReferencesDependsOn>
-  </PropertyGroup>
-
+  
   <Target Name="CheckTestPlatforms">
     <GetTargetMachineInfo Condition="'$(TargetOS)' == ''">
       <Output TaskParameter="TargetOS" PropertyName="TargetOS" />

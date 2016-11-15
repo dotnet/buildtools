@@ -139,20 +139,15 @@
   </Target>
 
   <Target Name="AddDependenciesToProjectJson"
-          DependsOnTargets="GatherProjectReferenceForProjectJson;DetermineProjectJsonPath"
+          DependsOnTargets="GatherProjectReferenceForProjectJson;DetermineProjectJsonPath;GetDefaultTestRid"
           Condition="'@(_InjectProjectReferenceDependency)' != '' and '$(RestoreDuringBuild)' != 'false'">
           
-    <GetTargetMachineInfo>
-      <Output TaskParameter="RuntimeIdentifier" PropertyName="SyncNugetRuntimeId" />
-    </GetTargetMachineInfo>
-
     <!-- If VersionsFiles were passed on the command-line, convert them to an item group -->
     <ItemGroup>
       <_VersionsFiles Include="$(VersionsFiles)" />
     </ItemGroup>
     <PropertyGroup>
-      <SupportsDefinitionFile Condition="'$(SupportsDefinitionFile)' == ''">$(CommonTestProjectJson)</SupportsDefinitionFile>
-      <SyncNugetRuntimeId Condition="$(SyncNugetRuntimeId.StartsWith('win'))">win7-x64</SyncNugetRuntimeId>
+      <SupportsDefinitionFile Condition="'$(SupportsDefinitionFile)' == '' and Exists('$(CommonTestProjectJson)')">$(CommonTestProjectJson)</SupportsDefinitionFile>
     </PropertyGroup>
 
     <AddDependenciesToProjectJson Condition="'$(ErrorNoVersion)' == ''"
@@ -167,7 +162,7 @@
                                   ExternalPackages="@(ExternalPackage)"
                                   UseNewestAvailablePackages="$(UseNewestAvailablePackages)"
                                   SupportsFile="$(SupportsDefinitionFile)"
-                                  TestRuntime="$(SyncNugetRuntimeId)"
+                                  TestRuntime="$(TestNugetRuntimeId)"
                                   TestTargetFramework="$(FilterToTestTFM)"
                                   />
 

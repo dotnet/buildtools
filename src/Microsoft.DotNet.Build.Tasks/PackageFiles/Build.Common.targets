@@ -32,7 +32,7 @@
     <AssemblyMetadata Include="Serviceable">
       <Value>True</Value>
     </AssemblyMetadata>
-  </ItemGroup>  
+  </ItemGroup>
 
   <!--
     Import the provides support for EnsureBuildToolsRuntime target which will restore a .NET Core based 
@@ -101,7 +101,28 @@
   <Import Project="$(MSBuildThisFileDirectory)versioning.targets" Condition="'$(ExcludeVersioningImport)'!='true'" />
 
   <Import Project="$(MSBuildThisFileDirectory)Packaging.targets" Condition="'$(ExcludePackagingImport)'!='true' AND '$(MSBuildProjectExtension)' == '.pkgproj'" />
+  
+  <!-- Task to detect the TestNugetRuntimeId of a platform. This target is here to allow both the test build and sync steps to use
+       the same property for asset selection.
+  -->
+  <UsingTask TaskName="GetTargetMachineInfo" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <Target Name="GetDefaultTestRid">
+    <GetTargetMachineInfo>
+      <Output TaskParameter="RuntimeIdentifier" PropertyName="DefaultTestNugetRuntimeId" />
+    </GetTargetMachineInfo>
+    <!-- On Windows, we always use win7-x64 as the default test RID because the build context,
+         usually 32-bit full-framework MSBuild, is not a good default test context. -->
+    <PropertyGroup>
+      <DefaultTestNugetRuntimeId Condition="$(DefaultTestNugetRuntimeId.StartsWith('win'))">win7-x64</DefaultTestNugetRuntimeId>
+      <TestArchitecture Condition="'$(TestArchitecture)' == ''">x64</TestArchitecture>
+      <TestNugetRuntimeId Condition="'$(TestNugetRuntimeId)' == ''">$(DefaultTestNugetRuntimeId)</TestNugetRuntimeId>
+    </PropertyGroup>
+  </Target>
 
+  <PropertyGroup>
+    <ResolvePkgProjReferencesDependsOn>GetDefaultTestRid;$(ResolvePkgProjReferencesDependsOn)</ResolvePkgProjReferencesDependsOn>
+  </PropertyGroup>
+  
   <!-- Property which signals whether to import buildagainstpackages.targets.  This target contains 
        the targets necessary to build tests with project references converted to package dependencies.
   -->
