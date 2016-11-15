@@ -42,7 +42,7 @@
       Inputs="$(MSBuildProjectFile)"
       Outputs="$(AssemblyInfoFile)"
       Condition="'$(GenerateAssemblyInfo)'=='true'"
-      DependsOnTargets="CreateVersionFileDuringBuild;GetLatestCommitHash">
+      DependsOnTargets="CreateVersionFileDuringBuild">
 
     <Error Condition="!Exists('$(IntermediateOutputPath)')" Text="GenerateAssemblyInfo failed because IntermediateOutputPath isn't set to a valid directory" />
 
@@ -124,7 +124,7 @@
   <Target Name="GenerateVersionHeader"
       Inputs="$(MSBuildProjectFile)"
       Outputs="$(NativeVersionHeaderFile)"
-      DependsOnTargets="CreateVersionFileDuringBuild;GetLatestCommitHash"
+      DependsOnTargets="CreateVersionFileDuringBuild"
       Condition="'$(NativeVersionHeaderFile)'!='' and '$(GenerateVersionHeader)'=='true' and !Exists($(NativeVersionHeaderFile))">
 
     <ItemGroup>
@@ -182,7 +182,7 @@
   <Target Name="GenerateVersionSourceFile"
       Inputs="$(MSBuildProjectFile)"
       Outputs="$(NativeVersionSourceFile)"
-      DependsOnTargets="CreateVersionFileDuringBuild;GetLatestCommitHash"
+      DependsOnTargets="CreateVersionFileDuringBuild"
       Condition="'$(NativeVersionSourceFile)'!='' and '$(GenerateVersionSourceFile)'=='true'">
 
     <ItemGroup>
@@ -204,17 +204,6 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="GetLatestCommitHash" Condition="'$(LatestCommit)'==''">
-    <Exec Command="git rev-parse HEAD 2>&amp;1" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
-      <Output TaskParameter="ConsoleOutput" PropertyName="LatestCommit" />
-      <Output TaskParameter="ExitCode" PropertyName="LatestCommitExitCode" />
-    </Exec>
-    <!-- We shouldn't fail the build if we can't retreive the commit hash, so in this case just set it to N/A -->
-    <PropertyGroup Condition="'$(LatestCommitExitCode)'!='0'">
-      <LatestCommit>N/A</LatestCommit>
-    </PropertyGroup>
-  </Target>
-
   <PropertyGroup>
     <GetNuGetPackageVersionsDependsOn>$(GetNuGetPackageVersionsDependsOn);CreateVersionInfoFile</GetNuGetPackageVersionsDependsOn>
   </PropertyGroup>
@@ -225,7 +214,7 @@
   </PropertyGroup>
   
   <Target Name="CreateVersionInfoFile"
-          DependsOnTargets="GetLatestCommitHash"
+          DependsOnTargets="CreateVersionFileDuringBuild"
           BeforeTargets="BuildAllProjects"
           Inputs="$(LatestCommit)"
           Outputs="$(SyncInfoFile)">
@@ -238,70 +227,90 @@
       Overwrite="true" />
   </Target>
 
-  <!-- #################################### -->
-  <!-- Generate BuildVersion.props -->
-  <!-- #################################### -->
-  <Target Name="CreateOrUpdateCurrentVersionFile" Condition="'$(SkipVersionGeneration)'!='true'" DependsOnTargets="GenerateCurrentVersion;GenerateBuiltByString">
-    <!-- Error out if GeneratedBuildNumberMajor is empty since GenerateCurrentVersion should have calculated it already. -->
-    <Error Condition="'$(GeneratedBuildNumberMajor)'==''" Text="Error when generating current version." />
+  <!-- 
+    Target: CreateOrUpdateCurrentVersionFile
 
-    <PropertyGroup>
-      <VersionSeedSourceComment Condition="'$(VersionSeedSourceComment)'==''">VersionSeedData was produced by taking the timestamp of the last git commit.</VersionSeedSourceComment>
-    </PropertyGroup>
-      
-    <ItemGroup>
-      <CurrentVersionLines Include="%3C%3Fxml version=%221.0%22 encoding=%22utf-8%22%3F%3E" />
-      <CurrentVersionLines Include="%3C!-- This is a generated file. $(VersionSeedSourceComment) Seed Date is $(VersionSeedDate). --%3E" />
-      <CurrentVersionLines Include="%3CProject xmlns=%22http://schemas.microsoft.com/developer/msbuild/2003%22%3E" />
-      <CurrentVersionLines Include="%3CPropertyGroup%3E" />
-      <CurrentVersionLines Include="%3CBuildNumberMajor Condition=%22%27%24(BuildNumberMajor)%27==%27%27%22%3E$(GeneratedBuildNumberMajor)%3C/BuildNumberMajor%3E" />
-      <CurrentVersionLines Include="%3CBuildNumberMinor Condition=%22%27%24(BuildNumberMinor)%27==%27%27%22%3E$(GeneratedBuildNumberMinor)%3C/BuildNumberMinor%3E" />
-      <CurrentVersionLines Include="%3C/PropertyGroup%3E" />
-      <CurrentVersionLines Include="%3C/Project%3E" />
-    </ItemGroup>
-    
-    <!-- Since by default the file will get dropped at the obj dir, make sure that the dir is created already or else WriteLinesToFile will error. -->
-    <MakeDir Condition="!Exists('$(BuildVersionFilePath)')" Directories="$(BuildVersionFilePath)" />
-      
-    <WriteLinesToFile
-      ContinueOnError="WarnAndContinue"
-      Condition="!Exists('$(BuildVersionFile)')"
-      File="$(BuildVersionFile)"
-      Lines="@(CurrentVersionLines)"
-      Overwrite="true" />
-    
-    <!-- Delete old BuildVersion.props files -->
-    <ItemGroup>
-      <OldBuildVersionFiles Include="$(BuildVersionFilePath)BuildVersions-*.props" Exclude="$(BuildVersionFilePath)%(BuildVersionFileItem.Filename).props" />
-    </ItemGroup>
-    <Delete Files="@(OldBuildVersionFiles)" TreatErrorsAsWarnings="true"/>
-  </Target>
+    Generates the version data and saves it to $(BuildVersionFile) if it hasn't been imported
 
-  <Target Name="GenerateBuiltByString" Condition="'$(BuiltByString)'==''">
-
-    <PropertyGroup>
-      <VersionUserName Condition="'$(VersionUserName)'==''">$(USERNAME)</VersionUserName>
-      <VersionHostName Condition="'$(VersionHostName)'==''">$(COMPUTERNAME)</VersionHostName>
-    </PropertyGroup>
-
-    <Exec Command="whoami" Condition="'$(OSEnvironment)'!='Windows_NT' AND '$(VersionUserName)'==''" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
-      <Output TaskParameter="ConsoleOutput" PropertyName="VersionUserName" />
-      <Output TaskParameter="ExitCode" PropertyName="UserNameExitCode" />
+    Outputs:
+      $(LatestCommit)
+      $(BuiltByString)
+      $(BuildNumberMajor)
+      $(BuildNumberMinor)
+      $(AssemblyFileVersion)
+  -->
+  <Target Name="CreateOrUpdateCurrentVersionFile"
+      BeforeTargets="ResolveProjectReferences"
+      Condition="'$(SkipVersionGeneration)' != 'true' AND '$(VersionPropsImported)' != 'true'">
+    <!-- ############################### -->
+    <!-- Get the latest commit hash -->
+    <Exec Command="git rev-parse HEAD 2>&amp;1" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="LatestCommit" />
+      <Output TaskParameter="ExitCode" PropertyName="LatestCommitExitCode" />
     </Exec>
+    <!-- We shouldn't fail the build if we can't retreive the commit hash, so in this case just set it to N/A -->
+    <PropertyGroup Condition="'$(LatestCommitExitCode)'!='0'">
+      <LatestCommit>N/A</LatestCommit>
+    </PropertyGroup>
+    <PropertyGroup>
+      <LatestCommitExitCode/>
+    </PropertyGroup>
+
+    <!-- ############################### -->
+    <!-- Get the latest commit date -->
+    <ItemGroup>
+      <VersionTargetsFile Include="$(MSBuildThisFileFullPath)" />
+    </ItemGroup>
+    <!-- Windows Exec command requires DOS escaping for the percent sign since it secretly runs the process in a shell instead of calling createprocess. -->
+    <PropertyGroup>
+      <LatestDateCommand Condition="'$(OsEnvironment)'=='Windows_NT'">git show -s --format=^%25%25cd --date=short HEAD</LatestDateCommand>
+      <LatestDateCommand Condition="'$(OsEnvironment)'!='Windows_NT'">git show -s --format=%25cd --date=short HEAD</LatestDateCommand>
+    </PropertyGroup>
+      
+    <Exec Command="$(LatestDateCommand)" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="VersionSeedDate" />
+      <Output TaskParameter="ExitCode" PropertyName="LatestDateCommandExitCode" />
+    </Exec>
+    <PropertyGroup Condition="'$(LatestDateCommandExitCode)'!='0'">
+      <VersionSeedDate>%(VersionTargetsFile.ModifiedTime)</VersionSeedDate>
+      <VersionSeedSourceComment>VersionSeedDate was produced by getting the timestamp of versioning.targets.</VersionSeedSourceComment>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(LatestDateCommandExitCode)'=='0'">
+      <VersionSeedSourceComment>VersionSeedDate was produced by taking the timestamp of the last git commit.</VersionSeedSourceComment>
+    </PropertyGroup>
+    <ItemGroup>
+      <VersionTargetsFile Remove="@(VersionTargetsFile)" />
+    </ItemGroup>
+    <PropertyGroup>
+      <LatestDateCommand/>
+      <LatestDateCommandExitCode/>
+    </PropertyGroup>
+
+    <!-- ############################### -->
+    <!-- Get Username -->
+    <PropertyGroup>
+      <VersionUserName Condition="'$(VersionUserName)' == ''">$(USERNAME)</VersionUserName>
+    </PropertyGroup>
+
+    <Exec Command="whoami" Condition="'$(VersionUserName)' == ''" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="VersionUserName" />
+    </Exec>
+
+    <!-- ############################### -->
+    <!-- Get Hostname -->
+    <PropertyGroup>
+      <VersionHostName Condition="'$(VersionHostName)' == ''">$(COMPUTERNAME)</VersionHostName>
+    </PropertyGroup>
+
     <Exec Command="hostname" Condition="'$(OSEnvironment)'!='Windows_NT' AND '$(VersionHostName)'==''" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="VersionHostName" />
-      <Output TaskParameter="ExitCode" PropertyName="HostNameExitCode" />
     </Exec>
 
     <PropertyGroup>
-      <UserNameExitCode Condition="'$(UserNameExitCode)'==''">0</UserNameExitCode>
-      <HostNameExitCode Condition="'$(HostNameExitCode)'==''">0</HostNameExitCode>
-      <BuiltByString Condition="'$(BuiltByString)'=='' AND '$(UserNameExitCode)'=='0' AND '$(HostNameExitCode)'=='0'">%20built by: $(VersionUserName)-$(VersionHostName)</BuiltByString>
+      <BuiltByString Condition="'$(BuiltByString)' == '' AND '$(VersionUserName)' != '' AND '$(VersionHostName)' != ''">%20built by: $(VersionUserName)-$(VersionHostName)</BuiltByString>
+      <VersionUserName/>
+      <VersionHostName/>
     </PropertyGroup>
-  </Target>
-
-  <Target Name="GenerateCurrentVersion" DependsOnTargets="GetVersionSeedDate">
-    <Error Condition="'$(VersionSeedDate)'==''" Text="A date is needed to Generate the current version." />
 
     <!-- Setting default parameters in case that they are not set before. -->
     <PropertyGroup>
@@ -312,38 +321,59 @@
     </PropertyGroup>
       
     <GenerateCurrentVersion SeedDate="$(VersionSeedDate)" OfficialBuildId="$(OfficialBuildId)" ComparisonDate="$(VersionComparisonDate)" Padding="$(VersionPadding)">
-      <Output PropertyName="GeneratedBuildNumberMajor" TaskParameter="GeneratedVersion" />
-      <Output PropertyName="GeneratedBuildNumberMinor" TaskParameter="GeneratedRevision" />
+      <Output PropertyName="BuildNumberMajor" TaskParameter="GeneratedVersion" />
+      <Output PropertyName="BuildNumberMinor" TaskParameter="GeneratedRevision" />
     </GenerateCurrentVersion>
-  </Target>
-
-  <Target Name="GetVersionSeedDate" Condition="'$(VersionSeedDate)'==''">
-    <ItemGroup>
-      <VersionTargetsFile Include="$(MSBuildThisFileFullPath)" />
-    </ItemGroup>
-      
-    <!-- Windows Exec command requires DOS escaping for the percent sign since it secretly runs the process in a shell instead of calling createprocess. -->
     <PropertyGroup>
-      <GitCommand Condition="'$(OsEnvironment)'=='Windows_NT'">git show -s --format=^%25%25cd --date=short HEAD</GitCommand>
-      <GitCommand Condition="'$(OsEnvironment)'!='Windows_NT'">git show -s --format=%25cd --date=short HEAD</GitCommand>
+      <VersionPadding/>
+      <VersionComparisonDate/>
     </PropertyGroup>
       
-    <Exec Command="$(GitCommand)" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
-      <Output TaskParameter="ConsoleOutput" PropertyName="VersionSeedDate" />
-      <Output TaskParameter="ExitCode" PropertyName="GitCommandExitCode" />
-    </Exec>
-    <PropertyGroup Condition="'$(GitCommandExitCode)'!='0'">
-      <VersionSeedDate>%(VersionTargetsFile.ModifiedTime)</VersionSeedDate>
-      <VersionSeedSourceComment>VersionSeedDate was produced by getting the timestamp of versioning.targets.</VersionSeedSourceComment>
+    <PropertyGroup>
+      <VersionFileContent>
+        <![CDATA[<?xml version="1.0" encoding="utf-8"?>
+<!-- This is a generated file. $(VersionSourceComment) Seed Date is $(VersionSeedDate). -->
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <VersionPropsImported>true</VersionPropsImported>
+    <BuildNumberMajor Condition="'%24(BuildNumberMajor)' == ''">$(BuildNumberMajor)</BuildNumberMajor>
+    <BuildNumberMinor Condition="'%24(BuildNumberMinor)' == ''">$(BuildNumberMinor)</BuildNumberMinor>
+    <LatestCommit Condition="'%24(LatestCommit)' == ''">$(LatestCommit)</LatestCommit>
+    <BuiltByString Condition="'%24(BuiltByString)' == ''">$(BuiltByString)</BuiltByString>
+  </PropertyGroup>
+</Project>
+]]>
+      </VersionFileContent>
+    </PropertyGroup>
+    
+    <!-- Since by default the file will get dropped at the obj dir, make sure that the dir is created already or else WriteLinesToFile will error. -->
+    <MakeDir Directories="$(BuildVersionFilePath)" />
+      
+    <WriteLinesToFile
+      ContinueOnError="WarnAndContinue"
+      Condition="!Exists('$(BuildVersionFile)')"
+      File="$(BuildVersionFile)"
+      Lines="$(VersionFileContent)"
+      Overwrite="true" />
+    
+    <!-- Delete old BuildVersion.props files -->
+    <ItemGroup>
+      <OldBuildVersionFiles Include="$(BuildVersionFilePath)BuildVersions-*.props" Exclude="$(BuildVersionFile)" />
+    </ItemGroup>
+    <Delete Files="@(OldBuildVersionFiles)" TreatErrorsAsWarnings="true"/>
+    <ItemGroup>
+      <OldBuildVersionFiles Remove="@(OldBuildVersionFiles)"/>
+    </ItemGroup>
+
+    <PropertyGroup>
+      <!-- Redefine AssemblyFileVersion because we just computed it. -->
+      <AssemblyFileVersion>$(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)</AssemblyFileVersion>
     </PropertyGroup>
   </Target>
 
   <!-- This target will only be executed if BuildVersion.props doesn't exist yet -->
   <Target Name="CreateVersionFileDuringBuild" Condition="'$(SkipVersionGeneration)'!='true' AND '$(ShouldCreateVersionFileDuringBuild)'=='true'" DependsOnTargets="CreateOrUpdateCurrentVersionFile">
     <PropertyGroup Condition="'$(SkipVersionGeneration)'!='true'">
-      <BuildNumberMajor >$(GeneratedBuildNumberMajor)</BuildNumberMajor>
-      <BuildNumberMinor>$(GeneratedBuildNumberMinor)</BuildNumberMinor>
-      <AssemblyFileVersion>$(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)</AssemblyFileVersion>
       <VersionSuffix Condition="'$(PreReleaseLabel)' != ''">-$(PreReleaseLabel)</VersionSuffix>
       <VersionSuffix Condition="'$(IncludeBuildNumberInPackageVersion)' == 'true'">$(VersionSuffix)-$(BuildNumberMajor)-$(BuildNumberMinor)</VersionSuffix>
     </PropertyGroup>
@@ -352,6 +382,6 @@
   <Target Name="NativeResourceCompile" DependsOnTargets="$(BeforeResourceCompileTargets)" Inputs="$(MsBuildThisFileDirectory)NativeVersion.rc" Outputs="$(Win32Resource)">
     <Error Condition="!Exists('$(RCPATH)')" Text="NativeResourceCompile failed because RCPath is set to an non-existing rc.exe path." />
 
-    <Exec Command="&quot;$(RCPath)&quot; /i $(BaseIntermediateOutputPath) /i $(IntermediateOutputPath) /i $(WindowsSDKPath)\inc /i $(VCSDKPath)\Include /D _UNICODE /D UNICODE /l&quot;0x0409&quot; /r /fo &quot;$(Win32Resource)&quot; &quot;$(MsBuildThisFileDirectory)NativeVersion.rc&quot;" />
+    <Exec Command='"$(RCPath)" /i $(BaseIntermediateOutputPath) /i $(IntermediateOutputPath) /i $(WindowsSDKPath)\inc /i $(VCSDKPath)\Include /D _UNICODE /D UNICODE /l"0x0409" /r /fo "$(Win32Resource)" "$(MsBuildThisFileDirectory)NativeVersion.rc"' />
   </Target>
 </Project>
