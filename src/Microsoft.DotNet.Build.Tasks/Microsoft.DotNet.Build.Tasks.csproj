@@ -46,6 +46,7 @@
     <Compile Include="PreprocessFile.cs" />
     <Compile Include="Preprocessor.cs" />
     <Compile Include="ReadSigningRequired.cs" />
+    <Compile Include="RemoveCommonItems.cs" />
     <Compile Include="RemoveDuplicatesWithLastOneWinsPolicy.cs" />
     <Compile Include="PrereleaseResolveNuGetPackageAssets.cs" />
     <Compile Include="SignTypeItem.cs" />
