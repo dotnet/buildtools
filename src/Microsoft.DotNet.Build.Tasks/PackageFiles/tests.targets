@@ -122,6 +122,7 @@
     <StartArguments Condition="'$(StartArguments)'==''">$(TestArguments) -wait -parallel none</StartArguments>
   </PropertyGroup>
 
+  <!-- Discover the items which will be copied to the test directory at build-time in all cases.-->
   <Target Name="DiscoverTestInputs" DependsOnTargets="ResolveReferences;GetCopyToOutputDirectoryItems">
     <ItemGroup>
       <RunTestsForProjectInputs Include="@(ReferenceCopyLocalPaths)" />
@@ -132,14 +133,17 @@
 
       <OverridenRuntimeContent Condition="'$(BUILDTOOLS_OVERRIDE_RUNTIME)' != ''" Include="$(BUILDTOOLS_OVERRIDE_RUNTIME)/*.*" />
 
-      <SourcesToCopyToTestDir Include="@(RunTestsForProjectInputs)" />
-      <DestinationsForTestDir Include="@(RunTestsForProjectInputs->'$(TestPath)\%(Filename)%(Extension)')" />
+      <SourcesToCopyToTestDir Include="@(RunTestsForProjectInputs)">
+        <Destination>$(TestPath)\%(Filename)%(Extension)</Destination>
+      </SourcesToCopyToTestDir>
 
-      <SourcesToCopyToTestDir Include="@(ContentWithTargetPath)" />
-      <DestinationsForTestDir Include="@(ContentWithTargetPath->'$(TestPath)\%(TargetPath)')" />
+      <SourcesToCopyToTestDir Include="@(ContentWithTargetPath)">
+        <Destination>$(TestPath)\%(ContentWithTargetPath.TargetPath)</Destination>
+      </SourcesToCopyToTestDir>
 
-      <SourcesToCopyToTestDir Include="@(OverridenRuntimeContent)" />
-      <DestinationsForTestDir Include="@(OverridenRuntimeContent->'$(TestPath)\%(Filename)%(Extension)')" />
+      <SourcesToCopyToTestDir Include="@(OverridenRuntimeContent)">
+        <Destination>$(TestPath)\%(Filename)%(Extension)</Destination>
+      </SourcesToCopyToTestDir>
     </ItemGroup>
   </Target>
 

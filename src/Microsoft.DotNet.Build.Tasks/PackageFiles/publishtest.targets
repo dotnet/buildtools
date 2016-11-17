@@ -21,6 +21,9 @@
     <CreateHardLinksForCopyTestToTestDirectoryIfPossible Condition="'$(CreateHardLinksForCopyTestToTestDirectoryIfPossible)'==''">$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)</CreateHardLinksForCopyTestToTestDirectoryIfPossible>
   </PropertyGroup>
 
+  <!-- Discover the items which will be copied to the test directory at execution time when archiving the tests
+       to run in Helix, and at build-time otherwise. These are the test dependencies not discovered by
+       DiscoverTestInputs. -->
   <Target Name="DiscoverTestDependencies" DependsOnTargets="DiscoverTestInputs;GetDefaultTestRid">
     <PrereleaseResolveNuGetPackageAssets Condition="Exists($(ProjectLockJson))"
                                AllowFallbackOnTargetSelection="true"
@@ -89,7 +92,7 @@
     <!-- Remove files which are in SourcesToCopyToTestDir because these are copied to the test dir in CopyTestToTestDirectory. -->
     <RemoveCommonItems SourceItems="@(TestCopyLocal)"
                        DestinationFolder="$(TestPath)"
-                       ReferenceItems="@(DestinationsForTestDir)">
+                       ReferenceItems="@(SourcesToCopyToTestDir->'%(Destination)')">
       <Output TaskParameter="UniqueItems" ItemName="_TestDependencies" />
     </RemoveCommonItems>
 
@@ -145,7 +148,7 @@
           DependsOnTargets="DiscoverTestInputs">
     <Copy
       SourceFiles="@(SourcesToCopyToTestDir)"
-      DestinationFiles="@(DestinationsForTestDir)"
+      DestinationFiles="@(SourcesToCopyToTestDir->'%(Destination)')"
       SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
       OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
       Retries="$(CopyRetryCount)"
