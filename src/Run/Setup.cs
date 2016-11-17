@@ -195,6 +195,9 @@ namespace Microsoft.DotNet.Execute
                     Values = new List<string>() { "true", "false" },
                     ValueType = RunToolSettingValueTypeReservedKeyword,
                     Description = "Run tool specific setting.  Set to 'true' to only display commands chosen and not execute them",
+                    // Currently, providing a default value for this setting will prevent it being overwritten by the command line.
+                    // While it is not intuitive, the code as-is supports "<some command> -whatif" without requiring a boolean argument.
+                    // Created https://github.com/dotnet/buildtools/issues/1230 to track
                     DefaultValue = string.Empty
                 };
                 Settings.Add(WhatIfReservedKeyword, whatIfSetting);
@@ -208,6 +211,9 @@ namespace Microsoft.DotNet.Execute
                     Values = new List<string>() { "true", "false" },
                     ValueType = RunToolSettingValueTypeReservedKeyword,
                     Description = "Run tool specific setting.  Set to 'true' to only display commands chosen and not execute them",
+                    // As above: currently, providing a default value for this setting will prevent it being overwritten by the command line.
+                    // While it is not intuitive, the code as-is supports "<some command> -dry-run" without requiring a boolean argument.
+                    // Created https://github.com/dotnet/buildtools/issues/1230 to track
                     DefaultValue = string.Empty
                 };
                 Settings.Add(DryRunReservedKeyword, dryRunSetting);
@@ -241,8 +247,8 @@ namespace Microsoft.DotNet.Execute
 
                 if (whatIf)
                 {
-                    PrintColorMessage(ConsoleColor.Yellow, "Showing command, will not execute:");
-                    PrintColorMessage(ConsoleColor.Yellow, $"Command: {commandToRun.ToolCommand} {commandToRun.ParametersCommand}");
+                    PrintColorMessage(ConsoleColor.Yellow, "Showing command, would execute:");
+                    PrintColorMessage(ConsoleColor.Yellow, $"\n\n{commandToRun.ToolCommand} {commandToRun.ParametersCommand}\n");
                 }
                 else
                 {
