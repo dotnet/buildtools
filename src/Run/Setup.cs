@@ -12,6 +12,8 @@ namespace Microsoft.DotNet.Execute
 {
     public class Setup
     {
+        private const string WhatIfReservedKeyword = "WhatIf";
+        private const string DryRunReservedKeyword = "dry-run";
         private const string RunQuietReservedKeyword = "RunQuiet";
         private const string RunToolSettingValueTypeReservedKeyword = "runToolSetting";
 
@@ -23,7 +25,6 @@ namespace Microsoft.DotNet.Execute
         public string Os { get; set; }
         public string ConfigurationFilePath { get; set; }
         public string ExtraParameters { get; set; }
-
         private int ValidateSettings()
         {
             int returnCode = 0;
@@ -48,7 +49,9 @@ namespace Microsoft.DotNet.Execute
 
         private bool IsReservedKeyword(string keyword)
         {
-            if (keyword.Equals(RunQuietReservedKeyword))
+            if (keyword.Equals(RunQuietReservedKeyword, StringComparison.OrdinalIgnoreCase) 
+             || keyword.Equals(WhatIfReservedKeyword,   StringComparison.OrdinalIgnoreCase)
+             || keyword.Equals(DryRunReservedKeyword,   StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }
@@ -176,7 +179,7 @@ namespace Microsoft.DotNet.Execute
             {
                 Setting runQuietSetting = new Setting()
                 {
-                    Values = new List<string>() { "True", "False" },
+                    Values = new List<string>() { "true", "false" },
                     ValueType = RunToolSettingValueTypeReservedKeyword,
                     Description = "Run tool specific setting.  Set to True to only display output from the executing command.",
                     DefaultValue = "false"
@@ -184,7 +187,37 @@ namespace Microsoft.DotNet.Execute
 
                 Settings.Add(RunQuietReservedKeyword, runQuietSetting);
             }
-
+            // If WhatIf is already defined in config.json, don't override it
+            if (!Settings.ContainsKey(WhatIfReservedKeyword))
+            {
+                Setting whatIfSetting = new Setting()
+                {
+                    Values = new List<string>() { "true", "false" },
+                    ValueType = RunToolSettingValueTypeReservedKeyword,
+                    Description = "Run tool specific setting.  Set to 'true' to only display commands chosen and not execute them",
+                    // Currently, providing a default value for this setting will prevent it being overwritten by the command line.
+                    // While it is not intuitive, the code as-is supports "<some command> -whatif" without requiring a boolean argument.
+                    // Created https://github.com/dotnet/buildtools/issues/1230 to track
+                    DefaultValue = string.Empty
+                };
+                Settings.Add(WhatIfReservedKeyword, whatIfSetting);
+            }
+            // Settings don't currently allow aliases, so until we have a real need to do so can just define two, 
+            // so as to support both -dry-run and -WhatIf style usage.
+            if (!Settings.ContainsKey(DryRunReservedKeyword))
+            {
+                Setting dryRunSetting = new Setting()
+                {
+                    Values = new List<string>() { "true", "false" },
+                    ValueType = RunToolSettingValueTypeReservedKeyword,
+                    Description = "Run tool specific setting.  Set to 'true' to only display commands chosen and not execute them",
+                    // As above: currently, providing a default value for this setting will prevent it being overwritten by the command line.
+                    // While it is not intuitive, the code as-is supports "<some command> -dry-run" without requiring a boolean argument.
+                    // Created https://github.com/dotnet/buildtools/issues/1230 to track
+                    DefaultValue = string.Empty
+                };
+                Settings.Add(DryRunReservedKeyword, dryRunSetting);
+            }
         }
 
         public int ExecuteCommand(string commandSelectedByUser, List<string> parametersSelectedByUser)
@@ -196,27 +229,46 @@ namespace Microsoft.DotNet.Execute
             {
                 runQuiet = runQuietValue.Equals("true", StringComparison.OrdinalIgnoreCase);
             }
+            string whatIfValue;
+            bool whatIf = false;
+            if (ToolSettings.TryGetValue(WhatIfReservedKeyword, out whatIfValue))
+            {
+                if (string.IsNullOrEmpty(whatIfValue))
+                {
+                    ToolSettings.TryGetValue(DryRunReservedKeyword, out whatIfValue);
+                }
+                whatIf = whatIfValue.Equals("true", StringComparison.OrdinalIgnoreCase);
+            }
+
             CompleteCommand commandToRun = BuildCommand(commandSelectedByUser, parametersSelectedByUser);
             if (commandToRun != null)
             {
-                if (!runQuiet)
-                {
-                    PrintColorMessage(ConsoleColor.DarkYellow, "Running: {0} {1}", commandToRun.ToolCommand, commandToRun.ParametersCommand);
-                }
+                int result = 0;
 
-                int result = RunProcess.ExecuteProcess(commandToRun.ToolCommand, commandToRun.ParametersCommand);
-                if (!runQuiet)
+                if (whatIf)
                 {
-                    if (result == 0)
+                    PrintColorMessage(ConsoleColor.Yellow, "Showing command, would execute:");
+                    PrintColorMessage(ConsoleColor.Yellow, $"\n\n{commandToRun.ToolCommand} {commandToRun.ParametersCommand}\n");
+                }
+                else
+                {
+                    if (!runQuiet)
                     {
-                        PrintColorMessage(ConsoleColor.Green, "Command execution succeeded.");
+                        PrintColorMessage(ConsoleColor.DarkYellow, $"Running: {commandToRun.ToolCommand} {commandToRun.ParametersCommand}");
                     }
-                    else
+                    result = RunProcess.ExecuteProcess(commandToRun.ToolCommand, commandToRun.ParametersCommand);
+                    if (!runQuiet)
                     {
-                        PrintColorMessage(ConsoleColor.Red, "Command execution failed with exit code {0}.", result);
+                        if (result == 0)
+                        {
+                            PrintColorMessage(ConsoleColor.Green, "Command execution succeeded.");
+                        }
+                        else
+                        {
+                            PrintColorMessage(ConsoleColor.Red, "Command execution failed with exit code {0}.", result);
+                        }
                     }
                 }
-
                 return result;
             }
             return 1;
