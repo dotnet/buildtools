@@ -3,7 +3,11 @@
   <UsingTask TaskName="AddDependenciesToProjectJson" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="GetPackageNumberFromPackageDrop" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="DumpItem" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
-
+  
+  <PropertyGroup>
+    <!-- PackageDrops is set to the bin folder where packages are built to generate the new test project.json for these -->
+    <PackagesDrops Condition="'$(PackagesDrops)' == ''">$(PackageOutputPath)</PackagesDrops>
+  </PropertyGroup>
   <ItemGroup>
     <_PackagesDrops Include="$(PackagesDrops)" />
   </ItemGroup>
@@ -82,8 +86,7 @@
     <ItemGroup Condition="'$(KeepAllProjectReferences)' != 'true'">
       <!-- Don't alter the ProjectReference's from the project during the extraction phase -->
       <_ClonedProjectReference Include="@(ProjectReference)" />
-      <_RemovePackageProjectReference Condition="'%(_ClonedProjectReference.KeepProjectReference)' == 'true' or $([System.Text.RegularExpressions.Regex]::IsMatch('%(_ClonedProjectReference.FullPath)', '\\tests\\', System.Text.RegularExpressions.RegexOptions.IgnoreCase)) or $([System.Text.RegularExpressions.Regex]::IsMatch('%(_ClonedProjectReference.FullPath)', '//tests//', System.Text.RegularExpressions.RegexOptions.IgnoreCase))"
-                                Include="%(_ClonedProjectReference.Identity)" />
+      <_RemovePackageProjectReference Condition="'%(_ClonedProjectReference.KeepProjectReference)' != 'true' and !$([System.Text.RegularExpressions.Regex]::IsMatch('%(_ClonedProjectReference.FullPath)', ''[\\/]tests[\\/]', System.Text.RegularExpressions.RegexOptions.IgnoreCase))" Include="%(_ClonedProjectReference.Identity)" />
       <!-- Populate items first with the project references so that we can trim them but keep the item metadata -->
       <_PackageProjectReference Include="@(_ClonedProjectReference)" />
       <_ClonedProjectReference Remove="@(_RemovePackageProjectReference)" />
@@ -100,25 +103,6 @@
       <_InjectProjectReference>%(_PackageProjectReference.FileName)</_InjectProjectReference>
     </PropertyGroup>
 
-    <ItemGroup>
-      <_AdditionalProperties Condition="'$(AssemblyVersionTransition)' != ''" Include="AssemblyVersionTransition=$(AssemblyVersionTransition);" />
-    </ItemGroup>
-
-    <!-- Evaluate the project references to determine the assembly version for the package dependency.
-         Only evaluate the project reference if we were not able to find an assembly version in "PackageDrops" -->
-    <MSBuild Condition="'%(_PackageProjectReference.Identity)' != ''"
-             Projects="%(_PackageProjectReference.Identity)"
-             Targets="GetAssemblyVersion"
-             Properties="@(_AdditionalProperties)">
-      <Output TaskParameter="TargetOutputs"
-              PropertyName="_EvaluatedAssemblyVersion" />
-    </MSBuild>
-    <PropertyGroup>
-      <_AssemblyVersion Condition="'$(_AssemblyVersion)' == ''">$(_EvaluatedAssemblyVersion)</_AssemblyVersion>
-    </PropertyGroup>
-
-    <Error Condition="'$(_AssemblyVersion)' == ''" Text="Unable to determine assembly version for project reference '%(_PackageProjectReference.Identity)'" />
-
     <PropertyGroup>
       <!-- Use the alternative PackageReferenceName metadata if available -->
       <_InjectProjectReferenceDependencyName Condition="'$(_PackageReferenceName)' == ''">%(_PackageProjectReference.FileName)</_InjectProjectReferenceDependencyName>
@@ -129,7 +113,6 @@
       <_InjectProjectReferenceDependency  Include="$(_InjectProjectReferenceDependencyName)">
         <Name>$(_InjectProjectReferenceDependencyName)</Name>
         <OriginalName>$(_InjectProjectReference)</OriginalName>
-        <Version>$(_AssemblyVersion)</Version>
         <FilePath>%(_PackageProjectReference.Identity)</FilePath>
         <TargetGroup>%(_PackageProjectReference.TargetGroup)</TargetGroup>
         </_InjectProjectReferenceDependency>

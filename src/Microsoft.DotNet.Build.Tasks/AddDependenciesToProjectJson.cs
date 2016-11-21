@@ -374,15 +374,21 @@ namespace Microsoft.DotNet.Build.Tasks
                 // Don't add a new dependency if one already exists.
                 if (!returnDependenciesList.ContainsKey(name))
                 {
-                    NuGetVersion nuGetVersion = NuGetVersion.Parse(dependency.GetMetadata("Version"));
-                    PackageItem packageItem = new PackageItem(name, nuGetVersion);
-                    string version = packageItem.GetVersionString();
+                    string versionFromMetadata = dependency.GetMetadata("Version");
+                    NuGetVersion nuGetVersion = null;
+                    if (versionFromMetadata != string.Empty)
+                    {
+                        nuGetVersion = NuGetVersion.Parse(dependency.GetMetadata("Version"));
+                    }
 
                     // a package version was provided, use its version information.
                     if (packageInformation.ContainsKey(name))
                     {
-                        version = packageInformation[name].Version.ToString();
+                        nuGetVersion = packageInformation[name].Version;
                     }
+                    PackageItem packageItem = new PackageItem(name, nuGetVersion);
+                    string version = packageItem.GetVersionString();
+
                     JProperty property = new JProperty(name, version);
                     returnDependenciesList.Add(name, property);
                 }
@@ -476,7 +482,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public string GetVersionString()
         {
-            return string.Join(".", _version.Major, _version.Minor, _version.Patch);
+            return _version.ToString();
         }
 
         public TaskItem ToTaskItem()
