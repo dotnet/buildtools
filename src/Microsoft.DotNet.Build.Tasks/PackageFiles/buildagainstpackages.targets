@@ -82,8 +82,8 @@
     <ItemGroup Condition="'$(KeepAllProjectReferences)' != 'true'">
       <!-- Don't alter the ProjectReference's from the project during the extraction phase -->
       <_ClonedProjectReference Include="@(ProjectReference)" />
-      <_RemovePackageProjectReference Condition="'%(_ClonedProjectReference.KeepProjectReference)' == 'true' or $([System.Text.RegularExpressions.Regex]::IsMatch('%(_ClonedProjectReference.FullPath)', '\\tests\\', System.Text.RegularExpressions.RegexOptions.IgnoreCase)) or $([System.Text.RegularExpressions.Regex]::IsMatch('%(_ClonedProjectReference.FullPath)', '//tests//', System.Text.RegularExpressions.RegexOptions.IgnoreCase))"
-                                Include="%(_ClonedProjectReference.Identity)" />
+      <_RemovePackageProjectReference Condition="'%(_ClonedProjectReference.KeepProjectReference)' != 'true' and !$([System.Text.RegularExpressions.Regex]::IsMatch('%(_ClonedProjectReference.FullPath)', '[\\/]tests[\\/]', System.Text.RegularExpressions.RegexOptions.IgnoreCase))"
+      Include="%(_ClonedProjectReference.Identity)" />
       <!-- Populate items first with the project references so that we can trim them but keep the item metadata -->
       <_PackageProjectReference Include="@(_ClonedProjectReference)" />
       <_ClonedProjectReference Remove="@(_RemovePackageProjectReference)" />
