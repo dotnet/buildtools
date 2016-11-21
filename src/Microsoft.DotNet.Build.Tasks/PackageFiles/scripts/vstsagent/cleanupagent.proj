@@ -6,10 +6,6 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Build.Common.props))\Build.Common.props" />
   <UsingTask TaskName="CleanupVSTSAgent" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
 
-<!-- Inputs:
-       AgentDirectory
-       RetentionDays
--->
   <PropertyGroup>
     <RetentionDays Condition="'$(RetentionDays)' == ''">5</RetentionDays>
   </PropertyGroup>
