@@ -25,6 +25,11 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public override bool Execute()
         {
+            if(!Directory.Exists(AgentDirectory))
+            {
+                Console.WriteLine($"Agent directory specified, {AgentDirectory} does not exist.");
+                return false;
+            }
             if(!Retries.HasValue)
             {
                 Retries = s_DefaultRetries;
@@ -52,7 +57,7 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 Console.WriteLine($"Examining {sourceFolderJson} ...");
 
-                Tuple<string, string, DateTime> agentInfo = GetAgentInfoAsync(sourceFolderJson).Result;
+                Tuple<string, string, DateTime> agentInfo = await GetAgentInfoAsync(sourceFolderJson);
                 string workDirectory = Path.Combine(AgentDirectory, "_work", agentInfo.Item2);
                 knownDirectories.Add(workDirectory);
 

@@ -10,10 +10,6 @@
     <RetentionDays Condition="'$(RetentionDays)' == ''">1</RetentionDays>
   </PropertyGroup>
 
-  <ItemGroup>
-    <SourceFolderJsons Include="$(AgentDirectory)/_work/SourceRootMapping/**/SourceFolder.json" />
-  </ItemGroup>
-
   <Target Name="Clean">
     <Error Condition="'$(AgentDirectory)' == ''" Text="No value specified for 'AgentDirectory'." />
     <CleanupVSTSAgent AgentDirectory="$(AgentDirectory)"
