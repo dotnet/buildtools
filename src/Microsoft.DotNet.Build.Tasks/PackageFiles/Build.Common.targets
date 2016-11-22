@@ -115,6 +115,7 @@
     <PropertyGroup>
       <DefaultTestNugetRuntimeId Condition="$(DefaultTestNugetRuntimeId.StartsWith('win'))">win7-x64</DefaultTestNugetRuntimeId>
       <TestArchitecture Condition="'$(TestArchitecture)' == ''">x64</TestArchitecture>
+      <TestNugetRuntimeId Condition="'$(TestNugetRuntimeId)' == '' And '$(TestArchitecture)'=='x86'">win7-x86</TestNugetRuntimeId>
       <TestNugetRuntimeId Condition="'$(TestNugetRuntimeId)' == ''">$(DefaultTestNugetRuntimeId)</TestNugetRuntimeId>
     </PropertyGroup>
   </Target>
