@@ -10,6 +10,10 @@ namespace Microsoft.DotNet.Build.Tasks
 {
     public class CleanupVSTSAgent : Microsoft.Build.Utilities.Task
     {
+        public bool Clean { get; set; }
+
+        public bool Report { get; set; }
+
         [Required]
         public string AgentDirectory { get; set; }
 
@@ -39,8 +43,36 @@ namespace Microsoft.DotNet.Build.Tasks
                 SleepTimeInMilliseconds = s_DefaultSleepTime;
             }
 
-            return CleanupAgentsAsync().Result;
+            bool returnValue = true;
+
+            if(Report)
+            {
+                ReportDiskUsage();
+            }
+            if(Clean)
+            {
+                returnValue &= CleanupAgentsAsync().Result;
+            }
+            // If report and clean are both 'true', then report disk usage both before and after cleanup.
+            if(Report && Clean)
+            {
+                ReportDiskUsage();
+            }
+
+            return returnValue;
         }
+
+        private void ReportDiskUsage()
+        {
+            string drive = Path.GetPathRoot(AgentDirectory);
+            DriveInfo driveInfo = new DriveInfo(drive);
+            Console.WriteLine("Disk Usage Report");
+            Console.WriteLine($"  Agent directory: {AgentDirectory}");
+            Console.WriteLine($"  Drive letter: {drive}");
+            Console.WriteLine($"  Total size: {driveInfo.TotalSize.ToString()} bytes");
+            Console.WriteLine($"  Total free space: {driveInfo.TotalFreeSpace.ToString()} bytes");
+        }
+
         private async System.Threading.Tasks.Task<bool> CleanupAgentsAsync()
         {
             bool returnStatus = true;
