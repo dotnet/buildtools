@@ -131,7 +131,7 @@
       <RunTestsForProjectInputs Include="@(_DebugSymbolsIntermediatePath)" />
       <RunTestsForProjectInputs Include="@(AllItemsFullPathWithTargetPath)" />
 
-      <OverridenRuntimeContent Condition="'$(BUILDTOOLS_OVERRIDE_RUNTIME)' != ''" Include="$(BUILDTOOLS_OVERRIDE_RUNTIME)/*.*" />
+      <OverriddenRuntimeContent Condition="'$(BUILDTOOLS_OVERRIDE_RUNTIME)' != ''" Include="$(BUILDTOOLS_OVERRIDE_RUNTIME)/*.*" />
 
       <SourcesToCopyToTestDir Include="@(RunTestsForProjectInputs)">
         <Destination>$(TestPath)\%(Filename)%(Extension)</Destination>
@@ -141,7 +141,7 @@
         <Destination>$(TestPath)\%(ContentWithTargetPath.TargetPath)</Destination>
       </SourcesToCopyToTestDir>
 
-      <SourcesToCopyToTestDir Include="@(OverridenRuntimeContent)">
+      <SourcesToCopyToTestDir Include="@(OverriddenRuntimeContent)">
         <Destination>$(TestPath)\%(Filename)%(Extension)</Destination>
       </SourcesToCopyToTestDir>
     </ItemGroup>

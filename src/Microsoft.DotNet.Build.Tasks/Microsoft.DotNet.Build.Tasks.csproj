@@ -19,6 +19,7 @@
   <ItemGroup>
     <Compile Include="BinClashLogger.cs" />
     <Compile Include="CleanupVSTSAgent.cs" />
+    <Compile Include="ComputeDestinationsForDependencies.cs" />
     <Compile Include="Delegates.cs" />
     <Compile Include="ExceptionFromResource.cs" />
     <Compile Include="ExecWithMutex.cs" />
@@ -46,7 +47,6 @@
     <Compile Include="PreprocessFile.cs" />
     <Compile Include="Preprocessor.cs" />
     <Compile Include="ReadSigningRequired.cs" />
-    <Compile Include="RemoveCommonItems.cs" />
     <Compile Include="RemoveDuplicatesWithLastOneWinsPolicy.cs" />
     <Compile Include="PrereleaseResolveNuGetPackageAssets.cs" />
     <Compile Include="SignTypeItem.cs" />
