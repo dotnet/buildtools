@@ -13,7 +13,7 @@ IF [%BUILDTOOLS_NET45_TARGET_RUNTIME%]==[] set BUILDTOOLS_NET45_TARGET_RUNTIME=w
 set BUILDTOOLS_PACKAGE_DIR=%~dp0
 set MICROBUILD_VERSION=0.2.0
 set PORTABLETARGETS_VERSION=0.1.1-dev
-set ROSLYNCOMPILERS_VERSION=2.0.0-beta3
+set ROSLYNCOMPILERS_VERSION=2.0.0-rc
 set MSBUILD_CONTENT_JSON={"dependencies": { "MicroBuild.Core": "%MICROBUILD_VERSION%", "Microsoft.Portable.Targets": "%PORTABLETARGETS_VERSION%", "Microsoft.Net.Compilers": "%ROSLYNCOMPILERS_VERSION%"},"frameworks": {"netcoreapp1.0": {},"net46": {}}}
 set INIT_TOOLS_RESTORE_ARGS=--source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json %INIT_TOOLS_RESTORE_ARGS%
 set TOOLRUNTIME_RESTORE_ARGS=--source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json %INIT_TOOLS_RESTORE_ARGS%
