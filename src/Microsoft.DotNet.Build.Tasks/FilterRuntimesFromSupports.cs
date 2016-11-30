@@ -39,7 +39,14 @@ namespace Microsoft.DotNet.Build.Tasks
         public static List<TfmRidPair> FilterForApplicableTFMRIDPairs(List<TfmRidPair> tfmRidPairs,
             string framework, string runtimeIdentifier)
         {
-            tfmRidPairs.RemoveAll(x => !framework.Equals(x.framework) || !runtimeIdentifier.Equals(x.runtimeIdentifier));
+            if (framework != null)
+            {
+                tfmRidPairs.RemoveAll(x => !framework.Equals(x.framework));
+            }
+            if (runtimeIdentifier != null)
+            {
+                tfmRidPairs.RemoveAll(x => !runtimeIdentifier.Equals(x.runtimeIdentifier));
+            }
             
             return tfmRidPairs;
         }

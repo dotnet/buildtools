@@ -68,14 +68,11 @@ namespace Microsoft.DotNet.Build.Tasks
         // The directory to put the generated project.json in
         [Required]
         public string OutputProjectJson { get; set; }
-
-        [Required]
+        
         public string SupportsFile { get; set; }
 
-        [Required]
         public string TestRuntime { get; set; }
 
-        [Required]
         public string TestTargetFramework { get; set; }
 
         private Regex _packageNameRegex;
@@ -145,10 +142,13 @@ namespace Microsoft.DotNet.Build.Tasks
                 projectRoot = UpdateDependenciesProperty(projectRoot, dependencies, Frameworks[i]);
             }
 
-            var definedTfmRidPairs = FilterRuntimesFromSupports.GetAllTfmRidPairs(SupportsFile);
-            var applicableTfmRidPairs = FilterRuntimesFromSupports.FilterForApplicableTFMRIDPairs(definedTfmRidPairs, TestTargetFramework, TestRuntime);
-            projectRoot["supports"] = FilterRuntimesFromSupports.GenerateCustomSupportsClause(applicableTfmRidPairs);
-
+            if (SupportsFile != null)
+            {
+                var definedTfmRidPairs = FilterRuntimesFromSupports.GetAllTfmRidPairs(SupportsFile);
+                var applicableTfmRidPairs = FilterRuntimesFromSupports.FilterForApplicableTFMRIDPairs(
+                    definedTfmRidPairs, TestTargetFramework, TestRuntime);
+                projectRoot["supports"] = FilterRuntimesFromSupports.GenerateCustomSupportsClause(applicableTfmRidPairs);
+            }
             WriteProject(projectRoot, OutputProjectJson);
 
             return true;
