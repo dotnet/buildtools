@@ -38,7 +38,7 @@ if [ ! -d "$__TOOLRUNTIME_DIR" ]; then
     mkdir $__TOOLRUNTIME_DIR
 fi
 
-if [ -z "$__PUBLISH_RID" ]; then
+if [ -z "${__PUBLISH_RID:-}" ]; then
     OSName=$(uname -s)
     case $OSName in
         Darwin)
