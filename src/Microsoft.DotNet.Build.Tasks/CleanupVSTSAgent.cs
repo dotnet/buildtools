@@ -77,7 +77,7 @@ namespace Microsoft.DotNet.Build.Tasks
             var totalWorkingDirectories = workingDirectories != null ? workingDirectories.Length : 0;
 
             Console.WriteLine("  Agent info");
-            Console.WriteLine($"    Total size of agent directory: {string.Format("{0:N0}", GetDirectoryAttributes(AgentDirectory).Item1)}");
+            Console.WriteLine($"    Total size of agent directory: {string.Format("{0:N0}", GetDirectoryAttributes(AgentDirectory).Item1)} bytes");
             Console.WriteLine($"    Total agent working directories: {totalWorkingDirectories}");
 
             if (totalWorkingDirectories > 0)
