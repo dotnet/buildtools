@@ -80,7 +80,6 @@ namespace Microsoft.DotNet.Build.Tasks
             Console.WriteLine($"    Total size of agent directory: {string.Format("{0:N0}", GetDirectoryAttributes(AgentDirectory).Item1)}");
             Console.WriteLine($"    Total agent working directories: {totalWorkingDirectories}");
 
-
             if (totalWorkingDirectories > 0)
             {
                 int nameLength = 0;
