@@ -109,10 +109,7 @@ namespace Microsoft.DotNet.Build.Tasks
             foreach(FileInfo fileInfo in fileInfos)
             {
                 totalSize += fileInfo.Length;
-                if(fileInfo.LastWriteTime > lastModifiedDateTime)
-                {
-                    lastModifiedDateTime = fileInfo.LastWriteTime;
-                }
+                lastModifiedDateTime = fileInfo.LastWriteTime > lastModifiedDateTime ? fileInfo.LastWriteTime : lastModifiedDateTime;
             }
             string[] directories = Directory.GetDirectories(directory);
 
@@ -120,10 +117,7 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 Tuple<long, DateTime> directoryAttributes = GetDirectoryAttributes(dir);
                 totalSize += directoryAttributes.Item1;
-                if(directoryAttributes.Item2 > lastModifiedDateTime)
-                {
-                    lastModifiedDateTime = directoryAttributes.Item2;
-                }
+                lastModifiedDateTime = directoryAttributes.Item2 > lastModifiedDateTime ? directoryAttributes.Item2 : lastModifiedDateTime;
             }
             return Tuple.Create(totalSize, lastModifiedDateTime);
         }
