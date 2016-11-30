@@ -89,7 +89,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 }
                 nameLength = nameLength + 2;
 
-                string columnFormat = "      {0,-" + nameLength.ToString() + "} {1,-30:N0} {2,-22}";
+                string columnFormat = "      {0,-" + nameLength.ToString() + "} {1,30:N0} {2,-22}";
                 Console.WriteLine(string.Format(columnFormat, "Folder name", "Size (bytes)", "Last Modified DateTime"));
                 foreach (var workingDirectory in workingDirectories)
                 {
