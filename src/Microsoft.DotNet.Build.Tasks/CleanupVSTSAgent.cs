@@ -87,9 +87,8 @@ namespace Microsoft.DotNet.Build.Tasks
                 {
                     nameLength = directoryName.Length > nameLength ? directoryName.Length : nameLength;
                 }
-                nameLength = nameLength + 2;
-
-                string columnFormat = "      {0,-" + nameLength.ToString() + "} {1,30:N0} {2,-22}";
+                int sizeLength = string.Format("{0:N0}", driveInfo.TotalSize).Length;
+                string columnFormat = "      {0,-" + nameLength.ToString() + "}  {1," + sizeLength.ToString() + ":N0}  {2}";
                 Console.WriteLine(string.Format(columnFormat, "Folder name", "Size (bytes)", "Last Modified DateTime"));
                 foreach (var workingDirectory in workingDirectories)
                 {
