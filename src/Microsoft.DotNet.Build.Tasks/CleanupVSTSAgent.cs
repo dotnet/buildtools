@@ -56,6 +56,7 @@ namespace Microsoft.DotNet.Build.Tasks
             // If report and clean are both 'true', then report disk usage both before and after cleanup.
             if(Report && Clean)
             {
+                Console.WriteLine("Disk usage after 'Clean'.");
                 ReportDiskUsage();
             }
 
@@ -69,8 +70,62 @@ namespace Microsoft.DotNet.Build.Tasks
             Console.WriteLine("Disk Usage Report");
             Console.WriteLine($"  Agent directory: {AgentDirectory}");
             Console.WriteLine($"  Drive letter: {drive}");
-            Console.WriteLine($"  Total size: {driveInfo.TotalSize.ToString()} bytes");
-            Console.WriteLine($"  Total free space: {driveInfo.TotalFreeSpace.ToString()} bytes");
+            Console.WriteLine($"  Total disk size: {string.Format("{0:N0}", driveInfo.TotalSize)} bytes");
+            Console.WriteLine($"  Total disk free space: {string.Format("{0:N0}", driveInfo.TotalFreeSpace)} bytes");
+
+            var workingDirectories = Directory.GetDirectories(Path.Combine(AgentDirectory, "_work"));
+            var totalWorkingDirectories = workingDirectories != null ? workingDirectories.Length : 0;
+
+            Console.WriteLine("  Agent info");
+            Console.WriteLine($"    Total size of agent directory: {string.Format("{0:N0}", GetDirectoryAttributes(AgentDirectory).Item1)}");
+            Console.WriteLine($"    Total agent working directories: {totalWorkingDirectories}");
+
+
+            if (totalWorkingDirectories > 0)
+            {
+                int nameLength = 0;
+                foreach(string directoryName in workingDirectories)
+                {
+                    nameLength = directoryName.Length > nameLength ? directoryName.Length : nameLength;
+                }
+                nameLength = nameLength + 2;
+
+                string columnFormat = "      {0,-" + nameLength.ToString() + "} {1,-30:N0} {2,-22}";
+                Console.WriteLine(string.Format(columnFormat, "Folder name", "Size (bytes)", "Last Modified DateTime"));
+                foreach (var workingDirectory in workingDirectories)
+                {
+                    Tuple<long, DateTime> directoryAttributes = GetDirectoryAttributes(workingDirectory);
+                    Console.WriteLine(string.Format(columnFormat, workingDirectory, directoryAttributes.Item1, directoryAttributes.Item2));
+                }
+            }
+        }
+
+        private Tuple<long, DateTime> GetDirectoryAttributes(string directory)
+        {
+            DirectoryInfo directoryInfo = new DirectoryInfo(directory);
+            FileInfo[] fileInfos = directoryInfo.GetFiles();
+            long totalSize = 0;
+            DateTime lastModifiedDateTime = directoryInfo.LastWriteTime;
+            foreach(FileInfo fileInfo in fileInfos)
+            {
+                totalSize += fileInfo.Length;
+                if(fileInfo.LastWriteTime > lastModifiedDateTime)
+                {
+                    lastModifiedDateTime = fileInfo.LastWriteTime;
+                }
+            }
+            string[] directories = Directory.GetDirectories(directory);
+
+            foreach(string dir in directories)
+            {
+                Tuple<long, DateTime> directoryAttributes = GetDirectoryAttributes(dir);
+                totalSize += directoryAttributes.Item1;
+                if(directoryAttributes.Item2 > lastModifiedDateTime)
+                {
+                    lastModifiedDateTime = directoryAttributes.Item2;
+                }
+            }
+            return Tuple.Create(totalSize, lastModifiedDateTime);
         }
 
         private async System.Threading.Tasks.Task<bool> CleanupAgentsAsync()
