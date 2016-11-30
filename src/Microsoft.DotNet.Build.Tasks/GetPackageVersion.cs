@@ -4,7 +4,6 @@
 
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;

@@ -69,23 +69,24 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
             {
                 foreach (BuildInfo info in updateResults.UsedBuildInfos)
                 {
-                    ITaskItem infoItem = FindDependencyBuildInfo(info.Name);
-
-                    if (!string.IsNullOrEmpty(infoItem.GetMetadata(CurrentRefMetadataName)))
+                    foreach (var infoItem in DependencyBuildInfo.Where(item => item.ItemSpec == info.Name))
                     {
-                        UpdateProperty(
-                            CurrentRefXmlPath,
-                            $"{info.Name}{CurrentRefMetadataName}",
-                            masterSha);
-                    }
+                        if (!string.IsNullOrEmpty(infoItem.GetMetadata(CurrentRefMetadataName)))
+                        {
+                            UpdateProperty(
+                                CurrentRefXmlPath,
+                                $"{info.Name}{CurrentRefMetadataName}",
+                                masterSha);
+                        }
 
-                    string autoUpgradeBranch = infoItem.GetMetadata(AutoUpgradeBranchMetadataName);
-                    if (!string.IsNullOrEmpty(autoUpgradeBranch))
-                    {
-                        UpdateProperty(
-                            CurrentRefXmlPath,
-                            $"{info.Name}{CurrentBranchMetadataName}",
-                            autoUpgradeBranch);
+                        string autoUpgradeBranch = infoItem.GetMetadata(AutoUpgradeBranchMetadataName);
+                        if (!string.IsNullOrEmpty(autoUpgradeBranch))
+                        {
+                            UpdateProperty(
+                                CurrentRefXmlPath,
+                                $"{info.Name}{CurrentBranchMetadataName}",
+                                autoUpgradeBranch);
+                        }
                     }
                 }
             }
@@ -118,11 +119,6 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
             }
         }
 
-        private ITaskItem FindDependencyBuildInfo(string name)
-        {
-            return DependencyBuildInfo.SingleOrDefault(item => item.ItemSpec == name);
-        }
-
         private void UpdateProperty(string path, string elementName, string newValue)
         {
             const string valueGroup = "valueGroup";
@@ -134,9 +130,13 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                         .Match(contents)
                         .Groups[valueGroup];
 
-                    return contents
-                        .Remove(g.Index, g.Length)
-                        .Insert(g.Index, newValue);
+                    if (g.Success)
+                    {
+                        return contents
+                            .Remove(g.Index, g.Length)
+                            .Insert(g.Index, newValue);
+                    }
+                    return contents;
                 });
             // There may not be an task to perform for the value to be up to date: allow null.
             updateAction?.Invoke();

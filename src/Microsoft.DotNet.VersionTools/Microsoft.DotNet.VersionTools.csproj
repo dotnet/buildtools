@@ -21,6 +21,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Automation\DependencyUpdateResults.cs" />
+    <Compile Include="Compose\ConsumesUpdater.cs" />
+    <Compile Include="Compose\Model\ArtifactSet.cs" />
+    <Compile Include="Compose\Model\Command\ConsumesOutput.cs" />
+    <Compile Include="Compose\Model\ConsumesPlatform.cs" />
+    <Compile Include="Compose\Model\NuGetArtifactSet.cs" />
+    <Compile Include="Compose\Model\PackageVersionList.cs" />
+    <Compile Include="Compose\Model\Command\ProducesOutput.cs" />
     <Compile Include="Dependencies\DependencyBuildInfo.cs" />
     <Compile Include="Dependencies\DependencyUpdateTask.cs" />
     <Compile Include="Automation\GitHubApi\GitHubClient.cs" />
@@ -33,6 +40,9 @@
     <Compile Include="Dependencies\FileRegexReleaseUpdater.cs" />
     <Compile Include="Automation\IUpdateBranchNamingStrategy.cs" />
     <Compile Include="Automation\SingleBranchNamingStrategy.cs" />
+    <Compile Include="Dependencies\PackageDependencyChange.cs" />
+    <Compile Include="Dependencies\PackageDependencyUpdateTask.cs" />
+    <Compile Include="Dependencies\UpdateTargetNotFoundException.cs" />
     <Compile Include="Util\ArgumentEscaper.cs" />
     <Compile Include="Util\Command.cs" />
     <Compile Include="Util\CommandResult.cs" />
@@ -44,6 +54,8 @@
     <Compile Include="BuildInfo.cs" />
     <Compile Include="Dependencies\ProjectJsonUpdater.cs" />
     <Compile Include="Automation\VersionsRepoUpdater.cs" />
+    <Compile Include="Util\IEnumerableExtensions.cs" />
+    <Compile Include="Util\ListOrSingleConverter.cs" />
   </ItemGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
   <Target Name="AfterBuild">
