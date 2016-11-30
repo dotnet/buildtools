@@ -16,6 +16,7 @@
         "System.Diagnostics.Process": "4.1.0",
         "System.Diagnostics.TextWriterTraceListener": "4.0.0",
         "System.Diagnostics.TraceSource": "4.0.0",
+        "System.IO.FileSystem.DriveInfo": "4.0.0",
         "System.Runtime.Serialization.Primitives": "4.1.1",
         "Newtonsoft.Json": "9.0.1",
         "NETStandard.Library": {

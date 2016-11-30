@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Clean">
+  <PropertyGroup>
+    <BuildToolsTargets45 Condition="'$(OS)' == 'Windows_NT'">true</BuildToolsTargets45>
+  </PropertyGroup>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Build.Common.props))\Build.Common.props" />
+  <UsingTask TaskName="CleanupVSTSAgent" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+
+  <PropertyGroup>
+    <RetentionDays Condition="'$(RetentionDays)' == ''">1</RetentionDays>
+    <DoClean Condition="'$(DoClean)' == ''">false</DoClean>
+    <DoReport Condition="'$(DoReport)' == ''">true</DoReport>
+  </PropertyGroup>
+
+  <Target Name="Clean">
+    <Error Condition="'$(AgentDirectory)' == ''" Text="No value specified for 'AgentDirectory'." />
+    <CleanupVSTSAgent AgentDirectory="$(AgentDirectory)"
+                      RetentionDays="$(RetentionDays)"
+                      Clean="$(DoClean)"
+                      Report="$(DoReport)"/>
+  </Target>
+</Project>
