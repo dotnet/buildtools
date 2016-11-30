@@ -27,8 +27,8 @@
   <PropertyGroup>
     <ContainerName>build-$([System.Guid]::NewGuid().ToString("N"))</ContainerName>
     <ContainerName>$(ContainerName.ToLower())</ContainerName>
-    <FuncTestListFilename>FuncTests.$(OSGroup).$(Platform)$(ConfigurationGroup).json</FuncTestListFilename>
-    <PerfTestListFilename>PerfTests.$(OSGroup).$(Platform)$(ConfigurationGroup).json</PerfTestListFilename>
+    <FuncTestListFilename>FuncTests.$(BuildConfiguration).json</FuncTestListFilename>
+    <PerfTestListFilename>PerfTests.$(BuildConfiguration).json</PerfTestListFilename>
     <!-- Test builds consist of the tests that are platform specific in one root, plus others in AnyOS. -->
     <AnyOSPlatformConfig>AnyOS.AnyCPU.$(ConfigurationGroup)</AnyOSPlatformConfig>
     <AnyOsArchivesRoot>$(TestWorkingDir)$(AnyOSPlatformConfig)/archive/</AnyOsArchivesRoot>
