@@ -62,6 +62,10 @@
 
     <Exec Command="$(CoverageReportGeneratorCommandLine) -reports:$(CoverageOutputFilePath)"
           ContinueOnError="ErrorAndContinue" />
+
+    <Exec Command="start $(CoverageReportDir)index.htm"
+          Condition="'$(PopCoverageReport)' == 'true'" />
+
   </Target>
 
   <PropertyGroup Condition="'$(GenerateFullCoverageReport)'=='true'">
@@ -78,6 +82,9 @@
     <Exec Command="$(CoverageReportGeneratorCommandLine) -reports:$(CoverageReportDir)\*.coverage.xml"
           ContinueOnError="ErrorAndContinue"
           WorkingDirectory="$(ProjectDir)" />
+
+    <Exec Command="start $(CoverageReportDir)index.htm"
+          Condition="'$(PopCoverageReport)' == 'true'" />          
 
     <PropertyGroup>
       <CoverallsUploaderCommandLine>$(PackagesDir)coveralls.io.$(CoverallsUploaderVersion)\tools\coveralls.net.exe</CoverallsUploaderCommandLine>
