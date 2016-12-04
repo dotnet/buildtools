@@ -84,6 +84,18 @@
       <TestCopyLocal Include="@(OverridenRuntimeContent)" />
      </ItemGroup>
 
+    <ItemGroup Condition="'$(CoreLibRoot)' != ''">
+      <TestCopyLocal Include="$(CoreLibRoot)\mscorlib.dll" />
+      <TestCopyLocal Include="$(CoreLibRoot)\System.Private.CoreLib.dll" />
+      <TestCopyLocal Include="$(CoreLibRoot)\PDB\mscorlib.pdb" />
+      <TestCopyLocal Include="$(CoreLibRoot)\PDB\System.Private.CoreLib.pdb" />
+    </ItemGroup>
+
+    <PropertyGroup Condition="'$(CoreLibRoot)' != ''">
+      <!-- We're not copying native images for our private corelib -->
+      <TestWithoutNativeImages>true</TestWithoutNativeImages>
+    </PropertyGroup>
+
     <!-- Remove duplicates. Note that we mustn't just copy in sequence and let
          the last one win that way because it will cause copies to occur on
          every incremental build. -->
