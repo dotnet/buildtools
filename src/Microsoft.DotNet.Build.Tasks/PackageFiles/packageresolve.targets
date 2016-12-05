@@ -100,8 +100,8 @@
       <_ReferenceFileNamesToRemove Include="@(_ReferenceFromPackage)" Condition="'@(Reference->'%(FileName)%(Extension)')' == '%(FileName)%(Extension)'" />
 
       <!-- If local copy is disabled remove all references, otherwise remove only project refrerences -->
-      <_ReferenceCopyLocalPathsFromPackage Include="@(_ReferenceCopyLocalPathsFromPackage)" Condition="'$(DisableReferenceCopyLocal)' == 'true' OR '@(_ResolvedProjectReferencePaths->'%(FileName)%(Extension)')' == '%(FileName)%(Extension)'" />
-      <_ReferenceCopyLocalPathsFromPackage Include="@(_ReferenceCopyLocalPathsFromPackage)" Condition="'$(DisableReferenceCopyLocal)' == 'true' OR '@(ReferenceCopyLocalPaths->'%(FileName)%(Extension)')' == '%(FileName)%(Extension)'" />
+      <_ReferenceCopyLocalPathsFileNamesToRemove Include="@(_ReferenceCopyLocalPathsFromPackage)" Condition="'$(DisableReferenceCopyLocal)' == 'true' OR '@(_ResolvedProjectReferencePaths->'%(FileName)%(Extension)')' == '%(FileName)%(Extension)'" />
+      <_ReferenceCopyLocalPathsFileNamesToRemove Include="@(_ReferenceCopyLocalPathsFromPackage)" Condition="'$(DisableReferenceCopyLocal)' == 'true' OR '@(ReferenceCopyLocalPaths->'%(FileName)%(Extension)')' == '%(FileName)%(Extension)'" />
 
       <!-- strip from the resolved package output -->
       <_ReferenceFromPackage Remove="@(_ReferenceFileNamesToRemove)" />
