@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
+using NuGet.Frameworks;
 using NuGet.RuntimeModel;
 
 namespace Microsoft.DotNet.Build.Tasks
@@ -15,6 +16,7 @@ namespace Microsoft.DotNet.Build.Tasks
             framework = tfm;
             runtimeIdentifier = rid;
         }
+        //This should be the long form of the Nuget Framework moniker.
         public string framework { get; set; }
         public string runtimeIdentifier { get; set; }
     }
@@ -30,7 +32,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 supportsGraph.Supports.TryGetValue(key, out compatibilityProfile);
                 foreach (var tfmRidPair in compatibilityProfile.RestoreContexts)
                 {
-                    tfmRidPairs.Add(new TfmRidPair(tfmRidPair.Framework.GetShortFolderName(), tfmRidPair.RuntimeIdentifier));
+                    tfmRidPairs.Add(new TfmRidPair(tfmRidPair.Framework.ToString(), tfmRidPair.RuntimeIdentifier));
                 }
             }
             return tfmRidPairs;
@@ -57,7 +59,7 @@ namespace Microsoft.DotNet.Build.Tasks
             var tfmRidsForSupports = new JObject();
             foreach (var tfmRidPair in applicableTfmRidPairs)
             {
-                tfmRidsForSupports[tfmRidPair.framework] = new JArray(tfmRidPair.runtimeIdentifier);
+                tfmRidsForSupports[NuGetFramework.Parse(tfmRidPair.framework).GetShortFolderName()] = new JArray(tfmRidPair.runtimeIdentifier);
             }
             supportsClause["corefx.Test"] = tfmRidsForSupports;
             return supportsClause;
