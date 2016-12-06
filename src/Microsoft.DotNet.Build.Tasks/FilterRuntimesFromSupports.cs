@@ -43,7 +43,8 @@ namespace Microsoft.DotNet.Build.Tasks
         {
             if (framework != null)
             {
-                tfmRidPairs.RemoveAll(x => !framework.Equals(x.framework));
+                string longFramework = NuGetFramework.Parse(framework).ToString();
+                tfmRidPairs.RemoveAll(x => !longFramework.Equals(x.framework));
             }
             if (runtimeIdentifier != null)
             {

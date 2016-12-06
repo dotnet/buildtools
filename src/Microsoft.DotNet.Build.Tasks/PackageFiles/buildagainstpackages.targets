@@ -163,7 +163,7 @@
                                   UseNewestAvailablePackages="$(UseNewestAvailablePackages)"
                                   SupportsFile="$(SupportsDefinitionFile)"
                                   TestRuntime="$(TestNugetRuntimeId)"
-                                  TestTargetFramework="$(FilterToTestTFM)"
+                                  TestTargetFramework="$(FilterTestNugetTargetMoniker)"
                                   />
 
     <Message Condition="'$(ErrorNoVersion)' == ''" Text="Generated project.json file - '$(ProjectJson)'" />
