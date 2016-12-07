@@ -13,7 +13,8 @@
   </PropertyGroup>
 
   <Target Name="CopyTestToTestDirectory"
-          DependsOnTargets="DiscoverTestInputs" Condition="'$(DisableCopyTestToTestDirectory)'!='true'">
+          Condition="'$(DisableCopyTestToTestDirectory)'!='true'"
+          DependsOnTargets="DiscoverTestInputs;GetDefaultTestRid">
 
     <PrereleaseResolveNuGetPackageAssets Condition="Exists($(ProjectLockJson))"
                                AllowFallbackOnTargetSelection="true"
