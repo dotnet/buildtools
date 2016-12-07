@@ -21,8 +21,26 @@
     <GetNuGetPackageVersionsDependsOn>CreateVersionFileDuringBuild</GetNuGetPackageVersionsDependsOn>
   </PropertyGroup>
 
+
+  <PropertyGroup Condition="'$(BuildConfiguration)'==''">
+    <!--
+        Build Configuration is composed by: $(OSGroup).$(Platform).$(ConfigurationGroup).$(TargetGroup)
+        TargetGroup will be "default" if no value is specified. 
+    -->
+    <BuildConfiguration>$(OSGroup).$(Platform).$(ConfigurationGroup)</BuildConfiguration>
+    <BuildConfiguration Condition="'$(TargetGroup)'!=''">$(BuildConfiguration).$(TargetGroup)</BuildConfiguration>
+    <BuildConfiguration Condition="'$(TargetGroup)'==''">$(BuildConfiguration).default</BuildConfiguration>
+  </PropertyGroup>
+
   <!-- Common BuildTools properties -->
   <PropertyGroup>
+    <!--
+        Test Configuration is composed by: $(OSGroup).$(Platform).$(ConfigurationGroup).$(TargetGroup).$(TestTFM)
+        TargetGroup will be "default" if no value is specified.
+        TestTFM will be "default" if no value is specified. 
+    -->
+    <TestConfiguration Condition="'$(TestTFM)'!=''">$(BuildConfiguration).$(TestTFM)</TestConfiguration>
+    <TestConfiguration Condition="'$(TestTFM)'==''">$(BuildConfiguration).default</TestConfiguration>
     <ToolRuntimePath Condition="'$(ToolRuntimePath)'=='' and '$(ProjectDir)'==''">$(MSBuildThisFileDirectory)</ToolRuntimePath>
     <ToolRuntimePath Condition="'$(ToolRuntimePath)'=='' and '$(ProjectDir)'!=''">$(ProjectDir)Tools/</ToolRuntimePath>
     <ToolsDir Condition="'$(ToolsDir)'==''">$(MSBuildThisFileDirectory)</ToolsDir>
