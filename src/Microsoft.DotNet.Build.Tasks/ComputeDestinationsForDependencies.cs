@@ -33,12 +33,20 @@ namespace Microsoft.DotNet.Build.Tasks
                 bool? preserveSubDirectories = dependency.GetMetadata("PreserveSubDirectories")?.Equals("true", StringComparison.OrdinalIgnoreCase);
                 if (preserveSubDirectories == true)
                 {
-                    string normalizedPackageRelativePath = new Uri(dependency.GetMetadata("PackageRelativePath"), UriKind.Relative).ToString();
+                    string packageRelativePath = dependency.GetMetadata("PackageRelativePath");
 
-                    // PackageRelativePath contains (PackageName\VersionNumber\Directories\FileName). This is to remove the first two directories on 
+                    // PackageRelativePath contains (PackageName\VersionNumber\[Directories\]FileName). This is to remove the first two directories on 
                     // the path to preserve just the directory structure.
-                    int indexOfSubDirectories = normalizedPackageRelativePath.IndexOf("\\", normalizedPackageRelativePath.IndexOf("\\") + 1);
-                    relativeDestinationPath = normalizedPackageRelativePath.Substring(indexOfSubDirectories);
+                    string[] segments = packageRelativePath.Split(new Char[] { '/', '\\'});
+                    if (segments.Length < 3)
+                    {
+                        throw new InvalidOperationException(
+                            @"The PackageRelativePath must be in the format 'PackageName\VersionNumber\[Directories\]FileName'");
+                    }
+
+                    string[] relativeDestinationPathSegments = new string[segments.Length - 2];
+                    Array.Copy(segments, 2, relativeDestinationPathSegments, 0, relativeDestinationPathSegments.Length);
+                    relativeDestinationPath = string.Join(Path.DirectorySeparatorChar.ToString(), relativeDestinationPathSegments);
                 }
                 else
                 {

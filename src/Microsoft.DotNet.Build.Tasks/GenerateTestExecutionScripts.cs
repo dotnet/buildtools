@@ -62,7 +62,7 @@ namespace Microsoft.DotNet.Build.Tasks
             StringBuilder copyCommands = new StringBuilder();
             foreach (ITaskItem dependency in TestDependencies)
             {
-                string relativeDestinationPath = dependency.GetMetadata("RelativeDestinationPath");
+                string relativeDestinationPath = dependency.GetMetadata("RelativeDestinationPath").Replace('\\', '/');
                 string packageRelativePath = dependency.GetMetadata("PackageRelativePath");
                 bool? useAbsolutePath = dependency.GetMetadata("UseAbsolutePath")?.Equals("true", StringComparison.OrdinalIgnoreCase);
                 if (useAbsolutePath == true)
@@ -112,14 +112,14 @@ namespace Microsoft.DotNet.Build.Tasks
             StringBuilder copyCommands = new StringBuilder();
             foreach (ITaskItem dependency in TestDependencies)
             {
-                string relativeDestinationPath = dependency.GetMetadata("RelativeDestinationPath");
+                string relativeDestinationPath = dependency.GetMetadata("RelativeDestinationPath").Replace('/', '\\');
                 string packageRelativePath = dependency.GetMetadata("PackageRelativePath");
                 bool? useAbsolutePath = dependency.GetMetadata("UseAbsolutePath")?.Equals("true", StringComparison.OrdinalIgnoreCase);
                 if (useAbsolutePath == true)
                 {
                     string fullPath = dependency.GetMetadata("SourcePath");
                     fullPath = fullPath.Replace('/', '\\');
-                    copyCommands.AppendLine($"call :copyandcheck \"{fullPath}\" \"%EXECUTION_DIR%/{relativeDestinationPath}\" || exit /b -1");
+                    copyCommands.AppendLine($"call :copyandcheck \"{fullPath}\" \"%EXECUTION_DIR%\\{relativeDestinationPath}\" || exit /b -1");
                 }
                 // Generally anything without the relative path is just the test DLL and its directly referenced dependencies.  
                 // Every test project comes with 4 of them, so not producing a warning here.
@@ -128,7 +128,11 @@ namespace Microsoft.DotNet.Build.Tasks
                     bool? preserveSubDirectories = dependency.GetMetadata("PreserveSubDirectories")?.Equals("true", StringComparison.OrdinalIgnoreCase);
                     if (preserveSubDirectories == true)
                     {
-                        copyCommands.AppendLine($"call :makedir \"%EXECUTION_DIR%{Path.GetDirectoryName(relativeDestinationPath)}\" ||  exit /b -1");
+                        string destinationDirectoryName = Path.GetDirectoryName(relativeDestinationPath);
+                        if (!string.IsNullOrEmpty(destinationDirectoryName))
+                        {
+                            copyCommands.AppendLine($"call :makedir \"%EXECUTION_DIR%\\{Path.GetDirectoryName(relativeDestinationPath)}\" ||  exit /b -1");
+                        }
                     }
                     copyCommands.AppendLine($"call :copyandcheck \"%PACKAGE_DIR%\\{packageRelativePath}\" \"%EXECUTION_DIR%\\{relativeDestinationPath}\" ||  exit /b -1");
                 }
