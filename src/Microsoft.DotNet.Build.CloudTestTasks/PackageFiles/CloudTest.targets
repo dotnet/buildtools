@@ -499,5 +499,5 @@
   </Target>
 
   <!-- Setup Dumpling service to collect and upload any crash dumps -->
-  <Import Project="$(MSBuildThisFileDirectory)Dumpling.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)Dumpling.targets" Condition="'$(EnableDumpling)' == 'true'" />
 </Project>
