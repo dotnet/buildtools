@@ -497,4 +497,7 @@
         Items="@(CorrelationFile)"
         Overwrite="true" />
   </Target>
+
+  <!-- Setup Dumpling service to collect and upload any crash dumps -->
+  <Import Project="$(MSBuildThisFileDirectory)Dumpling.targets" />
 </Project>

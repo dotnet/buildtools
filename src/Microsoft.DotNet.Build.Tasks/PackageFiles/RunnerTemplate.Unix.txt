@@ -89,8 +89,6 @@ fi
 
 # ========================= BEGIN Test Execution =============================
 echo Running tests... Start time: $(date +"%T")
-echo Commands:
-[[TestRunCommandsEcho]]
 cd $EXECUTION_DIR
 [[TestRunCommands]]
 test_exitcode=$?

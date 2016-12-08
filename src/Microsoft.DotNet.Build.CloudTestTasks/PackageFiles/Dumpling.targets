@@ -1,0 +1,37 @@
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Setup Dumpling service to collect crash dumps -->
+  <Target Name="SetupDumpling"
+          BeforeTargets="RunTestsForProject"
+          Condition="'$(TargetOS)'!='Windows_NT'">
+    <ItemGroup>
+      <TestCommandLines Include="wget https://dumpling.azurewebsites.net/api/client/dumpling.py" />
+      <TestCommandLines Include="python dumpling.py install --full --update" />
+      <TestCommandLines Include="python ~/.dumpling/dumpling.py install --full" />
+      <TestCommandLines Include="echo executing ulimit -c unlimited" />
+      <TestCommandLines Include="ulimit -c unlimited" />
+      <TestCommandLines Include="echo 0x3F > /proc/self/coredump_filter" />
+      <TestCommandLines Include="CollectDumps()" />
+      <TestCommandLines Include="{" />
+      <TestCommandLines Include="_EXITCODE=$1" />
+      <TestCommandLines Include="echo command exited with ExitCode: $_EXITCODE" />
+      <TestCommandLines Include="if [ $_EXITCODE != 0 ]" />
+      <TestCommandLines Include="then" />
+      <TestCommandLines Include="echo command failed, trying to collect dumps" />
+      <TestCommandLines Include="_corefile=%24(ls . | grep -E --max-count=1 '^core(\..*)%3f$')" />
+      <TestCommandLines Include="echo corefile: $_corefile" />
+      <TestCommandLines Include="if [ -n '$_corefile' ]" />
+      <TestCommandLines Include="then" />
+      <TestCommandLines Include="echo uploading core to dumpling service" />
+      <TestCommandLines Include="python ~/.dumpling/dumpling.py upload --dumppath $_corefile --noprompt --triage full --displayname $(MSBuildProjectName) --properties STRESS_TESTID=$(MSBuildProjectName) --verbose" />
+      <TestCommandLines Include="else" />
+      <TestCommandLines Include="echo no coredump file was found" />
+      <TestCommandLines Include="fi" />
+      <TestCommandLines Include="fi" />
+      <TestCommandLines Include="return $_EXITCODE" />
+      <TestCommandLines Include="}" />
+    </ItemGroup>
+    <ItemGroup>
+      <PostExecutionTestCommandLines Include="CollectDumps $%3f" />
+    </ItemGroup>
+  </Target>
+</Project>
