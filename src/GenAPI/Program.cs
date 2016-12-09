@@ -137,7 +137,10 @@ namespace GenAPI
                 case WriterType.DocIds:
                     return new DocumentIdWriter(output, filter);
                 case WriterType.TypeForwards:
-                    return new TypeForwardWriter(output, filter);
+                    return new TypeForwardWriter(output, filter)
+                    {
+                        IncludeForwardedTypes = true
+                    };
                 case WriterType.TypeList:
                     return new TypeListWriter(syntaxWriter, filter);
                 default:
