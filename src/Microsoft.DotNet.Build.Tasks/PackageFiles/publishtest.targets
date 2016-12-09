@@ -129,6 +129,16 @@
       <SourcesToCopyToTestDir Include="@(OverridenRuntimeContent)" />
       <DestinationsForTestDir Include="@(OverridenRuntimeContent->'$(TestPath)\%(Filename)%(Extension)')" />
     </ItemGroup>
+    
+    <!-- Removing assets from TestCopyLocal that come in from P2P references in SourcesToCopyToTestDir -->
+    <ItemGroup>
+        <_SourcesToCopyToTestDirByFileName Include="@(SourcesToCopyToTestDir->'%(Filename)%(Extension)')">
+          <SourcePath>%(SourcesToCopyToTestDir.Identity)</SourcePath>
+        </_SourcesToCopyToTestDirByFileName>
+        <!-- This is the item group the contains the final test assemblies(from both p2p and package resolve) that are present in the test path in bin dir -->
+        <_FinalListOfTestAssetsByFileName Include="@(_TestCopyLocalByFileNameWithoutDuplicates)" Exclude="@(_SourcesToCopyToTestDirByFileName)" />
+        <_FinalListOfTestAssetsByFileName Include="@(_SourcesToCopyToTestDirByFileName)" />
+    </ItemGroup>
 
     <Copy
       SourceFiles="@(SourcesToCopyToTestDir)"

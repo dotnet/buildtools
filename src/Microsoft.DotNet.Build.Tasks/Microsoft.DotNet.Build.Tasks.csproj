@@ -26,6 +26,7 @@
     <Compile Include="GenerateAssemblyList.cs" />
     <Compile Include="AddDependenciesToProjectJson.cs" />
     <Compile Include="FilterRuntimesFromSupports.cs" />
+    <Compile Include="GenerateBindingRedirect.cs" />
     <Compile Include="GenerateTestExecutionScripts.cs" />
     <Compile Include="GenerateCurrentVersion.cs" />
     <Compile Include="GenerateResourcesCode.cs" />
