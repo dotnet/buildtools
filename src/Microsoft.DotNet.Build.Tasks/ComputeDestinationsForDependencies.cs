@@ -12,11 +12,7 @@ namespace Microsoft.DotNet.Build.Tasks
     public class ComputeDestinationsForDependencies : Task
     {
         [Required]
-        public ITaskItem[] TestDependencies
-        {
-            get;
-            set;
-        }
+        public ITaskItem[] TestDependencies { get; set; }
 
         [Output]
         public ITaskItem[] TestDependenciesWithDestinations
@@ -34,10 +30,15 @@ namespace Microsoft.DotNet.Build.Tasks
                 if (preserveSubDirectories == true)
                 {
                     string packageRelativePath = dependency.GetMetadata("PackageRelativePath");
+                    if (packageRelativePath == null)
+                    {
+                        throw new InvalidOperationException(
+                            $"'PackageRelativePath' metadata missing for item {dependency.ItemSpec}");
+                    }
 
                     // PackageRelativePath contains (PackageName\VersionNumber\[Directories\]FileName). This is to remove the first two directories on 
                     // the path to preserve just the directory structure.
-                    string[] segments = packageRelativePath.Split(new Char[] { '/', '\\'});
+                    string[] segments = packageRelativePath.Split(new Char[] { '/', '\\' });
                     if (segments.Length < 3)
                     {
                         throw new InvalidOperationException(
