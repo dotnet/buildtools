@@ -4,6 +4,7 @@
   <!-- This is the target that copies the test assets to the test output -->
   <Import Project="$(MSBuildThisFileDirectory)publishtest.targets" />
   <UsingTask TaskName="GenerateTestExecutionScripts" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="GenerateBindingRedirect" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <!-- Which categories of tests to run by default -->
   <PropertyGroup>
     <TestDisabled>false</TestDisabled>
@@ -52,8 +53,10 @@
     <XunitExecutable>xunit.console.netcore.exe</XunitExecutable>
   </PropertyGroup>
 
+  <!-- If not Core or AppX, test against desktop -->
   <PropertyGroup Condition="'$(TestWithCore)' != 'true' And '$(TestAppX)' != 'true'">
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.exe</XunitExecutable>
+    <TestAgainstDesktop>true</TestAgainstDesktop>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TestAppX)' == 'true'">
@@ -206,6 +209,21 @@
       OutputListLocation="$(OutDir)assemblylist.txt"
       Condition="'$(UseLegacyXunitPerfRunner)'=='true'"
      />
+     
+    <!-- For Desktop Tests, we need to generate Binding Redirects. -->
+    <ItemGroup>
+      <_FilteredAssembliesForBindingRedirect Include="%(_FinalListOfTestAssetsByFileName.SourcePath)" Condition="'%(_FinalListOfTestAssetsByFileName.Extension)'=='.dll' or '%(_FinalListOfTestAssetsByFileName.Extension)'=='.exe'" />
+      <ExecutablesForBindingRedirect Include="%(_SourcesToCopyToTestDirByFileName.SourcePath)" Condition="'%(_SourcesToCopyToTestDirByFileName.Extension)'!='.pdb'"/>
+    </ItemGroup>
+    <GetAssemblyIdentity Condition="'$(TestAgainstDesktop)' == 'true'" AssemblyFiles="@(_FilteredAssembliesForBindingRedirect)">
+      <Output TaskParameter="Assemblies" ItemName="TestAssemblyIdentities"/>
+    </GetAssemblyIdentity>
+    
+    <GenerateBindingRedirect Condition="'$(TestAgainstDesktop)' == 'true' and '$(LocalAppConfigFile)' == ''"
+                             Executables="@(ExecutablesForBindingRedirect)"
+                             AssemblyIdentities="@(TestAssemblyIdentities)"
+                             OutputPath="$(TestPath)"
+    />
 
     <!-- For .NET Native compilation, we first need to generate a native executable if possible. -->
     <ItemGroup Condition="'$(UseDotNetNativeToolchain)' == 'true' AND '$(Performance)'!='true'" >
