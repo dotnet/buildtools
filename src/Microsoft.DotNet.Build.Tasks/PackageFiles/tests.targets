@@ -147,14 +147,8 @@
     </ItemGroup>
   </Target>
 
-  <!--
-    On command line run unit tests on CoreCLR after the Test target.
-    Set ForceRunTests to true to run tests even if there have been no changes since the last successful run.
-  -->
-  <Target Name="RunTestsForProject"
-          DependsOnTargets="DiscoverTestInputs;DiscoverTestDependencies;CheckTestCategories"
-          Inputs="@(RunTestsForProjectInputs)"
-          Outputs="$(TestsSuccessfulSemaphore);$(TestPath)/$(XunitResultsFileName);$(CoverageOutputFilePath)">
+  <Target Name="GenerateTestExecutionScripts"
+          DependsOnTargets="DiscoverTestInputs;DiscoverTestDependencies;CheckTestCategories">
 
     <ItemGroup>
       <RunWithoutTraits Condition="'$(TargetOS)'=='Windows_NT'" Include="nonwindowstests" />
@@ -261,9 +255,19 @@
       RunnerScriptTemplate="$(MSBuildThisFileDirectory)/$(RunnerTemplateName)"
       ScriptOutputPath ="$(OutputPathForScriptGenerator)"
     />
+  </Target>
+
+    <!--
+    On command line run unit tests on CoreCLR after the Test target.
+    Set ForceRunTests to true to run tests even if there have been no changes since the last successful run.
+  -->
+  <Target Name="RunTestsForProject"
+          Condition="'$(TestDisabled)' != 'true'"
+          DependsOnTargets="GenerateTestExecutionScripts"
+          Inputs="@(RunTestsForProjectInputs)"
+          Outputs="$(TestsSuccessfulSemaphore);$(TestPath)/$(XunitResultsFileName);$(CoverageOutputFilePath)">
 
     <Exec Command="$(TestPath)/$(RunnerScriptName) $(PackagesDir)"
-          Condition="'$(TestDisabled)' != 'true'"
           WorkingDirectory="$(TestPath)"
           CustomErrorRegularExpression="Failed: [^0]"
           ContinueOnError="true"
@@ -272,8 +276,7 @@
       <Output PropertyName="TestRunExitCode" TaskParameter="ExitCode" />
     </Exec>
 
-    <Delete Condition="'$(DeletePerfDataFile)' == 'true'" Files="$(TestPath)/$(EventTracerDataFile)" />
-    <Error Condition="'$(TestDisabled)'!='true' And '$(TestRunExitCode)' != '0'" Text="One or more tests failed while running tests from '$(MSBuildProjectName)' please check $(TestPath)$(XunitResultsFileName) for details!" />
+    <Error Condition="'$(TestRunExitCode)' != '0'" Text="One or more tests failed while running tests from '$(MSBuildProjectName)' please check $(TestPath)$(XunitResultsFileName) for details!" />
     <Touch Condition="'$(TestRunExitCode)' == '0'" Files="$(TestsSuccessfulSemaphore)" AlwaysCreate="true" />
   </Target>
 
@@ -322,6 +325,7 @@
       SetupTestProperties;
       CopyTestToTestDirectory;
       CopyDependenciesToTestDirectory;
+      GenerateTestExecutionScripts;
       RunTestsForProject;
       ArchiveTestBuild
     </TestDependsOn>
