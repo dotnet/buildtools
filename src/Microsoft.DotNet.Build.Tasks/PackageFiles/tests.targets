@@ -309,4 +309,6 @@
           DependsOnTargets="$(TestDependsOn)">
   </Target>
 
+  <!-- This helps collect crash dumps and requires python installed -->
+  <Import Project="$(MSBuildThisFileDirectory)Dumpling.targets" Condition="'$(EnableDumpling)' == 'true' OR '$(EnableCloudTest)' == 'true'" />
 </Project>

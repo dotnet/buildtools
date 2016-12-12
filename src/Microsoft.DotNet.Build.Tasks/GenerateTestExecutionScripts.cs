@@ -146,6 +146,9 @@ namespace Microsoft.DotNet.Build.Tasks
             }
 
             cmdExecutionTemplate = cmdExecutionTemplate.Replace("[[TestRunCommands]]", testRunCommands.ToString());
+            // Remove parentheses from echo command to avoid errors on Linux
+            testRunEchoes.Replace("(", "");
+            testRunEchoes.Replace(")", "");
             cmdExecutionTemplate = cmdExecutionTemplate.Replace("[[TestRunCommandsEcho]]", testRunEchoes.ToString());
 
             using (StreamWriter sw = new StreamWriter(new FileStream(outputPath, FileMode.Create)))
