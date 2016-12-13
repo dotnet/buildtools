@@ -215,7 +215,7 @@
       <_FilteredAssembliesForBindingRedirect Include="%(_FinalListOfTestAssetsByFileName.SourcePath)" Condition="'%(_FinalListOfTestAssetsByFileName.Extension)'=='.dll' or '%(_FinalListOfTestAssetsByFileName.Extension)'=='.exe'" />
       <ExecutablesForBindingRedirect Include="%(_SourcesToCopyToTestDirByFileName.SourcePath)" Condition="'%(_SourcesToCopyToTestDirByFileName.Extension)'!='.pdb'"/>
     </ItemGroup>
-    <GetAssemblyIdentity Condition="'$(TestAgainstDesktop)' == 'true'" AssemblyFiles="@(_FilteredAssembliesForBindingRedirect)">
+    <GetAssemblyIdentity Condition="'$(TestAgainstDesktop)' == 'true'" AssemblyFiles="@(_FilteredAssembliesForBindingRedirect)" ContinueOnError="WarnAndContinue" >
       <Output TaskParameter="Assemblies" ItemName="TestAssemblyIdentities"/>
     </GetAssemblyIdentity>
     
