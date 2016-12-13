@@ -147,6 +147,28 @@
     </ItemGroup>
   </Target>
 
+  <Target Name="GenerateTestBindingRedirects"
+          Condition="'$(TestAgainstDesktop)' == 'true' and '$(LocalAppConfigFile)' == ''"
+          DependsOnTargets="DiscoverTestInputs;DiscoverTestDependencies">
+    
+    <ItemGroup>
+      <_CombinedListOfTestAssets Include="@(IncludedFileForRunnerScript->'%(SourcePath)')" />
+      <_CombinedListOfTestAssets Include="@(SourcesToCopyToTestDir)" />
+      
+      <_FilteredAssembliesForBindingRedirect Include="@(_CombinedListOfTestAssets)" Condition="'%(Extension)'=='.dll' or '%(Extension)'=='.exe'" />
+      <_ExecutablesForBindingRedirect Include="@(SourcesToCopyToTestDir)" Condition="'%(Extension)'!='.pdb'" />
+    </ItemGroup>
+    
+    <GetAssemblyIdentity AssemblyFiles="@(_FilteredAssembliesForBindingRedirect)">
+      <Output TaskParameter="Assemblies" ItemName="TestAssemblyIdentities" />
+    </GetAssemblyIdentity>
+
+    <GenerateBindingRedirect Executables="@(_ExecutablesForBindingRedirect)"
+                             AssemblyIdentities="@(TestAssemblyIdentities)"
+                             OutputPath="$(TestPath)"
+    />
+  </Target>
+
   <Target Name="GenerateTestExecutionScripts"
           DependsOnTargets="DiscoverTestInputs;DiscoverTestDependencies;CheckTestCategories">
 
@@ -208,21 +230,6 @@
       Condition="'$(UseLegacyXunitPerfRunner)'=='true'"
      />
      
-    <!-- For Desktop Tests, we need to generate Binding Redirects. -->
-    <ItemGroup>
-      <_FilteredAssembliesForBindingRedirect Include="%(_FinalListOfTestAssetsByFileName.SourcePath)" Condition="'%(_FinalListOfTestAssetsByFileName.Extension)'=='.dll' or '%(_FinalListOfTestAssetsByFileName.Extension)'=='.exe'" />
-      <ExecutablesForBindingRedirect Include="%(_SourcesToCopyToTestDirByFileName.SourcePath)" Condition="'%(_SourcesToCopyToTestDirByFileName.Extension)'!='.pdb'"/>
-    </ItemGroup>
-    <GetAssemblyIdentity Condition="'$(TestAgainstDesktop)' == 'true'" AssemblyFiles="@(_FilteredAssembliesForBindingRedirect)">
-      <Output TaskParameter="Assemblies" ItemName="TestAssemblyIdentities"/>
-    </GetAssemblyIdentity>
-    
-    <GenerateBindingRedirect Condition="'$(TestAgainstDesktop)' == 'true' and '$(LocalAppConfigFile)' == ''"
-                             Executables="@(ExecutablesForBindingRedirect)"
-                             AssemblyIdentities="@(TestAssemblyIdentities)"
-                             OutputPath="$(TestPath)"
-    />
-
     <!-- For .NET Native compilation, we first need to generate a native executable if possible. -->
     <ItemGroup Condition="'$(UseDotNetNativeToolchain)' == 'true' AND '$(Performance)'!='true'" >
       <TestCommandLines Include="copy /y $(TestILCFolder)\default.rd.xml  %EXECUTION_DIR%" />
@@ -325,6 +332,7 @@
       SetupTestProperties;
       CopyTestToTestDirectory;
       CopyDependenciesToTestDirectory;
+      GenerateTestBindingRedirects;
       GenerateTestExecutionScripts;
       RunTestsForProject;
       ArchiveTestBuild

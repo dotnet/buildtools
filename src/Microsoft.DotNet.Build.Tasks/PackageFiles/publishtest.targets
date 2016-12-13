@@ -14,8 +14,8 @@
   </PropertyGroup>
 
   <!-- Ideally, we'd have UseHardLinksIfPossible on by default because we copy tons of the
-         same files for every single test project here, but it doesn't currently work x-plat.
-         so we only turn it on by default for Windows builds for now. -->
+       same files for every single test project here, but it doesn't currently work x-plat.
+       so we only turn it on by default for Windows builds for now. -->
   <PropertyGroup>
     <CreateHardLinksForCopyTestToTestDirectoryIfPossible Condition="'$(CreateHardLinksForCopyTestToTestDirectoryIfPossible)'=='' and '$(OS)' == 'Windows_NT'">true</CreateHardLinksForCopyTestToTestDirectoryIfPossible>
     <CreateHardLinksForCopyTestToTestDirectoryIfPossible Condition="'$(CreateHardLinksForCopyTestToTestDirectoryIfPossible)'==''">$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)</CreateHardLinksForCopyTestToTestDirectoryIfPossible>
@@ -125,6 +125,8 @@
     </ComputeDestinationsForDependencies>
   </Target>
 
+  <!-- Remove items from IncludedFileForRunnerScript which are already in SourcesToCopyToTestDir.
+       The file comparison is based on the destinations of the files. -->
   <Target Name="RemoveCommonItems"
         AfterTargets="DiscoverTestDependencies"
         Inputs="%(SourcesToCopyToTestDir.Destination)"
@@ -134,16 +136,6 @@
     </PropertyGroup>
     <ItemGroup>
       <IncludedFileForRunnerScript Remove="%(IncludedFileForRunnerScript.Identity)" Condition="'$(TestPath)\%(IncludedFileForRunnerScript.RelativeDestinationPath)' == '$(_CommonItemToRemove)'" />
-    </ItemGroup>
-
-    <!-- Removing assets from TestCopyLocal that come in from P2P references in SourcesToCopyToTestDir -->
-    <ItemGroup>
-      <_SourcesToCopyToTestDirByFileName Include="@(SourcesToCopyToTestDir->'%(Filename)%(Extension)')">
-        <SourcePath>%(SourcesToCopyToTestDir.Identity)</SourcePath>
-      </_SourcesToCopyToTestDirByFileName>
-      <!-- This is the item group the contains the final test assemblies(from both p2p and package resolve) that are present in the test path in bin dir -->
-      <_FinalListOfTestAssetsByFileName Include="@(IncludedFileForRunnerScript)" Exclude="@(_SourcesToCopyToTestDirByFileName)" />
-      <_FinalListOfTestAssetsByFileName Include="@(_SourcesToCopyToTestDirByFileName)" />
     </ItemGroup>
   </Target>
 
@@ -207,7 +199,7 @@
 	   2) For incremental build of any kind, ensures that any test dependency which is updated gets copied
        (thanks to smarter copy logic) -->
   <PropertyGroup Condition="'$(BuildingInsideVisualStudio)'=='true'">
-    <PrepareForRunDependsOn>$(PrepareForRunDependsOn);CopyDependenciesToTestDirectory</PrepareForRunDependsOn>
+    <PrepareForRunDependsOn>$(PrepareForRunDependsOn);CopyDependenciesToTestDirectory;GenerateTestBindingRedirects</PrepareForRunDependsOn>
   </PropertyGroup>
   <Target Name="CopyDependenciesToTestDirectory"
           Condition="'$(DisableCopyTestToTestDirectory)' != 'true' And '$(ArchiveTests)' != 'true'"
@@ -225,8 +217,10 @@
     </Copy>
   </Target>
 
-    <!-- archive the test binaries along with some supporting files -->
-  <Target Name="ArchiveTestBuild" Condition="'$(ArchiveTests)' == 'true'"  DependsOnTargets="RunTestsForProject">
+  <!-- archive the test binaries along with some supporting files -->
+  <Target Name="ArchiveTestBuild"
+          Condition="'$(ArchiveTests)' == 'true'"
+          DependsOnTargets="CopyTestToTestDirectory;CopyDependenciesToTestDirectory;GenerateTestBindingRedirects;GenerateTestExecutionScripts">
     <PropertyGroup>
       <TestArchiveDir>$(TestWorkingDir)$(OSPlatformConfig)/archive/tests/$(TargetOutputRelPath)</TestArchiveDir>
       <TestArchiveDir Condition="'$(TestTFM)' != ''">$(TestArchiveDir)$(TestTFM)/</TestArchiveDir>
