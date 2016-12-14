@@ -61,9 +61,10 @@
     <NuGetDependency Include="NuGet.Client"/>
     <NuGetDependency Include="NuGet.Packaging"/>
     <NuGetDependency Include="NuGet.ProjectModel"/>
+    <NuGetDependency Include="NuGet.RuntimeModel"/>
     <NuGetDependency Include="NuGet.Versioning"/>
     <StaticDependency Include="@(NuGetDependency)">
-      <Version>3.6.0-rc-1987</Version>
+      <Version>4.0.0-rc-2129</Version>
     </StaticDependency>
 
     <NETCoreDependency Include="Microsoft.NETCore.App"/>

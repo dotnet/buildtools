@@ -368,10 +368,10 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                                         implementationFiles[fileName] = implementationAssembly;
                                     }
 
-                                    if (!implementationAssembly.Equals(fx) && !runtimeFxSuppression.Contains(fx.ToString()))
+                                    if (!implementationAssembly.TargetFramework.Equals(fx) && !runtimeFxSuppression.Contains(fx.ToString()))
                                     {
                                         // the selected asset wasn't an exact framework match, let's see if we have an exact match in any other runtime asset.                                        
-                                        var matchingFxAssets = _report.UnusedAssets.Where(i => i.TargetFramework == fx &&  // exact framework
+                                        var matchingFxAssets = _report.UnusedAssets.Where(i => i.TargetFramework != null && i.TargetFramework.Equals(fx) &&  // exact framework
                                                                                           // Same file
                                                                                           Path.GetFileName(i.PackagePath).Equals(fileName, StringComparison.OrdinalIgnoreCase) &&
                                                                                           // Is implementation
@@ -617,7 +617,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
 
             // keep a list of explicitly listed supported frameworks so that we can check for conflicts.
-            HashSet<NuGetFramework> explicitlySupportedFrameworks = new HashSet<NuGetFramework>();
+            HashSet<NuGetFramework> explicitlySupportedFrameworks = new HashSet<NuGetFramework>(NuGetFramework.Comparer);
 
             // determine what version should be supported based on SupportedFramework items
             foreach (var supportedFramework in SupportedFrameworks)
