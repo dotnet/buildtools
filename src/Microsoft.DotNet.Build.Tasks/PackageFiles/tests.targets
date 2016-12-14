@@ -122,6 +122,7 @@
     <StartArguments Condition="'$(StartArguments)'==''">$(TestArguments) -wait -parallel none</StartArguments>
   </PropertyGroup>
 
+  <!-- Discover the items which will be copied to the test directory at build-time in all cases.-->
   <Target Name="DiscoverTestInputs" DependsOnTargets="ResolveReferences;GetCopyToOutputDirectoryItems">
     <ItemGroup>
       <RunTestsForProjectInputs Include="@(ReferenceCopyLocalPaths)" />
@@ -129,18 +130,47 @@
       <RunTestsForProjectInputs Include="@(IntermediateAssembly)" />
       <RunTestsForProjectInputs Include="@(_DebugSymbolsIntermediatePath)" />
       <RunTestsForProjectInputs Include="@(AllItemsFullPathWithTargetPath)" />
+
+      <OverriddenRuntimeContent Condition="'$(BUILDTOOLS_OVERRIDE_RUNTIME)' != ''" Include="$(BUILDTOOLS_OVERRIDE_RUNTIME)/*.*" />
+
+      <SourcesToCopyToTestDir Include="@(RunTestsForProjectInputs)">
+        <Destination>$(TestPath)\%(Filename)%(Extension)</Destination>
+      </SourcesToCopyToTestDir>
+
+      <SourcesToCopyToTestDir Include="@(ContentWithTargetPath)">
+        <Destination>$(TestPath)\%(ContentWithTargetPath.TargetPath)</Destination>
+      </SourcesToCopyToTestDir>
+
+      <SourcesToCopyToTestDir Include="@(OverriddenRuntimeContent)">
+        <Destination>$(TestPath)\%(Filename)%(Extension)</Destination>
+      </SourcesToCopyToTestDir>
     </ItemGroup>
   </Target>
 
-  <!--
-    On command line run unit tests on CoreCLR after the Test target.
-    Set ForceRunTests to true to run tests even if there have been no changes since the last successful run.
-  -->
-  <Target Name="RunTestsForProject"
-          DependsOnTargets="DiscoverTestInputs;CheckTestCategories"
-          Inputs="@(RunTestsForProjectInputs)"
-          Outputs="$(TestsSuccessfulSemaphore);$(TestPath)/$(XunitResultsFileName);$(CoverageOutputFilePath)"
-          >
+  <Target Name="GenerateTestBindingRedirects"
+          Condition="'$(TestAgainstDesktop)' == 'true' and '$(LocalAppConfigFile)' == ''"
+          DependsOnTargets="DiscoverTestInputs;DiscoverTestDependencies">
+    
+    <ItemGroup>
+      <_CombinedListOfTestAssets Include="@(IncludedFileForRunnerScript->'%(SourcePath)')" />
+      <_CombinedListOfTestAssets Include="@(SourcesToCopyToTestDir)" />
+      
+      <_FilteredAssembliesForBindingRedirect Include="@(_CombinedListOfTestAssets)" Condition="'%(Extension)'=='.dll' or '%(Extension)'=='.exe'" />
+      <_ExecutablesForBindingRedirect Include="@(SourcesToCopyToTestDir)" Condition="'%(Extension)'!='.pdb'" />
+    </ItemGroup>
+    
+    <GetAssemblyIdentity AssemblyFiles="@(_FilteredAssembliesForBindingRedirect)">
+      <Output TaskParameter="Assemblies" ItemName="TestAssemblyIdentities" />
+    </GetAssemblyIdentity>
+
+    <GenerateBindingRedirect Executables="@(_ExecutablesForBindingRedirect)"
+                             AssemblyIdentities="@(TestAssemblyIdentities)"
+                             OutputPath="$(TestPath)"
+    />
+  </Target>
+
+  <Target Name="GenerateTestExecutionScripts"
+          DependsOnTargets="DiscoverTestInputs;DiscoverTestDependencies;CheckTestCategories">
 
     <ItemGroup>
       <RunWithoutTraits Condition="'$(TargetOS)'=='Windows_NT'" Include="nonwindowstests" />
@@ -180,16 +210,6 @@
 
     <MakeDir Condition="'$(CoverageEnabledForProject)'=='true'" Directories="$(CoverageReportDir)" />
 
-    <ItemGroup>
-      <!-- Not all platforms can use the .ni.dlls that come from packages.  If TestWithoutNativeImages is specified, we'll exclude them from copy generation.
-           If we end up needing this for any other sorts of filtering, we'll want to add a list of filtered extensions to be matched on EndsWith.  -->
-      <IncludedFileForRunnerScript Include="@(_TestCopyLocalByFileNameWithoutDuplicates)"
-                                   Condition="'$(TestWithoutNativeImages)' != 'true' Or !$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').EndsWith('.ni.dll'))" >
-        <PackageRelativePath Condition="'%(_TestCopyLocalByFileNameWithoutDuplicates.NugetPackageId)' != ''">$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').Replace('$(PackagesDir)',''))</PackageRelativePath>
-        <UseAbsolutePath Condition="'$(TestWithLocalLibraries)'=='true' Or '$(TestWithLocalNativeLibraries)'=='true'">$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').StartsWith('$(BinDir)'))</UseAbsolutePath>
-      </IncludedFileForRunnerScript>
-    </ItemGroup>
-
     <MakeDir Directories="$(OutputFolderForTestDependencies)" />
     <PropertyGroup>
       <_TestDependencyListRoot>$(MSBuildProjectName)-$(TestConfiguration)</_TestDependencyListRoot>
@@ -210,21 +230,6 @@
       Condition="'$(UseLegacyXunitPerfRunner)'=='true'"
      />
      
-    <!-- For Desktop Tests, we need to generate Binding Redirects. -->
-    <ItemGroup>
-      <_FilteredAssembliesForBindingRedirect Include="%(_FinalListOfTestAssetsByFileName.SourcePath)" Condition="'%(_FinalListOfTestAssetsByFileName.Extension)'=='.dll' or '%(_FinalListOfTestAssetsByFileName.Extension)'=='.exe'" />
-      <ExecutablesForBindingRedirect Include="%(_SourcesToCopyToTestDirByFileName.SourcePath)" Condition="'%(_SourcesToCopyToTestDirByFileName.Extension)'!='.pdb'"/>
-    </ItemGroup>
-    <GetAssemblyIdentity Condition="'$(TestAgainstDesktop)' == 'true'" AssemblyFiles="@(_FilteredAssembliesForBindingRedirect)">
-      <Output TaskParameter="Assemblies" ItemName="TestAssemblyIdentities"/>
-    </GetAssemblyIdentity>
-    
-    <GenerateBindingRedirect Condition="'$(TestAgainstDesktop)' == 'true' and '$(LocalAppConfigFile)' == ''"
-                             Executables="@(ExecutablesForBindingRedirect)"
-                             AssemblyIdentities="@(TestAssemblyIdentities)"
-                             OutputPath="$(TestPath)"
-    />
-
     <!-- For .NET Native compilation, we first need to generate a native executable if possible. -->
     <ItemGroup Condition="'$(UseDotNetNativeToolchain)' == 'true' AND '$(Performance)'!='true'" >
       <TestCommandLines Include="copy /y $(TestILCFolder)\default.rd.xml  %EXECUTION_DIR%" />
@@ -257,9 +262,19 @@
       RunnerScriptTemplate="$(MSBuildThisFileDirectory)/$(RunnerTemplateName)"
       ScriptOutputPath ="$(OutputPathForScriptGenerator)"
     />
+  </Target>
+
+    <!--
+    On command line run unit tests on CoreCLR after the Test target.
+    Set ForceRunTests to true to run tests even if there have been no changes since the last successful run.
+  -->
+  <Target Name="RunTestsForProject"
+          Condition="'$(TestDisabled)' != 'true'"
+          DependsOnTargets="GenerateTestExecutionScripts"
+          Inputs="@(RunTestsForProjectInputs)"
+          Outputs="$(TestsSuccessfulSemaphore);$(TestPath)/$(XunitResultsFileName);$(CoverageOutputFilePath)">
 
     <Exec Command="$(TestPath)/$(RunnerScriptName) $(PackagesDir)"
-          Condition="'$(TestDisabled)' != 'true'"
           WorkingDirectory="$(TestPath)"
           CustomErrorRegularExpression="Failed: [^0]"
           ContinueOnError="true"
@@ -268,8 +283,7 @@
       <Output PropertyName="TestRunExitCode" TaskParameter="ExitCode" />
     </Exec>
 
-    <Delete Condition="'$(DeletePerfDataFile)' == 'true'" Files="$(TestPath)/$(EventTracerDataFile)" />
-    <Error Condition="'$(TestDisabled)'!='true' And '$(TestRunExitCode)' != '0'" Text="One or more tests failed while running tests from '$(MSBuildProjectName)' please check $(TestPath)$(XunitResultsFileName) for details!" />
+    <Error Condition="'$(TestRunExitCode)' != '0'" Text="One or more tests failed while running tests from '$(MSBuildProjectName)' please check $(TestPath)$(XunitResultsFileName) for details!" />
     <Touch Condition="'$(TestRunExitCode)' == '0'" Files="$(TestsSuccessfulSemaphore)" AlwaysCreate="true" />
   </Target>
 
@@ -315,9 +329,11 @@
   <PropertyGroup>
     <TestDependsOn>
       $(TestDependsOn);
-      DiscoverTestInputs;
       SetupTestProperties;
       CopyTestToTestDirectory;
+      CopyDependenciesToTestDirectory;
+      GenerateTestBindingRedirects;
+      GenerateTestExecutionScripts;
       RunTestsForProject;
       ArchiveTestBuild
     </TestDependsOn>

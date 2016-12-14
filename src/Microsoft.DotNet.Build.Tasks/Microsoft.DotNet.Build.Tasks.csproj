@@ -19,6 +19,7 @@
   <ItemGroup>
     <Compile Include="BinClashLogger.cs" />
     <Compile Include="CleanupVSTSAgent.cs" />
+    <Compile Include="ComputeDestinationsForDependencies.cs" />
     <Compile Include="Delegates.cs" />
     <Compile Include="ExceptionFromResource.cs" />
     <Compile Include="ExecWithMutex.cs" />

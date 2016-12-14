@@ -1,4 +1,8 @@
-﻿using Microsoft.Build.Framework;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System;
 using System.IO;
@@ -58,26 +62,25 @@ namespace Microsoft.DotNet.Build.Tasks
             StringBuilder copyCommands = new StringBuilder();
             foreach (ITaskItem dependency in TestDependencies)
             {
-                string relativePath = dependency.GetMetadata("PackageRelativePath");
+                string relativeDestinationPath = dependency.GetMetadata("RelativeDestinationPath").Replace('\\', '/');
+                string packageRelativePath = dependency.GetMetadata("PackageRelativePath");
                 bool? useAbsolutePath = dependency.GetMetadata("UseAbsolutePath")?.Equals("true", StringComparison.OrdinalIgnoreCase);
                 if (useAbsolutePath == true)
                 {
                     string filePath = dependency.GetMetadata("SourcePath");
-                    string fileName = Path.GetFileName(filePath);
-                    copyCommands.Append($"copy_and_check {filePath} $EXECUTION_DIR/{fileName}\n");
+                    copyCommands.Append($"copy_and_check {filePath} $EXECUTION_DIR/{relativeDestinationPath}\n");
                 }
 
                 // Generally anything without the relative path is just the test DLL and its directly referenced dependencies.  
                 // Every test project comes with 4 of them, so not producing a warning here.
-                else if (!string.IsNullOrEmpty(relativePath))
+                else if (!string.IsNullOrEmpty(packageRelativePath))
                 {
-                    string normalizedDependency = relativePath.Replace('\\', '/');
+                    string normalizedDependency = packageRelativePath.Replace('\\', '/');
                     if (normalizedDependency.StartsWith("/"))
                     {
                         normalizedDependency = normalizedDependency.Substring(1);
                     }
-                    string fileName = Path.GetFileName(normalizedDependency);
-                    copyCommands.Append($"copy_and_check $PACKAGE_DIR/{normalizedDependency} $EXECUTION_DIR/{fileName}\n");
+                    copyCommands.Append($"copy_and_check $PACKAGE_DIR/{normalizedDependency} $EXECUTION_DIR/{relativeDestinationPath}\n");
                 }
             }
             shExecutionTemplate = shExecutionTemplate.Replace("[[CopyFilesCommands]]", copyCommands.ToString());
@@ -109,29 +112,29 @@ namespace Microsoft.DotNet.Build.Tasks
             StringBuilder copyCommands = new StringBuilder();
             foreach (ITaskItem dependency in TestDependencies)
             {
-                string relativePath = dependency.GetMetadata("PackageRelativePath");
+                string relativeDestinationPath = dependency.GetMetadata("RelativeDestinationPath").Replace('/', '\\');
+                string packageRelativePath = dependency.GetMetadata("PackageRelativePath");
                 bool? useAbsolutePath = dependency.GetMetadata("UseAbsolutePath")?.Equals("true", StringComparison.OrdinalIgnoreCase);
                 if (useAbsolutePath == true)
                 {
                     string fullPath = dependency.GetMetadata("SourcePath");
                     fullPath = fullPath.Replace('/', '\\');
-                    copyCommands.AppendLine($"call :copyandcheck \"{fullPath}\" \"%EXECUTION_DIR%/{Path.GetFileName(fullPath)}\" || exit /b -1");
+                    copyCommands.AppendLine($"call :copyandcheck \"{fullPath}\" \"%EXECUTION_DIR%\\{relativeDestinationPath}\" || exit /b -1");
                 }
                 // Generally anything without the relative path is just the test DLL and its directly referenced dependencies.  
                 // Every test project comes with 4 of them, so not producing a warning here.
-                else if (!string.IsNullOrEmpty(relativePath))
+                else if (!string.IsNullOrEmpty(packageRelativePath))
                 {
                     bool? preserveSubDirectories = dependency.GetMetadata("PreserveSubDirectories")?.Equals("true", StringComparison.OrdinalIgnoreCase);
-                    string filePath = Path.GetFileName(relativePath);
                     if (preserveSubDirectories == true)
                     {
-                        // PackageRelativePath contains (PackageName/VersionNumber/Directories/FileName). This is to remove the first two directories on 
-                        // the path to preserve just the directory structure.
-                        int indexOfSubDirectories = relativePath.IndexOf("\\", relativePath.IndexOf("\\")+1);
-                        filePath = relativePath.Substring(indexOfSubDirectories);
-                        copyCommands.AppendLine($"call :makedir \"%EXECUTION_DIR%{Path.GetDirectoryName(filePath)}\" ||  exit /b -1");
+                        string destinationDirectoryName = Path.GetDirectoryName(relativeDestinationPath);
+                        if (!string.IsNullOrEmpty(destinationDirectoryName))
+                        {
+                            copyCommands.AppendLine($"call :makedir \"%EXECUTION_DIR%\\{Path.GetDirectoryName(relativeDestinationPath)}\" ||  exit /b -1");
+                        }
                     }
-                    copyCommands.AppendLine($"call :copyandcheck \"%PACKAGE_DIR%\\{relativePath}\" \"%EXECUTION_DIR%\\{filePath}\" ||  exit /b -1");
+                    copyCommands.AppendLine($"call :copyandcheck \"%PACKAGE_DIR%\\{packageRelativePath}\" \"%EXECUTION_DIR%\\{relativeDestinationPath}\" ||  exit /b -1");
                 }
             }
             cmdExecutionTemplate = cmdExecutionTemplate.Replace("[[CopyFilesCommands]]", copyCommands.ToString());
