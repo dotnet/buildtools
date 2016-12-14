@@ -19,10 +19,17 @@
     <CurrentRefXmlPath>$(MSBuildThisFileFullPath)</CurrentRefXmlPath>
   </PropertyGroup>
 
+  <!-- Packages that don't take versions from the corefx build-info. -->
+  <PropertyGroup>
+    <!-- Take new version of RuntimeInformation that doesn't use api-set dlls to fix win7 build. -->
+    <CoreFxBuildInfoDisabledPackages>System.Runtime.InteropServices.RuntimeInformation;$(CoreFxBuildInfoDisabledPackages)</CoreFxBuildInfoDisabledPackages>
+  </PropertyGroup>
+
   <ItemGroup>
     <RemoteDependencyBuildInfo Include="CoreFx">
       <BuildInfoPath>$(BaseDotNetBuildInfo)corefx/release/1.1.0</BuildInfoPath>
       <CurrentRef>$(CoreFxCurrentRef)</CurrentRef>
+      <DisabledPackages>$(CoreFxBuildInfoDisabledPackages)</DisabledPackages>
     </RemoteDependencyBuildInfo>
     <RemoteDependencyBuildInfo Include="CoreClr">
       <BuildInfoPath>$(BaseDotNetBuildInfo)coreclr/$(DependencyBranch)</BuildInfoPath>
