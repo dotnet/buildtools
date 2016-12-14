@@ -200,13 +200,16 @@
     </Copy>
   </Target>
 
-  <!-- Workaround for VS execution:  This will form the same list and copy the same files as
-       copied via RunTests script so VS can work when the test dir is initially clean.
+  <!-- This forms the same list and copy the same files as copied via RunTests script, when running locally.
+       This achieves two things: 
+	   1) Allows VS to work when the test dir is initially clean, since VS does not know how to invoke the runner script
+	   2) For incremental build of any kind, ensures that if direct dependencies that also are in the output of 
+	      PrereleaseResolveNuGetPackageAssets are updated, they get copied (thanks to smarter copy logic)
        -->
-  <PropertyGroup Condition="'$(BuildingInsideVisualStudio)'=='true'">
-    <PrepareForRunDependsOn>$(PrepareForRunDependsOn);CopyDefaultTestAssetsForVS</PrepareForRunDependsOn>
+  <PropertyGroup Condition="'$(ArchiveTests)' != 'true'">
+    <PrepareForRunDependsOn>$(PrepareForRunDependsOn);CopyDefaultTestAssets</PrepareForRunDependsOn>
   </PropertyGroup>
-  <Target Name="CopyDefaultTestAssetsForVS" DependsOnTargets="CopyTestToTestDirectory;CopySupplementalTestData">
+  <Target Name="CopyDefaultTestAssets" DependsOnTargets="CopyTestToTestDirectory;CopySupplementalTestData">
      <!-- This was copied from RunTestsForProject in tests.targets
           The RunTestsForProject target does not execute in VS context and would be confused by the script based runner.
           _TestCopyLocalByFileNameWithoutDuplicates are the precise items that are fed to the runner script generation code.
@@ -214,18 +217,18 @@
     <ItemGroup>
       <!-- Not all platforms can use the .ni.dlls that come from packages.  If TestWithoutNativeImages is specified, we'll exclude them from copy generation.
            If we end up needing this for any other sorts of filtering, we'll want to add a list of filtered extensions to be matched on EndsWith.  -->
-      <_IncludedFileForTestsInVS Include="@(_TestCopyLocalByFileNameWithoutDuplicates)"
+      <_IncludedFileForTests Include="@(_TestCopyLocalByFileNameWithoutDuplicates)"
                                  Condition="'$(TestWithoutNativeImages)' != 'true' Or !$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').EndsWith('.ni.dll'))" >
         <PackageRelativePath Condition="'%(_TestCopyLocalByFileNameWithoutDuplicates.NugetPackageId)' != ''">$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').Replace('$(PackagesDir)',''))</PackageRelativePath>
         <UseAbsolutePath Condition="'$(TestWithLocalLibraries)'=='true'">$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').StartsWith('$(BinDir)'))</UseAbsolutePath>
-        <DestinationPath>$(TestPath)\%(Filename)%(Extension)</DestinationPath>
-      </_IncludedFileForTestsInVS>
-      <_IncludedFileForTestsInVs Remove="@(_IncludedFileForTestsInVS)" Condition="Exists('%(DestinationPath)')" />
+        <DestinationPath>$(TestPath)$(TestNugetTargetMonikerFolder)\%(Filename)%(Extension)</DestinationPath>
+      </_IncludedFileForTests>
+      <_IncludedFileForTests Remove="@(_IncludedFileForTests)" Condition="Exists('%(DestinationPath)')" />
     </ItemGroup>
 
     <Copy
-      SourceFiles="@(_IncludedFileForTestsInVS  -> '%(SourcePath)')"
-      DestinationFiles="@(_IncludedFileForTestsInVS->'%(DestinationPath)')"
+      SourceFiles="@(_IncludedFileForTests  -> '%(SourcePath)')"
+      DestinationFiles="@(_IncludedFileForTests->'%(DestinationPath)')"
       SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
       OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
       Retries="$(CopyRetryCount)"
@@ -235,7 +238,7 @@
     </Copy>
   </Target>
 
-    <!-- archive the test binaries along with some supporting files -->
+  <!-- archive the test binaries along with some supporting files -->
   <Target Name="ArchiveTestBuild" Condition="'$(ArchiveTests)' == 'true'"  DependsOnTargets="RunTestsForProject">
     <PropertyGroup>
       <TestArchiveDir>$(TestWorkingDir)$(OSPlatformConfig)/archive/tests/$(TargetOutputRelPath)</TestArchiveDir>
