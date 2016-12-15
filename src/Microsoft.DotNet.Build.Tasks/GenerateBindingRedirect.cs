@@ -1,7 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
+using System.Text;
 using System.Xml.Linq;
 using Microsoft.Build.Framework;
 using Task = Microsoft.Build.Utilities.Task;
@@ -11,7 +13,7 @@ namespace Microsoft.DotNet.Build.Tasks
     public class GenerateBindingRedirect : Task
     {
         [Required]
-        public ITaskItem[] AssemblyIdentities { get; set; }
+        public ITaskItem[] Assemblies { get; set; }
 
         [Required]
         public ITaskItem[] Executables { get; set; }
@@ -25,25 +27,62 @@ namespace Microsoft.DotNet.Build.Tasks
         {
             ns = "urn:schemas-microsoft-com:asm.v1";
             XElement bindingRedirectAssemblies = new XElement(ns + "assemblyBinding");
-            foreach (ITaskItem assembly in AssemblyIdentities)
+            foreach (ITaskItem assembly in Assemblies)
             {
-                string publicKeyToken = assembly.GetMetadata("PublicKeyToken");
-                string assemblyVersion = assembly.GetMetadata("Version");
-                string assemblyName = assembly.GetMetadata("Name");
+                AssemblyName result = null;
+                try
+                {
+                    using (FileStream assemblyStream = new FileStream(assembly.ItemSpec, FileMode.Open, FileAccess.Read, FileShare.Delete | FileShare.Read))
+                    using (PEReader peReader = new PEReader(assemblyStream, PEStreamOptions.LeaveOpen))
+                    {
+                        if (peReader.HasMetadata)
+                        {
+                            MetadataReader reader = peReader.GetMetadataReader();
+                            if (reader.IsAssembly)
+                            {
+                                AssemblyDefinition assemblyDef = reader.GetAssemblyDefinition();
+
+                                result = new AssemblyName();
+                                result.Name = reader.GetString(assemblyDef.Name);
+                                result.CultureName = reader.GetString(assemblyDef.Culture);
+                                result.Version = assemblyDef.Version;
+
+                                if (!assemblyDef.PublicKey.IsNil)
+                                {
+                                    result.SetPublicKey(reader.GetBlobBytes(assemblyDef.PublicKey));
+                                }
+                            }
+                        }
+                        else
+                        {
+                            //Native
+                            continue;
+                        }
+                    }
+                }
+                catch (BadImageFormatException)
+                {
+                    // not a PE
+                    continue;
+                }
+
+                string publicKeyToken = string.Empty;
+                if (result.GetPublicKeyToken() != null)
+                { 
+                    publicKeyToken = BitConverter.ToString(result.GetPublicKeyToken()).Replace("-", "");
+                }
                 if (string.IsNullOrEmpty(publicKeyToken))
                 {
-                    Log.LogWarning($"Empty publicKeyToken for {assemblyName} {assemblyVersion}");
+                    Log.LogMessage(MessageImportance.Low, $"Empty publicKeyToken for {result.FullName} ");
                 }
-                string culture = string.IsNullOrEmpty(assembly.GetMetadata("Culture"))
-                    ? "neutral"
-                    : assembly.GetMetadata("Culture");
+                string culture = string.IsNullOrEmpty(result.CultureName) ? "neutral" : result.CultureName;
                 XElement assemblyIdentity = new XElement(ns + "assemblyIdentity",
-                    new XAttribute("name", assemblyName),
+                    new XAttribute("name", result.Name),
                     new XAttribute("publicKeyToken", publicKeyToken),
                     new XAttribute("culture", culture));
                 XElement bindingRedirect = new XElement(ns + "bindingRedirect",
-                    new XAttribute("oldVersion", $"0.0.0.0-{assemblyVersion}"),
-                    new XAttribute("newVersion", assemblyVersion));
+                    new XAttribute("oldVersion", $"0.0.0.0-{result.Version}"),
+                    new XAttribute("newVersion", result.Version));
                 XElement dependentAssembly = new XElement(ns + "dependentAssembly",
                     assemblyIdentity,
                     bindingRedirect);

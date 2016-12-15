@@ -2,11 +2,12 @@
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <NuGetRuntimeIdentifier>win7-x64</NuGetRuntimeIdentifier>
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
     <ImportedProjectRelativePath>..\Microsoft.DotNet.Build.Tasks\</ImportedProjectRelativePath>
     <ProjectGuid>{B3331D88-7569-42D5-919B-F267DA011911}</ProjectGuid>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <Import Project="$(ImportedProjectRelativePath)Microsoft.DotNet.Build.Tasks.csproj" />
   <PropertyGroup>
