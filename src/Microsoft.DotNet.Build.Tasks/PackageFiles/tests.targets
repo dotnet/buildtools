@@ -5,7 +5,6 @@
   <Import Project="$(MSBuildThisFileDirectory)publishtest.targets" />
   <UsingTask TaskName="GenerateTestExecutionScripts" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="GenerateBindingRedirect" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
-  <UsingTask TaskName="FilterNativeAssemblies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <!-- Which categories of tests to run by default -->
   <PropertyGroup>
     <TestDisabled>false</TestDisabled>
@@ -158,15 +157,9 @@
       <_FilteredAssembliesForBindingRedirect Include="@(_CombinedListOfTestAssets)" Condition="'%(Extension)'=='.dll' or '%(Extension)'=='.exe'" />
       <_ExecutablesForBindingRedirect Include="@(SourcesToCopyToTestDir)" Condition="'%(Extension)'!='.pdb'" />
     </ItemGroup>
-    <FilterNativeAssemblies Assemblies="@(_FilteredAssembliesForBindingRedirect)">
-      <Output TaskParameter="ManagedAssemblies" ItemName="ManagedTestAssemblyIdentities" />
-    </FilterNativeAssemblies>
-    <GetAssemblyIdentity AssemblyFiles="@(ManagedTestAssemblyIdentities)">
-      <Output TaskParameter="Assemblies" ItemName="TestAssemblyIdentities"/>
-    </GetAssemblyIdentity>
     
     <GenerateBindingRedirect Executables="@(_ExecutablesForBindingRedirect)"
-                             AssemblyIdentities="@(TestAssemblyIdentities)"
+                             Assemblies="@(_FilteredAssembliesForBindingRedirect)"
                              OutputPath="$(TestPath)"
     />
   </Target>
