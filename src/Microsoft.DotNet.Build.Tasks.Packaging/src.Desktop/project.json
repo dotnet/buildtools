@@ -5,7 +5,7 @@
     "NuGet.Client": "4.0.0-rc-2129",
     "NuGet.ProjectModel": "4.0.0-rc-2129",
     "System.Reflection.Metadata": "1.0.22",
-    "System.Runtime.InteropServices.RuntimeInformation": "4.0.0"
+    "System.Runtime.InteropServices.RuntimeInformation": "4.4.0-beta-24813-03"
   },
   "frameworks": {
     "net45": {}
