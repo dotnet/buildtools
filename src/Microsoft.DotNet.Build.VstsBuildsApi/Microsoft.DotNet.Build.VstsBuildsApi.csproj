@@ -18,7 +18,11 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="VstsBuildClient.cs" />
+    <Compile Include="IVstsDefinitionHttpClient.cs" />
+    <Compile Include="JsonHttpClient.cs" />
+    <Compile Include="VstsReleaseHttpClient.cs" />
+    <Compile Include="VstsBuildHttpClient.cs" />
+    <Compile Include="VstsDefinitionClient.cs" />
   </ItemGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
 </Project>
