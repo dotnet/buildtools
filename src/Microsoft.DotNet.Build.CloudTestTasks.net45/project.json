@@ -2,7 +2,7 @@
   "dependencies": {
     "Newtonsoft.Json": "9.0.1",
     "NuGet.Versioning": "4.0.0-rc-2129",
-    "System.Reflection.Metadata": "1.1.0"
+    "System.Reflection.Metadata": "1.4.1"
   },
   "frameworks": {
     "net45": {}
