@@ -23,7 +23,8 @@
 
   <!-- Discover the items which will be copied to the test directory at execution time when archiving the tests
        to run in Helix, and at build-time otherwise. These are the test dependencies not discovered by
-       DiscoverTestInputs. -->
+       DiscoverTestInputs; they are not directly referenced by the test project, but are required to run the
+       tests. -->
   <Target Name="DiscoverTestDependencies" DependsOnTargets="DiscoverTestInputs;GetDefaultTestRid">
     <PrereleaseResolveNuGetPackageAssets Condition="Exists($(ProjectLockJson))"
                                AllowFallbackOnTargetSelection="true"
