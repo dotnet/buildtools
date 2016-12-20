@@ -9,7 +9,7 @@
   </ItemGroup>
   <PropertyGroup>
     <!-- Note: escape msbuild characters with ascii escape codes.  < == %3C, > == %3E-->
-    <PackageNameRegex Condition="'$(PackageNameRegex)' == ''">(?%3Cname%3E.*)\.(?%3Cversion%3E\d+\.\d+\.\d+)-?(?%3Cprerelease%3E.*)?</PackageNameRegex>
+    <PackageNameRegex Condition="'$(PackageNameRegex)' == ''">(?%3Cname%3E.*)\.(?%3Cversion%3E\d+\.\d+\.\d+)(-(?%3Cprerelease%3E.*)?)?</PackageNameRegex>
   </PropertyGroup>
   <PropertyGroup>
     <!-- overridden in repo -->
@@ -137,7 +137,7 @@
     <ItemGroup>
       <_VersionsFiles Include="$(VersionsFiles)" />
     </ItemGroup>
-    
+
     <AddDependenciesToProjectJson Condition="'$(ErrorNoVersion)' == ''"
                                   AdditionalDependencies="@(_InjectProjectReferenceDependency)"
                                   PackagesDrops="@(_PackagesDrops)"
@@ -148,6 +148,7 @@
                                   OutputProjectJson="$(ProjectJson)"
                                   ExcludedRuntimes="@(ExcludedRuntimes)"
                                   ExternalPackages="@(ExternalPackage)"
+                                  UseNewestAvailablePackages="$(UseNewestAvailablePackages)"
                                    />
 
     <Message Condition="'$(ErrorNoVersion)' == ''" Text="Generated project.json file - '$(ProjectJson)'" />

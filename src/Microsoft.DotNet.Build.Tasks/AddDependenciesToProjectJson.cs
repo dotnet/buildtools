@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using NuGet.Packaging;
+using NuGet.Packaging.Core;
 using NuGet.Versioning;
 
 namespace Microsoft.DotNet.Build.Tasks
@@ -28,11 +30,20 @@ namespace Microsoft.DotNet.Build.Tasks
 
         // Framework section which the additional dependencies apply to.  Empty is the default dependencies section.
         public string[] Frameworks { get; set; }
+
         public string[] PackagesDrops { get; set; }
+
         [Required]
         public string PackageNameRegex { get; set; }
 
         public string[] VersionsFiles { get; set; }
+
+        /// <summary>
+        /// If there are multiple package items from different sources (ie, package items found in one or more package drops,
+        /// package items found in one or more versions files) with the same package name, allow the conflict, but choose
+        /// the newest package version.
+        /// </summary>
+        public bool UseNewestAvailablePackages { get; set; }
 
         /// <summary>
         /// Original package version which is used to seed the output project.json
@@ -56,6 +67,8 @@ namespace Microsoft.DotNet.Build.Tasks
 
         private Regex _packageNameRegex;
 
+        private VersionComparer comparer = new VersionComparer(VersionComparison.VersionRelease);
+
         public override bool Execute()
         {
             if (!File.Exists(ProjectJson))
@@ -64,14 +77,14 @@ namespace Microsoft.DotNet.Build.Tasks
                 return false;
             }
 
-            List<ITaskItem> packageInformation = new List<ITaskItem>();
+            Dictionary<string, PackageItem> packageInformation = new Dictionary<string, PackageItem>();
             _packageNameRegex = new Regex(PackageNameRegex);
 
             // Retrieve package information from a package drop location
             if (PackagesDrops != null &&
                 PackagesDrops.Length > 0)
             {
-                packageInformation.AddRange(GatherPackageInformationFromDrops(PackagesDrops));
+                AddPackageItemsToDictionary(ref packageInformation, GatherPackageInformationFromDrops(PackagesDrops));
             }
 
             // Retrieve package information from a versions file
@@ -83,8 +96,7 @@ namespace Microsoft.DotNet.Build.Tasks
                     {
                         Log.LogError("Version file {0} does not exist.", versionsFile);
                     }
-
-                    packageInformation.AddRange(GatherPackageInformationFromVersionsFile(versionsFile));
+                    AddPackageItemsToDictionary(ref packageInformation, GatherPackageInformationFromVersionsFile(versionsFile, comparer));
                 }
             }
 
@@ -130,9 +142,9 @@ namespace Microsoft.DotNet.Build.Tasks
         /// </summary>
         /// <param name="packagesDrops"></param>
         /// <returns></returns>
-        private IEnumerable<ITaskItem> GatherPackageInformationFromDrops(string [] packagesDrops)
+        private Dictionary<string, PackageItem> GatherPackageInformationFromDrops(string [] packagesDrops)
         {
-            List<ITaskItem> packageNameItems = new List<ITaskItem>();
+            Dictionary<string, PackageItem> packageItems = new Dictionary<string, PackageItem>();
 
             foreach (string packageDrop in packagesDrops)
             {
@@ -141,21 +153,56 @@ namespace Microsoft.DotNet.Build.Tasks
                     Log.LogWarning("PackageDrop does not exist - '{0}'", packageDrop);
                     continue;
                 }
-                IEnumerable<ITaskItem> packages = Directory.GetFiles(packageDrop).Select(f => new TaskItem(Path.GetFileNameWithoutExtension(f)));
+                IEnumerable<string> packages = Directory.GetFiles(packageDrop);
 
-                foreach (ITaskItem package in packages)
+                foreach (var package in packages)
                 {
-                    packageNameItems.Add(CreatePackageItemFromString(package.ItemSpec));
+                    PackageItem packageItem = CreatePackageItem(package);
+
+                    AddPackageItemToDictionary(packageItems, packageItem);
                 }
             }
-            return packageNameItems;
+            return packageItems;
+        }
+
+        private void AddPackageItemToDictionary(Dictionary<string, PackageItem> packageItems, PackageItem packageItem)
+        {
+            if (packageItems.ContainsKey(packageItem.Name))
+            {
+                if (comparer == null)
+                {
+                    comparer = new VersionComparer(VersionComparison.VersionRelease);
+                }
+                if (comparer.Compare(packageItems[packageItem.Name].Version, packageItem.Version) != 0 && UseNewestAvailablePackages != true)
+                {
+                    Log.LogError("Package named {0} already exists.  Cannot have multiple packages with the same name.\n", packageItem.Name);
+                    Log.LogError("To permit package name clashes and take latest, specify 'UseNewestAvailablePackages=true'.\n");
+                    Log.LogError("Package {0} version {1} clashes with {2}", packageItem.Name, packageItems[packageItem.Name].Version.ToFullString(), packageItem.Version.ToFullString());
+                }
+                else if (UseNewestAvailablePackages == true)
+                {
+                    PackageItem item = (comparer.Compare(packageItems[packageItem.Name].Version, packageItem.Version) < 0) ? packageItem : packageItems[packageItem.Name];
+                    packageItems[packageItem.Name] = item;
+                }
+            }
+            else
+            {
+                packageItems.Add(packageItem.Name, packageItem);
+            }
+        }
+        private void AddPackageItemsToDictionary(ref Dictionary<string, PackageItem> packageItems, Dictionary<string, PackageItem> addPackageItems)
+        {
+            foreach(var packageItem in addPackageItems.Values)
+            {
+                AddPackageItemToDictionary(packageItems, packageItem);
+            }
         }
 
         // A versions file is of the form https://github.com/dotnet/versions/blob/master/build-info/dotnet/corefx/master/Latest_Packages.txt
-        private IEnumerable<ITaskItem> GatherPackageInformationFromVersionsFile(string versionsFile)
+        private Dictionary<string, PackageItem> GatherPackageInformationFromVersionsFile(string versionsFile, VersionComparer comparer = null)
         {
-            List<ITaskItem> packageNameItems = new List<ITaskItem>();
-            if(!File.Exists(versionsFile))
+            Dictionary<string, PackageItem> packageItems = new Dictionary<string, PackageItem>();
+            if (!File.Exists(versionsFile))
             {
                 Log.LogError("Specified versions file ({0}) does not exist.", versionsFile);
             }
@@ -165,35 +212,37 @@ namespace Microsoft.DotNet.Build.Tasks
                 if(!string.IsNullOrWhiteSpace(line))
                 {
                     string [] packageVersionTokens = line.Split(' ');
-                    packageNameItems.Add(CreatePackageItemFromString(packageVersionTokens[0], packageVersionTokens[1]));
+                    PackageItem packageItem = CreatePackageItem(packageVersionTokens[0], packageVersionTokens[1]);
+                    AddPackageItemToDictionary(packageItems, packageItem);
                 }
             }
-            return packageNameItems;
+            return packageItems;
         }
 
-        private TaskItem CreatePackageItemFromString(string package)
+        /// <summary>
+        /// Create a package item object from a nupkg file
+        /// </summary>
+        /// <param name="package">path to a nupkg</param>
+        /// <returns></returns>
+        private PackageItem CreatePackageItem(string package)
         {
-            Match m = _packageNameRegex.Match(package);
-            TaskItem packageItem = null;
-            if (m.Success)
+            using (PackageArchiveReader archiveReader = new PackageArchiveReader(package))
             {
-                packageItem = new TaskItem(m.Groups[0].Value);
-                string name = m.Groups["name"].Value;
-                packageItem.SetMetadata("Name", name);
-                packageItem.SetMetadata("Version", m.Groups["version"].Value);
-                packageItem.SetMetadata("Prerelease", m.Groups["prerelease"].Value);
+                PackageIdentity identity = archiveReader.GetIdentity();
+                return new PackageItem(identity.Id, identity.Version);
             }
-            return packageItem;
         }
 
-        private TaskItem CreatePackageItemFromString(string id, string version)
+        /// <summary>
+        /// Create a package item object from a package name (id) and version
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="version"></param>
+        /// <returns></returns>
+        private PackageItem CreatePackageItem(string id, string version)
         {
             NuGetVersion nuGetVersion = new NuGetVersion(version);
-            TaskItem packageItem = new TaskItem(id);
-            packageItem.SetMetadata("Name", id);
-            packageItem.SetMetadata("Version", string.Join(".", nuGetVersion.Major, nuGetVersion.Minor, nuGetVersion.Patch));
-            packageItem.SetMetadata("Prerelease", nuGetVersion.Release.ToString());
-            return packageItem;
+            return new PackageItem(id, nuGetVersion);
         }
 
         private string AreValidFrameworkPaths(JObject projectRoot)
@@ -236,11 +285,12 @@ namespace Microsoft.DotNet.Build.Tasks
         }
 
         // Generate the combines dependencies from the projectjson jObject and from AdditionalDependencies
-        private JObject GenerateDependencies(JObject projectJsonRoot, ITaskItem[] externalPackageVersions, IEnumerable<ITaskItem> packageInformation, string framework = null)
+        private JObject GenerateDependencies(JObject projectJsonRoot, ITaskItem[] externalPackageVersions, Dictionary<string, PackageItem> packageInformation, string framework = null)
         {
             var originalDependenciesList = new List<JToken>();
-            var returnDependenciesList = new List<JToken>();
+            var returnDependenciesList = new Dictionary<string, JToken>();
             var frameworkDependencies = GetFrameworkDependenciesSection(projectJsonRoot, framework);
+
             if (frameworkDependencies != null)
             {
                 originalDependenciesList = frameworkDependencies.Children().ToList();
@@ -248,30 +298,15 @@ namespace Microsoft.DotNet.Build.Tasks
                 // Update versions in dependencies
                 foreach (JProperty property in originalDependenciesList.Select(od => od))
                 {
-                    ITaskItem package = GetPackageInformation(property.Name, packageInformation);
-
-                    if (package != null)
+                    PackageItem packageItem = null;
+                    if (packageInformation.ContainsKey(property.Name))
                     {
-                        NuGetVersion nuGetVersion;
-                        if (NuGetVersion.TryParse(property.Value.ToString(), out nuGetVersion))
-                        {
-                            NuGetVersion dependencyVersion = nuGetVersion;
-                            string ver = null;
+                        packageItem = packageInformation[property.Name];
 
-                            // a package version was provided, use its version information.
-                            ver = package.GetMetadata("Version");
-
-                            string prereleaseVersion = package.GetMetadata("Prerelease");
-                            // we have package information, so use that.
-                            if (!string.IsNullOrWhiteSpace(prereleaseVersion))
-                            {
-                                ver += "-" + prereleaseVersion;
-                            }
-                            nuGetVersion = NuGetVersion.Parse(ver);
-                        }
+                        NuGetVersion nuGetVersion = packageItem.Version;
 
                         // Only add the original dependency if it wasn't passed as an AdditionalDependency, ie. AdditionalDependencies may override dependencies in project.json
-                        if (AdditionalDependencies.FirstOrDefault(d => d.GetMetadata("Name").Equals(property.Name, StringComparison.OrdinalIgnoreCase)) == null)
+                        if (!AdditionalDependencies.Any(d => d.ItemSpec.Equals(property.Name, StringComparison.OrdinalIgnoreCase)))
                         {
                             JProperty addProperty;
                             if (nuGetVersion != null)
@@ -282,12 +317,12 @@ namespace Microsoft.DotNet.Build.Tasks
                             {
                                 addProperty = property;
                             }
-                            returnDependenciesList.Add(addProperty);
+                            returnDependenciesList.Add(property.Name, addProperty);
                         }
                     }
                     else
                     {
-                        returnDependenciesList.Add(property);
+                        returnDependenciesList.Add(property.Name, property);
                     }
                 }
             }
@@ -296,46 +331,27 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 string name = dependency.GetMetadata("Name");
                 // Don't add a new dependency if one already exists.
-                if (returnDependenciesList.FirstOrDefault(rd => ((JProperty)rd).Name.Equals(name)) == null)
+                if (!returnDependenciesList.ContainsKey(name))
                 {
-                    ITaskItem package = GetPackageInformation(name, packageInformation);
-                    string version = null;
-
-                    NuGetVersion dependencyVersion = NuGetVersion.Parse(dependency.GetMetadata("Version"));
-                    version = string.Join(".", dependencyVersion.Major, dependencyVersion.Minor, dependencyVersion.Patch);
+                    NuGetVersion nuGetVersion = NuGetVersion.Parse(dependency.GetMetadata("Version"));
+                    PackageItem packageItem = new PackageItem(name, nuGetVersion);
+                    string version = packageItem.GetVersionString();
 
                     // a package version was provided, use its version information.
-                    if (package != null)
+                    if (packageInformation.ContainsKey(name))
                     {
-                        version = package.GetMetadata("Version");
-                        string prereleaseVersion = package.GetMetadata("Prerelease");
-                        if (!string.IsNullOrWhiteSpace(prereleaseVersion))
-                        {
-                            version += "-" + prereleaseVersion;
-                        }
+                        version = packageInformation[name].Version.ToString();
                     }
                     JProperty property = new JProperty(name, version);
-                    returnDependenciesList.Add(property);
+                    returnDependenciesList.Add(name, property);
                 }
                 else
                 {
                     Log.LogMessage("Ignoring AdditionalDependency '{0}', dependency is already present in {1}", name, ProjectJson);
                 }
             }
-            
-            return new JObject(returnDependenciesList.ToArray());
-        }
 
-        private ITaskItem GetPackageInformation(string name, IEnumerable<ITaskItem> packageInformation)
-        {
-            foreach(var package in packageInformation)
-            {
-                if(name.Equals(package.GetMetadata("Name"), StringComparison.OrdinalIgnoreCase))
-                {
-                    return package;
-                }
-            }
-            return null;
+            return new JObject(returnDependenciesList.Values.ToArray());
         }
 
         /* Given a project.json as a JObject, replace it's dependencies property with a new dependencies property. */
@@ -395,6 +411,36 @@ namespace Microsoft.DotNet.Build.Tasks
                 property = "['" + property + "']";
             }
             return property;
+        }
+    }
+
+    internal class PackageItem
+    {
+        public string Name { get; set; }
+        public NuGetVersion Version
+        {
+            set { _version = value; }
+            get { return _version; }
+        }
+
+        NuGetVersion _version;
+
+        public PackageItem() { }
+        public PackageItem(string name) { Name = name; }
+        public PackageItem(string name, NuGetVersion version) { Name = name;  Version = version; }
+
+        public string GetVersionString()
+        {
+            return string.Join(".", _version.Major, _version.Minor, _version.Patch);
+        }
+
+        public TaskItem ToTaskItem()
+        {
+            TaskItem taskItem = new TaskItem(Name);
+            taskItem.SetMetadata("Name", Name);
+            taskItem.SetMetadata("Version", string.Join(".", Version.Major, Version.Minor, Version.Patch));
+            taskItem.SetMetadata("Prerelease", Version.Release);
+            return taskItem;
         }
     }
 }
