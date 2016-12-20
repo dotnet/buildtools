@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Versioning;
+using System.Net.Http;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
@@ -20,7 +21,7 @@ namespace Microsoft.DotNet.Build.Tasks
     /// 2. Provide a versions files, this becomes the source of package versions
     /// If both a package drop and a version file are provided, then the package drop takes precedent over the version file.
     /// </summary>
-    public class AddDependenciesToProjectJson : Task
+    public class AddDependenciesToProjectJson : Microsoft.Build.Utilities.Task
     {
         // Additional Dependencies to add to the project.json. May Optionally contain a version.
         // Will Override dependencies present in the project if there is a conflict.
@@ -90,13 +91,9 @@ namespace Microsoft.DotNet.Build.Tasks
             // Retrieve package information from a versions file
             if (VersionsFiles != null)
             {
-                foreach (var versionsFile in VersionsFiles)
+                foreach (var versionsUri in VersionsFiles.Select(v => new Uri(v)))
                 {
-                    if (!File.Exists(versionsFile))
-                    {
-                        Log.LogError("Version file {0} does not exist.", versionsFile);
-                    }
-                    AddPackageItemsToDictionary(ref packageInformation, GatherPackageInformationFromVersionsFile(versionsFile, comparer));
+                    AddPackageItemsToDictionary(ref packageInformation, GatherPackageInformationFromVersionsFile(versionsUri, comparer));
                 }
             }
 
@@ -198,23 +195,43 @@ namespace Microsoft.DotNet.Build.Tasks
             }
         }
 
-        // A versions file is of the form https://github.com/dotnet/versions/blob/master/build-info/dotnet/corefx/master/Latest_Packages.txt
-        private Dictionary<string, PackageItem> GatherPackageInformationFromVersionsFile(string versionsFile, VersionComparer comparer = null)
+        private static async System.Threading.Tasks.Task<Stream> GetStream(Uri uri)
+        {
+            if(uri.Scheme == "file")
+            {
+                return new FileStream(uri.LocalPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            }
+            else
+            {
+                return await new HttpClient().GetStreamAsync(uri);
+            }
+        }
+
+        // A versions file is of the form https://raw.githubusercontent.com/dotnet/versions/master/build-info/dotnet/corefx/release/1.0.0/LKG_Packages.txt
+        private Dictionary<string, PackageItem> GatherPackageInformationFromVersionsFile(Uri uri, VersionComparer comparer = null)
         {
             Dictionary<string, PackageItem> packageItems = new Dictionary<string, PackageItem>();
-            if (!File.Exists(versionsFile))
+
+            try
             {
-                Log.LogError("Specified versions file ({0}) does not exist.", versionsFile);
-            }
-            var lines = File.ReadAllLines(versionsFile);
-            foreach(string line in lines)
-            { 
-                if(!string.IsNullOrWhiteSpace(line))
+                using (var streamReader = new StreamReader(GetStream(uri).Result))
                 {
-                    string [] packageVersionTokens = line.Split(' ');
-                    PackageItem packageItem = CreatePackageItem(packageVersionTokens[0], packageVersionTokens[1]);
-                    AddPackageItemToDictionary(packageItems, packageItem);
+                    while (!streamReader.EndOfStream)
+                    {
+                        string line = streamReader.ReadLine();
+                        if (!string.IsNullOrWhiteSpace(line))
+                        {
+                            string[] packageVersionTokens = line.Split(' ');
+                            PackageItem packageItem = CreatePackageItem(packageVersionTokens[0], packageVersionTokens[1]);
+                            AddPackageItemToDictionary(packageItems, packageItem);
+                        }
+                    }
                 }
+            }
+            catch (AggregateException)
+            {
+                Log.LogError("Error: Unable to open '{0}', either the file does not exist locally or there is a network issue accessing that URI.", uri.ToString());
+                throw;
             }
             return packageItems;
         }
