@@ -1,4 +1,4 @@
-﻿using Microsoft.Build.Utilities;
+using Microsoft.Build.Utilities;
 using Microsoft.Build.Framework;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -66,9 +66,15 @@ namespace Microsoft.DotNet.Build.Tasks
         [Required]
         public string OutputProjectJson { get; set; }
 
+        public int? Retries { get; set; }
+
+        public int? SleepTimeInMilliseconds { get; set; }
+
         private Regex _packageNameRegex;
 
         private VersionComparer comparer = new VersionComparer(VersionComparison.VersionRelease);
+        private static readonly int s_DefaultRetries = 5;
+        private static readonly int s_DefaultSleepTime = 10000;
 
         public override bool Execute()
         {
@@ -91,6 +97,16 @@ namespace Microsoft.DotNet.Build.Tasks
             // Retrieve package information from a versions file
             if (VersionsFiles != null)
             {
+                if(!Retries.HasValue)
+                {
+                    Retries = s_DefaultRetries;
+                }
+                if (!SleepTimeInMilliseconds.HasValue)
+                {
+
+                    SleepTimeInMilliseconds = s_DefaultSleepTime;
+
+                }
                 foreach (var versionsUri in VersionsFiles.Select(v => new Uri(v)))
                 {
                     AddPackageItemsToDictionary(ref packageInformation, GatherPackageInformationFromVersionsFile(versionsUri, comparer));
@@ -208,7 +224,7 @@ namespace Microsoft.DotNet.Build.Tasks
         }
 
         // A versions file is of the form https://raw.githubusercontent.com/dotnet/versions/master/build-info/dotnet/corefx/release/1.0.0/LKG_Packages.txt
-        private Dictionary<string, PackageItem> GatherPackageInformationFromVersionsFile(Uri uri, VersionComparer comparer = null)
+        private Dictionary<string, PackageItem> GatherPackageInformationFromVersionsFile(Uri uri, VersionComparer comparer = null, int attempts = 0)
         {
             Dictionary<string, PackageItem> packageItems = new Dictionary<string, PackageItem>();
 
@@ -227,13 +243,21 @@ namespace Microsoft.DotNet.Build.Tasks
                         }
                     }
                 }
+                return packageItems;
             }
             catch (AggregateException)
             {
+                attempts++;
+                Log.LogWarning($"Failed to retrieve file from URI, '{uri}' {Retries - attempts} left.");
+                if(attempts < Retries)
+                {
+                    Log.LogWarning($"Will retry again in {SleepTimeInMilliseconds} ms");
+                    System.Threading.Thread.Sleep(SleepTimeInMilliseconds.Value);
+                    return GatherPackageInformationFromVersionsFile(uri, comparer, attempts);
+                }
                 Log.LogError("Error: Unable to open '{0}', either the file does not exist locally or there is a network issue accessing that URI.", uri.ToString());
                 throw;
             }
-            return packageItems;
         }
 
         /// <summary>
