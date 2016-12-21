@@ -12,11 +12,16 @@
     <DoReport Condition="'$(DoReport)' == ''">true</DoReport>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProcessNamesToKill Condition="'@(ProcessNamesToKill)' == ''" Include="git;vbcscompiler" />
+  </ItemGroup>
+
   <Target Name="Clean">
     <Error Condition="'$(AgentDirectory)' == ''" Text="No value specified for 'AgentDirectory'." />
     <CleanupVSTSAgent AgentDirectory="$(AgentDirectory)"
                       RetentionDays="$(RetentionDays)"
                       Clean="$(DoClean)"
-                      Report="$(DoReport)"/>
+                      Report="$(DoReport)"
+                      ProcessNamesToKill="@(ProcessNamesToKill)" />
   </Target>
 </Project>
