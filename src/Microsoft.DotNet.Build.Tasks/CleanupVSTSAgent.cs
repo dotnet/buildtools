@@ -24,14 +24,15 @@ namespace Microsoft.DotNet.Build.Tasks
         public int? Retries { get; set; }
 
         public int? SleepTimeInMilliseconds { get; set; }
+        public ITaskItem[] ProcessNamesToKill { get; set; }
 
-        private static readonly int s_DefaultRetries = 5;
+        private static readonly int s_DefaultRetries = 3;
         private static readonly int s_DefaultSleepTime = 2000;
-        private static string[] processNamesToKill = new string[] { "git" };
 
         public override bool Execute()
         {
-            if(!Directory.Exists(AgentDirectory))
+            KillStaleProcesses();
+            if (!Directory.Exists(AgentDirectory))
             {
                 Console.WriteLine($"Agent directory specified: '{AgentDirectory}' does not exist.");
                 return false;
@@ -67,7 +68,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
         private void KillStaleProcesses()
         {
-            foreach (string imageName in processNamesToKill)
+            foreach (string imageName in ProcessNamesToKill.Select(t => t.ItemSpec))
             {
                 Process[] allInstances = Process.GetProcessesByName(imageName);
                 foreach (Process proc in allInstances)
