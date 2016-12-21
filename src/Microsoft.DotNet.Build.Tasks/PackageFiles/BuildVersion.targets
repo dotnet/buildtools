@@ -1,9 +1,9 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   
   <PropertyGroup>
-    <TodayTimeStamp>$([System.DateTime]::Now.ToString(yyyyMMdd))</TodayTimeStamp>
+    <UtcTodayTimeStamp>$([System.DateTime]::UtcNow.ToString(yyyyMMdd))</UtcTodayTimeStamp>
     <BuildVersionFilePath>$(BaseIntermediateOutputPath)</BuildVersionFilePath>
-    <BuildVersionFile Condition="'$(BuildVersionFile)'==''">$(BuildVersionFilePath)BuildVersion-$(TodayTimeStamp).props</BuildVersionFile>
+    <BuildVersionFile Condition="'$(BuildVersionFile)'==''">$(BuildVersionFilePath)BuildVersion-$(UtcTodayTimeStamp).props</BuildVersionFile>
   </PropertyGroup>
 
   <!-- If BuildVersion.props exists already then import it to get BuildNumberMajor, else generate it and override props values. -->
