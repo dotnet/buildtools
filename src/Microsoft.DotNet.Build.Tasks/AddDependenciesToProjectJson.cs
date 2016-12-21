@@ -66,15 +66,17 @@ namespace Microsoft.DotNet.Build.Tasks
         [Required]
         public string OutputProjectJson { get; set; }
 
-        public int? Retries { get; set; }
+        public string Retries { get; set; }
 
-        public int? SleepTimeInMilliseconds { get; set; }
+        public string SleepTimeInMilliseconds { get; set; }
 
         private Regex _packageNameRegex;
 
         private VersionComparer comparer = new VersionComparer(VersionComparison.VersionRelease);
         private static readonly int s_DefaultRetries = 5;
         private static readonly int s_DefaultSleepTime = 10000;
+        private static int _retries = s_DefaultRetries;
+        private static int _sleepTimeInMilliseconds = s_DefaultSleepTime;
 
         public override bool Execute()
         {
@@ -97,14 +99,14 @@ namespace Microsoft.DotNet.Build.Tasks
             // Retrieve package information from a versions file
             if (VersionsFiles != null)
             {
-                if(!Retries.HasValue)
+                if(Retries != null)
                 {
-                    Retries = s_DefaultRetries;
+                    _retries = int.Parse(Retries);
                 }
-                if (!SleepTimeInMilliseconds.HasValue)
+                if (SleepTimeInMilliseconds != null)
                 {
 
-                    SleepTimeInMilliseconds = s_DefaultSleepTime;
+                    _sleepTimeInMilliseconds = int.Parse(SleepTimeInMilliseconds);
 
                 }
                 foreach (var versionsUri in VersionsFiles.Select(v => new Uri(v)))
@@ -248,11 +250,11 @@ namespace Microsoft.DotNet.Build.Tasks
             catch (AggregateException)
             {
                 attempts++;
-                Log.LogWarning($"Failed to retrieve file from URI, '{uri}' {Retries - attempts} left.");
-                if(attempts < Retries)
+                Log.LogWarning($"Failed to retrieve file from URI, '{uri}' {_retries - attempts} left.");
+                if(attempts < _retries)
                 {
-                    Log.LogWarning($"Will retry again in {SleepTimeInMilliseconds} ms");
-                    System.Threading.Thread.Sleep(SleepTimeInMilliseconds.Value);
+                    Log.LogWarning($"Will retry again in {_sleepTimeInMilliseconds} ms");
+                    System.Threading.Thread.Sleep(_sleepTimeInMilliseconds);
                     return GatherPackageInformationFromVersionsFile(uri, comparer, attempts);
                 }
                 Log.LogError("Error: Unable to open '{0}', either the file does not exist locally or there is a network issue accessing that URI.", uri.ToString());
