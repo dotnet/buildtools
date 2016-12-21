@@ -105,9 +105,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 }
                 if (SleepTimeInMilliseconds != null)
                 {
-
                     _sleepTimeInMilliseconds = int.Parse(SleepTimeInMilliseconds);
-
                 }
                 foreach (var versionsUri in VersionsFiles.Select(v => new Uri(v)))
                 {
