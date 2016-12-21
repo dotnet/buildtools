@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license. 
 // See the LICENSE file in the project root for more information. 
 
-using Microsoft.DotNet.Build.VstsBuildsApi;
+using Microsoft.DotNet.Build.VstsBuildsApi.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -10,31 +10,31 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace VstsBuildsApi
+namespace Microsoft.DotNet.Build.VstsBuildsApi
 {
     public class VstsDefinitionClient
     {
         private string _collectionIdentifier;
-        private string _credentials;
+        private VstsDefinitionClientConfig _config;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="collectionIdentifier">collection identifer for build and release definitions</param>
-        /// <param name="credentials">credentials used for basic rest api authentication</param>
-        public VstsDefinitionClient(string collectionIdentifier, string credentials)
+        /// <param name="config">Configuration for VSTS definition API endpoints.</param>
+        public VstsDefinitionClient(string collectionIdentifier, VstsDefinitionClientConfig config)
         {
             if (string.IsNullOrWhiteSpace(collectionIdentifier))
             {
-                throw new Exception("Required parameter (collectionIdentifier) cannot be null or white space.");
+                throw new ArgumentException("Required parameter (collectionIdentifier) cannot be null or white space.");
             }
             if (!Uri.IsWellFormedUriString(collectionIdentifier, UriKind.Relative))
             {
-                throw new Exception(string.Format("collectionIdentifier '{0}' contains invalid characters.  collectionIdentifier must contain only valid uri characters.", collectionIdentifier));
+                throw new ArgumentException($"collectionIdentifier '{collectionIdentifier}' contains invalid characters.  collectionIdentifier must contain only valid uri characters.");
             }
 
             _collectionIdentifier = collectionIdentifier;
-            _credentials = credentials;
+            _config = config;
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace VstsBuildsApi
         public async Task<string> CreateOrUpdateBuildDefinitionAsync(Stream stream)
         {
             JObject definition = GetParsedJson(stream);
-            var client = new VstsBuildHttpClient(definition, _credentials);
+            var client = new VstsBuildHttpClient(definition, _config.BuildDefinitionEndpointConfig);
             return await CreateOrUpdateDefinitionAsync(client, definition).ConfigureAwait(false);
         }
 
@@ -61,7 +61,7 @@ namespace VstsBuildsApi
         public async Task<string> CreateOrUpdateReleaseDefinitionAsync(Stream stream)
         {
             JObject definition = GetParsedJson(stream);
-            var client = new VstsReleaseHttpClient(definition, _credentials);
+            var client = new VstsReleaseHttpClient(definition, _config.ReleaseDefinitionEndpointConfig);
             return await CreateOrUpdateDefinitionAsync(client, definition).ConfigureAwait(false);
         }
 
@@ -75,12 +75,12 @@ namespace VstsBuildsApi
         /// <param name="definition">VSTS definition JSON object</param>
         /// <returns>Created or updated definition id</returns>
         private async Task<string> CreateOrUpdateDefinitionAsync(
-            IVstsDefinitionHttpClient client,
+            VstsDefinitionHttpClient client,
             JObject definition)
         {
             var key = _collectionIdentifier + "_" + definition["name"];
             definition["name"] = key;
-            IReadOnlyList<JObject> vstsDefinitions = await client.VstsRetrieveDefinitionsListByNameAndPathAsync(definition).ConfigureAwait(false);
+            IReadOnlyList<JObject> vstsDefinitions = await client.RetrieveDefinitionsListByNameAndPathAsync(definition).ConfigureAwait(false);
 
             if (vstsDefinitions.Count == 0)
             {
@@ -89,29 +89,73 @@ namespace VstsBuildsApi
                 /* Remove definition instance identifiable information */
                 RemoveIdentifiableInformation(client, definition);
 
-                JObject vstsDefinition = await client.VstsCreateDefinitionAsync(definition).ConfigureAwait(false);
+                JObject vstsDefinition = await client.CreateDefinitionAsync(definition).ConfigureAwait(false);
                 return vstsDefinition["id"].ToString();
             }
-            else if (vstsDefinitions.Count == 1)
+            if (vstsDefinitions.Count == 1)
             {
-                JObject vstsDefinition = await client.VstsRetrieveDefinitionByIdAsync(vstsDefinitions[0]).ConfigureAwait(false);
+                JObject vstsDefinition = await client.RetrieveDefinitionByIdAsync(vstsDefinitions[0]).ConfigureAwait(false);
 
                 /* Update */
                 if (!IsDefinitionContentSubsetEquivalent(client, definition, vstsDefinition))
                 {
                     CopyIdentifiableInformation(client, vstsDefinition, definition);
-                    vstsDefinition = await client.VstsUpdateDefinitionAsync(definition).ConfigureAwait(false);
+                    vstsDefinition = await client.UpdateDefinitionAsync(definition).ConfigureAwait(false);
                 }
                 return vstsDefinition["id"].ToString();
             }
-            else
+            throw new InvalidOperationException(
+                $"Obtained multiple {vstsDefinitions.Count} definitions with the same " +
+                $"'name' ({vstsDefinitions[0]["name"]}) and " +
+                $"'path' ({vstsDefinitions[0]["path"]}) properties.  " +
+                "This should not be possible.");
+        }
+
+        /// <summary>
+        /// Create a default endpoint configuration.
+        /// </summary>
+        /// <param name="credentials">Credentials to use to access all endpoints.</param>
+        /// <returns>Default authenticated endpoint configuration.</returns>
+        public static VstsDefinitionClientConfig CreateDefaultConfig(string credentials)
+        {
+            return new VstsDefinitionClientConfig
             {
-                throw new Exception(string.Format(
-                    "Obtained multiple {0} definitions with the same 'name' ({1}) and 'path' ({2}) properties.  This should not be possible.",
-                    vstsDefinitions.Count,
-                    vstsDefinitions[0]["name"].ToString(),
-                    vstsDefinitions[0]["path"].ToString()));
-            }
+                BuildDefinitionEndpointConfig = new VstsApiEndpointConfig
+                {
+                    Credentials = credentials,
+                    ApiVersion = "2.0",
+                    InstanceIdentifiableFields = new[]
+                    {
+                        "_links",
+                        "authoredBy",
+                        "comment",
+                        "createdDate",
+                        "id",
+                        "path",
+                        "revision",
+                        "uri",
+                        "url",
+                    }
+                },
+                ReleaseDefinitionEndpointConfig = new VstsApiEndpointConfig
+                {
+                    Credentials = credentials,
+                    ApiVersion = "3.1-preview.3",
+                    InstanceIdentifiableFields = new[]
+                    {
+                        "_links",
+                        "createdBy",
+                        "createdOn",
+                        "deployStep",
+                        "modifiedBy",
+                        "modifiedOn",
+                        "owner",
+                        "id",
+                        "lastRelease",
+                        "revision",
+                    }
+                }
+            };
         }
 
         private static JObject GetParsedJson(Stream stream)
@@ -127,7 +171,7 @@ namespace VstsBuildsApi
         /// Validates that definition1 is a content equivalent subset of definition2
         /// </summary>
         private static bool IsDefinitionContentSubsetEquivalent(
-            IVstsDefinitionHttpClient client,
+            VstsDefinitionHttpClient client,
             JObject definition1,
             JObject definition2)
         {
@@ -148,7 +192,7 @@ namespace VstsBuildsApi
             return true;
         }
 
-        private static void RemoveIdentifiableInformation(IVstsDefinitionHttpClient client, params JObject[] definitions)
+        private static void RemoveIdentifiableInformation(VstsDefinitionHttpClient client, params JObject[] definitions)
         {
             foreach (var definition in definitions)
             {
@@ -164,7 +208,7 @@ namespace VstsBuildsApi
         /// <paramref name="source"/> to <paramref name="destination"/>.
         /// </summary>
         private static void CopyIdentifiableInformation(
-            IVstsDefinitionHttpClient client,
+            VstsDefinitionHttpClient client,
             JObject source,
             JObject destination)
         {

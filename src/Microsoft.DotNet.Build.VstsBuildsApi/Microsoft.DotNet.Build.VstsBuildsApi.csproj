@@ -18,7 +18,9 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IVstsDefinitionHttpClient.cs" />
+    <Compile Include="Configuration\VstsApiEndpointConfig.cs" />
+    <Compile Include="Configuration\VstsDefinitionClientConfig.cs" />
+    <Compile Include="VstsDefinitionHttpClient.cs" />
     <Compile Include="JsonHttpClient.cs" />
     <Compile Include="VstsReleaseHttpClient.cs" />
     <Compile Include="VstsBuildHttpClient.cs" />

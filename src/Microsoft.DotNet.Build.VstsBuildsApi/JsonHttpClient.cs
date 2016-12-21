@@ -74,7 +74,9 @@ namespace Microsoft.DotNet.Build.VstsBuildsApi
             {
                 return;
             }
-            throw new HttpRequestException(string.Format("Response code {0} received from {1} is not a valid response.", response.StatusCode, response.RequestMessage.RequestUri));
+            throw new HttpRequestException(
+                $"Response code {response.StatusCode} received from " +
+                $"{response.RequestMessage.RequestUri} is not a valid response.");
         }
     }
 }
