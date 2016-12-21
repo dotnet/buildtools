@@ -10,7 +10,8 @@
     "NuGet.Packaging": "3.5.0-beta2-1456",
     "NuGet.Versioning": "3.5.0-beta2-1456",
     "NuProj": "0.10.4-beta-gf7fc34e7d8",
-    "NETStandard.Library": "1.6.0-rc3-24210-10"
+    "NETStandard.Library": "1.6.0-rc3-24210-10",
+    "System.Net.Http": "4.1.0"
   },
   "frameworks": {
     "netstandard1.5": {
