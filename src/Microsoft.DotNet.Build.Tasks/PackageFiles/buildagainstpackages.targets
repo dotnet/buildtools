@@ -10,6 +10,8 @@
   <PropertyGroup>
     <!-- Note: escape msbuild characters with ascii escape codes.  < == %3C, > == %3E-->
     <PackageNameRegex Condition="'$(PackageNameRegex)' == ''">(?%3Cname%3E.*)\.(?%3Cversion%3E\d+\.\d+\.\d+)(-(?%3Cprerelease%3E.*)?)?</PackageNameRegex>
+    <AddDependenciesRetries Condition="'$(AddDependenciesSleepTimeInMilliseconds)' == ''">5</AddDependenciesRetries>
+    <AddDependenciesSleepTimeInMilliseconds Condition="'$(AddDependenciesSleepTimeInMilliseconds)' == ''">10000</AddDependenciesSleepTimeInMilliseconds>
   </PropertyGroup>
   <PropertyGroup>
     <!-- overridden in repo -->
@@ -149,7 +151,9 @@
                                   ExcludedRuntimes="@(ExcludedRuntimes)"
                                   ExternalPackages="@(ExternalPackage)"
                                   UseNewestAvailablePackages="$(UseNewestAvailablePackages)"
-                                   />
+                                  Retries="$(AddDependenciesRetries)"
+                                  SleepTimeInMilliseconds="$(AddDependenciesSleepTimeInMilliseconds)"
+                                  />
 
     <Message Condition="'$(ErrorNoVersion)' == ''" Text="Generated project.json file - '$(ProjectJson)'" />
   </Target>
