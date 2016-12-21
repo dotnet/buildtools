@@ -22,6 +22,6 @@
                       RetentionDays="$(RetentionDays)"
                       Clean="$(DoClean)"
                       Report="$(DoReport)"
-                      ProcessNamesToKill="@(ProcessNamesToKill)"/>
+                      ProcessNamesToKill="@(ProcessNamesToKill)" />
   </Target>
 </Project>

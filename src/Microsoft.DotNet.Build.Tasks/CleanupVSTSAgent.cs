@@ -193,7 +193,7 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 if (!knownDirectories.Contains(workingDirectory))
                 {
-                    cleanupTasks.Add(CleanupAgentDirectoryAsync(workingDirectory, 0));
+                    cleanupTasks.Add(CleanupAgentDirectoryAsync(workingDirectory));
                 }
             }
             System.Threading.Tasks.Task.WaitAll(cleanupTasks.ToArray());
@@ -206,12 +206,12 @@ namespace Microsoft.DotNet.Build.Tasks
 
         private async System.Threading.Tasks.Task<bool> CleanupAgentAsync(string workDirectory, string sourceFolderJson)
         {
-            bool returnStatus = await CleanupAgentDirectoryAsync(workDirectory, 0);
-            returnStatus &= await CleanupAgentDirectoryAsync(sourceFolderJson, 0).ConfigureAwait(false);
+            bool returnStatus = await CleanupAgentDirectoryAsync(workDirectory);
+            returnStatus &= await CleanupAgentDirectoryAsync(sourceFolderJson).ConfigureAwait(false);
             return returnStatus;
         }
 
-        private async System.Threading.Tasks.Task<bool> CleanupAgentDirectoryAsync(string directory, int attempts)
+        private async System.Threading.Tasks.Task<bool> CleanupAgentDirectoryAsync(string directory, int attempts = 0)
         {
             try
             {
