@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System;
 using System.Text.RegularExpressions;
+using System.Diagnostics;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
@@ -25,13 +26,14 @@ namespace Microsoft.DotNet.Build.Tasks
         public int? SleepTimeInMilliseconds { get; set; }
 
         private static readonly int s_DefaultRetries = 5;
-        private static readonly int s_DefaultSleepTime = 10000;
+        private static readonly int s_DefaultSleepTime = 2000;
+        private static string[] processNamesToKill = new string[] { "git" };
 
         public override bool Execute()
         {
             if(!Directory.Exists(AgentDirectory))
             {
-                Console.WriteLine($"Agent directory specified, {AgentDirectory} does not exist.");
+                Console.WriteLine($"Agent directory specified: '{AgentDirectory}' does not exist.");
                 return false;
             }
             if(!Retries.HasValue)
@@ -52,15 +54,38 @@ namespace Microsoft.DotNet.Build.Tasks
             if(Clean)
             {
                 returnValue &= CleanupAgentsAsync().Result;
-            }
-            // If report and clean are both 'true', then report disk usage both before and after cleanup.
-            if(Report && Clean)
-            {
-                Console.WriteLine("Disk usage after 'Clean'.");
-                ReportDiskUsage();
+                // If report and clean are both 'true', then report disk usage both before and after cleanup.
+                if (Report)
+                {
+                    Console.WriteLine("Disk usage after 'Clean'.");
+                    ReportDiskUsage();
+                }
             }
 
             return returnValue;
+        }
+
+        private void KillStaleProcesses()
+        {
+            foreach (string imageName in processNamesToKill)
+            {
+                Process[] allInstances = Process.GetProcessesByName(imageName);
+                foreach (Process proc in allInstances)
+                {
+                    try
+                    {
+                        if (!proc.HasExited)
+                        {
+                            proc.Kill();
+                            Console.WriteLine($"Killed process {imageName} ({proc.Id})");
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Hit {e.GetType().ToString()} trying to kill process {imageName} ({proc.Id})");
+                    }
+                }
+            }
         }
 
         private void ReportDiskUsage()
@@ -160,14 +185,20 @@ namespace Microsoft.DotNet.Build.Tasks
 
             // Attempt to cleanup any working folders which the VSTS agent doesn't know about.
             Console.WriteLine("Looking for additional '_work' directories which are unknown to the agent.");
+            cleanupTasks.Clear();
             Regex workingDirectoryRegex = new Regex(@"\\\d+$");
             var workingDirectories = Directory.GetDirectories(Path.Combine(AgentDirectory, "_work"), "*", SearchOption.TopDirectoryOnly).Where(w => workingDirectoryRegex.IsMatch(w));
             foreach (var workingDirectory in workingDirectories)
             {
                 if (!knownDirectories.Contains(workingDirectory))
                 {
-                    returnStatus &= await CleanupAgentDirectoryAsync(workingDirectory, 0).ConfigureAwait(false);
+                    cleanupTasks.Add(CleanupAgentDirectoryAsync(workingDirectory, 0));
                 }
+            }
+            System.Threading.Tasks.Task.WaitAll(cleanupTasks.ToArray());
+            foreach (var cleanupTask in cleanupTasks)
+            {
+                returnStatus &= cleanupTask.Result;
             }
             return returnStatus;
         }
