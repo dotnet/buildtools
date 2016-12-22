@@ -2,7 +2,7 @@
 
 This document describes the design of the BuildTools test targets. For documentation on their usage, see [Test Targets](test-targets-usage.md).
 
-The primary entry points are the [`Test` target](https://github.com/dotnet/buildtools/blob/73375848b73a586a8ac439a1263b605901414ad8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/tests.targets#L336) in Microsoft.DotNet.Build.Tasks and the [`CloudBuild` target](https://github.com/dotnet/buildtools/blob/73375848b73a586a8ac439a1263b605901414ad8/src/Microsoft.DotNet.Build.CloudTestTasks/PackageFiles/CloudTest.targets#L79) in Microsoft.DotNet.Build.CloudTestTasks, which are each described below.
+The primary entry points are the [`Test` target](https://github.com/dotnet/buildtools/blob/87422f6cb8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/tests.targets#L340) in Microsoft.DotNet.Build.Tasks and the [`CloudBuild` target](https://github.com/dotnet/buildtools/blob/87422f6cb8/src/Microsoft.DotNet.Build.CloudTestTasks/PackageFiles/CloudTest.targets#L79) in Microsoft.DotNet.Build.CloudTestTasks, which are each described below.
 
 ## `Test` target
 
@@ -17,24 +17,24 @@ When the tests are run in Helix, the common test runtime dependencies which aren
 
 The `Test` target depends on the following targets:
 
-#### [`SetupTestProperties`](https://github.com/dotnet/buildtools/blob/73375848b73a586a8ac439a1263b605901414ad8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/tests.targets#L321)
+#### [`SetupTestProperties`](https://github.com/dotnet/buildtools/blob/87422f6cb8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/tests.targets#L325)
 Sets properties and items for the `Test` target. For example, `GetDefaultTestRid` sets the `TestNugetRuntimeId` property if it isn't already set, and `CheckTestPlatforms` disables the execution of the tests if the `TargetOS` is unsupported.
 
-#### [`CopyTestToTestDirectory`](https://github.com/dotnet/buildtools/blob/73375848b73a586a8ac439a1263b605901414ad8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/publishtest.targets#L142)
+#### [`CopyTestToTestDirectory`](https://github.com/dotnet/buildtools/blob/87422f6cb8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/publishtest.targets#L143)
 
-Copies the test dependencies which are specific to the test project (e.g. the binaries for the test project and the projects it directly references) to the test directory. This copy happens at build-time in all cases. These items are calculated in [`DiscoverTestInputs`](https://github.com/dotnet/buildtools/blob/73375848b73a586a8ac439a1263b605901414ad8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/tests.targets#L126).
+Copies the test dependencies which are specific to the test project (e.g. the binaries for the test project and the projects it directly references) to the test directory. This copy happens at build-time in all cases. These items are calculated in [`DiscoverTestInputs`](https://github.com/dotnet/buildtools/blob/87422f6cb8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/tests.targets#L125).
 
-The [`CopySupplementalTestData`](https://github.com/dotnet/buildtools/blob/73375848b73a586a8ac439a1263b605901414ad8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/publishtest.targets#L161) target is executed after this target. This target copies the `SupplementalTestData` items to the test execution directory, which are files that are shared between multiple projects. These are copied in a separate step because, unlike the other files, they cannot be copied using hard links; doing so would result in race conditions between the archiving and copying of different links of the file. 
+The [`CopySupplementalTestData`](https://github.com/dotnet/buildtools/blob/87422f6cb8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/publishtest.targets#L162) target is executed after this target. This target copies the `SupplementalTestData` items to the test execution directory, which are files that are shared between multiple projects. These are copied in a separate step because, unlike the other files, they cannot be copied using hard links; doing so would result in race conditions between the archiving and copying of different links of the file. 
 
-#### [`CopyDependenciesToTestDirectory`](https://github.com/dotnet/buildtools/blob/73375848b73a586a8ac439a1263b605901414ad8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/publishtest.targets#L195)
+#### [`CopyDependenciesToTestDirectory`](https://github.com/dotnet/buildtools/blob/87422f6cb8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/publishtest.targets#L196)
 
-Copies the common test runtime dependencies which aren't directly referenced by the test project to the test execution directory. These items are calculated in [`DiscoverTestDependencies`](https://github.com/dotnet/buildtools/blob/73375848b73a586a8ac439a1263b605901414ad8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/publishtest.targets#L24). This target is only executed when not archiving the tests.
+Copies the common test runtime dependencies which aren't directly referenced by the test project to the test execution directory. These items are calculated in [`DiscoverTestDependencies`](https://github.com/dotnet/buildtools/blob/87422f6cb8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/publishtest.targets#L24). This target is only executed when not archiving the tests.
 
-#### [`GenerateTestBindingRedirects`](https://github.com/dotnet/buildtools/blob/73375848b73a586a8ac439a1263b605901414ad8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/tests.targets#L150)
+#### [`GenerateTestBindingRedirects`](https://github.com/dotnet/buildtools/blob/87422f6cb8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/tests.targets#L151)
 
 Generates assembly binding redirects when running tests against .NET Framework Desktop.
 
-#### [`GenerateTestExecutionScripts`](https://github.com/dotnet/buildtools/blob/73375848b73a586a8ac439a1263b605901414ad8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/tests.targets#L167)
+#### [`GenerateTestExecutionScripts`](https://github.com/dotnet/buildtools/blob/87422f6cb8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/tests.targets#L168)
 
 Generates a script for running the tests. This script is either a batch file or a Bash script, depending on the `TargetOS`.
 
@@ -43,21 +43,21 @@ The script performs two high-level steps:
 1. Copies the common test runtime dependencies calculated in `DiscoverTestDependencies` to the test execution directory. Each copy command no-ops if the file already exists in the test execution directory.
 2. Runs the tests.
 
-#### [`RunTestsForProject`](https://github.com/dotnet/buildtools/blob/73375848b73a586a8ac439a1263b605901414ad8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/tests.targets#L261)
+#### [`RunTestsForProject`](https://github.com/dotnet/buildtools/blob/87422f6cb8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/tests.targets#L265)
 
 Runs the tests by invoking the test execution script. This target can be skipped by setting the `SkipTests` property to `True`.
 
-This target is not executed if the [input files](https://github.com/dotnet/buildtools/blob/73375848b73a586a8ac439a1263b605901414ad8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/tests.targets#L128-L132) (the test project's binaries and direct dependencies) have not changed since the tests were last successfully run. This behavior can be overriden by setting the `ForceRunTests` property to `True`. This is implemented by creating a `TestsSuccessfulSemaphore` file when the tests are successfully run and declaring it as one of the `Outputs` of the `RunTestsForProject` target; this sempahore is deleted in `SetupTestProperties` if `ForceRunTests` is true.
+This target is not executed if the [input files](https://github.com/dotnet/buildtools/blob/87422f6cb8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/tests.targets#L129-L133) (the test project's binaries and direct dependencies) have not changed since the tests were last successfully run. This behavior can be overriden by setting the `ForceRunTests` property to `True`. This is implemented by creating a `TestsSuccessfulSemaphore` file when the tests are successfully run and declaring it as one of the `Outputs` of the `RunTestsForProject` target; this sempahore is deleted in `SetupTestProperties` if `ForceRunTests` is true.
 
-#### [`ArchiveTestBuild`](https://github.com/dotnet/buildtools/blob/73375848b73a586a8ac439a1263b605901414ad8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/publishtest.targets#L220)
+#### [`ArchiveTestBuild`](https://github.com/dotnet/buildtools/blob/87422f6cb8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/publishtest.targets#L221)
 
 Archives the test execution directory. This target is only executed if `ArchiveTests` is set to `True`.
 
 ## Debugging a test project in Visual Studio
 
-When building a test project in Visual Studio, the build [sets the project's debug settings](https://github.com/dotnet/buildtools/blob/73375848b73a586a8ac439a1263b605901414ad8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/tests.targets#L117-L123) to directly invoke the test program (e.g. the XUnit executable) to run the tests. This is used instead of the test execution script because the tests can only be debugged by attaching directly to the test program's process.
+When building a test project in Visual Studio, the build [sets the project's debug settings](https://github.com/dotnet/buildtools/blob/87422f6cb8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/tests.targets#L117-L123) to directly invoke the test program (e.g. the XUnit executable) to run the tests. This is used instead of the test execution script because the tests can only be debugged by attaching directly to the test program's process.
 
-It then executes a subset of the `Test` subtargets: `CopyTestToTestDirectory`, `CopyDependenciesToTestDirectory`, and `GenerateTestBindingRedirects`. This is achieved by [adding them to `PrepareForRunDependsOn`](https://github.com/dotnet/buildtools/blob/73375848b73a586a8ac439a1263b605901414ad8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/publishtest.targets#L201-L203).
+It then executes a subset of the `Test` subtargets: `CopyTestToTestDirectory`, `CopyDependenciesToTestDirectory`, and `GenerateTestBindingRedirects`. This is achieved by [adding them to `PrepareForRunDependsOn`](https://github.com/dotnet/buildtools/blob/87422f6cb8/src/Microsoft.DotNet.Build.Tasks/PackageFiles/publishtest.targets#L202-L204).
 
 ## `CloudBuild` target
 
@@ -70,18 +70,18 @@ The `CloudBuild` target is used to run tests in Helix. At a high level, this tar
 
 It depends on the following targets:
 
-#### [`VerifyInputs`](https://github.com/dotnet/buildtools/blob/73375848b73a586a8ac439a1263b605901414ad8/src/Microsoft.DotNet.Build.CloudTestTasks/PackageFiles/CloudTest.targets#L84)
+#### [`VerifyInputs`](https://github.com/dotnet/buildtools/blob/87422f6cb8/src/Microsoft.DotNet.Build.CloudTestTasks/PackageFiles/CloudTest.targets#L84)
 
 Verifies that all required properties have been specified, and then gathers the test archives for this build, optionally filtering them based on `FilterToTestTFM` and `FilterToOSGroup`.
 
-#### [`PreCloudBuild`](https://github.com/dotnet/buildtools/blob/73375848b73a586a8ac439a1263b605901414ad8/src/Microsoft.DotNet.Build.CloudTestTasks/PackageFiles/CloudTest.targets#L187)
+#### [`PreCloudBuild`](https://github.com/dotnet/buildtools/blob/87422f6cb8/src/Microsoft.DotNet.Build.CloudTestTasks/PackageFiles/CloudTest.targets#L187)
 
 Prepares other files required for running the tests in Helix to be uploaded to Azure, such as the runner scripts and the TestILC folder if using .NET Native.
 
-#### [`CreateTestListJson`](https://github.com/dotnet/buildtools/blob/73375848b73a586a8ac439a1263b605901414ad8/src/Microsoft.DotNet.Build.CloudTestTasks/PackageFiles/CloudTest.targets#L256)
+#### [`CreateTestListJson`](https://github.com/dotnet/buildtools/blob/87422f6cb8/src/Microsoft.DotNet.Build.CloudTestTasks/PackageFiles/CloudTest.targets#L256)
 
 Generates JSON files specifying information used when running the tests in Helix.
 
-#### [`UploadContent`](https://github.com/dotnet/buildtools/blob/73375848b73a586a8ac439a1263b605901414ad8/src/Microsoft.DotNet.Build.CloudTestTasks/PackageFiles/CloudTest.targets#L407)
+#### [`UploadContent`](https://github.com/dotnet/buildtools/blob/87422f6cb8/src/Microsoft.DotNet.Build.CloudTestTasks/PackageFiles/CloudTest.targets#L408)
 
 Uploads the test archives and other required files to Azure, and then submits a Helix job which downloads the archives and runs the tests.
