@@ -117,7 +117,7 @@
         <UnixPlatformTestArchivesListFile>$(UnixTestArchivesRoot)/$(UnixPlatformConfig)-Test-Archive-List.txt</UnixPlatformTestArchivesListFile>
     </PropertyGroup>
 
-    <!-- This is where we craft our archive Listes. These will sit at the base of the uploaded package. -->
+    <!-- This is where we craft our archive lists. These will sit at the base of the uploaded package. -->
     <WriteLinesToFile 
         File="$(OSPlatformTestArchivesListFile)"
         Lines="@(OSPlatformTestArchives -> '%(Filename)%(Extension)')"
@@ -253,6 +253,7 @@
     </CreateAzureContainer>
   </Target>
 
+  <!-- generate JSON files specifying information used when running the tests in Helix -->
   <Target Name="CreateTestListJson"
           DependsOnTargets="CreateFuncTestListJson;CreatePerfTestListJson" />
 
