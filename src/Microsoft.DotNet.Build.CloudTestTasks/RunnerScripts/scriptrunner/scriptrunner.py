@@ -84,7 +84,7 @@ def main(args=None):
 
         return return_code
 
-    return command_main(_main, ['script='], args)
+    return command_main(_main, ['script=', 'args='], args)
 
 if __name__ == '__main__':
     import sys
