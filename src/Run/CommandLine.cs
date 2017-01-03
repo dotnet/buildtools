@@ -374,7 +374,7 @@ class CommandLine
         /// parsable types (values are comma separated without space).
         ///
         /// Qualifiers that are defined BEFORE any parameter sets apply to ALL parameter sets.  qualifiers that
-        /// are defined AFTER a parameter set will apply only the the parameter set that preceeds them.
+        /// are defined AFTER a parameter set will apply only the the parameter set that precedes them.
         ///
         /// See code:#DefiningParametersAndQualifiers
         /// See code:#Overview
@@ -889,7 +889,7 @@ class CommandLine
         }
         private static bool IsDash(char c)
         {
-            // can be any of ASCII dash (0x002d), endash (0x2013), emdash (0x2014) or hori-zontal bar (0x2015).
+            // can be any of ASCII dash (0x002d), endash (0x2013), emdash (0x2014) or horizontal bar (0x2015).
             return c == '-' || ('\x2013' <= c && c <= '\x2015');
         }
 
@@ -898,14 +898,23 @@ class CommandLine
         /// </summary>
         private bool IsQualifier(string arg)
         {
-            if (arg.Length < 1)
-                return false;
-            if (IsDash(arg[0]))
-                return true;
-            if (!_qualifiersUseOnlyDash && arg[0] == '/')
-                return true;
-            return false;
+            return QualifierLength(arg) > 0;
         }
+
+        /// <summary>
+        /// Returns length of qualifier if 'arg' is a qualifier and begins with --, -, or /
+        /// </summary>
+        private int QualifierLength(string arg)
+        {
+            if (arg.Length < 1)
+                return 0;
+            if (arg.Length >= 2 && IsDash(arg[0]) && IsDash(arg[1]))
+                return 2;
+            if (IsDash(arg[0]) || (!_qualifiersUseOnlyDash && arg[0] == '/'))
+                return 1;
+            return 0;
+        }
+
 
         /// <summary>
         /// Qualifiers have the syntax -/NAME=Value.  This returns the NAME
@@ -913,20 +922,21 @@ class CommandLine
         private string ParseParameterName(string arg)
         {
             string ret = null;
-            if (arg != null && IsQualifier(arg))
+            int qualifierLength = QualifierLength(arg);
+            if (arg != null && qualifierLength > 0)
             {
                 int endName = arg.IndexOfAny(s_separators);
                 if (endName < 0)
                     endName = arg.Length;
-                ret = arg.Substring(1, endName - 1);
+                ret = arg.Substring(qualifierLength, endName - qualifierLength);
             }
             return ret;
         }
 
 
         /// <summary>
-        /// Parses 'commandLine' into words (space separated items).  Handles quoting (using double quotes)
-        /// and handles escapes of double quotes and backslashes with the \" and \\ syntax.
+        /// Parses 'commandLine' into words (space-separated items).  Handles quoting (using double quotes)
+        /// and handles escaping of double quotes and backslashes with the \" and \\ syntax.
         /// In theory this mimics the behavior of the parsing done before Main to parse the command line into
         /// the string[].
         /// </summary>
@@ -1128,7 +1138,9 @@ class CommandLine
                 string name = ParseParameterName(arg);
                 if (name != null)
                 {
-                    if (IsDash(name[0]))
+                    // While regular qualifiers support -, --, and /, 
+                    // extra parameters are only specified with '-- '
+                    if (name == "" && (QualifierLength(arg) == 2)) 
                     {
                         _args[i] = null;
                         i++;
@@ -1355,7 +1367,7 @@ class CommandLine
                 ParseWordsIntoQualifiers();
 
             if (!_paramSetEncountered && _positionalArgEncountered)
-                throw new CommandLineParserDesignerException("Positional parameters must not preceed parameter set definitions.");
+                throw new CommandLineParserDesignerException("Positional parameters must not precede parameter set definitions.");
 
             _paramSetEncountered = true;
             _positionalArgEncountered = false;               // each parameter set gets a new arg set
@@ -1372,7 +1384,7 @@ class CommandLine
             if (_skipParameterSets)
                 return false;
 
-            // Have we just finish with the parameter set that was actually on the command line?
+            // Have we just finished with the parameter set that was actually on the command line?
             if (_parameterSetName != null)
             {
                 _skipDefinitions = true;
