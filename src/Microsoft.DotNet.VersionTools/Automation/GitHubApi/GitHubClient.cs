@@ -62,8 +62,15 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             string path,
             GitHubBranch branch)
         {
-            GitHubContents file = await GetGitHubFileAsync(path, branch);
-            return FromBase64(file.Content);
+            try
+            {
+                GitHubContents file = await GetGitHubFileAsync(path, branch);
+                return FromBase64(file.Content);
+            }
+            catch (HttpFailureResponseException ex) when (ex.HttpStatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
         }
 
         public async Task PutGitHubFileAsync(
@@ -339,7 +346,7 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
                 {
                     message += $" with content: {failureContent}";
                 }
-                throw new HttpRequestException(message);
+                throw new HttpFailureResponseException(response.StatusCode, message);
             }
         }
 

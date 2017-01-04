@@ -114,12 +114,21 @@ namespace Microsoft.DotNet.VersionTools.Automation
                             {
                                 Dictionary<string, string> existingPackages = await GetPackagesAsync(client, latestPackagesPath);
 
-                                // Add each existing package if there isn't a new package with the same id.
-                                foreach (var package in existingPackages)
+                                if (existingPackages == null)
                                 {
-                                    if (!allPackages.ContainsKey(package.Key))
+                                    Trace.TraceInformation(
+                                        "No exising Latest_Packages file found; one will be " +
+                                        $"created in '{versionsRepoPath}'");
+                                }
+                                else
+                                {
+                                    // Add each existing package if there isn't a new package with the same id.
+                                    foreach (var package in existingPackages)
                                     {
-                                        allPackages[package.Key] = package.Value;
+                                        if (!allPackages.ContainsKey(package.Key))
+                                        {
+                                            allPackages[package.Key] = package.Value;
+                                        }
                                     }
                                 }
                             }
@@ -187,6 +196,12 @@ namespace Microsoft.DotNet.VersionTools.Automation
             string latestPackages = await client.GetGitHubFileContentsAsync(
                 path,
                 new GitHubBranch("master", _project));
+
+            if (latestPackages == null)
+            {
+                Trace.TraceInformation($"No versions repository file '{path}' found.");
+                return null;
+            }
 
             using (var reader = new StringReader(latestPackages))
             {
