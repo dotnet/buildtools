@@ -80,6 +80,7 @@ sharedFxVersion="<auto>"
 force=
 forcedCliLocalPath="<none>"
 architecture="<auto>"
+dotNetInstallBranch="rel/1.0.0"
 
 while [ $# -ne 0 ]
 do
@@ -104,6 +105,10 @@ do
         -a|--architecture|-[Aa]rchitecture)
             shift
             architecture="$1"
+            ;;
+        --dotNetInstallBranch|-[Dd]ot[Nn]et[Ii]nstall[Bb]ranch)
+            shift
+            dotNetInstallBranch="$1"
             ;;
         --sharedFrameworkSymlinkPath|--symlink|-[Ss]haredFrameworkSymlinkPath)
             shift
@@ -172,7 +177,7 @@ if [ $forcedCliLocalPath = "<none>" ]; then
     check_min_reqs
 
     # download CLI boot-strapper script
-    download "https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0/scripts/obtain/dotnet-install.sh" "$dotnetInstallPath"
+    download "https://raw.githubusercontent.com/dotnet/cli/$dotNetInstallBranch/scripts/obtain/dotnet-install.sh" "$dotnetInstallPath"
     chmod u+x "$dotnetInstallPath"
 
     # load the version of the CLI
