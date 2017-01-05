@@ -199,7 +199,6 @@ namespace Microsoft.DotNet.VersionTools.Automation
 
             if (latestPackages == null)
             {
-                Trace.TraceInformation($"No versions repository file '{path}' found.");
                 return null;
             }
 
