@@ -13,8 +13,10 @@ namespace Microsoft.DotNet.Build.VstsBuildsApi
 {
     internal class VstsReleaseHttpClient : VstsDefinitionHttpClient
     {
+        private const string ReleaseApiType = "release";
+
         public VstsReleaseHttpClient(JObject definition, VstsApiEndpointConfig config)
-            : base(new Uri(definition["url"].ToString()), config)
+            : base(new Uri(definition["url"].ToString()), config, ReleaseApiType)
         {
         }
 
@@ -22,8 +24,6 @@ namespace Microsoft.DotNet.Build.VstsBuildsApi
             await JsonClient.PutAsync(
                 GetRequestUri(definition, "definitions"),
                 definition);
-
-        protected override string ApiType => "release";
 
         protected override bool IsMatching(JObject localDefinition, JObject retrievedDefinition)
         {

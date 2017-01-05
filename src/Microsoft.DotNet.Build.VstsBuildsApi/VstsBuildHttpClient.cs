@@ -10,12 +10,12 @@ namespace Microsoft.DotNet.Build.VstsBuildsApi
 {
     internal class VstsBuildHttpClient : VstsDefinitionHttpClient
     {
+        private const string BuildApiType = "builds";
+
         public VstsBuildHttpClient(JObject definition, VstsApiEndpointConfig config)
-            : base(new Uri(definition["project"]["url"].ToString()), config)
+            : base(new Uri(definition["project"]["url"].ToString()), config, BuildApiType)
         {
         }
-
-        protected override string ApiType => "builds";
 
         protected override bool IsMatching(JObject localDefinition, JObject retrievedDefinition)
         {

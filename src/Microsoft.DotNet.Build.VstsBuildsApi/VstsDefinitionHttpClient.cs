@@ -16,13 +16,22 @@ namespace Microsoft.DotNet.Build.VstsBuildsApi
     /// </summary>
     internal abstract class VstsDefinitionHttpClient
     {
-        private VstsApiEndpointConfig _config;
+        private readonly VstsApiEndpointConfig _config;
+
+        /// <summary>
+        /// The type of API this is: the path segment preceding the "command" in GetRequestUri.
+        /// </summary>
+        private readonly string _apiType;
 
         protected JsonHttpClient JsonClient { get; }
 
-        protected VstsDefinitionHttpClient(Uri baseAddress, VstsApiEndpointConfig config)
+        protected VstsDefinitionHttpClient(
+            Uri baseAddress,
+            VstsApiEndpointConfig config,
+            string apiType)
         {
             _config = config;
+            _apiType = apiType;
             JsonClient = new JsonHttpClient(
                 new Uri($"{baseAddress.Scheme}://{baseAddress.Authority}/"),
                 config.Credentials);
@@ -103,7 +112,7 @@ namespace Microsoft.DotNet.Build.VstsBuildsApi
             args["api-version"] = _config.ApiVersion;
             string argsQuery = string.Join("&", args.Select(arg => $"{arg.Key}={Uri.EscapeDataString(arg.Value)}"));
 
-            return $"DefaultCollection/{GetDefinitionProject(definition)}/_apis/{ApiType}/{command}?{argsQuery}";
+            return $"DefaultCollection/{GetDefinitionProject(definition)}/_apis/{_apiType}/{command}?{argsQuery}";
         }
 
         /// <summary>
@@ -118,11 +127,6 @@ namespace Microsoft.DotNet.Build.VstsBuildsApi
         /// From a definition object, get the project it belongs to.
         /// </summary>
         protected abstract string GetDefinitionProject(JObject definition);
-
-        /// <summary>
-        /// The type of API this is: the path segment preceding the "command" in GetRequestUri.
-        /// </summary>
-        protected abstract string ApiType { get; }
 
         /// <summary>
         /// Determine if the definitions match well enough that replacing the retrieved definition
