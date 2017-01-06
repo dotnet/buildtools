@@ -26,3 +26,5 @@ def buildString = '''call "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0
         Utilities.addGithubPushTrigger(newJob)
     }
 }
+
+Utilities.addCROSSCheck(this, project, branch)
