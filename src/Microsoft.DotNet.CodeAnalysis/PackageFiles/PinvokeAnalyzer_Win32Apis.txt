@@ -5398,6 +5398,7 @@ advapi32.dll!CryptSignHashA
 advapi32.dll!CryptSignHashW
 advapi32.dll!CryptVerifySignatureA
 advapi32.dll!CryptVerifySignatureW
+advapi32.dll!DecryptFileW
 advapi32.dll!DeleteAce
 advapi32.dll!DeleteService
 advapi32.dll!DeregisterEventSource
@@ -5411,6 +5412,7 @@ advapi32.dll!ElfReportEventW
 advapi32.dll!EnableTrace
 advapi32.dll!EnableTraceEx
 advapi32.dll!EnableTraceEx2
+advapi32.dll!EncryptFileW
 advapi32.dll!EnumDependentServicesW
 advapi32.dll!EnumDynamicTimeZoneInformation
 advapi32.dll!EnumerateTraceGuids
@@ -5724,6 +5726,7 @@ advapi32.dll!UnregisterTraceGuids
 advapi32.dll!UpdateTraceA
 advapi32.dll!UpdateTraceW
 advapi32.dll!WaitServiceState
+combase.dll!RoGetActivationFactory
 kernel32.dll!_lclose
 kernel32.dll!_lcreat
 kernel32.dll!_llseek
@@ -6744,11 +6747,13 @@ kernel32.dll!ZombifyActCtx
 normaliz.dll!IdnToAscii
 normaliz.dll!IdnToNameprepUnicode
 normaliz.dll!IdnToUnicode
+ole32.dll!BindMoniker
 ole32.dll!CLIPFORMAT_UserFree
 ole32.dll!CLIPFORMAT_UserMarshal
 ole32.dll!CLIPFORMAT_UserSize
 ole32.dll!CLIPFORMAT_UserUnmarshal
 ole32.dll!CLSIDFromProgID
+ole32.dll!CLSIDFromProgIDEx
 ole32.dll!CLSIDFromString
 ole32.dll!CoAddRefServerProcess
 ole32.dll!CoAllowUnmarshalerCLSID
@@ -6837,6 +6842,7 @@ ole32.dll!CoUnmarshalHresult
 ole32.dll!CoUnmarshalInterface
 ole32.dll!CoWaitForMultipleHandles
 ole32.dll!CoWaitForMultipleObjects
+ole32.dll!CreateBindCtx
 ole32.dll!CreateStreamOnHGlobal
 ole32.dll!CStdAsyncStubBuffer_AddRef
 ole32.dll!CStdAsyncStubBuffer_Connect
@@ -6898,6 +6904,7 @@ ole32.dll!HWND_UserMarshal
 ole32.dll!HWND_UserSize
 ole32.dll!HWND_UserUnmarshal
 ole32.dll!IIDFromString
+ole32.dll!MkParseDisplayName
 ole32.dll!NdrProxyForwardingFunction10
 ole32.dll!NdrProxyForwardingFunction11
 ole32.dll!NdrProxyForwardingFunction12
@@ -6966,6 +6973,7 @@ ole32.dll!StringFromCLSID
 ole32.dll!StringFromGUID2
 ole32.dll!StringFromIID
 ole32.dll!UpdateDCOMSettings
+secur32.dll!GetUserNameExW
 shell32.dll!CommandLineToArgvW
 shell32.dll!GetCurrentProcessExplicitAppUserModelID
 shell32.dll!PathCleanupSpec
@@ -7247,6 +7255,8 @@ shlwapi.dll!UrlIsOpaqueW
 shlwapi.dll!UrlIsW
 shlwapi.dll!UrlUnescapeA
 shlwapi.dll!UrlUnescapeW
+user32.dll!LoadStringW
+user32.dll!SendMessageTimeoutW
 version.dll!GetFileVersionInfoA
 version.dll!GetFileVersionInfoExW
 version.dll!GetFileVersionInfoSizeA
@@ -7267,9 +7277,15 @@ api-ms-win-core-winrt-error-l1-1-0.dll!RoFailFastWithErrorContext
 api-ms-win-core-winrt-error-l1-1-0.dll!RoGetErrorReportingFlags
 api-ms-win-core-winrt-error-l1-1-0.dll!RoOriginateError
 api-ms-win-core-winrt-error-l1-1-0.dll!RoOriginateErrorW
+api-ms-win-core-winrt-error-l1-1-1.dll!RoOriginateLanguageException
+api-ms-win-core-winrt-error-l1-1-1.dll!RoReportUnhandledError
 api-ms-win-core-winrt-error-l1-1-0.dll!RoResolveRestrictedErrorInfoReference
 api-ms-win-core-winrt-error-l1-1-0.dll!RoSetErrorReportingFlags
 api-ms-win-core-winrt-error-l1-1-0.dll!RoTransformError
 api-ms-win-core-winrt-error-l1-1-0.dll!RoTransformErrorW
 api-ms-win-core-winrt-error-l1-1-0.dll!SetRestrictedErrorInfo
 api-ms-win-core-winrt-robuffer-l1-1-0.dll!RoGetBufferMarshaler
+api-ms-win-core-winrt-string-l1-1-0.dll!WindowsCreateString
+api-ms-win-core-winrt-string-l1-1-0.dll!WindowsCreateStringReference
+api-ms-win-core-winrt-string-l1-1-0.dll!WindowsDeleteString
+api-ms-win-core-winrt-string-l1-1-0.dll!WindowsGetStringRawBuffer
