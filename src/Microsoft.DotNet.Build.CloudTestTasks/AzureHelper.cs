@@ -338,7 +338,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             Dictionary<string, HashSet<string>> values = new Dictionary<string, HashSet<string>>();
             //Decode this to allow the regex to pull out the correct groups for signing
             address = new Uri(WebUtility.UrlDecode(address.ToString()));
-            Regex newreg = new Regex(@"\?(\w+)\=([\w|\=]+)|\&(\w+)\=([\w|\=]+)");
+            Regex newreg = new Regex(@"(?:\?|&)([^=]+)=([^&]+)");
             MatchCollection matches = newreg.Matches(address.Query);
             foreach (Match match in matches)
             {

@@ -53,7 +53,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             Log.LogMessage(MessageImportance.Normal, "Downloading contents of container {0} from storage account '{1}' to directory {2}.",
                 ContainerName, AccountName, DownloadDirectory);
 
-            List<string> blobsNames = null;
+            List<string> blobsNames = new List<string>();
             string urlListBlobs = string.Format("https://{0}.blob.core.windows.net/{1}?restype=container&comp=list", AccountName, ContainerName);
 
             Log.LogMessage(MessageImportance.Low, "Sending request to list blobsNames for container '{0}'.", ContainerName);
@@ -78,22 +78,41 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                     };
 
                     XmlDocument responseFile;
+                    string nextMarker = string.Empty;
                     using (HttpResponseMessage response = await AzureHelper.RequestWithRetry(Log, client, createRequest))
                     {
                         responseFile = new XmlDocument();
                         responseFile.LoadXml(await response.Content.ReadAsStringAsync());
                         XmlNodeList elemList = responseFile.GetElementsByTagName("Name");
 
-                        blobsNames = elemList.Cast<XmlNode>()
+                        blobsNames.AddRange(elemList.Cast<XmlNode>()
                                                     .Select(x => x.InnerText)
-                                                    .ToList();
+                                                    .ToList());
+                        nextMarker = responseFile.GetElementsByTagName("NextMarker").Cast<XmlNode>().FirstOrDefault()?.InnerText;
+                    }
+                    while (!string.IsNullOrEmpty(nextMarker))
+                    {
+                        urlListBlobs = string.Format($"https://{AccountName}.blob.core.windows.net/{ContainerName}?restype=container&comp=list&marker={nextMarker}");
+                        using (HttpResponseMessage response = AzureHelper.RequestWithRetry(Log, client, createRequest).GetAwaiter().GetResult())
+                        {
+                            responseFile = new XmlDocument();
+                            responseFile.LoadXml(response.Content.ReadAsStringAsync().GetAwaiter().GetResult());
+                            XmlNodeList elemList = responseFile.GetElementsByTagName("Name");
 
-                        if (blobsNames.Count == 0)
-                            Log.LogWarning("No blobs were found.");
+                            blobsNames.AddRange(elemList.Cast<XmlNode>()
+                                                        .Select(x => x.InnerText)
+                                                        .ToList());
+
+                            nextMarker = responseFile.GetElementsByTagName("NextMarker").Cast<XmlNode>().FirstOrDefault()?.InnerText;
+                        }
                     }
 
                     // track the number of blobs that fail to download
                     int failureCount = 0;
+                    if (blobsNames.Count == 0)
+                        Log.LogWarning("No blobs were found.");
+                    else
+                        Log.LogMessage(MessageImportance.Low, $"{blobsNames.Count} blobs found.");
 
                     foreach (string blob in blobsNames)
                     {
