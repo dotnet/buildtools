@@ -45,7 +45,7 @@
        https://github.com/dotnet/buildtools/issues/343 -->
   <Target Name="CopyFrameworkLists" AfterTargets="CopyTestToTestDirectory" Inputs="%(TestTargetFramework.Folder)$(TestTFM)" Outputs="none">
     <PropertyGroup>
-      <_testDirectory>$(TestPath)%(TestTargetFramework.Folder)$(TestTFM)</_testDirectory>
+      <_testDirectory>$(TestPath)</_testDirectory>
     </PropertyGroup>
     <ItemGroup>
       <_frameworkList Include="..\src\FrameworkLists\**\*.xml">
