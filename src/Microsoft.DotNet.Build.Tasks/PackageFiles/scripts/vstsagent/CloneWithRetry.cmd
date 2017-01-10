@@ -18,7 +18,7 @@ set /a RETRY_COUNT=10
 set /a SLEEP_TIME=10
 set /a CLONE_DEPTH=1
 
-IF NOT DEFINED GIT SET "GIT=C:\Program Files (x86)\Git\cmd\git.exe"
+IF NOT DEFINED GIT SET "GIT=%PROGRAMFILES(X86)%\Git\cmd\git.exe"
 
 :while
 call "%GIT%" clone %REPO_URL% %FOLDER_NAME% --depth %CLONE_DEPTH%
