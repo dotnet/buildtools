@@ -133,6 +133,7 @@
       "defaultValues":{
         "toolName": "msbuild",
         "settings": {
+          "ConfigurationGroup": "default",
           "MsBuildLogging":"default"
         }
       }

@@ -15,7 +15,7 @@ if ((Test-Path $bootStrapperPath) -eq 0)
 }
 
 # now execute it
-& $bootStrapperPath (Get-Location) $toolsLocalPath | Out-File (Join-Path (Get-Location) "bootstrap.log")
+& $bootStrapperPath (Get-Location) $toolsLocalPath -DotNetInstallBranch "rel/1.0.0-preview2.1" | Out-File (Join-Path (Get-Location) "bootstrap.log")
 if ($LastExitCode -ne 0)
 {
     Write-Output "Boot-strapping failed with exit code $LastExitCode, see bootstrap.log for more information."
