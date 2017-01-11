@@ -47,7 +47,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="xunit.runner.utility.desktop, Version=2.2.0.3300, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\xunit.runner.utility.2.2.0-beta2-build3300\lib\net45\xunit.runner.utility.desktop.dll</HintPath>
+      <HintPath>..\..\packages\xunit.runner.utility.2.2.0-beta4-build3444\lib\net45\xunit.runner.utility.desktop.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
