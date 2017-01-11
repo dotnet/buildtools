@@ -5,6 +5,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 
@@ -12,7 +13,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
     public class PackageIndex
     {
-        public static PackageIndex Current { get; } = new PackageIndex();
+        static ConcurrentDictionary<string, PackageIndex> s_indexCache = new ConcurrentDictionary<string, PackageIndex>();
 
         public Dictionary<string, PackageInfo> Packages { get; set; } = new Dictionary<string, PackageInfo>();
 
@@ -22,6 +23,34 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
         [JsonIgnore]
         public HashSet<string> IndexSources { get; set; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        public static PackageIndex Load(IEnumerable<string> packageIndexFiles)
+        {
+            string indexKey = String.Join("|", packageIndexFiles);
+
+            PackageIndex result = null;
+
+            if (s_indexCache.TryGetValue(indexKey, out result))
+            {
+                return result;
+            }
+
+            foreach(var packageIndexFile in packageIndexFiles)
+            {
+                if (result == null)
+                {
+                    result = Load(packageIndexFile);
+                }
+                else
+                {
+                    result.Merge(packageIndexFile);
+                }
+            }
+
+            s_indexCache[indexKey] = result;
+
+            return result;
+        }
 
         public static PackageIndex Load(string packageIndexFile)
         {

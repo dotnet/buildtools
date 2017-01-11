@@ -407,10 +407,10 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 return;
             }
 
-            PackageIndex.Current.Merge(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
+            var index = PackageIndex.Load(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
 
             PackageInfo info;
-            if (!PackageIndex.Current.Packages.TryGetValue(PackageId, out info))
+            if (!index.Packages.TryGetValue(PackageId, out info))
             {
                 Log.LogError($"PackageIndex from {String.Join(", ", PackageIndexes.Select(i => i.ItemSpec))} is missing an entry for package {PackageId}.  Please run /t:UpdatePackageIndex on this project to commit an update.");
                 return;
@@ -454,7 +454,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 info.AssemblyVersionInPackageVersion.Count == 0)
             {
                 // if in the native module map
-                if (PackageIndex.Current.ModulesToPackages.Values.Any(p => p.Equals(PackageId)))
+                if (index.ModulesToPackages.Values.Any(p => p.Equals(PackageId)))
                 {
                     // ensure the baseline is set
                     if (info.BaselineVersion != thisPackageVersion)
@@ -467,7 +467,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     // not in the native module map, see if any of the modules in this package are present
                     // (with a different package, as would be the case for runtime-specific packages)
                     var moduleNames = allDlls.Select(d => Path.GetFileNameWithoutExtension(d.LocalPath));
-                    if (moduleNames.Any() && !moduleNames.Any(m => PackageIndex.Current.ModulesToPackages.ContainsKey(m)))
+                    if (moduleNames.Any() && !moduleNames.Any(m => index.ModulesToPackages.ContainsKey(m)))
                     {
                         Log.LogError($"PackageIndex from {String.Join(", ", PackageIndexes.Select(i => i.ItemSpec))} is missing ModulesToPackages entry(s) for {String.Join(", ", allDlls)} to package {PackageId}.  Please add a an entry for the appropriate package.");
                     }

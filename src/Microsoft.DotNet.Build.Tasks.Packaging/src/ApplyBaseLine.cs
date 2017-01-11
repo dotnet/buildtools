@@ -103,7 +103,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
         public void GetBaseLinedDependenciesFromIndex()
         {
-            PackageIndex.Current.Merge(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
+            var index = PackageIndex.Load(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
 
             List<ITaskItem> baseLinedDependencies = new List<ITaskItem>();
 
@@ -117,11 +117,11 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 // if we have an assembly version see if we have a better package version
                 if (assemblyVersion != null)
                 {
-                    packageVersion = PackageIndex.Current.GetPackageVersionForAssemblyVersion(packageId, assemblyVersion);
+                    packageVersion = index.GetPackageVersionForAssemblyVersion(packageId, assemblyVersion);
                 }
 
                 if (Apply &&
-                    PackageIndex.Current.TryGetBaseLineVersion(packageId, out baseLineVersion) &&
+                    index.TryGetBaseLineVersion(packageId, out baseLineVersion) &&
                     (packageVersion == null || baseLineVersion > packageVersion))
                 {
                     packageVersion = baseLineVersion;

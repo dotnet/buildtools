@@ -42,9 +42,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             if (PackageIndexes != null && PackageIndexes.Length > 0)
             {
-                PackageIndex.Current.Merge(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
+                var index = PackageIndex.Load(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
 
-                modulesToPackages = PackageIndex.Current.ModulesToPackages;
+                modulesToPackages = index.ModulesToPackages;
             }
             else
             {
