@@ -39,8 +39,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             if (PackageIndexes != null && PackageIndexes.Length > 0)
             {
-                PackageIndex.Current.Merge(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
-                isKnownPackage = packageId => PackageIndex.Current.Packages.ContainsKey(packageId);
+                var index = PackageIndex.Load(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
+                isKnownPackage = packageId => index.Packages.ContainsKey(packageId);
             }
             else
             {

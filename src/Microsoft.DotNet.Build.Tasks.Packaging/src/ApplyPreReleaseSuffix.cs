@@ -17,7 +17,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
     public class ApplyPreReleaseSuffix : PackagingTask
     {
         private Dictionary<string, Version> _stablePackageVersions;
-
+        private PackageIndex _index;
         /// <summary>
         /// Original dependencies without pre-release specifier.
         /// </summary>
@@ -64,7 +64,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             if (PackageIndexes != null && PackageIndexes.Length > 0)
             {
-                PackageIndex.Current.Merge(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
+                _index = PackageIndex.Load(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
             }
             else
             {
@@ -136,7 +136,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
             else
             {
-                isStable = PackageIndex.Current.IsStable(packageId, packageVersion);
+                isStable = _index.IsStable(packageId, packageVersion);
             }
 
             return isStable;
@@ -144,7 +144,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
         private string GetSuffix(string packageId)
         {
-            return PackageIndex.Current.GetPreRelease(packageId) ?? PreReleaseSuffix;
+            return _index.GetPreRelease(packageId) ?? PreReleaseSuffix;
         }
 
         private static Version ParseAs3PartVersion(string versionString)

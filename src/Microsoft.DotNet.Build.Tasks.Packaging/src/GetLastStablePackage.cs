@@ -115,7 +115,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
         public void GetLastStablePackagesFromIndex()
         {
-            PackageIndex.Current.Merge(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
+            var index = PackageIndex.Load(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
 
             List<ITaskItem> lastStablePackages = new List<ITaskItem>();
 
@@ -133,7 +133,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 var latestVersion = nuGetVersion?.Version;
 
                 PackageInfo info;
-                if (PackageIndex.Current.Packages.TryGetValue(packageId, out info))
+                if (index.Packages.TryGetValue(packageId, out info))
                 {
                     var candidateVersions = (latestVersion == null) ? info.StableVersions : info.StableVersions.Where(sv => sv < latestVersion);
 
