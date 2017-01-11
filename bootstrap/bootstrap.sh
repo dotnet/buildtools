@@ -33,16 +33,6 @@ say_verbose() {
     fi
 }
 
-invoke_annotated() {
-    # Print all args as a log message. Locally set IFS to a space to cleanly delimit in logs in case
-    # the user has IFS set to something else.
-    say_verbose "$(IFS=' '; echo "$*")"
-    # Remove the first argument, which provided a summary.
-    shift
-    # Execute remaining args as a command.
-    "$@"
-}
-
 machine_has() {
     eval $invocation
     
@@ -199,11 +189,8 @@ if [ $forcedCliLocalPath = "<none>" ]; then
     fi
 
     # now execute the script
-    invoke_annotated "Installing CLI:" \
-        "$dotnetInstallPath" \
-        --version "$dotNetCliVersion" \
-        --install-dir "$cliLocalPath" \
-        --architecture "$architecture"
+    say_verbose "installing CLI: $dotnetInstallPath --version \"$dotNetCliVersion\" --install-dir $cliLocalPath --architecture \"$architecture\""
+    $dotnetInstallPath --version "$dotNetCliVersion" --install-dir $cliLocalPath --architecture "$architecture"
     if [ $? != 0 ]; then
         say_err "The .NET CLI installation failed with exit code $?"
         exit $?
@@ -245,13 +232,9 @@ nugetOrgSource="https://api.nuget.org/v3/index.json"
 
 packagesPath="$repoRoot/packages"
 dotNetExe="$cliLocalPath/dotnet"
-
-invoke_annotated "Restoring tool packages:" \
-    "$dotNetExe" restore \
-    "$projectJson" \
-    --packages "$packagesPath" \
-    --source $buildToolsSource \
-    --source $nugetOrgSource
+restoreArgs="restore $projectJson --packages $packagesPath --source $buildToolsSource --source $nugetOrgSource"
+say_verbose "Running $dotNetExe $restoreArgs"
+$dotNetExe $restoreArgs
 if [ $? != 0 ]; then
     say_err "project.json restore failed with exit code $?"
     exit $?
