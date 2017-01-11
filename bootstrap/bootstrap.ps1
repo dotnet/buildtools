@@ -10,6 +10,12 @@ param
     [switch]$Force = $false
 )
 
+function Invoke-Annotated([string]$summary, [string]$command)
+{
+    Write-Host "$summary $installExpression"
+    Invoke-Expression $command
+}
+
 $rootToolVersions = Join-Path $RepositoryRoot ".toolversions"
 $bootstrapComplete = Join-Path $ToolsLocalPath "bootstrap.complete"
 
@@ -52,8 +58,11 @@ if (-Not (Test-Path $CliLocalPath))
 }
 
 # now execute the script
-Write-Host "$dotnetInstallPath -Version $dotNetCliVersion -InstallDir $CliLocalPath -Architecture ""$Architecture"""
-Invoke-Expression "$dotnetInstallPath -Version $dotNetCliVersion -InstallDir $CliLocalPath -Architecture ""$Architecture"""
+Invoke-Annotated "Installing CLI:" `
+    $dotnetInstallPath +
+    " -Version $dotNetCliVersion" +
+    " -InstallDir $CliLocalPath" +
+    " -Architecture ""$Architecture"""
 if ($LastExitCode -ne 0)
 {
     Write-Output "The .NET CLI installation failed with exit code $LastExitCode"
