@@ -2,6 +2,7 @@
   "dependencies": {
     "NETStandard.Library": "1.6.0",
     "xunit": "2.2.0-beta4-build3444",
+    "xunit.abstractions": "2.0.1-rc2"
   },
   "__comment": "RuntimeInformation and OSPlatform are not on netstandard1.0 hence 1.1 was selected",
   "frameworks": {

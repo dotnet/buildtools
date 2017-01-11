@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Xunit.Abstractions;
 
 #if XUNIT_CORE_DLL
@@ -7,20 +8,20 @@ namespace Xunit.Sdk
 namespace Xunit
 #endif
 {
-    internal class TestDiscoveryVisitor : TestMessageVisitor<IDiscoveryCompleteMessage>
+    internal class TestDiscoveryVisitor : TestMessageSink
     {
         public TestDiscoveryVisitor()
         {
             TestCases = new List<ITestCase>();
+
+            Discovery.TestCaseDiscoveryMessageEvent += Discovery_TestCaseDiscoveryMessageEvent;
         }
 
         public List<ITestCase> TestCases { get; private set; }
 
-        protected override bool Visit(ITestCaseDiscoveryMessage discovery)
+        private void Discovery_TestCaseDiscoveryMessageEvent(MessageHandlerArgs<ITestCaseDiscoveryMessage> args)
         {
-            TestCases.Add(discovery.TestCase);
-
-            return true;
+            TestCases.Add(args.Message.TestCase);
         }
     }
 }
