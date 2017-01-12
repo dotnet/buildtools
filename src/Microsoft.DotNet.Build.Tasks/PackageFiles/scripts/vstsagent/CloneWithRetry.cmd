@@ -16,13 +16,13 @@ set REPO_URL=%1
 set FOLDER_NAME=%2
 set /a RETRY_COUNT=10
 set /a SLEEP_TIME=10
-set /a CLONE_DEPTH=1
 
 IF NOT DEFINED GIT SET "GIT=%PROGRAMFILES(X86)%\Git\cmd\git.exe"
 
 :while
-call "%GIT%" clone %REPO_URL% %FOLDER_NAME% --depth %CLONE_DEPTH%
+call "%GIT%" clone %REPO_URL% %FOLDER_NAME%
 if %ERRORLEVEL% EQU 0 goto :done
+
 :failed
 set /a RETRY_COUNT-=1
 echo Clone failed.  Removing %FOLDER_NAME% in an attempt to get clone working, will retry in ~%SLEEP_TIME% seconds.
@@ -31,6 +31,5 @@ ping -n %SLEEP_TIME% 127.0.0.1 > NUL
 
 if %RETRY_COUNT% EQU 0 goto :done
 goto :while
-
 
 :done
