@@ -86,7 +86,9 @@ namespace Xunit.Shared
         protected XunitProject Parse(Predicate<string> fileExists)
         {
             var assemblies = new List<Tuple<string, string>>();
-            Reporter = new DefaultRunnerReporterWithTypes();
+#pragma warning disable CS0618 // Type or member is obsolete
+            Reporter = new DefaultRunnerReporter();
+#pragma warning restore CS0618 // Type or member is obsolete
 
             while (arguments.Count > 0)
             {

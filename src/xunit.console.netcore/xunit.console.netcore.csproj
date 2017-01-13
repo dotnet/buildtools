@@ -37,9 +37,6 @@
     <Compile Include="..\common\ParallelismOption.cs">
       <Link>Common\ParallelismOption.cs</Link>
     </Compile>
-    <Compile Include="..\common\TestDiscoveryVisitor.cs">
-      <Link>Common\TestDiscoveryVisitor.cs</Link>
-    </Compile>
     <Compile Include="CommandLine.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

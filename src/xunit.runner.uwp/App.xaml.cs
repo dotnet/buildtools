@@ -56,7 +56,9 @@ namespace XunitUwpRunner
                 try
                 {
                     using (var xunit = new XunitFrontController(AppDomainSupport.Denied, assembly.AssemblyFilename, assembly.ConfigFilename, assembly.Configuration.ShadowCopyOrDefault))
+#pragma warning disable CS0618 // Type or member is obsolete
                     using (var discoveryVisitor = new TestDiscoveryVisitor())
+#pragma warning restore CS0618 // Type or member is obsolete
                     {
                         // Discover & filter the tests
                         reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryStarting(assembly, false, false, discoveryOptions));
@@ -85,11 +87,13 @@ namespace XunitUwpRunner
                             reporterMessageHandler.OnMessage(new TestAssemblyExecutionStarting(assembly, executionOptions));
                             var assemblyElement = new XElement("assembly");
 
+#pragma warning disable CS0618 // Type or member is obsolete
                             IExecutionVisitor resultsVisitor = new XmlAggregateVisitor(reporterMessageHandler, completionMessages, assemblyElement, () => cancel);
                             if (commandLine.FailSkips)
                             {
                                 resultsVisitor = new FailSkipVisitor(resultsVisitor);
                             }
+#pragma warning restore CS0618 // Type or member is obsolete
 
                             xunit.RunTests(filteredTestCases, resultsVisitor, executionOptions);
                             
