@@ -10,7 +10,7 @@ namespace Microsoft.DotNet.Build.VstsBuildsApi
 {
     internal class VstsBuildHttpClient : VstsDefinitionHttpClient
     {
-        private const string BuildApiType = "builds";
+        private const string BuildApiType = "build";
 
         public VstsBuildHttpClient(JObject definition, VstsApiEndpointConfig config)
             : base(new Uri(definition["project"]["url"].ToString()), config, BuildApiType)
