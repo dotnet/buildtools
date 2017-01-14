@@ -144,7 +144,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
         private string GetSuffix(string packageId)
         {
-            return _index.GetPreRelease(packageId) ?? PreReleaseSuffix;
+            return _index?.GetPreRelease(packageId) ?? PreReleaseSuffix;
         }
 
         private static Version ParseAs3PartVersion(string versionString)
