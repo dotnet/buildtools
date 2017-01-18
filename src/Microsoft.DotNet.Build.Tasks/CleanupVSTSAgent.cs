@@ -239,27 +239,21 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 if (Directory.Exists(directory))
                 {
-                    bool tryAlternateDelete = false;
-                    Console.Write($"Attempting to cleanup {directory} ... ");
-                    try
+                    Log.LogMessage($"Attempting to cleanup {directory} ... ");
+
+                    // Unlike OSX and Linux, Windows has a hard limit of 260 chars on paths.
+                    // Some build definitions leave paths this long behind.  It's unusual, 
+                    // but robocopy has been on Windows by default since XP and understands 
+                    // how to stomp on long paths, so we'll use it to clean directories on Windows first.
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
-                        Directory.Delete(directory, true);
-                        Log.LogMessage("Success");
+                        Log.LogMessage($"Preventing PathTooLongException by using robocopy to delete {directory} ");
+                        string emptyFolderToMirror = GetUniqueEmptyFolder();
+                        Process.Start(new ProcessStartInfo("robocopy.exe", $"/mir {emptyFolderToMirror} {directory}  /NJH /NJS /NP") { UseShellExecute = false }).WaitForExit();
+                        Directory.Delete(emptyFolderToMirror);
                     }
-                    catch (PathTooLongException)
-                    {
-                        tryAlternateDelete = true;
-                    }
-                    catch (DirectoryNotFoundException)
-                    {
-                        // This may be being deleted by another thread, OR be > 260 chars
-                        tryAlternateDelete = true;
-                    }
-                    if (tryAlternateDelete && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    {
-                        Log.LogMessage($"Attempting to work around PathTooLongException by using robocopy and windows shell to delete {directory} ");
-                        Process.Start("robocopy.exe", $"/mir {GetUniqueEmptyFolder()} {directory}").WaitForExit();
-                    }
+                    Directory.Delete(directory, true);
+                    Log.LogMessage("Success");
                 }
                 else
                 {
