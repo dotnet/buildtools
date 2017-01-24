@@ -90,7 +90,7 @@ namespace Microsoft.DotNet.Build.Tasks
             foreach (string runCommand in TestCommands)
             {
                 testRunCommands.Append($"{runCommand}\n");
-                testRunEchoes.Append($"echo {runCommand}\n");
+                testRunEchoes.Append($"echo {runCommand}\n".Replace("(", "").Replace(")", ""));  // Remove parentheses from echo command to avoid errors on Linux
             }
             shExecutionTemplate = shExecutionTemplate.Replace("[[TestRunCommands]]", testRunCommands.ToString());
             shExecutionTemplate = shExecutionTemplate.Replace("[[TestRunCommandsEcho]]", testRunEchoes.ToString());
@@ -149,9 +149,6 @@ namespace Microsoft.DotNet.Build.Tasks
             }
 
             cmdExecutionTemplate = cmdExecutionTemplate.Replace("[[TestRunCommands]]", testRunCommands.ToString());
-            // Remove parentheses from echo command to avoid errors on Linux
-            testRunEchoes.Replace("(", "");
-            testRunEchoes.Replace(")", "");
             cmdExecutionTemplate = cmdExecutionTemplate.Replace("[[TestRunCommandsEcho]]", testRunEchoes.ToString());
 
             using (StreamWriter sw = new StreamWriter(new FileStream(outputPath, FileMode.Create)))
