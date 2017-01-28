@@ -19,7 +19,7 @@
         <RelativeBlobPath>$([System.String]::Copy('%(RecursiveDir)%(Filename)%(Extension)').Replace('\' ,'/'))</RelativeBlobPath> 
       </ForPublishing>
     </ItemGroup>
-    <Error Condition="'@(ForPublishing)' == ''" Text="No items were found matching pattern '$(PublishPattern)'." />
+    <Warning Condition="'@(ForPublishing)' == ''" Text="No items were found matching pattern '$(PublishPattern)'." />
   </Target>
 
   <!-- publishes items to blob storage in Azure -->
@@ -34,6 +34,7 @@
       ContainerName="$(ContainerName)" />
     <!-- now upload the items -->
     <UploadToAzure
+      Condition="'@(ForPublishing)' != ''"
       AccountKey="$(CloudDropAccessToken)"
       AccountName="$(CloudDropAccountName)"
       ContainerName="$(ContainerName)"
