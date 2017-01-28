@@ -19,8 +19,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetOS)'=='Windows_NT'">
     <XunitPerfAnalysisPackageId>Microsoft.DotNet.xunit.performance.analysis</XunitPerfAnalysisPackageId>
-    <XunitPerfAnalysisPath>$(PackagesDir)$(XunitPerfAnalysisPackageId)/$(XunitPerfAnalysisPackageVersion)/tools/xunit.performance.analysis.exe</XunitPerfAnalysisPath>
-    <XunitPerfAnalysisDir>$(PackagesDir)$(XunitPerfAnalysisPackageId)/$(XunitPerfAnalysisPackageVersion)/tools</XunitPerfAnalysisDir>
+    <XunitPerfAnalysisPath>$(PackagesDir)$(XunitPerfAnalysisPackageId)\$(XunitPerfAnalysisPackageVersion)\lib\netstandard1.3\xunit.performance.analysis.exe</XunitPerfAnalysisPath>
+    <XunitPerfAnalysisDir>$(PackagesDir)$(XunitPerfAnalysisPackageId)\$(XunitPerfAnalysisPackageVersion)\lib\netstandard1.3</XunitPerfAnalysisDir>
   </PropertyGroup>
 
 
@@ -43,13 +43,6 @@
           DestinationFolder="$(TestWorkingDir)SupplementalPayload/RunnerScripts/xunitrunner-perf"
           SkipUnchangedFiles="true"
           Condition="'$(TargetOS)'=='Linux'"/>
-    <!-- The packages Microsoft.DotNet.xunit.performance.runner.Windows and Microsoft.DotNet.xunit.performance.analysis is not being uploaded alongwith Packages.zip, hence the workaround -->
-    <Copy SourceFiles="@(XunitPerfRunnerFiles)"
-          DestinationFiles="@(XunitPerfRunnerFiles->'$(TestWorkingDir)SupplementalPayload/$(XunitPerfRunnerPackageId)/%(RecursiveDir)%(Filename)%(Extension)')"
-          SkipUnchangedFiles="true"/>
-    <Copy SourceFiles="@(XunitPerfAnalysisFiles)"
-          DestinationFiles="@(XunitPerfAnalysisFiles->'$(TestWorkingDir)SupplementalPayload/$(XunitPerfAnalysisPackageId)/%(RecursiveDir)%(Filename)%(Extension)')"
-          SkipUnchangedFiles="true"/>
   </Target>
 
   <!-- Executable properties -->
@@ -83,10 +76,6 @@
     <TestCommandLines Include = "if [ -f  $HELIX_CORRELATION_PAYLOAD/RunnerScripts/xunitrunner-perf/dotnetcliinstaller.py ];"></TestCommandLines>
     <TestCommandLines Include = "then $HELIX_PYTHONPATH $HELIX_CORRELATION_PAYLOAD/RunnerScripts/xunitrunner-perf/dotnetcliinstaller.py"></TestCommandLines>
     <TestCommandLines Include = "fi"></TestCommandLines>
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetOS)'=='Windows_NT'">
-    <TestCommandLines Include = "xcopy &quot;%PACKAGE_DIR%\$(XunitPerfRunnerPackageId)\$(XunitPerfAnalysisPackageVersion)\tools&quot; &quot;%EXECUTION_DIR%&quot; /s /y"></TestCommandLines>
-    <TestCommandLines Include = "xcopy &quot;%PACKAGE_DIR%\$(XunitPerfAnalysisPackageId)\$(XunitPerfAnalysisPackageVersion)\tools&quot; &quot;%EXECUTION_DIR%&quot; /s /y"></TestCommandLines>
   </ItemGroup>
   <ItemGroup>
     <TestCommandLines Include = "$(PerfTestCommand)"></TestCommandLines>
