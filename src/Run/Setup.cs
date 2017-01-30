@@ -484,11 +484,11 @@ namespace Microsoft.DotNet.Execute
         public string FormatSetting(string option, string value, string type, string toolName)
         {
             string commandOption = null;
-            if (type.Equals("passThrough"))
+            if (type != null && type.Equals("passThrough"))
             {
                 commandOption = string.Format(" {0}", toolName.Equals("console") ? "" : value);
             }
-            else if (type.Equals(RunToolSettingValueTypeReservedKeyword)) { /* do nothing */ }
+            else if (type != null && type.Equals(RunToolSettingValueTypeReservedKeyword)) { /* do nothing */ }
             else
             {
                 Tool toolFormat;
