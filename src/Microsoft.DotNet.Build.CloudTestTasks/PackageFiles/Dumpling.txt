@@ -21,7 +21,7 @@ CollectDumps()
     echo command failed, trying to collect dumps
     _corefile=$(ls . | grep -E --max-count=1 '^core(\..*)?$')
     echo corefile: $_corefile
-    if [ -n '$_corefile' ]
+    if [ -n "$_corefile" ]
     then
       echo uploading core to dumpling service
       python ~/.dumpling/dumpling.py upload --dumppath $_corefile --noprompt --triage full --displayname $_ProjectName --properties STRESS_TESTID=$_ProjectName --verbose
