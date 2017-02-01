@@ -68,7 +68,7 @@ if not [%RESTORE_PORTABLETARGETS_ERROR_LEVEL%]==[0] (
 	echo ERROR: An error ocurred when running: '"%DOTNET_CMD%" restore "%PORTABLETARGETS_PROJECTJSON%"'. Please check above for more details.
 	exit /b %RESTORE_PORTABLETARGETS_ERROR_LEVEL%
 )
-Robocopy "%PACKAGES_DIR%\Microsoft.Portable.Targets\%PORTABLETARGETS_VERSION%\contentFiles\any\any\." "%TOOLRUNTIME_DIR%\." /E
+Robocopy "%PACKAGES_DIR%\Microsoft.Portable.Targets\%PORTABLETARGETS_VERSION%\contentFiles\any\any\Extensions." "%TOOLRUNTIME_DIR%\." /E
 Robocopy "%PACKAGES_DIR%\MicroBuild.Core\%MICROBUILD_VERSION%\build\." "%TOOLRUNTIME_DIR%\." /E
 
 :: Copy Roslyn Compilers Over to ToolRuntime

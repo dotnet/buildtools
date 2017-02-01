@@ -98,7 +98,7 @@ echo "Running: \"$__DOTNET_CMD\" restore \"${__PORTABLETARGETS_PROJECTJSON}\" $_
 $__DOTNET_CMD restore "${__PORTABLETARGETS_PROJECTJSON}" $__INIT_TOOLS_RESTORE_ARGS --packages "${__PACKAGES_DIR}/."
 
 # Copy portable and MicroBuild targets from packages, allowing for lowercased package IDs.
-cp -R "${__PACKAGES_DIR}"/[Mm]icrosoft.[Pp]ortable.[Tt]argets/"${__PORTABLETARGETS_VERSION}/contentFiles/any/any/." "$__TOOLRUNTIME_DIR/."
+cp -R "${__PACKAGES_DIR}"/[Mm]icrosoft.[Pp]ortable.[Tt]argets/"${__PORTABLETARGETS_VERSION}/contentFiles/any/any/Extensions/." "$__TOOLRUNTIME_DIR/."
 cp -R "${__PACKAGES_DIR}"/[Mm]icro[Bb]uild.[Cc]ore/"${__MICROBUILD_VERSION}/build/." "$__TOOLRUNTIME_DIR/."
 
 # Temporary Hacks to fix couple of issues in the msbuild and roslyn nuget packages
