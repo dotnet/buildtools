@@ -2,12 +2,11 @@
   "frameworks": {
     "netcoreapp1.0": {
       "dependencies": {
-        "MSBuild": "0.1.0-preview-00024-160610",
-        "Microsoft.Build.Framework": "0.1.0-preview-00024-160610",
-        "Microsoft.Build.Tasks.Core": "0.1.0-preview-00024-160610",
-        "Microsoft.Build.Utilities.Core": "0.1.0-preview-00024-160610",
-        "Microsoft.Build.Targets": "0.1.0-preview-00024-160610",
-        "Microsoft.Build": "0.1.0-preview-00024-160610",
+        "Microsoft.Build.Framework": "15.1.0-preview-000523-01",
+        "Microsoft.Build.Runtime": "15.1.0-preview-000523-01",
+        "Microsoft.Build.Tasks.Core": "15.1.0-preview-000523-01",
+        "Microsoft.Build.Utilities.Core": "15.1.0-preview-000523-01",
+        "Microsoft.Build": "15.1.0-preview-000523-01",
         "Microsoft.DotNet.PlatformAbstractions": "1.2.0-beta-001090",
         "Microsoft.Net.Compilers.netcore": "2.0.0-rc",
         "Microsoft.Net.Compilers.Targets.NetCore": "0.1.5-dev",
