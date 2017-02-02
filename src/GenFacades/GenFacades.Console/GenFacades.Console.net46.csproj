@@ -4,15 +4,15 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>GenFacades</RootNamespace>
     <AssemblyName>GenFacades</AssemblyName>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <ClsCompliant>false</ClsCompliant>
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <GenFacadesSrc>..\GenFacades</GenFacadesSrc>
     <NuGetRuntimeIdentifier>win7-x64</NuGetRuntimeIdentifier>
+    <CopyNuGetImplementations>true</CopyNuGetImplementations>
   </PropertyGroup>
 
   <!-- Default configurations to help VS understand the configurations -->
@@ -20,9 +20,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
 
   <ItemGroup>
-    <Compile Include="$(GenFacadesSrc)\FacadeGenerationException.cs" />
-    <Compile Include="$(GenFacadesSrc)\Program.cs" />
-    <Compile Include="$(GenFacadesSrc)\VersionResourceSerializer.cs" />
+    <Compile Include="Program.cs" />
   </ItemGroup>
 
   <!-- Common command-line helper sources -->
@@ -40,15 +38,11 @@
 
   <ItemGroup>
     <None Include="project.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Microsoft.CCI.Extensions\Microsoft.CCI.Extensions.csproj" />
     <Reference Include="mscorlib" />
     <Reference Include="System" />
-    <Reference Include="System.Core" />
+    <ProjectReference Include="..\..\Microsoft.CCI.Extensions\Microsoft.CCI.Extensions.csproj" />
+    <ProjectReference Include="..\GenFacades.Core\GenFacades.Core.csproj" />
   </ItemGroup>
 
-  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), publishexe.targets))\publishexe.targets" />
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
 </Project>

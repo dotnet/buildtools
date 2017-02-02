@@ -46,7 +46,10 @@
     <ToolsDir Condition="'$(ToolsDir)'==''">$(MSBuildThisFileDirectory)</ToolsDir>
     <DotnetCliPath Condition="'$(DotnetCliPath)'==''">$(ToolRuntimePath)dotnetcli/</DotnetCliPath>
     <OverrideToolHost>$(DotnetCliPath)dotnet</OverrideToolHost>
-    <BuildToolsTaskDir Condition="'$(BuildToolsTargets45)' == 'true'">$(ToolsDir)net45/</BuildToolsTaskDir>
+    <!-- Temporarily honor BuildToolsTargets45 during the transition -->
+    <BuildToolsTargetsDesktop Condition="'$(BuildToolsTargetsDesktop)' == ''">$(BuildToolsTargets45)</BuildToolsTargetsDesktop>
+    <BuildToolsTargetsDesktop Condition="'$(BuildToolsTargetsDesktop)' == '' And '$(OSEnvironment)' == 'Windows_NT'">true</BuildToolsTargetsDesktop>
+    <BuildToolsTaskDir Condition="'$(BuildToolsTargetsDesktop)' == 'true'">$(ToolsDir)net46/</BuildToolsTaskDir>
     <BuildToolsTaskDir Condition="'$(BuildToolsTaskDir)'==''">$(ToolsDir)</BuildToolsTaskDir>
     <UseRoslynCompilers Condition="'$(UseRoslynCompilers)'=='' and '$(OSEnvironment)'!='Windows_NT'">false</UseRoslynCompilers>
     <UseSharedCompilation Condition="'$(UseSharedCompilation)' == '' and '$(OSEnvironment)' == 'Windows_NT' and '$(UseRoslynCompilers)' != 'false'">true</UseSharedCompilation>

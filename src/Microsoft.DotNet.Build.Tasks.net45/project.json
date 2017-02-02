@@ -11,7 +11,7 @@
     "System.Runtime.InteropServices.RuntimeInformation": "4.4.0-beta-24813-03"
   },
   "frameworks": {
-    "net45": {}
+    "net46": {}
   },
   "runtimes": {
     "win7-x64": {}
