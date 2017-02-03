@@ -72,7 +72,7 @@ namespace Microsoft.DotNet.Build.Tasks
                     Trace.WriteLine("seedTypePreferencesUnsplit: " + string.Join(" || ", seedTypePreferencesUnsplit));
                 }
 
-                Generator.Execute(
+                bool result = Generator.Execute(
                     Seeds,
                     Contracts,
                     FacadePath,
@@ -89,7 +89,12 @@ namespace Microsoft.DotNet.Build.Tasks
                     ProducePdb,
                     PartialFacadeAssemblyPath);
 
-                return true;
+                if (!result)
+                {
+                    Log.LogError("Errors were encountered when generating facade(s).");
+                }
+
+                return result;
             }
             catch (Exception e)
             {

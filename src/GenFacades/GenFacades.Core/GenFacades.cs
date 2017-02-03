@@ -18,7 +18,7 @@ namespace GenFacades
     {
         private const uint ReferenceAssemblyFlag = 0x70;
 
-        public static void Execute(
+        public static bool Execute(
             string seeds,
             string contracts,
             string facadePath,
@@ -105,6 +105,12 @@ namespace GenFacades
 
                         Assembly filledPartialFacade = facadeGenerator.GenerateFacade(contractAssembly, seedCoreAssemblyRef, ignoreMissingTypes, overrideContractAssembly: partialFacadeAssembly);
 
+                        if (filledPartialFacade == null)
+                        {
+                            Trace.TraceError("Errors were encountered while generating the facade.");
+                            return false;
+                        }
+
                         string pdbLocation = null;
 
                         if (producePdb)
@@ -130,13 +136,15 @@ namespace GenFacades
 #if !COREFX
                                 Debug.Assert(Environment.ExitCode != 0);
 #endif
-                                continue;
+                                return false;
                             }
 
                             OutputFacadeToFile(facadePath, seedHost, facade, contract);
                         }
                     }
                 }
+
+                return true;
             }
             catch (FacadeGenerationException ex)
             {
@@ -144,6 +152,7 @@ namespace GenFacades
 #if !COREFX
                 Debug.Assert(Environment.ExitCode != 0);
 #endif
+                return false;
             }
         }
 
