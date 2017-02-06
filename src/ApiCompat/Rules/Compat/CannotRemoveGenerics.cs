@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.Cci.Extensions;
 using Microsoft.Cci.Writers.CSharp;
 using System.Linq;
@@ -59,8 +60,8 @@ namespace Microsoft.Cci.Differs.Rules
                         implParam.FullName(), target.FullName(), implParam.Variance, contractParam.Variance);
                 }
 
-                string implConstraints = string.Join(",", GetConstraints(implParam).OrderBy(s => s));
-                string contractConstraints = string.Join(",", GetConstraints(contractParam).OrderBy(s => s));
+                string implConstraints = string.Join(",", GetConstraints(implParam).OrderBy(s => s, StringComparer.OrdinalIgnoreCase));
+                string contractConstraints = string.Join(",", GetConstraints(contractParam).OrderBy(s => s, StringComparer.OrdinalIgnoreCase));
 
                 if (!string.Equals(implConstraints, contractConstraints))
                 {
