@@ -9,6 +9,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -19,15 +20,19 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
     public sealed class DownloadFromAzure : Task
     {
         /// <summary>
+        /// Azure Storage account connection string.  Supersedes Account Key / Name.  
+        /// Will cause errors if both are set.
+        /// </summary>
+        public string ConnectionString { get; set; }
+
+        /// <summary>
         /// The Azure account name used when creating the connection string.
         /// </summary>
-        [Required]
         public string AccountName { get; set; }
 
         /// <summary>
         /// The Azure account key used when creating the connection string.
         /// </summary>
-        [Required]
         public string AccountKey { get; set; }
 
         /// <summary>
@@ -50,6 +55,37 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
         public async Task<bool> ExecuteAsync()
         {
+            if (!string.IsNullOrEmpty(ConnectionString))
+            {
+                if (!(string.IsNullOrEmpty(AccountKey) && string.IsNullOrEmpty(AccountName)))
+                {
+                    Log.LogError("If the ConnectionString property is set, you must not provide AccountKey / Name.  These values will be deprecated in the future.");
+                    return false;
+                }
+                else
+                {
+                    Regex storageConnectionStringRegex = new Regex("AccountName=(?<name>.+?);AccountKey=(?<key>.+?);");
+
+                    MatchCollection matches = storageConnectionStringRegex.Matches(ConnectionString);
+                    if (matches.Count > 0)
+                    {
+                        // When we deprecate this format, we'll want to demote these to private
+                        AccountName = matches[0].Groups["name"].Value;
+                        AccountKey = matches[0].Groups["key"].Value;
+                    }
+                    else
+                    {
+                        Log.LogError("Error parsing connection string.  Please review its value.");
+                        return false;
+                    }
+                }
+            }
+            else if (string.IsNullOrEmpty(AccountKey) || string.IsNullOrEmpty(AccountName))
+            {
+                Log.LogError("Error, must provide either ConnectionString or AccountName with AccountKey");
+                return false;
+            }
+
             Log.LogMessage(MessageImportance.Normal, "Downloading contents of container {0} from storage account '{1}' to directory {2}.",
                 ContainerName, AccountName, DownloadDirectory);
 
@@ -146,10 +182,19 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                         {
                             if (response.IsSuccessStatusCode)
                             {
-                                Stream responseStream = await response.Content.ReadAsStreamAsync();
-                                using (FileStream sourceStream = File.Open(filename, FileMode.Create))
+                                // Blobs can be files but have the name of a directory.  We'll skip those and log something weird happened.
+                                if (!string.IsNullOrEmpty(Path.GetFileName(filename)))
                                 {
-                                    responseStream.CopyTo(sourceStream);
+                                    Stream responseStream = await response.Content.ReadAsStreamAsync();
+
+                                    using (FileStream sourceStream = File.Open(filename, FileMode.Create))
+                                    {
+                                        responseStream.CopyTo(sourceStream);
+                                    }
+                                }
+                                else
+                                {
+                                    Log.LogWarning($"Unable to download blob '{blob}' as it has a directory-like name.  This may cause problems if it was needed.");
                                 }
                             }
                             else

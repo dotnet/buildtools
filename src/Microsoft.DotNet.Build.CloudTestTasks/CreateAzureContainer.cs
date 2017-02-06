@@ -11,6 +11,7 @@ using System.Net.Http;
 using Microsoft.Build.Framework;
 
 using Task = Microsoft.Build.Utilities.Task;
+using System.Text.RegularExpressions;
 
 namespace Microsoft.DotNet.Build.CloudTestTasks
 {
@@ -18,15 +19,19 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
     public sealed class CreateAzureContainer : Task
     {
         /// <summary>
+        /// Azure Storage account connection string.  Supersedes Account Key / Name.  
+        /// Will cause errors if both are set.
+        /// </summary>
+        public string ConnectionString { get; set; }
+
+        /// <summary>
         /// The Azure account key used when creating the connection string.
         /// </summary>
-        [Required]
         public string AccountKey { get; set; }
 
         /// <summary>
         /// The Azure account name used when creating the connection string.
         /// </summary>
-        [Required]
         public string AccountName { get; set; }
 
         /// <summary>
@@ -77,18 +82,49 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
         public async Task<bool> ExecuteAsync()
         {
+            if (!string.IsNullOrEmpty(ConnectionString))
+            {
+                if (!(string.IsNullOrEmpty(AccountKey) && string.IsNullOrEmpty(AccountName)))
+                {
+                    Log.LogError("If the ConnectionString property is set, you must not provide AccountKey / Name.  These values will be deprecated in the future.");
+                    return false;
+                }
+                else
+                {
+                    Regex storageConnectionStringRegex = new Regex("AccountName=(?<name>.+?);AccountKey=(?<key>.+?);");
+
+                    MatchCollection matches = storageConnectionStringRegex.Matches(ConnectionString);
+                    if (matches.Count > 0)
+                    {
+                        // When we deprecate this format, we'll want to demote these to private
+                        AccountName = matches[0].Groups["name"].Value;
+                        AccountKey = matches[0].Groups["key"].Value;
+                    }
+                    else
+                    {
+                        Log.LogError("Error parsing connection string.  Please review its value.");
+                        return false;
+                    }
+                }
+            }
+            else if (string.IsNullOrEmpty(AccountKey) || string.IsNullOrEmpty(AccountName))
+            {
+                Log.LogError("Error, must provide either ConnectionString or AccountName with AccountKey");
+                return false;
+            }
+
             Log.LogMessage(
-                MessageImportance.High, 
-                "Creating container named '{0}' in storage account {1}.", 
-                ContainerName, 
+                MessageImportance.High,
+                "Creating container named '{0}' in storage account {1}.",
+                ContainerName,
                 AccountName);
             string url = string.Format(
-                "https://{0}.blob.core.windows.net/{1}?restype=container", 
-                AccountName, 
+                "https://{0}.blob.core.windows.net/{1}?restype=container",
+                AccountName,
                 ContainerName);
             StorageUri = string.Format(
-                "https://{0}.blob.core.windows.net/{1}/", 
-                AccountName, 
+                "https://{0}.blob.core.windows.net/{1}/",
+                AccountName,
                 ContainerName);
 
             Log.LogMessage(MessageImportance.Low, "Sending request to create Container");
