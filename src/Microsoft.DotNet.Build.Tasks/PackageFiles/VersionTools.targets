@@ -6,6 +6,13 @@
     <BuildInfoCacheDir>$(ToolsDir)BuildInfoCache/</BuildInfoCacheDir>
   </PropertyGroup>
 
+  <!-- For backward compatibility, Include XmlUpdateSteps as Xml-type updaters. -->
+  <ItemGroup>
+    <UpdateStep Include="@(XmlUpdateStep)">
+      <UpdaterType>Xml</UpdaterType>
+    </UpdateStep>
+  </ItemGroup>
+
   <!-- Task to update the dotnet/versions repository. -->
   <UsingTask TaskName="UpdatePublishedVersions" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
 
@@ -33,7 +40,7 @@
   <Target Name="UpdateDependencies">
     <UpdateDependencies DependencyBuildInfo="@(DependencyBuildInfo)"
                         ProjectJsonFiles="@(ProjectJsonFiles)"
-                        XmlUpdateStep="@(XmlUpdateStep)"
+                        UpdateStep="@(UpdateStep)"
                         BuildInfoCacheDir="$(BuildInfoCacheDir)" />
   </Target>
 
@@ -46,7 +53,7 @@
 
     <VerifyDependencies DependencyBuildInfo="@(DependencyBuildInfo)"
                         ProjectJsonFiles="@(ProjectJsonFiles)"
-                        XmlUpdateStep="@(XmlUpdateStep)"
+                        UpdateStep="@(UpdateStep)"
                         BuildInfoCacheDir="$(BuildInfoCacheDir)" />
 
     <Message Importance="High" Text="[$([System.DateTime]::Now.ToString('HH:mm:ss.ff'))] Verifying all auto-upgradeable dependencies... Done." />
@@ -58,7 +65,7 @@
   <Target Name="UpdateDependenciesAndSubmitPullRequest">
     <UpdateDependenciesAndSubmitPullRequest DependencyBuildInfo="@(DependencyBuildInfo)"
                                             ProjectJsonFiles="@(ProjectJsonFiles)"
-                                            XmlUpdateStep="@(XmlUpdateStep)"
+                                            UpdateStep="@(UpdateStep)"
                                             ProjectRepoName="$(ProjectRepoName)"
                                             ProjectRepoOwner="$(ProjectRepoOwner)"
                                             ProjectRepoBranch="$(ProjectRepoBranch)"

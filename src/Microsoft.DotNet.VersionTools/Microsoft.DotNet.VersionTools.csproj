@@ -34,6 +34,9 @@
     <Compile Include="Dependencies\FileRegexReleaseUpdater.cs" />
     <Compile Include="Automation\IUpdateBranchNamingStrategy.cs" />
     <Compile Include="Automation\SingleBranchNamingStrategy.cs" />
+    <Compile Include="Dependencies\Submodule\LatestCommitSubmoduleUpdater.cs" />
+    <Compile Include="Dependencies\Submodule\IndicatorPackageSubmoduleUpdater.cs" />
+    <Compile Include="Dependencies\Submodule\SubmoduleUpdater.cs" />
     <Compile Include="Util\ArgumentEscaper.cs" />
     <Compile Include="Util\Command.cs" />
     <Compile Include="Util\CommandResult.cs" />
