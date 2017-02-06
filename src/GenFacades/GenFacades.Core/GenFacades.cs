@@ -284,7 +284,7 @@ namespace GenFacades
             foreach (KeyValuePair<string, HashSet<string>> kv in mutableDocIdTable)
             {
                 string key = kv.Key;
-                IEnumerable<string> sortedDocIds = kv.Value.OrderBy(s => s);
+                IEnumerable<string> sortedDocIds = kv.Value.OrderBy(s => s, StringComparer.OrdinalIgnoreCase);
                 docIdTable.Add(key, sortedDocIds);
             }
             return docIdTable;

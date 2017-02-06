@@ -48,7 +48,7 @@ namespace ApiCompat
 
                 var rules = c.GetExports<IDifferenceRule>();
 
-                foreach (var rule in rules.Select(r => r.GetType().Name).OrderBy(r => r))
+                foreach (var rule in rules.Select(r => r.GetType().Name).OrderBy(r => r, StringComparer.OrdinalIgnoreCase))
                 {
                     Console.WriteLine(rule);
                 }

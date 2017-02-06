@@ -592,15 +592,15 @@ namespace Microsoft.Cci.Extensions
         public static IEnumerable<T> OrderByIdentity<T>(this IEnumerable<T> assemblies)
             where T : IAssemblyReference
         {
-            return assemblies.OrderBy(a => a.Name.Value)
-                             .ThenBy(a => a.GetPublicKeyToken())
+            return assemblies.OrderBy(a => a.Name.Value, StringComparer.OrdinalIgnoreCase)
+                             .ThenBy(a => a.GetPublicKeyToken(), StringComparer.OrdinalIgnoreCase)
                              .ThenBy(a => a.Version);
         }
 
         public static IEnumerable<AssemblyIdentity> OrderByIdentity(this IEnumerable<AssemblyIdentity> assemblies)
         {
-            return assemblies.OrderBy(a => a.Name.Value)
-                             .ThenBy(a => a.GetPublicKeyToken())
+            return assemblies.OrderBy(a => a.Name.Value, StringComparer.OrdinalIgnoreCase)
+                             .ThenBy(a => a.GetPublicKeyToken(), StringComparer.OrdinalIgnoreCase)
                              .ThenBy(a => a.Version);
         }
 

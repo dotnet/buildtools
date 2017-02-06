@@ -21,7 +21,7 @@ namespace Microsoft.Cci.Writers.CSharp
             if (!securityAttributes.SelectMany(s => s.Attributes).Any(IncludeAttribute))
                 return;
 
-            securityAttributes = securityAttributes.OrderBy(s => s.Action.ToString());
+            securityAttributes = securityAttributes.OrderBy(s => s.Action.ToString(), StringComparer.OrdinalIgnoreCase);
 
             bool first = true;
             WriteSymbol("[");

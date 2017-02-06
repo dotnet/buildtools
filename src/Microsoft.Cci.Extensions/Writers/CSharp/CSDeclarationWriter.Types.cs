@@ -83,7 +83,7 @@ namespace Microsoft.Cci.Writers.CSharp
             if (baseType != null)
                 baseTypes.Add(baseType);
 
-            baseTypes.AddRange(type.Interfaces.Where(IncludeBaseType).OrderBy((t) => GetTypeName(t)));
+            baseTypes.AddRange(type.Interfaces.Where(IncludeBaseType).OrderBy((t) => GetTypeName(t), StringComparer.OrdinalIgnoreCase));
 
             if (baseTypes.Count == 0)
                 return;
