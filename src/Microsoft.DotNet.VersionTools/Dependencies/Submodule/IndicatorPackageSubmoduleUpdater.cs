@@ -20,6 +20,8 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.Submodule
     /// </summary>
     public class IndicatorPackageSubmoduleUpdater : SubmoduleUpdater
     {
+        private static readonly Lazy<HttpClient> DownloadClient = new Lazy<HttpClient>();
+
         /// <summary>
         /// The NuGet v2 base url to use to download the indicator package, without a trailing '/'.
         /// For example, https://dotnet.myget.org/F/dotnet-core/api/v2/package.
@@ -53,20 +55,23 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.Submodule
 
                 using (ZipArchive archive = DownloadPackageAsync(info, package).Result)
                 {
-                    Stream versionTxt = archive.GetEntry("version.txt")?.Open();
-                    if (versionTxt == null)
+                    ZipArchiveEntry versionTxtEntry = archive.GetEntry("version.txt");
+                    if (versionTxtEntry == null)
                     {
                         Trace.TraceWarning(
                             $"Downloaded '{package}' in '{info.BuildInfo.Name}' " +
                             $"to upgrade '{Path}', but it had no version.txt file. Skipping.");
                         continue;
                     }
+                    using (Stream versionTxt = versionTxtEntry.Open())
+                    using (var versionTxtReader = new StreamReader(versionTxt))
+                    {
+                        string packageCommitHash = versionTxtReader.ReadLine();
+                        Trace.TraceInformation($"Found commit '{packageCommitHash}' in versions.txt.");
 
-                    string packageCommitHash = new StreamReader(versionTxt).ReadLine();
-                    Trace.TraceInformation($"Found commit '{packageCommitHash}' in versions.txt.");
-
-                    usedBuildInfos = new[] { info };
-                    return packageCommitHash;
+                        usedBuildInfos = new[] { info };
+                        return packageCommitHash;
+                    }
                 }
             }
 
@@ -87,7 +92,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.Submodule
             string downloadUrl = $"{PackageDownloadBaseUrl}/package/{package.Id}/{package.Version}";
             Trace.TraceInformation($"Downloading '{package}' from '{downloadUrl}'");
 
-            var client = new HttpClient();
+            HttpClient client = DownloadClient.Value;
             Stream nupkgStream = await client.GetStreamAsync(downloadUrl);
 
             return new ZipArchive(nupkgStream);
