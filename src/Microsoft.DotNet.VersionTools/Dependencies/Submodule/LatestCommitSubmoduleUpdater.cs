@@ -43,7 +43,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.Submodule
         {
             usedBuildInfos = Enumerable.Empty<DependencyBuildInfo>();
 
-            string remoteRefOutput = FetchGitOutput("ls-remote", Repository, Ref);
+            string remoteRefOutput = FetchGitOutput("ls-remote", "--heads", Repository, Ref);
 
             string[] remoteRefLines = remoteRefOutput
                 .Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
