@@ -70,7 +70,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.Submodule
             return writer.ToString();
         }
 
-        internal Command GitInPath(params string[] args)
+        private Command GitInPath(params string[] args)
         {
             var dirArgs = new[]
             {

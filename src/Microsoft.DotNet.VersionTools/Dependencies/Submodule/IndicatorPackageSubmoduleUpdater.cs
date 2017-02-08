@@ -32,9 +32,9 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.Submodule
 
         public IndicatorPackageSubmoduleUpdater(string indicatorPackageId)
         {
-            if (indicatorPackageId == null)
+            if (string.IsNullOrEmpty(indicatorPackageId))
             {
-                throw new ArgumentNullException(nameof(indicatorPackageId), "An indicator package must be specified.");
+                throw new ArgumentException(nameof(indicatorPackageId), "An indicator package must be specified.");
             }
             IndicatorPackageId = indicatorPackageId;
         }
@@ -84,7 +84,8 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.Submodule
         {
             if (PackageDownloadBaseUrl == null)
             {
-                throw new NotSupportedException(
+                // This isn't checked in the constructor because build-info may contain a download URL in the future.
+                throw new InvalidOperationException(
                     $"A {nameof(PackageDownloadBaseUrl)} must be configured, " +
                     "as build-infos do not have package feed details.");
             }
