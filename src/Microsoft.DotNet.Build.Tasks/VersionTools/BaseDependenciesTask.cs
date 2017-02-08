@@ -6,6 +6,7 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Microsoft.DotNet.VersionTools;
 using Microsoft.DotNet.VersionTools.Dependencies;
+using Microsoft.DotNet.VersionTools.Dependencies.Submodule;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -31,7 +32,7 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 
         public ITaskItem[] ProjectJsonFiles { get; set; }
 
-        public ITaskItem[] XmlUpdateStep { get; set; }
+        public ITaskItem[] UpdateStep { get; set; }
 
         public string BuildInfoCacheDir { get; set; }
 
@@ -61,32 +62,37 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                 yield return new ProjectJsonUpdater(ProjectJsonFiles.Select(item => item.ItemSpec));
             }
 
-            foreach (ITaskItem step in XmlUpdateStep ?? Enumerable.Empty<ITaskItem>())
+            foreach (ITaskItem step in UpdateStep ?? Enumerable.Empty<ITaskItem>())
             {
-                string buildInfoName = step.GetMetadata("BuildInfoName");
-                string packageId = step.GetMetadata("PackageId");
-
-                FileRegexUpdater updater;
-
-                if (!string.IsNullOrEmpty(buildInfoName))
+                string type = step.GetMetadata("UpdaterType");
+                switch (type)
                 {
-                    updater = new FileRegexReleaseUpdater
-                    {
-                        BuildInfoName = buildInfoName
-                    };
-                }
-                else
-                {
-                    updater = new FileRegexPackageUpdater
-                    {
-                        PackageId = packageId
-                    };
-                }
-                updater.Path = step.GetMetadata("Path");
-                updater.Regex = CreateXmlUpdateRegex(step.GetMetadata("ElementName"), "version");
-                updater.VersionGroupName = "version";
+                    case "Xml":
+                        yield return CreateXmlUpdater(step);
+                        break;
 
-                yield return updater;
+                    case "Submodule from package":
+                        yield return new IndicatorPackageSubmoduleUpdater(
+                            GetRequiredMetadata(step, "IndicatorPackage"))
+                        {
+                            PackageDownloadBaseUrl = GetRequiredMetadata(step, "PackageDownloadBaseUrl"),
+                            Path = GetRequiredMetadata(step, "Path")
+                        };
+                        break;
+
+                    case "Submodule from latest":
+                        yield return new LatestCommitSubmoduleUpdater(
+                            GetRequiredMetadata(step, "Repository"),
+                            GetRequiredMetadata(step, "Ref"))
+                        {
+                            Path = GetRequiredMetadata(step, "Path")
+                        };
+                        break;
+
+                    default:
+                        throw new NotSupportedException(
+                            $"Unsupported updater '{step.ItemSpec}': UpdaterType '{type}'.");
+                }
             }
         }
 
@@ -95,6 +101,33 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
             return DependencyBuildInfo
                 ?.Select(item => CreateBuildInfoDependency(item, BuildInfoCacheDir))
                 ?? Enumerable.Empty<DependencyBuildInfo>();
+        }
+
+        private FileRegexUpdater CreateXmlUpdater(ITaskItem step)
+        {
+            string buildInfoName = step.GetMetadata("BuildInfoName");
+            string packageId = step.GetMetadata("PackageId");
+
+            FileRegexUpdater updater;
+
+            if (!string.IsNullOrEmpty(buildInfoName))
+            {
+                updater = new FileRegexReleaseUpdater
+                {
+                    BuildInfoName = buildInfoName
+                };
+            }
+            else
+            {
+                updater = new FileRegexPackageUpdater
+                {
+                    PackageId = packageId
+                };
+            }
+            updater.Path = step.GetMetadata("Path");
+            updater.Regex = CreateXmlUpdateRegex(step.GetMetadata("ElementName"), "version");
+            updater.VersionGroupName = "version";
+            return updater;
         }
 
         private static DependencyBuildInfo CreateBuildInfoDependency(ITaskItem item, string cacheDir)
@@ -161,6 +194,17 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
             }
 
             throw new Exception($"Unable to create build info with '{item}'.");
+        }
+
+        private static string GetRequiredMetadata(ITaskItem item, string name)
+        {
+            string metadata = item.GetMetadata(name);
+            if (string.IsNullOrEmpty(metadata))
+            {
+                throw new ArgumentException(
+                    $"On '{item.ItemSpec}', did not find required '{name}' metadata.");
+            }
+            return metadata;
         }
     }
 }
