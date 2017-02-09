@@ -137,6 +137,7 @@
     <None Include="PackageFiles\RunnerTemplate.Unix.txt" />
     <None Include="PackageFiles\RunnerTemplate.Windows.txt" />
     <None Include="PackageFiles\scripts\docker\cleanup-docker.sh" />
+    <None Include="PackageFiles\scripts\docker\init-docker.sh" />
     <None Include="PackageFiles\sign.targets" />
     <None Include="PackageFiles\Test.snk" />
     <None Include="PackageFiles\tests.targets" />
