@@ -83,7 +83,8 @@ docker --version
 echo
 
 echo "Cleaning Docker Artifacts"
-./cleanup-docker.sh
+sourceDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+"$sourceDir/cleanup-docker.sh"
 echo
 
 if [ ! -z "$image" ]; then
