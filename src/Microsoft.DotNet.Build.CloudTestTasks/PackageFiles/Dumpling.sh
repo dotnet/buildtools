@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 if [ ! -f ~/.dumpling/dumpling.py ]
 then
   echo Dumpling not found, installing...
@@ -11,7 +13,9 @@ fi
 echo executing ulimit -c unlimited
 ulimit -c unlimited
 echo 0x3F > /proc/self/coredump_filter
-CollectDumps()
+
+
+function CollectDumps()
 {
   _EXITCODE=$1
   _ProjectName=$2
