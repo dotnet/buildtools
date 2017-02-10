@@ -5,45 +5,23 @@
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 
-using Task = Microsoft.Build.Utilities.Task;
-
 namespace Microsoft.DotNet.Build.CloudTestTasks
 {
-    public sealed class ListAzureContainers : Task
+    public sealed class ListAzureContainers : AzureConnectionStringBuildTask
     {
-        /// <summary>
-        /// Azure Storage account connection string.  Supersedes Account Key / Name.  
-        /// Will cause errors if both are set.
-        /// </summary>
-        public string ConnectionString { get; set; }
-
-        /// <summary>
-        /// The Azure account name used when creating the connection string.
-        /// </summary>
-
-        public string AccountName { get; set; }
-
-        /// <summary>
-        /// The Azure account key used when creating the connection string.
-        /// </summary>
-
-        public string AccountKey { get; set; }
-
         /// <summary>
         /// Prefix of Azure containers desired to return;
         /// </summary>
         public string Prefix { get; set; }
 
         /// <summary>
-        /// An item group of blob filenames to download.  
+        /// An item group of container names to download.  
         /// </summary>
         [Output]
         public ITaskItem[] ContainerNames { get; set; }
@@ -55,34 +33,10 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
         public async Task<bool> ExecuteAsync()
         {
-            if (!string.IsNullOrEmpty(ConnectionString))
+            ParseConnectionString();
+            // If the connection string AND AccountKey & AccountName are provided, error out.
+            if (Log.HasLoggedErrors)
             {
-                if (!(string.IsNullOrEmpty(AccountKey) && string.IsNullOrEmpty(AccountName)))
-                {
-                    Log.LogError("If the ConnectionString property is set, you must not provide AccountKey / Name.  These values will be deprecated in the future.");
-                    return false;
-                }
-                else
-                {
-                    Regex storageConnectionStringRegex = new Regex("AccountName=(?<name>.+?);AccountKey=(?<key>.+?);");
-
-                    MatchCollection matches = storageConnectionStringRegex.Matches(ConnectionString);
-                    if (matches.Count > 0)
-                    {
-                        // When we deprecate this format, we'll want to demote these to private
-                        AccountName = matches[0].Groups["name"].Value;
-                        AccountKey = matches[0].Groups["key"].Value;
-                    }
-                    else
-                    {
-                        Log.LogError("Error parsing connection string.  Please review its value.");
-                        return false;
-                    }
-                }
-            }
-            else if (string.IsNullOrEmpty(AccountKey) || string.IsNullOrEmpty(AccountName))
-            {
-                Log.LogError("Error, must provide either ConnectionString or AccountName with AccountKey");
                 return false;
             }
 
@@ -132,11 +86,10 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 catch (Exception e)
                 {
                     Log.LogErrorFromException(e, true);
-                    return false;
                 }
             }
 
-            return true;
+            return !Log.HasLoggedErrors;
         }
     }
 }
