@@ -6,7 +6,7 @@ set -e
 set -u
 
 say_err() {
-  printf "%b\n" "Error: $1" >&2
+    printf "%b\n" "Error: $1" >&2
 }
 
 showHelp() {
@@ -49,15 +49,15 @@ image=
 while [ $# -ne 0 ]; do
     name=$1
     case $name in
-        -h|--help|--[Hh]elp)
+        -h|--help)
             showHelp
             exit 0
             ;;
-        -r|--retryCount|--[Rr]etry[Cc]ount)
+        -r|--retryCount)
             shift
             retries=$1
             ;;
-        -w|--waitFactor|--[Ww]ait[Ff]actor)
+        -w|--waitFactor)
             shift
             waitFactor=$1
             ;;
@@ -67,8 +67,8 @@ while [ $# -ne 0 ]; do
             ;;
         *)
             if [ ! -z "$image" ]; then
-              say_err "Unknown argument: \`$name\`"
-              exit 1
+                say_err "Unknown argument: \`$name\`"
+                exit 1
             fi
 
             image="$1"
@@ -87,6 +87,6 @@ echo "Cleaning Docker Artifacts"
 echo
 
 if [ ! -z "$image" ]; then
-  echo "Pulling Docker image $image"
-  execute docker pull $image
+    echo "Pulling Docker image $image"
+    execute docker pull $image
 fi
