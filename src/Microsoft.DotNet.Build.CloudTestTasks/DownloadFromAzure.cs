@@ -11,25 +11,11 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml;
-
-using Task = Microsoft.Build.Utilities.Task;
-
+    
 namespace Microsoft.DotNet.Build.CloudTestTasks
 {
-    public sealed class DownloadFromAzure : Task
+    public sealed class DownloadFromAzure : AzureConnectionStringBuildTask
     {
-        /// <summary>
-        /// The Azure account name used when creating the connection string.
-        /// </summary>
-        [Required]
-        public string AccountName { get; set; }
-
-        /// <summary>
-        /// The Azure account key used when creating the connection string.
-        /// </summary>
-        [Required]
-        public string AccountKey { get; set; }
-
         /// <summary>
         /// The name of the container to access.  The specified name must be in the correct format, see the
         /// following page for more info.  https://msdn.microsoft.com/en-us/library/azure/dd135715.aspx
@@ -50,6 +36,13 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
         public async Task<bool> ExecuteAsync()
         {
+            ParseConnectionString();
+            // If the connection string AND AccountKey & AccountName are provided, error out.
+            if (Log.HasLoggedErrors)
+            {
+                return false;
+            }
+
             Log.LogMessage(MessageImportance.Normal, "Downloading contents of container {0} from storage account '{1}' to directory {2}.",
                 ContainerName, AccountName, DownloadDirectory);
 
@@ -146,10 +139,19 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                         {
                             if (response.IsSuccessStatusCode)
                             {
-                                Stream responseStream = await response.Content.ReadAsStreamAsync();
-                                using (FileStream sourceStream = File.Open(filename, FileMode.Create))
+                                // Blobs can be files but have the name of a directory.  We'll skip those and log something weird happened.
+                                if (!string.IsNullOrEmpty(Path.GetFileName(filename)))
                                 {
-                                    responseStream.CopyTo(sourceStream);
+                                    Stream responseStream = await response.Content.ReadAsStreamAsync();
+
+                                    using (FileStream sourceStream = File.Open(filename, FileMode.Create))
+                                    {
+                                        responseStream.CopyTo(sourceStream);
+                                    }
+                                }
+                                else
+                                {
+                                    Log.LogWarning($"Unable to download blob '{blob}' as it has a directory-like name.  This may cause problems if it was needed.");
                                 }
                             }
                             else
@@ -159,15 +161,13 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                             }
                         }
                     }
-
-                    // if no blobs failed to download the task succeeded
-                    return (failureCount == 0);
+                    Log.LogMessage($"{failureCount} errors seen downloading blobs.");
                 }
                 catch (Exception e)
                 {
                     Log.LogErrorFromException(e, true);
-                    return false;
                 }
+                return !Log.HasLoggedErrors;
             }
         }
     }

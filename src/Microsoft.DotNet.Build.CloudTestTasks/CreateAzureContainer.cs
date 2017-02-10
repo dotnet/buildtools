@@ -10,25 +10,11 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using Microsoft.Build.Framework;
 
-using Task = Microsoft.Build.Utilities.Task;
-
 namespace Microsoft.DotNet.Build.CloudTestTasks
 {
 
-    public sealed class CreateAzureContainer : Task
+    public sealed class CreateAzureContainer : AzureConnectionStringBuildTask
     {
-        /// <summary>
-        /// The Azure account key used when creating the connection string.
-        /// </summary>
-        [Required]
-        public string AccountKey { get; set; }
-
-        /// <summary>
-        /// The Azure account name used when creating the connection string.
-        /// </summary>
-        [Required]
-        public string AccountName { get; set; }
-
         /// <summary>
         /// The name of the container to create.  The specified name must be in the correct format, see the
         /// following page for more info.  https://msdn.microsoft.com/en-us/library/azure/dd135715.aspx
@@ -77,18 +63,25 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
         public async Task<bool> ExecuteAsync()
         {
+            ParseConnectionString();
+            // If the connection string AND AccountKey & AccountName are provided, error out.
+            if (Log.HasLoggedErrors)
+            {
+                return false;
+            }
+
             Log.LogMessage(
-                MessageImportance.High, 
-                "Creating container named '{0}' in storage account {1}.", 
-                ContainerName, 
+                MessageImportance.High,
+                "Creating container named '{0}' in storage account {1}.",
+                ContainerName,
                 AccountName);
             string url = string.Format(
-                "https://{0}.blob.core.windows.net/{1}?restype=container", 
-                AccountName, 
+                "https://{0}.blob.core.windows.net/{1}?restype=container",
+                AccountName,
                 ContainerName);
             StorageUri = string.Format(
-                "https://{0}.blob.core.windows.net/{1}/", 
-                AccountName, 
+                "https://{0}.blob.core.windows.net/{1}/",
+                AccountName,
                 ContainerName);
 
             Log.LogMessage(MessageImportance.Low, "Sending request to create Container");
@@ -157,12 +150,10 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                     catch (Exception e)
                     {
                         Log.LogErrorFromException(e, true);
-                        return false;
                     }
                 }
             }
-
-            return true;
+            return !Log.HasLoggedErrors;
         }
     }
 }

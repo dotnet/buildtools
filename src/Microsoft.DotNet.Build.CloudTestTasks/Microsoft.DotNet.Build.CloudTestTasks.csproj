@@ -20,6 +20,7 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AzureConnectionStringBuildTask.cs" />
     <Compile Include="AzureHelper.cs" />
     <Compile Include="CreateAzureContainer.cs" />
     <Compile Include="DownloadFromAzure.cs" />

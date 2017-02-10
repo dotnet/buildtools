@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -14,29 +13,15 @@ using System.Linq;
 using System.Net.Http;
 
 using Microsoft.Build.Framework;
-
-using Task = Microsoft.Build.Utilities.Task;
 using ThreadingTask = System.Threading.Tasks.Task;
 
 namespace Microsoft.DotNet.Build.CloudTestTasks
 {
 
-    public class UploadToAzure : Task, ICancelableTask
+    public class UploadToAzure : AzureConnectionStringBuildTask, ICancelableTask
     {
         private static readonly CancellationTokenSource TokenSource = new CancellationTokenSource();
         private static readonly CancellationToken CancellationToken = TokenSource.Token;
-
-        /// <summary>
-        /// The Azure account key used when creating the connection string.
-        /// </summary>
-        [Required]
-        public string AccountKey { get; set; }
-
-        /// <summary>
-        /// The Azure account name used when creating the connection string.
-        /// </summary>
-        [Required]
-        public string AccountName { get; set; }
 
         /// <summary>
         /// The name of the container to access.  The specified name must be in the correct format, see the
@@ -74,6 +59,13 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
         public async Task<bool> ExecuteAsync(CancellationToken ct)
         {
+            ParseConnectionString();
+            // If the connection string AND AccountKey & AccountName are provided, error out.
+            if (Log.HasLoggedErrors)
+            {
+                return false;
+            }
+
             Log.LogMessage(
                 MessageImportance.High, 
                 "Begin uploading blobs to Azure account {0} in container {1}.", 
@@ -136,13 +128,12 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 }
 
                 Log.LogMessage(MessageImportance.High, "Upload to Azure is complete, a total of {0} items were uploaded.", Items.Length);
-                return true;
             }
             catch (Exception e)
             {
                 Log.LogErrorFromException(e, true);
-                return false;
             }
+            return !Log.HasLoggedErrors;
         }
 
         private async ThreadingTask UploadAsync(CancellationToken ct, ITaskItem item, HashSet<string> blobsPresent, SemaphoreSlim clientThrottle)
