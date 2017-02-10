@@ -1,49 +1,92 @@
 #!/usr/bin/env bash
+
+# Stop script on NZEC
 set -e
+# Stop script if unbound variable found (use ${var:-} if intentional)
+set -u
+
+say_err() {
+  printf "%b\n" "Error: $1" >&2
+}
+
+showHelp() {
+    echo "Usage: $scriptName [OPTIONS] [IMAGE_NAME[:TAG|@DIGEST]]"
+    echo
+    echo "Initializes Docker by:"
+    echo "  - Emitting the version of Docker that is being used"
+    echo "  - Removing all containers and images that exist on the machine"
+    echo "  - Ensuring the latest copy of the specified image exists on the machine"
+    echo
+    echo "Options:"
+    echo "  -r, --retryCount    Number of times to retry pulling image on error"
+    echo "  -w, --waitFactor    Time (seconds) to wait between pulls (time is multiplied each iteration)"
+}
+
+# Executes a command and retries if it fails.
+execute() {
+    local count=0
+    until "$@"; do
+        local exit=$?
+        count=$(( $count + 1 ))
+        if [ $count -lt $retries ]; then
+            local wait=$(( waitFactor ** (( count - 1 )) ))
+            echo "Retry $count/$retries exited $exit, retrying in $wait seconds..."
+            sleep $wait
+        else    
+            say_err "Retry $count/$retries exited $exit, no more retries left."
+            return $exit
+        fi
+    done
+
+    return 0
+}
 
 scriptName=$0
+retries=5
+waitFactor=6
+image=
 
-function usage {
-    echo "Usage: $scriptName image"
-    echo "  image      Name of the Docker image to pull"
+while [ $# -ne 0 ]; do
+    name=$1
+    case $name in
+        -h|--help|--[Hh]elp)
+            showHelp
+            exit 0
+            ;;
+        -r|--retryCount|--[Rr]etry[Cc]ount)
+            shift
+            retries=$1
+            ;;
+        -w|--waitFactor|--[Ww]ait[Ff]actor)
+            shift
+            waitFactor=$1
+            ;;
+        -*)
+            say_err "Unknown option: $1"
+            exit 1
+            ;;
+        *)
+            if [ ! -z "$image" ]; then
+              say_err "Unknown argument: \`$name\`"
+              exit 1
+            fi
 
-    exit 1
-}
+            image="$1"
+            ;;
+    esac
 
-# Executes a command and retry up to 5 times until if it fails.
-function execute {
-  local retries=5
-  local waitFactor=3
-
-  local count=0
-  until "$@"; do  
-    count=$(($count + 1))
-    if [ $count -lt $retries ]; then
-      local wait=$((waitFactor ** count))
-      echo "Retry $count/$retries exited $exit, retrying in $wait seconds..."
-      sleep $wait
-    else
-      local exit=$?
-      echo "Retry $count/$retries exited $exit, no more retries left."
-      return $exit
-    fi
-  done
-
-  return 0
-}
-
-if [ -z "$1" ]; then
-  usage
-fi
+    shift
+done
 
 # Capture Docker version for diagnostic purposes
 docker --version
-echo 
+echo
 
 echo "Cleaning Docker Artifacts"
 ./cleanup-docker.sh
 echo
 
-image=$1
-echo "Pulling Docker image $image"
-execute docker pull $image
+if [ ! -z "$image" ]; then
+  echo "Pulling Docker image $image"
+  execute docker pull $image
+fi
