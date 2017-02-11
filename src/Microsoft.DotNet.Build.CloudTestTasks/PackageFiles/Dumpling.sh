@@ -4,7 +4,16 @@ if [ ! -f ~/.dumpling/dumpling.py ]
 then
   echo Dumpling not found, installing...
   #download the dumpling client
-  wget https://dumpling.azurewebsites.net/api/client/dumpling.py
+  if [ -x "$(command -v wget)" ];
+  then
+    wget https://dumpling.azurewebsites.net/api/client/dumpling.py
+  elif [ -x "$(command -v curl)" ];
+  then
+    curl https://dumpling.azurewebsites.net/api/client/dumpling.py -o dumpling.py
+  else
+    echo "Error. Either wget or curl must be installed."
+    exit -1
+  fi
   #install and make sure the client script is up to date
   python dumpling.py install --update
   python ~/.dumpling/dumpling.py install --full
