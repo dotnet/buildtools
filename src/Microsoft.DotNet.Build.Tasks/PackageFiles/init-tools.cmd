@@ -56,6 +56,9 @@ if not [%NET46_PUBLISH_ERROR_LEVEL%]==[0] (
 	exit /b %NET46_PUBLISH_ERROR_LEVEL%
 )
 
+:: Microsoft.Build.Runtime dependency is causing the MSBuild.runtimeconfig.json buildtools copy to be overwritten - re-copy the buildtools version.
+Robocopy "%BUILDTOOLS_PACKAGE_DIR%\." "%TOOLRUNTIME_DIR%\." "MSBuild.runtimeconfig.json"
+
 :: Copy Portable Targets Over to ToolRuntime
 if not exist "%PACKAGES_DIR%\generated" mkdir "%PACKAGES_DIR%\generated"
 set PORTABLETARGETS_PROJECTJSON=%PACKAGES_DIR%\generated\project.json
