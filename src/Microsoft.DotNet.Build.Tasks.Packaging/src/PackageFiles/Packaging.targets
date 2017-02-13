@@ -129,7 +129,7 @@
     <!-- build if PackagePlatforms is not specified and the PackageTargetRuntime contains the current architecture -->
     <ShouldGenerateNuSpec Condition="'$(PackagePlatforms)' == '' AND $(PackageTargetRuntime.Contains('-$(PackagePlatform)'))">true</ShouldGenerateNuSpec>
     <!-- build if PackagePlatforms is not specified and arch is x86 or AnyCPU -->
-    <ShouldGenerateNuSpec Condition="'$(PackagePlatforms)' == '' AND ('$(PackagePlatform)' == 'x86' OR '$(PackagePlatform)' == 'AnyCPU')">true</ShouldGenerateNuSpec>
+    <ShouldGenerateNuSpec Condition="'$(PackagePlatforms)' == '' AND ('$(PackagePlatform)' == 'ARM64' OR '$(PackagePlatform)' == 'x86' OR '$(PackagePlatform)' == 'AnyCPU')">true</ShouldGenerateNuSpec>
     <!-- if we built a nuspec, also create layout and pack unless explicitly set -->
     <ShouldCreateLayout Condition="'$(ShouldCreateLayout)' == ''">$(ShouldGenerateNuSpec)</ShouldCreateLayout>
     <ShouldCreatePackage Condition="'$(ShouldCreatePackage)' == ''">$(ShouldGenerateNuSpec)</ShouldCreatePackage>
