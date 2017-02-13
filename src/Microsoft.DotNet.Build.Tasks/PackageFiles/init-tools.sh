@@ -84,6 +84,9 @@ $__DOTNET_CMD restore "${__TOOLRUNTIME_PROJECTJSON}" $__TOOLRUNTIME_RESTORE_ARGS
 echo "Running: $__DOTNET_CMD publish \"${__TOOLRUNTIME_PROJECTJSON}\" -f netcoreapp1.0 -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR"
 $__DOTNET_CMD publish "${__TOOLRUNTIME_PROJECTJSON}" -f netcoreapp1.0 -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR
 
+# Microsoft.Build.Runtime dependency is causing the MSBuild.runtimeconfig.json buildtools copy to be overwritten - re-copy the buildtools version.
+cp -f "$__TOOLS_DIR/MSBuild.runtimeconfig.json" "$__TOOLRUNTIME_DIR/."
+
 if [ -n "${BUILDTOOLS_OVERRIDE_RUNTIME:-}" ]; then
     find $__TOOLRUNTIME_DIR -name *.ni.* | xargs rm 2>/dev/null
     cp -R $BUILDTOOLS_OVERRIDE_RUNTIME/* $__TOOLRUNTIME_DIR
