@@ -43,7 +43,7 @@
           DestinationFolder="$(TestWorkingDir)SupplementalPayload/RunnerScripts/xunitrunner-perf"
           SkipUnchangedFiles="true"
           Condition="'$(TargetOS)'=='Linux'"/>
-    <!-- The packages Microsoft.DotNet.xunit.performance.runner.Windows and Microsoft.DotNet.xunit.performance.analysis is not being uploaded alongwith Packages.zip, hence the workaround -->
+    <!-- The packages Microsoft.DotNet.xunit.performance.runner.Windows and Microsoft.DotNet.xunit.performance.analysis is not being uploaded along with Packages.zip, hence the workaround -->
     <Copy SourceFiles="@(XunitPerfRunnerFiles)"
           DestinationFiles="@(XunitPerfRunnerFiles->'$(TestWorkingDir)SupplementalPayload/$(XunitPerfRunnerPackageId)/%(RecursiveDir)%(Filename)%(Extension)')"
           SkipUnchangedFiles="true"/>
