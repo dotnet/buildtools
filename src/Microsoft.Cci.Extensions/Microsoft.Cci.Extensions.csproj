@@ -47,9 +47,9 @@
     <Compile Include="Filters\ExcludeOverridesFilter.cs" />
     <Compile Include="Filters\IDifferenceFilter.cs" />
     <Compile Include="Filters\IncludeAllFilter.cs" />
+    <Compile Include="Filters\NotImplementedFilter.cs" />
     <Compile Include="Filters\IntersectionFilter.cs" />
     <Compile Include="Filters\PublicAndProtectedFilter.cs" />
-    <Compile Include="Filters\MonoStubFilter.cs" />
     <Compile Include="Filters\TypesOnlyMappingDifferenceFilter.cs" />
     <Compile Include="Internal\DisposeAction.cs" />
     <Compile Include="Extensions\DocIdExtensions.cs" />
