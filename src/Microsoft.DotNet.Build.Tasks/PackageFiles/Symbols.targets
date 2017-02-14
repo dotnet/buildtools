@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <UsingTask TaskName="AddItemIndices" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="ZipFileExtractToDirectory" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+
+  <PropertyGroup>
+    <SymbolsRequestIntermediateDir Condition="'$(SymbolsRequestIntermediateDir)'==''">$(BaseIntermediateOutputPath)SymbolsRequest\</SymbolsRequestIntermediateDir>
+  </PropertyGroup>
+
+  <!--
+    Submits a request to index or archive symbols with the Microsoft symbol server. Depends on
+    targets which assemble the request specification file.
+  -->
+  <Target Name="SubmitSymbolsRequest"
+          DependsOnTargets="CreateSymbolsRequestIni">
+    <PropertyGroup>
+      <CreateRequestCommandLocation>\\symbols\tools\CreateRequest.cmd</CreateRequestCommandLocation>
+      <SymbolsRequestLogDir>$(SymbolsRequestIntermediateDir)Logs\</SymbolsRequestLogDir>
+
+      <SubmissionArg Condition="'$(IndexSymbols)'=='true'">-s</SubmissionArg>
+      <SubmissionArg Condition="'$(ArchiveSymbols)'=='true'">-a</SubmissionArg>
+
+      <RequestCommand>$(CreateRequestCommandLocation)</RequestCommand>
+      <RequestCommand>$(RequestCommand) -i $(SymbolsRequestIniPath)</RequestCommand>
+      <RequestCommand>$(RequestCommand) -d $(SymbolsRequestLogDir)</RequestCommand>
+      <RequestCommand>$(RequestCommand) -c</RequestCommand>
+      <RequestCommand Condition="'$(SymbolsRequestDryRun)'!='true'">$(RequestCommand) $(SubmissionArg)</RequestCommand>
+    </PropertyGroup>
+
+    <Exec Command="$(RequestCommand)" />
+  </Target>
+
+  <!--
+    Creates a Request.ini file that can be used as an input to the symbol server CreateRequest tool.
+  -->
+  <Target Name="CreateSymbolsRequestIni"
+          DependsOnTargets="AddRequestProperties;
+                            AddArchiveRequestProperties;
+                            CreateSymbolsFileList">
+    <PropertyGroup>
+      <SymbolsRequestIniPath>$(SymbolsRequestIntermediateDir)request-$(SymbolsBuildId)-$(SymbolsBuildRemark).ini</SymbolsRequestIniPath>
+    </PropertyGroup>
+
+    <WriteLinesToFile File="$(SymbolsRequestIniPath)"
+                      Lines="@(RequestProperty)"
+                      Overwrite="true" />
+  </Target>
+
+  <!--
+    Creates RequestProperty items that apply to all requests.
+  -->
+  <Target Name="AddRequestProperties">
+    <PropertyGroup>
+      <SymbolsBuildId Condition="'$(SymbolsBuildId)'==''">$(BUILD_DEFINITIONNAME)</SymbolsBuildId>
+
+      <SymbolsBuildRemark Condition="'$(SymbolsBuildRemark)'=='' and
+                                     '$(BUILD_BUILDNUMBER)'!='' and
+                                     '$(BUILD_BUILDID)'!=''"
+                          >$(BUILD_BUILDNUMBER)-$(BUILD_BUILDID)</SymbolsBuildRemark>
+
+      <SymbolsErrorMailOnly Condition="'$(SymbolsErrorMailOnly)'==''">Yes</SymbolsErrorMailOnly>
+    </PropertyGroup>
+
+    <Error Text="'SymbolsProject' must be defined." Condition="'$(SymbolsProject)'==''" />
+    <Error Text="'SymbolsStatusMail' must be defined." Condition="'$(SymbolsStatusMail)'==''" />
+    <Error Text="'SymbolsUserName' must be defined." Condition="'$(SymbolsUserName)'==''" />
+
+    <Error Text="'SymbolsBuildId' must be defined, or fallback 'BUILD_DEFINITIONNAME'" Condition="'$(SymbolsBuildId)'==''" />
+    <Error Text="'SymbolsBuildRemark' must be defined, or fallbacks 'BUILD_BUILDNUMBER' and 'BUILD_BUILDID'" Condition="'$(SymbolsBuildRemark)'==''" />
+
+    <ItemGroup>
+      <RequestProperty Include="BuildId=$(SymbolsBuildId)" />
+      <RequestProperty Include="BuildRemark=$(SymbolsBuildRemark)" />
+      <RequestProperty Include="ErrorMailOnly=$(SymbolsErrorMailOnly)" />
+      <RequestProperty Include="Project=$(SymbolsProject)" />
+      <RequestProperty Include="StatusMail=$(SymbolsStatusMail)" />
+      <RequestProperty Include="UserName=$(SymbolsUserName)" />
+    </ItemGroup>
+  </Target>
+
+  <!--
+    Creates RequestProperty items that apply to archive requests.
+  -->
+  <Target Name="AddArchiveRequestProperties"
+          Condition="'$(ArchiveSymbols)'=='true'">
+    <PropertyGroup>
+      <SymbolsBuild Condition="'$(SymbolsBuild)'==''">$(BUILD_BUILDNUMBER)</SymbolsBuild>
+    </PropertyGroup>
+
+    <Error Text="'SymbolsRelease' must be defined." Condition="'$(SymbolsRelease)'==''" />
+    <Error Text="'SymbolsProductGroup' must be defined." Condition="'$(SymbolsProductGroup)'==''" />
+    <Error Text="'SymbolsProductName' must be defined." Condition="'$(SymbolsProductName)'==''" />
+
+    <Error Text="'SymbolsBuild' must be defined for a symbol archive request, or fallback 'BUILD_BUILDNUMBER'" Condition="'$(SymbolsBuild)'==''" />
+
+    <ItemGroup>
+      <RequestProperty Include="Build=$(SymbolsBuild)" />
+      <RequestProperty Include="Release=$(SymbolsRelease)" />
+      <RequestProperty Include="ProductGroup=$(SymbolsProductGroup)" />
+      <RequestProperty Include="ProductName=$(SymbolsProductName)" />
+      <RequestProperty Include="SubmitToArchive=ALL" />
+      <RequestProperty Include="SubmitToInternet=Yes" />
+    </ItemGroup>
+  </Target>
+
+  <!--
+    Creates the list of every symbol file to submit to the symbol server.
+    
+    Creates the RequestProperty that adds the file list to the symbols request.
+  -->
+  <Target Name="CreateSymbolsFileList"
+          DependsOnTargets="PublishSymbolFilesToFileShare">
+    <PropertyGroup>
+      <SymbolFileListPath>$(SymbolsRequestIntermediateDir)SymbolFileList.txt</SymbolFileListPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <RequestProperty Include="FileList=$(SymbolFileListPath)" />
+    </ItemGroup>
+
+    <MakeDir Directories="$(SymbolsRequestIntermediateDir)"
+             Condition="!Exists('$(SymbolsRequestIntermediateDir)')" />
+
+    <WriteLinesToFile File="$(SymbolFileListPath)"
+                      Lines="@(PublishedSymbolFile -> '%(FullPath)')"
+                      Overwrite="true" />
+  </Target>
+
+  <!--
+    Copies symbols to a directory based on the given search glob path. The target should be a file
+    share that the symbol server can access when servicing the request.
+
+    Creates the RequestProperty items that specify the path prefix of the request.
+  -->
+  <Target Name="PublishSymbolFilesToFileShare"
+          DependsOnTargets="UnzipSymbolPackagesForPublish">
+    <Error Text="'SymbolPublishDestinationDir' must be defined." Condition="'$(SymbolPublishDestinationDir)'==''" />
+
+    <ItemGroup>
+      <RequestProperty Include="PrefixToStrip=$(SymbolPublishDestinationDir)" />
+      <RequestProperty Include="UNCPath=$(SymbolPublishDestinationDir)" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <SymbolPublishCopyRetries Condition="'$(SymbolPublishCopyRetries)'==''">5</SymbolPublishCopyRetries>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(SymbolFileSearchGlob)'!=''">
+      <SymbolFileToPublish Include="$(SymbolFileSearchGlob)" />
+    </ItemGroup>
+
+    <Error Text="No symbol files found to publish. No existing 'PublishedSymbolsFile' items, and glob '$(SymbolFileSearchGlob)' found no items."
+           Condition="'@(SymbolFileToPublish)'==''" />
+
+    <Message Text="Publishing files matching '$(SymbolFileSearchGlob)' to '$(SymbolPublishDestinationDir)'."
+             Importance="low" />
+
+    <MakeDir Directories="$(SymbolPublishDestinationDir)"
+             Condition="!Exists('$(SymbolPublishDestinationDir)')" />
+
+    <Copy SourceFiles="@(SymbolFileToPublish)"
+          DestinationFiles="@(SymbolFileToPublish -> '$(SymbolPublishDestinationDir)%(RecursiveDir)%(Filename)%(Extension)')"
+          Retries="$(SymbolPublishCopyRetries)">
+      <Output TaskParameter="CopiedFiles" ItemName="PublishedSymbolFile"/>
+    </Copy>
+  </Target>
+
+  <!--
+    Unzips a set of symbol packages so the symbols inside can be archived/indexed.
+  -->
+  <Target Name="UnzipSymbolPackagesForPublish"
+          Condition="'$(SymbolPackagesToPublishGlob)'!=''">
+    <PropertyGroup>
+      <SymbolPackageExtractDir>$(SymbolsRequestIntermediateDir)ExtractedPackages\</SymbolPackageExtractDir>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <SymbolPackageFile Include="$(SymbolPackagesToPublishGlob)" />
+    </ItemGroup>
+
+    <!-- Extract to the index of the symbol package, not file name, to avoid exceeding max path. -->
+    <AddItemIndices Input="@(SymbolPackageFile)">
+      <Output TaskParameter="Output" ItemName="SymbolPackageFileWithIndex" />
+    </AddItemIndices>
+
+    <ZipFileExtractToDirectory SourceArchive="%(Identity)"
+                               DestinationDirectory="@(SymbolPackageFileWithIndex -> '$(SymbolPackageExtractDir)%(Index)')"
+                               OverwriteDestination="true" />
+
+    <ItemGroup>
+      <IndexedExtensions Include=".dll;.pdb;.exe" Condition="'@(IndexedExtensions)'==''" />
+      <SymbolFileToPublish Include="$(SymbolPackageExtractDir)**\*%(IndexedExtensions.Identity)" />
+    </ItemGroup>
+  </Target>
+
+</Project>

@@ -69,6 +69,11 @@
   -->
   <Import Project="$(MSBuildThisFileDirectory)codeOptimization.targets" />
 
+  <!--
+    Import the Symbols.targets file to provide access to Symbol Server index/archive tooling.
+  -->
+  <Import Project="$(MSBuildThisFileDirectory)Symbols.targets" />
+
   <!-- 
     Import the default target framework targets.
     
@@ -216,7 +221,7 @@
         PackagesDir - Packages are restored to and resolved from this location    
    -->
   <Import Project="$(MSBuildThisFileDirectory)tests.targets" Condition="'$(IsTestProject)'=='true' and '$(ExcludeTestsImport)'!='true'"/>
-  
+
   <!-- 
     Import the PackageLibs.targets which exposes targets from library projects to report what
     assets they contribute to nuget packages.

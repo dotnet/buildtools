@@ -17,6 +17,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AddItemIndices.cs" />
     <Compile Include="BinClashLogger.cs" />
     <Compile Include="CleanupVSTSAgent.cs" />
     <Compile Include="ComputeDestinationsForDependencies.cs" />
@@ -82,6 +83,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="PackageFiles\Symbols.targets" />
     <None Include="project.json" />
     <None Include="PackageFiles\ApiCompat.runtimeconfig.json" />
     <None Include="PackageFiles\ApiCompat.targets" />
