@@ -208,7 +208,7 @@ namespace Microsoft.DotNet.VersionTools.Automation
             }
         }
 
-        private static string CreatePackageListFile(Dictionary<string, string> packages)
+        public static string CreatePackageListFile(Dictionary<string, string> packages)
         {
             return string.Join(
                    Environment.NewLine,

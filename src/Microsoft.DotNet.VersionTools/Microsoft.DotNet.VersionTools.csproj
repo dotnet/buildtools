@@ -22,6 +22,7 @@
   <ItemGroup>
     <Compile Include="Automation\DependencyUpdateResults.cs" />
     <Compile Include="Automation\GitHubApi\HttpFailureResponseException.cs" />
+    <Compile Include="Automation\LocalVersionsRepoUpdater.cs" />
     <Compile Include="Dependencies\DependencyBuildInfo.cs" />
     <Compile Include="Dependencies\DependencyUpdateTask.cs" />
     <Compile Include="Automation\GitHubApi\GitHubClient.cs" />

@@ -2,21 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using NuGet.Packaging.Core;
+using Newtonsoft.Json;
 using NuGet.Versioning;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace Microsoft.DotNet.VersionTools
 {
     public class BuildInfo
     {
+        public const string LatestTxtFilename = "Latest.txt";
+        public const string LatestPackagesTxtFilename = "Latest_Packages.txt";
+        public const string LastBuildPackagesTxtFilename = "Last_Build_Packages.txt";
+
         public string Name { get; set; }
 
         public Dictionary<string, string> LatestPackages { get; set; }
@@ -46,8 +49,8 @@ namespace Microsoft.DotNet.VersionTools
         {
             Dictionary<string, string> packages;
 
-            string rawLatestUrl = $"{rawBuildInfoBaseUrl}/Latest.txt";
-            string rawLatestPackagesUrl = $"{rawBuildInfoBaseUrl}/Latest_Packages.txt";
+            string rawLatestUrl = $"{rawBuildInfoBaseUrl}/{LatestTxtFilename}";
+            string rawLatestPackagesUrl = $"{rawBuildInfoBaseUrl}/{LatestPackagesTxtFilename}";
 
             using (Stream versionsStream = await client.GetStreamAsync(rawLatestPackagesUrl))
             using (StreamReader reader = new StreamReader(versionsStream))
@@ -63,13 +66,7 @@ namespace Microsoft.DotNet.VersionTools
             }
             else
             {
-                var versions = packages.Values
-                    .Select(versionString => new NuGetVersion(versionString));
-
-                releaseVersion =
-                    versions.FirstOrDefault(v => v.IsPrerelease)?.Release ??
-                    // if there are no prerelease versions, just grab the first version
-                    versions.FirstOrDefault()?.ToNormalizedString();
+                releaseVersion = FindLatestReleaseFromPackages(packages);
             }
 
             return new BuildInfo
@@ -126,6 +123,38 @@ namespace Microsoft.DotNet.VersionTools
             return info;
         }
 
+        public static async Task<BuildInfo> LocalFileGetAsync(
+            string name,
+            string dir,
+            string relativePath,
+            bool fetchLatestReleaseFile = true)
+        {
+            string latestPackagesPath = Path.Combine(dir, relativePath, LatestPackagesTxtFilename);
+            using (var packageFileStream = File.OpenRead(latestPackagesPath))
+            using (var packageReader = new StreamReader(packageFileStream))
+            {
+                Dictionary<string, string> packages = await ReadPackageListAsync(packageReader);
+
+                string latestReleaseVersion;
+                if (fetchLatestReleaseFile)
+                {
+                    string latestReleasePath = Path.Combine(dir, relativePath, LatestTxtFilename);
+                    latestReleaseVersion = File.ReadLines(latestReleasePath).First().Trim();
+                }
+                else
+                {
+                    latestReleaseVersion = FindLatestReleaseFromPackages(packages);
+                }
+
+                return new BuildInfo
+                {
+                    Name = name,
+                    LatestPackages = packages,
+                    LatestReleaseVersion = latestReleaseVersion
+                };
+            }
+        }
+
         public static string RawBuildInfoBaseUrl(string rawRepoUrl, string gitRef, string buildInfoPath)
         {
             return $"{rawRepoUrl}/{gitRef}/{buildInfoPath}";
@@ -149,6 +178,17 @@ namespace Microsoft.DotNet.VersionTools
                 packages[id] = version;
             }
             return packages;
+        }
+
+        private static string FindLatestReleaseFromPackages(IDictionary<string, string> packages)
+        {
+            IEnumerable<NuGetVersion> versions = packages.Values
+                .Select(versionString => new NuGetVersion(versionString));
+
+            return
+                versions.FirstOrDefault(v => v.IsPrerelease)?.Release ??
+                // if there are no prerelease versions, just grab the first version
+                versions.FirstOrDefault()?.ToNormalizedString();
         }
     }
 }
