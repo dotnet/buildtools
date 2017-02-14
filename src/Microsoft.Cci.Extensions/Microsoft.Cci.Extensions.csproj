@@ -35,6 +35,10 @@
     <Compile Include="Filters\AttributeMarkedFilter.cs" />
     <Compile Include="Filters\AttributesFilter.cs" />
     <Compile Include="Filters\BaselineDifferenceFilter.cs" />
+    <Compile Include="Filters\CciFilterExtensions.AndFilter.cs" />
+    <Compile Include="Filters\CciFilterExtensions.cs" />
+    <Compile Include="Filters\CciFilterExtensions.NegatedFilter.cs" />
+    <Compile Include="Filters\CciFilterExtensions.OrFilter.cs" />
     <Compile Include="Filters\CommonTypesMappingDifferenceFilter.cs" />
     <Compile Include="Filters\DifferenceFilter.cs" />
     <Compile Include="Filters\DocIdExcludeListFilter.cs" />
