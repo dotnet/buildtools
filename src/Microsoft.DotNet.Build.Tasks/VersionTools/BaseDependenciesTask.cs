@@ -165,18 +165,7 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                 buildInfoPath = $"{buildInfoPath}/{currentBranch}";
             }
 
-            if (!string.IsNullOrEmpty(rawVersionsBaseUrl) &&
-                !string.IsNullOrEmpty(buildInfoPath) &&
-                !string.IsNullOrEmpty(currentRef))
-            {
-                return BuildInfo.CachedGet(
-                    item.ItemSpec,
-                    rawVersionsBaseUrl,
-                    currentRef,
-                    buildInfoPath,
-                    cacheDir);
-            }
-            
+            // Optional: override base url with a local directory.
             string versionsRepoDir = item.GetMetadata(VersionsRepoDirMetadataName);
 
             if (!string.IsNullOrEmpty(versionsRepoDir) &&
@@ -188,6 +177,18 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                     buildInfoPath,
                     // Don't fetch latest release file: it may not be present in build from source.
                     fetchLatestReleaseFile: false).Result;
+            }
+
+            if (!string.IsNullOrEmpty(rawVersionsBaseUrl) &&
+                !string.IsNullOrEmpty(buildInfoPath) &&
+                !string.IsNullOrEmpty(currentRef))
+            {
+                return BuildInfo.CachedGet(
+                    item.ItemSpec,
+                    rawVersionsBaseUrl,
+                    currentRef,
+                    buildInfoPath,
+                    cacheDir);
             }
 
             string packageId = item.GetMetadata(PackageIdMetadataName);
