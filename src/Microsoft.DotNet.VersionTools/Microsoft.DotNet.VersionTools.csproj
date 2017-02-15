@@ -23,6 +23,7 @@
     <Compile Include="Automation\DependencyUpdateResults.cs" />
     <Compile Include="Automation\GitHubApi\HttpFailureResponseException.cs" />
     <Compile Include="Automation\LocalVersionsRepoUpdater.cs" />
+    <Compile Include="Automation\GitHubVersionsRepoUpdater.cs" />
     <Compile Include="Dependencies\DependencyBuildInfo.cs" />
     <Compile Include="Dependencies\DependencyUpdateTask.cs" />
     <Compile Include="Automation\GitHubApi\GitHubClient.cs" />
@@ -43,7 +44,7 @@
     <Compile Include="Util\CommandResult.cs" />
     <Compile Include="Util\FileUtils.cs" />
     <Compile Include="Automation\GitHubAuth.cs" />
-    <Compile Include="Automation\NupkgNameInfo.cs" />
+    <Compile Include="Automation\NupkgInfo.cs" />
     <Compile Include="Dependencies\FileRegexUpdater.cs" />
     <Compile Include="Dependencies\IDependencyUpdater.cs" />
     <Compile Include="BuildInfo.cs" />

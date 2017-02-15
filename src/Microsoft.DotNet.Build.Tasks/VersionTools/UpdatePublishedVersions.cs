@@ -32,7 +32,7 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 
             var gitHubAuth = new GitHubAuth(GitHubAuthToken, GitHubUser, GitHubEmail);
 
-            var updater = new VersionsRepoUpdater(gitHubAuth, VersionsRepoOwner, VersionsRepo);
+            var updater = new GitHubVersionsRepoUpdater(gitHubAuth, VersionsRepoOwner, VersionsRepo);
 
             updater.UpdateBuildInfoAsync(
                 ShippedNuGetPackage.Select(item => item.ItemSpec),

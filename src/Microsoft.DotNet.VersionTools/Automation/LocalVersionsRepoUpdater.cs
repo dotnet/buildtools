@@ -5,11 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace Microsoft.DotNet.VersionTools.Automation
 {
-    public class LocalVersionsRepoUpdater
+    public class LocalVersionsRepoUpdater : VersionsRepoUpdater
     {
         /// <summary>
         /// Updates only the Latest_Packages file in the specified on-disk versions repository dir.
@@ -32,11 +31,7 @@ namespace Microsoft.DotNet.VersionTools.Automation
                 throw new ArgumentException(nameof(versionsRepoPath));
             }
 
-            Dictionary<string, string> packages = packagePaths
-                .Select(path => new NupkgNameInfo(path))
-                // Ignore symbol packages.
-                .Where(t => !t.SymbolPackage)
-                .ToDictionary(t => t.Id, t => t.Version);
+            Dictionary<string, string> packages = CreatePackageInfoDictionary(CreatePackageInfos(packagePaths));
 
             string latestPackagesDir = Path.Combine(
                 versionsRepoDir,
@@ -46,7 +41,7 @@ namespace Microsoft.DotNet.VersionTools.Automation
 
             File.WriteAllText(
                 Path.Combine(latestPackagesDir, BuildInfo.LatestPackagesTxtFilename),
-                VersionsRepoUpdater.CreatePackageListFile(packages));
+                CreatePackageListFile(packages));
         }
     }
 }
