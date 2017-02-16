@@ -10,6 +10,11 @@
     <RuntimeIdGraphDefinitionFile Condition="'$(RuntimeIdGraphDefinitionFile)' == ''">$(MSBuildThisFileDirectory)runtime.json</RuntimeIdGraphDefinitionFile>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(PackageTargetRuntimeSuffix)' != ''">
+    <PackageTargetRuntime Condition="'$(PackageTargetRuntime)' != ''">$(PackageTargetRuntime)-$(PackageTargetRuntimeSuffix)</PackageTargetRuntime>
+    <PackageTargetRuntime Condition="'$(PackageTargetRuntime)' == ''">$(PackageTargetRuntimeSuffix)</PackageTargetRuntime>
+  </PropertyGroup>
+
   <UsingTask TaskName="ApplyBaseLine" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="ApplyPreReleaseSuffix" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
   <UsingTask TaskName="CreateTrimDependencyGroups" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
