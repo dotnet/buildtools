@@ -15,13 +15,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
     public class CreateTrimDependencyGroups : PackagingTask
     {
         [Required]
-        public string FrameworkListsPath
-        {
-            get;
-            set;
-        }
-
-        [Required]
         public ITaskItem[] Dependencies
         {
             get;
@@ -34,6 +27,17 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             get;
             set;
         }
+
+        /// <summary>
+        /// Package index files used to define stable package list.
+        /// </summary>
+        [Required]
+        public ITaskItem[] PackageIndexes
+        {
+            get;
+            set;
+        }
+
 
         [Output]
         public ITaskItem[] TrimmedDependencies
@@ -53,11 +57,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 Log.LogError("Dependencies argument must be specified");
                 return false;
             }
-            if (null == FrameworkListsPath)
+            if (PackageIndexes == null && PackageIndexes.Length == 0)
             {
-                Log.LogError("FrameworkListsPath argument must be specified");
+                Log.LogError("PackageIndexes argument must be specified");
                 return false;
             }
+
+            var index = PackageIndex.Load(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
 
             // Retrieve the list of generation dependency group TFM's
             var dependencyGroups = Dependencies.GroupBy(d => d.GetMetadata("TargetFramework")).Select(dg => new
@@ -82,7 +88,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             {
                 // Determine inbox frameworks for this generation that don't already have explicit groups
                 HashSet<NuGetFramework> inboxFrameworksList = new HashSet<NuGetFramework>(
-                    Frameworks.GetAlllInboxFrameworks(FrameworkListsPath)
+                    index.GetAlllInboxFrameworks()
                     .Where(fx => !fx.IsPCL)
                     .Where(fx => Generations.DetermineGenerationForFramework(fx, UseNetPlatform) >= portableDependencyGroup.Framework.Version &&
                         !frameworksToExclude.Any(exFx => exFx.Framework == fx.Framework && exFx.Version <= fx.Version)));
@@ -103,7 +109,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     {
                         string version = GetVersion(dependency);
                         
-                        if (!Frameworks.IsInbox(FrameworkListsPath, framework, dependency.ItemSpec, version))
+                        if (!index.IsInbox(dependency.ItemSpec, framework, version))
                         {
                             addedDependencyToFramework = true;
                             AddDependency(addedDependencies, new TaskItem(dependency), framework, portableDependencyGroup.Framework);

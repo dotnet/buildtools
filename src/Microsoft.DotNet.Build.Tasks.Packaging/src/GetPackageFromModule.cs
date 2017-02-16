@@ -38,7 +38,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
         public override bool Execute()
         {
-            Dictionary<string, string> modulesToPackages;
+            IDictionary<string, string> modulesToPackages;
 
             if (PackageIndexes != null && PackageIndexes.Length > 0)
             {

@@ -94,14 +94,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             set;
         }
 
-
-        [Required]
-        public string FrameworkListsPath
-        {
-            get;
-            set;
-        }
-
         public bool SkipGenerationCheck
         {
             get;
@@ -160,10 +152,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// </summary>
         private Dictionary<Suppression, HashSet<string>> _suppressions;
         private Dictionary<NuGetFramework, ValidationFramework> _frameworks;
-        private FrameworkSet _frameworkSet;
+        private PackageIndex _index;
         private PackageReport _report;
         private string _generationIdentifier = FrameworkConstants.FrameworkIdentifiers.NetStandard;
-        private static Version s_maxVersion = new Version(int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue);
 
         public override bool Execute()
         {
@@ -467,9 +458,10 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     // not in the native module map, see if any of the modules in this package are present
                     // (with a different package, as would be the case for runtime-specific packages)
                     var moduleNames = allDlls.Select(d => Path.GetFileNameWithoutExtension(d.LocalPath));
-                    if (moduleNames.Any() && !moduleNames.Any(m => index.ModulesToPackages.ContainsKey(m)))
+                    var missingModuleNames = moduleNames.Where(m => !index.ModulesToPackages.ContainsKey(m));
+                    if (missingModuleNames.Any())
                     {
-                        Log.LogError($"PackageIndex from {String.Join(", ", PackageIndexes.Select(i => i.ItemSpec))} is missing ModulesToPackages entry(s) for {String.Join(", ", allDlls)} to package {PackageId}.  Please add a an entry for the appropriate package.");
+                        Log.LogError($"PackageIndex from {String.Join(", ", PackageIndexes.Select(i => i.ItemSpec))} is missing ModulesToPackages entry(s) for {String.Join(", ", missingModuleNames)} to package {PackageId}.  Please add a an entry for the appropriate package.");
                     }
                 }
 
@@ -709,51 +701,46 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
 
             // determine which Frameworks should support inbox
-            _frameworkSet = FrameworkSet.Load(FrameworkListsPath);
-            foreach (IEnumerable<Framework> inboxFxGroup in _frameworkSet.Frameworks.Values)
+            _index = PackageIndex.Load(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
+            foreach (var inboxPair in _index.GetInboxVersions(ContractName).NullAsEmpty())
             {
-                foreach (Framework inboxFx in inboxFxGroup)
+                var fx = inboxPair.Key;
+                var inboxVersion = inboxPair.Value;
+
+                if (inboxVersion != null)
                 {
-                    // get currently supported version to see if we have OOB'ed it
-                    Version inboxVersion = null;
-                    inboxFx.Assemblies.TryGetValue(ContractName, out inboxVersion);
-
-                    if (inboxVersion != null)
+                    ValidationFramework validationFramework = null;
+                    if (_frameworks.TryGetValue(fx, out validationFramework))
                     {
-                        NuGetFramework fx = FrameworkUtilities.ParseNormalized(inboxFx.ShortName);
-                        ValidationFramework validationFramework = null;
-                        if (_frameworks.TryGetValue(fx, out validationFramework))
+                        Version supportedVersion = validationFramework.SupportedVersion;
+
+                        if (supportedVersion != null &&
+                            (supportedVersion.Major > inboxVersion.Major ||
+                            (supportedVersion.Major == inboxVersion.Major && supportedVersion.Minor > inboxVersion.Minor)))
                         {
-                            Version supportedVersion = validationFramework.SupportedVersion;
-
-                            if (supportedVersion != null &&
-                                (supportedVersion.Major > inboxVersion.Major ||
-                                (supportedVersion.Major == inboxVersion.Major && supportedVersion.Minor > inboxVersion.Minor)))
-                            {
-                                // Higher major.minor
-                                Log.LogMessage(LogImportance.Low, $"Framework {fx} supported {ContractName} as inbox but the current supported version {supportedVersion} is higher in major.minor than inbox version {inboxVersion}.  Assuming out of box.");
-                                continue;
-                            }
-                            else if (supportedVersion != null && supportedVersion < inboxVersion && inboxVersion != s_maxVersion)
-                            {
-                                // Lower version
-                                Log.LogError($"Framework {fx} supports {ContractName} as inbox but the current supported version {supportedVersion} is lower than the inbox version {inboxVersion}");
-                            }
-
-                            // equal major.minor, build.revision difference is permitted, prefer the version listed by ContractSupport item
+                            // Higher major.minor
+                            Log.LogMessage(LogImportance.Low, $"Framework {fx} supported {ContractName} as inbox but the current supported version {supportedVersion} is higher in major.minor than inbox version {inboxVersion}.  Assuming out of box.");
+                            continue;
+                        }
+                        else if (supportedVersion != null && supportedVersion < inboxVersion && inboxVersion != VersionUtility.MaxVersion)
+                        {
+                            // Lower version
+                            Log.LogError($"Framework {fx} supports {ContractName} as inbox but the current supported version {supportedVersion} is lower than the inbox version {inboxVersion}");
                         }
 
-                        if (validationFramework == null)
-                        {
-                            // we may not be explicitly validating for this framework so add it to validate inbox assets.
-                            _frameworks[fx] = validationFramework = new ValidationFramework(fx)
-                            {
-                                SupportedVersion = inboxVersion
-                            };
-                        }
-
-                        validationFramework.IsInbox = true;
+                        // equal major.minor, build.revision difference is permitted, prefer the version listed by ContractSupport item
                     }
+
+                    if (validationFramework == null)
+                    {
+                        // we may not be explicitly validating for this framework so add it to validate inbox assets.
+                        _frameworks[fx] = validationFramework = new ValidationFramework(fx)
+                        {
+                            SupportedVersion = inboxVersion
+                        };
+                    }
+
+                    validationFramework.IsInbox = true;
                 }
             }
 
@@ -763,7 +750,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             // their own implementation via a lineup/runtime.json.
 
             // only consider frameworks that support the contract at a specific version
-            var inferFrameworks = _frameworks.Values.Where(fx => fx.SupportedVersion != null && fx.SupportedVersion != s_maxVersion).ToArray();
+            var inferFrameworks = _frameworks.Values.Where(fx => fx.SupportedVersion != null && fx.SupportedVersion != VersionUtility.MaxVersion).ToArray();
 
             var genVersionSuppression = GetSuppressionValues(Suppression.PermitPortableVersionMismatch) ?? new HashSet<string>();
             var inferNETStandardSuppression = GetSuppressionValues(Suppression.SuppressNETStandardInference) ?? new HashSet<string>();
@@ -799,12 +786,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             {
                 _frameworks.Add(generation.Key, generation.Value);
             }
-        }
-
-        private string GetVersionString(Version version)
-        {
-            // normalize to API version
-            return version == s_maxVersion ? "Any" : _frameworkSet.GetApiVersion(ContractName, version)?.ToString();
         }
 
         private class ValidationFramework

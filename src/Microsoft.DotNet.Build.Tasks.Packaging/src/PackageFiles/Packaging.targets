@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" TreatAsLocalProperty="BuildProjectReferences" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Condition="'$(_PackagingCommonTargetsImported)' != 'true'" Project="Packaging.common.targets"/>
 
   <!-- The following properties are expected to change as we transition from
        Beta -> RC - RTM. We should set $(IncludeBuildNumberInPackageVersion)
@@ -66,53 +67,22 @@
   <PropertyGroup>
     <PackageOutputPath Condition="'$(PackageOutputPath)' == ''">$(BaseOutputPath)pkg/</PackageOutputPath>
     <SymbolPackageOutputPath Condition="'$(SymbolPackageOutputPath)' == ''">$(BaseOutputPath)symbolpkg/</SymbolPackageOutputPath>
-    <PackageInstallPath Condition="'$(PackageInstallPath)' == ''">$(BaseOutputPath)localpkg/</PackageInstallPath>
     <OutputPath>$(PackageOutputPath)</OutputPath>
     <NuSpecOutputPath Condition="'$(NuSpecOutputPath)' == ''">$(PackageOutputPath)specs/</NuSpecOutputPath>
     <NuSpecPath>$(NuSpecOutputPath)$(Id)$(NuspecSuffix).nuspec</NuSpecPath>
     <PackageReportDir Condition="'$(PackageReportDir)' == ''">$(PackageOutputPath)reports/</PackageReportDir>
-    <PackageLayoutDir Condition="'$(PackageLayoutDir)' == ''">$(PackageOutputPath)layout/</PackageLayoutDir>
     <PackageReportPath>$(PackageReportDir)$(Id)$(NuspecSuffix).json</PackageReportPath>
     <TargetPath>$(NuSpecPath)</TargetPath>
     <RuntimeFilePath Condition="'$(RuntimeFilePath)' == ''">$(NuSpecOutputPath)$(Id)$(NuspecSuffix)/runtime.json</RuntimeFilePath>
     <PlaceholderFile>$(MSBuildThisFileDirectory)_._</PlaceholderFile>
     <PackageDescriptionFile Condition="'$(PackageDescriptionFile)' == ''">path to descriptions.json must be specified</PackageDescriptionFile>
-    <RuntimeIdGraphDefinitionFile Condition="'$(RuntimeIdGraphDefinitionFile)' == '' AND Exists('$(ProjectDir)pkg/Microsoft.NETCore.Platforms/runtime.json')">$(ProjectDir)pkg/Microsoft.NETCore.Platforms/runtime.json</RuntimeIdGraphDefinitionFile>
-    <RuntimeIdGraphDefinitionFile Condition="'$(RuntimeIdGraphDefinitionFile)' == ''">$(MSBuildThisFileDirectory)runtime.json</RuntimeIdGraphDefinitionFile>
-    <FrameworkListsPath Condition="'$(FrameworkListsPath)' == ''">$(MSBuildThisFileDirectory)FrameworkLists</FrameworkListsPath>
     <ValidationSuppressionFile Condition="'$(ValidationSuppressionFile)' == ''">ValidationSuppression.txt</ValidationSuppressionFile>
     <SyncInfoFile Condition="'$(SyncInfoFile)' == ''">unspecified</SyncInfoFile>
-    <PackagingTaskDir Condition="'$(PackagingTaskDir)' == ''">$(MSBuildThisFileDirectory)</PackagingTaskDir>
     <LineupPackageId Condition="'$(LineupPackageId)' == ''">Microsoft.NETCore.Targets</LineupPackageId>
     <LineupPackageVersion Condition="'$(LineupPackageVersion)' == ''">1.0.1</LineupPackageVersion>
     <PlatformPackageId Condition="'$(PlatformPackageId)' == ''">Microsoft.NETCore.Platforms</PlatformPackageId>
     <PlatformPackageVersion Condition="'$(PlatformPackageVersion)' == ''">1.0.1</PlatformPackageVersion>
   </PropertyGroup>
-
-  <UsingTask TaskName="ApplyPreReleaseSuffix" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-  <UsingTask TaskName="GetAssemblyReferences" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-  <UsingTask TaskName="SplitReferences" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-  <UsingTask TaskName="GenerateRuntimeDependencies" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-  <UsingTask TaskName="GetPackageDescription" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-  <UsingTask TaskName="GetInboxFrameworks" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-  <UsingTask TaskName="GetPackageVersion" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-  <UsingTask TaskName="ValidatePackage" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-  <UsingTask TaskName="CreateTrimDependencyGroups" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-  <UsingTask TaskName="GenerateNuSpec" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-  <UsingTask TaskName="NuGetPack" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-  <UsingTask TaskName="ApplyBaseLine" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-  <UsingTask TaskName="PromoteDependencies" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-  <UsingTask TaskName="GetMinimumNETStandard" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-  <UsingTask TaskName="SplitDependenciesBySupport" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-  <UsingTask TaskName="GetLastStablePackage" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-  <UsingTask TaskName="HarvestPackage" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-  <UsingTask TaskName="UpdatePackageIndex" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-  <UsingTask TaskName="GetPackageFromModule" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-  <UsingTask TaskName="FilterUnknownPackages" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-  <UsingTask TaskName="GeneratePackageReport" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-  <UsingTask TaskName="InstallPackageFromFile" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
-  <UsingTask TaskName="GetLayoutFiles" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
-  <UsingTask TaskName="VerifyClosure" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
 
   
   <!-- Determine if we actually need to build for this architecture -->
@@ -130,11 +100,8 @@
     <ShouldGenerateNuSpec Condition="'$(PackagePlatforms)' == '' AND $(PackageTargetRuntime.Contains('-$(PackagePlatform)'))">true</ShouldGenerateNuSpec>
     <!-- build if PackagePlatforms is not specified and arch is x86 or AnyCPU -->
     <ShouldGenerateNuSpec Condition="'$(PackagePlatforms)' == '' AND ('$(PackagePlatform)' == 'x86' OR '$(PackagePlatform)' == 'AnyCPU')">true</ShouldGenerateNuSpec>
-    <!-- if we built a nuspec, also create layout and pack unless explicitly set -->
-    <ShouldCreateLayout Condition="'$(ShouldCreateLayout)' == ''">$(ShouldGenerateNuSpec)</ShouldCreateLayout>
     <ShouldCreatePackage Condition="'$(ShouldCreatePackage)' == ''">$(ShouldGenerateNuSpec)</ShouldCreatePackage>
     <BuildDependsOn Condition="'$(ShouldGenerateNuSpec)' == 'true'">GenerateNuSpec</BuildDependsOn>
-    <BuildDependsOn Condition="'$(ShouldCreateLayout)' == 'true'">$(BuildDependsOn);CreateLayout</BuildDependsOn>
     <BuildDependsOn Condition="'$(ShouldCreatePackage)' == 'true'">$(BuildDependsOn);CreatePackage</BuildDependsOn>
     <BuildDependsOn Condition="'$(ShouldCreatePackage)' == 'true' OR '$(ShouldGenerateNuSpec)' == 'true'">$(BuildDependsOn);GetPackageReport;ValidatePackage</BuildDependsOn>
   </PropertyGroup>
@@ -635,7 +602,7 @@
 
     <SplitReferences References="@(_FileReferencedAssemblies)"
                      TargetFramework="$(_TargetFramework)"
-                     FrameworkListsPath="$(FrameworkListsPath)">
+                     PackageIndexes="@(PackageIndex)">
       <Output TaskParameter="FrameworkReferences" ItemName="_FileFrameworkReference"/>
       <Output TaskParameter="PackageReferences" ItemName="_FilePackageReferenceUnfiltered"/>
     </SplitReferences>
@@ -729,7 +696,7 @@
          compile/runtime.  This reduces the noise when consuming our packages in
          packages.config based projects.  -->
     <CreateTrimDependencyGroups Dependencies="@(FilePackageDependency);@(Dependency)"
-                      FrameworkListsPath="$(FrameworkListsPath)"
+                      PackageIndexes="@(PackageIndex)"
                       Files="@(File)"
                       UseNetPlatform="$(UseNetPlatform)"
                       Condition="'@(FilePackageDependency)' != '' AND '$(PackageTargetRuntime)' == ''">
@@ -738,7 +705,7 @@
 
     <!-- Promote dependencies from ref to lib and vice-versa -->
     <PromoteDependencies Dependencies="@(FilePackageDependency)"
-                         FrameworkListsPath="$(FrameworkListsPath)"
+                         PackageIndexes="@(PackageIndex)"
                          Condition="'@(FilePackageDependency)' != ''">
       <Output TaskParameter="PromotedDependencies" ItemName="FilePackageDependency" />
     </PromoteDependencies>
@@ -1064,7 +1031,7 @@
                      Files="@(PackageAsset)"
                      Frameworks="@(DefaultValidateFramework)"
                      RuntimeFile="$(RuntimeIdGraphDefinitionFile)"
-                     FrameworkListsPath="$(FrameworkListsPath)"
+                     PackageIndexes="@(PackageIndex)"
                      ReportFile="$(PackageReportPath)" />
   </Target>
 
@@ -1097,7 +1064,6 @@
     </ItemGroup>
 
     <ValidatePackage ContractName="$(BaseId)"
-                     FrameworkListsPath="$(FrameworkListsPath)"
                      Frameworks="@(ValidateFramework)"
                      PackageId="$(Id)"
                      PackageIndexes="@(PackageIndex)"
@@ -1210,23 +1176,6 @@
                       Overwrite="true"
                       Condition="'$(_SkipCreatePackage)' != 'true'"/>
   </Target>
-  
-  <!-- Installs locally built package into a packageinstalldir for consuming -->
-  <!-- Overwrites previous installs, supports only one version installed -->
-  <Target Name="InstallLocallyBuiltPackages"
-          Condition="'$(SkipInstallLocallyBuiltPackages)' != 'true' AND '$(_SkipCreatePackage)' != 'true'"
-          AfterTargets="CreatePackage">
-    
-    <Error Text="Package not installed as it was not found at $(PackageOutputPath)$(Id).$(PackageVersion).nupkg" 
-           Condition="!Exists('$(PackageOutputPath)$(Id).$(PackageVersion).nupkg')" />
-    
-    <!-- Force overwrite install directory of package to allow only one version installed -->
-    <RemoveDir Directories="$(PackageInstallPath)\$(Id)" />
-
-    <InstallPackageFromFile PackageFile="$(PackageOutputPath)$(Id).$(PackageVersion).nupkg"
-                            PackagesFolder="$(PackageInstallPath)" />
-      
-  </Target>
 
   <!-- Updates the packageIndex with information from the built package for this project -->
   <!-- Intentionally not sequenced, invoked directly through /t:UpdatePackageIndex -->
@@ -1251,42 +1200,16 @@
     <!-- Set BaseLinePackage to packageId identity with 'Version' metadata to define the set of packages which should set their baseline to a particular version -->
     <!-- Set StablePackage to packageId identity with 'Version' metadata to define the set of packages which should be set as stable -->
     <!-- Set ModuleToPackage to module name identity with 'Package' metadata to define mappings from native modules to package IDs which contain those -->
+    <!-- Set FrameworkListsFolder to the path to a set of directories containing framework lists, where the subdirectory name is the TFM.  These lists will determine what is inbox on that framework. -->
+    <!-- Set FrameowrkLayout to folder identity with 'TargetFramework' metadata to consider files within that folder inbox on that framework.-->
 
     <UpdatePackageIndex PackageIndexFile="$(PackageIndexFile)"
                         PackageIds="@(PackageIds)"
                         PackageFolders="@(PackageFolders)"
                         BaselinePackages="@(BaselinePackage)"
                         StablePackages="@(StablePackage)"
-                        ModuleToPackages="@(ModuleToPackage)" />
-  </Target>
-
-  <Target Name="CreateLayout"
-          Condition="'$(IsRuntimePackage)' != 'true' AND '$(PackageTargetRuntime)' == ''"
-          DependsOnTargets="GetPackageReport">
-
-    <ItemGroup>
-      <LayoutFrameworks Condition="'@(LayoutFrameworks)' == ''" Include="NETCoreApp,Version=v1.1" />
-    </ItemGroup>
-
-    <GetLayoutFiles PackageReports="$(PackageReportPath)"
-                    Frameworks="@(LayoutFrameworks)"
-                    DestinationDirectory="$(PackageLayoutDir)">
-      <Output TaskParameter="LayoutFiles" ItemName="LayoutFiles"/>
-    </GetLayoutFiles>
-
-    <ItemGroup>
-      <_missingLayoutFiles Include="@(LayoutFiles)" Condition="!Exists('%(FullPath)')" />
-      <LayoutFiles Remove="@(_missingLayoutFiles)" />
-    </ItemGroup>
-
-    <Message Text="Skipping '%(_missingLayoutFiles.FullPath) because it does not exist." Condition="'@(_missingLayoutFiles)' != ''" />
-
-    <Copy SourceFiles="@(LayoutFiles)"
-          DestinationFiles="@(LayoutFiles->'%(Destination)')"
-          SkipUnchangedFiles="true"
-          OverwriteReadOnlyFiles="true"
-          Retries="$(CopyRetryCount)"
-          RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
-          UseHardlinksIfPossible="true" />
+                        ModuleToPackages="@(ModuleToPackage)"
+                        InboxFrameworkListFolder="$(FrameworkListsFolder)"
+                        InboxFrameworkLayoutFolders="@(FrameworkLayout)" />
   </Target>
 </Project>

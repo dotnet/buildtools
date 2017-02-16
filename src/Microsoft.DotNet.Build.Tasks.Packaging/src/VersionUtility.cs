@@ -11,6 +11,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
     internal static class VersionUtility
     {
+        public static readonly Version MaxVersion = new Version(int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue);
+
         public static bool IsCompatibleApiVersion(Version referenceVersion, Version definitionVersion)
         {
             return (referenceVersion.Major == definitionVersion.Major &&

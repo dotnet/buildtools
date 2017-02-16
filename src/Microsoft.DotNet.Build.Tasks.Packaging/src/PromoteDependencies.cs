@@ -21,17 +21,27 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
     {
         private const string TargetFrameworkMetadataName = "TargetFramework";
 
+        private PackageIndex index;
+
         [Required]
         public ITaskItem[] Dependencies { get; set; }
-        
+
         [Required]
-        public string FrameworkListsPath { get; set; }
+        public ITaskItem[] PackageIndexes { get; set; }
 
         [Output]
         public ITaskItem[] PromotedDependencies { get; set; }
         
         public override bool Execute()
         {
+            if (PackageIndexes == null && PackageIndexes.Length == 0)
+            {
+                Log.LogError("PackageIndexes argument must be specified");
+                return false;
+            }
+
+            index = PackageIndex.Load(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
+
             List<ITaskItem> promotedDependencies = new List<ITaskItem>();
 
             var dependencies = Dependencies.Select(d => new Dependency(d)).ToArray();
@@ -39,9 +49,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             var refSets = dependencies.Where(d => d.Id != "_._").Where(d => d.IsReference).GroupBy(d => d.TargetFramework).ToDictionary(g => NuGetFramework.Parse(g.Key), g => g.ToArray());
             var refFxs = refSets.Keys.ToArray();
 
+            Log.LogMessage(LogImportance.Low, $"Ref frameworks {string.Join(";", refFxs.Select(f => f.ToString()))}");
+
             var libSets = dependencies.Where(d => !d.IsReference).GroupBy(d => d.TargetFramework).ToDictionary(g => NuGetFramework.Parse(g.Key), g => g.ToArray());
             var libFxs = libSets.Keys.ToArray();
 
+            Log.LogMessage(LogImportance.Low, $"Lib frameworks {string.Join(";", libFxs.Select(f => f.ToString()))}");
 
             if (libFxs.Length > 0)
             {
@@ -64,13 +77,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     // find best lib (if any)
                     var nearestRefFx = FrameworkUtilities.GetNearest(libFx, refFxs);
 
-                    if (nearestRefFx == null && !nearestRefFx.Equals(libFx))
-                    {
-                        // This should never happen and indicates a bug in the package.  If a package contains references,
-                        // all implementations should have an applicable reference assembly.
-                        Log.LogError($"Could not find applicable reference assembly for implementation framework {libFx} from reference frameworks {string.Join(", ", refFxs.Select(f => f.GetShortFolderName()))}");
-                    }
-                    else
+                    if (nearestRefFx != null && !nearestRefFx.Equals(libFx))
                     {
                         promotedDependencies.AddRange(CopyDependencies(refSets[nearestRefFx], libFx));
                     }
@@ -86,7 +93,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         {
             foreach (var dependency in dependencies)
             {
-                if (!Frameworks.IsInbox(FrameworkListsPath, targetFramework, dependency.Id, dependency.Version))
+                if (!index.IsInbox(dependency.Id, targetFramework, dependency.Version))
                 {
                     var copiedDepenedency = new TaskItem(dependency.OriginalItem);
                     copiedDepenedency.SetMetadata(TargetFrameworkMetadataName, targetFramework.GetShortFolderName());

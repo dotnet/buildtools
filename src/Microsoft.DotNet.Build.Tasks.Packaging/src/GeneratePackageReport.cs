@@ -60,7 +60,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         public string RuntimeFile { get; set; }
 
         [Required]
-        public string FrameworkListsPath
+        public ITaskItem[] PackageIndexes
         {
             get;
             set;
@@ -234,10 +234,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
 
             // inspect any TFMs inbox
-            var frameworkData = FrameworkSet.Load(FrameworkListsPath);
-            var inboxFrameworks = frameworkData.Frameworks.SelectMany(f => f.Value)
-                .Where(fx => fx.Assemblies.ContainsKey(PackageId))
-                .Select(fx => NuGetFramework.Parse(fx.FrameworkName.FullName));
+            var index = PackageIndex.Load(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
+            var inboxFrameworks = index.GetInboxFrameworks(PackageId).NullAsEmpty();
             
             foreach (var inboxFramework in inboxFrameworks)
             {
