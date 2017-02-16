@@ -19,6 +19,7 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
     {
         internal const string RawUrlMetadataName = "RawUrl";
         internal const string RawVersionsBaseUrlMetadataName = "RawVersionsBaseUrl";
+        internal const string VersionsRepoDirMetadataName = "VersionsRepoDir";
         internal const string BuildInfoPathMetadataName = "BuildInfoPath";
         internal const string CurrentRefMetadataName = "CurrentRef";
         internal const string CurrentBranchMetadataName = "CurrentBranch";
@@ -159,16 +160,29 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
             string currentRef = item.GetMetadata(CurrentRefMetadataName);
             // Optional
             string currentBranch = item.GetMetadata(CurrentBranchMetadataName);
+            if (!string.IsNullOrEmpty(currentBranch) && !string.IsNullOrEmpty(buildInfoPath))
+            {
+                buildInfoPath = $"{buildInfoPath}/{currentBranch}";
+            }
+
+            // Optional: override base url with a local directory.
+            string versionsRepoDir = item.GetMetadata(VersionsRepoDirMetadataName);
+
+            if (!string.IsNullOrEmpty(versionsRepoDir) &&
+                !string.IsNullOrEmpty(buildInfoPath))
+            {
+                return BuildInfo.LocalFileGetAsync(
+                    item.ItemSpec,
+                    versionsRepoDir,
+                    buildInfoPath,
+                    // Don't fetch latest release file: it may not be present in build from source.
+                    fetchLatestReleaseFile: false).Result;
+            }
 
             if (!string.IsNullOrEmpty(rawVersionsBaseUrl) &&
                 !string.IsNullOrEmpty(buildInfoPath) &&
                 !string.IsNullOrEmpty(currentRef))
             {
-                if (!string.IsNullOrEmpty(currentBranch))
-                {
-                    buildInfoPath = $"{buildInfoPath}/{currentBranch}";
-                }
-
                 return BuildInfo.CachedGet(
                     item.ItemSpec,
                     rawVersionsBaseUrl,

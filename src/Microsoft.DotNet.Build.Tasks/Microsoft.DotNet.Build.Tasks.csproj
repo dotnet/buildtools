@@ -60,6 +60,7 @@
     <Compile Include="VersionTools\UpdateDependenciesAndSubmitPullRequest.cs" />
     <Compile Include="VersionTools\TraceListenerCollectionExtensions.cs" />
     <Compile Include="VersionTools\UpdateDependencies.cs" />
+    <Compile Include="VersionTools\LocalUpdatePublishedVersions.cs" />
     <Compile Include="VersionTools\UpdatePublishedVersions.cs" />
     <Compile Include="VersionTools\VerifyDependencies.cs" />
     <Compile Include="VisitProjectDependencies.cs" />

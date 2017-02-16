@@ -7,9 +7,9 @@ using NuGet.Packaging.Core;
 
 namespace Microsoft.DotNet.VersionTools.Automation
 {
-    class NupkgNameInfo
+    public class NupkgInfo
     {
-        public NupkgNameInfo(string path)
+        public NupkgInfo(string path)
         {
             using (PackageArchiveReader archiveReader = new PackageArchiveReader(path))
             {
@@ -18,12 +18,12 @@ namespace Microsoft.DotNet.VersionTools.Automation
                 Version = identity.Version.ToString();
                 Prerelease = identity.Version.Release;
             }
-            SymbolPackage = path.EndsWith(".symbols.nupkg");
         }
 
-        public string Id { get; set; }
-        public string Version { get; set; }
-        public string Prerelease { get; set; }
-        public bool SymbolPackage { get; set; }
+        public string Id { get; }
+        public string Version { get; }
+        public string Prerelease { get; }
+
+        public static bool IsSymbolPackagePath(string path) => path.EndsWith(".symbols.nupkg");
     }
 }

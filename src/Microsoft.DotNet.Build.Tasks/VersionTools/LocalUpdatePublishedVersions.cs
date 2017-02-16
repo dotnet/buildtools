@@ -10,34 +10,27 @@ using System.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks.VersionTools
 {
-    public class UpdatePublishedVersions : Task
+    public class LocalUpdatePublishedVersions : Task
     {
         [Required]
         public ITaskItem[] ShippedNuGetPackage { get; set; }
 
         [Required]
-        public string VersionsRepoPath { get; set; }
+        public string VersionsRepoLocalBaseDir { get; set; }
 
         [Required]
-        public string GitHubAuthToken { get; set; }
-        public string GitHubUser { get; set; }
-        public string GitHubEmail { get; set; }
-
-        public string VersionsRepo { get; set; }
-        public string VersionsRepoOwner { get; set; }
+        public string VersionsRepoPath { get; set; }
 
         public override bool Execute()
         {
             MsBuildTraceListener[] listeners = Trace.Listeners.AddMsBuildTraceListeners(Log);
 
-            var gitHubAuth = new GitHubAuth(GitHubAuthToken, GitHubUser, GitHubEmail);
+            var updater = new LocalVersionsRepoUpdater();
 
-            var updater = new GitHubVersionsRepoUpdater(gitHubAuth, VersionsRepoOwner, VersionsRepo);
-
-            updater.UpdateBuildInfoAsync(
+            updater.UpdateBuildInfoLatestPackages(
                 ShippedNuGetPackage.Select(item => item.ItemSpec),
-                VersionsRepoPath)
-                .Wait();
+                VersionsRepoLocalBaseDir,
+                VersionsRepoPath);
 
             Trace.Listeners.RemoveMsBuildTraceListeners(listeners);
 

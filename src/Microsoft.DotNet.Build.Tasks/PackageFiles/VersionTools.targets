@@ -13,8 +13,9 @@
     </UpdateStep>
   </ItemGroup>
 
-  <!-- Task to update the dotnet/versions repository. -->
+  <!-- Tasks to update the dotnet/versions repository. -->
   <UsingTask TaskName="UpdatePublishedVersions" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="LocalUpdatePublishedVersions" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
 
   <ItemGroup Condition="'$(ShippedNuGetPackageGlobPath)'!=''">
     <ShippedNuGetPackage Include="$(ShippedNuGetPackageGlobPath)" />
@@ -28,6 +29,12 @@
                              GitHubEmail="$(GitHubEmail)"
                              VersionsRepo="$(VersionsRepo)"
                              VersionsRepoOwner="$(VersionsRepoOwner)" />
+  </Target>
+
+  <Target Name="LocalUpdatePublishedVersions">
+    <LocalUpdatePublishedVersions ShippedNuGetPackage="@(ShippedNuGetPackage)"
+                                  VersionsRepoLocalBaseDir="$(VersionsRepoLocalBaseDir)"
+                                  VersionsRepoPath="$(VersionsRepoPath)" />
   </Target>
 
   <!-- Task to update dependencies to expected values. -->
