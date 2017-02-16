@@ -41,7 +41,6 @@
     <Compile Include="CreateTrimDependencyGroups.cs" />
     <Compile Include="ApplyBaseLine.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="Framework.cs" />
     <Compile Include="FrameworkUtilities.cs" />
     <Compile Include="GenerateNuSpec.cs" />
     <Compile Include="GenerateRuntimeDependencies.cs" />
@@ -66,14 +65,14 @@
     <Compile Include="VersionUtility.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="PackageFiles\Packaging.targets">
+    <None Include="$(MSBuildThisFileDirectory)PackageFiles\Packaging.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </None>
-    <None Include="PackageFiles\PackageLibs.targets">
+    <None Include="$(MSBuildThisFileDirectory)PackageFiles\PackageLibs.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="PackageFiles\_._">
+    <None Include="$(MSBuildThisFileDirectory)PackageFiles\_._">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="project.json" />

@@ -4,10 +4,15 @@
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using NuGet.Frameworks;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Collections;
+using Newtonsoft.Json.Linq;
+using System.Xml.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
@@ -15,9 +20,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
     {
         static ConcurrentDictionary<string, PackageIndex> s_indexCache = new ConcurrentDictionary<string, PackageIndex>();
 
-        public Dictionary<string, PackageInfo> Packages { get; set; } = new Dictionary<string, PackageInfo>();
+        public SortedDictionary<string, PackageInfo> Packages { get; set; } = new SortedDictionary<string, PackageInfo>();
 
-        public Dictionary<string, string> ModulesToPackages { get; set; } = new Dictionary<string, string>();
+        public SortedDictionary<string, string> ModulesToPackages { get; set; } = new SortedDictionary<string, string>();
 
         public string PreRelease { get; set; }
 
@@ -59,6 +64,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             {
                 var serializer = new JsonSerializer();
                 serializer.Converters.Add(new VersionConverter());
+                serializer.Converters.Add(new InboxFrameworksConverter());
                 var result = serializer.Deserialize<PackageIndex>(jsonTextReader);
                 result.IndexSources.Add(Path.GetFullPath(packageIndexFile));
                 return result;
@@ -68,7 +74,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         public void Save(string path)
         {
             string directory = Path.GetDirectoryName(path);
-            if (!Directory.Exists(directory))
+            if (!String.IsNullOrEmpty(directory) && !Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
             }
@@ -81,6 +87,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 serializer.NullValueHandling = NullValueHandling.Ignore;
                 serializer.DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate;
                 serializer.Converters.Add(new VersionConverter());
+                serializer.Converters.Add(new InboxFrameworksConverter());
                 serializer.Serialize(file, this);
             }
         }
@@ -168,6 +175,57 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
         }
 
+        public void MergeInboxFromLayout(NuGetFramework framework, string layoutDirectory, bool addPackages = true)
+        {
+            foreach(var file in Directory.EnumerateFiles(layoutDirectory, "*.dll", SearchOption.AllDirectories))
+            {
+                var assemblyName = Path.GetFileNameWithoutExtension(file);
+                var assemblyVersion = VersionUtility.GetAssemblyVersion(file);
+
+                TryAddInbox(assemblyName, framework, assemblyVersion, addPackages);
+            }
+        }
+
+        public void MergeFrameworkLists(string frameworkListDirectory, bool addPackages = true)
+        {
+            foreach (string frameworkDir in Directory.EnumerateDirectories(frameworkListDirectory))
+            {
+                string targetFrameworkMoniker = Path.GetFileName(frameworkDir);
+                NuGetFramework framework = NuGetFramework.Parse(targetFrameworkMoniker);
+                foreach (string frameworkListPath in Directory.EnumerateFiles(frameworkDir, "*.xml"))
+                {
+                    MergeFrameworkList(framework, frameworkListPath, addPackages);
+                }
+            }
+        }
+
+        public void MergeFrameworkList(NuGetFramework framework, string frameworkListPath, bool addPackages = true)
+        {
+            XDocument frameworkList = XDocument.Load(frameworkListPath);
+            foreach (var file in frameworkList.Element("FileList").Elements("File"))
+            {
+                string assemblyName = file.Attribute("AssemblyName").Value;
+                var versionAttribute = file.Attribute("Version");
+                Version supportedVersion = (versionAttribute != null) ? new Version(versionAttribute.Value) : VersionUtility.MaxVersion;
+
+                TryAddInbox(assemblyName, framework, supportedVersion, addPackages);
+            }
+        }
+
+        private void TryAddInbox(string assemblyName, NuGetFramework framework, Version version, bool addPackages = true)
+        {
+            PackageInfo info;
+            if (Packages.TryGetValue(assemblyName, out info))
+            {
+                info.InboxOn.AddInboxVersion(framework, version);
+            }
+            else if (addPackages)
+            {
+                Packages[assemblyName] = info = new PackageInfo();
+                info.InboxOn.AddInboxVersion(framework, version);
+            }
+        }
+
         // helper functions
         public bool TryGetBaseLineVersion(string packageId, out Version baseLineVersion)
         {
@@ -180,6 +238,77 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
 
             return baseLineVersion != null;
+        }
+
+        public IEnumerable<NuGetFramework> GetAlllInboxFrameworks()
+        {
+            // very inefficient, included for legacy reasons.
+            return Packages.Values.SelectMany(info => info.InboxOn.GetInboxFrameworks()).Distinct().ToArray();
+        }
+
+        public IEnumerable<NuGetFramework> GetInboxFrameworks(string assemblyName)
+        {
+            IEnumerable<NuGetFramework> inboxFrameworks = null;
+            PackageInfo info;
+
+            if (Packages.TryGetValue(assemblyName, out info))
+            {
+                inboxFrameworks = info.InboxOn.GetInboxFrameworks();
+            }
+
+            return inboxFrameworks;
+        }
+        public IEnumerable<KeyValuePair<NuGetFramework, Version>> GetInboxVersions(string assemblyName)
+        {
+            IEnumerable<KeyValuePair<NuGetFramework, Version>> inboxVersions = null;
+            PackageInfo info;
+
+            if (Packages.TryGetValue(assemblyName, out info))
+            {
+                inboxVersions = info.InboxOn.GetInboxVersions();
+            }
+
+            return inboxVersions;
+        }
+
+        public IEnumerable<NuGetFramework> GetInboxFrameworks(string assemblyName, string assemblyVersionString)
+        {
+            Version assemblyVersion = FrameworkUtilities.Ensure4PartVersion(String.IsNullOrEmpty(assemblyVersionString) ? new Version(0, 0, 0, 0) : new Version(assemblyVersionString));
+
+            return GetInboxFrameworks(assemblyName, assemblyVersion);
+        }
+
+        public IEnumerable<NuGetFramework> GetInboxFrameworks(string assemblyName, Version assemblyVersion)
+        {
+            IEnumerable<NuGetFramework> inboxFrameworks = null;
+            PackageInfo info;
+
+            if (Packages.TryGetValue(assemblyName, out info))
+            {
+                inboxFrameworks = info.InboxOn.GetInboxVersions().Where(p => p.Value >= assemblyVersion).Select(p => p.Key);
+            }
+
+            return inboxFrameworks;
+        }
+
+        public bool IsInbox(string assemblyName, NuGetFramework framework, string assemblyVersionString)
+        {
+            Version assemblyVersion = FrameworkUtilities.Ensure4PartVersion(String.IsNullOrEmpty(assemblyVersionString) ? new Version(0, 0, 0, 0) : new Version(assemblyVersionString));
+
+            return IsInbox(assemblyName, framework, assemblyVersion);
+        }
+
+        public bool IsInbox(string assemblyName, NuGetFramework framework, Version assemblyVersion)
+        {
+            PackageInfo info;
+            bool isInbox = false;
+
+            if (Packages.TryGetValue(assemblyName, out info))
+            {
+                isInbox = info.InboxOn.IsInbox(framework, assemblyVersion);
+            }
+
+            return isInbox;
         }
 
         public bool IsStable(string packageId, Version packageVersion)
@@ -241,10 +370,23 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
         public bool ShouldSerializeStableVersions() { return StableVersions.Count > 0; }
 
+        /// <summary>
+        /// Minimum version to use when referencing this package.
+        /// </summary>
         public Version BaselineVersion { get; set; }
 
-        public Dictionary<Version, Version> AssemblyVersionInPackageVersion { get; set; } = new Dictionary<Version, Version>();
+        /// <summary>
+        /// Mapping of frameworks which contain this package inbox (or in a framework package)
+        /// </summary>
+        public InboxFrameworks InboxOn { get; set; } = new InboxFrameworks();
 
+        public bool ShouldSerializeInboxFrameworkAssemblyVersions() { return InboxOn.Count > 0; }
+
+        /// <summary>
+        /// Mapping of assembly version to package version which (first) contains that assembly version.
+        /// </summary>
+        public SortedDictionary<Version, Version> AssemblyVersionInPackageVersion { get; set; } = new SortedDictionary<Version, Version>();
+        
         public bool ShouldSerializeAssemblyVersionInPackageVersion() { return AssemblyVersionInPackageVersion.Count > 0; }
 
         public string PreRelease { get; set; }
@@ -263,6 +405,11 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             {
                 PreRelease = other.PreRelease;
             }
+
+            //foreach(var inboxFrameworkAssemblyVersion in other.InboxFrameworkAssemblyVersions)
+            //{
+                
+            //}
 
             foreach (var assemblyVersionInPackage in other.AssemblyVersionInPackageVersion)
             {
@@ -294,7 +441,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 // use the lowest stable package version
                 if ((updateStable && !existingStable) || // update to stable from unstable
                     (updateStable && existingStable && packageVersion < existingPackageVersion) || // update to lower stable
-                    (!updateStable && !existingStable && packageVersion > existingPackageVersion)) // update to higher non-stable version                
+                    (!updateStable && !existingStable && packageVersion > existingPackageVersion)) // update to higher non-stable version
                 {
                     AssemblyVersionInPackageVersion[assemblyVersion] = packageVersion;
                 }
@@ -303,6 +450,22 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             {
                 AssemblyVersionInPackageVersion[assemblyVersion] = packageVersion;
             }
+        }
+        public Version GetPackageVersionForAssemblyVersion(NuGetFramework framework, Version assemblyVersion)
+        {
+            Version packageVersion = null;
+
+            if (assemblyVersion != null)
+            {
+                // prefer an explicit mapping
+                if (!AssemblyVersionInPackageVersion.TryGetValue(assemblyVersion, out packageVersion))
+                {
+                    // if not found assume 1:1 with assembly version
+                    packageVersion = VersionUtility.As3PartVersion(assemblyVersion);
+                }
+            }
+
+            return packageVersion;
         }
 
         public Version GetPackageVersionForAssemblyVersion(Version assemblyVersion)
@@ -321,6 +484,232 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             return packageVersion;
         }
+    }
 
+    public class InboxFrameworks
+    {
+        private SortedDictionary<string, SortedDictionary<Version, Version>> inboxVersions = new SortedDictionary<string, SortedDictionary<Version, Version>>();
+
+        public int Count { get { return inboxVersions.Sum(m => m.Value.Count); } }
+
+        public void AddInboxVersion(NuGetFramework framework, Version assemblyVersion)
+        {
+            var normalizedFramework = NormalizeFramework(framework);
+            var frameworkKey = GetFrameworkKey(normalizedFramework);
+            var frameworkVersion = normalizedFramework.Version;
+
+            SortedDictionary<Version, Version> mappings;
+            if (!inboxVersions.TryGetValue(frameworkKey, out mappings))
+            {
+                inboxVersions[frameworkKey] = mappings = new SortedDictionary<Version, Version>();
+            }
+            
+            if (assemblyVersion == null)
+            {
+                // explicitly not supported.
+                mappings[normalizedFramework.Version] = assemblyVersion;
+            }
+            else
+            {
+                List<Version> redundantMappings = new List<Version>();
+
+                var addMapping = true;
+                foreach(var mapping in mappings)
+                {
+                    var existingFrameworkVersion = mapping.Key;
+                    var existingAssemblyVersion = mapping.Value;
+
+                    if (existingFrameworkVersion <= frameworkVersion)
+                    {
+                        if (existingAssemblyVersion != null && existingAssemblyVersion >= assemblyVersion)
+                        {
+                            // lower or same framework already maps this or higher version, don't add it
+                            addMapping = false;
+                        }
+                    }
+                    else
+                    {
+                        if (existingAssemblyVersion <= assemblyVersion)
+                        {
+                            // higher framework version with an equal or lower assembly version, remove it.
+                            redundantMappings.Add(mapping.Key);
+                        }
+                    }
+                }
+
+                if (addMapping)
+                {
+                    mappings[normalizedFramework.Version] = assemblyVersion;
+                }
+
+                foreach(var redundantMapping in redundantMappings)
+                {
+                    mappings.Remove(redundantMapping);
+                }
+            }
+
+
+        }
+
+        public IEnumerable<NuGetFramework> GetInboxFrameworks()
+        {
+            foreach (var framework in inboxVersions)
+            {
+                foreach (var frameworkVersion in framework.Value.Keys)
+                {
+                    var fx = FromFrameworkKeyAndVersion(framework.Key, frameworkVersion);
+
+                    yield return fx;
+                }
+            }
+        }
+
+        public IEnumerable<KeyValuePair<NuGetFramework, Version>> GetInboxVersions()
+        {
+            foreach (var framework in inboxVersions)
+            {
+                foreach (var frameworkInboxVersionPair in framework.Value)
+                {
+                    var frameworkVersion = frameworkInboxVersionPair.Key;
+                    var assemblyVersion = frameworkInboxVersionPair.Value;
+
+                    var fx = FromFrameworkKeyAndVersion(framework.Key, frameworkVersion);
+
+                    yield return new KeyValuePair<NuGetFramework, Version>(fx, assemblyVersion);
+                }
+            }
+        }
+
+        public bool IsInbox(NuGetFramework framework, Version assemblyVersion)
+        {
+            var normalizedFramework = NormalizeFramework(framework);
+            var key = GetFrameworkKey(normalizedFramework);
+
+            SortedDictionary<Version, Version> mappings;
+            if (!inboxVersions.TryGetValue(key, out mappings))
+            {
+                // no inbox info for this framework
+                return false;
+            }
+
+            Version assemblyVersionInbox;
+            if (mappings.TryGetValue(normalizedFramework.Version, out assemblyVersionInbox))
+            {
+                if (assemblyVersionInbox == null)
+                {
+                    // null entry means it's explicitly not inbox
+                    return false;
+                }
+
+                // inbox if explict entry is greater than or equal to current
+                return assemblyVersionInbox >= assemblyVersion;
+            }
+
+            // find nearest
+            var compatibleMapping = mappings.LastOrDefault(m => m.Key < normalizedFramework.Version);
+            if (compatibleMapping.Key == null || compatibleMapping.Value == null)
+            {
+                // either no compatible mapping, or compatible mapping explicitly not inbox
+                return false;
+            }
+
+            // inbox if compatible entry is greater than or equal to current
+            return compatibleMapping.Value >= assemblyVersion;
+        }
+
+
+        private static NuGetFramework NormalizeFramework(NuGetFramework framework)
+        {
+            if (framework == FrameworkConstants.CommonFrameworks.NetCore50)
+            {
+                // normalize netcore50 -> UAP10.
+                // this permits us to model that netcore50/uap10 should not inherit inbox state from netcore4*
+                return FrameworkConstants.CommonFrameworks.UAP10;
+            }
+            else if (framework == FrameworkConstants.CommonFrameworks.NetCore45)
+            {
+                return FrameworkConstants.CommonFrameworks.Win8;
+            }
+            else if (framework == FrameworkConstants.CommonFrameworks.NetCore451)
+            {
+                return FrameworkConstants.CommonFrameworks.Win81;
+            }
+
+            return framework;
+        }
+
+        private static string GetFrameworkKey(NuGetFramework framework)
+        {
+            if (!String.IsNullOrEmpty(framework.Profile))
+            {
+                return framework.Framework + "," + framework.Profile;
+            }
+            return framework.Framework;
+        }
+
+        private static NuGetFramework FromFrameworkKeyAndVersion(string key, Version version)
+        {
+            var parts = key.Split(',');
+
+            if (parts.Length > 1)
+            {
+                return new NuGetFramework(parts[0], version, parts[1]);
+            }
+            else
+            {
+                return new NuGetFramework(key, version);
+            }
+        }
+    }
+
+    public class InboxFrameworksConverter : JsonConverter
+    {
+        private const string AnyVersion = "Any";
+        public override bool CanConvert(Type objectType)
+        {
+            return objectType == typeof(InboxFrameworks);
+        }
+
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            var jobj = JObject.Load(reader);
+
+            var result = new InboxFrameworks();
+            foreach (var property in jobj.Properties())
+            {
+                var versionString = property.Value.ToString();
+                var version = versionString.Equals(AnyVersion, StringComparison.OrdinalIgnoreCase) ? VersionUtility.MaxVersion : new Version(versionString);
+                result.AddInboxVersion(NuGetFramework.Parse(property.Name), version);
+            }
+
+            return result;
+        }
+
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            if (value == null)
+            {
+                writer.WriteNull();
+            }
+            else if (value is InboxFrameworks)
+            {
+                writer.WriteStartObject();
+
+                foreach(var frameworkPair in ((InboxFrameworks)value).GetInboxVersions())
+                {
+                    var shortName = frameworkPair.Key.GetShortFolderName();
+                    var assemblyVersion = frameworkPair.Value;
+                    var assemblyVersionString = assemblyVersion == VersionUtility.MaxVersion ? AnyVersion : assemblyVersion.ToString();
+                    writer.WritePropertyName(shortName);
+                    writer.WriteValue(assemblyVersionString);
+                }
+
+                writer.WriteEndObject();
+            }
+            else
+            {
+                throw new JsonSerializationException($"Expected {nameof(InboxFrameworks)} but got {value.GetType()}");
+            }
+        }
     }
 }

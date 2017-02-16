@@ -27,7 +27,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         }
 
         [Required]
-        public string FrameworkListsPath
+        public ITaskItem[] PackageIndexes
         {
             get;
             set;
@@ -51,14 +51,21 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         {
             if (References == null || References.Length == 0)
                 return true;
-            
+
+            if (PackageIndexes == null && PackageIndexes.Length == 0)
+            {
+                Log.LogError("PackageIndexes argument must be specified");
+                return false;
+            }
+
+            var index = PackageIndex.Load(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
+
             Dictionary<string, ITaskItem> packageReferences = new Dictionary<string, ITaskItem>();
             Dictionary<string, ITaskItem> assemblyReferences = new Dictionary<string, ITaskItem>();
 
             bool referencesMscorlib = false;
 
             NuGetFramework targetFx = NuGetFramework.Parse(TargetFramework);
-            bool isOobFramework = targetFx.Equals(FrameworkConstants.CommonFrameworks.NetCore50) || targetFx.Framework == FrameworkConstants.FrameworkIdentifiers.UAP;
 
             foreach (var reference in References)
             {
@@ -66,7 +73,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 referencesMscorlib |= referenceName.Equals("mscorlib");
                 string referenceVersion = reference.GetMetadata("Version");
                 reference.SetMetadata("TargetFramework", TargetFramework);
-                if (!string.IsNullOrEmpty(TargetFramework) && !isOobFramework && Frameworks.IsInbox(FrameworkListsPath, TargetFramework, referenceName, referenceVersion))
+                if (!string.IsNullOrEmpty(TargetFramework) && index.IsInbox(referenceName, targetFx, referenceVersion))
                 {
                     AddReference(assemblyReferences, reference);
                 }

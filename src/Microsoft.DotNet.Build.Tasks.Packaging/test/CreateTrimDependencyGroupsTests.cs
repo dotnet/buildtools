@@ -16,11 +16,21 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
     {
         private Log _log;
         private TestBuildEngine _engine;
+        private ITaskItem[] packageIndexes;
+
+        private const string FrameworkListsPath = "FrameworkLists";
 
         public CreateTrimDependencyGroupsTests(ITestOutputHelper output)
         {
             _log = new Log(output);
             _engine = new TestBuildEngine(_log);
+
+
+            var packageIndexPath = $"packageIndex.{Guid.NewGuid()}.json";
+            PackageIndex index = new PackageIndex();
+            index.MergeFrameworkLists(FrameworkListsPath);
+            index.Save(packageIndexPath);
+            packageIndexes = new[] { new TaskItem(packageIndexPath) };
         }
 
         [Fact]
@@ -74,14 +84,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 CreateDependencyItem(@"System.Globalization", "4.0.0", "netstandard1.0"),
                 CreateDependencyItem(@"System.Threading", "4.0.0", "netstandard1.0")
             };
-            string frameworkListsPath = "FrameworkLists";
 
             CreateTrimDependencyGroups task = new CreateTrimDependencyGroups()
             {
                 BuildEngine = _engine,
                 Files = files,
                 Dependencies = dependencies,
-                FrameworkListsPath = frameworkListsPath
+                PackageIndexes = packageIndexes
             };
 
             _log.Reset();
@@ -114,14 +123,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 CreateDependencyItem(@"System.Globalization", "4.0.0", "netstandard1.0"),
                 CreateDependencyItem(@"System.Threading", "4.0.0", "netstandard1.0")
             };
-            string frameworkListsPath = "FrameworkLists";
 
             CreateTrimDependencyGroups task = new CreateTrimDependencyGroups()
             {
                 BuildEngine = _engine,
                 Files = files,
                 Dependencies = dependencies,
-                FrameworkListsPath = frameworkListsPath
+                PackageIndexes = packageIndexes
             };
 
             _log.Reset();
@@ -194,14 +202,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 CreateDependencyItem(@"System.Collections.Immutable", "4.0.20", "netstandard1.3"),
                 CreateDependencyItem(@"System.Runtime", "4.0.20", ".NETCore50")
             };
-            string frameworkListsPath = "FrameworkLists";
 
             CreateTrimDependencyGroups task = new CreateTrimDependencyGroups()
             {
                 BuildEngine = _engine,
                 Files = files,
                 Dependencies = dependencies,
-                FrameworkListsPath = frameworkListsPath
+                PackageIndexes = packageIndexes
             };
 
             _log.Reset();
@@ -245,14 +252,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 CreateDependencyItem(@"System.Runtime.Handles", "4.0.0", "netcoreapp1.0"),
                 CreateDependencyItem(@"System.Threading", "4.0.10", "netcoreapp1.0")
             };
-            string frameworkListsPath = "FrameworkLists";
 
             CreateTrimDependencyGroups task = new CreateTrimDependencyGroups()
             {
                 BuildEngine = _engine,
                 Files = files,
                 Dependencies = dependencies,
-                FrameworkListsPath = frameworkListsPath
+                PackageIndexes = packageIndexes
             };
 
             _log.Reset();
@@ -292,14 +298,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 CreateDependencyItem(@"System.Collections.Immutable", "1.1.37", "netstandard1.1"),
                 CreateDependencyItem(@"System.Collections.Immutable", "1.1.37", "portable-net45+win80")
             };
-            string frameworkListsPath = "FrameworkLists";
 
             CreateTrimDependencyGroups task = new CreateTrimDependencyGroups()
             {
                 BuildEngine = _engine,
                 Files = files,
                 Dependencies = dependencies,
-                FrameworkListsPath = frameworkListsPath
+                PackageIndexes = packageIndexes
             };
 
             _log.Reset();

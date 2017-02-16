@@ -21,17 +21,27 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
     {
         private const string TargetFrameworkMetadataName = "TargetFramework";
 
+        private PackageIndex index;
+
         [Required]
         public ITaskItem[] Dependencies { get; set; }
-        
+
         [Required]
-        public string FrameworkListsPath { get; set; }
+        public ITaskItem[] PackageIndexes { get; set; }
 
         [Output]
         public ITaskItem[] PromotedDependencies { get; set; }
         
         public override bool Execute()
         {
+            if (PackageIndexes == null && PackageIndexes.Length == 0)
+            {
+                Log.LogError("PackageIndexes argument must be specified");
+                return false;
+            }
+
+            index = PackageIndex.Load(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
+
             List<ITaskItem> promotedDependencies = new List<ITaskItem>();
 
             var dependencies = Dependencies.Select(d => new Dependency(d)).ToArray();
@@ -83,7 +93,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         {
             foreach (var dependency in dependencies)
             {
-                if (!Frameworks.IsInbox(FrameworkListsPath, targetFramework, dependency.Id, dependency.Version))
+                if (!index.IsInbox(dependency.Id, targetFramework, dependency.Version))
                 {
                     var copiedDepenedency = new TaskItem(dependency.OriginalItem);
                     copiedDepenedency.SetMetadata(TargetFrameworkMetadataName, targetFramework.GetShortFolderName());

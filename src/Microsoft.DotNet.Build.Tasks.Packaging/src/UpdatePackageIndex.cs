@@ -4,6 +4,7 @@
 
 using Microsoft.Build.Framework;
 using Newtonsoft.Json;
+using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Versioning;
 using System;
@@ -58,6 +59,19 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// Folders to index, can contain flat set of packages or expanded package format.
         /// </summary>
         public ITaskItem[] PackageFolders { get; set; }
+
+        /// <summary>
+        /// Root folder containing subfolders with framework lists for targeting packs
+        /// Subfolders must be named by TFM.
+        /// </summary>
+        public ITaskItem InboxFrameworkListFolder { get; set; }
+
+        /// <summary>
+        /// Folder containing dlls that will be considered inbox
+        ///   Identity: path to folder containing dlls
+        ///   TargetFramework: framework which path represents
+        /// </summary>
+        public ITaskItem[] InboxFrameworkLayoutFolders { get; set; }
 
         /// <summary>
         /// Pre-release version to use for all pre-release packages covered by this index.
@@ -138,6 +152,23 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     index.ModulesToPackages[moduleToPackage.ItemSpec] = package;
                 }
             }
+
+            if (InboxFrameworkListFolder != null)
+            {
+                index.MergeFrameworkLists(InboxFrameworkListFolder.GetMetadata("FullPath"));
+            }
+
+            if (InboxFrameworkLayoutFolders != null)
+            {
+                foreach(var inboxFrameworkLayoutFolder in InboxFrameworkLayoutFolders)
+                {
+                    var layoutDirectory = inboxFrameworkLayoutFolder.GetMetadata("FullPath");
+                    var targetFramework = NuGetFramework.Parse(inboxFrameworkLayoutFolder.GetMetadata("TargetFramework"));
+
+                    index.MergeInboxFromLayout(targetFramework, layoutDirectory);
+                }
+            }
+
 
             if (!String.IsNullOrEmpty(PreRelease))
             {

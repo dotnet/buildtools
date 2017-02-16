@@ -47,7 +47,6 @@
     <file src="Microsoft.Cci.Extensions\Microsoft.Cci.Extensions.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks.Packaging\Microsoft.DotNet.Build.Tasks.Packaging.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks.Packaging\NuGet.*.dll" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks.Packaging\FrameworkLists\**\*.*" target="lib\FrameworkLists" />
     <file src="Microsoft.DotNet.Build.Tasks.Packaging\PackageFiles\**\*.*" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks.Packaging.Desktop\Microsoft.DotNet.Build.Tasks.Packaging.dll" target="lib\net46" />
     <file src="Microsoft.DotNet.Build.Tasks.Packaging.Desktop\NuGet.*.dll" target="lib\net46" />

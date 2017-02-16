@@ -79,7 +79,6 @@
     <PackageDescriptionFile Condition="'$(PackageDescriptionFile)' == ''">path to descriptions.json must be specified</PackageDescriptionFile>
     <RuntimeIdGraphDefinitionFile Condition="'$(RuntimeIdGraphDefinitionFile)' == '' AND Exists('$(ProjectDir)pkg/Microsoft.NETCore.Platforms/runtime.json')">$(ProjectDir)pkg/Microsoft.NETCore.Platforms/runtime.json</RuntimeIdGraphDefinitionFile>
     <RuntimeIdGraphDefinitionFile Condition="'$(RuntimeIdGraphDefinitionFile)' == ''">$(MSBuildThisFileDirectory)runtime.json</RuntimeIdGraphDefinitionFile>
-    <FrameworkListsPath Condition="'$(FrameworkListsPath)' == ''">$(MSBuildThisFileDirectory)FrameworkLists</FrameworkListsPath>
     <ValidationSuppressionFile Condition="'$(ValidationSuppressionFile)' == ''">ValidationSuppression.txt</ValidationSuppressionFile>
     <SyncInfoFile Condition="'$(SyncInfoFile)' == ''">unspecified</SyncInfoFile>
     <PackagingTaskDir Condition="'$(PackagingTaskDir)' == ''">$(MSBuildThisFileDirectory)</PackagingTaskDir>
@@ -635,7 +634,7 @@
 
     <SplitReferences References="@(_FileReferencedAssemblies)"
                      TargetFramework="$(_TargetFramework)"
-                     FrameworkListsPath="$(FrameworkListsPath)">
+                     PackageIndexes="@(PackageIndex)">
       <Output TaskParameter="FrameworkReferences" ItemName="_FileFrameworkReference"/>
       <Output TaskParameter="PackageReferences" ItemName="_FilePackageReferenceUnfiltered"/>
     </SplitReferences>
@@ -729,7 +728,7 @@
          compile/runtime.  This reduces the noise when consuming our packages in
          packages.config based projects.  -->
     <CreateTrimDependencyGroups Dependencies="@(FilePackageDependency);@(Dependency)"
-                      FrameworkListsPath="$(FrameworkListsPath)"
+                      PackageIndexes="@(PackageIndex)"
                       Files="@(File)"
                       UseNetPlatform="$(UseNetPlatform)"
                       Condition="'@(FilePackageDependency)' != '' AND '$(PackageTargetRuntime)' == ''">
@@ -738,7 +737,7 @@
 
     <!-- Promote dependencies from ref to lib and vice-versa -->
     <PromoteDependencies Dependencies="@(FilePackageDependency)"
-                         FrameworkListsPath="$(FrameworkListsPath)"
+                         PackageIndexes="@(PackageIndex)"
                          Condition="'@(FilePackageDependency)' != ''">
       <Output TaskParameter="PromotedDependencies" ItemName="FilePackageDependency" />
     </PromoteDependencies>
@@ -1064,7 +1063,7 @@
                      Files="@(PackageAsset)"
                      Frameworks="@(DefaultValidateFramework)"
                      RuntimeFile="$(RuntimeIdGraphDefinitionFile)"
-                     FrameworkListsPath="$(FrameworkListsPath)"
+                     PackageIndexes="@(PackageIndex)"
                      ReportFile="$(PackageReportPath)" />
   </Target>
 
@@ -1097,7 +1096,6 @@
     </ItemGroup>
 
     <ValidatePackage ContractName="$(BaseId)"
-                     FrameworkListsPath="$(FrameworkListsPath)"
                      Frameworks="@(ValidateFramework)"
                      PackageId="$(Id)"
                      PackageIndexes="@(PackageIndex)"
@@ -1251,13 +1249,17 @@
     <!-- Set BaseLinePackage to packageId identity with 'Version' metadata to define the set of packages which should set their baseline to a particular version -->
     <!-- Set StablePackage to packageId identity with 'Version' metadata to define the set of packages which should be set as stable -->
     <!-- Set ModuleToPackage to module name identity with 'Package' metadata to define mappings from native modules to package IDs which contain those -->
+    <!-- Set FrameworkListsFolder to the path to a set of directories containing framework lists, where the subdirectory name is the TFM.  These lists will determine what is inbox on that framework. -->
+    <!-- Set FrameowrkLayout to folder identity with 'TargetFramework' metadata to consider files within that folder inbox on that framework.-->
 
     <UpdatePackageIndex PackageIndexFile="$(PackageIndexFile)"
                         PackageIds="@(PackageIds)"
                         PackageFolders="@(PackageFolders)"
                         BaselinePackages="@(BaselinePackage)"
                         StablePackages="@(StablePackage)"
-                        ModuleToPackages="@(ModuleToPackage)" />
+                        ModuleToPackages="@(ModuleToPackage)"
+                        InboxFrameworkListFolder="$(FrameworkListsFolder)"
+                        InboxFrameworkLayoutFolders="@(FrameworkLayout)" />
   </Target>
 
   <Target Name="CreateLayout"

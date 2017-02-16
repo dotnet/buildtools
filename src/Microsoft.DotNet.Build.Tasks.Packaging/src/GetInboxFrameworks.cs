@@ -6,13 +6,14 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System;
 using System.IO;
+using System.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
     public class GetInboxFrameworks : PackagingTask
     {
         [Required]
-        public string FrameworkListsPath
+        public ITaskItem[] PackageIndexes
         {
             get;
             set;
@@ -40,9 +41,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
         public override bool Execute()
         {
-            if (null == FrameworkListsPath)
+            if (PackageIndexes == null && PackageIndexes.Length == 0)
             {
-                Log.LogError("FrameworkListsPath argument must be specified");
+                Log.LogError("PackageIndexes argument must be specified");
                 return false;
             }
 
@@ -52,16 +53,11 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 return false;
             }
 
-            if (!Directory.Exists(FrameworkListsPath))
-            {
-                Log.LogError("FrameworkListsPath '{0}' does not exist", FrameworkListsPath);
-                return false;
-            }
-
             Log.LogMessage(LogImportance.Low, "Determining inbox frameworks for {0}, {1}", AssemblyName, AssemblyVersion);
+            
+            var index = PackageIndex.Load(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
 
-
-            InboxFrameworks = Frameworks.GetInboxFrameworksList(FrameworkListsPath, AssemblyName, AssemblyVersion, Log);
+            InboxFrameworks = index.GetInboxFrameworks(AssemblyName, AssemblyVersion).Select(fx => fx.GetShortFolderName()).ToArray();
 
             return !Log.HasLoggedErrors;
         }
