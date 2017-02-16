@@ -229,17 +229,12 @@
       <Output TaskParameter="StorageUri" PropertyName="DropUri" />
       <Output TaskParameter="ReadOnlyToken" PropertyName="DropUriReadOnlyToken" />
     </CreateAzureContainer>
-    <!-- now that we have a drop URI create the list of correlation payloads -->
-    <ItemGroup>
-      <CorrelationPayloadUri Include="$(DropUri)$(Platform)$(ConfigurationGroup)/Packages.zip$(DropUriReadOnlyToken)" />
-      <CorrelationPayloadUri Include="@(SupplementalPayload->'$(DropUri)%(RelativeBlobPath)$(DropUriReadOnlyToken)')" />
-    </ItemGroup>
-    <!-- flatten it into a property as msbuild chokes on @(CorrelationPayloadUri) in FunctionalTest.CorrelationPayloadUris :( -->
+
     <PropertyGroup>
-      <CorrelationPayloadUris>@(CorrelationPayloadUri)</CorrelationPayloadUris>
       <CloudResultsReadTokenValidDays Condition="'$(CloudResultsReadTokenValidDays)' == ''">30</CloudResultsReadTokenValidDays>
       <CloudResultsWriteTokenValidDays Condition="'$(CloudResultsWriteTokenValidDays)' == ''">4</CloudResultsWriteTokenValidDays>
     </PropertyGroup>
+
     <CreateAzureContainer
       AccountKey="$(CloudResultsAccessToken)"
       AccountName="$(CloudResultsAccountName)"
@@ -254,7 +249,7 @@
 
   <!-- generate JSON files specifying information used when running the tests in Helix -->
   <Target Name="CreateTestListJson"
-          DependsOnTargets="CreateFuncTestListJson;CreatePerfTestListJson" />
+            DependsOnTargets="CompressPackagesDir;CreateFuncTestListJson;CreatePerfTestListJson" />
 
   <!-- allow skipping this target if perf testing is enabled -->
   <Target Name="CreateFuncTestListJson"
@@ -265,7 +260,13 @@
       <Output TaskParameter="Include" ItemName="FunctionalTest"/>
     </CreateItem>
 
+        <ItemGroup>
+            <CorrelationPayloadUri Include="@(SupplementalPayload->'$(DropUri)%(RelativeBlobPath)$(DropUriReadOnlyToken)')" />
+        </ItemGroup>
+
     <PropertyGroup>
+            <!-- flatten it into a property as msbuild chokes on @(CorrelationPayloadUri) in FunctionalTest.CorrelationPayloadUris -->
+            <CorrelationPayloadUris>@(CorrelationPayloadUri)</CorrelationPayloadUris>
       <OtherRunnerScriptArgs Condition="'$(FilterToTargetGroup)' == 'net46'">$(OtherRunnerScriptArgs) --xunit-test-type=desktop </OtherRunnerScriptArgs>
       <XunitArgs Condition="'$(FilterToTargetGroup)' == 'net46'"> -noshadow $(XunitArgs)</XunitArgs>
     </PropertyGroup>
@@ -299,6 +300,15 @@
   </Target>
 
   <Target Name="CreatePerfTestListJson" DependsOnTargets="CreateAzureStorage" Condition="'$(Performance)' == 'true'">
+
+        <ItemGroup>
+            <CorrelationPayloadUri Include="@(SupplementalPayload->'$(DropUri)%(RelativeBlobPath)$(DropUriReadOnlyToken)')" />
+        </ItemGroup>
+        <PropertyGroup>
+            <!-- flatten it into a property as msbuild chokes on @(CorrelationPayloadUri) in FunctionalTest.CorrelationPayloadUris -->
+            <CorrelationPayloadUris>@(CorrelationPayloadUri)</CorrelationPayloadUris>
+        </PropertyGroup>
+
     <PropertyGroup Condition="'$(TargetsWindows)' == 'true' AND '$(UseLegacyXunitPerfRunner)'!='true'">
       <OtherRunnerScriptArgs>--script RunTests.cmd %HELIX_CORRELATION_PAYLOAD%</OtherRunnerScriptArgs>
     </PropertyGroup>
@@ -398,9 +408,12 @@
       RelativePathBaseDirectory="$(PackagesDir)"
       OverwriteDestination="true" />
     <ItemGroup>
-      <ForUpload Include="$(PackagesArchiveFile)">
+            <!-- Treating all correlation payloads as 'Supplemental' allows for general-purposing of them -->
+            <!-- Since including a Packages.zip may or may not be relevant to the usage of a given team.  -->
+            <!-- Relative blob path is included twice here because its used in payload url creation       -->
+            <SupplementalPayload Include="$(PackagesArchiveFile)">
         <RelativeBlobPath>$(Platform)$(ConfigurationGroup)/$(PackagesArchiveFilename)</RelativeBlobPath>
-      </ForUpload>
+            </SupplementalPayload>
     </ItemGroup>
   </Target>
 
