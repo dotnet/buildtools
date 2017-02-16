@@ -15,16 +15,16 @@ namespace Microsoft.DotNet.VersionTools.Automation
         /// </summary>
         public void UpdateBuildInfoLatestPackages(
             IEnumerable<string> packagePaths,
-            string versionsRepoDir,
+            string localBaseDir,
             string versionsRepoPath)
         {
             if (packagePaths == null)
             {
                 throw new ArgumentNullException(nameof(packagePaths));
             }
-            if (string.IsNullOrEmpty(versionsRepoDir))
+            if (string.IsNullOrEmpty(localBaseDir))
             {
-                throw new ArgumentException(nameof(versionsRepoDir));
+                throw new ArgumentException(nameof(localBaseDir));
             }
             if (string.IsNullOrEmpty(versionsRepoPath))
             {
@@ -34,14 +34,14 @@ namespace Microsoft.DotNet.VersionTools.Automation
             Dictionary<string, string> packages = CreatePackageInfoDictionary(CreatePackageInfos(packagePaths));
 
             string latestPackagesDir = Path.Combine(
-                versionsRepoDir,
+                localBaseDir,
                 versionsRepoPath);
 
             Directory.CreateDirectory(latestPackagesDir);
 
             File.WriteAllText(
                 Path.Combine(latestPackagesDir, BuildInfo.LatestPackagesTxtFilename),
-                CreatePackageListFile(packages));
+                CreatePackageListContent(packages));
         }
     }
 }

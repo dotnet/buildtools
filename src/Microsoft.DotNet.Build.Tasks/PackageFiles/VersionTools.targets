@@ -33,7 +33,7 @@
 
   <Target Name="LocalUpdatePublishedVersions">
     <LocalUpdatePublishedVersions ShippedNuGetPackage="@(ShippedNuGetPackage)"
-                                  VersionsRepoDir="$(VersionsRepoDir)"
+                                  VersionsRepoLocalBaseDir="$(VersionsRepoLocalBaseDir)"
                                   VersionsRepoPath="$(VersionsRepoPath)" />
   </Target>
 

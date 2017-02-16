@@ -94,7 +94,7 @@ namespace Microsoft.DotNet.VersionTools.Automation
                                 Path = $"{versionsRepoPath}/Last_Build_Packages.txt",
                                 Type = GitObject.TypeBlob,
                                 Mode = GitObject.ModeFile,
-                                Content = CreatePackageListFile(packageDictionary)
+                                Content = CreatePackageListContent(packageDictionary)
                             });
                         }
 
@@ -132,7 +132,7 @@ namespace Microsoft.DotNet.VersionTools.Automation
                                 Path = latestPackagesPath,
                                 Type = GitObject.TypeBlob,
                                 Mode = GitObject.ModeFile,
-                                Content = CreatePackageListFile(allPackages)
+                                Content = CreatePackageListContent(allPackages)
                             });
                         }
 

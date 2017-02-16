@@ -187,8 +187,8 @@ namespace Microsoft.DotNet.VersionTools
 
             return
                 versions.FirstOrDefault(v => v.IsPrerelease)?.Release ??
-                // if there are no prerelease versions, just grab the first version
-                versions.FirstOrDefault()?.ToNormalizedString();
+                    // if there are no prerelease versions, just grab the first version
+                    versions.FirstOrDefault()?.ToNormalizedString();
         }
     }
 }

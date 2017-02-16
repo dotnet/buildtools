@@ -13,9 +13,9 @@ namespace Microsoft.DotNet.VersionTools.Automation
         protected static IEnumerable<NupkgInfo> CreatePackageInfos(IEnumerable<string> packagePaths)
         {
             return packagePaths
-                .Select(path => new NupkgInfo(path))
                 // Ignore symbol packages.
-                .Where(t => !t.SymbolPackage);
+                .Where(path => !NupkgInfo.IsSymbolPackagePath(path))
+                .Select(path => new NupkgInfo(path));
         }
 
         protected static Dictionary<string, string> CreatePackageInfoDictionary(IEnumerable<NupkgInfo> infos)
@@ -23,7 +23,7 @@ namespace Microsoft.DotNet.VersionTools.Automation
             return infos.ToDictionary(i => i.Id, i => i.Version);
         }
 
-        protected static string CreatePackageListFile(Dictionary<string, string> packages)
+        protected static string CreatePackageListContent(Dictionary<string, string> packages)
         {
             return string.Join(
                 Environment.NewLine,

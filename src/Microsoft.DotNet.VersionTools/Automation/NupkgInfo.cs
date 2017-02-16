@@ -18,12 +18,12 @@ namespace Microsoft.DotNet.VersionTools.Automation
                 Version = identity.Version.ToString();
                 Prerelease = identity.Version.Release;
             }
-            SymbolPackage = path.EndsWith(".symbols.nupkg");
         }
 
         public string Id { get; }
         public string Version { get; }
         public string Prerelease { get; }
-        public bool SymbolPackage { get; }
+
+        public static bool IsSymbolPackagePath(string path) => path.EndsWith(".symbols.nupkg");
     }
 }

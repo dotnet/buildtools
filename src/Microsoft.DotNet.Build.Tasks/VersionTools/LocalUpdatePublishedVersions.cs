@@ -16,7 +16,7 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
         public ITaskItem[] ShippedNuGetPackage { get; set; }
 
         [Required]
-        public string VersionsRepoDir { get; set; }
+        public string VersionsRepoLocalBaseDir { get; set; }
 
         [Required]
         public string VersionsRepoPath { get; set; }
@@ -29,7 +29,7 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 
             updater.UpdateBuildInfoLatestPackages(
                 ShippedNuGetPackage.Select(item => item.ItemSpec),
-                VersionsRepoDir,
+                VersionsRepoLocalBaseDir,
                 VersionsRepoPath);
 
             Trace.Listeners.RemoveMsBuildTraceListeners(listeners);
