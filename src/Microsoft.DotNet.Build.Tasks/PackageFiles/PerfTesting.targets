@@ -1,105 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-
-  <!-- Perf Runner NuGet package paths -->
-  <PropertyGroup Condition="'$(TargetOS)'=='Linux'">
-    <PerfDotNetCliDir>$PACKAGE_DIR/perf.dotnetcli</PerfDotNetCliDir>
-    <PerfDotNetCliInstaller>$(ToolsDir)/RunnerScripts/xunitrunner-perf/ubuntu-dotnet-local-install.sh</PerfDotNetCliInstaller>
-    <XunitPerfRunnerPackageId>Microsoft.DotNet.xunit.performance.runner.cli</XunitPerfRunnerPackageId>
-  </PropertyGroup>
-  <!-- Perf Runner NuGet package paths -->
-  <PropertyGroup Condition="'$(TargetOS)'=='Windows_NT'">
-    <XunitPerfRunnerPackageId>Microsoft.DotNet.xunit.performance.runner.Windows</XunitPerfRunnerPackageId>
-  </PropertyGroup>
-
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Perf Analysis NuGet package paths -->
-  <PropertyGroup Condition="'$(TargetOS)'=='Linux'">
-    <XunitPerfAnalysisPackageId>Microsoft.DotNet.xunit.performance.analysis.cli</XunitPerfAnalysisPackageId>
-    <XunitPerfAnalysisPath>$(PackagesDir)$(XunitPerfAnalysisPackageId)/$(XunitPerfAnalysisPackageVersion)/lib/netstandard1.3/Microsoft.DotNet.xunit.performance.analysis.cli.dll</XunitPerfAnalysisPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetOS)'=='Windows_NT'">
-    <XunitPerfAnalysisPackageId>Microsoft.DotNet.xunit.performance.analysis</XunitPerfAnalysisPackageId>
-    <XunitPerfAnalysisPath>$(PackagesDir)$(XunitPerfAnalysisPackageId)/$(XunitPerfAnalysisPackageVersion)/tools/xunit.performance.analysis.exe</XunitPerfAnalysisPath>
-    <XunitPerfAnalysisDir>$(PackagesDir)$(XunitPerfAnalysisPackageId)/$(XunitPerfAnalysisPackageVersion)/tools</XunitPerfAnalysisDir>
-  </PropertyGroup>
-
-
-  <!-- Installing dotnet cli version that can execute the xunit perf test runner -->
-  <Target Name="InstallDotnetCliForPerfExecution" Condition="'$(TargetOS)'=='Linux' AND '$(Performance)'=='true' AND !Exists('$(PerfDotNetCliDir)/dotnet') AND '$(OsEnvironment)'=='Unix'" AfterTargets="CopyXunitExecutionFiles" >
-    <Exec Command="chmod +x $(PerfDotNetCliInstaller)" />
-    <Exec Command="$(PerfDotNetCliInstaller) -d $(PackagesDir)/perf.dotnetcli -v $(PackagesDir)$(XunitPerfAnalysisPackageId)/$(XunitPerfAnalysisPackageVersion)/lib/netstandard1.3/DotNetCliVersion.txt" ContinueOnError="true"/>
-  </Target>
-
-  <ItemGroup>
-    <XunitPerfRunnerFiles Include ="$(PackagesDir)$(XunitPerfRunnerPackageId)/**/*.*" />
-    <XunitPerfAnalysisFiles Include ="$(PackagesDir)$(XunitPerfAnalysisPackageId)/**/*.*" />
-  </ItemGroup>
-
-  <!-- Copy over the performance runners to the test directory-->
-  <Target Name="CopyXunitExecutionFiles" AfterTargets="CopyTestToTestDirectory" Condition="'$(Performance)' == 'true'">
-    <Error Condition="'$(XunitPerfAnalysisPackageVersion)' == ''" Text="Xunit performance package version was not specified" />
-    <Error Condition="!Exists('$(XunitPerfAnalysisPath)')" Text="Xunit performance package was not found" />
-    <Copy SourceFiles="$(PackagesDir)$(XunitPerfAnalysisPackageId)/$(XunitPerfAnalysisPackageVersion)/lib/netstandard1.3/DotNetCliVersion.txt"
-          DestinationFolder="$(TestWorkingDir)SupplementalPayload/RunnerScripts/xunitrunner-perf"
-          SkipUnchangedFiles="true"
-          Condition="'$(TargetOS)'=='Linux'"/>
-    <!-- The packages Microsoft.DotNet.xunit.performance.runner.Windows and Microsoft.DotNet.xunit.performance.analysis is not being uploaded along with Packages.zip, hence the workaround -->
-    <Copy SourceFiles="@(XunitPerfRunnerFiles)"
-          DestinationFiles="@(XunitPerfRunnerFiles->'$(TestWorkingDir)SupplementalPayload/$(XunitPerfRunnerPackageId)/%(RecursiveDir)%(Filename)%(Extension)')"
-          SkipUnchangedFiles="true"/>
-    <Copy SourceFiles="@(XunitPerfAnalysisFiles)"
-          DestinationFiles="@(XunitPerfAnalysisFiles->'$(TestWorkingDir)SupplementalPayload/$(XunitPerfAnalysisPackageId)/%(RecursiveDir)%(Filename)%(Extension)')"
-          SkipUnchangedFiles="true"/>
-  </Target>
-
-  <!-- Executable properties -->
   <PropertyGroup>
-    <PerfRunId Condition="'$(PerfRunId)' == ''">testResults</PerfRunId>
-    <AnalysisReportFileName>$(PerfRunId)-analysis.html</AnalysisReportFileName>
-    <TestHostExecutable Condition="'$(TargetOS)'!='Windows_NT'">./corerun</TestHostExecutable>
-    <XunitRunnerArgs>$(TargetFileName) -trait Benchmark=true -runnerhost $(TestHostExecutable) -runner $(XunitExecutable) -runid $(PerfRunId) -verbose</XunitRunnerArgs>
-    <PerfRunOutputFile Condition="'$(TargetOS)'=='Windows_NT'">%EXECUTION_DIR%\testResults.xml</PerfRunOutputFile>
-    <PerfRunOutputFile Condition="'$(TargetOS)'=='Linux'">$EXECUTION_DIR/testResults.xml</PerfRunOutputFile>
-    <XunitAnalysisReportArgs>$(PerfRunOutputFile) -html $(AnalysisReportFileName) $(AdditionalXunitAnalysisArgs)</XunitAnalysisReportArgs>
-    <XunitPerfAnalysisCsvDir Condition="'$(TargetOS)'=='Linux'">$EXECUTION_DIR/resultcsvs/</XunitPerfAnalysisCsvDir>
-    <XunitPerfAnalysisCsvDir Condition="'$(TargetOS)'=='Windows_NT'">%EXECUTION_DIR%\resultcsvs\</XunitPerfAnalysisCsvDir>
-    <XunitAnalysisCsvArgs>$(PerfRunOutputFile) -csvDir $(XunitPerfAnalysisCsvDir)</XunitAnalysisCsvArgs>
-    <AnalyzePerfResults Condition="'$(AnalyzePerfResults)' != 'false'">true</AnalyzePerfResults>
+    <TraceEventPackage>Microsoft.Diagnostics.Tracing.TraceEvent\$(TraceEventPackageVersion)</TraceEventPackage>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <TraceEventNativePath Include="$(PackagesDir)\$(TraceEventPackage)\lib\native\**\*.*" />
+  </ItemGroup>
+  
+  <Target Name ="PublishPerfRunner" Condition="'$(Performance)'=='true'" BeforeTargets="RunTestsForProject">
+    <Copy SourceFiles="@(TraceEventNativePath)" DestinationFiles="@(TraceEventNativePath->'$(StartWorkingDirectory)\%(RecursiveDir)%(Filename)%(Extension)')" />
+  </Target>
 
   <PropertyGroup Condition="'$(TargetOS)'=='Linux'">
-    <PerfTestCommandDotnetExecutable>$(PerfDotNetCliDir)/dotnet</PerfTestCommandDotnetExecutable>
-    <PerfAnalysisReportCommand>$(PerfTestCommandDotnetExecutable) $(PackagesDir)/$(XunitPerfAnalysisPackageId)/$(XunitPerfAnalysisPackageVersion)/Microsoft.DotNet.xunit.performance.analysis.cli.dll $(XunitAnalysisReportArgs)</PerfAnalysisReportCommand>
-    <PerfAnalysisCsvCommand>$(PerfTestCommandDotnetExecutable) Microsoft.DotNet.xunit.performance.analysis.cli.dll $(XunitAnalysisCsvArgs)</PerfAnalysisCsvCommand>
-    <PerfTestCommand>$(PerfTestCommandDotnetExecutable) Microsoft.DotNet.xunit.performance.runner.cli.dll $(XunitRunnerArgs) $(AdditionalPerfTestArgs)</PerfTestCommand>
+    <PerfTestCommandDotnetExecutable>$RUNTIME_PATH/dotnet</PerfTestCommandDotnetExecutable>
+    <PerfTestCommand>$(PerfTestCommandDotnetExecutable) PerfRunner.exe</PerfTestCommand>
+    <BenchviewDir>$(ToolsDir)Microsoft.BenchView.JSONFormat/tools</BenchviewDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetOS)'=='Windows_NT'">
-    <PerfTestCommandDotnetExecutable></PerfTestCommandDotnetExecutable>
-    <PerfAnalysisReportCommand>$(XunitPerfAnalysisPath) $(XunitAnalysisReportArgs)</PerfAnalysisReportCommand>
-    <PerfAnalysisCsvCommand>xunit.performance.analysis.exe $(XunitAnalysisCsvArgs)</PerfAnalysisCsvCommand>
-    <PerfTestCommand>$(PerfTestCommandDotnetExecutable) xunit.performance.run.exe $(XunitRunnerArgs) $(AdditionalPerfTestArgs)</PerfTestCommand>
+    <PerfTestCommandDotnetExecutable>PerfRunner.exe</PerfTestCommandDotnetExecutable>
+    <PerfTestCommand>%RUNTIME_PATH%\dotnet.exe $(PerfTestCommandDotnetExecutable)</PerfTestCommand>
+    <BenchviewDir>$(ToolsDir)Microsoft.BenchView.JSONFormat\tools</BenchviewDir>
   </PropertyGroup>
-  <ItemGroup Condition="'$(TargetOS)'=='Linux'" >
-    <TestCommandLines Include = "if [ -f  $HELIX_CORRELATION_PAYLOAD/RunnerScripts/xunitrunner-perf/dotnetcliinstaller.py ];"></TestCommandLines>
-    <TestCommandLines Include = "then $HELIX_PYTHONPATH $HELIX_CORRELATION_PAYLOAD/RunnerScripts/xunitrunner-perf/dotnetcliinstaller.py"></TestCommandLines>
-    <TestCommandLines Include = "fi"></TestCommandLines>
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetOS)'=='Windows_NT'">
-    <TestCommandLines Include = "xcopy &quot;%PACKAGE_DIR%\$(XunitPerfRunnerPackageId)\$(XunitPerfAnalysisPackageVersion)\tools&quot; &quot;%EXECUTION_DIR%&quot; /s /y"></TestCommandLines>
-    <TestCommandLines Include = "xcopy &quot;%PACKAGE_DIR%\$(XunitPerfAnalysisPackageId)\$(XunitPerfAnalysisPackageVersion)\tools&quot; &quot;%EXECUTION_DIR%&quot; /s /y"></TestCommandLines>
-  </ItemGroup>
   <ItemGroup>
-    <TestCommandLines Include = "$(PerfTestCommand)"></TestCommandLines>
-    <TestCommandLines Include = "mkdir $(XunitPerfAnalysisCsvDir)"></TestCommandLines>
-    <TestCommandLines Include = "$(PerfAnalysisCsvCommand)"></TestCommandLines>
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetOS)'=='Linux'" >
-    <TestCommandLines Include = "if [ -f  $HELIX_CORRELATION_PAYLOAD/RunnerScripts/xunitrunner-perf/postprocessperfresults.py ];"></TestCommandLines>
-    <TestCommandLines Include = "then $HELIX_PYTHONPATH $HELIX_CORRELATION_PAYLOAD/RunnerScripts/xunitrunner-perf/postprocessperfresults.py --csvDir $(XunitPerfAnalysisCsvDir)"></TestCommandLines>
-    <TestCommandLines Include = "fi"></TestCommandLines>
+    <PerfTestCommandLines Include="$(PerfTestCommand)" />
+    <!-- We use the 20* syntax as the XML file created starts with the year and 20xx will be good for a while -->
   </ItemGroup>
   <ItemGroup Condition="'$(TargetOS)'=='Windows_NT'">
-    <TestCommandLines Include = "IF EXIST %HELIX_CORRELATION_PAYLOAD%\RunnerScripts\xunitrunner-perf\postprocessperfresults.py %HELIX_PYTHONPATH% %HELIX_CORRELATION_PAYLOAD%\RunnerScripts\xunitrunner-perf\postprocessperfresults.py --csvDir $(XunitPerfAnalysisCsvDir)"></TestCommandLines>
+    <PerfTestCommandLines Include="if exist $(AssemblyName).xml (" />
+    <PerfTestCommandLines Include="py $(BenchviewDir)\measurement.py xunit $(AssemblyName).xml --better desc --drop-first-value --append -o $(ProjectDir)measurement.json" />
+    <PerfTestCommandLines Include=")" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetOS)'=='Linux'">
+    <PerfTestCommandLines Include="if [ -a $(AssemblyName).xml ]" />
+    <PerfTestCommandLines Include="then" />
+    <PerfTestCommandLines Include="python3.5 $(BenchviewDir)\measurement.py xunit $(AssemblyName).xml --better desc --drop-first-value --append -o $(ProjectDir)measurement.json" />
+    <PerfTestCommandLines Include="fi" />
   </ItemGroup>
   <!-- Optimizations to configure Xunit for performance -->
   <ItemGroup Condition="'$(IncludePerformanceTests)' == 'true'">
@@ -107,17 +44,18 @@
     <AssemblyInfoLines Include="[assembly:OptimizeForBenchmarks]" />
   </ItemGroup>
 
-  <Target Name="AnalyzePerfResults"
-          AfterTargets="RunTestsForProject"
-          Condition="'$(AnalyzePerfResults)' == 'true' and Exists('$(PerfRunOutputFile)')">
-    <Exec Command="$(PerfAnalysisReportCommand)"
-          WorkingDirectory="$(TestPath)"
-          ContinueOnError="false">
-      <Output PropertyName="PerfTestRunExitCode" TaskParameter="ExitCode" />
-    </Exec>
-    <Message Text="Performance test analysis report is available at $(TestPath)$(AnalysisReportFileName)" />
-  </Target>
-
+  <Target Name="UploadToBenchview" Condition="'$(LogToBenchview)' == 'true'" AfterTargets="TestAllProjects">
+    <ItemGroup Condition="'$(TargetOS)'=='Windows_NT'">
+      <BenchviewCalls Include="py $(BenchviewDir)\submission.py $(ProjectDir)measurement.json --build $(ProjectDir)build.json --machine-data $(ProjectDir)machinedata.json --metadata $(ProjectDir)submission-metadata.json --group &quot;CoreFx&quot; --type &quot;$(BenchviewRuntype)&quot; --config-name &quot;$(ConfigurationGroup)&quot; --config Configuration &quot;$(ConfigurationGroup)&quot; --config OS &quot;$(TargetOS)&quot; -arch &quot;$(Platform)&quot; --machinepool &quot;PerfSnake&quot;"/>
+      <BenchviewCalls Include = "py $(BenchviewDir)\upload.py submission.json --container corefx"/>
+    </ItemGroup>
+    <ItemGroup Condition="'$(TargetOS)'=='Linux'">
+      <BenchviewCalls Include="python3.5 $(BenchviewDir)/submission.py $(ProjectDir)measurement.json --build $(ProjectDir)build.json --machine-data $(ProjectDir)machinedata.json --metadata $(ProjectDir)submission-metadata.json --group &quot;CoreFx&quot; --type &quot;$(BenchviewRuntype)&quot; --config-name &quot;$(ConfigurationGroup)&quot; --config Configuration &quot;$(ConfigurationGroup)&quot; --config OS &quot;$(TargetOS)&quot; -arch &quot;$(Platform)&quot; --machinepool &quot;PerfSnake&quot;"/>
+      <BenchviewCalls Include = "python3.5 $(BenchviewDir)/upload.py submission.json --container corefx"/>
+    </ItemGroup>
+    <Exec Command="%(BenchviewCalls.Identity)"/>
+    </Target>
+  
   <Target Name="WarnForDebugPerfConfiguration"
           BeforeTargets="RunTestsForProject"
           Condition="'$(Performance)' == 'true' and !$(ConfigurationGroup.ToLower().Contains('release'))">
