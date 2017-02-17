@@ -89,9 +89,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 // Determine inbox frameworks for this generation that don't already have explicit groups
                 HashSet<NuGetFramework> inboxFrameworksList = new HashSet<NuGetFramework>(
                     index.GetAlllInboxFrameworks()
-                    .Where(fx => !fx.IsPCL)
                     .Where(fx => Generations.DetermineGenerationForFramework(fx, UseNetPlatform) >= portableDependencyGroup.Framework.Version &&
-                        !frameworksToExclude.Any(exFx => exFx.Framework == fx.Framework && exFx.Version <= fx.Version)));
+                        !frameworksToExclude.Any(exFx => exFx.Framework == fx.Framework && exFx.Profile == fx.Profile && exFx.Version <= fx.Version)));
                 
                 // Check for assets which have a ref, but not a lib asset. If we have any of these, then they are actually not supported frameworks 
                 // and we should not include them.
