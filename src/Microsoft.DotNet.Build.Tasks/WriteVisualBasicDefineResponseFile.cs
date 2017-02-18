@@ -32,7 +32,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public override bool Execute()
         {
-            using (var streamWriter = new StreamWriter(System.IO.File.OpenWrite(File)))
+            using (var streamWriter = new StreamWriter(System.IO.File.Open(File, FileMode.Create)))
             {
                 streamWriter.Write("/define:\"");
                 streamWriter.Write(DefineConstants.Replace("\"", "\\\""));
