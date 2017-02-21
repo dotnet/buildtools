@@ -72,6 +72,21 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                         yield return CreateXmlUpdater(step);
                         break;
 
+                    case "File":
+                        yield return new FilePackageUpdater
+                        {
+                            PackageId = GetRequiredMetadata(step, "PackageId"),
+                            Path = GetRequiredMetadata(step, "Path"),
+                        };
+                        break;
+
+                    case "Tool versions":
+                        yield return new ToolVersionsUpdater
+                        {
+                            Path = GetRequiredMetadata(step, "Path"),
+                        };
+                        break;
+
                     case "Submodule from package":
                         yield return new IndicatorPackageSubmoduleUpdater(
                             GetRequiredMetadata(step, "IndicatorPackage"))

@@ -32,6 +32,8 @@
     <Compile Include="Automation\GitHubProject.cs" />
     <Compile Include="Automation\PullRequestCreator.cs" />
     <Compile Include="Automation\GitHubApi\GitHubApiModel.cs" />
+    <Compile Include="Dependencies\ToolVersionsUpdater.cs" />
+    <Compile Include="Dependencies\FilePackageUpdater.cs" />
     <Compile Include="Dependencies\FileRegexPackageUpdater.cs" />
     <Compile Include="Dependencies\FileRegexReleaseUpdater.cs" />
     <Compile Include="Automation\IUpdateBranchNamingStrategy.cs" />
