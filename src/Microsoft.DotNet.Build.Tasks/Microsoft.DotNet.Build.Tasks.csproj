@@ -28,6 +28,8 @@
     <Compile Include="GenerateCurrentVersion.cs" />
     <Compile Include="GenerateResourcesCode.cs" />
     <Compile Include="GenerateEncodingTable.cs" />
+    <Compile Include="EncryptedConfigNuGetRestore.cs" />
+    <Compile Include="GenerateUnencryptedNuGetConfig.cs" />
     <Compile Include="GetPackageVersion.cs" />
     <Compile Include="GetPackageDependencies.cs" />
     <Compile Include="GetNextRevisionNumber.cs" />

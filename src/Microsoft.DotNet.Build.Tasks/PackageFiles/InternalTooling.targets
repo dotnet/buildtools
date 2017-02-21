@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <UsingTask TaskName="GenerateEncryptedNuGetConfig" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="GenerateUnencryptedNuGetConfig" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="EncryptedConfigNuGetRestore" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="PrereleaseResolveNuGetPackageAssets" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+
+  <Target Name="RestoreInternalToolingPackages"
+          DependsOnTargets="RestoreInternalToolingEncrypted;
+                            RestoreInternalToolingUnencrypted;
+                            CleanInternalToolingRestore"
+          BeforeTargets="Sync"
+          Condition="'$(InternalToolSource)'!=''" />
+
+  <!--
+    Create items for any feeds specified by parameters. This makes it easy to pass in an internal
+    source with an msbuild command.
+  -->
+  <Target Name="CreateInternalRestoreFeedItems">
+    <ItemGroup>
+      <InternalRestoreSource Include="FeedFromProperties">
+        <Uri>$(InternalToolSource)</Uri>
+        <Username Condition="'$(InternalToolSourceUser)'!=''">$(InternalToolSourceUser)</Username>
+        <Password Condition="'$(InternalToolSourcePassword)'!=''">$(InternalToolSourcePassword)</Password>
+      </InternalRestoreSource>
+    </ItemGroup>
+  </Target>
+
+  <!--
+    Determine the paths of the internal tool runtime project.json and lockfile.
+  -->
+  <Target Name="GetInternalToolingPaths">
+    <PropertyGroup>
+      <InternalToolingDir>$(ToolsDir)internal-tool-runtime\</InternalToolingDir>
+      <InternalToolingJsonPath>$(InternalToolingDir)internal.json</InternalToolingJsonPath>
+      <InternalToolingProjectJsonPath>$(InternalToolingDir)project.json</InternalToolingProjectJsonPath>
+      <InternalToolingProjectLockJsonPath>$(InternalToolingDir)project.lock.json</InternalToolingProjectLockJsonPath>
+    </PropertyGroup>
+  </Target>
+
+  <!--
+    Copy the mangled "internal.json" file to "project.json", so that we can restore it. The name
+    is internal.json so that recursive restore will not normally find the file: it contains
+    internal tooling that typical recursive restores do not provide, such as the buildtools build.
+  -->
+  <Target Name="PrepareInternalToolProjectJson"
+          DependsOnTargets="GetInternalToolingPaths">
+
+    <Copy SourceFiles="$(InternalToolingJsonPath)"
+          DestinationFiles="$(InternalToolingProjectJsonPath)"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+  <!--
+    Restore internal tooling using a NuGet.Config on disk with encrypted credentials inside.
+    Not supported on .NET Core.
+  -->
+  <Target Name="RestoreInternalToolingEncrypted"
+          DependsOnTargets="CreateInternalRestoreFeedItems;
+                            PrepareInternalToolProjectJson"
+          Condition="'$(MSBuildRuntimeType)'!='core'">
+    <PropertyGroup>
+      <GeneratedNuGetConfigDir>$(ObjDir)generatedNuGetConfig/</GeneratedNuGetConfigDir>
+      <InternalRestoreConfigPath>$(GeneratedNuGetConfigDir)internal.NuGet.Config</InternalRestoreConfigPath>
+    </PropertyGroup>
+
+    <GenerateEncryptedNuGetConfig ConfigPath="$(InternalRestoreConfigPath)"
+                                  Sources="@(InternalRestoreSource)" />
+
+    <EncryptedConfigNuGetRestore Inputs="$(InternalToolingProjectJsonPath)"
+                                 ConfigFile="$(InternalRestoreConfigPath)"
+                                 PackagesDir="$(PackagesDir)" />
+  </Target>
+
+  <!--
+    Restore internal tooling by generating the XML string of a NuGet.Config with plaintext
+    credentials, then injecting it into "dotnet restore" using /dev/stdin.
+    Not supported on Windows.
+  -->
+  <Target Name="RestoreInternalToolingUnencrypted"
+          DependsOnTargets="CreateInternalRestoreFeedItems;
+                            PrepareInternalToolProjectJson"
+          Condition="'$(MSBuildRuntimeType)'=='core'">
+    <PropertyGroup>
+      <!-- Create a new restore command with no source parameters, only configfile. -->
+      <InternalRestoreCommand>"$(DnuToolPath)"</InternalRestoreCommand>
+      <InternalRestoreCommand>$(InternalRestoreCommand) restore</InternalRestoreCommand>
+      <InternalRestoreCommand Condition="'$(UseNuGetHttpCache)'!='true'">$(InternalRestoreCommand) --no-cache</InternalRestoreCommand>
+      <InternalRestoreCommand>$(InternalRestoreCommand) --packages "$(PackagesDir.TrimEnd('/\'.ToCharArray()))"</InternalRestoreCommand>
+      <InternalRestoreCommand>$(InternalRestoreCommand) --configfile $(InternalRestoreConfigPath)</InternalRestoreCommand>
+    </PropertyGroup>
+
+    <Error Text="Restoring internal tooling with in-memory credentials is not supported on Windows. Use the desktop framework for the encrypted credential flow."
+           Condition="'$(OS)'=='Windows_NT'" />
+
+    <Error Text="Restoring internal tooling with in-memory credentials is not yet implemented. No cross-platform internal tooling exists yet." />
+  </Target>
+
+  <!--
+    Cleanup steps: try to ensure non-authenticated restore attempts don't attempt to restore
+    internal packages and reduce credential exposure to the remaining steps in the build.
+  -->
+  <Target Name="CleanInternalToolingRestore"
+          Condition="'$(SkipCleanInternalToolingRestore)'!='true'">
+    <ItemGroup>
+      <InternalRestoreTemporaryFilePath Include="$(InternalRestoreConfigPath);
+                                                 $(InternalToolingProjectJsonPath)" />
+    </ItemGroup>
+
+    <Delete Files="@(InternalRestoreTemporaryFilePath)" Condition="Exists('%(Identity)')" />
+  </Target>
+
+  <!--
+    Resolve tooling from the internal restore lockfile. Other targets can find internal tooling
+    in ResolvedInternalToolReferences.
+  -->
+  <Target Name="ResolveInternalTools"
+          DependsOnTargets="GetInternalToolingPaths">
+
+    <Error Text="Internal tooling has not been restored. Use the 'RestoreInternalToolingPackages' target first."
+           Condition="!Exists('$(InternalToolingProjectLockJsonPath)')" />
+
+    <ItemGroup>
+      <InternalToolingTargetMoniker Include=".NETFramework,Version=v4.5" />
+    </ItemGroup>
+
+    <PrereleaseResolveNuGetPackageAssets ProjectLockFile="$(InternalToolingProjectLockJsonPath)"
+                                         TargetMonikers="@(InternalToolingTargetMoniker)">
+      <Output TaskParameter="ResolvedReferences" ItemName="ResolvedInternalToolReferences" />
+    </PrereleaseResolveNuGetPackageAssets>
+  </Target>
+
+</Project>
