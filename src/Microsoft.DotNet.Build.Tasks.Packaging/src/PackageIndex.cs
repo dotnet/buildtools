@@ -18,11 +18,15 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
     public class PackageIndex
     {
+        static JsonSerializer s_serializer = CreateSerializer();
+
         static ConcurrentDictionary<string, PackageIndex> s_indexCache = new ConcurrentDictionary<string, PackageIndex>();
 
         public SortedDictionary<string, PackageInfo> Packages { get; set; } = new SortedDictionary<string, PackageInfo>();
 
         public SortedDictionary<string, string> ModulesToPackages { get; set; } = new SortedDictionary<string, string>();
+
+        public MetaPackages MetaPackages { get; set; } = new MetaPackages();
 
         public string PreRelease { get; set; }
 
@@ -62,10 +66,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             using (var file = File.OpenText(packageIndexFile))
             using (var jsonTextReader = new JsonTextReader(file))
             {
-                var serializer = new JsonSerializer();
-                serializer.Converters.Add(new VersionConverter());
-                serializer.Converters.Add(new InboxFrameworksConverter());
-                var result = serializer.Deserialize<PackageIndex>(jsonTextReader);
+                var result = s_serializer.Deserialize<PackageIndex>(jsonTextReader);
                 result.IndexSources.Add(Path.GetFullPath(packageIndexFile));
                 return result;
             }
@@ -81,15 +82,23 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             using (var file = File.CreateText(path))
             {
-                var serializer = new JsonSerializer();
-                serializer.StringEscapeHandling = StringEscapeHandling.EscapeNonAscii;
-                serializer.Formatting = Formatting.Indented;
-                serializer.NullValueHandling = NullValueHandling.Ignore;
-                serializer.DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate;
-                serializer.Converters.Add(new VersionConverter());
-                serializer.Converters.Add(new InboxFrameworksConverter());
-                serializer.Serialize(file, this);
+                s_serializer.Serialize(file, this);
             }
+        }
+
+        private static JsonSerializer CreateSerializer()
+        {
+            var serializer = new JsonSerializer();
+            serializer.StringEscapeHandling = StringEscapeHandling.EscapeNonAscii;
+            serializer.Formatting = Formatting.Indented;
+            serializer.NullValueHandling = NullValueHandling.Ignore;
+            serializer.DefaultValueHandling = DefaultValueHandling.Ignore;
+
+            serializer.Converters.Add(new VersionConverter());
+            serializer.Converters.Add(new InboxFrameworksConverter());
+            serializer.Converters.Add(new MetaPackagesConverter());
+
+            return serializer;
         }
 
         /// <summary>
@@ -712,4 +721,107 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
         }
     }
+
+    public class MetaPackages
+    {
+        private Dictionary<string, string> packageToMetaPackage = new Dictionary<string, string>();
+
+        public void AddMetaPackageMapping(string packageId, string metaPackageId)
+        {
+            string existingMetaPackage;
+
+            if (packageToMetaPackage.TryGetValue(packageId, out existingMetaPackage))
+            {
+                if (existingMetaPackage != metaPackageId)
+                {
+                    throw new InvalidOperationException($"Package {packageId} cannot be mapped to {metaPackageId} because it is already mapped to {existingMetaPackage}.");
+                }
+            }
+            else
+            {
+                packageToMetaPackage.Add(packageId, metaPackageId);
+            }
+        }
+
+        public string GetMetaPackageId(string packageId)
+        {
+            string metaPackageId;
+
+            packageToMetaPackage.TryGetValue(packageId, out metaPackageId);
+
+            return metaPackageId;
+        }
+
+        internal IEnumerable<IGrouping<string, string>> GetMetaPackageGrouping()
+        {
+            return packageToMetaPackage.GroupBy(p => p.Value, p => p.Key);
+        }
+    }
+
+    public class MetaPackagesConverter : JsonConverter
+    {
+        public override bool CanConvert(Type objectType)
+        {
+            return objectType == typeof(MetaPackages);
+        }
+
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            var jobj = JObject.Load(reader);
+
+            var result = new MetaPackages();
+            foreach (var property in jobj.Properties())
+            {
+                if (property.Value == null || property.Value.Type == JTokenType.Null)
+                {
+                    continue;
+                }
+
+                var metaPackageId = property.Name;
+                
+                var metaPackageArray = property.Value as JArray;
+
+                if (metaPackageArray == null)
+                {
+                    throw new JsonSerializationException($"Expected array for property {metaPackageId}");
+                }
+
+                foreach(var package in metaPackageArray)
+                {
+                    result.AddMetaPackageMapping(package.ToString(), metaPackageId);
+                }
+            }
+
+            return result;
+        }
+
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            if (value == null)
+            {
+                writer.WriteNull();
+            }
+            else if (value is MetaPackages)
+            {
+                writer.WriteStartObject();
+                foreach(var metaPackage in ((MetaPackages)value).GetMetaPackageGrouping())
+                {
+                    writer.WritePropertyName(metaPackage.Key);
+                    writer.WriteStartArray();
+                    foreach(var package in metaPackage)
+                    {
+                        writer.WriteValue(package);
+                    }
+                    writer.WriteEndArray();
+                }
+
+                writer.WriteEndObject();
+            }
+            else
+            {
+                throw new JsonSerializationException($"Expected {nameof(MetaPackages)} but got {value.GetType()}");
+            }
+        }
+    }
+
 }
