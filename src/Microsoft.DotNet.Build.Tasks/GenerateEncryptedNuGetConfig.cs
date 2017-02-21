@@ -46,7 +46,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 if (string.IsNullOrEmpty(uri))
                 {
                     throw new ArgumentException(
-                        $"Item '{newSourceItem}': 'Uri' metadata required, found '{uri}'.");
+                        $"Item '{newSourceItem}': 'Uri' metadata required.");
                 }
 
                 var newSource = new PackageSource(uri, name);
