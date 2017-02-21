@@ -17,6 +17,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\Common\AssemblyResolver.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IsRestoreRequired.Desktop.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FilterRuntimesFromSupports.Desktop.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EncryptedConfigNuGetRestore.Desktop.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Build" />
