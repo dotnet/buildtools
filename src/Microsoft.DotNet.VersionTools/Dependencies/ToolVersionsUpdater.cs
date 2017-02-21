@@ -63,11 +63,18 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
 
             public ToolUpdateLineResult(string line, IEnumerable<DependencyBuildInfo> buildInfos)
             {
+                Content = line;
+
                 int separatorIndex = line.IndexOf('=');
-                string name = line.Substring(0, separatorIndex);
+                if (separatorIndex == -1)
+                {
+                    // Ignore lines without a 'name=version' string.
+                    return;
+                }
+
+                string name = line.Substring(0, separatorIndex).Trim();
                 string version = line.Substring(separatorIndex + 1);
 
-                Content = line;
                 OriginalVersion = version;
                 ToolName = name;
 
