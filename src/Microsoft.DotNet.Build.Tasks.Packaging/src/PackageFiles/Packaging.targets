@@ -253,7 +253,7 @@
         <PackageId>$(Id)</PackageId>
         <PackageVersion>$(PackageVersion)</PackageVersion>
         <!-- Some packages support legacy portable profiles where dependencies are provided by targeting pack -->
-        <HarvestDependencies Condition="!$([System.String]::new('%(_FilesToPackage.TargetFramework)').StartsWith('portable-'))">true</HarvestDependencies>
+        <HarvestDependencies Condition="!$([System.String]::Copy('%(_FilesToPackage.TargetFramework)').StartsWith('portable-'))">true</HarvestDependencies>
       </File>
     </ItemGroup>
 
@@ -665,7 +665,7 @@
                                            KeepDuplicates="false" />
       <!-- remove any frameworks that have an impl in this package -->
       <_runtimeDependenciesTargetFramework Remove="%(File.TargetFramework)"
-                                           Condition="$([System.String]::new('%(File.TargetPath)').StartsWith('lib/', StringComparison.OrdinalIgnoreCase))" />
+                                           Condition="$([System.String]::Copy('%(File.TargetPath)').StartsWith('lib/', StringComparison.OrdinalIgnoreCase))" />
       <FilePackageDependency Include="$(LineupPackageId)">
         <Version>$(LineupPackageVersion)</Version>
         <TargetFramework>%(_runtimeDependenciesTargetFramework.Identity)</TargetFramework>
@@ -679,11 +679,11 @@
     <!-- Add a dependency on the runtime graph package for every TFM that has RID-specific assets and is not already a runtime package -->
     <ItemGroup Condition="'$(PackageTargetRuntime)' == '' AND '$(ExcludeRuntimeReference)' != 'true'">
       <_ridSpecificTargetFrameworks Include="@(File->'%(TargetFramework)')"
-                                    Condition="$([System.String]::new('%(File.TargetPath)').StartsWith('runtimes/', StringComparison.OrdinalIgnoreCase))
+                                    Condition="$([System.String]::Copy('%(File.TargetPath)').StartsWith('runtimes/', StringComparison.OrdinalIgnoreCase))
                                                AND '%(File.Identity)' != '$(PlaceholderFile)'" />
       <!-- remove any frameworks that have a RID-less impl in this package-->
       <_ridSpecificTargetFrameworks Remove="%(File.TargetFramework)"
-                                           Condition="$([System.String]::new('%(File.TargetPath)').StartsWith('lib/', StringComparison.OrdinalIgnoreCase))" />
+                                           Condition="$([System.String]::Copy('%(File.TargetPath)').StartsWith('lib/', StringComparison.OrdinalIgnoreCase))" />
 
       <FilePackageDependency Include="$(PlatformPackageId)" Condition="'@(_ridSpecificTargetFrameworks)' != ''">
         <Version>$(PlatformPackageVersion)</Version>
