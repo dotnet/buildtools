@@ -46,12 +46,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             var dependencies = Dependencies.Select(d => new Dependency(d)).ToArray();
 
-            var refSets = dependencies.Where(d => d.Id != "_._").Where(d => d.IsReference).GroupBy(d => d.TargetFramework).ToDictionary(g => NuGetFramework.Parse(g.Key), g => g.ToArray());
+            var refSets = dependencies.Where(d => d.Id != "_._").Where(d => d.IsReference).GroupBy(d => NuGetFramework.Parse(d.TargetFramework)).ToDictionary(g => g.Key, g => g.ToArray());
             var refFxs = refSets.Keys.ToArray();
 
             Log.LogMessage(LogImportance.Low, $"Ref frameworks {string.Join(";", refFxs.Select(f => f.ToString()))}");
 
-            var libSets = dependencies.Where(d => !d.IsReference).GroupBy(d => d.TargetFramework).ToDictionary(g => NuGetFramework.Parse(g.Key), g => g.ToArray());
+            var libSets = dependencies.Where(d => !d.IsReference).GroupBy(d => NuGetFramework.Parse(d.TargetFramework)).ToDictionary(g => g.Key, g => g.ToArray());
             var libFxs = libSets.Keys.ToArray();
 
             Log.LogMessage(LogImportance.Low, $"Lib frameworks {string.Join(";", libFxs.Select(f => f.ToString()))}");
