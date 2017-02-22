@@ -6,128 +6,128 @@
   <UsingTask TaskName="EncryptedConfigNuGetRestore" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
   <UsingTask TaskName="PrereleaseResolveNuGetPackageAssets" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
 
-  <Target Name="RestoreInternalToolingPackages"
-          DependsOnTargets="RestoreInternalToolingEncrypted;
-                            RestoreInternalToolingUnencrypted;
-                            CleanInternalToolingRestore"
+  <Target Name="RestoreOptionalToolingPackages"
+          DependsOnTargets="RestoreOptionalToolingEncrypted;
+                            RestoreOptionalToolingUnencrypted;
+                            CleanOptionalToolingRestore"
           BeforeTargets="Sync"
-          Condition="'$(InternalToolSource)'!=''" />
+          Condition="'$(OptionalToolSource)'!=''" />
 
   <!--
-    Create items for any feeds specified by parameters. This makes it easy to pass in an internal
+    Create items for any feeds specified by parameters. This makes it easy to pass in an optional
     source with an msbuild command.
   -->
-  <Target Name="CreateInternalRestoreFeedItems">
+  <Target Name="CreateOptionalRestoreFeedItems">
     <ItemGroup>
-      <InternalRestoreSource Include="FeedFromProperties">
-        <Uri>$(InternalToolSource)</Uri>
-        <Username Condition="'$(InternalToolSourceUser)'!=''">$(InternalToolSourceUser)</Username>
-        <Password Condition="'$(InternalToolSourcePassword)'!=''">$(InternalToolSourcePassword)</Password>
-      </InternalRestoreSource>
+      <OptionalRestoreSource Include="FeedFromProperties">
+        <Uri>$(OptionalToolSource)</Uri>
+        <Username Condition="'$(OptionalToolSourceUser)'!=''">$(OptionalToolSourceUser)</Username>
+        <Password Condition="'$(OptionalToolSourcePassword)'!=''">$(OptionalToolSourcePassword)</Password>
+      </OptionalRestoreSource>
     </ItemGroup>
   </Target>
 
   <!--
-    Determine the paths of the internal tool runtime project.json and lockfile.
+    Determine the paths of the optional tool runtime project.json and lockfile.
   -->
-  <Target Name="GetInternalToolingPaths">
+  <Target Name="GetOptionalToolingPaths">
     <PropertyGroup>
-      <InternalToolingDir>$(ToolsDir)internal-tool-runtime\</InternalToolingDir>
-      <InternalToolingJsonPath>$(InternalToolingDir)internal.json</InternalToolingJsonPath>
-      <InternalToolingProjectJsonPath>$(InternalToolingDir)project.json</InternalToolingProjectJsonPath>
-      <InternalToolingProjectLockJsonPath>$(InternalToolingDir)project.lock.json</InternalToolingProjectLockJsonPath>
+      <OptionalToolingDir>$(ToolsDir)optional-tool-runtime\</OptionalToolingDir>
+      <OptionalToolingJsonPath>$(OptionalToolingDir)optional.json</OptionalToolingJsonPath>
+      <OptionalToolingProjectJsonPath>$(OptionalToolingDir)project.json</OptionalToolingProjectJsonPath>
+      <OptionalToolingProjectLockJsonPath>$(OptionalToolingDir)project.lock.json</OptionalToolingProjectLockJsonPath>
     </PropertyGroup>
   </Target>
 
   <!--
-    Copy the mangled "internal.json" file to "project.json", so that we can restore it. The name
-    is internal.json so that recursive restore will not normally find the file: it contains
-    internal tooling that typical recursive restores do not provide, such as the buildtools build.
+    Copy the mangled "optional.json" file to "project.json", so that we can restore it. The name
+    is optional.json so that recursive restore will not normally find the file: it contains
+    optional tooling that typical recursive restores do not provide, such as the buildtools build.
   -->
-  <Target Name="PrepareInternalToolProjectJson"
-          DependsOnTargets="GetInternalToolingPaths">
+  <Target Name="PrepareOptionalToolProjectJson"
+          DependsOnTargets="GetOptionalToolingPaths">
 
-    <Copy SourceFiles="$(InternalToolingJsonPath)"
-          DestinationFiles="$(InternalToolingProjectJsonPath)"
+    <Copy SourceFiles="$(OptionalToolingJsonPath)"
+          DestinationFiles="$(OptionalToolingProjectJsonPath)"
           SkipUnchangedFiles="true" />
   </Target>
 
   <!--
-    Restore internal tooling using a NuGet.Config on disk with encrypted credentials inside.
+    Restore optional tooling using a NuGet.Config on disk with encrypted credentials inside.
     Not supported on .NET Core.
   -->
-  <Target Name="RestoreInternalToolingEncrypted"
-          DependsOnTargets="CreateInternalRestoreFeedItems;
-                            PrepareInternalToolProjectJson"
+  <Target Name="RestoreOptionalToolingEncrypted"
+          DependsOnTargets="CreateOptionalRestoreFeedItems;
+                            PrepareOptionalToolProjectJson"
           Condition="'$(MSBuildRuntimeType)'!='core'">
     <PropertyGroup>
       <GeneratedNuGetConfigDir>$(ObjDir)generatedNuGetConfig/</GeneratedNuGetConfigDir>
-      <InternalRestoreConfigPath>$(GeneratedNuGetConfigDir)internal.NuGet.Config</InternalRestoreConfigPath>
+      <OptionalRestoreConfigPath>$(GeneratedNuGetConfigDir)optional.NuGet.Config</OptionalRestoreConfigPath>
     </PropertyGroup>
 
-    <GenerateEncryptedNuGetConfig ConfigPath="$(InternalRestoreConfigPath)"
-                                  Sources="@(InternalRestoreSource)" />
+    <GenerateEncryptedNuGetConfig ConfigPath="$(OptionalRestoreConfigPath)"
+                                  Sources="@(OptionalRestoreSource)" />
 
-    <EncryptedConfigNuGetRestore Inputs="$(InternalToolingProjectJsonPath)"
-                                 ConfigFile="$(InternalRestoreConfigPath)"
+    <EncryptedConfigNuGetRestore Inputs="$(OptionalToolingProjectJsonPath)"
+                                 ConfigFile="$(OptionalRestoreConfigPath)"
                                  PackagesDir="$(PackagesDir)" />
   </Target>
 
   <!--
-    Restore internal tooling by generating the XML string of a NuGet.Config with plaintext
+    Restore optional tooling by generating the XML string of a NuGet.Config with plaintext
     credentials, then injecting it into "dotnet restore" using /dev/stdin.
     Not supported on Windows.
   -->
-  <Target Name="RestoreInternalToolingUnencrypted"
-          DependsOnTargets="CreateInternalRestoreFeedItems;
-                            PrepareInternalToolProjectJson"
+  <Target Name="RestoreOptionalToolingUnencrypted"
+          DependsOnTargets="CreateOptionalRestoreFeedItems;
+                            PrepareOptionalToolProjectJson"
           Condition="'$(MSBuildRuntimeType)'=='core'">
     <PropertyGroup>
       <!-- Create a new restore command with no source parameters, only configfile. -->
-      <InternalRestoreCommand>"$(DnuToolPath)"</InternalRestoreCommand>
-      <InternalRestoreCommand>$(InternalRestoreCommand) restore</InternalRestoreCommand>
-      <InternalRestoreCommand Condition="'$(UseNuGetHttpCache)'!='true'">$(InternalRestoreCommand) --no-cache</InternalRestoreCommand>
-      <InternalRestoreCommand>$(InternalRestoreCommand) --packages "$(PackagesDir.TrimEnd('/\'.ToCharArray()))"</InternalRestoreCommand>
-      <InternalRestoreCommand>$(InternalRestoreCommand) --configfile $(InternalRestoreConfigPath)</InternalRestoreCommand>
+      <OptionalRestoreCommand>"$(DnuToolPath)"</OptionalRestoreCommand>
+      <OptionalRestoreCommand>$(OptionalRestoreCommand) restore</OptionalRestoreCommand>
+      <OptionalRestoreCommand Condition="'$(UseNuGetHttpCache)'!='true'">$(OptionalRestoreCommand) --no-cache</OptionalRestoreCommand>
+      <OptionalRestoreCommand>$(OptionalRestoreCommand) --packages "$(PackagesDir.TrimEnd('/\'.ToCharArray()))"</OptionalRestoreCommand>
+      <OptionalRestoreCommand>$(OptionalRestoreCommand) --configfile $(OptionalRestoreConfigPath)</OptionalRestoreCommand>
     </PropertyGroup>
 
-    <Error Text="Restoring internal tooling with in-memory credentials is not supported on Windows. Use the desktop framework for the encrypted credential flow."
+    <Error Text="Restoring optional tooling with in-memory credentials is not supported on Windows. Use the desktop framework for the encrypted credential flow."
            Condition="'$(OS)'=='Windows_NT'" />
 
-    <Error Text="Restoring internal tooling with in-memory credentials is not yet implemented. No cross-platform internal tooling exists yet." />
+    <Error Text="Restoring optional tooling with in-memory credentials is not yet implemented. No cross-platform optional tooling exists yet." />
   </Target>
 
   <!--
     Cleanup steps: try to ensure non-authenticated restore attempts don't attempt to restore
-    internal packages and reduce credential exposure to the remaining steps in the build.
+    optional packages and reduce credential exposure to the remaining steps in the build.
   -->
-  <Target Name="CleanInternalToolingRestore"
-          Condition="'$(SkipCleanInternalToolingRestore)'!='true'">
+  <Target Name="CleanOptionalToolingRestore"
+          Condition="'$(SkipCleanOptionalToolingRestore)'!='true'">
     <ItemGroup>
-      <InternalRestoreTemporaryFilePath Include="$(InternalRestoreConfigPath);
-                                                 $(InternalToolingProjectJsonPath)" />
+      <OptionalRestoreTemporaryFilePath Include="$(OptionalRestoreConfigPath);
+                                                 $(OptionalToolingProjectJsonPath)" />
     </ItemGroup>
 
-    <Delete Files="@(InternalRestoreTemporaryFilePath)" Condition="Exists('%(Identity)')" />
+    <Delete Files="@(OptionalRestoreTemporaryFilePath)" Condition="Exists('%(Identity)')" />
   </Target>
 
   <!--
-    Resolve tooling from the internal restore lockfile. Other targets can find internal tooling
-    in ResolvedInternalToolReferences.
+    Resolve tooling from the optional restore lockfile. Other targets can find optional tooling
+    in ResolvedOptionalToolReferences.
   -->
-  <Target Name="ResolveInternalTools"
-          DependsOnTargets="GetInternalToolingPaths">
+  <Target Name="ResolveOptionalTools"
+          DependsOnTargets="GetOptionalToolingPaths">
 
-    <Error Text="Internal tooling has not been restored. Use the 'RestoreInternalToolingPackages' target first."
-           Condition="!Exists('$(InternalToolingProjectLockJsonPath)')" />
+    <Error Text="Optional tooling has not been restored. Use the 'RestoreOptionalToolingPackages' target first."
+           Condition="!Exists('$(OptionalToolingProjectLockJsonPath)')" />
 
     <ItemGroup>
-      <InternalToolingTargetMoniker Include=".NETFramework,Version=v4.5" />
+      <OptionalToolingTargetMoniker Include=".NETFramework,Version=v4.5" />
     </ItemGroup>
 
-    <PrereleaseResolveNuGetPackageAssets ProjectLockFile="$(InternalToolingProjectLockJsonPath)"
-                                         TargetMonikers="@(InternalToolingTargetMoniker)">
-      <Output TaskParameter="ResolvedReferences" ItemName="ResolvedInternalToolReferences" />
+    <PrereleaseResolveNuGetPackageAssets ProjectLockFile="$(OptionalToolingProjectLockJsonPath)"
+                                         TargetMonikers="@(OptionalToolingTargetMoniker)">
+      <Output TaskParameter="ResolvedReferences" ItemName="ResolvedOptionalToolReferences" />
     </PrereleaseResolveNuGetPackageAssets>
   </Target>
 
