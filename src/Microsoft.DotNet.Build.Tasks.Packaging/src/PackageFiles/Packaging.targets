@@ -710,9 +710,15 @@
       <Output TaskParameter="PromotedDependencies" ItemName="FilePackageDependency" />
     </PromoteDependencies>
 
-    <Error Condition="'@(PackageIndex)' == '' AND '@(BaseLinePackage)' == '' AND '@(FilePackageDependency)' != '' AND '$(BaseLinePackageDependencies)' != 'false'"
+    <ApplyMetaPackages OriginalDependencies="@(FilePackageDependency)"
+                       PackageIndexes="@(PackageIndex)">
+      <Output TaskParameter="UpdatedDependencies" ItemName="_ConsolidatedDependencies" />
+    </ApplyMetaPackages>
+                       
+    
+    <Error Condition="'@(PackageIndex)' == '' AND '@(BaseLinePackage)' == '' AND '@(_ConsolidatedDependencies)' != '' AND '$(BaseLinePackageDependencies)' != 'false'"
            Text="Neither PackageIndex nor BaseLinePackage items are defined: ensure you have imported Microsoft.Private.PackageBaseLine.props from the Microsoft.Private.PackageBaseLine package" />
-    <ApplyBaseLine OriginalDependencies="@(FilePackageDependency)"
+    <ApplyBaseLine OriginalDependencies="@(_ConsolidatedDependencies)"
                    BaseLinePackages="@(BaseLinePackage)"
                    PackageIndexes="@(PackageIndex)"
                    Apply="$(BaseLinePackageDependencies)">
