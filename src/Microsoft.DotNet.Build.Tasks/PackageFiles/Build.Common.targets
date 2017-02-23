@@ -128,19 +128,19 @@
   <Import Project="$(MSBuildThisFileDirectory)packageresolve.targets" Condition="'$(ExcludePackageResolveImport)'!='true'" />
 
   <!--
-    Import the internal tooling restore and resolve targets
+    Import the optional tooling restore and resolve targets
 
       Inputs:
-        InternalToolSource - If not set, internal tools are not restored
-        InternalToolSourceUser - If not set, no authentication is used to access the feed
-        InternalToolSourcePassword - If not set, no authentication is used to access the feed
+        OptionalToolSource - If not set, optional tools are not restored
+        OptionalToolSourceUser - If not set, no authentication is used to access the feed
+        OptionalToolSourcePassword - If not set, no authentication is used to access the feed
 
       Depends on properties:
-        DnuRestoreCommand - Used to restore the internal tool packages
-        PackagesDir - Location to resolve internal tool package assets
-        ToolsDir - Location to find internal-tool-runtime project.json
+        DnuRestoreCommand - Used to restore the optional tool packages
+        PackagesDir - Location to resolve optional tool package assets
+        ToolsDir - Location to find optional-tool-runtime project.json
   -->
-  <Import Project="$(MSBuildThisFileDirectory)InternalTooling.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)OptionalTooling.targets" />
 
   <!-- 
     Import the partial facade generation targets

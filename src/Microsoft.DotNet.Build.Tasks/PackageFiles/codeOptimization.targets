@@ -12,12 +12,12 @@
   <Target Name="OptimizeWithTrainingData"
           AfterTargets="AfterBuild"
           BeforeTargets="CopyFilesToOutputDirectory"
-          DependsOnTargets="RestoreOptimizationDataPackage;ResolveInternalTools"
+          DependsOnTargets="RestoreOptimizationDataPackage;ResolveOptionalTools"
           Condition="'$(OS)'=='Windows_NT' and '$(EnableProfileGuidedOptimization)'=='true' and Exists('$(OptimizationDataDir)$(AssemblyName).pgo')">
 
-    <!-- Find IBCMerge as a resolved internal tool. -->
+    <!-- Find IBCMerge as a resolved optional tool. -->
     <PropertyGroup>
-      <IBCMergeToolPath Condition="'%(Filename)%(Extension)'=='ibcmerge.exe'">@(ResolvedInternalToolReferences)</IBCMergeToolPath>
+      <IBCMergeToolPath Condition="'%(Filename)%(Extension)'=='ibcmerge.exe'">@(ResolvedOptionalToolReferences)</IBCMergeToolPath>
     </PropertyGroup>
 
     <PropertyGroup>
