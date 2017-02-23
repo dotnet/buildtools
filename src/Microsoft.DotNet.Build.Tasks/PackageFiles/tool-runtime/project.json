@@ -21,7 +21,10 @@
         "NETStandard.Library": {
           "version": "1.6.1",
           "exclude": "runtime"
-        }
+        },
+        "Microsoft.NETCore.Platforms": "1.1.0",
+        "Microsoft.NETCore.Runtime.CoreCLR": "1.1.0",
+        "Microsoft.NETCore.ILAsm": "2.0.0-beta-25027-03",
       },
       "imports": [
         "dnxcore50",
