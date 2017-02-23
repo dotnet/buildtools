@@ -2,7 +2,7 @@
   "frameworks": {
     "net45": {
       "dependencies": {
-        "Microsoft.DotNet.Internal.IBCMerge": "4.6.0-alpha-00001"
+        "Microsoft.DotNet.IBCMerge": "4.6.0-alpha-00001"
       }
     }
   },
