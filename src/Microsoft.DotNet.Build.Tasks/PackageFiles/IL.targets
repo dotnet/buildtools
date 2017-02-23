@@ -4,16 +4,24 @@
   <!-- Required by Microsoft.Common.targets -->
   <Target Name="CreateManifestResourceNames" Condition="'@(EmbeddedResource)' != ''" />
 
-  <PropertyGroup>
-    <IlasmToolPath Condition="'$(IlasmToolPath)' == ''">$(ToolsDir)ilasm</IlasmToolPath>
-  </PropertyGroup>
+  <Target Name="GetIlasmPath"
+          Condition="'$(OS)' == 'Windows_NT' And '$(IlasmToolPath)' == ''">
+    <GetFrameworkPath>
+      <Output TaskParameter="Path" PropertyName="IlasmPath" />
+    </GetFrameworkPath>
+    <PropertyGroup>
+      <IlasmPath>$(IlasmPath)\</IlasmPath>
+      <IlasmToolPath>$(IlasmPath)ilasm</IlasmToolPath>
+    </PropertyGroup>
+  </Target>
 
   <Target Name="CoreCompile"
           Inputs="$(MSBuildAllProjects);
                   @(Compile)"
           Outputs="@(IntermediateAssembly);"
           Returns=""
-          DependsOnTargets="$(CoreCompileDependsOn)">
+          DependsOnTargets="GetIlasmPath;$(CoreCompileDependsOn)">
+    <Error Condition="'$(IlasmToolPath)' == ''" Text="IlasmToolPath must be set in order to build ilproj's outside of Windows." />
     <PropertyGroup>
       <_OutputTypeArgument Condition="'$(OutputType)' == 'Library'">-DLL</_OutputTypeArgument>
       <_OutputTypeArgument Condition="'$(OutputType)' == 'Exe'">-EXE</_OutputTypeArgument>
