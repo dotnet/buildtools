@@ -23,7 +23,7 @@
     <ValidPinvokeMappings Condition="('$(TargetGroup)'=='netcore50' or '$(TargetGroup)'=='netcore50aot' or '$(SupportsUWP)'=='true') and '$(UseWin32Apis)'=='true'">$(MSBuildThisFileDirectory)PinvokeAnalyzer_Win32UWPApis.txt</ValidPinvokeMappings>
   </PropertyGroup>
 
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(EnableFxCopAnalyzers)' == ''">
     <!-- %24 = $ -->
     <EnableFxCopAnalyzers Condition="$([System.Text.RegularExpressions.Regex]::IsMatch($(MSBuildProjectDirectory), 'src%24'))">true</EnableFxCopAnalyzers>
     <EnableFxCopAnalyzers Condition="'$(EnableFxCopAnalyzers)' != 'true'">false</EnableFxCopAnalyzers>
