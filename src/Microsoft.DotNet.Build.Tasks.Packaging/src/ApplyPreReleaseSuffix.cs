@@ -83,8 +83,16 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     continue;
                 }
 
+                string packageVersionString = originalPackage.GetMetadata("Version");
+
+                if (packageVersionString.Contains('-'))
+                {
+                    updatedPackages.Add(originalPackage);
+                    continue;
+                }
+
                 TaskItem updatedPackage = new TaskItem(originalPackage);
-                Version packageVersion = ParseAs3PartVersion(originalPackage.GetMetadata("Version"));
+                Version packageVersion = ParseAs3PartVersion(packageVersionString);
 
                 if (!IsStable(packageId, packageVersion))
                 {
