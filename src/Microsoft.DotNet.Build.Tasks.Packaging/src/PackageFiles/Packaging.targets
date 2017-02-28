@@ -766,8 +766,7 @@
                                  Dependencies="@(RuntimeDependency);@(Dependency);@(_indirectRuntimeDependencies)"
                                  PackageId="$(Id)"
                                  RuntimeJsonTemplate="$(RuntimeFileSource)"
-                                 RuntimeJson="$(RuntimeFilePath)"
-                                 EnsureBase="$(IsLineupPackage)"/>
+                                 RuntimeJson="$(RuntimeFilePath)"/>
   </Target>
 
   <Target Name="EnsureEmptyPackage"
