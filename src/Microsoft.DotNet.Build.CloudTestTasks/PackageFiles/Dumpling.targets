@@ -3,16 +3,23 @@
     <Content Include="$(MSBuildThisFileDirectory)Dumpling.sh">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="$(MSBuildThisFileDirectory)DumplingHelper.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <!-- Setup Dumpling service to collect crash dumps -->
   <Target Name="SetupDumpling"
-          BeforeTargets="GenerateTestExecutionScripts"
-          Condition="'$(TargetOS)'!='Windows_NT'">
-    <ItemGroup>
+          BeforeTargets="GenerateTestExecutionScripts">
+    <ItemGroup Condition="'$(TargetOS)'!='Windows_NT'">
       <TestCommandLines Include="source Dumpling.sh" />
-    </ItemGroup>
-    <ItemGroup>
       <PostExecutionTestCommandLines Include="CollectDumps $%3f $(MSBuildProjectName)" />
+    </ItemGroup>
+    <Error Condition="'$(CrashDumpFolder)' == ''" Text="CrashDumpFolder must be set to use Dumpling on Windows." />
+    <ItemGroup Condition="'$(TargetOS)'=='Windows_NT'">
+      <TestCommandLines Include="python DumplingHelper.py install_dumpling" />
+      <!-- This gets a "before execution" timestamp. It is used in DumplingHelper.py to determine which crash dump files to consider uploading. -->
+      <TestCommandLines Include="for /f &quot;delims=&quot; %%a in ('python DumplingHelper.py get_timestamp') do @set __TIMESTAMP=%%a" />
+      <PostExecutionTestCommandLines Include="python DumplingHelper.py collect_dump %ERRORLEVEL% $(CrashDumpFolder) %__TIMESTAMP% $(MSBuildProjectName)" />
     </ItemGroup>
   </Target>
 </Project>
