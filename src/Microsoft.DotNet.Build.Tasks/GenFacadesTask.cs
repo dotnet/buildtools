@@ -98,9 +98,12 @@ namespace Microsoft.DotNet.Build.Tasks
             }
             catch (Exception e)
             {
-                Trace.Listeners.Remove(logger);
                 Log.LogErrorFromException(e, showStackTrace: false);
                 return false;
+            }
+            finally
+            {
+                Trace.Listeners.Remove(logger);
             }
         }
     }
