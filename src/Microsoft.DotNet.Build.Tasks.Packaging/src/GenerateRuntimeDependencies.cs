@@ -4,12 +4,10 @@
 
 using Microsoft.Build.Framework;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using NuGet.RuntimeModel;
 using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -242,7 +240,10 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 {
                     innerWriter.WriteNameValue(name, value.Substring(1, value.Length - 4));
                 }
-                innerWriter.WriteNameValue(name, value);
+                else
+                {
+                    innerWriter.WriteNameValue(name, value);
+                }
             }
 
             public void WriteNameValue(string name, int value)
