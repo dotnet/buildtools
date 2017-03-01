@@ -45,6 +45,16 @@ namespace Xunit.NetCore.Extensions
                 yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.NonNetcoreapp1_0Test);
             if (platform.HasFlag(TargetFrameworkMonikers.Netcoreapp1_1))
                 yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.NonNetcoreapp1_1Test);
+            if (platform.HasFlag(TargetFrameworkMonikers.NetFramework))
+                yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.NonNetfxTest);
+            if (platform.HasFlag(TargetFrameworkMonikers.Netcoreapp))
+                yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.NonNetcoreappTest);
+            if (platform.HasFlag(TargetFrameworkMonikers.NetcoreUap))
+                yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.NonNetcoreUapTest);
+            if (platform.HasFlag(TargetFrameworkMonikers.NetcoreUapAot))
+                yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.NonNetcoreUapAotTest);
+            if (platform.HasFlag(TargetFrameworkMonikers.NetcoreCoreRT))
+                yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.NonNetcoreCoreRTTest);
         }
     }
 }
