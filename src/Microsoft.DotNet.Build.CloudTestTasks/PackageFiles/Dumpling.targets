@@ -14,7 +14,7 @@
       <TestCommandLines Include="source Dumpling.sh" />
       <PostExecutionTestCommandLines Include="CollectDumps $%3f $(MSBuildProjectName)" />
     </ItemGroup>
-    <Error Condition="'$(CrashDumpFolder)' == ''" Text="CrashDumpFolder must be set to use Dumpling on Windows." />
+    <Error Condition="'$(TargetOS)' == 'Windows_NT' And '$(CrashDumpFolder)' == ''" Text="CrashDumpFolder must be set to use Dumpling on Windows." />
     <ItemGroup Condition="'$(TargetOS)'=='Windows_NT'">
       <TestCommandLines Include="python DumplingHelper.py install_dumpling" />
       <!-- This gets a "before execution" timestamp. It is used in DumplingHelper.py to determine which crash dump files to consider uploading. -->
