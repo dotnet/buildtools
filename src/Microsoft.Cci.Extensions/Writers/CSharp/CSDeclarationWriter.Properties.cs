@@ -106,6 +106,7 @@ namespace Microsoft.Cci.Writers.CSharp
         {
             WriteSpace();
             WriteAttributes(accessor.Attributes, writeInline: true);
+            WriteAttributes(accessor.SecurityAttributes, writeInline: true);
             // If the accessor is an internal call (or a PInvoke) we should put those attributes here as well
 
             WriteMethodPseudoCustomAttributes(accessor);
