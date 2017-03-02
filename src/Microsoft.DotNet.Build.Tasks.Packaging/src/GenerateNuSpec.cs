@@ -197,7 +197,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     select new ManifestFile()
                     {
                         Source = f.GetMetadata(Metadata.FileSource),
-                        Target = f.GetMetadata(Metadata.FileTarget),
+                        Target = f.GetMetadata(Metadata.FileTarget).Replace('/', Path.DirectorySeparatorChar),
                         Exclude = f.GetMetadata(Metadata.FileExclude)
                     }).OrderBy(f => f.Target, StringComparer.OrdinalIgnoreCase).ToList();
         }
