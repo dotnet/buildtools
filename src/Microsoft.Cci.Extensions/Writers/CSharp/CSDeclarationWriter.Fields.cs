@@ -20,6 +20,11 @@ namespace Microsoft.Cci.Writers.CSharp
                 WriteFakeAttribute("System.Runtime.InteropServices.FieldOffsetAttribute", field.Offset.ToString());
             }
 
+            if (field.IsNotSerialized)
+            {
+                WriteFakeAttribute("System.NonSerializedAttribute");
+            }
+
             if (!field.ContainingTypeDefinition.IsEnum)
             {
                 WriteVisibility(field.Visibility);
