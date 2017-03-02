@@ -197,7 +197,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     select new ManifestFile()
                     {
                         Source = f.GetMetadata(Metadata.FileSource),
-                        Target = f.GetMetadata(Metadata.FileTarget).Replace('/', Path.DirectorySeparatorChar),
+                        // Pattern matching in PathResolver requires that we standardize to OS specific directory separator characters
+                        Target = f.GetMetadata(Metadata.FileTarget).Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar),
                         Exclude = f.GetMetadata(Metadata.FileExclude)
                     }).OrderBy(f => f.Target, StringComparer.OrdinalIgnoreCase).ToList();
         }
