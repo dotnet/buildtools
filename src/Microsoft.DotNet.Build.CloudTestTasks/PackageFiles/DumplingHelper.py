@@ -13,7 +13,7 @@ def install_dumpling():
   if (not os.path.isfile(dumplingPath)):
     url = "https://dumpling.azurewebsites.net/api/client/dumpling.py"
     urllib.urlretrieve(url, "dumpling.py")
-    execfile("dumpling.py install --update")
+    subprocess.call([sys.executable,"dumpling.py", "install", "--update"])
   subprocess.call([sys.executable, dumplingPath, "install", "--full"])
 
 def find_latest_dump(folder, startTimeStr):
