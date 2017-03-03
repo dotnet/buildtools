@@ -15,12 +15,12 @@
 
   <PropertyGroup Condition="'$(TargetOS)'=='Linux'">
     <PerfTestCommandDotnetExecutable>$RUNTIME_PATH/dotnet</PerfTestCommandDotnetExecutable>
-    <PerfTestCommand>$(PerfTestCommandDotnetExecutable) PerfRunner.exe</PerfTestCommand>
+    <PerfTestCommand>$(PerfTestCommandDotnetExecutable) PerfRunner.exe  --perf:runid Perf</PerfTestCommand>
     <BenchviewDir>$(ToolsDir)Microsoft.BenchView.JSONFormat/tools</BenchviewDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetOS)'=='Windows_NT'">
     <PerfTestCommandDotnetExecutable>PerfRunner.exe</PerfTestCommandDotnetExecutable>
-    <PerfTestCommand>%RUNTIME_PATH%\dotnet.exe $(PerfTestCommandDotnetExecutable)</PerfTestCommand>
+    <PerfTestCommand>%RUNTIME_PATH%\dotnet.exe $(PerfTestCommandDotnetExecutable) --perf:runid Perf</PerfTestCommand>
     <BenchviewDir>$(ToolsDir)Microsoft.BenchView.JSONFormat\tools</BenchviewDir>
   </PropertyGroup>
   <ItemGroup>
@@ -28,14 +28,14 @@
     <!-- We use the 20* syntax as the XML file created starts with the year and 20xx will be good for a while -->
   </ItemGroup>
   <ItemGroup Condition="'$(TargetOS)'=='Windows_NT'">
-    <PerfTestCommandLines Include="if exist $(AssemblyName).xml (" />
-    <PerfTestCommandLines Include="py $(BenchviewDir)\measurement.py xunit $(AssemblyName).xml --better desc --drop-first-value --append -o $(ProjectDir)measurement.json" />
+    <PerfTestCommandLines Include="if exist Perf-$(AssemblyName).xml (" />
+    <PerfTestCommandLines Include="py $(BenchviewDir)\measurement.py xunit Perf-$(AssemblyName).xml --better desc --drop-first-value --append -o $(ProjectDir)measurement.json" />
     <PerfTestCommandLines Include=")" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetOS)'=='Linux'">
-    <PerfTestCommandLines Include="if [ -a $(AssemblyName).xml ]" />
+    <PerfTestCommandLines Include="if [ -a Perf-$(AssemblyName).xml ]" />
     <PerfTestCommandLines Include="then" />
-    <PerfTestCommandLines Include="python3.5 $(BenchviewDir)\measurement.py xunit $(AssemblyName).xml --better desc --drop-first-value --append -o $(ProjectDir)measurement.json" />
+    <PerfTestCommandLines Include="python3.5 $(BenchviewDir)\measurement.py xunit Perf-$(AssemblyName).xml --better desc --drop-first-value --append -o $(ProjectDir)measurement.json" />
     <PerfTestCommandLines Include="fi" />
   </ItemGroup>
   <!-- Optimizations to configure Xunit for performance -->
