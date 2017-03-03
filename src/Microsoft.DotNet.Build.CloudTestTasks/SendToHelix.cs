@@ -58,46 +58,45 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             {
                 const int MaxAttempts = 15;
                 // add a bit of randomness to the retry delay
-                var rng = new Random();
+                var randomGenerator = new Random();
                 int retryCount = MaxAttempts;
 
                 while (true)
                 {
-                    HttpResponseMessage response = new HttpResponseMessage();
-
                     try
                     {
-                        using (Stream stream = File.OpenRead(EventDataPath))
+                        using (Stream eventDataStream = File.OpenRead(EventDataPath))
                         {
-                            HttpContent contentStream = new StreamContent(stream);
+                            HttpContent contentStream = new StreamContent(eventDataStream);
                             contentStream.Headers.Add("Content-Type", "application/json");
-                            response = await client.PostAsync(apiUrl, contentStream);
-                        }
-
-                        if (response.IsSuccessStatusCode)
-                        {
-                            JObject responseObject;
-                            using (Stream stream = await response.Content.ReadAsStreamAsync())
-                            using (StreamReader streamReader = new StreamReader(stream))
-                            using (JsonReader jsonReader = new JsonTextReader(streamReader))
+                            using (HttpResponseMessage response = await client.PostAsync(apiUrl, contentStream))
                             {
-                                responseObject = JObject.Load(jsonReader);
-                            }
+                                if (response.IsSuccessStatusCode)
+                                {
+                                    JObject responseObject;
+                                    using (Stream stream = await response.Content.ReadAsStreamAsync())
+                                    using (StreamReader streamReader = new StreamReader(stream))
+                                    using (JsonReader jsonReader = new JsonTextReader(streamReader))
+                                    {
+                                        responseObject = JObject.Load(jsonReader);
+                                    }
 
-                            JobId = (string)responseObject["Name"];
-                            if (String.IsNullOrEmpty(JobId))
-                            {
-                                Log.LogError("Publish to '{0}' did not return a job ID", ApiEndpoint);
-                                return false;
-                            }
+                                    JobId = (string)responseObject["Name"];
+                                    if (String.IsNullOrEmpty(JobId))
+                                    {
+                                        Log.LogError("Publish to '{0}' did not return a job ID", ApiEndpoint);
+                                        return false;
+                                    }
 
-                            Log.LogMessage(MessageImportance.High, "Started Helix job: CorrelationId = {0}", JobId);
-                            return true;
-                        }
-                        else
-                        {
-                            string responseContent = await response.Content.ReadAsStringAsync();
-                            Log.LogWarning($"Helix Api Response: StatusCode {response.StatusCode} {responseContent}");
+                                    Log.LogMessage(MessageImportance.High, "Started Helix job: CorrelationId = {0}", JobId);
+                                    return true;
+                                }
+                                else
+                                {
+                                    string responseContent = await response.Content.ReadAsStringAsync();
+                                    Log.LogWarning($"Helix Api Response: StatusCode {response.StatusCode} {responseContent}");
+                                }
+                            }
                         }
                     }
                     // still allow other types of exceptions to tear down the task for now
@@ -109,12 +108,12 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
                     if (retryCount-- <= 0)
                     {
-                        Log.LogError($"Unable to publish to '{ApiEndpoint}' after {MaxAttempts} retries. Received status code: {response.StatusCode} {response.ReasonPhrase}");
+                        Log.LogError($"Unable to publish to '{ApiEndpoint}' after {MaxAttempts} retries.");
                         return false;
                     }
 
                     Log.LogWarning("Failed to publish to '{0}', {1} retries remaining", ApiEndpoint, retryCount);
-                    int delay = (MaxAttempts - retryCount) * rng.Next(1, 7);
+                    int delay = (MaxAttempts - retryCount) * randomGenerator.Next(1, 7);
                     await System.Threading.Tasks.Task.Delay(delay * 1000);
                 }
             }
