@@ -1,0 +1,311 @@
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <UsingTask TaskName="CreateAzureContainer"             AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="RemoveItemMetadata"               AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="SendJobsToHelix"                  AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="UploadToAzure"                    AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="ValidateWorkItems"                AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="WriteItemsToJson"                 AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="WriteTestBuildStatsJson"          AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="ZipFileCreateFromDirectory"       AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="ZipFileCreateFromDependencyLists" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+
+  <!-- See Documentation\Samples\CloudTest.Helix.targets.sampleproject for a sample project.
+  
+       Variables that CloudTest.Helix.Targets cares about:
+       **********************************************************************************************************************************
+       Required Properties:
+       **********************************************************************************************************************************
+       HelixApiAccessKey            - GitHub API Access Key for sending jobs to Helix.  Get from https://helix.dot.net/UserProfile/Index/
+       HelixJobType                 - Job Type formatting string, used for sorting and display of jobs.
+       HelixSource                  - Job Source formatting string, used for sorting and display of jobs.
+       TargetQueues                 - Queue(s) to send Jobs to. (TODO: Need discoverability for users)
+       BuildMoniker                 - Identifying name for build when sending to Helix.  Used for labelling runs.
+       CloudDropConnectionString    - Azure Storage account connection string used for payloads.
+       CloudResultsConnectionString - Azure Storage account connection string used for results.
+       ArchivesRoot                 - Relative path for work item payloads to use.  Blob Uris will be made relative to this.
+       
+       **********************************************************************************************************************************
+       Optional Properties:
+       **********************************************************************************************************************************
+       TestListFilename  - File name to use for test list sent to Helix.                      Default: TestList.json
+       OverwriteOnUpload - Whether to overwrite blobs if they already exist on upload.        Default: False
+       ContainerName     - Container name for uploaded files.                                 Default: build-<Random GUID>. 
+       IsOfficial        - Boolean flag for display on Mission Control.                       Default: False:
+       HelixApiEndpoint  - Endpoint to send jobs to.                                          Default: https://helix.dot.net/api/2016-06-28/jobs
+       CloudResultsReadTokenValidDays  - Days that result URLs produced will be readble       Default: 30
+       CloudResultsWriteTokenValidDays - Days that result URLs produced will be writeable     Default: 4
+       SupplementalPayloadDir - Temp (deletable) dir for assembling supplemental payloads     Default: Random folder in %TEMP%
+       HelixLogFolder    - Folder for storing JSON files describing job start and other info  Default: <Blank>
+       
+       **********************************************************************************************************************************
+       Required ITaskItems:
+       **********************************************************************************************************************************
+       HelixWorkItem         - Zip files to be uploaded as payloads. 
+       
+       **********************************************************************************************************************************
+       Optional ITaskItems:
+       **********************************************************************************************************************************
+       HelixCorrelationPayloadFile - Zip files to be uploaded as correlation payloads (shared by all work items, cached where possible)       
+    -->
+
+  <!-- Main entry point -->
+  <Target Name="HelixCloudBuild"
+          DependsOnTargets="VerifyInputs;PreCloudBuild;ValidateWorkItems;UploadContent;CreateTestListJson" />
+
+  <PropertyGroup>
+    <OverwriteOnUpload Condition="'$(OverwriteOnUpload)' == ''">false</OverwriteOnUpload>
+    <ContainerName Condition="'$(ContainerName)'== ''">build-$([System.Guid]::NewGuid().ToString("N"))</ContainerName>
+    <ContainerName>$(ContainerName.ToLower())</ContainerName>
+    <TestListFilename Condition="'$(TestListFilename)'==''">TestList.json</TestListFilename>
+    <SupplementalPayloadDir Condition="'$(SupplementalPayloadDir)' == ''">$([System.IO.Path]::GetTempPath())$([System.IO.Path]::GetRandomFileName())/SupplementalPayload/</SupplementalPayloadDir>
+    <SupplementalPayloadFilename>SupplementalPayload.zip</SupplementalPayloadFilename>
+    <SupplementalPayloadFile>$(ArchivesRoot)$(SupplementalPayloadFilename)</SupplementalPayloadFile>
+    <IsOfficial Condition="'$(IsOfficial)'!=''">false</IsOfficial>
+    <HelixApiEndpoint Condition="'$(HelixApiEndpoint)'==''">https://helix.dot.net/api/2016-06-28/jobs</HelixApiEndpoint>
+  </PropertyGroup>
+
+  <Target Name="VerifyInputs">
+    <!-- Verify all required properties have been specified.  Update the comment above if you update this list! -->
+    <Error Condition="'$(ArchivesRoot)' == ''"                                         Text="Missing required property ArchivesRoot." />
+    <Error Condition="'$(HelixApiAccessKey)' == ''"                                    Text="Missing required property HelixApiAccessKey." />
+    <Error Condition="'$(HelixJobType)' == ''"                                         Text="Missing required property HelixJobType." />
+    <Error Condition="'$(HelixSource)' == ''"                                          Text="Missing required property HelixSource." />
+    <Error Condition="'$(TargetQueues)' == ''"                                         Text="Missing required property TargetQueues." />
+    <Error Condition="'$(BuildMoniker)' == ''"                                         Text="Missing required property BuildMoniker." />
+    <Error Condition="'$(CloudDropConnectionString)' == ''"                            Text="Missing required property CloudDropConnectionString." />
+    <Error Condition="'$(CloudResultsConnectionString)' == ''"                         Text="Missing required property CloudResultsConnectionString." />
+    <Error Condition="'$(SkipSendToHelix)' != 'true' and '$(HelixApiAccessKey)' == ''" Text="HelixApiAccessKey must be set to start Helix jobs" />
+    <Error Condition="'$(HelixJobProperties)' == ''"                                   Text="HelixJobProperties must be set to start Helix jobs" />
+  </Target>
+
+  <!-- Provided as an extensibility point for targets to run before the real work begins -->
+  <Target Name="PreCloudBuild">
+
+    <!-- Copy runner scripts so they can be uploaded as supplemental payload -->
+    <ItemGroup>
+      <RunnerScripts Include="$(ToolsDir)RunnerScripts/**/*.py" />
+      <RunnerScripts Include="$(ToolsDir)RunnerScripts/**/*.sh" />
+      <RunnerScripts Include="$(ToolsDir)RunnerScripts/**/*.txt" />
+    </ItemGroup>
+
+    <!-- Split up Target Queues list -->
+    <ItemGroup>
+      <TargetQueue Include="$(TargetQueues)" />
+    </ItemGroup>
+    <Message Text="Will Enqueue to @(TargetQueue->Count()) Queue(s) : @(TargetQueue)" />
+
+    <!-- Compress the supplemental payload directory for upload -->
+    <MakeDir Directories="$(SupplementalPayloadDir)"/>
+    <Copy SourceFiles="@(RunnerScripts)"
+          DestinationFiles="@(RunnerScripts->'$(SupplementalPayloadDir)RunnerScripts/%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+    <ZipFileCreateFromDirectory
+        SourceDirectory="$(SupplementalPayloadDir)"
+        DestinationArchive="$(SupplementalPayloadFile)"
+        OverwriteDestination="true" />
+    <RemoveDir Directories="$(SupplementalPayloadDir)"/>
+    <ItemGroup>
+      <SupplementalPayload Include="$(SupplementalPayloadFile)">
+        <RelativeBlobPath>$(SupplementalPayloadFilename)</RelativeBlobPath>
+      </SupplementalPayload>
+    </ItemGroup>
+  </Target>
+
+  <!-- Make sure the work items included contain all the required fields, calculate relative blob paths -->
+  <Target Name="ValidateWorkItems">
+    <ValidateWorkItems WorkItems="@(HelixWorkItem)" WorkItemArchiveRoot="$(ArchivesRoot)">
+      <Output TaskParameter="ProcessedWorkItems" ItemName="HelixProcessedWorkItem"/>
+    </ValidateWorkItems>
+  </Target>
+
+  <!-- Create Azure containers and file shares -->
+  <Target Name="CreateAzureStorage">
+    <CreateAzureContainer
+      ConnectionString="$(CloudDropConnectionString)"
+      ContainerName="$(ContainerName)"
+      ReadOnlyTokenDaysValid="30">
+      <Output TaskParameter="StorageUri" PropertyName="DropUri" />
+      <Output TaskParameter="ReadOnlyToken" PropertyName="DropUriReadOnlyToken" />
+    </CreateAzureContainer>
+
+    <PropertyGroup>
+      <CloudResultsReadTokenValidDays  Condition="'$(CloudResultsReadTokenValidDays)' == ''">30</CloudResultsReadTokenValidDays>
+      <CloudResultsWriteTokenValidDays Condition="'$(CloudResultsWriteTokenValidDays)' == ''">4</CloudResultsWriteTokenValidDays>
+    </PropertyGroup>
+
+    <CreateAzureContainer
+      ConnectionString="$(CloudResultsConnectionString)"
+      ContainerName="$(ContainerName)"
+      ReadOnlyTokenDaysValid ="$(CloudResultsReadTokenValidDays)"
+      WriteOnlyTokenDaysValid="$(CloudResultsWriteTokenValidDays)">
+
+      <Output TaskParameter="StorageUri"     PropertyName="ResultsUri" />
+      <Output TaskParameter="ReadOnlyToken"  PropertyName="ResultsReadOnlyToken" />
+      <Output TaskParameter="WriteOnlyToken" PropertyName="ResultsWriteOnlyToken" />
+    </CreateAzureContainer>
+  </Target>
+
+  <!-- Upload content to Azure (Everything except test list) -->
+  <Target Name="UploadContent" DependsOnTargets="CreateAzureStorage">
+    <ItemGroup>
+      <LocalFileForUpload Include="@(HelixProcessedWorkItem->Metadata('PayloadFile'))">
+        <RelativeBlobPath>%(RelativeBlobPath)</RelativeBlobPath>
+      </LocalFileForUpload>
+      <!-- For now assume these all go in the root of the container -->
+      <LocalPayloadFileForUpload Include="@(HelixCorrelationPayloadFile)">
+        <RelativeBlobPath>%(FileName)%(Extension)</RelativeBlobPath>
+      </LocalPayloadFileForUpload>
+    </ItemGroup>
+
+    <!-- Debug output of work items, and a warning if there are none. -->
+    <Message Text="Files for upload :: @(LocalFileForUpload)" Importance="Low" />
+
+    <!-- Verify the test archives were created -->
+    <Warning Condition="'@(LocalFileForUpload->Count())' == '0'" Text="Didn't find any archives in supplied HelixWorkItem(s)." />
+
+    <!-- Work Item payloads -->
+    <UploadToAzure
+      Condition="'@(LocalFileForUpload->Count())' != '0'"
+      ConnectionString="$(CloudDropConnectionString)"
+      ContainerName="$(ContainerName)"
+      Items="@(LocalFileForUpload->Distinct())"
+      Overwrite="$(OverwriteOnUpload)" />
+
+    <!-- Correlation payload(s) -->
+    <UploadToAzure
+      Condition="'@(LocalPayloadFileForUpload->Count())' != '0'"
+      ConnectionString="$(CloudDropConnectionString)"
+      ContainerName="$(ContainerName)"
+      Items="@(LocalPayloadFileForUpload->Distinct())"
+      Overwrite="$(OverwriteOnUpload)" />
+
+    <!-- Supplemental payload.  TODO: This could be combined with Correlation Payload items, there's not much(any?) difference -->
+    <UploadToAzure
+      ConnectionString="$(CloudDropConnectionString)"
+      ContainerName="$(ContainerName)"
+      Items="@(SupplementalPayload)"
+      Overwrite="$(OverwriteOnUpload)"
+      Condition="'@(SupplementalPayload)' != ''" />
+
+  </Target>
+
+  <Target Name="CreateTestListJson">
+    <!-- We always bring the supplemental payload folder.  
+         This contains whatever's in src\Microsoft.DotNet.Build.CloudTestTasks\RunnerScripts,
+         but can also contain various other stuff.  
+         -->
+    <ItemGroup>
+      <CorrelationPayloadUri Include="@(SupplementalPayload->'$(DropUri)%(RelativeBlobPath)$(DropUriReadOnlyToken)')" />
+      <CorrelationPayloadUri Include="@(LocalPayloadFileForUpload->'$(DropUri)%(RelativeBlobPath)$(DropUriReadOnlyToken)')" />
+    </ItemGroup>
+    <PropertyGroup>
+      <!-- Flatten it into a property as msbuild chokes on @(CorrelationPayloadUri) in CorrelationPayloadUris -->
+      <CorrelationPayloadUris>@(CorrelationPayloadUri)</CorrelationPayloadUris>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <HelixProcessedWorkItem>
+        <Command>%(Command)</Command>
+        <CorrelationPayloadUris>[$(CorrelationPayloadUris)]</CorrelationPayloadUris>
+        <PayloadUri>$(DropUri)%(RelativeBlobPath)$(DropUriReadOnlyToken)</PayloadUri>
+        <WorkItemId>%(WorkItemId)</WorkItemId>
+        <TimeoutInSeconds>%(TimeoutInSeconds)</TimeoutInSeconds>
+      </HelixProcessedWorkItem>
+    </ItemGroup>
+
+    <!-- I'd love a built-in way to do this, but I'm compromising here since this lets us use 
+         arbitrary extra metadata in the future to compose work items, then strip out extra stuff used along the way.
+         It lets us use a single item to bring along everything we might possibly need in the future -->
+    <RemoveItemMetadata Items="@(HelixProcessedWorkItem)" FieldsToRemove="RelativeBlobPath;PayloadFile">
+      <Output TaskParameter="ProcessedItems" ItemName="HelixProcessedWorkItemForList"/>
+    </RemoveItemMetadata>
+
+    <WriteItemsToJson JsonFileName="$(TestListFilename)" Items="@(HelixProcessedWorkItemForList)" />
+    <ItemGroup>
+      <HelixWorkItemList Include="$(TestListFilename)">
+        <RelativeBlobPath>$(TestListFilename)</RelativeBlobPath>
+        <BuildCompleteJson>$(HelixLogFolder)BuildComplete.json</BuildCompleteJson>
+        <OfficialBuildJson>$(HelixLogFolder)OfficialBuild.json</OfficialBuildJson>
+        <HelixJobUploadCompletePath>$(HelixLogFolder)helixjobuploadcomplete.sem</HelixJobUploadCompletePath>
+      </HelixWorkItemList>
+    </ItemGroup>
+
+    <UploadToAzure
+     ConnectionString="$(CloudDropConnectionString)"
+     ContainerName="$(ContainerName)"
+     Items="@(HelixWorkItemList)"
+     Overwrite="$(OverwriteOnUpload)" />
+  </Target>
+
+  <!-- Write event hub notification JSON files -->
+  <Target Name="WriteCompletionEvent"
+          AfterTargets="CreateTestListJson"
+          Inputs="%(HelixWorkItemList.Identity)"
+          Outputs="%(HelixWorkItemList.BuildCompleteJson)">
+
+    <CreateItem Include="@(TargetQueue)" AdditionalMetadata="ResultsUri=$(ResultsUri)%(TargetQueue.Identity)/;QueueId=%(TargetQueue.Identity)">
+      <Output TaskParameter="Include" ItemName="BuildCompleteTemplateV2" />
+    </CreateItem>
+
+    <ItemGroup>
+      <!-- V1 is long since deprecated, and not supported here.  
+           Keeping the name for clarity.                       -->
+      <BuildCompleteTemplateV2>
+        <DropContainerSAS>$(DropUriReadOnlyToken)</DropContainerSAS>
+        <ListUri>$(DropUri)%(HelixWorkItemList.Filename)%(HelixWorkItemList.Extension)$(DropUriReadOnlyToken)</ListUri>
+        <ResultsUriRSAS>$(ResultsReadOnlyToken)</ResultsUriRSAS>
+        <ResultsUriWSAS>$(ResultsWriteOnlyToken)</ResultsUriWSAS>
+        <Build>$(BuildMoniker)</Build>
+        <Type>$(HelixJobType)</Type>
+        <Source>$(HelixSource)</Source>
+        <Properties>$(HelixJobProperties)</Properties>
+      </BuildCompleteTemplateV2>
+      <BuildComplete Include="@(BuildCompleteTemplateV2)"/>
+    </ItemGroup>
+
+    <WriteItemsToJson JsonFileName="%(HelixWorkItemList.BuildCompleteJson)" Items="@(BuildComplete)" />
+    <Message Text="Wrote build complete JSON for @(BuildComplete->Count()) Queues." />
+
+  </Target>
+
+  <!-- Send completion event to Helix API -->
+  <Target Name="SendCompletionEvent"
+          AfterTargets="WriteCompletionEvent"
+          Inputs="%(HelixWorkItemList.BuildCompleteJson)"
+          Outputs="%(HelixWorkItemList.HelixJobUploadCompletePath)"
+          Condition="'$(SkipSendToHelix)' != 'true'">
+    <Error Condition=" '$(HelixApiAccessKey)' == '' " Text="Either provide a value for HelixApiAccessKey or set SkipSendToHelix to 'true'" ContinueOnError="false" />
+    <SendJobsToHelix
+      AccessToken="$(HelixApiAccessKey)"
+      ApiEndpoint="$(HelixApiEndpoint)"
+      EventDataPath="%(HelixWorkItemList.BuildCompleteJson)">
+      <Output TaskParameter="JobIds" ItemName="GeneratedCorrelationId" />
+    </SendJobsToHelix>
+
+    <!-- Upload the Correlation Ids generated to the test drop container for tracking purposes-->
+    <PropertyGroup>
+      <CorrelationFileName>Helix-correlation-infos.txt</CorrelationFileName>
+      <GeneratedCorrelationIds>@(GeneratedCorrelationId)</GeneratedCorrelationIds>
+    </PropertyGroup>
+    <WriteLinesToFile File="%(HelixWorkItemList.HelixJobUploadCompletePath)" Overwrite="true" Lines="Correlation Ids : $(GeneratedCorrelationIds) "/>
+    <ItemGroup>
+      <CorrelationFile Include="$(ArchivesRoot)$(CorrelationFileName)">
+        <RelativeBlobPath>Tracking/$(CorrelationFileName)</RelativeBlobPath>
+      </CorrelationFile>
+    </ItemGroup>
+
+    <WriteLinesToFile
+        File="@(CorrelationFile)"
+        Lines="@(GeneratedCorrelationId)"
+        Overwrite="true" />
+
+    <UploadToAzure
+        ConnectionString="$(CloudDropConnectionString)"
+        ContainerName="$(ContainerName)"
+        Items="@(CorrelationFile)"
+        Overwrite="true" />
+
+  </Target>
+
+</Project>

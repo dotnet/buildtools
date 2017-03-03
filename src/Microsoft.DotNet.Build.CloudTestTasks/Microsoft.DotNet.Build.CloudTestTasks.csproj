@@ -20,6 +20,8 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="SendJobsToHelix.cs" />
+    <Compile Include="ValidateWorkItems.cs" />
     <Compile Include="AzureConnectionStringBuildTask.cs" />
     <Compile Include="AzureHelper.cs" />
     <Compile Include="CreateAzureContainer.cs" />
@@ -31,6 +33,7 @@
     <Compile Include="UploadClient.cs" />
     <Compile Include="UploadToAzure.cs" />
     <Compile Include="WriteBuildStatsJson.cs" />
+    <Compile Include="RemoveItemMetadata.cs" />
     <Compile Include="WriteItemsToJson.cs" />
   </ItemGroup>
   <ItemGroup>

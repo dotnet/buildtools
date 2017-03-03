@@ -24,11 +24,8 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         ///     The storage api version.
         /// </summary>
         public static readonly string StorageApiVersion = "2015-04-05";
-
         public const string DateHeaderString = "x-ms-date";
-
         public const string VersionHeaderString = "x-ms-version";
-
         public const string AuthorizationHeaderString = "Authorization";
 
         public enum SasAccessType

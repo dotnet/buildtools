@@ -51,7 +51,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             string joinCharacter = ApiEndpoint.Contains("?") ? "&" : "?";
             string apiUrl = ApiEndpoint + joinCharacter + "access_token=" + Uri.EscapeDataString(AccessToken);
 
-            Log.LogMessage(MessageImportance.Low, "Posting job to {0}", ApiEndpoint);
+            Log.LogMessage(MessageImportance.Normal, "Posting job to {0}", ApiEndpoint);
             Log.LogMessage(MessageImportance.Low, "Event json is ", EventDataPath);
 
             using (HttpClient client = new HttpClient())
@@ -76,12 +76,22 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
                         if (response.IsSuccessStatusCode)
                         {
-                            JObject responseObject;
+                            JObject responseObject = new JObject();
                             using (Stream stream = await response.Content.ReadAsStreamAsync())
                             using (StreamReader streamReader = new StreamReader(stream))
-                            using (JsonReader jsonReader = new JsonTextReader(streamReader))
                             {
-                                responseObject = JObject.Load(jsonReader);
+                                string jsonResponse = streamReader.ReadToEnd();
+                                try
+                                {
+                                    using (JsonReader jsonReader = new JsonTextReader(new StringReader(jsonResponse)))
+                                    {
+                                        responseObject = JObject.Load(jsonReader);
+                                    }
+                                }
+                                catch
+                                {
+                                    Log.LogWarning($"Hit exception attempting to parse JSON response.  Raw response string: {Environment.NewLine} {jsonResponse}");
+                                }
                             }
 
                             JobId = (string)responseObject["Name"];
