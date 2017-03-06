@@ -1,0 +1,51 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- The only required item type is HelixWorkItem -->
+  <ItemGroup>
+    <HelixWorkItem Include="Demo Work item #1">
+      <Command>call DoStuff.bat</Command>
+      <!-- Needs to be a zip file that contains DoStuff.bat, adjust accordingly -->
+      <PayloadFile>Path to zip</PayloadFile>
+      <WorkItemId>Demo Work item #1</WorkItemId>
+      <TimeoutInSeconds>300</TimeoutInSeconds>
+    </HelixWorkItem>
+
+    <HelixWorkItem Include="Demo Work item #2">
+      <Command>call DoStuff.bat</Command>
+      <!-- Needs to be a zip file that contains DoStuff.bat, adjust accordingly -->
+      <PayloadFile>Path to zip</PayloadFile>
+      <WorkItemId>Demo Work item #2</WorkItemId>
+      <TimeoutInSeconds>200</TimeoutInSeconds>
+    </HelixWorkItem>
+    
+  </ItemGroup>
+  
+  <!-- optionally, we can specify Correlation payload files -->
+  <ItemGroup>
+    <HelixCorrelationPayloadFile Include="CorrelationPayload.zip" />    
+  </ItemGroup>  
+ 
+  <!-- Required properties -->
+  <PropertyGroup>
+    <HelixApiEndpoint>https://helix.int-dot.net/api/2016-06-28/jobs</HelixApiEndpoint>
+    <HelixApiAccessKey></HelixApiAccessKey>
+    <HelixJobType>unspecified/</HelixJobType>
+    <HelixSource>pr/unspecified/</HelixSource>
+    <TargetQueues>Windows.10.Amd64;Windows.7.Amd64;Windows.81.Amd64;Windows.10.Core.Amd64;</TargetQueues>
+    <BuildMoniker>20170301.0000</BuildMoniker>
+    <!-- Use any valid Connection string here --> 
+    <CloudDropConnectionString>...</CloudDropConnectionString>
+    <CloudResultsConnectionString>...</CloudResultsConnectionString>
+    <ArchivesRoot>.</ArchivesRoot>
+    <HelixJobProperties>{ &quot;architecture&quot; : &quot;x64&quot;, &quot;configuration&quot;: &quot;Debug&quot;, &quot;operatingSystem&quot; : &quot;Windows_NT&quot; }</HelixJobProperties>
+  </PropertyGroup>
+
+  <!-- Generally need to have the above stuff defined before import... -->
+  <Import Project="$(BuildToolsTaskDir)\CloudTest.Helix.targets" />
+
+  <Target Name="Build">
+    <Message Text="Beginning Cloud Build!" />
+    <HelixCloudBuild/>
+  </Target>
+
+</Project>

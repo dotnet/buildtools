@@ -36,8 +36,10 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             if (Items.Length == 0)
                 throw new ArgumentException("The provided items contained zero entries.");
 
-            if (!Directory.Exists(Path.GetDirectoryName(JsonFileName)))
+            if (!Directory.Exists(Path.GetDirectoryName(Path.GetFullPath(JsonFileName))))
+            {
                 Directory.CreateDirectory(Path.GetDirectoryName(JsonFileName));
+            }
 
             JsonSerializer jsonSerializer = new JsonSerializer();
             using (FileStream fs = File.Create(JsonFileName))
