@@ -16,6 +16,11 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
     public class ApplyMetaPackages : PackagingTask
     {
         /// <summary>
+        /// Need the package id to ensure we don't add a meta-package reference for a package that depends on itself.
+        /// </summary>
+        [Required]
+        public string PackageId { get; set; }
+        /// <summary>
         /// Original dependencies
         /// </summary>
         [Required]
@@ -34,6 +39,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             var index = PackageIndex.Load(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
             List<ITaskItem> updatedDependencies = new List<ITaskItem>();
 
+            // We cannot add a dependency to a meta-package from a package that itself is part of the meta-package otherwise we create a cycle
+            var metaPackageThisPackageIsIn = index.MetaPackages.GetMetaPackageId(PackageId);
+
             // keep track of meta-package dependencies to add by framework so that we only add them once per framework.
             Dictionary<string, HashSet<NuGetFramework>> metaPackagesToAdd = new Dictionary<string, HashSet<NuGetFramework>>();
 
@@ -41,7 +49,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             {
                 var metaPackage = index.MetaPackages.GetMetaPackageId(originalDependency.ItemSpec);
 
-                if (metaPackage != null)
+                if (metaPackage != null && metaPackageThisPackageIsIn != metaPackage)
                 {
                     // convert to meta-package dependency
                     var tfm = originalDependency.GetMetadata("TargetFramework");
