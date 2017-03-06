@@ -710,8 +710,10 @@
       <Output TaskParameter="PromotedDependencies" ItemName="FilePackageDependency" />
     </PromoteDependencies>
 
-    <ApplyMetaPackages OriginalDependencies="@(FilePackageDependency)"
-                       PackageIndexes="@(PackageIndex)">
+    <ApplyMetaPackages PackageId="$(Id)"
+                       OriginalDependencies="@(FilePackageDependency)"
+                       PackageIndexes="@(PackageIndex)"
+                       Condition="'$(SkipApplyMetaPackages)' != 'true'">
       <Output TaskParameter="UpdatedDependencies" ItemName="_ConsolidatedDependencies" />
     </ApplyMetaPackages>
                        
