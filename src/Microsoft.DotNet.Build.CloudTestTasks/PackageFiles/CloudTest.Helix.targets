@@ -12,6 +12,15 @@
 
   <!-- See Documentation\Samples\CloudTest.Helix.targets.sampleproject for a sample project.
   
+       Some helpful Helix environment variables: (Use appropriate-for-OS means to access, i.e. %WINDOWS% or $Linux, $OSX )
+       **********************************************************************************************************************************
+        HELIX_WORKITEM_PAYLOAD      - Execution folder of helix workitem, current directory when using relative path.
+        HELIX_CORRELATION_ID        - GUID identifier for a helix run.
+        HELIX_PYTHONPATH            - Path to python executable
+        HELIX_CORRELATION_PAYLOAD   - Correlation payload folder;  root of where all correlation payloads are unzipped.
+        HELIX_WORKITEM_FRIENDLYNAME - Friendly name of work item
+       **********************************************************************************************************************************
+    
        Variables that CloudTest.Helix.Targets cares about:
        **********************************************************************************************************************************
        Required Properties:
@@ -50,8 +59,7 @@
     -->
 
   <!-- Main entry point -->
-  <Target Name="HelixCloudBuild"
-          DependsOnTargets="VerifyInputs;PreCloudBuild;ValidateWorkItems;UploadContent;CreateTestListJson" />
+  <Target Name="HelixCloudBuild" DependsOnTargets="VerifyInputs;PreCloudBuild;ValidateWorkItems;UploadContent;CreateTestListJson" />
 
   <PropertyGroup>
     <OverwriteOnUpload Condition="'$(OverwriteOnUpload)' == ''">false</OverwriteOnUpload>
@@ -63,6 +71,20 @@
     <SupplementalPayloadFile>$(ArchivesRoot)$(SupplementalPayloadFilename)</SupplementalPayloadFile>
     <IsOfficial Condition="'$(IsOfficial)'!=''">false</IsOfficial>
     <HelixApiEndpoint Condition="'$(HelixApiEndpoint)'==''">https://helix.dot.net/api/2016-06-28/jobs</HelixApiEndpoint>
+  </PropertyGroup>
+
+  <!-- Set Helix environment vars based on target platform -->
+  <!-- This is only used in the case where property 'UseScriptRunner' is true.-->
+  <PropertyGroup Condition="'$(TargetsWindows)' == 'true' AND '$(UseScriptRunner)' == 'true' ">
+    <HelixPythonPath>%HELIX_PYTHONPATH%</HelixPythonPath>
+    <HelixScriptRoot>%HELIX_SCRIPT_ROOT%\</HelixScriptRoot>
+    <RunnerScript>%HELIX_CORRELATION_PAYLOAD%\RunnerScripts\scriptrunner\scriptrunner.py</RunnerScript>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetsWindows)' != 'true' AND '$(UseScriptRunner)' == 'true' ">
+    <HelixPythonPath>$HELIX_PYTHONPATH</HelixPythonPath>
+    <HelixScriptRoot>$HELIX_SCRIPT_ROOT/</HelixScriptRoot>
+    <RunnerScript>$HELIX_CORRELATION_PAYLOAD/RunnerScripts/scriptrunner/scriptrunner.py</RunnerScript>
   </PropertyGroup>
 
   <Target Name="VerifyInputs">
@@ -206,7 +228,10 @@
 
     <ItemGroup>
       <HelixProcessedWorkItem>
-        <Command>%(Command)</Command>
+        <Command Condition="'$(UseScriptRunner)'!='true'">%(Command)</Command>
+        <!-- When UseScriptRunner is set, we'll wrap commands provided with special Helix-y goo for telemetry-->
+        <Command Condition="'$(UseScriptRunner)'=='true' AND '$(TargetsWindows)' == 'true'">$(HelixPythonPath) $(RunnerScript) --script %(Command)</Command>
+        <Command Condition="'$(UseScriptRunner)'=='true' AND '$(TargetsWindows)' != 'true'">chmod +x $HELIX_WORKITEM_PAYLOAD/*.sh &amp;&amp; $(HelixPythonPath) $(RunnerScript) --script %(Command)</Command>
         <CorrelationPayloadUris>[$(CorrelationPayloadUris)]</CorrelationPayloadUris>
         <PayloadUri>$(DropUri)%(RelativeBlobPath)$(DropUriReadOnlyToken)</PayloadUri>
         <WorkItemId>%(WorkItemId)</WorkItemId>
@@ -285,20 +310,17 @@
 
     <!-- Upload the Correlation Ids generated to the test drop container for tracking purposes-->
     <PropertyGroup>
-      <CorrelationFileName>Helix-correlation-infos.txt</CorrelationFileName>
+      <CorrelationFileName>Helix-correlation-infos.json</CorrelationFileName>
       <GeneratedCorrelationIds>@(GeneratedCorrelationId)</GeneratedCorrelationIds>
     </PropertyGroup>
-    <WriteLinesToFile File="%(HelixWorkItemList.HelixJobUploadCompletePath)" Overwrite="true" Lines="Correlation Ids : $(GeneratedCorrelationIds) "/>
+
+    <Message Text="Writing correlation info to: $(HelixLogFolder)$(CorrelationFileName) " />
+    <WriteItemsToJson JsonFileName="$(HelixLogFolder)$(CorrelationFileName)" Items="@(GeneratedCorrelationId)" />
     <ItemGroup>
-      <CorrelationFile Include="$(ArchivesRoot)$(CorrelationFileName)">
+      <CorrelationFile Include="$(HelixLogFolder)$(CorrelationFileName)">
         <RelativeBlobPath>Tracking/$(CorrelationFileName)</RelativeBlobPath>
       </CorrelationFile>
     </ItemGroup>
-
-    <WriteLinesToFile
-        File="@(CorrelationFile)"
-        Lines="@(GeneratedCorrelationId)"
-        Overwrite="true" />
 
     <UploadToAzure
         ConnectionString="$(CloudDropConnectionString)"

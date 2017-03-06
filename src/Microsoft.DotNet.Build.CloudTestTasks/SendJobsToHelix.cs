@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.Build.Utilities;
 
 namespace Microsoft.DotNet.Build.CloudTestTasks
 {
@@ -44,7 +45,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         /// Once a helix job is started, this is the identifier of that job
         /// </summary>
         [Output]
-        public string [] JobIds { get; set; }
+        public ITaskItem [] JobIds { get; set; }
 
         public override bool Execute()
         {
@@ -53,7 +54,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
         private async Task<bool> ExecuteAsync()
         {
-            List<string> jobIds = new List<string>();
+            List<ITaskItem> jobIds = new List<ITaskItem>();
             string joinCharacter = ApiEndpoint.Contains("?") ? "&" : "?";
             string apiUrl = ApiEndpoint + joinCharacter + "access_token=" + Uri.EscapeDataString(AccessToken);
 
@@ -83,6 +84,12 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
                 foreach (JObject jobStartMessage in allBuilds)
                 {
+                    string queueId = (string) jobStartMessage["QueueId"];
+                    // This should never happen.
+                    if (string.IsNullOrEmpty(queueId))
+                    {
+                        Log.LogError("Helix Job Start messages must have a value for 'QueueId' ");
+                    }
                     bool keepTrying = true;
                     while (keepTrying)
                     {
@@ -116,11 +123,15 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                                 }
 
                                 string jobId = (string)responseObject["Name"];
-                                jobIds.Add(jobId);
                                 if (String.IsNullOrEmpty(jobId))
                                 {
                                     Log.LogError("Publish to '{0}' did not return a job ID", ApiEndpoint);
                                 }
+                                TaskItem helixJobStartedInfo = new TaskItem(jobId);
+                                helixJobStartedInfo.SetMetadata("CorrelationId", jobId);
+                                helixJobStartedInfo.SetMetadata("QueueId", queueId);
+                                helixJobStartedInfo.SetMetadata("QueueTimeUtc", DateTime.UtcNow.ToString());
+                                jobIds.Add(helixJobStartedInfo);
 
                                 Log.LogMessage(MessageImportance.High, "Started Helix job: CorrelationId = {0}", jobId);
                                 keepTrying = false;
