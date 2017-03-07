@@ -46,6 +46,8 @@
   <PropertyGroup>
     <BaseId>$(MSBuildProjectName)</BaseId>
     <Id>$(IdPrefix)$(BaseId)</Id>
+    <PackedPackageNamePrefix Condition="'$(PackedPackageNamePrefix)' == ''">transport</PackedPackageNamePrefix>
+    <PackedPackageId>$(PackedPackageNamePrefix).$(Id)</PackedPackageId>
     <!-- It is by design that the Title matches the Id. We want users to get an assembly view. -->
     <Title>$(Id)</Title>
     <Authors>Microsoft</Authors>
@@ -74,6 +76,7 @@
     <PackageReportPath>$(PackageReportDir)$(Id)$(NuspecSuffix).json</PackageReportPath>
     <TargetPath>$(NuSpecPath)</TargetPath>
     <RuntimeFilePath Condition="'$(RuntimeFilePath)' == ''">$(NuSpecOutputPath)$(Id)$(NuspecSuffix)/runtime.json</RuntimeFilePath>
+    <PackedPackageRuntimeFilePath Condition="'$(PackedPackageRuntimeFilePath)' == ''">$(NuSpecOutputPath)$(Id)$(NuspecSuffix)/$(PackedPackageNamePrefix).runtime.json</PackedPackageRuntimeFilePath>
     <PlaceholderFile>$(MSBuildThisFileDirectory)_._</PlaceholderFile>
     <PackageDescriptionFile Condition="'$(PackageDescriptionFile)' == ''">path to descriptions.json must be specified</PackageDescriptionFile>
     <ValidationSuppressionFile Condition="'$(ValidationSuppressionFile)' == ''">ValidationSuppression.txt</ValidationSuppressionFile>
@@ -130,6 +133,7 @@
       <_ToBeDeleted Include="$(NuSpecPath)" />
       <_ToBeDeleted Include="$(NuSpecPath).pkgpath" />
       <_ToBeDeleted Include="$(RuntimeFilePath)" />
+      <_ToBeDeleted Include="$(PackedPackageRuntimeFilePath)" />
     </ItemGroup>
     <Delete Files="@(_ToBeDeleted)" />
   </Target>
@@ -716,8 +720,7 @@
                        Condition="'$(SkipApplyMetaPackages)' != 'true'">
       <Output TaskParameter="UpdatedDependencies" ItemName="_ConsolidatedDependencies" />
     </ApplyMetaPackages>
-                       
-    
+
     <Error Condition="'@(PackageIndex)' == '' AND '@(BaseLinePackage)' == '' AND '@(_ConsolidatedDependencies)' != '' AND '$(BaseLinePackageDependencies)' != 'false'"
            Text="Neither PackageIndex nor BaseLinePackage items are defined: ensure you have imported Microsoft.Private.PackageBaseLine.props from the Microsoft.Private.PackageBaseLine package" />
     <ApplyBaseLine OriginalDependencies="@(_ConsolidatedDependencies)"
@@ -768,7 +771,21 @@
                                  Dependencies="@(RuntimeDependency);@(Dependency);@(_indirectRuntimeDependencies)"
                                  PackageId="$(Id)"
                                  RuntimeJsonTemplate="$(RuntimeFileSource)"
-                                 RuntimeJson="$(RuntimeFilePath)"/>
+                                 RuntimeJson="$(RuntimeFilePath)"
+                                 />
+    
+    <ItemGroup Condition="'$(CreatePackedPackage)' == 'true'">
+      <PackedPackageRuntimeDependency Include="@(RuntimeDependency->'$(PackedPackageNamePrefix).%(Identity)')">
+        <TargetPackage>$(PackedPackageNamePrefix).%(TargetPackage)</TargetPackage>
+      </PackedPackageRuntimeDependency>
+      <PackedPackageDependency Include="@(Dependency->'$(PackedPackageNamePrefix).%(Identity)')" />
+    </ItemGroup>
+
+    <GenerateRuntimeDependencies Condition="('@(PackedPackageRuntimeDependency)' != '' OR '@(_indirectRuntimeDependencies)' != '') AND '$(CreatePackedPackage)' == 'true'"
+                                 Dependencies="@(PackedPackageRuntimeDependency);@(PackedPackageDependency);@(_indirectRuntimeDependencies)"
+                                 PackageId="$(PackedPackageId)"
+                                 RuntimeJsonTemplate="$(RuntimeFileSource)"
+                                 RuntimeJson="$(PackedPackageRuntimeFilePath)"/>
   </Target>
 
   <Target Name="EnsureEmptyPackage"
@@ -1171,10 +1188,13 @@
     <NugetPack Nuspecs="$(NuSpecPath)"
                OutputDirectory="$(PackageOutputPath)"
                ExcludeEmptyDirectories="true"
-               PackSymbolPackage="true"
+               CreateSymbolPackage="true"
+               CreatePackedPackage="$(CreatePackedPackage)"
+               IncludeSymbolsInPackage="$(IncludeSymbolsInPackage)"
                SymbolPackageOutputDirectory="$(SymbolPackageOutputPath)"
                AdditionalLibPackageExcludes="@(AdditionalLibPackageExcludes)"
                AdditionalSymbolPackageExcludes="@(AdditionalSymbolPackageExcludes)"
+               PackedPackageNamePrefix="$(PackedPackageNamePrefix)"
                Condition="'$(_SkipCreatePackage)' != 'true'"/>
         
     <!-- Create a marker that records the path to the generated package -->

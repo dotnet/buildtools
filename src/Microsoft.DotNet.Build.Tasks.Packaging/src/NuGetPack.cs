@@ -33,6 +33,10 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             @"tools\**\*.ps1".Replace('\\', Path.DirectorySeparatorChar)
         };
 
+        private static readonly string _defaultPackedPackagePrefix = "transport";
+        private static readonly string _symbolsPackageExtension = ".symbols.nupkg";
+        private static readonly string _packageExtension = ".nupkg";
+
         [Required]
         public ITaskItem[] Nuspecs
         {
@@ -64,13 +68,24 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             get;
             set;
         }
-
-        public bool PackSymbolPackage
+        // Create an additional ".symbols.nupkg" package
+        public bool CreateSymbolPackage
         {
             get;
             set;
         }
-
+        // Include symbols in standard package
+        public bool IncludeSymbolsInPackage
+        {
+            get;
+            set;
+        }
+        // Create an additional "packed package" that includes lib and src / symbols
+        public bool CreatePackedPackage
+        {
+            get;
+            set;
+        }
         /// <summary>
         /// Nuspec files can contain properties that are substituted with values at pack time
         /// This task property passes through the nuspect properties.
@@ -104,10 +119,14 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             set;
         }
 
+        public string PackedPackageNamePrefix
+        {
+            get;
+            set;
+        }
+
         public override bool Execute()
         {
-            Func<string, string> nuspecPropertyProvider = GetNuspecPropertyProviderFunction(NuspecProperties);
-
             if (Nuspecs == null || Nuspecs.Length == 0)
             {
                 Log.LogError("Nuspecs argument must be specified");
@@ -125,6 +144,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 Directory.CreateDirectory(OutputDirectory);
             }
 
+            Func<string, string> nuspecPropertyProvider = GetNuspecPropertyProviderFunction(NuspecProperties);
+
             foreach (var nuspec in Nuspecs)
             {
                 string nuspecPath = nuspec.GetMetadata("FullPath");
@@ -135,11 +156,23 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     continue;
                 }
 
-                Pack(nuspecPath, nuspecPropertyProvider, false);
+                Manifest manifest = GetManifest(nuspecPath, nuspecPropertyProvider, false);
+                string nupkgPath = GetPackageOutputPath(nuspecPath, manifest, false, false);
+                Pack(nuspecPath, nupkgPath, manifest, IncludeSymbolsInPackage);
 
-                if (PackSymbolPackage)
+                bool packSymbols = CreateSymbolPackage || CreatePackedPackage;
+                if (CreateSymbolPackage)
                 {
-                    Pack(nuspecPath, nuspecPropertyProvider, true);
+                    Manifest symbolsManifest = GetManifest(nuspecPath, nuspecPropertyProvider, false);
+                    nupkgPath = GetPackageOutputPath(nuspecPath, symbolsManifest, true, false);
+                    Pack(nuspecPath, nupkgPath, symbolsManifest, packSymbols);
+                }
+
+                if (CreatePackedPackage)
+                {
+                    Manifest packedManifest = GetManifest(nuspecPath, nuspecPropertyProvider, true);
+                    nupkgPath = GetPackageOutputPath(nuspecPath, packedManifest, false, true);
+                    Pack(nuspecPath, nupkgPath, packedManifest, packSymbols);
                 }
             }
 
@@ -151,27 +184,83 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             return nuspecProperties == null ? null : NuspecPropertyStringProvider.GetNuspecPropertyProviderFunction(nuspecProperties.Select(p => p.ItemSpec).ToArray());
         }
 
-        public void Pack(string nuspecPath, Func<string, string> nuspecPropertyProvider, bool packSymbols)
+        private Manifest GetManifest(string nuspecPath, Func<string, string> nuspecPropertyProvider, bool isPackedPackage)
         {
+            using (var nuspecFile = File.Open(nuspecPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+            {
+                string baseDirectoryPath = (string.IsNullOrEmpty(BaseDirectory)) ? Path.GetDirectoryName(nuspecPath) : BaseDirectory;
+                Manifest manifest = Manifest.ReadFrom(nuspecFile, nuspecPropertyProvider, false);
+
+                if (isPackedPackage)
+                {
+                    manifest = TransformManifestToPackedPackageManifest(manifest);
+                }
+                return manifest;
+            }
+        }
+
+        private string GetPackageOutputPath(string nuspecPath, Manifest manifest, bool isSymbolsPackage, bool applyPrefix)
+        {
+            string id = manifest.Metadata.Id;
+
+            if (String.IsNullOrEmpty(id))
+            {
+                Log.LogError($"Nuspec {nuspecPath} does not contain a valid Id");
+                return string.Empty;
+            }
+
+            // Overriding the Version from the Metadata if one gets passed in.
+            if (!string.IsNullOrEmpty(PackageVersion))
+            {
+                NuGetVersion overrideVersion;
+                if (NuGetVersion.TryParse(PackageVersion, out overrideVersion))
+                {
+                    manifest.Metadata.Version = overrideVersion;
+                }
+                else
+                {
+                    Log.LogError($"Failed to parse Package Version: '{PackageVersion}' is not a valid version.");
+                }
+            }
+
+            string version = manifest.Metadata.Version.ToString();
+
+            if (String.IsNullOrEmpty(version))
+            {
+                Log.LogError($"Nuspec {nuspecPath} does not contain a valid version");
+                return string.Empty;
+            }
+
+            string nupkgOutputDirectory = OutputDirectory;
+
+            if (isSymbolsPackage && !string.IsNullOrEmpty(SymbolPackageOutputDirectory))
+            {
+                nupkgOutputDirectory = SymbolPackageOutputDirectory;
+            }
+
+            string nupkgExtension = isSymbolsPackage ? _symbolsPackageExtension : _packageExtension;
+            return Path.Combine(nupkgOutputDirectory, $"{id}.{version}{nupkgExtension}");
+        }
+
+        public void Pack(string nuspecPath, string nupkgPath, Manifest manifest, bool packSymbols)
+        {
+            bool creatingSymbolsPackage = packSymbols && (Path.GetExtension(nupkgPath) == _symbolsPackageExtension);
             try
             {
                 PackageBuilder builder = new PackageBuilder();
 
-                using (var nuspecFile = File.Open(nuspecPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
-                {
-                    string baseDirectoryPath = (string.IsNullOrEmpty(BaseDirectory)) ? Path.GetDirectoryName(nuspecPath) : BaseDirectory;
-                    Manifest manifest = Manifest.ReadFrom(nuspecFile, nuspecPropertyProvider, false);
-                    builder.Populate(manifest.Metadata);
-                    builder.PopulateFiles(baseDirectoryPath, manifest.Files);
+                string baseDirectoryPath = (string.IsNullOrEmpty(BaseDirectory)) ? Path.GetDirectoryName(nuspecPath) : BaseDirectory;
+                builder.Populate(manifest.Metadata);
+                builder.PopulateFiles(baseDirectoryPath, manifest.Files);
 
+                if (creatingSymbolsPackage)
+                {
+                    // For symbols packages, filter out excludes
                     PathResolver.FilterPackageFiles(
                         builder.Files,
                         file => file.Path,
-                        packSymbols ? SymbolPackageExcludes : LibPackageExcludes);
-                }
+                        SymbolPackageExcludes);
 
-                if (packSymbols)
-                {
                     // Symbol packages are only valid if they contain both symbols and sources.
                     Dictionary<string, bool> pathHasMatches = LibPackageExcludes.ToDictionary(
                         path => path,
@@ -188,45 +277,14 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                         return;
                     }
                 }
-
-                // Overriding the Version from the Metadata if one gets passed in.
-                if (!string.IsNullOrEmpty(PackageVersion))
+                else if(!packSymbols)
                 {
-                    NuGetVersion overrideVersion;
-                    if (NuGetVersion.TryParse(PackageVersion, out overrideVersion))
-                    {
-                        builder.Version = overrideVersion;
-                    }
-                    else
-                    {
-                        Log.LogError($"Failed to parse Package Version: '{PackageVersion}' is not a valid version.");
-                        return;
-                    }
+                    // for packages which do not include symbols (not symbols or packed packages), filter lib excludes
+                    PathResolver.FilterPackageFiles(
+                        builder.Files,
+                        file => file.Path,
+                        LibPackageExcludes);
                 }
-
-                string id = builder.Id, version = builder.Version.ToString();
-
-                if (String.IsNullOrEmpty(id))
-                {
-                    Log.LogError($"Nuspec {nuspecPath} does not contain a valid Id");
-                    return;
-                }
-
-                if (String.IsNullOrEmpty(version))
-                {
-                    Log.LogError($"Nuspec {nuspecPath} does not contain a valid version");
-                    return;
-                }
-
-                string nupkgOutputDirectory = OutputDirectory;
-
-                if (packSymbols && !string.IsNullOrEmpty(SymbolPackageOutputDirectory))
-                {
-                    nupkgOutputDirectory = SymbolPackageOutputDirectory;
-                }
-
-                string nupkgExtension = packSymbols ? ".symbols.nupkg" : ".nupkg";
-                string nupkgPath = Path.Combine(nupkgOutputDirectory, $"{id}.{version}{nupkgExtension}");
 
                 var directory = Path.GetDirectoryName(nupkgPath);
                 if (!Directory.Exists(directory))
@@ -243,9 +301,58 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
             catch (Exception e)
             {
-                string packageType = packSymbols ? "symbol" : "lib";
+                string packageType = "lib";
+                if (creatingSymbolsPackage)
+                {
+                    packageType = "symbol";
+                }
+                else if (packSymbols)
+                {
+                    packageType = "packed";
+                }
                 Log.LogError($"Error when creating nuget {packageType} package from {nuspecPath}. {e}");
             }
+        }
+
+        private Manifest TransformManifestToPackedPackageManifest(Manifest manifest)
+        {
+            ManifestMetadata manifestMetadata = manifest.Metadata;
+
+            // Update Id
+            string _packageNamePrefix = PackedPackageNamePrefix != null ? PackedPackageNamePrefix : _defaultPackedPackagePrefix;
+            manifestMetadata.Id = $"{_packageNamePrefix}.{manifestMetadata.Id}";
+
+            // Update dependencies
+            List<PackageDependencyGroup> packedPackageDependencyGroups = new List<PackageDependencyGroup>();
+            foreach(var dependencyGroup in manifestMetadata.DependencyGroups)
+            {
+                List<NuGet.Packaging.Core.PackageDependency> packages = new List<NuGet.Packaging.Core.PackageDependency>();
+                foreach(var dependency in dependencyGroup.Packages)
+                {
+                    NuGet.Packaging.Core.PackageDependency package = new NuGet.Packaging.Core.PackageDependency($"{_packageNamePrefix}.{dependency.Id}", dependency.VersionRange, dependency.Include, dependency.Exclude);
+                    packages.Add(package);
+                }
+                PackageDependencyGroup packageDependencyGroup = new PackageDependencyGroup(dependencyGroup.TargetFramework, packages);
+                packedPackageDependencyGroups.Add(packageDependencyGroup);
+            }
+            manifestMetadata.DependencyGroups = packedPackageDependencyGroups;
+
+            // Update runtime.json
+            List<ManifestFile> manifestFiles = new List<ManifestFile>();
+
+            foreach(ManifestFile file in manifest.Files)
+            {
+                string fileName = file.Source;
+                if(Path.GetFileName(fileName) == "runtime.json" && file.Target == "")
+                {
+                    string packedPackageSourcePath = Path.Combine(Path.GetDirectoryName(fileName), string.Join(".", _packageNamePrefix, Path.GetFileName(fileName)));
+                    file.Source = File.Exists(packedPackageSourcePath) ? packedPackageSourcePath : fileName;
+                    file.Target = "runtime.json";
+                }
+                manifestFiles.Add(file);
+            }
+            Manifest packedPackageManifest = new Manifest(manifestMetadata, manifestFiles);
+            return manifest;
         }
 
         private IEnumerable<string> LibPackageExcludes
