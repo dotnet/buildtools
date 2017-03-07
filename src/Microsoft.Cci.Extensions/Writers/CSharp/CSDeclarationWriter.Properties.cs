@@ -63,7 +63,11 @@ namespace Microsoft.Cci.Writers.CSharp
             if (property.GetHiddenBaseProperty(_filter) != Dummy.Property)
                 WriteKeyword("new");
 
+            if (property.ReturnValueIsByRef)
+                WriteKeyword("ref");
+
             WriteTypeName(property.Type);
+
             if (isIndexer)
             {
                 int index = property.Name.Value.LastIndexOf(".");

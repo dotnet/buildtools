@@ -64,6 +64,10 @@ namespace Microsoft.Cci.Writers.CSharp
             if (!isOperator && !method.IsConstructor)
             {
                 WriteAttributes(method.ReturnValueAttributes, true);
+
+                if (method.ReturnValueIsByRef)
+                    WriteKeyword("ref");
+
                 // We are ignoring custom modifiers right now, we might need to add them later.
                 WriteTypeName(method.Type, method.ContainingType, isDynamic: IsDynamic(method.ReturnValueAttributes));
             }
