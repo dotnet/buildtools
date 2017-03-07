@@ -246,7 +246,7 @@
       <Output TaskParameter="ProcessedItems" ItemName="HelixProcessedWorkItemForList"/>
     </RemoveItemMetadata>
 
-    <WriteItemsToJson JsonFileName="$(TestListFilename)" Items="@(HelixProcessedWorkItemForList)" />
+    <WriteItemsToJson JsonFileName="$(TestListFilename)" Items="@(HelixProcessedWorkItemForList)" ForceJsonArray="true" />
     <ItemGroup>
       <HelixWorkItemList Include="$(TestListFilename)">
         <RelativeBlobPath>$(TestListFilename)</RelativeBlobPath>
@@ -315,7 +315,7 @@
     </PropertyGroup>
 
     <Message Text="Writing correlation info to: $(HelixLogFolder)$(CorrelationFileName) " />
-    <WriteItemsToJson JsonFileName="$(HelixLogFolder)$(CorrelationFileName)" Items="@(GeneratedCorrelationId)" />
+    <WriteItemsToJson JsonFileName="$(HelixLogFolder)$(CorrelationFileName)" Items="@(GeneratedCorrelationId)" ForceJsonArray="true" />
     <ItemGroup>
       <CorrelationFile Include="$(HelixLogFolder)$(CorrelationFileName)">
         <RelativeBlobPath>Tracking/$(CorrelationFileName)</RelativeBlobPath>
