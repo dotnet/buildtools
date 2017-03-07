@@ -22,6 +22,13 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         public string JsonFileName { get; set; }
 
         /// <summary>
+        /// Previously this Task tried to be clever and only write an array for > 1 object.
+        /// Sometimes we want to have arrays of 1..N objects for ease of deserialization;
+        /// this property allows for that while leaving the default behavior alone.
+        /// </summary>
+        public bool ForceJsonArray { get; set; } = false;
+
+        /// <summary>
         /// An item group to be converted into JSON format.  For each item, all custom
         /// metadata will be converted into JSON name properties, where the custom metadata
         /// name/value pair is converted to a JSON property/value pair.
@@ -49,7 +56,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 {
                     jsonWriter.Formatting = Formatting.Indented;
 
-                    if (Items.Length > 1)
+                    if (Items.Length > 1 || ForceJsonArray)
                         jsonWriter.WriteStartArray();
 
                     foreach (ITaskItem item in Items)
@@ -103,7 +110,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                         jsonWriter.WriteEndObject();
                     }
 
-                    if (Items.Length > 1)
+                    if (Items.Length > 1 || ForceJsonArray)
                         jsonWriter.WriteEndArray();
 
                     Log.LogMessage(MessageImportance.High, "Writing {0}.", JsonFileName);
