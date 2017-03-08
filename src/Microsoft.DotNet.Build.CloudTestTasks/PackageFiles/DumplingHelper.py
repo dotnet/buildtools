@@ -19,12 +19,12 @@ def install_dumpling():
 def find_latest_dump(folder, startTimeStr):
   startTime = float(startTimeStr)
   allFiles = glob.glob(folder + "/*");
-  latestFile = max(allFiles, key=os.path.getctime)
-  latestTime = os.path.getctime(latestFile)
-  if (latestTime > startTime):
-    return latestFile
-  else:
-    return None
+  if allFiles:
+    latestFile = max(allFiles, key=os.path.getctime)
+    latestTime = os.path.getctime(latestFile)
+    if (latestTime > startTime):
+      return latestFile
+  return None
 
 def collect_dump(exitcode, folder, startTimeStr, projectName):
   if (exitcode == "0"):
