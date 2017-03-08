@@ -46,6 +46,7 @@
        CloudResultsWriteTokenValidDays - Days that result URLs produced will be writeable     Default: 4
        SupplementalPayloadDir - Temp (deletable) dir for assembling supplemental payloads     Default: Random folder in %TEMP%
        HelixLogFolder    - Folder for storing JSON files describing job start and other info  Default: <Blank>
+       HelixCorrelationInfoFileName - JSON file containing info on started jobs               Default: Helix-correlation-infos.json
        
        **********************************************************************************************************************************
        Required ITaskItems:
@@ -246,9 +247,9 @@
       <Output TaskParameter="ProcessedItems" ItemName="HelixProcessedWorkItemForList"/>
     </RemoveItemMetadata>
 
-    <WriteItemsToJson JsonFileName="$(TestListFilename)" Items="@(HelixProcessedWorkItemForList)" ForceJsonArray="true" />
+    <WriteItemsToJson JsonFileName="$(HelixLogFolder)$(TestListFilename)" Items="@(HelixProcessedWorkItemForList)" ForceJsonArray="true" />
     <ItemGroup>
-      <HelixWorkItemList Include="$(TestListFilename)">
+      <HelixWorkItemList Include="$(HelixLogFolder)$(TestListFilename)">
         <RelativeBlobPath>$(TestListFilename)</RelativeBlobPath>
         <BuildCompleteJson>$(HelixLogFolder)BuildComplete.json</BuildCompleteJson>
         <OfficialBuildJson>$(HelixLogFolder)OfficialBuild.json</OfficialBuildJson>
@@ -310,15 +311,15 @@
 
     <!-- Upload the Correlation Ids generated to the test drop container for tracking purposes-->
     <PropertyGroup>
-      <CorrelationFileName>Helix-correlation-infos.json</CorrelationFileName>
+      <HelixCorrelationInfoFileName Condition="'$(HelixCorrelationInfoFileName)'==''">Helix-correlation-infos.json</HelixCorrelationInfoFileName>
       <GeneratedCorrelationIds>@(GeneratedCorrelationId)</GeneratedCorrelationIds>
     </PropertyGroup>
 
-    <Message Text="Writing correlation info to: $(HelixLogFolder)$(CorrelationFileName) " />
-    <WriteItemsToJson JsonFileName="$(HelixLogFolder)$(CorrelationFileName)" Items="@(GeneratedCorrelationId)" ForceJsonArray="true" />
+    <Message Text="Writing correlation info to: $(HelixLogFolder)$(HelixCorrelationInfoFileName) " />
+    <WriteItemsToJson JsonFileName="$(HelixLogFolder)$(HelixCorrelationInfoFileName)" Items="@(GeneratedCorrelationId)" ForceJsonArray="true" />
     <ItemGroup>
-      <CorrelationFile Include="$(HelixLogFolder)$(CorrelationFileName)">
-        <RelativeBlobPath>Tracking/$(CorrelationFileName)</RelativeBlobPath>
+      <CorrelationFile Include="$(HelixLogFolder)$(HelixCorrelationInfoFileName)">
+        <RelativeBlobPath>Tracking/$(HelixCorrelationInfoFileName)</RelativeBlobPath>
       </CorrelationFile>
     </ItemGroup>
 
