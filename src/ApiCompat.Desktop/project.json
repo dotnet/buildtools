@@ -1,0 +1,20 @@
+{
+  "dependencies": {
+    "Microsoft.Cci": "4.0.0-rc4-24217-00",
+    "Microsoft.Composition": "1.0.30",
+    "System.Console": "4.0.0",
+    "System.Diagnostics.TextWriterTraceListener": "4.0.0",
+    "System.Diagnostics.TraceSource": "4.0.0",
+    "System.Linq": "4.0.0",
+    "System.Reflection": "4.0.10",
+    "System.Reflection.Extensions": "4.0.0",
+    "System.Reflection.TypeExtensions": "4.0.0",
+    "System.Runtime": "4.0.20"
+  },
+  "frameworks": {
+    "net46": {}
+  },
+  "runtimes": {
+    "win7-x64": {}
+  }
+}

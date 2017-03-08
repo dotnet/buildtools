@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata minClientVersion="2.8.1">
+    <id>Microsoft.DotNet.BuildTools.GenFacades</id>
+    <version>1.0.0-beta3</version>
+    <title>Facade Generator (GenFacade)</title>
+    <authors>Microsoft</authors>
+    <owners>Microsoft</owners>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <licenseUrl>http://go.microsoft.com/fwlink/?LinkId=329770</licenseUrl>
+    <projectUrl>http://go.microsoft.com/fwlink/?LinkId=518631</projectUrl>
+    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
+    <summary>A tool that can be used to generate source for a reference assembly.</summary>
+    <description>This package provides build-time support generating reference facade assemblies.</description>
+    <copyright>Copyright © Microsoft Corporation</copyright>
+    <tags></tags>
+    <dependencies>
+      <!-- Currently we redistribute the dependencies locally since nuget has no 
+           support for treating packages as build dependencies.-->
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="GenFacades.Console.net46\*.*" target="tools" />
+  </files>  
+</package>
