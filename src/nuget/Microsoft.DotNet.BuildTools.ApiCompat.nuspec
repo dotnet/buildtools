@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata minClientVersion="2.8.1">
+    <id>Microsoft.DotNet.BuildTools.ApiCompat</id>
+    <version>1.0.0-beta3</version>
+    <title>API Compatibility Checker (ApiCompat)</title>
+    <authors>Microsoft</authors>
+    <owners>Microsoft</owners>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <licenseUrl>http://go.microsoft.com/fwlink/?LinkId=329770</licenseUrl>
+    <projectUrl>http://go.microsoft.com/fwlink/?LinkId=518631</projectUrl>
+    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
+    <summary>A tool that can be used to generate source for a reference assembly.</summary>
+    <description>This package provides a tool to check whether a compiling against assembly A will produce code that can run on assembly set B.</description>
+    <copyright>Copyright © Microsoft Corporation</copyright>
+    <tags></tags>
+    <dependencies>
+      <!-- Currently we redistribute the dependencies locally since nuget has no 
+           support for treating packages as build dependencies.-->
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="ApiCompat.Desktop\ApiCompat.exe" target="tools" />
+    <file src="ApiCompat.Desktop\ApiCompat.exe.config" target="tools" />
+    <file src="ApiCompat.Desktop\*.dll" target="tools" />
+  </files>  
+</package>
