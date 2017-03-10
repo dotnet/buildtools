@@ -112,9 +112,17 @@
       <RunnerScripts Include="$(ToolsDir)RunnerScripts/**/*.txt" />
     </ItemGroup>
 
-    <!-- Split up Target Queues list -->
+    <!-- Split up Target Queues list 
+         In order to support both commas and semicolons, I do a little hoop-jumping to do a replace first
+         Note that queues will never have ',' or ';' in their name, and this greatly simplifies providing a queue list in *nix.
+    --> 
+    <PropertyGroup>
+      <ProcessedTargetQueues>$([System.String]::Copy('$(TargetQueues)').Replace(',',';'))</ProcessedTargetQueues>
+    </PropertyGroup>
+    
     <ItemGroup>
-      <TargetQueue Include="$(TargetQueues)" />
+      <!-- This Split() is needed since the semicolon in ProcessedTargetQueues is now a literal -->
+      <TargetQueue Include="$(ProcessedTargetQueues.Split(';'))" />
     </ItemGroup>
     <Message Text="Will Enqueue to @(TargetQueue->Count()) Queue(s) : @(TargetQueue)" />
 
@@ -312,7 +320,6 @@
     <!-- Upload the Correlation Ids generated to the test drop container for tracking purposes-->
     <PropertyGroup>
       <HelixCorrelationInfoFileName Condition="'$(HelixCorrelationInfoFileName)'==''">Helix-correlation-infos.json</HelixCorrelationInfoFileName>
-      <GeneratedCorrelationIds>@(GeneratedCorrelationId)</GeneratedCorrelationIds>
     </PropertyGroup>
 
     <Message Text="Writing correlation info to: $(HelixLogFolder)$(HelixCorrelationInfoFileName) " />
