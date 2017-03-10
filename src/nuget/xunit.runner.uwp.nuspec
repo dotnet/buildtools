@@ -34,6 +34,8 @@
     <file src="xunit.console.uwp\**\*.*" target="" />
 	
     <file src="xunit.runner.uwp\_._" target="lib\uap10.0" />
+
+    <file src="..\obj\version.txt" target="" />
   </files>
   
 </package>

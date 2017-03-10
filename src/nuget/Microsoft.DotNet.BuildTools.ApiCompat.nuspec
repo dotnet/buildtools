@@ -23,5 +23,7 @@
     <file src="ApiCompat.Desktop\ApiCompat.exe" target="tools" />
     <file src="ApiCompat.Desktop\ApiCompat.exe.config" target="tools" />
     <file src="ApiCompat.Desktop\*.dll" target="tools" />
+
+    <file src="..\obj\version.txt" target="" />
   </files>  
 </package>

@@ -43,5 +43,7 @@
   <files>
     <file src="BclRewriter\Microsoft.Cci.dll" target="lib\netstandard13" />
     <file src="Microsoft.Cci.Extensions\Microsoft.Cci.Extensions.dll" target="lib\netstandard13" />
+
+    <file src="..\obj\version.txt" target="" />
   </files>
 </package>

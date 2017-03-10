@@ -25,6 +25,8 @@
     <file src="GenAPI.Desktop\*.dll" target="tools" />
 
     <file src="GenAPI.Desktop\Microsoft.DotNet.BuildTools.GenAPI.targets" target="build" />
+
+    <file src="..\obj\version.txt" target="" />
   </files>
   
 </package>
