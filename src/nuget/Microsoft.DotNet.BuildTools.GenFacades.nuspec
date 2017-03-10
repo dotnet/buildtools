@@ -21,5 +21,7 @@
   </metadata>
   <files>
     <file src="GenFacades.Console.net46\*.*" target="tools" />
+
+    <file src="..\obj\version.txt" target="" />
   </files>  
 </package>

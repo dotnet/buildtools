@@ -52,5 +52,7 @@
     <file src="Microsoft.DotNet.Build.Tasks.Packaging.Desktop\NuGet.*.dll" target="lib\net46" />
     <file src="Microsoft.DotNet.VersionTools\Microsoft.DotNet.VersionTools.dll" target="lib" />
     <file src="Microsoft.DotNet.VersionTools.net45\Microsoft.DotNet.VersionTools.dll" target="lib\net46" />
+
+    <file src="..\obj\version.txt" target="" />
   </files>
 </package>

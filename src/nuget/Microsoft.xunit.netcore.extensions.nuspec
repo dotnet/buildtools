@@ -39,5 +39,7 @@
   </metadata>
   <files>
     <file src="xunit.netcore.extensions\xunit.netcore.extensions.dll" target="lib/netstandard1.0" />
+
+    <file src="..\obj\version.txt" target="" />
   </files>
 </package>

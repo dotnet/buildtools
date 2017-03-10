@@ -29,5 +29,7 @@
     <file src="RepoUtil.Desktop\RepoUtil.exe" target="tools\net46" />
     <file src="RepoUtil.Desktop\RepoUtil.exe.config" target="tools\net46" />
     <file src="RepoUtil.Desktop\*.dll" target="tools\net46" />
+
+    <file src="..\obj\version.txt" target="" />
   </files>
 </package>

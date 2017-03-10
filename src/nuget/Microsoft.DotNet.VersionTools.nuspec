@@ -26,6 +26,8 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="Microsoft.DotNet.VersionTools\Microsoft.DotNet.VersionTools.dll" target="lib\netstandard1.5" />  
+    <file src="Microsoft.DotNet.VersionTools\Microsoft.DotNet.VersionTools.dll" target="lib\netstandard1.5" />
+
+    <file src="..\obj\version.txt" target="" />
   </files>
 </package>

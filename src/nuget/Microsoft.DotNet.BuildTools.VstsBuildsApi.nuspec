@@ -24,5 +24,7 @@
   <files>
     <file src="Microsoft.DotNet.Build.VstsBuildsApi\*.dll" target="lib\netstandard1.5" />
     <file src="Microsoft.DotNet.Build.VstsBuildsApi.net45\*.dll" target="lib\net45" />
+
+    <file src="..\obj\version.txt" target="" />
   </files>
 </package>
