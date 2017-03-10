@@ -46,6 +46,7 @@
        CloudResultsWriteTokenValidDays - Days that result URLs produced will be writeable     Default: 4
        SupplementalPayloadDir - Temp (deletable) dir for assembling supplemental payloads     Default: Random folder in %TEMP%
        HelixLogFolder    - Folder for storing JSON files describing job start and other info  Default: <Blank>
+       HelixCorrelationInfoFileName - JSON file containing info on started jobs               Default: Helix-correlation-infos.json
        
        **********************************************************************************************************************************
        Required ITaskItems:
@@ -111,9 +112,17 @@
       <RunnerScripts Include="$(ToolsDir)RunnerScripts/**/*.txt" />
     </ItemGroup>
 
-    <!-- Split up Target Queues list -->
+    <!-- Split up Target Queues list 
+         In order to support both commas and semicolons, I do a little hoop-jumping to do a replace first
+         Note that queues will never have ',' or ';' in their name, and this greatly simplifies providing a queue list in *nix.
+    --> 
+    <PropertyGroup>
+      <ProcessedTargetQueues>$([System.String]::Copy('$(TargetQueues)').Replace(',',';'))</ProcessedTargetQueues>
+    </PropertyGroup>
+    
     <ItemGroup>
-      <TargetQueue Include="$(TargetQueues)" />
+      <!-- This Split() is needed since the semicolon in ProcessedTargetQueues is now a literal -->
+      <TargetQueue Include="$(ProcessedTargetQueues.Split(';'))" />
     </ItemGroup>
     <Message Text="Will Enqueue to @(TargetQueue->Count()) Queue(s) : @(TargetQueue)" />
 
@@ -246,9 +255,9 @@
       <Output TaskParameter="ProcessedItems" ItemName="HelixProcessedWorkItemForList"/>
     </RemoveItemMetadata>
 
-    <WriteItemsToJson JsonFileName="$(TestListFilename)" Items="@(HelixProcessedWorkItemForList)" ForceJsonArray="true" />
+    <WriteItemsToJson JsonFileName="$(HelixLogFolder)$(TestListFilename)" Items="@(HelixProcessedWorkItemForList)" ForceJsonArray="true" />
     <ItemGroup>
-      <HelixWorkItemList Include="$(TestListFilename)">
+      <HelixWorkItemList Include="$(HelixLogFolder)$(TestListFilename)">
         <RelativeBlobPath>$(TestListFilename)</RelativeBlobPath>
         <BuildCompleteJson>$(HelixLogFolder)BuildComplete.json</BuildCompleteJson>
         <OfficialBuildJson>$(HelixLogFolder)OfficialBuild.json</OfficialBuildJson>
@@ -310,15 +319,14 @@
 
     <!-- Upload the Correlation Ids generated to the test drop container for tracking purposes-->
     <PropertyGroup>
-      <CorrelationFileName>Helix-correlation-infos.json</CorrelationFileName>
-      <GeneratedCorrelationIds>@(GeneratedCorrelationId)</GeneratedCorrelationIds>
+      <HelixCorrelationInfoFileName Condition="'$(HelixCorrelationInfoFileName)'==''">Helix-correlation-infos.json</HelixCorrelationInfoFileName>
     </PropertyGroup>
 
-    <Message Text="Writing correlation info to: $(HelixLogFolder)$(CorrelationFileName) " />
-    <WriteItemsToJson JsonFileName="$(HelixLogFolder)$(CorrelationFileName)" Items="@(GeneratedCorrelationId)" ForceJsonArray="true" />
+    <Message Text="Writing correlation info to: $(HelixLogFolder)$(HelixCorrelationInfoFileName) " />
+    <WriteItemsToJson JsonFileName="$(HelixLogFolder)$(HelixCorrelationInfoFileName)" Items="@(GeneratedCorrelationId)" ForceJsonArray="true" />
     <ItemGroup>
-      <CorrelationFile Include="$(HelixLogFolder)$(CorrelationFileName)">
-        <RelativeBlobPath>Tracking/$(CorrelationFileName)</RelativeBlobPath>
+      <CorrelationFile Include="$(HelixLogFolder)$(HelixCorrelationInfoFileName)">
+        <RelativeBlobPath>Tracking/$(HelixCorrelationInfoFileName)</RelativeBlobPath>
       </CorrelationFile>
     </ItemGroup>
 
