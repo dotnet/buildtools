@@ -26,22 +26,34 @@ namespace Microsoft.Cci.Writers.CSharp
 
             if (type.IsStruct && type.Layout != LayoutKind.Auto)
             {
-                // What about the Pack, and CharSet properties?
                 string structLayout = "System.Runtime.InteropServices.StructLayoutAttribute";
                 string layoutKind = string.Format("System.Runtime.InteropServices.LayoutKind.{0}", type.Layout.ToString());
 
                 if (_forCompilationIncludeGlobalprefix)
                     layoutKind = "global::" + layoutKind;
 
+                var args = new List<string>();
+                args.Add(layoutKind);
+
                 if (type.SizeOf != 0)
                 {
                     string sizeOf = string.Format("Size={0}", type.SizeOf);
-                    WriteFakeAttribute(structLayout, layoutKind, sizeOf);
+                    args.Add(sizeOf);
                 }
-                else
+
+                if (type.Alignment != 0)
                 {
-                    WriteFakeAttribute(structLayout, layoutKind);
+                    string pack = string.Format("Pack={0}", type.Alignment);
+                    args.Add(pack);
                 }
+
+                if (type.StringFormat != StringFormatKind.Ansi)
+                {
+                    string charset = string.Format("CharSet={0}System.Runtime.InteropServices.CharSet.{1}", _forCompilationIncludeGlobalprefix ? "global::" : "", type.StringFormat);
+                    args.Add(charset);
+                }
+
+                WriteFakeAttribute(structLayout, args.ToArray());
             }
 
             WriteVisibility(TypeHelper.TypeVisibilityAsTypeMemberVisibility(type));
