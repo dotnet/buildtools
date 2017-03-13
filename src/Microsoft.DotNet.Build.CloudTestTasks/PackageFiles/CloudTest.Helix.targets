@@ -102,7 +102,7 @@
     <Error Condition="'$(CloudDropConnectionString)' == ''"                            Text="Missing required property CloudDropConnectionString." />
     <Error Condition="'$(CloudResultsConnectionString)' == ''"                         Text="Missing required property CloudResultsConnectionString." />
     <Error Condition="'$(SkipSendToHelix)' != 'true' and '$(HelixApiAccessKey)' == ''" Text="HelixApiAccessKey must be set to start Helix jobs" />
-    <Error Condition="'$(HelixJobProperties)' == '' and ('$(HelixArchLabel)'=='' or '$(HelixConfigLabel)'=='')"
+    <Error Condition="'$(HelixJobProperties)' == '' and ('$(HelixArchLabel)' == '' or '$(HelixConfigLabel)' == '')"
                                                                                        Text="HelixJobProperties (JSON), or HelixArchLabel and HelixConfigLabel (string) must be set to start Helix jobs" />
   </Target>
 
