@@ -47,6 +47,9 @@
        SupplementalPayloadDir - Temp (deletable) dir for assembling supplemental payloads     Default: Random folder in %TEMP%
        HelixLogFolder    - Folder for storing JSON files describing job start and other info  Default: <Blank>
        HelixCorrelationInfoFileName - JSON file containing info on started jobs               Default: Helix-correlation-infos.json
+       HelixJobProperties- Must be JSON.  String describing Helix MC-specific metadata.       Default: <Blank>
+       HelixArchLabel    - If HelixJobProperties is not set, we'll use this to fill it out    Default: <Blank>
+       HelixConfigLabel  - If HelixJobProperties is not set, we'll use this to fill it out    Default: <Blank>
        
        **********************************************************************************************************************************
        Required ITaskItems:
@@ -99,7 +102,8 @@
     <Error Condition="'$(CloudDropConnectionString)' == ''"                            Text="Missing required property CloudDropConnectionString." />
     <Error Condition="'$(CloudResultsConnectionString)' == ''"                         Text="Missing required property CloudResultsConnectionString." />
     <Error Condition="'$(SkipSendToHelix)' != 'true' and '$(HelixApiAccessKey)' == ''" Text="HelixApiAccessKey must be set to start Helix jobs" />
-    <Error Condition="'$(HelixJobProperties)' == ''"                                   Text="HelixJobProperties must be set to start Helix jobs" />
+    <Error Condition="'$(HelixJobProperties)' == '' and ('$(HelixArchLabel)'=='' or '$(HelixConfigLabel)'=='')"
+                                                                                       Text="HelixJobProperties (JSON), or HelixArchLabel and HelixConfigLabel (string) must be set to start Helix jobs" />
   </Target>
 
   <!-- Provided as an extensibility point for targets to run before the real work begins -->
@@ -115,11 +119,11 @@
     <!-- Split up Target Queues list 
          In order to support both commas and semicolons, I do a little hoop-jumping to do a replace first
          Note that queues will never have ',' or ';' in their name, and this greatly simplifies providing a queue list in *nix.
-    --> 
+    -->
     <PropertyGroup>
       <ProcessedTargetQueues>$([System.String]::Copy('$(TargetQueues)').Replace(',',';'))</ProcessedTargetQueues>
     </PropertyGroup>
-    
+
     <ItemGroup>
       <!-- This Split() is needed since the semicolon in ProcessedTargetQueues is now a literal -->
       <TargetQueue Include="$(ProcessedTargetQueues.Split(';'))" />
@@ -282,6 +286,18 @@
       <Output TaskParameter="Include" ItemName="BuildCompleteTemplateV2" />
     </CreateItem>
 
+    <!-- If the user didn't provide HelixJobProperties, generate them from HelixArchLabel, HelixConfigLabel, and QueueId -->
+    <ItemGroup Condition="'$(HelixJobProperties)' == ''">
+      <BuildCompleteTemplateV2>
+        <Properties>{ &quot;architecture&quot; : &quot;$(HelixArchLabel)&quot;, &quot;configuration&quot;: &quot;$(HelixConfigLabel)&quot;, &quot;operatingSystem&quot; : &quot;%(QueueId)&quot; }</Properties>
+      </BuildCompleteTemplateV2>
+    </ItemGroup>
+    <ItemGroup Condition="'$(HelixJobProperties)' != ''">
+      <BuildCompleteTemplateV2>
+        <Properties>$(HelixJobProperties)</Properties>
+      </BuildCompleteTemplateV2>
+    </ItemGroup>
+
     <ItemGroup>
       <!-- V1 is long since deprecated, and not supported here.  
            Keeping the name for clarity.                       -->
@@ -293,7 +309,6 @@
         <Build>$(BuildMoniker)</Build>
         <Type>$(HelixJobType)</Type>
         <Source>$(HelixSource)</Source>
-        <Properties>$(HelixJobProperties)</Properties>
       </BuildCompleteTemplateV2>
       <BuildComplete Include="@(BuildCompleteTemplateV2)"/>
     </ItemGroup>
