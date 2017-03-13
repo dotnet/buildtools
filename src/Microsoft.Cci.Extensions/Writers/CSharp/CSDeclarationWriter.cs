@@ -186,6 +186,15 @@ namespace Microsoft.Cci.Writers.CSharp
             }
         }
 
+        private void WriteCustomModifiers(IEnumerable<ICustomModifier> modifiers)
+        {
+            foreach (ICustomModifier modifier in modifiers)
+            {
+                if (modifier.Modifier.FullName() == "System.Runtime.CompilerServices.IsVolatile")
+                    WriteKeyword("volatile");
+            }
+        }
+
         // Writer Helpers these are the only methods that should directly acess _writer
         private void WriteKeyword(string keyword, bool noSpace = false)
         {
