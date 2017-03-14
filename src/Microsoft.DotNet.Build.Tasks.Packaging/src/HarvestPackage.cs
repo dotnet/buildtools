@@ -287,10 +287,24 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 return;
             }
 
-            var livePackageFiles = Files.NullAsEmpty()
+            var livePackageItems = Files.NullAsEmpty()
                 .Where(f => IsIncludedExtension(f.GetMetadata("Extension")))
-                .Select(f => new PackageItem(f))
-                .ToDictionary(p => p.TargetPath, StringComparer.OrdinalIgnoreCase);
+                .Select(f => new PackageItem(f));
+
+            var livePackageFiles = new Dictionary<string, PackageItem>(StringComparer.OrdinalIgnoreCase);
+            foreach (var livePackageItem in livePackageItems)
+            {
+                PackageItem existingitem;
+
+                if (livePackageFiles.TryGetValue(livePackageItem.TargetPath, out existingitem))
+                {
+                    Log.LogError($"Package contains two files with same targetpath: {livePackageItem.TargetPath}, items:{livePackageItem.SourcePath}, {existingitem.SourcePath}.");
+                }
+                else
+                {
+                    livePackageFiles.Add(livePackageItem.TargetPath, livePackageItem);
+                }
+            }
 
             var harvestedFiles = new List<ITaskItem>();
             var removeFiles = new List<ITaskItem>();
