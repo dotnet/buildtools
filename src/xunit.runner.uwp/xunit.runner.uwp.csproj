@@ -17,9 +17,10 @@
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <PackageCertificateKeyFile>XunitUwpRunner_TemporaryKey.pfx</PackageCertificateKeyFile>
+    <PackageCertificateKeyFile>xunit.runner.uwp_TemporaryKey.pfx</PackageCertificateKeyFile>
     <CLSCompliant>False</CLSCompliant>
     <AppxPackageDir>$(BinDir)\AppPackages</AppxPackageDir>
+    <PackageCertificateThumbprint>1E16856F8AC4F4CCBE34ED7FFB935341FF0D4FC6</PackageCertificateThumbprint>
   </PropertyGroup>
   <ItemGroup>
     <None Include="project.json" />
@@ -49,7 +50,7 @@
     <AppxManifest Include="Package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
-    <None Include="XunitUwpRunner_TemporaryKey.pfx" />
+    <None Include="xunit.runner.uwp_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Properties\Default.rd.xml" />
