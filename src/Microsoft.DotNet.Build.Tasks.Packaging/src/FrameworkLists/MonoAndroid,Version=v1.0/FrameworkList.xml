@@ -111,6 +111,7 @@
 <File AssemblyName="System.Threading.Thread" />
 <File AssemblyName="System.Threading.ThreadPool" />
 <File AssemblyName="System.Threading.Timer" />
+<File AssemblyName="System.ValueTuple" />
 <File AssemblyName="System.Xml.ReaderWriter" />
 <File AssemblyName="System.Xml.XDocument" />
 <File AssemblyName="System.Xml.XmlDocument" />
