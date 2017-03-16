@@ -4,8 +4,11 @@
     <RoslynVersion>2.0.0-rc</RoslynVersion>
     <RoslynPackageName>Microsoft.Net.Compilers</RoslynPackageName>
     <RoslynTargetsPath>$(ToolRuntimePath)</RoslynTargetsPath>
-    <CSharpCoreTargetsPath Condition="'$(CSharpCoreTargetsPath)' == ''">$(RoslynTargetsPath)$(RoslynPackageName)\$(RoslynVersion)\tools\Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
-    <VisualBasicCoreTargetsPath Condition="'$(VisualBasicCoreTargetsPath)' == ''">$(RoslynTargetsPath)$(RoslynPackageName)\$(RoslynVersion)\tools\Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+    <!-- $(BuildToolsTaskDir)/roslyn contains the contents of the Microsoft.Net.Compilers package which is restored on Windows only -->
+    <CSharpCoreTargetsPath Condition="'$(CSharpCoreTargetsPath)' == ''">$(BuildToolsTaskDir)/roslyn/tools/Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
+    <VisualBasicCoreTargetsPath Condition="'$(VisualBasicCoreTargetsPath)' == ''">$(BuildToolsTaskDir)/roslyn/tools/Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>
   </PropertyGroup>
 
   <PropertyGroup>
