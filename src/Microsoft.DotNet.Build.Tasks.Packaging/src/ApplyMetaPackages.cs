@@ -5,6 +5,7 @@
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using NuGet.Frameworks;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -30,17 +31,39 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// Package index files used to meta-package mappings
         /// </summary>
         public ITaskItem[] PackageIndexes { get; set; }
+
+        /// <summary>
+        /// List of package IDs which should be suppressed from remapping
+        /// </summary>
+        public string[] SuppressMetaPackages { get; set; }
+
+        /// <summary>
+        /// Set to true to apply the meta-package remapping
+        /// </summary>
+        public bool Apply { get; set; }
         
         [Output]
         public ITaskItem[] UpdatedDependencies { get; set; }
         
         public override bool Execute()
         {
+            if (!Apply)
+            {
+                UpdatedDependencies = OriginalDependencies;
+                return true;
+            }
+
             var index = PackageIndex.Load(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
             List<ITaskItem> updatedDependencies = new List<ITaskItem>();
 
+            var suppressMetaPackages = new HashSet<string>(SuppressMetaPackages.NullAsEmpty(), StringComparer.OrdinalIgnoreCase);
+
             // We cannot add a dependency to a meta-package from a package that itself is part of the meta-package otherwise we create a cycle
             var metaPackageThisPackageIsIn = index.MetaPackages.GetMetaPackageId(PackageId);
+            if (metaPackageThisPackageIsIn != null)
+            {
+                suppressMetaPackages.Add(metaPackageThisPackageIsIn);
+            }
 
             // keep track of meta-package dependencies to add by framework so that we only add them once per framework.
             Dictionary<string, HashSet<NuGetFramework>> metaPackagesToAdd = new Dictionary<string, HashSet<NuGetFramework>>();
@@ -49,7 +72,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             {
                 var metaPackage = index.MetaPackages.GetMetaPackageId(originalDependency.ItemSpec);
 
-                if (metaPackage != null && metaPackageThisPackageIsIn != metaPackage)
+                if (metaPackage != null && !suppressMetaPackages.Contains(metaPackage))
                 {
                     // convert to meta-package dependency
                     var tfm = originalDependency.GetMetadata("TargetFramework");
