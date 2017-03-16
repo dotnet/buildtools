@@ -51,7 +51,9 @@
 
     <!-- Workaround to bring the whole Test ILC folder if required  -->
     <TestILCVersion>1.4.24208-prerelease</TestILCVersion>
+      
     <TestILCFolder>$(PackagesDir)Microsoft.DotNet.TestILC\$(TestILCVersion)\contentFiles\any\any\TestILC</TestILCFolder>
+    <TestILCFolder Condition="'$(CustomTestILCFolder)' != ''">$(CustomTestILCFolder)</TestILCFolder>
 
     <TestILCZipFileName>TestILC.zip</TestILCZipFileName>
     <TestILCZipFile>$(ArchivesRoot)$(TestILCZipFileName)</TestILCZipFile>

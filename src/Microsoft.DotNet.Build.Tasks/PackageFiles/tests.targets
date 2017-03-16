@@ -49,6 +49,8 @@
     <TestILCFolder Condition="'$(EnableCloudTest)' != 'true'">%PACKAGE_DIR%\Microsoft.DotNet.TestILC\$(TestILCVersion)\contentFiles\any\any\TestILC</TestILCFolder>
     <!-- CloudTest.targets will zip up the TestILC folder from within the package path above to this folder.-->
     <TestILCFolder Condition="'$(EnableCloudTest)' == 'true'">%PACKAGE_DIR%\TestILC</TestILCFolder>
+    <TestILCFolder Condition="'$(EnableCloudTest)' != 'true' AND '$(CustomTestILCFolder)' != ''">$(CustomTestILCFolder)</TestILCFolder>
+  
     <TestHostExecutable></TestHostExecutable>
     <XunitExecutable>xunit.console.netcore.exe</XunitExecutable>
   </PropertyGroup>
