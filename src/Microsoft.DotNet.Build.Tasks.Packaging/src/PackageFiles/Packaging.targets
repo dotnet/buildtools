@@ -23,6 +23,7 @@
     <ProjectProperties></ProjectProperties>
 
     <BaseLinePackageDependencies Condition="'$(BaseLinePackageDependencies)' == ''">true</BaseLinePackageDependencies>
+    <ApplyMetaPackages Condition="'$(ApplyMetaPackages)' == ''">true</ApplyMetaPackages>
 
     <!-- By default we'll build libraries referenced by packages -->
     <BuildPackageLibraryReferences Condition="'$(BuildPackageLibraryReferences)' == ''">true</BuildPackageLibraryReferences>
@@ -717,7 +718,8 @@
     <ApplyMetaPackages PackageId="$(Id)"
                        OriginalDependencies="@(FilePackageDependency)"
                        PackageIndexes="@(PackageIndex)"
-                       Condition="'$(SkipApplyMetaPackages)' != 'true'">
+                       SuppressMetaPackages="@(SuppressMetaPackage)"
+                       Apply="$(ApplyMetaPackages)">
       <Output TaskParameter="UpdatedDependencies" ItemName="_ConsolidatedDependencies" />
     </ApplyMetaPackages>
 
