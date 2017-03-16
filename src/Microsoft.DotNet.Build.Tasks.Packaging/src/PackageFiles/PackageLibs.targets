@@ -5,7 +5,7 @@
   <Target Name="UpdatePkgProjProjectReferences" BeforeTargets="AssignProjectConfiguration">
     <!-- Update PkgProj references to call the GetPackageAssets target -->
     <ItemGroup>
-      <ProjectReference Condition="'%(Extension)'=='.pkgproj'">
+      <ProjectReference Condition="'%(ProjectReference.Extension)'=='.pkgproj'">
         <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
         <Targets>GetPackageAssets</Targets>
         <OutputItemType>PkgProjAsset</OutputItemType>
