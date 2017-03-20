@@ -666,8 +666,15 @@ namespace GenFacades
                 // Add reference to seed core assembly up-front so that we keep the same order as the C# compiler.
                 assembly.AssemblyReferences.Add(_seedCoreAssemblyReference);
 
-                // Remove all type definitions except for the "<Module>" type.
-                assembly.AllTypes.RemoveAll(t => t.Name.Value != "<Module>");
+                // Remove all type definitions except for the "<Module>" type. Remove all fields and methods from it.
+                NamespaceTypeDefinition moduleType = assembly.AllTypes.SingleOrDefault(t => t.Name.Value == "<Module>") as NamespaceTypeDefinition;
+                assembly.AllTypes.Clear();
+                if (moduleType != null)
+                {
+                    moduleType.Fields?.Clear();
+                    moduleType.Methods?.Clear();
+                    assembly.AllTypes.Add(moduleType);
+                }
 
                 // Remove any preexisting typeforwards.
                 assembly.ExportedTypes = new List<IAliasForType>();
