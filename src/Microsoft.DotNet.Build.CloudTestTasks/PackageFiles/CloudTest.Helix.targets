@@ -117,11 +117,12 @@
     </ItemGroup>
 
     <!-- Split up Target Queues list 
-         In order to support both commas and semicolons, I do a little hoop-jumping to do a replace first
-         Note that queues will never have ',' or ';' in their name, and this greatly simplifies providing a queue list in *nix.
+         In order to support all delimiters (commas, plus and semicolons), I do a little hoop-jumping to do a replace first
+         Note that queues will never have ',', '+' or ';' in their name, and this greatly simplifies providing a queue list in *nix.
     -->
     <PropertyGroup>
       <ProcessedTargetQueues>$([System.String]::Copy('$(TargetQueues)').Replace(',',';'))</ProcessedTargetQueues>
+      <ProcessedTargetQueues>$([System.String]::Copy('$(TargetQueues)').Replace('+',';'))</ProcessedTargetQueues>	  
     </PropertyGroup>
 
     <ItemGroup>
