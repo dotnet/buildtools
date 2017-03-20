@@ -667,12 +667,13 @@ namespace GenFacades
                 assembly.AssemblyReferences.Add(_seedCoreAssemblyReference);
 
                 // Remove all type definitions except for the "<Module>" type. Remove all fields and methods from it.
-                assembly.AllTypes.RemoveAll(t => t.Name.Value != "<Module>");
                 NamespaceTypeDefinition moduleType = assembly.AllTypes.SingleOrDefault(t => t.Name.Value == "<Module>") as NamespaceTypeDefinition;
+                assembly.AllTypes.Clear();
                 if (moduleType != null)
                 {
                     moduleType.Fields?.Clear();
                     moduleType.Methods?.Clear();
+                    assembly.AllTypes.Add(moduleType);
                 }
 
                 // Remove any preexisting typeforwards.
