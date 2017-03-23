@@ -121,8 +121,7 @@
          Note that queues will never have ',', '+' or ';' in their name, and this greatly simplifies providing a queue list in *nix.
     -->
     <PropertyGroup>
-      <ProcessedTargetQueues>$([System.String]::Copy('$(TargetQueues)').Replace(',',';'))</ProcessedTargetQueues>
-      <ProcessedTargetQueues>$([System.String]::Copy('$(TargetQueues)').Replace('+',';'))</ProcessedTargetQueues>	  
+      <ProcessedTargetQueues>$([System.String]::Copy('$(TargetQueues)').Replace(',',';').Replace('+',';'))</ProcessedTargetQueues>  
     </PropertyGroup>
 
     <ItemGroup>
