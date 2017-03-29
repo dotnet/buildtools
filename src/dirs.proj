@@ -2,7 +2,12 @@
   <Import Project="dir.props" />
 
   <ItemGroup>
-    <Project Include="*\**\*.csproj" />
+    <!-- Exclude the UAP runner from the build as it depends on Win10 SDKs -->
+    <ProjectsToExclude Include="xunit.runner.uap\XUnit.Runner.Uap.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Project Include="*\**\*.csproj" Exclude="@(ProjectsToExclude)" />
     <Project Include="*\**\*.depproj" />
   </ItemGroup>
 
