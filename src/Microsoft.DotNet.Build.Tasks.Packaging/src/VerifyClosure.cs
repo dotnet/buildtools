@@ -8,6 +8,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
@@ -30,9 +31,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// </summary>
         public ITaskItem[] IgnoredReferences { get; set; }
 
-
         public bool CheckModuleReferences { get; set; }
 
+        public string DependencyGraphFilePath { get; set; }
 
         private Dictionary<string, AssemblyInfo> assemblies = new Dictionary<string, AssemblyInfo>();
         private HashSet<string> otherFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -57,6 +58,11 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             foreach(var assembly in assemblies.Values)
             {
                 DumpCycles(assembly);
+            }
+
+            if (!String.IsNullOrEmpty(DependencyGraphFilePath))
+            {
+                WriteDependencyGraph(DependencyGraphFilePath, assemblies.Values);
             }
 
             return !Log.HasLoggedErrors;
@@ -315,6 +321,72 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
 
             return builder.ToString();
+        }
+
+        private static XNamespace s_dgmlns = @"http://schemas.microsoft.com/vs/2009/dgml";
+        private static void WriteDependencyGraph(string dependencyGraphFilePath, IEnumerable<AssemblyInfo> assemblies)
+        {
+
+            var doc = new XDocument(new XElement(s_dgmlns + "DirectedGraph"));
+            var nodesElement = new XElement(s_dgmlns + "Nodes");
+            var linksElement = new XElement(s_dgmlns + "Links");
+            doc.Root.Add(nodesElement);
+            doc.Root.Add(linksElement);
+
+            var nodeIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach(var assembly in assemblies)
+            {
+                TryAddNode(nodeIds, nodesElement, assembly.Name);
+
+                foreach (var reference in assembly.References)
+                {
+                    linksElement.Add(new XElement(s_dgmlns + "Link",
+                        new XAttribute("Source", assembly.Name),
+                        new XAttribute("Target", reference.Name)));
+
+                    TryAddNode(nodeIds, nodesElement, reference.Name);
+                }
+
+                foreach (var moduleReference in assembly.ModuleReferences)
+                {
+                    linksElement.Add(new XElement(s_dgmlns + "Link",
+                        new XAttribute("Source", assembly.Name),
+                        new XAttribute("Target", moduleReference)));
+
+                    TryAddNode(nodeIds, nodesElement, moduleReference, isNative: true);
+                }
+            }
+
+            var categoriesElement = new XElement(s_dgmlns + "Categories");
+            doc.Root.Add(categoriesElement);
+
+            categoriesElement.Add(new XElement(s_dgmlns + "Category",
+                new XAttribute("Id", "native"),
+                new XAttribute("Background", "Blue")
+                ));
+
+            categoriesElement.Add(new XElement(s_dgmlns + "Category",
+                new XAttribute("Id", "managed"),
+                new XAttribute("Background", "Green")
+                ));
+
+            using (var file = File.Create(dependencyGraphFilePath))
+            {
+                doc.Save(file);
+            }
+        }
+
+        private static bool TryAddNode(ICollection<string> existing, XElement parent, string id, bool isNative = false)
+        {
+            if (!existing.Contains(id))
+            {
+                parent.Add(new XElement(s_dgmlns + "Node",
+                        new XAttribute("Id", id),
+                        new XAttribute("Category", isNative ? "native": "managed")));
+                return true;
+            }
+            return false;
         }
 
         class AssemblyInfo
