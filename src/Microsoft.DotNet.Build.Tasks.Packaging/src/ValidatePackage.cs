@@ -702,45 +702,30 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             // determine which Frameworks should support inbox
             _index = PackageIndex.Load(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
-            foreach (var inboxPair in _index.GetInboxVersions(ContractName).NullAsEmpty())
+
+            PackageInfo packageInfo;
+            if (_index.Packages.TryGetValue(ContractName, out packageInfo))
             {
-                var fx = inboxPair.Key;
-                var inboxVersion = inboxPair.Value;
-
-                if (inboxVersion != null)
+                foreach (var inboxPair in packageInfo.InboxOn.GetInboxVersions())
                 {
-                    ValidationFramework validationFramework = null;
-                    if (_frameworks.TryGetValue(fx, out validationFramework))
+                    if (!_frameworks.ContainsKey(inboxPair.Key))
                     {
-                        Version supportedVersion = validationFramework.SupportedVersion;
-
-                        if (supportedVersion != null &&
-                            (supportedVersion.Major > inboxVersion.Major ||
-                            (supportedVersion.Major == inboxVersion.Major && supportedVersion.Minor > inboxVersion.Minor)))
+                        _frameworks[inboxPair.Key] = new ValidationFramework(inboxPair.Key)
                         {
-                            // Higher major.minor
-                            Log.LogMessage(LogImportance.Low, $"Framework {fx} supported {ContractName} as inbox but the current supported version {supportedVersion} is higher in major.minor than inbox version {inboxVersion}.  Assuming out of box.");
-                            continue;
-                        }
-                        else if (supportedVersion != null && supportedVersion < inboxVersion && inboxVersion != VersionUtility.MaxVersion)
-                        {
-                            // Lower version
-                            Log.LogError($"Framework {fx} supports {ContractName} as inbox but the current supported version {supportedVersion} is lower than the inbox version {inboxVersion}");
-                        }
-
-                        // equal major.minor, build.revision difference is permitted, prefer the version listed by ContractSupport item
-                    }
-
-                    if (validationFramework == null)
-                    {
-                        // we may not be explicitly validating for this framework so add it to validate inbox assets.
-                        _frameworks[fx] = validationFramework = new ValidationFramework(fx)
-                        {
-                            SupportedVersion = inboxVersion
+                            SupportedVersion = inboxPair.Value,
+                            IsInbox = true
                         };
                     }
+                }
 
-                    validationFramework.IsInbox = true;
+                foreach (var validationFramework in _frameworks.Values)
+                {
+                    if (packageInfo.InboxOn.IsInbox(validationFramework.Framework, 
+                                                    validationFramework.SupportedVersion, 
+                                                    permitRevisions: HasSuppression(Suppression.PermitInboxRevsion)))
+                    {
+                        validationFramework.IsInbox = true;
+                    }
                 }
             }
 
@@ -822,6 +807,10 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// Permits a runtime asset of the targets specified, semicolon delimited
         /// </summary>
         PermitImplementation,
+        /// <summary>
+        /// Permits a higher revision/build to still be considered as a match for an inbox assembly
+        /// </summary>
+        PermitInboxRevsion,
         /// <summary>
         /// Permits a lower version on specified frameworks, semicolon delimitied, than the generation supported by that framework
         /// </summary>
