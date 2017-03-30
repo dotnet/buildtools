@@ -6,7 +6,9 @@ using Xunit.Abstractions;
 
 namespace Xunit.ConsoleClient
 {
+#pragma warning disable CS0618 // Type or member is obsolete
     public class StandardOutputVisitor : XmlTestExecutionVisitor
+#pragma warning restore CS0618 // Type or member is obsolete
     {
         string assemblyFileName;
         readonly object consoleLock;

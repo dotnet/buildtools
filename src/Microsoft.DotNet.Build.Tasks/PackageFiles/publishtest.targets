@@ -38,11 +38,11 @@
     </PrereleaseResolveNuGetPackageAssets>
 
     <ItemGroup Condition="'$(TestWithCore)' != 'true'">
-      <_TestCopyLocalXunitFiles Include="$(PackagesDir)xunit.runner.console\2.2.0-beta2-build3300\tools\*.exe" />
-      <_TestCopyLocalXunitFiles Include="$(PackagesDir)xunit.runner.console\2.2.0-beta2-build3300\tools\*.dll" />
+      <_TestCopyLocalXunitFiles Include="$(PackagesDir)xunit.runner.console\2.2.0-beta4-build3444\tools\*.exe" />
+      <_TestCopyLocalXunitFiles Include="$(PackagesDir)xunit.runner.console\2.2.0-beta4-build3444\tools\*.dll" />
       <TestCopyLocal Include="@(_TestCopyLocalXunitFiles)" >
         <NuGetPackageId>%(FileName)</NuGetPackageId>
-        <NuGetPackageVersion>2.2.0-beta2-build3300</NuGetPackageVersion>
+        <NuGetPackageVersion>2.2.0-beta4-build3444</NuGetPackageVersion>
         <Private>false</Private>
       </TestCopyLocal>
     </ItemGroup>

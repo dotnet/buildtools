@@ -35,9 +35,6 @@
     <Compile Include="..\common\ParallelismOption.cs">
       <Link>Common\ParallelismOption.cs</Link>
     </Compile>
-    <Compile Include="..\Common\TestDiscoveryVisitor.cs">
-      <Link>Common\TestDiscoveryVisitor.cs</Link>
-    </Compile>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>

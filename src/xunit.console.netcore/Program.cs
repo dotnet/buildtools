@@ -268,7 +268,9 @@ namespace Xunit.ConsoleClient
             return failed ? 1 : completionMessages.Values.Sum(summary => summary.Failed);
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         static XmlTestExecutionVisitor CreateVisitor(object consoleLock, string defaultDirectory, XElement assemblyElement, bool teamCity, bool appVeyor, bool showProgress)
+#pragma warning restore CS0618 // Type or member is obsolete
         {
 #if !NETCORE
             if (teamCity)
@@ -315,7 +317,9 @@ namespace Xunit.ConsoleClient
                 }
 
                 using (var controller = new XunitFrontController(AppDomainSupport.Denied, assembly.AssemblyFilename, assembly.ConfigFilename, assembly.Configuration.ShadowCopyOrDefault))
+#pragma warning disable CS0618 // Type or member is obsolete
                 using (var discoveryVisitor = new TestDiscoveryVisitor())
+#pragma warning restore CS0618 // Type or member is obsolete
                 {
                     controller.Find(includeSourceInformation: false, messageSink: discoveryVisitor, discoveryOptions: discoveryOptions);
                     discoveryVisitor.Finished.WaitOne();
