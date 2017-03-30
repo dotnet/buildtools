@@ -267,18 +267,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             return inboxFrameworks;
         }
-        public IEnumerable<KeyValuePair<NuGetFramework, Version>> GetInboxVersions(string assemblyName)
-        {
-            IEnumerable<KeyValuePair<NuGetFramework, Version>> inboxVersions = null;
-            PackageInfo info;
-
-            if (Packages.TryGetValue(assemblyName, out info))
-            {
-                inboxVersions = info.InboxOn.GetInboxVersions();
-            }
-
-            return inboxVersions;
-        }
 
         public IEnumerable<NuGetFramework> GetInboxFrameworks(string assemblyName, string assemblyVersionString)
         {
@@ -415,10 +403,10 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 PreRelease = other.PreRelease;
             }
 
-            //foreach(var inboxFrameworkAssemblyVersion in other.InboxFrameworkAssemblyVersions)
-            //{
-                
-            //}
+            foreach(var inboxOnPair in other.InboxOn.GetInboxVersions())
+            {
+                InboxOn.AddInboxVersion(inboxOnPair.Key, inboxOnPair.Value);
+            }
 
             foreach (var assemblyVersionInPackage in other.AssemblyVersionInPackageVersion)
             {
@@ -589,7 +577,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
         }
 
-        public bool IsInbox(NuGetFramework framework, Version assemblyVersion)
+        public bool IsInbox(NuGetFramework framework, Version assemblyVersion, bool permitRevisions = false)
         {
             var normalizedFramework = NormalizeFramework(framework);
             var key = GetFrameworkKey(normalizedFramework);
@@ -610,8 +598,15 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     return false;
                 }
 
+                if (assemblyVersionInbox == VersionUtility.MaxVersion)
+                {
+                    return true;
+                }
+
                 // inbox if explict entry is greater than or equal to current
-                return assemblyVersionInbox >= assemblyVersion;
+                return permitRevisions ? 
+                    VersionUtility.IsCompatibleApiVersion(assemblyVersionInbox, assemblyVersion) : 
+                    assemblyVersionInbox >= assemblyVersion;
             }
 
             // find nearest
@@ -622,8 +617,15 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 return false;
             }
 
+            if (compatibleMapping.Value == VersionUtility.MaxVersion)
+            {
+                return true;
+            }
+
             // inbox if compatible entry is greater than or equal to current
-            return compatibleMapping.Value >= assemblyVersion;
+            return permitRevisions ?
+                    VersionUtility.IsCompatibleApiVersion(compatibleMapping.Value, assemblyVersion) :
+                    compatibleMapping.Value >= assemblyVersion;
         }
 
 
