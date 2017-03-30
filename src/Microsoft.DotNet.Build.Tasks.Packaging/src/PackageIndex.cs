@@ -415,10 +415,10 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 PreRelease = other.PreRelease;
             }
 
-            //foreach(var inboxFrameworkAssemblyVersion in other.InboxFrameworkAssemblyVersions)
-            //{
-                
-            //}
+            foreach(var inboxOnPair in other.InboxOn.GetInboxVersions())
+            {
+                InboxOn.AddInboxVersion(inboxOnPair.Key, inboxOnPair.Value);
+            }
 
             foreach (var assemblyVersionInPackage in other.AssemblyVersionInPackageVersion)
             {
