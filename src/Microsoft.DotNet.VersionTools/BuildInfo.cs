@@ -93,7 +93,7 @@ namespace Microsoft.DotNet.VersionTools
                 gitRef.All("0123456789abcdef".Contains);
 
             string cachedPath = useCache
-                ? Path.Combine(cacheDir, gitRef, name, "buildinfo.json")
+                ? Path.Combine(cacheDir, gitRef, buildInfoPath, "buildinfo.json")
                 : null;
 
             if (useCache && File.Exists(cachedPath))
