@@ -29,12 +29,10 @@
 
   <PropertyGroup>
     <TestWithCore Condition="'$(TestWithCore)' == '' And !$(TestTFM.StartsWith('netcoreapp', StringComparison.OrdinalIgnoreCase))">false</TestWithCore>
-    <!-- TestAppX is true only for debug scenario which runs on non-aot runtime ids -->
-    <TestAppX Condition="'$(TestWithCore)' == 'false' And '$(TestTFM)' == 'netcore50' And !$(TestNugetRuntimeId.Contains('aot'))">true</TestAppX>
     <TestWithCore Condition="'$(TestWithCore)' == '' ">true</TestWithCore>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TestWithCore)' == 'true' And '$(TestAppX)' != 'true'">
+  <PropertyGroup Condition="'$(TestWithCore)' == 'true'">
     <TestHostExecutable>CoreRun.exe</TestHostExecutable>
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.netcore.exe</XunitExecutable>
     <DebugEngines>{2E36F1D4-B23C-435D-AB41-18E608940038}</DebugEngines>
@@ -54,7 +52,7 @@
   </PropertyGroup>
 
   <!-- If not Core or AppX or TestILC, test against desktop -->
-  <PropertyGroup Condition="'$(TestWithCore)' != 'true' And '$(TestAppX)' != 'true' and '$(UseDotNetNativeToolchain)' != 'true'">
+  <PropertyGroup Condition="'$(TestWithCore)' != 'true' and '$(UseDotNetNativeToolchain)' != 'true'">
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.exe</XunitExecutable>
     <TestAgainstDesktop>true</TestAgainstDesktop>
   </PropertyGroup>
