@@ -33,7 +33,7 @@
   <Target Name="GetOptionalToolingPaths">
     <PropertyGroup>
       <OptionalToolingDir>$(ToolsDir)optional-tool-runtime\</OptionalToolingDir>
-      <OptionalToolingJsonPath Condition="'$(OptionalToolingProjectJsonPath)' == ''">$(OptionalToolingDir)optional.json</OptionalToolingJsonPath>
+      <OptionalToolingJsonPath Condition="'$(OptionalToolingJsonPath)' == ''">$(OptionalToolingDir)optional.json</OptionalToolingJsonPath>
       <OptionalToolingProjectJsonPath>$(OptionalToolingDir)project.json</OptionalToolingProjectJsonPath>
       <OptionalToolingProjectLockJsonPath>$(OptionalToolingDir)project.lock.json</OptionalToolingProjectLockJsonPath>
     </PropertyGroup>
