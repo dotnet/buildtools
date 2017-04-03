@@ -15,10 +15,10 @@ __PACKAGES_DIR=${4:-$__TOOLRUNTIME_DIR}
 __TOOLS_DIR=$(cd "$(dirname "$0")"; pwd -P)
 __MICROBUILD_VERSION=0.2.0
 __PORTABLETARGETS_VERSION=0.1.1-dev
-if [ -z "$__BUILDTOOLS_USE_CSPROJ" ]; then
-    __MSBUILD_CONTENT_JSON="<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFrameworks>netcoreapp1.0;net46</TargetFrameworks><DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences></PropertyGroup><ItemGroup><PackageReference Include=\"MicroBuild.Core\" Version=\"$__MICROBUILD_VERSION\" /><PackageReference Include=\"Microsoft.Portable.Targets\" Version=\"$__PORTABLETARGETS_VERSION\" /></ItemGroup></Project>"
+if [ -z "${__BUILDTOOLS_USE_CSPROJ:-}" ]; then
+    __MSBUILD_CONTENT="{\"dependencies\": {\"MicroBuild.Core\": \"${__MICROBUILD_VERSION}\", \"Microsoft.Portable.Targets\": \"${__PORTABLETARGETS_VERSION}\"},\"frameworks\": {\"netcoreapp1.0\": {},\"net46\": {}}}"
 else
-    __MSBUILD_CONTENT_JSON="{\"dependencies\": {\"MicroBuild.Core\": \"${__MICROBUILD_VERSION}\", \"Microsoft.Portable.Targets\": \"${__PORTABLETARGETS_VERSION}\"},\"frameworks\": {\"netcoreapp1.0\": {},\"net46\": {}}}"
+    __MSBUILD_CONTENT="<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFrameworks>netcoreapp1.0;net46</TargetFrameworks><DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences></PropertyGroup><ItemGroup><PackageReference Include=\"MicroBuild.Core\" Version=\"$__MICROBUILD_VERSION\" /><PackageReference Include=\"Microsoft.Portable.Targets\" Version=\"$__PORTABLETARGETS_VERSION\" /></ItemGroup></Project>"
 fi
 
 __INIT_TOOLS_RESTORE_ARGS="--source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json ${__INIT_TOOLS_RESTORE_ARGS:-}"
@@ -81,17 +81,17 @@ fi
 
 cp -R $__TOOLS_DIR/* $__TOOLRUNTIME_DIR
 
-if [ -z "$__BUILDTOOLS_USE_CSPROJ" ]; then
-    __TOOLRUNTIME_PROJECTJSON=$__TOOLS_DIR/tool-runtime/tool-runtime.csproj
+if [ -z "${__BUILDTOOLS_USE_CSPROJ:-}" ]; then
+    __TOOLRUNTIME_PROJECT=$__TOOLS_DIR/tool-runtime/project.json
 else
-    __TOOLRUNTIME_PROJECTJSON=$__TOOLS_DIR/tool-runtime/project.json
+    __TOOLRUNTIME_PROJECT=$__TOOLS_DIR/tool-runtime/tool-runtime.csproj
 fi
 
-echo "Running: $__DOTNET_CMD restore \"${__TOOLRUNTIME_PROJECTJSON}\" $__TOOLRUNTIME_RESTORE_ARGS"
-$__DOTNET_CMD restore "${__TOOLRUNTIME_PROJECTJSON}" $__TOOLRUNTIME_RESTORE_ARGS
+echo "Running: $__DOTNET_CMD restore \"${__TOOLRUNTIME_PROJECT}\" $__TOOLRUNTIME_RESTORE_ARGS"
+$__DOTNET_CMD restore "${__TOOLRUNTIME_PROJECT}" $__TOOLRUNTIME_RESTORE_ARGS
 
-echo "Running: $__DOTNET_CMD publish \"${__TOOLRUNTIME_PROJECTJSON}\" -f netcoreapp1.0 -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR"
-$__DOTNET_CMD publish "${__TOOLRUNTIME_PROJECTJSON}" -f netcoreapp1.0 -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR
+echo "Running: $__DOTNET_CMD publish \"${__TOOLRUNTIME_PROJECT}\" -f netcoreapp1.0 -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR"
+$__DOTNET_CMD publish "${__TOOLRUNTIME_PROJECT}" -f netcoreapp1.0 -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR
 
 # Microsoft.Build.Runtime dependency is causing the MSBuild.runtimeconfig.json buildtools copy to be overwritten - re-copy the buildtools version.
 cp -f "$__TOOLS_DIR/MSBuild.runtimeconfig.json" "$__TOOLRUNTIME_DIR/."
@@ -103,11 +103,11 @@ fi
 
 # Copy Portable Targets Over to ToolRuntime
 if [ ! -d "${__PACKAGES_DIR}/generated" ]; then mkdir "${__PACKAGES_DIR}/generated"; fi
-__PORTABLETARGETS_PROJECTJSON=${__PACKAGES_DIR}/generated/project.json
-echo $__MSBUILD_CONTENT_JSON > "${__PORTABLETARGETS_PROJECTJSON}"
+__PORTABLETARGETS_PROJECT=${__PACKAGES_DIR}/generated/project.json
+echo $__MSBUILD_CONTENT > "${__PORTABLETARGETS_PROJECT}"
 
-echo "Running: \"$__DOTNET_CMD\" restore \"${__PORTABLETARGETS_PROJECTJSON}\" $__INIT_TOOLS_RESTORE_ARGS --packages \"${__PACKAGES_DIR}/.\""
-$__DOTNET_CMD restore "${__PORTABLETARGETS_PROJECTJSON}" $__INIT_TOOLS_RESTORE_ARGS --packages "${__PACKAGES_DIR}/."
+echo "Running: \"$__DOTNET_CMD\" restore \"${__PORTABLETARGETS_PROJECT}\" $__INIT_TOOLS_RESTORE_ARGS --packages \"${__PACKAGES_DIR}/.\""
+$__DOTNET_CMD restore "${__PORTABLETARGETS_PROJECT}" $__INIT_TOOLS_RESTORE_ARGS --packages "${__PACKAGES_DIR}/."
 
 # Copy portable and MicroBuild targets from packages, allowing for lowercased package IDs.
 cp -R "${__PACKAGES_DIR}"/[Mm]icrosoft.[Pp]ortable.[Tt]argets/"${__PORTABLETARGETS_VERSION}/contentFiles/any/any/Extensions/." "$__TOOLRUNTIME_DIR/."
