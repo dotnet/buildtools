@@ -47,6 +47,7 @@
   <Target Name="UpdateDependencies">
     <UpdateDependencies DependencyBuildInfo="@(DependencyBuildInfo)"
                         ProjectJsonFiles="@(ProjectJsonFiles)"
+                        MSBuildPackageReferenceFiles="@(MSBuildPackageReferenceFiles)"
                         UpdateStep="@(UpdateStep)"
                         BuildInfoCacheDir="$(BuildInfoCacheDir)" />
   </Target>
@@ -60,6 +61,7 @@
 
     <VerifyDependencies DependencyBuildInfo="@(DependencyBuildInfo)"
                         ProjectJsonFiles="@(ProjectJsonFiles)"
+                        MSBuildPackageReferenceFiles="@(MSBuildPackageReferenceFiles)"
                         UpdateStep="@(UpdateStep)"
                         BuildInfoCacheDir="$(BuildInfoCacheDir)" />
 
@@ -72,6 +74,7 @@
   <Target Name="UpdateDependenciesAndSubmitPullRequest">
     <UpdateDependenciesAndSubmitPullRequest DependencyBuildInfo="@(DependencyBuildInfo)"
                                             ProjectJsonFiles="@(ProjectJsonFiles)"
+                                            MSBuildPackageReferenceFiles="@(MSBuildPackageReferenceFiles)"
                                             UpdateStep="@(UpdateStep)"
                                             ProjectRepoName="$(ProjectRepoName)"
                                             ProjectRepoOwner="$(ProjectRepoOwner)"
