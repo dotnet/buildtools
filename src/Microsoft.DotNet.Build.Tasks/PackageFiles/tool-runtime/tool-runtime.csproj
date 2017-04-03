@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RuntimeFrameworkVersion>2.0.0-beta-001791-00</RuntimeFrameworkVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp1.0;net46</TargetFrameworks>
+    <AssemblyName>tool-runtime</AssemblyName>
+    <PackageId>tool-runtime</PackageId>
+    <RuntimeIdentifiers>centos.7-x64;debian.8-x64;fedora.23-x64;fedora.24-x64;opensuse.13.2-x64;opensuse.42.1-x64;osx.10.10-x64;rhel.7-x64;ubuntu.14.04-x64;ubuntu.16.04-x64;ubuntu.16.10-x64;win7-x64;win7-x86</RuntimeIdentifiers>
+    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">$(PackageTargetFallback);dnxcore50;portable-net45+win8</PackageTargetFallback>
+    <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">1.6.1</NetStandardImplicitPackageVersion>
+  </PropertyGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">
+    <PackageReference Include="Microsoft.Build.Framework" Version="15.1.0-preview-000523-01" />
+    <PackageReference Include="Microsoft.Build.Runtime" Version="15.1.0-preview-000523-01" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.1.0-preview-000523-01" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.1.0-preview-000523-01" />
+    <PackageReference Include="Microsoft.Build" Version="15.1.0-preview-000523-01" />
+    <PackageReference Include="Microsoft.DotNet.PlatformAbstractions" Version="1.2.0-beta-001090" />
+    <PackageReference Include="Microsoft.Net.Compilers.netcore" Version="2.0.0-rc" />
+    <PackageReference Include="Microsoft.Net.Compilers.Targets.NetCore" Version="0.1.5-dev" />
+    <PackageReference Include="Microsoft.Cci" Version="4.0.0-rc4-24217-00" />
+    <PackageReference Include="Microsoft.Composition" Version="1.0.30" />
+    <PackageReference Include="System.Diagnostics.Process" Version="4.1.0" />
+    <PackageReference Include="System.Diagnostics.TextWriterTraceListener" Version="4.0.0" />
+    <PackageReference Include="System.Diagnostics.TraceSource" Version="4.0.0" />
+    <PackageReference Include="System.IO.FileSystem.DriveInfo" Version="4.0.0" />
+    <PackageReference Include="System.Runtime.Serialization.Primitives" Version="4.1.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
+    <PackageReference Include="Microsoft.Cci" Version="4.0.0-rc4-24217-00" />
+    <PackageReference Include="Microsoft.NETCore.Windows.ApiSets" Version="1.0.1" />
+    <PackageReference Include="System.IO.FileSystem" Version="4.0.1" />
+    <PackageReference Include="System.Diagnostics.FileVersionInfo" Version="4.0.0" />
+    <PackageReference Include="System.Diagnostics.TraceSource" Version="4.0.0" />
+    <Reference Include="System" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+
+</Project>

@@ -15,7 +15,12 @@ __PACKAGES_DIR=${4:-$__TOOLRUNTIME_DIR}
 __TOOLS_DIR=$(cd "$(dirname "$0")"; pwd -P)
 __MICROBUILD_VERSION=0.2.0
 __PORTABLETARGETS_VERSION=0.1.1-dev
-__MSBUILD_CONTENT_JSON="{\"dependencies\": {\"MicroBuild.Core\": \"${__MICROBUILD_VERSION}\", \"Microsoft.Portable.Targets\": \"${__PORTABLETARGETS_VERSION}\"},\"frameworks\": {\"netcoreapp1.0\": {},\"net46\": {}}}"
+if [ -z "$__BUILDTOOLS_USE_CSPROJ" ]; then
+    __MSBUILD_CONTENT_JSON="<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFrameworks>netcoreapp1.0;net46</TargetFrameworks><DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences></PropertyGroup><ItemGroup><PackageReference Include=\"MicroBuild.Core\" Version=\"$__MICROBUILD_VERSION\" /><PackageReference Include=\"Microsoft.Portable.Targets\" Version=\"$__PORTABLETARGETS_VERSION\" /></ItemGroup></Project>"
+else
+    __MSBUILD_CONTENT_JSON="{\"dependencies\": {\"MicroBuild.Core\": \"${__MICROBUILD_VERSION}\", \"Microsoft.Portable.Targets\": \"${__PORTABLETARGETS_VERSION}\"},\"frameworks\": {\"netcoreapp1.0\": {},\"net46\": {}}}"
+fi
+
 __INIT_TOOLS_RESTORE_ARGS="--source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json ${__INIT_TOOLS_RESTORE_ARGS:-}"
 __TOOLRUNTIME_RESTORE_ARGS="--source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json ${__INIT_TOOLS_RESTORE_ARGS}"
 
@@ -76,7 +81,11 @@ fi
 
 cp -R $__TOOLS_DIR/* $__TOOLRUNTIME_DIR
 
-__TOOLRUNTIME_PROJECTJSON=$__TOOLS_DIR/tool-runtime/project.json
+if [ -z "$__BUILDTOOLS_USE_CSPROJ" ]; then
+    __TOOLRUNTIME_PROJECTJSON=$__TOOLS_DIR/tool-runtime/tool-runtime.csproj
+else
+    __TOOLRUNTIME_PROJECTJSON=$__TOOLS_DIR/tool-runtime/project.json
+fi
 
 echo "Running: $__DOTNET_CMD restore \"${__TOOLRUNTIME_PROJECTJSON}\" $__TOOLRUNTIME_RESTORE_ARGS"
 $__DOTNET_CMD restore "${__TOOLRUNTIME_PROJECTJSON}" $__TOOLRUNTIME_RESTORE_ARGS

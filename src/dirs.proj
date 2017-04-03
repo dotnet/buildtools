@@ -4,6 +4,8 @@
   <ItemGroup>
     <!-- Exclude the UAP runner from the build as it depends on Win10 SDKs -->
     <ProjectsToExclude Include="xunit.runner.uap\XUnit.Runner.Uap.csproj" />
+    <!-- tool-runtime is not a real project to build, it's part of the buildtools package for initialization. -->
+    <ProjectsToExclude Include="Microsoft.DotNet.Build.Tasks\PackageFiles\tool-runtime\tool-runtime.csproj" />
   </ItemGroup>
 
   <ItemGroup>
