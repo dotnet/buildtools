@@ -157,6 +157,13 @@
         <TargetPath>%(PackageDestination.Identity)</TargetPath>
         <IsReferenceAsset>$(IsReferenceAsset)</IsReferenceAsset>
       </FilesToPackage>
+      
+      <!-- Inlude any additional items if specified -->
+      <FilesToPackage Include="@(AdditionalFileToPackage)">
+        <TargetFramework>%(PackageDestination.TargetFramework)</TargetFramework>
+        <TargetPath>%(PackageDestination.Identity)</TargetPath>
+        <IsReferenceAsset>$(IsReferenceAsset)</IsReferenceAsset>
+      </FilesToPackage>
 
       <!-- Include doc output if it isn't centrally authored -->
       <FilesToPackage Include="$(DocumentationFile)" Condition="'$(DocumentationFile)' != '' AND '@(XmlDocFile)' == '' AND '$(PackageIncludeDocs)' == 'true'">
