@@ -23,7 +23,7 @@ namespace Microsoft.Cci.Differs.Rules
             // If implementation is protected then contract must be protected as well. 
             if (impl.Visibility == TypeMemberVisibility.Family)
             {
-                if (contract.Visibility != TypeMemberVisibility.Family)
+                if (contract.Visibility != TypeMemberVisibility.Family && contract.Visibility != TypeMemberVisibility.FamilyOrAssembly)
                 {
                     differences.AddIncompatibleDifference(this,
                         "Visibility of member '{0}' is '{1}' in the implementation but '{2}' in the contract.",
@@ -47,7 +47,7 @@ namespace Microsoft.Cci.Differs.Rules
             // If implementation is protected then contract must be protected as well. 
             if (impl.GetVisibility() == TypeMemberVisibility.Family)
             {
-                if (contract.GetVisibility() != TypeMemberVisibility.Family)
+                if (contract.GetVisibility() != TypeMemberVisibility.Family && contract.GetVisibility() != TypeMemberVisibility.FamilyOrAssembly)
                 {
                     differences.AddIncompatibleDifference(this,
                         "Visibility of type '{0}' is '{1}' in the implementation but '{2}' in the contract.",
