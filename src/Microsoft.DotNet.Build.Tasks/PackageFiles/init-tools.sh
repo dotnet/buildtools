@@ -116,4 +116,9 @@ cp -R "${__PACKAGES_DIR}"/[Mm]icro[Bb]uild.[Cc]ore/"${__MICROBUILD_VERSION}/buil
 # Temporary Hacks to fix couple of issues in the msbuild and roslyn nuget packages
 [ -e "$__TOOLRUNTIME_DIR/Microsoft.CSharp.Targets" ] || mv "$__TOOLRUNTIME_DIR/Microsoft.CSharp.targets" "$__TOOLRUNTIME_DIR/Microsoft.CSharp.Targets"
 
+# Override versions in runtimeconfig.json files with highest available runtime version.
+__MNCA_FOLDER=$(dirname $__DOTNET_CMD)/shared/Microsoft.NETCore.App
+__HIGHEST_RUNTIME_VERSION=`ls $__MNCA_FOLDER | sed 'r/\([0-9]\+\).*/\1/g' | sort -n | tail -1`
+sed -i "s/1.1.0/$__HIGHEST_RUNTIME_VERSION/g" $__TOOLRUNTIME_DIR/*.runtimeconfig.json
+
 exit 0
