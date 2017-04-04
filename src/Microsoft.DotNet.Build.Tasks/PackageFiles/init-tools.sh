@@ -15,6 +15,7 @@ __PACKAGES_DIR=${4:-$__TOOLRUNTIME_DIR}
 __TOOLS_DIR=$(cd "$(dirname "$0")"; pwd -P)
 __MICROBUILD_VERSION=0.2.0
 __PORTABLETARGETS_VERSION=0.1.1-dev
+__ROSLYN_COMPILER_TARGETS_VERSION=0.1.5-dev
 if [ -z "${__BUILDTOOLS_USE_CSPROJ:-}" ]; then
     __MSBUILD_CONTENT="{\"dependencies\": {\"MicroBuild.Core\": \"${__MICROBUILD_VERSION}\", \"Microsoft.Portable.Targets\": \"${__PORTABLETARGETS_VERSION}\"},\"frameworks\": {\"netcoreapp1.0\": {},\"net46\": {}}}"
 else
@@ -83,15 +84,20 @@ cp -R $__TOOLS_DIR/* $__TOOLRUNTIME_DIR
 
 if [ -z "${__BUILDTOOLS_USE_CSPROJ:-}" ]; then
     __TOOLRUNTIME_PROJECT=$__TOOLS_DIR/tool-runtime/project.json
+    __PUBLISH_TFM=netcoreapp1.0
 else
     __TOOLRUNTIME_PROJECT=$__TOOLS_DIR/tool-runtime/tool-runtime.csproj
+    __PUBLISH_TFM=netcoreapp2.0
 fi
 
 echo "Running: $__DOTNET_CMD restore \"${__TOOLRUNTIME_PROJECT}\" $__TOOLRUNTIME_RESTORE_ARGS"
 $__DOTNET_CMD restore "${__TOOLRUNTIME_PROJECT}" $__TOOLRUNTIME_RESTORE_ARGS
 
-echo "Running: $__DOTNET_CMD publish \"${__TOOLRUNTIME_PROJECT}\" -f netcoreapp1.0 -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR"
-$__DOTNET_CMD publish "${__TOOLRUNTIME_PROJECT}" -f netcoreapp1.0 -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR
+echo "Running: $__DOTNET_CMD publish \"${__TOOLRUNTIME_PROJECT}\" -f ${__PUBLISH_TFM} -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR"
+$__DOTNET_CMD publish "${__TOOLRUNTIME_PROJECT}" -f ${__PUBLISH_TFM} -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR
+
+# If not publishing for a runtime, manually copy out the roslyn targets files.
+# cp -R "${__PACKAGES_DIR}"/[Mm]icrosoft.[Pp]ortable.[Tt]argets/"${__ROSLYN_COMPILER_TARGETS_VERSION}/contentFiles/any/any/Extensions/." "$__TOOLRUNTIME_DIR/."
 
 # Microsoft.Build.Runtime dependency is causing the MSBuild.runtimeconfig.json buildtools copy to be overwritten - re-copy the buildtools version.
 cp -f "$__TOOLS_DIR/MSBuild.runtimeconfig.json" "$__TOOLRUNTIME_DIR/."

@@ -36,8 +36,10 @@ ROBOCOPY "%BUILDTOOLS_PACKAGE_DIR%\." "%TOOLRUNTIME_DIR%" /E
 
 if [%BUILDTOOLS_USE_CSPROJ%]==[] (
   set TOOLRUNTIME_PROJECT=%BUILDTOOLS_PACKAGE_DIR%\tool-runtime\project.json
+  set PUBLISH_TFM=netcoreapp1.0
 ) ELSE (
   set TOOLRUNTIME_PROJECT=%BUILDTOOLS_PACKAGE_DIR%\tool-runtime\tool-runtime.csproj
+  set PUBLISH_TFM=netcoreapp2.0
 )
 
 @echo on
@@ -49,11 +51,11 @@ if not [%RESTORE_ERROR_LEVEL%]==[0] (
   exit /b %RESTORE_ERROR_LEVEL%
 )
 @echo on
-call "%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECT%" -f netcoreapp1.0 -r %BUILDTOOLS_TARGET_RUNTIME% -o "%TOOLRUNTIME_DIR%"
+call "%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECT%" -f %PUBLISH_TFM% -r %BUILDTOOLS_TARGET_RUNTIME% -o "%TOOLRUNTIME_DIR%"
 set TOOLRUNTIME_PUBLISH_ERROR_LEVEL=%ERRORLEVEL%
 @echo off
 if not [%TOOLRUNTIME_PUBLISH_ERROR_LEVEL%]==[0] (
-  echo ERROR: An error ocurred when running: '"%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECT%" -f netcoreapp1.0'. Please check above for more details.
+  echo ERROR: An error ocurred when running: '"%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECT%" -f %PUBLISH_TFM%'. Please check above for more details.
   exit /b %TOOLRUNTIME_PUBLISH_ERROR_LEVEL%
 )
 @echo on
