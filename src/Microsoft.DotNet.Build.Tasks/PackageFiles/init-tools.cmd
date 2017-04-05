@@ -14,8 +14,19 @@ set BUILDTOOLS_PACKAGE_DIR=%~dp0
 set MICROBUILD_VERSION=0.2.0
 set PORTABLETARGETS_VERSION=0.1.1-dev
 set ROSLYNCOMPILERS_VERSION=2.0.0-rc
+
+:: Determine if the CLI supports MSBuild projects. This controls whether csproj files are used for initialization and package restore.
+set CLI_VERSION=
+for /f "delims=" %%a in ('%DOTNET_CMD% --version') do @set CLI_VERSION=%%a
+:: Check the first character in the version string. Version 2 and above supports MSBuild.
+set CLI_VERSION=%CLI_VERSION:~0,1%
+if %CLI_VERSION% geq 2 (
+  set BUILDTOOLS_USE_CSPROJ=true
+  echo "Detected a 2.0-capable CLI."
+)
+
 if [%BUILDTOOLS_USE_CSPROJ%]==[] (
-  set PORTABLETARGETS_PROJECT_CONTENT= ^
+  set MSBUILD_PROJECT_CONTENT= ^
 { ^
   "dependencies": ^
     { ^
@@ -26,7 +37,7 @@ if [%BUILDTOOLS_USE_CSPROJ%]==[] (
   "frameworks": {"netcoreapp1.0": {},"net46": {}} ^
 }
 ) ELSE (
-  set PORTABLETARGETS_PROJECT_CONTENT= ^
+  set MSBUILD_PROJECT_CONTENT= ^
  ^^^<Project Sdk=^"Microsoft.NET.Sdk^"^^^> ^
   ^^^<PropertyGroup^^^> ^
     ^^^<TargetFrameworks^^^>netcoreapp1.0;net46^^^</TargetFrameworks^^^> ^
@@ -93,7 +104,7 @@ Robocopy "%BUILDTOOLS_PACKAGE_DIR%\." "%TOOLRUNTIME_DIR%\." "MSBuild.runtimeconf
 :: Copy Portable Targets Over to ToolRuntime
 if not exist "%PACKAGES_DIR%\generated" mkdir "%PACKAGES_DIR%\generated"
 set PORTABLETARGETS_PROJECT=%PACKAGES_DIR%\generated\project.json
-echo %PORTABLETARGETS_PROJECT_CONTENT% > "%PORTABLETARGETS_PROJECT%"
+echo %MSBUILD_PROJECT_CONTENT% > "%PORTABLETARGETS_PROJECT%"
 @echo on
 call "%DOTNET_CMD%" restore "%PORTABLETARGETS_PROJECT%" %INIT_TOOLS_RESTORE_ARGS% --packages "%PACKAGES_DIR%\."
 set RESTORE_PORTABLETARGETS_ERROR_LEVEL=%ERRORLEVEL%

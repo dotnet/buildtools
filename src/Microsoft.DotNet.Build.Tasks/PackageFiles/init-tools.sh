@@ -15,7 +15,16 @@ __PACKAGES_DIR=${4:-$__TOOLRUNTIME_DIR}
 __TOOLS_DIR=$(cd "$(dirname "$0")"; pwd -P)
 __MICROBUILD_VERSION=0.2.0
 __PORTABLETARGETS_VERSION=0.1.1-dev
-if [ -z "${__BUILDTOOLS_USE_CSPROJ:-}" ]; then
+
+# Determine if the CLI supports MSBuild projects. This controls whether csproj files are used for initialization and package restore.
+__CLI_VERSION=`$__DOTNET_CMD --version`
+# Check the first character in the version string. Version 2 and above supports MSBuild.
+__CLI_VERSION=${__CLI_VERSION:0:1}
+if [ "$__CLI_VERSION" -ge "2" ]; then
+  BUILDTOOLS_USE_CSPROJ=true
+fi
+
+if [ -z "${__BUILDTOOLS_USE_CSPROJ}" ]; then
     __PORTABLETARGETS_PROJECT_CONTENT="
 {
   \"dependencies\":
