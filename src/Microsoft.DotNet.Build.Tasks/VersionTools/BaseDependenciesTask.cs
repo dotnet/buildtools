@@ -33,8 +33,6 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 
         public ITaskItem[] ProjectJsonFiles { get; set; }
 
-        public ITaskItem[] MSBuildPackageReferenceFiles { get; set; }
-
         public ITaskItem[] UpdateStep { get; set; }
 
         public string BuildInfoCacheDir { get; set; }
@@ -63,11 +61,6 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
             if (ProjectJsonFiles != null && ProjectJsonFiles.Any())
             {
                 yield return new ProjectJsonUpdater(ProjectJsonFiles.Select(item => item.ItemSpec));
-            }
-
-            if (MSBuildPackageReferenceFiles != null && MSBuildPackageReferenceFiles.Any())
-            {
-                yield return new MSBuildPackageReferenceUpdater(MSBuildPackageReferenceFiles.Select(item => item.ItemSpec));
             }
 
             foreach (ITaskItem step in UpdateStep ?? Enumerable.Empty<ITaskItem>())
