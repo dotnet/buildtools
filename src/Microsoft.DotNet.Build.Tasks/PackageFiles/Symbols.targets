@@ -27,7 +27,11 @@
       <RequestCommand Condition="'$(SymbolsRequestDryRun)'!='true'">$(RequestCommand) $(SubmissionArg)</RequestCommand>
     </PropertyGroup>
 
+    <Message Text="[$([System.DateTime]::Now.ToString('HH:mm:ss.ff'))] Running request command..." Importance="High"/>
+
     <Exec Command="$(RequestCommand)" />
+
+    <Message Text="[$([System.DateTime]::Now.ToString('HH:mm:ss.ff'))] Running request command... Done." Importance="High"/>
   </Target>
 
   <!--
@@ -105,24 +109,29 @@
 
   <!--
     Creates the list of every symbol file to submit to the symbol server.
-    
-    Creates the RequestProperty that adds the file list to the symbols request.
+
+    Creates RequestProperties:
+    * FileList: the newline-separated list of paths on disk or in a share to submit.
+    * PrefixToStrip: specifies the path prefix of all paths in the request. The symbol server
+        replaces 'PrefixToStrip' with 'UNCPath' when calculating the share location of each file.
   -->
   <Target Name="CreateSymbolsFileList"
-          DependsOnTargets="PublishSymbolFilesToFileShare">
+          DependsOnTargets="UnzipSymbolPackagesForPublish;
+                            PublishSymbolFilesToFileShare">
     <PropertyGroup>
       <SymbolFileListPath>$(SymbolsRequestIntermediateDir)SymbolFileList.txt</SymbolFileListPath>
     </PropertyGroup>
 
     <ItemGroup>
       <RequestProperty Include="FileList=$(SymbolFileListPath)" />
+      <RequestProperty Include="PrefixToStrip=$(SymbolPackageExtractDir)" />
     </ItemGroup>
 
     <MakeDir Directories="$(SymbolsRequestIntermediateDir)"
              Condition="!Exists('$(SymbolsRequestIntermediateDir)')" />
 
     <WriteLinesToFile File="$(SymbolFileListPath)"
-                      Lines="@(PublishedSymbolFile -> '%(FullPath)')"
+                      Lines="@(SymbolFileToPublish -> '%(FullPath)')"
                       Overwrite="true" />
   </Target>
 
@@ -130,14 +139,14 @@
     Copies symbols to a directory based on the given search glob path. The target should be a file
     share that the symbol server can access when servicing the request.
 
-    Creates the RequestProperty items that specify the path prefix of the request.
+    Creates RequestProperty:
+    * UNCPath: path of the file share root.
   -->
   <Target Name="PublishSymbolFilesToFileShare"
           DependsOnTargets="UnzipSymbolPackagesForPublish">
     <Error Text="'SymbolPublishDestinationDir' must be defined." Condition="'$(SymbolPublishDestinationDir)'==''" />
 
     <ItemGroup>
-      <RequestProperty Include="PrefixToStrip=$(SymbolPublishDestinationDir)" />
       <RequestProperty Include="UNCPath=$(SymbolPublishDestinationDir)" />
     </ItemGroup>
 
@@ -149,26 +158,41 @@
       <SymbolFileToPublish Include="$(SymbolFileSearchGlob)" />
     </ItemGroup>
 
+    <ItemGroup>
+      <SymbolFileToPublish>
+        <DestinationPath>$(SymbolPublishDestinationDir)%(RecursiveDir)%(Filename)%(Extension)</DestinationPath>
+      </SymbolFileToPublish>
+    </ItemGroup>
+
     <Error Text="No symbol files found to publish. No existing 'PublishedSymbolsFile' items, and glob '$(SymbolFileSearchGlob)' found no items."
            Condition="'@(SymbolFileToPublish)'==''" />
 
-    <Message Text="Publishing files matching '$(SymbolFileSearchGlob)' to '$(SymbolPublishDestinationDir)'."
+    <Message Text="Publishing files to '$(SymbolPublishDestinationDir)'."
              Importance="low" />
 
     <MakeDir Directories="$(SymbolPublishDestinationDir)"
              Condition="!Exists('$(SymbolPublishDestinationDir)')" />
 
+    <Message Text="[$([System.DateTime]::Now.ToString('HH:mm:ss.ff'))] Copying symbols to publish dir..." Importance="High"/>
+
     <Copy SourceFiles="@(SymbolFileToPublish)"
-          DestinationFiles="@(SymbolFileToPublish -> '$(SymbolPublishDestinationDir)%(RecursiveDir)%(Filename)%(Extension)')"
+          DestinationFiles="@(SymbolFileToPublish -> '%(DestinationPath)')"
           Retries="$(SymbolPublishCopyRetries)">
       <Output TaskParameter="CopiedFiles" ItemName="PublishedSymbolFile"/>
     </Copy>
+
+    <Message Text="[$([System.DateTime]::Now.ToString('HH:mm:ss.ff'))] Copying symbols to publish dir... Done." Importance="High"/>
   </Target>
 
   <!--
     Unzips a set of symbol packages so the symbols inside can be archived/indexed.
+    
+    Depends on:
+    * AddRequestProperties: uses SymbolsBuildId and SymbolsBuildRemark to create a distinct extract
+        folder for each request.
   -->
   <Target Name="UnzipSymbolPackagesForPublish"
+          DependsOnTargets="AddRequestProperties"
           Condition="'$(SymbolPackagesToPublishGlob)'!=''">
     <PropertyGroup>
       <SymbolPackageExtractDir>$(SymbolsRequestIntermediateDir)ExtractedPackages\</SymbolPackageExtractDir>
@@ -183,9 +207,16 @@
       <Output TaskParameter="Output" ItemName="SymbolPackageFileWithIndex" />
     </AddItemIndices>
 
+    <RemoveDir Directories="$(SymbolPackageExtractDir)"
+               Condition="Exists('$(SymbolPackageExtractDir)')" />
+
+    <Message Text="[$([System.DateTime]::Now.ToString('HH:mm:ss.ff'))] Extracting symbol packages..." Importance="High"/>
+
     <ZipFileExtractToDirectory SourceArchive="%(Identity)"
                                DestinationDirectory="@(SymbolPackageFileWithIndex -> '$(SymbolPackageExtractDir)%(Index)')"
                                OverwriteDestination="true" />
+
+    <Message Text="[$([System.DateTime]::Now.ToString('HH:mm:ss.ff'))] Extracting symbol packages... Done." Importance="High"/>
 
     <ItemGroup>
       <IndexedExtensions Include=".dll;.pdb;.exe" Condition="'@(IndexedExtensions)'==''" />

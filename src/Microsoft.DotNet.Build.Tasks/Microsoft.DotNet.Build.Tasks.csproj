@@ -87,7 +87,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="PackageFiles\Symbols.targets" />
     <None Include="project.json" />
     <None Include="PackageFiles\**\*.*" />
   </ItemGroup>
