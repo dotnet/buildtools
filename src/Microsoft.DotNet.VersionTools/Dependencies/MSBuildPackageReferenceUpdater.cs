@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace Microsoft.DotNet.VersionTools.Dependencies
@@ -64,15 +66,18 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
             out IEnumerable<DependencyChange> dependencyChanges)
         {
             XDocument documentRoot = XDocument.Parse(input, LoadOptions.PreserveWhitespace);
-
             dependencyChanges = FindAllDependencyProperties(documentRoot)
                     .Select(dependencyProperty => ReplaceDependencyVersion(projectFile, dependencyProperty, buildInfos))
                     .Where(buildInfo => buildInfo != null)
                     .ToArray();
 
-            StringWriter sw = new StringWriter();
-            documentRoot.Save(sw, SaveOptions.DisableFormatting);
-            return sw.ToString();
+            MemoryStream ms = new MemoryStream();
+            Encoding encoding = new UTF8Encoding(false);
+            using (var xmlWriter = XmlWriter.Create(ms, new XmlWriterSettings() { Encoding = encoding }))
+            {
+                documentRoot.Save(xmlWriter);
+            }
+            return encoding.GetString(ms.ToArray());
         }
 
         /// <summary>
