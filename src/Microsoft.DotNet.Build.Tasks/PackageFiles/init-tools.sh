@@ -24,7 +24,7 @@ if [ "$__CLI_VERSION" -ge "2" ]; then
   BUILDTOOLS_USE_CSPROJ=true
 fi
 
-if [ -z "${__BUILDTOOLS_USE_CSPROJ}" ]; then
+if [ -z "${__BUILDTOOLS_USE_CSPROJ:-}" ]; then
     __PORTABLETARGETS_PROJECT_CONTENT="
 {
   \"dependencies\":
