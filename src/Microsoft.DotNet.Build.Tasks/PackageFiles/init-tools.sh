@@ -133,7 +133,12 @@ fi
 
 # Copy Portable Targets Over to ToolRuntime
 if [ ! -d "${__PACKAGES_DIR}/generated" ]; then mkdir "${__PACKAGES_DIR}/generated"; fi
-__PORTABLETARGETS_PROJECT=${__PACKAGES_DIR}/generated/project.json
+if [ -z "${__BUILDTOOLS_USE_CSPROJ:-}" ]; then
+    __PORTABLETARGETS_PROJECT=${__PACKAGES_DIR}/generated/project.json
+else
+    __PORTABLETARGETS_PROJECT=${__PACKAGES_DIR}/generated/project.csproj
+fi
+
 echo $__PORTABLETARGETS_PROJECT_CONTENT > "${__PORTABLETARGETS_PROJECT}"
 
 echo "Running: \"$__DOTNET_CMD\" restore \"${__PORTABLETARGETS_PROJECT}\" $__INIT_TOOLS_RESTORE_ARGS --packages \"${__PACKAGES_DIR}/.\""

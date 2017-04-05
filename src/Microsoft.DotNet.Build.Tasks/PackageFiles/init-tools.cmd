@@ -103,7 +103,11 @@ Robocopy "%BUILDTOOLS_PACKAGE_DIR%\." "%TOOLRUNTIME_DIR%\." "MSBuild.runtimeconf
 
 :: Copy Portable Targets Over to ToolRuntime
 if not exist "%PACKAGES_DIR%\generated" mkdir "%PACKAGES_DIR%\generated"
-set PORTABLETARGETS_PROJECT=%PACKAGES_DIR%\generated\project.json
+if [%BUILDTOOLS_USE_CSPROJ%]==[] (
+  set PORTABLETARGETS_PROJECT=%PACKAGES_DIR%\generated\project.json
+) ELSE (
+  set PORTABLETARGETS_PROJECT=%PACKAGES_DIR%\generated\project.csproj
+)
 echo %MSBUILD_PROJECT_CONTENT% > "%PORTABLETARGETS_PROJECT%"
 @echo on
 call "%DOTNET_CMD%" restore "%PORTABLETARGETS_PROJECT%" %INIT_TOOLS_RESTORE_ARGS% --packages "%PACKAGES_DIR%\."
