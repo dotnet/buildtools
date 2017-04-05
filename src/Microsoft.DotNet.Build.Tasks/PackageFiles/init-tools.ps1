@@ -4,12 +4,12 @@
  )
 
 # Override versions in runtimeconfig.json files with highest available runtime version.
-$mncaFolder = (gi $DotnetCmd).Directory.FullName + "\shared\Microsoft.NETCore.App"
-$highestVersion = gci $mncaFolder -name | sort BaseName | select -first 1
+$mncaFolder = (Get-Item $DotnetCmd).Directory.FullName + "\shared\Microsoft.NETCore.App"
+$highestVersion = Get-ChildItem $mncaFolder -Name | Sort-Object BaseName | Select-Object -First 1
 
-foreach ($file in gci $ToolRuntimePath *.runtimeconfig.json)
+foreach ($file in Get-ChildItem $ToolRuntimePath *.runtimeconfig.json)
 {
     Write-Host "Correcting runtime version of" $file.FullName
-    $text = (gc $file.FullName) -replace "1.1.0","$highestVersion"
-    sc $file.FullName $text
+    $text = (Get-Content $file.FullName) -replace "1.1.0","$highestVersion"
+    Set-Content $file.FullName $text
 }

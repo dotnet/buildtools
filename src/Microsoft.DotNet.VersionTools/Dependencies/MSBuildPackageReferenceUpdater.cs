@@ -40,7 +40,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
                             dependencyBuildInfos,
                             out dependencyChanges));
 
-                    // The output json may be different even if there weren't any changes made.
+                    // The output XML may be different even if there weren't any changes made.
                     if (update != null && dependencyChanges.Any())
                     {
                         tasks.Add(new DependencyUpdateTask(
@@ -59,19 +59,19 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
 
         private string ReplaceAllDependencyVersions(
             string input,
-            string projectJsonFile,
+            string projectFile,
             IEnumerable<DependencyBuildInfo> buildInfos,
             out IEnumerable<DependencyChange> dependencyChanges)
         {
-            XDocument documentRoot = XDocument.Parse(input);
+            XDocument documentRoot = XDocument.Parse(input, LoadOptions.PreserveWhitespace);
 
             dependencyChanges = FindAllDependencyProperties(documentRoot)
-                    .Select(dependencyProperty => ReplaceDependencyVersion(projectJsonFile, dependencyProperty, buildInfos))
+                    .Select(dependencyProperty => ReplaceDependencyVersion(projectFile, dependencyProperty, buildInfos))
                     .Where(buildInfo => buildInfo != null)
                     .ToArray();
 
             StringWriter sw = new StringWriter();
-            documentRoot.Save(sw, SaveOptions.None);
+            documentRoot.Save(sw, SaveOptions.DisableFormatting);
             return sw.ToString();
         }
 
@@ -81,7 +81,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
         /// </summary>
         /// <returns>The BuildInfo used to change the value, or null if there was no change.</returns>
         private DependencyChange ReplaceDependencyVersion(
-            string projectJsonFile,
+            string projectFile,
             XElement packageRefElement,
             IEnumerable<DependencyBuildInfo> parsedBuildInfos)
         {
@@ -96,36 +96,35 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
                         continue;
                     }
 
-                    string oldVersion;
                     // Support the new  "inline" Version attribute, or the old-style nested Version element.
                     XAttribute versionAttribute = null;
                     XElement versionElement = null;
-
-                    versionAttribute = packageRefElement.Attribute(XName.Get("Version", packageRefElement.GetDefaultNamespace().NamespaceName));
+                    string packageRefNamespace = packageRefElement.GetDefaultNamespace().NamespaceName;
+                    versionAttribute = packageRefElement.Attribute(XName.Get("Version", packageRefNamespace));
                     if (versionAttribute == null)
                     {
-                        versionElement = packageRefElement.Element(XName.Get("Version", packageRefElement.GetDefaultNamespace().NamespaceName));
+                        versionElement = packageRefElement.Element(XName.Get("Version", packageRefNamespace));
                     }
 
+                    string oldVersion;
                     if (versionAttribute != null)
                     {
                         oldVersion = versionAttribute.Value;
                     }
+                    else if (versionElement != null)
+                    {
+                        oldVersion = versionElement.Value;
+                    }
                     else
                     {
-                        if (versionElement == null)
-                        {
-                            Trace.TraceWarning($"Couldn't parse the version information for package '{id}' in '{projectJsonFile}'. Skipping.");
-                            continue;
-                        }
-
-                        oldVersion = versionElement.Value;
+                        Trace.TraceWarning($"Couldn't parse the version information for package '{id}' in '{projectFile}'. Skipping.");
+                        continue;
                     }
 
                     VersionRange parsedOldVersionRange;
                     if (!VersionRange.TryParse(oldVersion, out parsedOldVersionRange))
                     {
-                        Trace.TraceWarning($"Couldn't parse '{oldVersion}' for package '{id}' in '{projectJsonFile}'. Skipping.");
+                        Trace.TraceWarning($"Couldn't parse '{oldVersion}' for package '{id}' in '{projectFile}'. Skipping.");
                         continue;
                     }
                     NuGetVersion oldNuGetVersion = parsedOldVersionRange.MinVersion;
