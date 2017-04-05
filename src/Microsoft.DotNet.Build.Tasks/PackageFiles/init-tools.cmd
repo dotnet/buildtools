@@ -36,6 +36,8 @@ if [%BUILDTOOLS_USE_CSPROJ%]==[] (
     }, ^
   "frameworks": {"netcoreapp1.0": {},"net46": {}} ^
 }
+  set PROJECT_EXTENSION=json
+  set PUBLISH_TFM=netcoreapp1.0
 ) ELSE (
   set MSBUILD_PROJECT_CONTENT= ^
  ^^^<Project Sdk=^"Microsoft.NET.Sdk^"^^^> ^
@@ -49,6 +51,8 @@ if [%BUILDTOOLS_USE_CSPROJ%]==[] (
     ^^^<PackageReference Include=^"Microsoft.Net.Compilers^" Version=^"%ROSLYNCOMPILERS_VERSION%^" /^^^> ^
   ^^^</ItemGroup^^^> ^
  ^^^</Project^^^>
+  set PROJECT_EXTENSION=csproj
+  set PUBLISH_TFM=netcoreapp2.0
 )
 set INIT_TOOLS_RESTORE_ARGS=--source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json %INIT_TOOLS_RESTORE_ARGS%
 set TOOLRUNTIME_RESTORE_ARGS=--source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json %INIT_TOOLS_RESTORE_ARGS%
@@ -65,13 +69,7 @@ if not exist "%DOTNET_CMD%" (
 
 ROBOCOPY "%BUILDTOOLS_PACKAGE_DIR%\." "%TOOLRUNTIME_DIR%" /E
 
-if [%BUILDTOOLS_USE_CSPROJ%]==[] (
-  set TOOLRUNTIME_PROJECT=%BUILDTOOLS_PACKAGE_DIR%\tool-runtime\project.json
-  set PUBLISH_TFM=netcoreapp1.0
-) ELSE (
-  set TOOLRUNTIME_PROJECT=%BUILDTOOLS_PACKAGE_DIR%\tool-runtime\tool-runtime.csproj
-  set PUBLISH_TFM=netcoreapp2.0
-)
+set TOOLRUNTIME_PROJECT=%BUILDTOOLS_PACKAGE_DIR%\tool-runtime\project.%PROJECT_EXTENSION%
 
 @echo on
 call "%DOTNET_CMD%" restore "%TOOLRUNTIME_PROJECT%" %TOOLRUNTIME_RESTORE_ARGS%
@@ -103,11 +101,7 @@ Robocopy "%BUILDTOOLS_PACKAGE_DIR%\." "%TOOLRUNTIME_DIR%\." "MSBuild.runtimeconf
 
 :: Copy Portable Targets Over to ToolRuntime
 if not exist "%PACKAGES_DIR%\generated" mkdir "%PACKAGES_DIR%\generated"
-if [%BUILDTOOLS_USE_CSPROJ%]==[] (
-  set PORTABLETARGETS_PROJECT=%PACKAGES_DIR%\generated\project.json
-) ELSE (
-  set PORTABLETARGETS_PROJECT=%PACKAGES_DIR%\generated\project.csproj
-)
+set PORTABLETARGETS_PROJECT=%PACKAGES_DIR%\generated\project.%PROJECT_EXTENSION%
 echo %MSBUILD_PROJECT_CONTENT% > "%PORTABLETARGETS_PROJECT%"
 @echo on
 call "%DOTNET_CMD%" restore "%PORTABLETARGETS_PROJECT%" %INIT_TOOLS_RESTORE_ARGS% --packages "%PACKAGES_DIR%\."

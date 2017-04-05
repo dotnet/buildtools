@@ -35,6 +35,8 @@ if [ -z "${__BUILDTOOLS_USE_CSPROJ:-}" ]; then
   \"frameworks\": {\"netcoreapp1.0\": {},\"net46\": {}
   }
 }"
+    __PROJECT_EXTENSION=json
+    __PUBLISH_TFM=netcoreapp1.0
 else
     __PORTABLETARGETS_PROJECT_CONTENT="
 <Project Sdk=\"Microsoft.NET.Sdk\">
@@ -47,6 +49,8 @@ else
     <PackageReference Include=\"Microsoft.Portable.Targets\" Version=\"$__PORTABLETARGETS_VERSION\" />
   </ItemGroup>
 </Project>"
+    __PROJECT_EXTENSION=csproj
+    __PUBLISH_TFM=netcoreapp2.0
 fi
 
 __INIT_TOOLS_RESTORE_ARGS="--source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json ${__INIT_TOOLS_RESTORE_ARGS:-}"
@@ -109,13 +113,7 @@ fi
 
 cp -R $__TOOLS_DIR/* $__TOOLRUNTIME_DIR
 
-if [ -z "${__BUILDTOOLS_USE_CSPROJ:-}" ]; then
-    __TOOLRUNTIME_PROJECT=$__TOOLS_DIR/tool-runtime/project.json
-    __PUBLISH_TFM=netcoreapp1.0
-else
-    __TOOLRUNTIME_PROJECT=$__TOOLS_DIR/tool-runtime/tool-runtime.csproj
-    __PUBLISH_TFM=netcoreapp2.0
-fi
+__TOOLRUNTIME_PROJECT=$__TOOLS_DIR/tool-runtime/project.$__PROJECT_EXTENSION
 
 echo "Running: $__DOTNET_CMD restore \"${__TOOLRUNTIME_PROJECT}\" $__TOOLRUNTIME_RESTORE_ARGS"
 $__DOTNET_CMD restore "${__TOOLRUNTIME_PROJECT}" $__TOOLRUNTIME_RESTORE_ARGS
@@ -133,11 +131,7 @@ fi
 
 # Copy Portable Targets Over to ToolRuntime
 if [ ! -d "${__PACKAGES_DIR}/generated" ]; then mkdir "${__PACKAGES_DIR}/generated"; fi
-if [ -z "${__BUILDTOOLS_USE_CSPROJ:-}" ]; then
-    __PORTABLETARGETS_PROJECT=${__PACKAGES_DIR}/generated/project.json
-else
-    __PORTABLETARGETS_PROJECT=${__PACKAGES_DIR}/generated/project.csproj
-fi
+__PORTABLETARGETS_PROJECT=${__PACKAGES_DIR}/generated/project.$__PROJECT_EXTENSION
 
 echo $__PORTABLETARGETS_PROJECT_CONTENT > "${__PORTABLETARGETS_PROJECT}"
 
