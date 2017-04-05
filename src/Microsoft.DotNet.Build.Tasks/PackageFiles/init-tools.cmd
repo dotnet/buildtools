@@ -15,7 +15,7 @@ set MICROBUILD_VERSION=0.2.0
 set PORTABLETARGETS_VERSION=0.1.1-dev
 set ROSLYNCOMPILERS_VERSION=2.0.0-rc
 if [%BUILDTOOLS_USE_CSPROJ%]==[] (
-  set MSBUILD_PROJECT_CONTENT= ^
+  set PORTABLETARGETS_PROJECT_CONTENT= ^
 { ^
   "dependencies": ^
     { ^
@@ -26,7 +26,7 @@ if [%BUILDTOOLS_USE_CSPROJ%]==[] (
   "frameworks": {"netcoreapp1.0": {},"net46": {}} ^
 }
 ) ELSE (
-  set MSBUILD_PROJECT_CONTENT= ^
+  set PORTABLETARGETS_PROJECT_CONTENT= ^
  ^^^<Project Sdk=^"Microsoft.NET.Sdk^"^^^> ^
   ^^^<PropertyGroup^^^> ^
     ^^^<TargetFrameworks^^^>netcoreapp1.0;net46^^^</TargetFrameworks^^^> ^
@@ -93,7 +93,7 @@ Robocopy "%BUILDTOOLS_PACKAGE_DIR%\." "%TOOLRUNTIME_DIR%\." "MSBuild.runtimeconf
 :: Copy Portable Targets Over to ToolRuntime
 if not exist "%PACKAGES_DIR%\generated" mkdir "%PACKAGES_DIR%\generated"
 set PORTABLETARGETS_PROJECT=%PACKAGES_DIR%\generated\project.json
-echo %MSBUILD_PROJECT_CONTENT% > "%PORTABLETARGETS_PROJECT%"
+echo %PORTABLETARGETS_PROJECT_CONTENT% > "%PORTABLETARGETS_PROJECT%"
 @echo on
 call "%DOTNET_CMD%" restore "%PORTABLETARGETS_PROJECT%" %INIT_TOOLS_RESTORE_ARGS% --packages "%PACKAGES_DIR%\."
 set RESTORE_PORTABLETARGETS_ERROR_LEVEL=%ERRORLEVEL%

@@ -16,7 +16,7 @@ __TOOLS_DIR=$(cd "$(dirname "$0")"; pwd -P)
 __MICROBUILD_VERSION=0.2.0
 __PORTABLETARGETS_VERSION=0.1.1-dev
 if [ -z "${__BUILDTOOLS_USE_CSPROJ:-}" ]; then
-    __MSBUILD_CONTENT="
+    __PORTABLETARGETS_PROJECT_CONTENT="
 {
   \"dependencies\":
   {
@@ -27,7 +27,7 @@ if [ -z "${__BUILDTOOLS_USE_CSPROJ:-}" ]; then
   }
 }"
 else
-    __MSBUILD_CONTENT="
+    __PORTABLETARGETS_PROJECT_CONTENT="
 <Project Sdk=\"Microsoft.NET.Sdk\">
   <PropertyGroup>
     <TargetFrameworks>netcoreapp1.0;net46</TargetFrameworks>
@@ -125,7 +125,7 @@ fi
 # Copy Portable Targets Over to ToolRuntime
 if [ ! -d "${__PACKAGES_DIR}/generated" ]; then mkdir "${__PACKAGES_DIR}/generated"; fi
 __PORTABLETARGETS_PROJECT=${__PACKAGES_DIR}/generated/project.json
-echo $__MSBUILD_CONTENT > "${__PORTABLETARGETS_PROJECT}"
+echo $__PORTABLETARGETS_PROJECT_CONTENT > "${__PORTABLETARGETS_PROJECT}"
 
 echo "Running: \"$__DOTNET_CMD\" restore \"${__PORTABLETARGETS_PROJECT}\" $__INIT_TOOLS_RESTORE_ARGS --packages \"${__PACKAGES_DIR}/.\""
 $__DOTNET_CMD restore "${__PORTABLETARGETS_PROJECT}" $__INIT_TOOLS_RESTORE_ARGS --packages "${__PACKAGES_DIR}/."
