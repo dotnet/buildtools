@@ -15,9 +15,29 @@ set MICROBUILD_VERSION=0.2.0
 set PORTABLETARGETS_VERSION=0.1.1-dev
 set ROSLYNCOMPILERS_VERSION=2.0.0-rc
 if [%BUILDTOOLS_USE_CSPROJ%]==[] (
-  set MSBUILD_PROJECT_CONTENT={"dependencies": { "MicroBuild.Core": "%MICROBUILD_VERSION%", "Microsoft.Portable.Targets": "%PORTABLETARGETS_VERSION%", "Microsoft.Net.Compilers": "%ROSLYNCOMPILERS_VERSION%"},"frameworks": {"netcoreapp1.0": {},"net46": {}}}
+  set MSBUILD_PROJECT_CONTENT= ^
+{ ^
+  "dependencies": ^
+    { ^
+      "MicroBuild.Core": "%MICROBUILD_VERSION%", ^
+      "Microsoft.Portable.Targets": "%PORTABLETARGETS_VERSION%", ^
+      "Microsoft.Net.Compilers": "%ROSLYNCOMPILERS_VERSION%" ^
+    }, ^
+  "frameworks": {"netcoreapp1.0": {},"net46": {}} ^
+}
 ) ELSE (
-  set MSBUILD_PROJECT_CONTENT=^^^<Project Sdk="Microsoft.NET.Sdk"^^^>^^^<PropertyGroup^^^>^^^<TargetFrameworks^^^>netcoreapp1.0;net46^^^</TargetFrameworks^^^>^^^<DisableImplicitFrameworkReferences^^^>true^^^</DisableImplicitFrameworkReferences^^^>^^^</PropertyGroup^^^>^^^<ItemGroup^^^>^^^<PackageReference Include="MicroBuild.Core" Version="%MICROBUILD_VERSION%" /^^^>^^^<PackageReference Include="Microsoft.Portable.Targets" Version="%PORTABLETARGETS_VERSION%" /^^^>^^^<PackageReference Include="Microsoft.Net.Compilers" Version="%ROSLYNCOMPILERS_VERSION%" /^^^>^^^</ItemGroup^^^>^^^</Project^^^>
+  set MSBUILD_PROJECT_CONTENT= ^
+ ^^^<Project Sdk=^"Microsoft.NET.Sdk^"^^^> ^
+  ^^^<PropertyGroup^^^> ^
+    ^^^<TargetFrameworks^^^>netcoreapp1.0;net46^^^</TargetFrameworks^^^> ^
+    ^^^<DisableImplicitFrameworkReferences^^^>true^^^</DisableImplicitFrameworkReferences^^^> ^
+  ^^^</PropertyGroup^^^> ^
+  ^^^<ItemGroup^^^> ^
+    ^^^<PackageReference Include=^"MicroBuild.Core^" Version=^"%MICROBUILD_VERSION%^" /^^^> ^
+    ^^^<PackageReference Include=^"Microsoft.Portable.Targets^" Version=^"%PORTABLETARGETS_VERSION%^" /^^^> ^
+    ^^^<PackageReference Include=^"Microsoft.Net.Compilers^" Version=^"%ROSLYNCOMPILERS_VERSION%^" /^^^> ^
+  ^^^</ItemGroup^^^> ^
+ ^^^</Project^^^>
 )
 set INIT_TOOLS_RESTORE_ARGS=--source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json %INIT_TOOLS_RESTORE_ARGS%
 set TOOLRUNTIME_RESTORE_ARGS=--source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json %INIT_TOOLS_RESTORE_ARGS%

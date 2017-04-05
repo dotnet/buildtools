@@ -16,9 +16,28 @@ __TOOLS_DIR=$(cd "$(dirname "$0")"; pwd -P)
 __MICROBUILD_VERSION=0.2.0
 __PORTABLETARGETS_VERSION=0.1.1-dev
 if [ -z "${__BUILDTOOLS_USE_CSPROJ:-}" ]; then
-    __MSBUILD_CONTENT="{\"dependencies\": {\"MicroBuild.Core\": \"${__MICROBUILD_VERSION}\", \"Microsoft.Portable.Targets\": \"${__PORTABLETARGETS_VERSION}\"},\"frameworks\": {\"netcoreapp1.0\": {},\"net46\": {}}}"
+    __MSBUILD_CONTENT="
+{
+  \"dependencies\":
+  {
+    \"MicroBuild.Core\": \"${__MICROBUILD_VERSION}\",
+    \"Microsoft.Portable.Targets\": \"${__PORTABLETARGETS_VERSION}\"
+  },
+  \"frameworks\": {\"netcoreapp1.0\": {},\"net46\": {}
+  }
+}"
 else
-    __MSBUILD_CONTENT="<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFrameworks>netcoreapp1.0;net46</TargetFrameworks><DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences></PropertyGroup><ItemGroup><PackageReference Include=\"MicroBuild.Core\" Version=\"$__MICROBUILD_VERSION\" /><PackageReference Include=\"Microsoft.Portable.Targets\" Version=\"$__PORTABLETARGETS_VERSION\" /></ItemGroup></Project>"
+    __MSBUILD_CONTENT="
+<Project Sdk=\"Microsoft.NET.Sdk\">
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp1.0;net46</TargetFrameworks>
+    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include=\"MicroBuild.Core\" Version=\"$__MICROBUILD_VERSION\" />
+    <PackageReference Include=\"Microsoft.Portable.Targets\" Version=\"$__PORTABLETARGETS_VERSION\" />
+  </ItemGroup>
+</Project>"
 fi
 
 __INIT_TOOLS_RESTORE_ARGS="--source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json ${__INIT_TOOLS_RESTORE_ARGS:-}"
