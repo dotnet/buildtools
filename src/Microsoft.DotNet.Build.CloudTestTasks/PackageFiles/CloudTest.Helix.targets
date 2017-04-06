@@ -25,7 +25,6 @@
        **********************************************************************************************************************************
        Required Properties:
        **********************************************************************************************************************************
-       HelixApiAccessKey            - GitHub API Access Key for sending jobs to Helix.  Get from https://helix.dot.net/UserProfile/Index/
        HelixJobType                 - Job Type formatting string, used for sorting and display of jobs.
        HelixSource                  - Job Source formatting string, used for sorting and display of jobs.
        TargetQueues                 - Queue(s) to send Jobs to. (TODO: Need discoverability for users)
@@ -45,6 +44,7 @@
        CloudResultsReadTokenValidDays  - Days that result URLs produced will be readble       Default: 30
        CloudResultsWriteTokenValidDays - Days that result URLs produced will be writeable     Default: 4
        SupplementalPayloadDir - Temp (deletable) dir for assembling supplemental payloads     Default: Random folder in %TEMP%
+       HelixApiAccessKey            - GitHub API Access Key for sending jobs to Helix.  Get from https://helix.dot.net/UserProfile/Index/
        HelixLogFolder    - Folder for storing JSON files describing job start and other info  Default: <Blank>
        HelixCorrelationInfoFileName - JSON file containing info on started jobs               Default: Helix-correlation-infos.json
        HelixJobProperties- Must be JSON.  String describing Helix MC-specific metadata.       Default: <Blank>
@@ -94,14 +94,12 @@
   <Target Name="VerifyInputs">
     <!-- Verify all required properties have been specified.  Update the comment above if you update this list! -->
     <Error Condition="'$(ArchivesRoot)' == ''"                                         Text="Missing required property ArchivesRoot." />
-    <Error Condition="'$(HelixApiAccessKey)' == ''"                                    Text="Missing required property HelixApiAccessKey." />
     <Error Condition="'$(HelixJobType)' == ''"                                         Text="Missing required property HelixJobType." />
     <Error Condition="'$(HelixSource)' == ''"                                          Text="Missing required property HelixSource." />
     <Error Condition="'$(TargetQueues)' == ''"                                         Text="Missing required property TargetQueues." />
     <Error Condition="'$(BuildMoniker)' == ''"                                         Text="Missing required property BuildMoniker." />
     <Error Condition="'$(CloudDropConnectionString)' == ''"                            Text="Missing required property CloudDropConnectionString." />
     <Error Condition="'$(CloudResultsConnectionString)' == ''"                         Text="Missing required property CloudResultsConnectionString." />
-    <Error Condition="'$(SkipSendToHelix)' != 'true' and '$(HelixApiAccessKey)' == ''" Text="HelixApiAccessKey must be set to start Helix jobs" />
     <Error Condition="'$(HelixJobProperties)' == '' and ('$(HelixArchLabel)' == '' or '$(HelixConfigLabel)' == '')"
                                                                                        Text="HelixJobProperties (JSON), or HelixArchLabel and HelixConfigLabel (string) must be set to start Helix jobs" />
   </Target>
@@ -131,17 +129,19 @@
     <Message Text="Will Enqueue to @(TargetQueue->Count()) Queue(s) : @(TargetQueue)" />
 
     <!-- Compress the supplemental payload directory for upload -->
+    <!-- We might not have RunnerScripts, so skip the tasks in that case -->
     <MakeDir Directories="$(SupplementalPayloadDir)"/>
-    <Copy SourceFiles="@(RunnerScripts)"
+    <Copy Condition="'@(RunnerScripts->Count())'!='0'"
+          SourceFiles="@(RunnerScripts)"
           DestinationFiles="@(RunnerScripts->'$(SupplementalPayloadDir)RunnerScripts/%(RecursiveDir)%(Filename)%(Extension)')"
           SkipUnchangedFiles="true" />
-    <ZipFileCreateFromDirectory
+    <ZipFileCreateFromDirectory Condition="'@(RunnerScripts->Count())'!='0'"
         SourceDirectory="$(SupplementalPayloadDir)"
         DestinationArchive="$(SupplementalPayloadFile)"
         OverwriteDestination="true" />
     <RemoveDir Directories="$(SupplementalPayloadDir)"/>
     <ItemGroup>
-      <SupplementalPayload Include="$(SupplementalPayloadFile)">
+      <SupplementalPayload Condition="'@(RunnerScripts->Count())'!='0'" Include="$(SupplementalPayloadFile)">
         <RelativeBlobPath>$(SupplementalPayloadFilename)</RelativeBlobPath>
       </SupplementalPayload>
     </ItemGroup>
@@ -298,6 +298,18 @@
       </BuildCompleteTemplateV2>
     </ItemGroup>
 
+    <ItemGroup Condition="'$(HelixCreator)' != ''">
+      <BuildCompleteTemplateV2>
+        <Creator>$(HelixCreator)</Creator>
+      </BuildCompleteTemplateV2>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(HelixPullRequestId)' != ''">
+      <BuildCompleteTemplateV2>
+        <PullRequestId>$(HelixPullRequestId)</PullRequestId>
+      </BuildCompleteTemplateV2>
+    </ItemGroup>
+
     <ItemGroup>
       <!-- V1 is long since deprecated, and not supported here.  
            Keeping the name for clarity.                       -->
@@ -324,7 +336,6 @@
           Inputs="%(HelixWorkItemList.BuildCompleteJson)"
           Outputs="%(HelixWorkItemList.HelixJobUploadCompletePath)"
           Condition="'$(SkipSendToHelix)' != 'true'">
-    <Error Condition=" '$(HelixApiAccessKey)' == '' " Text="Either provide a value for HelixApiAccessKey or set SkipSendToHelix to 'true'" ContinueOnError="false" />
     <SendJobsToHelix
       AccessToken="$(HelixApiAccessKey)"
       ApiEndpoint="$(HelixApiEndpoint)"
