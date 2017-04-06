@@ -899,6 +899,15 @@ namespace Microsoft.DotNet.Build.Tasks
                 {
                     return packagePath;
                 }
+                else
+                {
+                    // Try a lower-case path.
+                    string lowerCasePath = packagePath.ToLowerInvariant();
+                    if (_directoryExists(lowerCasePath))
+                    {
+                        return lowerCasePath;
+                    }
+                }
             }
 
            throw new ExceptionFromResource(nameof(Strings.PackageFolderNotFound), packageId, packageVersion,
