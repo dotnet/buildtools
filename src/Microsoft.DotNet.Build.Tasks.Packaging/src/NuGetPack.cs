@@ -125,6 +125,15 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             set;
         }
 
+        /// <summary>
+        /// If true, entries in the manifest which can not be found on disk are ignored.
+        /// </summary>
+        public bool IgnoreMissingFiles
+        {
+            get;
+            set;
+        }
+
         public override bool Execute()
         {
             if (Nuspecs == null || Nuspecs.Length == 0)
@@ -251,7 +260,27 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                 string baseDirectoryPath = (string.IsNullOrEmpty(BaseDirectory)) ? Path.GetDirectoryName(nuspecPath) : BaseDirectory;
                 builder.Populate(manifest.Metadata);
-                builder.PopulateFiles(baseDirectoryPath, manifest.Files);
+                builder.PopulateFiles(baseDirectoryPath, manifest.Files.Where(m =>
+                {
+                    if (!IgnoreMissingFiles)
+                    {
+                        return true;
+                    }
+
+                    PackageBuilder temp = new PackageBuilder();
+                    bool didAdd = false;
+
+                    try {
+                        temp.AddFiles(baseDirectoryPath, m.Source, m.Target, m.Exclude);
+                        didAdd = true;
+                    } catch (DirectoryNotFoundException) {
+                        // ignore
+                    } catch (FileNotFoundException) {
+                        // ignore
+                    }
+
+                    return didAdd;
+                }));
 
                 if (creatingSymbolsPackage)
                 {
