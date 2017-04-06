@@ -20,8 +20,8 @@ namespace Microsoft.Cci.Differs.Rules
             if (impl.Visibility == TypeMemberVisibility.Public)
                 return DifferenceType.Unknown;
 
-            // If implementation is protected then contract must be protected as well. 
-            if (impl.Visibility == TypeMemberVisibility.Family)
+            // If implementation is protected or protected internal then contract must be protected or protected internal as well.
+            if (impl.Visibility == TypeMemberVisibility.Family || impl.Visibility == TypeMemberVisibility.FamilyOrAssembly)
             {
                 if (contract.Visibility != TypeMemberVisibility.Family && contract.Visibility != TypeMemberVisibility.FamilyOrAssembly)
                 {
@@ -44,8 +44,8 @@ namespace Microsoft.Cci.Differs.Rules
             if (impl.GetVisibility() == TypeMemberVisibility.Public)
                 return DifferenceType.Unknown;
 
-            // If implementation is protected then contract must be protected as well. 
-            if (impl.GetVisibility() == TypeMemberVisibility.Family)
+            // If implementation is protected or protected internal then contract must be protected or protected internal as well.
+            if (impl.GetVisibility() == TypeMemberVisibility.Family || impl.GetVisibility() == TypeMemberVisibility.FamilyOrAssembly)
             {
                 if (contract.GetVisibility() != TypeMemberVisibility.Family && contract.GetVisibility() != TypeMemberVisibility.FamilyOrAssembly)
                 {
