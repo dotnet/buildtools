@@ -6,6 +6,7 @@
     <OptimizationDataVersion Condition="'$(OptimizationDataVersion)'==''">2.0.0-rc-61101-16</OptimizationDataVersion>
     <OptimizationDataPackageName Condition="'$(OptimizationDataPackageName)'==''">RoslynDependencies.OptimizationData</OptimizationDataPackageName>
     <OptimizationDataDir Condition="'$(OptimizationDataDir)'==''">$(ToolsDir)OptimizationData/</OptimizationDataDir>
+    <UsePartialNGENOptimization Condition="'$(UsePartialNGENOptimization)'==''">true</UsePartialNGENOptimization>
   </PropertyGroup>
 
   <!-- We should only run this target on Windows and only if EnableProfileGuidedOptimization is set and we have training data -->
@@ -25,12 +26,18 @@
       <OptimizedAssemblyFile>$(OptimizedAssemblyDir)/$(AssemblyName).dll</OptimizedAssemblyFile>
     </PropertyGroup>
 
+    <!-- Customize IBCMerge's arguments depending on input props -->
+    <PropertyGroup>
+      <IBCMergeArguments>-q -f -mo $(OptimizedAssemblyFile) -incremental $(OptimizationDataDir)$(AssemblyName).pgo</IBCMergeArguments>
+      <IBCMergeArguments Condition="$(UsePartialNGENOptimization)">$(IBCMergeArguments) -partialNGEN -minify</IBCMergeArguments>
+    </PropertyGroup>
+
     <!-- Copy the compiled assembly into a folder for further processing -->
     <MakeDir Directories="$(OptimizedAssemblyDir)" />
     <Copy SourceFiles="@(IntermediateAssembly)" DestinationFolder="$(OptimizedAssemblyDir)" />
 
     <!-- Apply optimization data to the compiled assembly -->
-    <Exec Command="$(IBCMergeToolPath) -q -f -partialNGEN -minify -mo $(OptimizedAssemblyFile) -incremental $(OptimizationDataDir)$(AssemblyName).pgo" />
+    <Exec Command="$(IBCMergeToolPath) $(IBCMergeArguments)" />
 
     <!-- Verify that the optimization data has been applied -->
     <Exec Command="$(IBCMergeToolPath) -mi $(OptimizedAssemblyFile)" />
