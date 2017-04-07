@@ -6,6 +6,7 @@
     <OptimizationDataVersion Condition="'$(OptimizationDataVersion)'==''">2.0.0-rc-61101-16</OptimizationDataVersion>
     <OptimizationDataPackageName Condition="'$(OptimizationDataPackageName)'==''">RoslynDependencies.OptimizationData</OptimizationDataPackageName>
     <OptimizationDataDir Condition="'$(OptimizationDataDir)'==''">$(ToolsDir)OptimizationData/</OptimizationDataDir>
+    <RestoreDefaultOptimizationDataPackage Condition="'$(RestoreDefaultOptimizationDataPackage)'==''">true</RestoreDefaultOptimizationDataPackage>
     <UsePartialNGENOptimization Condition="'$(UsePartialNGENOptimization)'==''">true</UsePartialNGENOptimization>
   </PropertyGroup>
 
@@ -81,7 +82,7 @@
 
   <!-- We need the OptimizationData package in order to be able to optimize the assembly -->
   <Target Name="RestoreOptimizationDataPackage" BeforeTargets="CoreCompile"
-          Condition="'$(EnableProfileGuidedOptimization)'=='true' and !Exists('$(OptimizationDataDir)project.json')">
+          Condition="'$(EnableProfileGuidedOptimization)'=='true' and '$(RestoreDefaultOptimizationDataPackage)'=='true' and !Exists('$(OptimizationDataDir)project.json')">
 
     <!-- Dynamically create a project.json file used to restore the optimization data-->
     <Message Text="Generating project.json for optimization data"  Importance="low" />
