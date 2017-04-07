@@ -17,16 +17,15 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
     {
         /// <summary>
         /// Api endpoint for sending jobs.
-        /// e.g. https://helixview.azurewebsites.net/api/jobs
+        /// e.g. https://helix.dot.net/api/2017-03-34/jobs
         /// </summary>
         [Required]
         public string ApiEndpoint { get; set; }
 
         /// <summary>
         /// Access token for API. To obtain, see the profile on the server corresponding to the API endpoint.
-        /// e.g. https://helixview.azurewebsites.net/UserProfile
+        /// e.g. https://helix.dot.net/UserProfile
         /// </summary>
-        [Required]
         public string AccessToken { get; set; }
 
         /// <summary>
@@ -48,8 +47,14 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
         private async Task<bool> ExecuteAsync()
         {
-            string joinCharacter = ApiEndpoint.Contains("?") ? "&" : "?";
-            string apiUrl = ApiEndpoint + joinCharacter + "access_token=" + Uri.EscapeDataString(AccessToken);
+            Log.LogWarning("Obselete: Please use the SendJobsToHelix task");
+
+            string apiUrl = ApiEndpoint;
+            if (!String.IsNullOrEmpty(AccessToken))
+            {
+                string joinCharacter = ApiEndpoint.Contains("?") ? "&" : "?";
+                apiUrl = ApiEndpoint + joinCharacter + "access_token=" + Uri.EscapeDataString(AccessToken);
+            }
 
             Log.LogMessage(MessageImportance.Normal, "Posting job to {0}", ApiEndpoint);
             Log.LogMessage(MessageImportance.Low, "Event json is ", EventDataPath);
