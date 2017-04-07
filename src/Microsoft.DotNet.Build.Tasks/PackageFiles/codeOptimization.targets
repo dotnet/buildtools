@@ -9,6 +9,36 @@
     <UsePartialNGENOptimization Condition="'$(UsePartialNGENOptimization)'==''">true</UsePartialNGENOptimization>
   </PropertyGroup>
 
+  <!-- If IBC data hasn't been merged with the IL yet, preprocess it first -->
+  <Target Name="PreProcessIBCData"
+          BeforeTargets="OptimizeWithTrainingData"
+          DependsOnTargets="RestoreOptimizationDataPackage;ResolveOptionalTools"
+          Condition="'$(OS)'=='Windows_NT' and '$(EnableProfileGuidedOptimization)'=='true' and Exists('$(OptimizationDataDir)$(AssemblyName).dll')">
+
+    <!-- Find IBCMerge as a resolved optional tool. -->
+    <PropertyGroup>
+      <IBCMergeToolPath Condition="'%(Filename)%(Extension)'=='ibcmerge.exe'">@(ResolvedOptionalToolReferences)</IBCMergeToolPath>
+    </PropertyGroup>
+
+    <!-- Enumerate the various files that need merging -->
+    <PropertyGroup>
+      <InputAssemblyFile>$(OptimizationDataDir)$(AssemblyName).dll</InputAssemblyFile>
+      <TargetOptimizationDataFile>$(OptimizationDataDir)$(AssemblyName).pgo</TargetOptimizationDataFile>
+    </PropertyGroup>
+    <ItemGroup>
+      <RawOptimizationDataFiles Include="$(OptimizationDataDir)$(AssemblyName)*.ibc" />
+    </ItemGroup>
+
+    <!-- Merge the optimization data into the source DLL -->
+    <Exec Command="$(IBCMergeToolPath) -q -f -delete -mo $(InputAssemblyFile) @(RawOptimizationDataFiles, ' ')" />
+
+    <!-- Verify that the optimization data has been merged -->
+    <Exec Command="$(IBCMergeToolPath) -mi $(InputAssemblyFile)" />
+
+    <!-- Save the module as *.pgo to match the convention expected in target OptimizeWithTrainingData -->
+    <Copy SourceFiles="$(InputAssemblyFile)" DestinationFiles="$(TargetOptimizationDataFile)" />
+  </Target>
+
   <!-- We should only run this target on Windows and only if EnableProfileGuidedOptimization is set and we have training data -->
   <Target Name="OptimizeWithTrainingData"
           AfterTargets="AfterBuild"
