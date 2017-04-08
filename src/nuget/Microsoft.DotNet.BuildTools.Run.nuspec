@@ -17,10 +17,10 @@
     <dependencies></dependencies>
   </metadata>
   <files>
-    <file src="run\run.exe" target="tools\netcoreapp1.0" />
-    <file src="run\run.runtimeconfig.json" target="tools\netcoreapp1.0" />
-    <file src="run\Newtonsoft.Json.dll" target="tools\netcoreapp1.0" />
-    <file src="run\System.Runtime.Serialization.Primitives.dll" target="tools\netcoreapp1.0" />
+    <file src="Run\run.exe" target="tools\netcoreapp1.0" />
+    <file src="Run\run.runtimeconfig.json" target="tools\netcoreapp1.0" />
+    <file src="Run\Newtonsoft.Json.dll" target="tools\netcoreapp1.0" />
+    <file src="Run\System.Runtime.Serialization.Primitives.dll" target="tools\netcoreapp1.0" />
 
     <file src="..\obj\version.txt" target="" />
   </files>

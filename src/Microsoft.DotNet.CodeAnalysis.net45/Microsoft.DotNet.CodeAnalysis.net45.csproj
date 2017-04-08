@@ -12,8 +12,10 @@
     <NuGetTargetMoniker>.NETFramework,Version=v4.5</NuGetTargetMoniker >
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="mscorlib" />
-    <Reference Include="System.Core" />
+    <TargetingPackReference Include="System.Core" />
+    <TargetingPackReference Include="System.Runtime" />
+    <TargetingPackReference Include="System.Text.Encoding" />
+    <TargetingPackReference Include="System.Threading.Tasks" />
   </ItemGroup>
 
   <Target Name="AfterBuild">

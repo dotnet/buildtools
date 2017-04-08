@@ -13,10 +13,11 @@
     <NuGetTargetMoniker>.NETFramework,Version=v4.5</NuGetTargetMoniker>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Build.Framework" />
-    <Reference Include="Microsoft.Build.Utilities.v4.0" />
-    <Reference Include="mscorlib" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
+    <TargetingPackReference Include="Microsoft.Build.Framework" />
+    <TargetingPackReference Include="Microsoft.Build.Utilities.v4.0" />
+    <TargetingPackReference Include="System" />
+    <TargetingPackReference Include="System.Core" />
+    <TargetingPackReference Include="System.Runtime" />
+    <TargetingPackReference Include="System.Threading.Tasks" />
   </ItemGroup>
 </Project>

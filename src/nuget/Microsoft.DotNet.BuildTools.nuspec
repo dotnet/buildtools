@@ -22,12 +22,12 @@
     <file src="Microsoft.DotNet.Build.Tasks.net45\*.dll" exclude="Microsoft.DotNet.Build.Tasks.net45\Nuget.*.dll" target="lib\net46" />
     <file src="Microsoft.DotNet.Build.CloudTestTasks\Microsoft.DotNet.Build.CloudTestTasks.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.CloudTestTasks.net45\Microsoft.DotNet.Build.CloudTestTasks.dll" target="lib\net46" />
-    <file src="Microsoft.Dotnet.Build.CloudTestTasks\PackageFiles\**\*.*" target="lib" />
-    <file src="Microsoft.Dotnet.Build.CloudTestTasks\RunnerScripts\**\*.*" target="lib\RunnerScripts" />
+    <file src="Microsoft.DotNet.Build.CloudTestTasks\PackageFiles\**\*.*" target="lib" />
+    <file src="Microsoft.DotNet.Build.CloudTestTasks\RunnerScripts\**\*.*" target="lib\RunnerScripts" />
     <file src="Microsoft.DotNet.Build.Tasks\PackageFiles\**\*.*" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\Microsoft.DotNet.Build.Tasks.dll" target="lib" />
-    <file src="run\run.exe" target="lib" />
-    <file src="run\run.runtimeconfig.json" target="lib" />
+    <file src="Run\run.exe" target="lib" />
+    <file src="Run\run.runtimeconfig.json" target="lib" />
     <file src="BclRewriter\BclRewriter.exe" target="lib" />
     <file src="GenFacades.Console\GenFacades.exe" target="lib" />
     <file src="GenFacades.Core\GenFacades.Core.dll" target="lib" />

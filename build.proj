@@ -43,7 +43,7 @@
     <ItemGroup>
       <_allPackagesConfigs Include="$(MSBuildProjectDirectory)\src\**\packages.config"/>
     </ItemGroup>
-    <Exec Condition="'@(_allPackagesConfigs)' != ''" Command="$(NugetRestoreCommand) &quot;%(_allPackagesConfigs.FullPath)&quot;" StandardOutputImportance="Low" />
+    <Exec Condition="'@(_allPackagesConfigs)' != '' and '$(OSEnvironment)' == 'Windows_NT'" Command="$(NugetRestoreCommand) &quot;%(_allPackagesConfigs.FullPath)&quot;" StandardOutputImportance="Low" />
   </Target>
 
   <!-- Tasks from buildtools for easy project.json dependency updates -->
