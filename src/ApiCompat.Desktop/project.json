@@ -12,7 +12,11 @@
     "System.Runtime": "4.0.20"
   },
   "frameworks": {
-    "net46": {}
+    "net46": {
+      "dependencies": {
+        "Microsoft.TargetingPack.NETFramework.v4.6": "1.0.1"
+      }
+    }
   },
   "runtimes": {
     "win7-x64": {}

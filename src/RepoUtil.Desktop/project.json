@@ -5,7 +5,11 @@
     "System.Collections.Immutable": "1.2.0"
   },
   "frameworks": {
-    ".NETFramework,Version=v4.6": {}
+    "net46": {
+      "dependencies": {
+        "Microsoft.TargetingPack.NETFramework.v4.6": "1.0.1"
+      }
+    }
   },
   "runtimes": {
     "win": {},

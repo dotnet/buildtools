@@ -15,17 +15,19 @@
     <NuGetTargetMoniker>.NETFramework,Version=v4.5</NuGetTargetMoniker>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Build.Framework" />
-    <Reference Include="Microsoft.Build.Utilities.v4.0" />
-    <Reference Include="mscorlib" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
+    <TargetingPackReference Include="Microsoft.Build.Framework" />
+    <TargetingPackReference Include="Microsoft.Build.Utilities.v4.0" />
+    <TargetingPackReference Include="System" />
+    <TargetingPackReference Include="System.Collections" />
+    <TargetingPackReference Include="System.Core" />
+    <TargetingPackReference Include="System.IO" />
+    <TargetingPackReference Include="System.IO.Compression" />
+    <TargetingPackReference Include="System.Runtime" />
+    <TargetingPackReference Include="System.Xml" />
+    <TargetingPackReference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\Common\AssemblyResolver.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\common\AssemblyResolver.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PackagingTask.Desktop.cs" />
   </ItemGroup>
 </Project>

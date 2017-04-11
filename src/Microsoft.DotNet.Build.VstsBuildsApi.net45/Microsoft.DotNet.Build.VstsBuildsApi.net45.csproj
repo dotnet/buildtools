@@ -12,9 +12,8 @@
     <NuGetTargetMoniker>.NETFramework,Version=v4.5</NuGetTargetMoniker>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="mscorlib" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Net.Http" />
+    <TargetingPackReference Include="System" />
+    <TargetingPackReference Include="System.Core" />
+    <TargetingPackReference Include="System.Net.Http" />
   </ItemGroup>
 </Project>

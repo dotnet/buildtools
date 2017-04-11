@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Microsoft.CCI.Extensions\Microsoft.CCI.Extensions.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Cci.Extensions\Microsoft.Cci.Extensions.csproj" />
   </ItemGroup>
 
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />

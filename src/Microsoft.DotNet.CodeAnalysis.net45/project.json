@@ -10,7 +10,11 @@
     "Microsoft.CodeAnalysis.FxCopAnalyzers": "1.1.0"
   },
   "frameworks": {
-    "net45": { }
+    "net45": {
+      "dependencies": {
+        "Microsoft.TargetingPack.NETFramework.v4.5": "1.0.1"
+      }
+    }
   },
   "runtimes": {
     "win7-x64": {}

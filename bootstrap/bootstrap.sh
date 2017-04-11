@@ -270,5 +270,9 @@ done <$rootToolVersions
 
 cp $rootToolVersions $bootstrapComplete
 
+if [ -e "$toolsLocalPath/FrameworkTargeting.targets" ]; then
+    sed -i -e "s/Microsoft.CSharp.targets/Microsoft.CSharp.Targets/g" "$toolsLocalPath/FrameworkTargeting.targets"
+fi
+
 say "Bootstrap finished successfully."
 

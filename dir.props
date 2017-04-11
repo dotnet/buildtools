@@ -119,41 +119,6 @@
     <RestorePackages>false</RestorePackages>
   </PropertyGroup>
 
-  <!--
-    Set up Roslyn predefines
-  -->
-  <PropertyGroup>
-    <RoslynPackageDir>$(PackagesDir)/$(RoslynPackageName).$(RoslynVersion)/</RoslynPackageDir>
-    <RoslynPropsFile>$(RoslynPackageDir)build/Microsoft.Net.ToolsetCompilers.props</RoslynPropsFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(OsEnvironment)'=='Unix' and '$(UseRoslynCompiler)'=='true'">
-    <!--
-      PDB support isn't implemented yet. https://github.com/dotnet/roslyn/issues/2449
-      Note that both DebugSymbols and DebugType need set or project references will assume they need to copy pdbs and fail.
-    -->
-    <DebugSymbols>false</DebugSymbols>
-    <DebugType>none</DebugType>
-    <!--
-      Full signing with Open key doesn't work with Portable Csc.
-      https://github.com/dotnet/roslyn/issues/8210
-    -->
-    <UseOpenKey>false</UseOpenKey>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(OsEnvironment)'=='Unix'">
-    <!--
-      Mono currently doesn't include VB targets for portable, notably /lib/mono/xbuild/Microsoft/Portable/v4.5/Microsoft.Portable.VisualBasic.targets.
-      Fixed in https://github.com/mono/mono/pull/1726.
-    -->
-    <IncludeVbProjects>false</IncludeVbProjects>
-    <!--
-      Building packages fails for two reasons.
-      First, nuget doesn't like the paths in the nuspec having backslashes as directory separators.
-      Second, we aren't yet building pdbs, which the nuspecs specify.
-    -->
-    <SkipBuildPackages>true</SkipBuildPackages>
-  </PropertyGroup>
-
   <!-- Set the default strong name sig to use the "open" key -->
   <PropertyGroup Condition="'$(UseOpenKey)' == ''">
     <UseOpenKey>true</UseOpenKey>
@@ -222,7 +187,7 @@
 
   <!-- Set up some common paths -->
   <PropertyGroup>
-    <CommonPath>$(SourceDir)Common</CommonPath>
+    <CommonPath>$(SourceDir)common</CommonPath>
   </PropertyGroup>
 
   <!-- Set up the default output and intermediate paths -->
@@ -251,6 +216,11 @@
     <TargetsNetBSD Condition="'$(OSGroup)' == 'NetBSD'">true</TargetsNetBSD>
 
     <TargetsUnix Condition="'$(TargetsLinux)' == 'true' or '$(TargetsOSX)' == 'true' or '$(TargetsFreeBSD)' == 'true' or '$(TargetsNetBSD)' == 'true'">true</TargetsUnix>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(OSEnvironment)' != 'Windows_NT'">
+    <!-- https://github.com/dotnet/buildtools/issues/1430 -->
+    <SkipTests>true</SkipTests>
   </PropertyGroup>
 
   <Import Project="$(RoslynPropsFile)"
