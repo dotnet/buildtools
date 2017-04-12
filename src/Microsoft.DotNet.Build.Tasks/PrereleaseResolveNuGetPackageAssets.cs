@@ -902,7 +902,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 else
                 {
                     // Try a lower-case path.
-                    string lowerCasePath = packagePath.ToLowerInvariant();
+                    string lowerCasePath = Path.Combine(packagesFolder, packageId.ToLowerInvariant(), packageVersion);
                     if (_directoryExists(lowerCasePath))
                     {
                         return lowerCasePath;
