@@ -120,20 +120,30 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 }
             }
             string workitemPayload = currentWorkItem.PayloadUri;
-            if (workitemPayload.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            if (!string.IsNullOrEmpty(workitemPayload))
             {
-                string fileName = workitemPayload.Substring(workitemPayload.LastIndexOf('/') + 1);
-                if (fileName.IndexOf('?') > 0)
+                if (workitemPayload.StartsWith("http", StringComparison.OrdinalIgnoreCase))
                 {
-                    fileName = fileName.Substring(0, fileName.IndexOf('?'));
+                    string fileName = workitemPayload.Substring(workitemPayload.LastIndexOf('/') + 1);
+                    if (fileName.IndexOf('?') > 0)
+                    {
+                        fileName = fileName.Substring(0, fileName.IndexOf('?'));
+                    }
+                    workitemPayload = Path.Combine(ExecutionFolder, fileName);
+                    if (!File.Exists(workitemPayload))
+                    {
+                        DownloadTo(currentWorkItem.PayloadUri, workitemPayload);
+                    }
                 }
-                workitemPayload = Path.Combine(ExecutionFolder, fileName);
-                if (!File.Exists(workitemPayload))
+                if (File.Exists(workitemPayload))
                 {
-                    DownloadTo(currentWorkItem.PayloadUri, workitemPayload);
+                    Unzip(workitemPayload, Path.Combine(ExecutionFolder, "work", CorrelationId, currentWorkItem.WorkItemId), true);
+                }
+                else
+                {
+                    Log.LogWarning($"Could not obtain work item payload specified by {currentWorkItem.PayloadUri}.  This will likely break execution.");
                 }
             }
-            Unzip(workitemPayload, Path.Combine(ExecutionFolder, "work", CorrelationId, currentWorkItem.WorkItemId), true);
         }
 
         private void ExecuteWorkItem(HelixJobListEntry currentWorkItem)
@@ -298,6 +308,13 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
         private bool FindPythonExecutable()
         {
+            // Short circuit in the case where a value for the PythonExecutable parameter is provided.
+            if (!string.IsNullOrEmpty(PythonExecutable) && File.Exists(PythonExecutable))
+            {
+                Log.LogMessage($"Found python executable at {PythonExecutable}");
+                return true;
+            }
+
             string pythonExeName = runningOnWindows ? "python.exe" : "python";
 
             string pythonPath = Environment.GetEnvironmentVariable("PYTHONPATH");
