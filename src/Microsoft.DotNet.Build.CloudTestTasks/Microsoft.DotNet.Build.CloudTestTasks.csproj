@@ -21,6 +21,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="SendJobsToHelix.cs" />
+    <Compile Include="SimulateHelixExecution.cs" />
     <Compile Include="ValidateWorkItems.cs" />
     <Compile Include="AzureConnectionStringBuildTask.cs" />
     <Compile Include="AzureHelper.cs" />
