@@ -20,10 +20,10 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\Microsoft.DotNet.Build.Tasks\ZipFileCreateFromDependencyLists.cs">
+    <Compile Include="$(CommonPath)\ZipFileCreateFromDependencyLists.cs">
       <Link>ZipFileCreateFromDependencyLists.cs</Link>
     </Compile>
-    <Compile Include="..\Microsoft.DotNet.Build.Tasks\ZipFileCreateFromDirectory.cs">
+    <Compile Include="$(CommonPath)\ZipFileCreateFromDirectory.cs">
       <Link>ZipFileCreateFromDirectory.cs</Link>
     </Compile>
     <Compile Include="SendJobsToHelix.cs" />
