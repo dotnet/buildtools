@@ -2,9 +2,12 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <GenAPITargetPath Condition="'$(GenAPITargetPath)' == ''">$(TargetDir)$(TargetName).cs</GenAPITargetPath>
-    <_GenAPIPath>$(MSBuildThisFileDirectory)\..\tools\GenApi.exe</_GenAPIPath>
+    <_GenAPIPath>$(MSBuildThisFileDirectory)\..\tools\GenAPI.exe</_GenAPIPath>
 
-    <!-- Sequence ourselves last in PrepareForRun 
+    <_GenAPICommand Condition=" '$(OS)' == 'Windows_NT'">"$(_GenAPIPath)"</_GenAPICommand>
+    <_GenAPICommand Condition=" '$(OS)' != 'Windows_NT'">mono --runtime=v4.0.30319 "$(_GenAPIPath)"</_GenAPICommand>
+
+    <!-- Sequence ourselves last in PrepareForRun
          This ensures the output has been copied to TargetPath, but still permits
          us to participate in FileWrites. -->
     <PrepareForRunDependsOn>
@@ -24,7 +27,7 @@
       <_referencePathDirectories Include="%(_referencePathDirectoriesWithDuplicates.Identity)" />
     </ItemGroup>
 
-    <Exec Command="&quot;$(_GenAPIPath)&quot; -assembly:&quot;$(TargetPath)&quot; -libPath:&quot;@(_referencePathDirectories)&quot; -out:&quot;$(GenAPITargetPath)&quot; $(GenAPIAdditionalParameters)" />
+    <Exec Command="$(_GenAPICommand) -assembly:&quot;$(TargetPath)&quot; -libPath:&quot;@(_referencePathDirectories)&quot; -out:&quot;$(GenAPITargetPath)&quot; $(GenAPIAdditionalParameters)" />
 
     <ItemGroup>
       <FileWrites Include="$(GenAPITargetPath)"/>
