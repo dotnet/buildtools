@@ -70,9 +70,13 @@
     <Compile Include="ValidateProjectDependencyVersions.cs" />
     <Compile Include="WriteSigningRequired.cs" />
     <Compile Include="WriteVisualBasicDefineResponseFile.cs" />
-    <Compile Include="ZipFileCreateFromDependencyLists.cs" />
+    <Compile Include="$(CommonPath)\ZipFileCreateFromDependencyLists.cs">
+      <Link>ZipFileCreateFromDependencyLists.cs</Link>
+    </Compile>
+    <Compile Include="$(CommonPath)\ZipFileCreateFromDirectory.cs">
+      <Link>ZipFileCreateFromDirectory.cs</Link>
+    </Compile>
     <Compile Include="ZipFileExtractToDirectory.cs" />
-    <Compile Include="ZipFileCreateFromDirectory.cs" />
     <Compile Include="Strings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

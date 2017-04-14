@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata minClientVersion="2.8.1">
+    <id>Microsoft.DotNet.Build.CloudTest</id>
+    <version>1.0.0-prerelease</version>
+    <title>Microsoft DotNet Build cloud test tools </title>
+    <authors>Microsoft</authors>
+    <owners>Microsoft</owners>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <licenseUrl>http://go.microsoft.com/fwlink/?LinkId=329770</licenseUrl>
+    <projectUrl>http://go.microsoft.com/fwlink/?LinkId=518631</projectUrl>
+    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
+    <summary>.NET Helix Cloud Test Execution Tools</summary>
+    <description>This package provides support for executing jobs in the .NET Helix infrastructure.  
+                 For a sample project using these targets, see https://github.com/dotnet/buildtools/blob/master/Documentation/Samples/.  
+                 To submit jobs, users need to be a member of the Microsoft github organization,
+                 construct the appropriate properties and items, then call the HelixCloudBuild target.
+    </description>
+    <copyright>Copyright © Microsoft Corporation</copyright>
+    <tags></tags>
+    <dependencies>
+     <!-- Do not add any dependencies to this package as we want to install it versionless (i.e. -ExcludeVersion) and we don't want the dependencies to be installed that way -->
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="Microsoft.DotNet.Build.CloudTestTasks\Microsoft.DotNet.Build.CloudTestTasks.dll" target="build" />
+    <file src="Microsoft.DotNet.Build.CloudTestTasks.net45\Microsoft.DotNet.Build.CloudTestTasks.dll" target="build\desktop" />
+    <file src="Microsoft.DotNet.Build.CloudTestTasks\PackageFiles\**\*.*" target="build" />
+    <file src="Microsoft.DotNet.Build.CloudTestTasks\RunnerScripts\**\*.*" target="build\RunnerScripts" />
+    <file src="..\obj\version.txt" target="" />
+  </files>
+</package>

@@ -1,0 +1,10 @@
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- While this package contains standalone, usable copies of the contents of the CloudTest and Dumpling
+       targets, the previous iteration is tied heavily into builds that look like .NET CoreFX.
+       As such, the only targets being imported here are CloudTest.Helix.targets which has been factored to 
+       be used independently.  In future iterations, we can conditionally bring in more targets here as needed -->
+
+  <Import Project="$(MSBuildThisFileDirectory)\CloudTest.Helix.targets"/>
+  
+</Project>

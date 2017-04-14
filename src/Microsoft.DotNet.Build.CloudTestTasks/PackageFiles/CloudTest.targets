@@ -7,8 +7,8 @@
   <UsingTask TaskName="UploadToAzure" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="WriteItemsToJson" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="WriteTestBuildStatsJson" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
-  <UsingTask TaskName="ZipFileCreateFromDirectory" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
-  <UsingTask TaskName="ZipFileCreateFromDependencyLists" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="ZipFileCreateFromDirectory" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
+  <UsingTask TaskName="ZipFileCreateFromDependencyLists" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="FilterForUpload" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
 
   <!-- set Helix environment vars based on target platform -->
