@@ -13,8 +13,8 @@
     <summary>.NET Helix Cloud Test Execution Tools</summary>
     <description>This package provides support for executing jobs in the .NET Helix infrastructure.  
                  For a sample project using these targets, see https://github.com/dotnet/buildtools/blob/master/Documentation/Samples/.  
-				 To submit jobs, users need to be a member of the Microsoft github organization,
-				 construct the appropriate properties and items, then call the HelixCloudBuild target.
+                 To submit jobs, users need to be a member of the Microsoft github organization,
+                 construct the appropriate properties and items, then call the HelixCloudBuild target.
     </description>
     <copyright>Copyright © Microsoft Corporation</copyright>
     <tags></tags>
