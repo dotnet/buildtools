@@ -25,8 +25,8 @@
   <files>
     <file src="Microsoft.DotNet.Build.CloudTestTasks\Microsoft.DotNet.Build.CloudTestTasks.dll" target="build" />
     <file src="Microsoft.DotNet.Build.CloudTestTasks.net45\Microsoft.DotNet.Build.CloudTestTasks.dll" target="build\desktop" />
-    <file src="Microsoft.Dotnet.Build.CloudTestTasks\PackageFiles\**\*.*" target="build" />
-    <file src="Microsoft.Dotnet.Build.CloudTestTasks\RunnerScripts\**\*.*" target="build\RunnerScripts" />
+    <file src="Microsoft.DotNet.Build.CloudTestTasks\PackageFiles\**\*.*" target="build" />
+    <file src="Microsoft.DotNet.Build.CloudTestTasks\RunnerScripts\**\*.*" target="build\RunnerScripts" />
     <file src="..\obj\version.txt" target="" />
   </files>
 </package>
