@@ -13,7 +13,7 @@ The build tools are MSBuild `.targets` and tasks. These extend the build process
 to provide additional functionality, such as producing version information and
 performing [strong name signing][sn-sign].
 
-**Note:** Please note that these tools are currently not meant for consumption
+**Note:** Please note that these tools are not currently meant for consumption
 outside of the .NET Core projects.
 
 [dotnet-corefx]: https://github.com/dotnet/corefx
