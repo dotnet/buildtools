@@ -82,10 +82,10 @@
     </ItemGroup>
 
     <ItemGroup Condition="'$(CoreLibRoot)' != ''">
-      <TestCopyLocal Include="$(CoreLibRoot)\mscorlib.dll" />
-      <TestCopyLocal Include="$(CoreLibRoot)\System.Private.CoreLib.dll" />
-      <TestCopyLocal Include="$(CoreLibRoot)\PDB\mscorlib.pdb" />
-      <TestCopyLocal Include="$(CoreLibRoot)\PDB\System.Private.CoreLib.pdb" />
+      <RunTestsForProjectInputs Include="$(CoreLibRoot)\mscorlib.dll" />
+      <RunTestsForProjectInputs Include="$(CoreLibRoot)\System.Private.CoreLib.dll" />
+      <RunTestsForProjectInputs Include="$(CoreLibRoot)\PDB\mscorlib.pdb" />
+      <RunTestsForProjectInputs Include="$(CoreLibRoot)\PDB\System.Private.CoreLib.pdb" />
     </ItemGroup>
 
     <PropertyGroup Condition="'$(CoreLibRoot)' != ''">
