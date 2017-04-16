@@ -183,6 +183,12 @@
       <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
     </Copy>
   </Target>
+  
+  <!-- Outside VS this is only run during the "Test" target, 
+       but for debugging in VS we need to deploy the test during build for the default TestTFM. -->
+  <PropertyGroup Condition="'$(BuildingInsideVisualStudio)'=='true'">
+    <PrepareForRunDependsOn>$(PrepareForRunDependsOn);CopyTestToTestDirectory</PrepareForRunDependsOn>
+  </PropertyGroup>
 
   <!-- This copies the same files as the RunTests script, when running locally.
        This achieves two things: 
