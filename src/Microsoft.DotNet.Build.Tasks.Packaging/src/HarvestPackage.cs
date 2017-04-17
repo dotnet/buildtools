@@ -51,11 +51,21 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// Set to false to suppress harvesting of files and only harvest supported framework information.
         /// </summary>
         public bool HarvestAssets { get; set; }
+        
+        /// <summary>
+        /// Set to true to harvest all files by default.
+        /// </summary>
+        public bool IncludeAllPaths { get; set; }
 
         /// <summary>
         /// Set to partial paths to exclude from file harvesting.
         /// </summary>
         public string[] PathsToExclude { get; set; }
+
+        /// <summary>
+        /// Set to partial paths to include from file harvesting.
+        /// </summary>
+        public ITaskItem[] PathsToInclude { get; set; }
 
         /// <summary>
         /// Set to partial paths to suppress from both file and support harvesting.
@@ -149,7 +159,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 var pathToPackage = Path.Combine(PackagesFolder, packageDir);
                 if (!Directory.Exists(pathToPackage))
                 {
-                    Log.LogMessage(LogImportance.Low, $"Will not harvest files & support from package {packageDir} because {pathToPackage} does not exist.");
+                    Log.LogError($"Cannot harvest package '{PackageId}' version '{PackageVersion}' because {pathToPackage} does not exist.  Harvesting is needed to redistribute assets and ensure compatiblity with the previous release.  You can disable this by setting HarvestStablePackage=false.");
                     result = false;
                 }
             }
@@ -329,8 +339,22 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     // exclude if its specifically set for exclusion
                     if (ShouldExclude(packagePath))
                     {
-                        Log.LogMessage(LogImportance.Low, $"Excluding package path {packagePath}.");
+                        Log.LogMessage(LogImportance.Low, $"Excluding package path {packagePath} because it is specifically excluded.");
                         continue;
+                    }
+
+                    ITaskItem includeItem = null;
+                    if (!IncludeAllPaths && !ShouldInclude(packagePath, out includeItem))
+                    {
+                        Log.LogMessage(LogImportance.Low, $"Excluding package path {packagePath} because it is not included in {nameof(PathsToInclude)}.");
+                        continue;
+                    }
+
+                    // allow for the harvested item to be moved
+                    var remappedTargetPath = includeItem?.GetMetadata("TargetPath");
+                    if (!String.IsNullOrEmpty(remappedTargetPath))
+                    {
+                        packagePath = remappedTargetPath + '/' + Path.GetFileName(packageFile);
                     }
 
                     var assemblyVersion = extension == s_dll ? VersionUtility.GetAssemblyVersion(packageFile) : null;
@@ -341,24 +365,32 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     // version and not required to match implementation 1:1 as is the case for desktop
                     if (livePackageFiles.TryGetValue(packagePath, out liveFile))
                     {
-                        // Not a dll, not a ref, or not a versioned assembly: prefer live built file.
-                        if (extension != s_dll || !liveFile.IsRef || assemblyVersion == null || liveFile.Version == null)
+                        // Not a dll, or not a versioned assembly: prefer live built file.
+                        if (extension != s_dll || assemblyVersion == null || liveFile.Version == null)
                         {
-                            Log.LogMessage(LogImportance.Low, $"Preferring live build of package path {packagePath} over the asset from last stable package.");
+                            // we don't consider this an error even for explicitly included files 
+                            Log.LogMessage(LogImportance.Low, $"Preferring live build of package path {packagePath} over the asset from last stable package because the file is not versioned.");
+                            continue;
+                        }
+
+                        // not a ref
+                        if (!liveFile.IsRef )
+                        {
+                            LogSkipIncludedFile(packagePath, " because it is a newer implementation.");
                             continue;
                         }
 
                         // preserve desktop references to ensure bindingRedirects will work.
                         if (liveFile.TargetFramework.Framework == FrameworkConstants.FrameworkIdentifiers.Net)
                         {
-                            Log.LogMessage(LogImportance.Low, $"Preferring live build of package path {packagePath} over the asset from last stable package for desktop framework.");
+                            LogSkipIncludedFile(packagePath, " because it is desktop reference.");
                             continue;
                         }
 
                         // as above but handle the case where a netstandard ref may be used for a desktop impl.
                         if (preserveRefVersion.Contains(liveFile.Version))
                         {
-                            Log.LogMessage(LogImportance.Low, $"Preferring live build of package path {packagePath} over the asset from last stable package for desktop framework.");
+                            LogSkipIncludedFile(packagePath, " because it will be applicable for desktop projects.");
                             continue;
                         }
 
@@ -366,7 +398,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                         if (assemblyVersion.Major != liveFile.Version.Major || 
                             assemblyVersion.Minor != liveFile.Version.Minor)
                         {
-                            Log.LogMessage(LogImportance.Low, $"Preferring live build of reference {packagePath} over the asset from last stable package since the live build is a different API version.");
+                            LogSkipIncludedFile(packagePath, $" because it is a different API version ( {liveFile.Version.Major}.{liveFile.Version.Minor} vs {assemblyVersion.Major}.{assemblyVersion.Minor}.");
                             continue;
                         }
 
@@ -375,7 +407,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                         bool.TryParse(liveFile.OriginalItem.GetMetadata("Preserve"), out preserve);
                         if (preserve)
                         {
-                            Log.LogMessage(LogImportance.Low, $"Preferring live build of reference {packagePath} over the asset from last stable package since Preserve was set to true.");
+                            LogSkipIncludedFile(packagePath, " because it set metadata Preserve=true.");
                             continue;
                         }
 
@@ -404,6 +436,10 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     }
                     else
                     {
+                        if (includeItem != null)
+                        {
+                            includeItem.CopyMetadataTo(item);
+                        }
                         var targetPath = Path.GetDirectoryName(packagePath).Replace('\\', '/');
                         item.SetMetadata("TargetPath", targetPath);
                         string targetFramework = GetTargetFrameworkFromPackagePath(targetPath);
@@ -428,71 +464,103 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             HarvestedFiles = harvestedFiles.ToArray();
 
+            if (_pathsNotIncluded != null)
+            {
+                foreach (var pathNotIncluded in _pathsNotIncluded)
+                {
+                    Log.LogError($"Path '{pathNotIncluded}' was specified in {nameof(PathsToInclude)} but was not found in the package {PackageId}/{PackageVersion}.");
+                }
+            }
+
             if (Files != null)
             {
                 UpdatedFiles = Files.Except(removeFiles).ToArray();
             }
         }
 
-        private string[] _pathsToExclude = null;
+        private void LogSkipIncludedFile(string packagePath, string reason)
+        {
+            if (IncludeAllPaths)
+            {
+                Log.LogMessage(LogImportance.Low, $"Preferring live build of package path {packagePath} over the asset from last stable package{reason}.");
+            }
+            else
+            {
+                Log.LogError($"Package path {packagePath} was specified to be harvested but it conflicts with live build{reason}.");
+            }
+        }
+
+        private HashSet<string> _pathsToExclude = null;
         private bool ShouldExclude(string packagePath)
         {
             if (_pathsToExclude == null)
             {
-                _pathsToExclude = PathsToExclude.NullAsEmpty().Select(EnsureDirectory).ToArray();
+                _pathsToExclude = new HashSet<string>(PathsToExclude.NullAsEmpty().Select(NormalizePath), StringComparer.OrdinalIgnoreCase);
             }
 
-            return ShouldSuppress(packagePath) ||
-                _pathsToExclude.Any(p => packagePath.StartsWith(p, StringComparison.OrdinalIgnoreCase));
+            return ShouldSuppress(packagePath) || ProbePath(packagePath, _pathsToExclude);
         }
 
-        private string[] _pathsToSuppress = null;
+        private Dictionary<string, ITaskItem> _pathsToInclude = null;
+        private HashSet<string> _pathsNotIncluded = null;
+        private bool ShouldInclude(string packagePath, out ITaskItem includeItem)
+        {
+            if (_pathsToInclude == null)
+            {
+                _pathsToInclude = PathsToInclude.NullAsEmpty().ToDictionary(i => NormalizePath(i.ItemSpec), i=> i, StringComparer.OrdinalIgnoreCase);
+                _pathsNotIncluded = new HashSet<string>(_pathsToInclude.Keys);
+            }
+
+            return ProbePath(packagePath, _pathsToInclude, _pathsNotIncluded, out includeItem);
+        }
+
+        private HashSet<string> _pathsToSuppress = null;
         private bool ShouldSuppress(string packagePath)
         {
             if (_pathsToSuppress == null)
             {
-                _pathsToSuppress = PathsToSuppress.NullAsEmpty().Select(EnsureDirectory).ToArray();
+                _pathsToSuppress = new HashSet<string>(PathsToSuppress.NullAsEmpty().Select(NormalizePath));
             }
 
-            return _pathsToSuppress.Any(p => packagePath.StartsWith(p, StringComparison.OrdinalIgnoreCase));
+            return ProbePath(packagePath, _pathsToSuppress);
         }
 
-        private static string EnsureDirectory(string source)
+        private static bool ProbePath(string path, ICollection<string> pathsIncluded)
         {
-            string result;
-
-            if (source.Length < 1 || source[source.Length - 1] == '\\' || source[source.Length - 1] == '/')
+            for (var probePath = NormalizePath(path); 
+                !String.IsNullOrEmpty(probePath);
+                probePath = NormalizePath(Path.GetDirectoryName(probePath)))
             {
-                // already have a directory
-                result = source;
-            }
-            else
-            {
-                // could be a directory or file
-                var extension = Path.GetExtension(source);
-
-                if (IsIncludedExtension(extension))
+                if (pathsIncluded.Contains(probePath))
                 {
-                    // it's a file, find the directory portion
-                    var fileName = Path.GetFileName(source);
-                    if (fileName.Length != source.Length)
-                    {
-                        result = source.Substring(0, source.Length - fileName.Length);
-                    }
-                    else
-                    {
-                        // no directory portion, just return as-is
-                        result = source;
-                    }
-                }
-                else
-                {
-                    // it's a directory, add the slash
-                    result = source + '/';
+                    return true;
                 }
             }
 
-            return result;
+            return false;
+        }
+
+        private static bool ProbePath<T>(string path, IDictionary<string, T> pathsIncluded, ICollection<string> pathsNotIncluded, out T result)
+        {
+            result = default(T);
+
+            for (var probePath = NormalizePath(path);
+                !String.IsNullOrEmpty(probePath);
+                probePath = NormalizePath(Path.GetDirectoryName(probePath)))
+            {
+                if (pathsIncluded.TryGetValue(probePath, out result))
+                {
+                    pathsNotIncluded.Remove(probePath);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static string NormalizePath(string path)
+        {
+            return path?.Replace('\\', '/')?.Trim();
         }
 
         private static string GetTargetFrameworkFromPackagePath(string path)
