@@ -314,9 +314,18 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                                 }
                             }
 
-                            if (!hasRuntimeAsset && !FrameworkUtilities.IsGenerationMoniker(validateFramework.Framework))
+
+                            if (!hasRuntimeAsset)
                             {
-                                Log.LogError($"{ContractName} should be supported on {target} but has no runtime assets.");
+                                if (HasSuppression(Suppression.PermitMissingImplementation, target))
+                                {
+                                    Log.LogMessage($"Suppressed: {ContractName} should be supported on {target} but has no runtime assets.");
+                                }
+                                else
+                                {
+                                    // Contract should not be supported on this platform.
+                                    Log.LogError($"{ContractName} should be supported on {target} but has no runtime assets.");
+                                }
                             }
                             else
                             {
@@ -593,7 +602,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 }
 
                 string runtimeIdList = framework.GetMetadata("RuntimeIDs");
-                
+
                 if (_frameworks.ContainsKey(fx))
                 {
                     Log.LogError($"Framework {fx} has been listed in Frameworks more than once.");
@@ -672,7 +681,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 }
 
                 validationFramework.SupportedVersion = supportedVersion;
-                
+
                 if (!isExclusiveVersion)
                 {
                     // find all frameworks of higher version, sorted by version ascending
@@ -720,12 +729,37 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
                 foreach (var validationFramework in _frameworks.Values)
                 {
-                    if (packageInfo.InboxOn.IsInbox(validationFramework.Framework, 
-                                                    validationFramework.SupportedVersion, 
+                    if (packageInfo.InboxOn.IsInbox(validationFramework.Framework,
+                                                    validationFramework.SupportedVersion,
                                                     permitRevisions: HasSuppression(Suppression.PermitInboxRevsion)))
                     {
                         validationFramework.IsInbox = true;
                     }
+                }
+            }
+
+            // validate netstandard frameworks supported by references
+            foreach (var supportedFramework in _report.SupportedFrameworks)
+            {
+                var framework = NuGetFramework.Parse(supportedFramework.Key);
+
+                if (framework.Framework != _generationIdentifier)
+                {
+                    continue;
+                }
+
+                Version supportedVersion;
+                if (!Version.TryParse(supportedFramework.Value, out supportedVersion))
+                {
+                    continue;
+                }
+
+                if (!_frameworks.ContainsKey(framework))
+                {
+                    _frameworks[framework] = new ValidationFramework(framework)
+                    {
+                        SupportedVersion = supportedVersion
+                    };
                 }
             }
         }
@@ -764,6 +798,10 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// Permits a runtime asset of the targets specified, semicolon delimited
         /// </summary>
         PermitImplementation,
+        /// <summary>
+        /// Permits an absent runtime asset on the targets specified, semicolon delimited
+        /// </summary>
+        PermitMissingImplementation,
         /// <summary>
         /// Permits a higher revision/build to still be considered as a match for an inbox assembly
         /// </summary>
