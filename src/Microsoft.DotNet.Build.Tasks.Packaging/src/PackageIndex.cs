@@ -164,12 +164,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 else
                 {
                     Packages[otherPackage.Key] = info = otherInfo;
-                }
 
-                // if pre-release is set on the other index and doesn't match the value of the info, set it
-                if (other.PreRelease != null && !other.PreRelease.Equals(info.PreRelease))
-                {
-                    info.PreRelease = other.PreRelease;
+                    // if pre-release is set on the other index and doesn't match the value of the info, set it
+                    if (other.PreRelease != null && !other.PreRelease.Equals(info.PreRelease))
+                    {
+                        info.PreRelease = other.PreRelease;
+                    }
                 }
             }
 
@@ -394,13 +394,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         {
             StableVersions.UnionWith(other.StableVersions);
 
-            if (other.BaselineVersion != null)
+            if (other.BaselineVersion != null && BaselineVersion == null)
             {
-                // prefer other over existing
                 BaselineVersion = other.BaselineVersion;
             }
 
-            if (other.PreRelease != null)
+            if (other.PreRelease != null && PreRelease == null)
             {
                 PreRelease = other.PreRelease;
             }
