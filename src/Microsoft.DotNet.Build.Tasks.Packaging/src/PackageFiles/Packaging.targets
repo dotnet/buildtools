@@ -419,6 +419,9 @@
       <HarvestFiles Condition="'$(HarvestFiles)' == ''">true</HarvestFiles>
     </PropertyGroup>
 
+    <Error Condition="'$(HarvestVersion)' == '' AND '@(HarvestIncludePaths)' != ''"
+           Text="HarvestIncludePaths was specified but no previous stable version of this package was found." />
+
     <!-- Harvest files from old package and determine support using both runtime and additional packages -->
     <HarvestPackage PackageId="$(Id)"
                     PackageVersion="$(HarvestVersion)"
@@ -426,8 +429,10 @@
                     Files="@(File)"
                     RuntimeFile="$(RuntimeIdGraphDefinitionFile)" 
                     RuntimePackages="@(HarvestRuntimePackages);@(HarvestAdditionalPackages)"
+                    IncludeAllPaths="$(HarvestIncludeAllPaths)"
                     HarvestAssets="$(HarvestFiles)"
                     PathsToExclude="@(HarvestExcludePaths)"
+                    PathsToInclude="@(HarvestIncludePaths)"
                     PathsToSuppress="@(HarvestSuppressPaths)"
                     Frameworks="@(DefaultValidateFramework)"
                     Condition="'$(HarvestVersion)' != ''">
@@ -448,7 +453,9 @@
                     Files="@(File)"
                     RuntimeFile="$(RuntimeIdGraphDefinitionFile)"
                     HarvestAssets="$(HarvestFiles)"
+                    IncludeAllPaths="$(HarvestIncludeAllPaths)"
                     PathsToExclude="@(HarvestExcludePaths);%(HarvestAdditionalPackages.ExcludePaths)"
+                    PathsToInclude="@(HarvestIncludePaths);%(HarvestAdditionalPackages.IncludePaths)"
                     PathsToSuppress="@(HarvestSuppressPaths);%(HarvestAdditionalPackages.SuppressPaths)"
                     Condition="'@(HarvestAdditionalPackages)' != ''" >
       <Output TaskParameter="HarvestedFiles" ItemName="File"/>

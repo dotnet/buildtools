@@ -87,6 +87,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 BuildEngine = _engine,
                 Frameworks = _frameworks,
                 HarvestAssets = true,
+                IncludeAllPaths = true,
                 PackageId = "System.Collections.Immutable",
                 PackageVersion = "1.2.0",
                 RuntimeFile = "runtime.json"
@@ -114,6 +115,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 BuildEngine = _engine,
                 Frameworks = _frameworks,
                 HarvestAssets = true,
+                IncludeAllPaths = true,
                 PackageId = "Microsoft.Win32.Registry",
                 PackageVersion = "4.0.0",
                 RuntimeFile = "runtime.json"
@@ -139,6 +141,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 BuildEngine = _engine,
                 Frameworks = _frameworks,
                 HarvestAssets = true,
+                IncludeAllPaths = true,
                 PackageId = "System.Runtime",
                 PackageVersion = "4.1.0",
                 RuntimeFile = "runtime.json",
