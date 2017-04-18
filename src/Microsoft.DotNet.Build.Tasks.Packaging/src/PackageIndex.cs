@@ -178,6 +178,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 ModulesToPackages[otherModuleToPackage.Key] = otherModuleToPackage.Value;
             }
 
+            MetaPackages.Merge(other.MetaPackages);
+
             foreach(var otherIndexSource in other.IndexSources)
             {
                 IndexSources.Add(otherIndexSource);
@@ -752,6 +754,18 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             packageToMetaPackage.TryGetValue(packageId, out metaPackageId);
 
             return metaPackageId;
+        }
+
+        public void Merge(MetaPackages other)
+        {
+            foreach(var metaPackage in other.packageToMetaPackage)
+            {
+                // only merge a meta-package definition if it wasn't defined
+                if (!packageToMetaPackage.ContainsKey(metaPackage.Key))
+                {
+                    packageToMetaPackage.Add(metaPackage.Key, metaPackage.Value);
+                }
+            }
         }
 
         internal IEnumerable<IGrouping<string, string>> GetMetaPackageGrouping()
