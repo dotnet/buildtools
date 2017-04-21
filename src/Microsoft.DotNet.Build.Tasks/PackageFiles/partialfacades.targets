@@ -10,7 +10,7 @@
     <!-- Tell ResolveMatchingContract to run and resolve contract to project reference -->
     <ResolveMatchingContract>true</ResolveMatchingContract>
     <FillPartialFacadeDependsOn>
-      $(FillPartialFacadeDependsOn);ResolveContract
+      $(FillPartialFacadeDependsOn);ResolveMatchingContract
     </FillPartialFacadeDependsOn>
   </PropertyGroup>
 
