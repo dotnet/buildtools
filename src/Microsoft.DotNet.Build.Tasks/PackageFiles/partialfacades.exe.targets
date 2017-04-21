@@ -11,22 +11,6 @@
     </TargetsTriggeredByCompilation>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(IsPartialFacadeAssembly)' == 'true'">
-    <!-- Tell ResolveMatchingContract to run and resolve contract to project reference -->
-    <ResolveMatchingContract>true</ResolveMatchingContract>
-  </PropertyGroup>
-
-  <!-- Inputs and outputs of FillPartialFacade -->
-  <PropertyGroup Condition="'$(IsPartialFacadeAssembly)' == 'true'">
-    <PartialFacadeAssemblyPath>$(IntermediateOutputPath)$(TargetName)$(TargetExt)</PartialFacadeAssemblyPath>
-    <PartialFacadeSymbols>$(IntermediateOutputPath)$(TargetName).pdb</PartialFacadeSymbols>
-    <GenFacadesInputPath>$(IntermediateOutputPath)PreGenFacades/</GenFacadesInputPath>
-    <GenFacadesInputAssembly>$(GenFacadesInputPath)$(TargetName)$(TargetExt)</GenFacadesInputAssembly>
-    <GenFacadesInputSymbols>$(GenFacadesInputPath)$(TargetName).pdb</GenFacadesInputSymbols>
-    <GenFacadesOutputPath>$(IntermediateOutputPath)</GenFacadesOutputPath>
-    <GenFacadesResponseFile>$(GenFacadesInputPath)genfacades.rsp</GenFacadesResponseFile>
-  </PropertyGroup>
-
   <!-- FillPartialFacade
        Inputs:
          * An "input assembly"
@@ -36,18 +20,24 @@
        Fills the "input assembly" by finding types in the contract assembly that are missing from it, and adding type-forwards
          to those matching types in the seed assemblies.
   -->
-  <Target Name="FillPartialFacadeUsingExe" DependsOnTargets="EnsureBuildToolsRuntime;ResolveMatchingContract">
+  <Target Name="FillPartialFacadeUsingExe" DependsOnTargets="$(FillPartialFacadeDependsOn)">
 
     <ItemGroup>
       <!-- References used for compilation are automatically included as seed assemblies -->
       <GenFacadesSeeds Include="@(ReferencePath)" />
     </ItemGroup>
 
-    <Error Text="No single matching contract found." Condition="'@(ResolvedMatchingContract->Count())' != '1'" />
+    <Error Text="No single matching contract found." Condition="'$(IsReferenceAssembly)' != 'true' AND '@(ResolvedMatchingContract->Count())' != '1'" />
 
-    <PropertyGroup>
+    <PropertyGroup Condition="'$(IsReferenceAssembly)' != 'true'">
       <GenFacadesArgs>$(GenFacadesArgs) -partialFacadeAssemblyPath:"$(GenFacadesInputAssembly)"</GenFacadesArgs>
       <GenFacadesArgs>$(GenFacadesArgs) -contracts:"%(ResolvedMatchingContract.Identity)"</GenFacadesArgs>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(IsReferenceAssembly)' == 'true'">
+      <GenFacadesArgs>$(GenFacadesArgs) -contracts:"$(GenFacadesInputAssembly)"</GenFacadesArgs>
+      <GenFacadesArgs>$(GenFacadesArgs) -buildPartialReferenceFacade</GenFacadesArgs>
+    </PropertyGroup>
+    <PropertyGroup>
       <GenFacadesArgs>$(GenFacadesArgs) -seeds:"@(GenFacadesSeeds, ',')"</GenFacadesArgs>
       <GenFacadesArgs>$(GenFacadesArgs) -facadePath:"$(GenFacadesOutputPath.TrimEnd('/'))"</GenFacadesArgs>
       <GenFacadesArgs Condition="'$(DebugSymbols)' == 'false' OR '$(DebugType)'=='Portable'">$(GenFacadesArgs) -producePdb:false</GenFacadesArgs>

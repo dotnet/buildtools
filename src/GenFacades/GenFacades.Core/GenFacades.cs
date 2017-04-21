@@ -33,7 +33,8 @@ namespace GenFacades
             string[] seedTypePreferencesUnsplit = null,
             bool forceZeroVersionSeeds = false,
             bool producePdb = true,
-            string partialFacadeAssemblyPath = null)
+            string partialFacadeAssemblyPath = null,
+            bool buildPartialReferenceFacade = false)
         {
             if (!Directory.Exists(facadePath))
                 Directory.CreateDirectory(facadePath);
@@ -80,12 +81,24 @@ namespace GenFacades
                     var typeTable = GenerateTypeTable(seedAssemblies);
                     var facadeGenerator = new FacadeGenerator(seedHost, contractHost, docIdTable, typeTable, seedTypePreferences, clearBuildAndRevision, buildDesignTimeFacades, assemblyFileVersion);
 
+                    if (buildPartialReferenceFacade && ignoreMissingTypes)
+                    {
+                        throw new FacadeGenerationException(
+                            "When buildPartialReferenceFacade is specified ignoreMissingTypes must not be specified.");
+                    }
+
                     if (partialFacadeAssemblyPath != null)
                     {
                         if (contractAssemblies.Count() != 1)
                         {
                             throw new FacadeGenerationException(
                                 "When partialFacadeAssemblyPath is specified, only exactly one corresponding contract assembly can be specified.");
+                        }
+
+                        if (buildPartialReferenceFacade)
+                        {
+                            throw new FacadeGenerationException(
+                                "When partialFacadeAssemblyPath is specified, buildPartialReferenceFacade must not be specified.");
                         }
 
                         IAssembly contractAssembly = contractAssemblies.First();
@@ -130,7 +143,7 @@ namespace GenFacades
                     {
                         foreach (var contract in contractAssemblies)
                         {
-                            Assembly facade = facadeGenerator.GenerateFacade(contract, seedCoreAssemblyRef, ignoreMissingTypes);
+                            Assembly facade = facadeGenerator.GenerateFacade(contract, seedCoreAssemblyRef, ignoreMissingTypes, buildPartialReferenceFacade: buildPartialReferenceFacade);
                             if (facade == null)
                             {
 #if !COREFX
@@ -389,7 +402,7 @@ namespace GenFacades
                 _assemblyFileVersion = assemblyFileVersion;
             }
 
-            public Assembly GenerateFacade(IAssembly contractAssembly, IAssemblyReference seedCoreAssemblyReference, bool ignoreMissingTypes, IAssembly overrideContractAssembly = null)
+            public Assembly GenerateFacade(IAssembly contractAssembly, IAssemblyReference seedCoreAssemblyReference, bool ignoreMissingTypes, IAssembly overrideContractAssembly = null, bool buildPartialReferenceFacade = false)
             {
                 Assembly assembly;
                 if (overrideContractAssembly != null)
@@ -401,23 +414,30 @@ namespace GenFacades
                 {
                     MetadataDeepCopier copier = new MetadataDeepCopier(_contractHost);
                     assembly = copier.Copy(contractAssembly);
-                    ReferenceAssemblyToFacadeRewriter rewriter = new ReferenceAssemblyToFacadeRewriter(_seedHost, _contractHost, seedCoreAssemblyReference, _assemblyFileVersion != null);
-                    rewriter.Rewrite(assembly);
+
+                    // if building a reference facade don't strip the contract
+                    if (!buildPartialReferenceFacade)
+                    {
+                        ReferenceAssemblyToFacadeRewriter rewriter = new ReferenceAssemblyToFacadeRewriter(_seedHost, _contractHost, seedCoreAssemblyReference, _assemblyFileVersion != null);
+                        rewriter.Rewrite(assembly);
+                    }
                 }
 
-                IEnumerable<string> docIds = _docIdTable[contractAssembly.AssemblyIdentity.Name.Value];
+                string contractAssemblyName = contractAssembly.AssemblyIdentity.Name.Value;
+                IEnumerable<string> docIds = _docIdTable[contractAssemblyName];
 
                 // Add all the type forwards
                 bool error = false;
+                bool addedForward = false;
 
-                HashSet<string> existingDocIds = new HashSet<string>(assembly.AllTypes.Select(typeDef => typeDef.RefDocId()));
-                IEnumerable<string> missingDocIds = docIds.Where(id => !existingDocIds.Contains(id));
-                foreach (string docId in missingDocIds)
+                Dictionary<string, INamedTypeDefinition> existingDocIds = assembly.AllTypes.ToDictionary(typeDef => typeDef.RefDocId(), typeDef => typeDef);
+                IEnumerable<string> docIdsToForward = buildPartialReferenceFacade ? existingDocIds.Keys : docIds.Where(id => !existingDocIds.ContainsKey(id));
+                foreach (string docId in docIdsToForward)
                 {
                     IReadOnlyList<INamedTypeDefinition> seedTypes;
                     if (!_typeTable.TryGetValue(docId, out seedTypes))
                     {
-                        if (!ignoreMissingTypes)
+                        if (!ignoreMissingTypes && !buildPartialReferenceFacade)
                         {
                             Trace.TraceError("Did not find type '{0}' in any of the seed assemblies.", docId);
                             error = true;
@@ -433,7 +453,27 @@ namespace GenFacades
                         continue;
                     }
 
+                    if (buildPartialReferenceFacade)
+                    {
+                        // honor preferSeedType for keeping contract type
+                        string preferredSeedAssembly;
+                        bool keepType = _seedTypePreferences.TryGetValue(docId, out preferredSeedAssembly) &&
+                            contractAssemblyName.Equals(preferredSeedAssembly, StringComparison.OrdinalIgnoreCase);
+
+                        if (!keepType)
+                        {
+                            assembly.AllTypes.Remove(existingDocIds[docId]);
+                        }
+                    }
+
                     AddTypeForward(assembly, seedType);
+                    addedForward = true;
+                }
+
+                if (buildPartialReferenceFacade &&  !addedForward)
+                {
+                    Trace.TraceError("Did not find any types in any of the seed assemblies.");
+                    return null;
                 }
 
                 if (error)
