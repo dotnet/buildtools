@@ -25,14 +25,13 @@
   </PropertyGroup>
   <ItemGroup>
     <PerfTestCommandLines Include="$(PerfTestCommand)" />
-    <!-- We use the 20* syntax as the XML file created starts with the year and 20xx will be good for a while -->
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetOS)'=='Windows_NT'">
+  <ItemGroup Condition="'$(TargetOS)'=='Windows_NT' and '$(LogToBenchview)' == 'true'">
     <PerfTestCommandLines Include="if exist Perf-$(AssemblyName).xml (" />
     <PerfTestCommandLines Include="py $(BenchviewDir)\measurement.py xunit Perf-$(AssemblyName).xml --better desc --drop-first-value --append -o $(ProjectDir)measurement.json" />
     <PerfTestCommandLines Include=")" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetOS)'=='Linux'">
+  <ItemGroup Condition="'$(TargetOS)'=='Linux' and '$(LogToBenchview)' == 'true'">
     <PerfTestCommandLines Include="if [ -a Perf-$(AssemblyName).xml ]" />
     <PerfTestCommandLines Include="then" />
     <PerfTestCommandLines Include="python3.5 $(BenchviewDir)\measurement.py xunit Perf-$(AssemblyName).xml --better desc --drop-first-value --append -o $(ProjectDir)measurement.json" />
