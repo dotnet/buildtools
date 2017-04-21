@@ -206,7 +206,10 @@ namespace Microsoft.Cci.Writers.CSharp
                 Write("throw new ");
                 if (_forCompilationIncludeGlobalprefix)
                     Write("global::");
-                Write("System.PlatformNotSupportedException(); ");
+                if(_platformNotSupportedExceptionMessage == null)
+                    Write("System.PlatformNotSupportedException();");
+                else
+                    Write($"System.PlatformNotSupportedException(\"{_platformNotSupportedExceptionMessage}\"); ");
             }
             else if (method.ContainingTypeDefinition.IsValueType && method.IsConstructor)
             {

@@ -152,6 +152,7 @@ namespace GenAPI
                         writer.HighlightInterfaceMembers = s_hightlightInterfaceMembers;
                         writer.PutBraceOnNewLine = true;
                         writer.ThrowPlatformNotSupportedForCompilation = s_throw;
+                        writer.PlatformNotSupportedExceptionMessage = s_exceptionMessage;
                         writer.IncludeGlobalPrefixForCompilation = s_global;
                         return writer;
                     }
@@ -238,6 +239,7 @@ namespace GenAPI
         private static bool s_hightlightInterfaceMembers;
         private static bool s_all;
         private static bool s_throw;
+        private static string s_exceptionMessage;
         private static bool s_global;
 
         private static void ParseCommandLine(string[] args)
@@ -268,6 +270,7 @@ namespace GenAPI
                 parser.DefineOptionalQualifier("hightlightInterfaceMembers", ref s_hightlightInterfaceMembers, "(-him) [CSDecl] Highlight interface implementation members.");
                 parser.DefineAliases("throw", "t");
                 parser.DefineOptionalQualifier("throw", ref s_throw, "(-t) Method bodies should throw PlatformNotSupportedException.");
+                parser.DefineOptionalQualifier("exceptionMessage", ref s_exceptionMessage, "PlatformNotSupportedException custom message.");
                 parser.DefineAliases("global", "g");
                 parser.DefineOptionalQualifier("global", ref s_global, "(-g) Include global prefix for compilation.");
                 parser.DefineQualifier("assembly", ref s_assembly, "Path for an specific assembly or a directory to get all assemblies.");

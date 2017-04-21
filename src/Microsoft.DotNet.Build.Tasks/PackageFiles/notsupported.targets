@@ -41,6 +41,7 @@
       <GenAPIArgs>$(GenAPIArgs) -libPath:"@(_referencePathDirectories)"</GenAPIArgs>
       <GenAPIArgs>$(GenAPIArgs) -out:"$(NotSupportedSourceFile)"</GenAPIArgs>
       <GenAPIArgs>$(GenAPIArgs) -throw</GenAPIArgs>
+      <GenAPIArgs Condition="'$(GeneratePlatformNotSupportedAssembly_Message)' != ''">$(GenAPIArgs) -exceptionMessage:"$(GeneratePlatformNotSupportedAssembly_Message)"</GenAPIArgs>
     </PropertyGroup>
 
     <PropertyGroup>

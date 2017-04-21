@@ -55,6 +55,11 @@ namespace Microsoft.Cci.Writers
             get { return _declarationWriter.ForCompilationThrowPlatformNotSupported; }
             set { _declarationWriter.ForCompilationThrowPlatformNotSupported = value; }
         }
+        public string PlatformNotSupportedExceptionMessage
+        {
+            get { return _declarationWriter.PlatformNotSupportedExceptionMessage; }
+            set { _declarationWriter.PlatformNotSupportedExceptionMessage = value; }
+        }
 
         public void WriteAssemblies(IEnumerable<IAssembly> assemblies)
         {
