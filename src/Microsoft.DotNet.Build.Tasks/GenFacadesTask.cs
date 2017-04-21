@@ -46,6 +46,8 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public string PartialFacadeAssemblyPath { get; set; }
 
+        public bool BuildPartialReferenceFacade { get; set; }
+
         public override bool Execute()
         {
             TraceLogger logger = new TraceLogger(Log);
@@ -87,7 +89,8 @@ namespace Microsoft.DotNet.Build.Tasks
                     seedTypePreferencesUnsplit,
                     ForceZeroVersionSeeds,
                     ProducePdb,
-                    PartialFacadeAssemblyPath);
+                    PartialFacadeAssemblyPath,
+                    BuildPartialReferenceFacade);
 
                 if (!result)
                 {
