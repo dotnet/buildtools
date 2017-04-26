@@ -29,7 +29,8 @@
       BaseDirectory="$(PackagesBasePath)"
       PackageVersion="%(PackagesNuSpecFiles.PackageVersion)"
       ExcludeEmptyDirectories="true"
-      NuspecProperties="@(NuspecProperties)"/>
+      NuspecProperties="@(NuspecProperties)"
+      IncludeSymbolsInPackage="$(IncludeSymbolsInPackage)" />
 
     <Message
       Condition="'@(PackagesNuSpecFiles)'!=''"

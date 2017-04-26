@@ -10,6 +10,8 @@
          https://github.com/dotnet/buildtools/issues/780 -->
     <PackagingTaskDir Condition="'$(BuildToolsTargets45)' != 'true'">$(BinDir)AnyOS.AnyCPU.$(ConfigurationGroup)/Microsoft.DotNet.Build.Tasks.Packaging/</PackagingTaskDir>
     <PackagingTaskDir Condition="'$(BuildToolsTargets45)' == 'true'">$(BinDir)AnyOS.AnyCPU.$(ConfigurationGroup)/Microsoft.DotNet.Build.Tasks.Packaging.Desktop/</PackagingTaskDir>
+
+    <IncludeSymbolsInPackage Condition="'$(IncludeSymbolsInPackage)'==''">true</IncludeSymbolsInPackage>
   </PropertyGroup>
 
   <Import Project="Microsoft.DotNet.Build.Tasks\PackageFiles\packages.targets" Condition="'$(ImportGetNuGetPackageVersions)' != 'false'" />
