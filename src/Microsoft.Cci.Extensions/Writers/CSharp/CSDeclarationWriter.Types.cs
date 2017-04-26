@@ -30,6 +30,9 @@ namespace Microsoft.Cci.Writers.CSharp
                 string structLayout = "System.Runtime.InteropServices.StructLayoutAttribute";
                 string layoutKind = string.Format("System.Runtime.InteropServices.LayoutKind.{0}", type.Layout.ToString());
 
+                if (_forCompilationIncludeGlobalprefix)
+                    layoutKind = "global::" + layoutKind;
+
                 if (type.SizeOf != 0)
                 {
                     string sizeOf = string.Format("Size={0}", type.SizeOf);
@@ -73,7 +76,7 @@ namespace Microsoft.Cci.Writers.CSharp
 
         // Note that the metadata order for interfaces may change from one release to another.
         // This isn't an incompatibility in surface area.  So, we must sort our list of base types
-        // to reflect this.  
+        // to reflect this.
         private void WriteBaseTypes(ITypeDefinition type)
         {
             List<ITypeReference> baseTypes = new List<ITypeReference>();
