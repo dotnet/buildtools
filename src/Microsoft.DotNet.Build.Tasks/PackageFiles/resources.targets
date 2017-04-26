@@ -3,6 +3,11 @@
   <UsingTask TaskName="GenerateResourcesCode" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
 
   <PropertyGroup>
+    <GenerateResourceMSBuildRuntime>CurrentRuntime</GenerateResourceMSBuildRuntime>
+    <GenerateResourceMSBuildArchitecture>CurrentArchitecture</GenerateResourceMSBuildArchitecture>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <ResourcesSourceOutputDirectory Condition="'$(ResourcesSourceOutputDirectory)' == ''">$(MSBuildProjectDirectory)/Resources/</ResourcesSourceOutputDirectory>
     <StringResourcesPath Condition="'$(StringResourcesPath)'=='' And Exists('$(ResourcesSourceOutputDirectory)Strings.resx')">$(ResourcesSourceOutputDirectory)/Strings.resx</StringResourcesPath>
     <IntermediateResOutputFileFullPath Condition="'$(MSBuildProjectExtension)' == '.csproj'">$(IntermediateOutputPath)SR.cs</IntermediateResOutputFileFullPath>
