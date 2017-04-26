@@ -50,11 +50,7 @@ namespace Microsoft.Cci.Writers
             get { return _declarationWriter.ForCompilationIncludeGlobalPrefix; }
             set { _declarationWriter.ForCompilationIncludeGlobalPrefix = value; }
         }
-        public bool ThrowPlatformNotSupportedForCompilation
-        {
-            get { return _declarationWriter.ForCompilationThrowPlatformNotSupported; }
-            set { _declarationWriter.ForCompilationThrowPlatformNotSupported = value; }
-        }
+
         public string PlatformNotSupportedExceptionMessage
         {
             get { return _declarationWriter.PlatformNotSupportedExceptionMessage; }

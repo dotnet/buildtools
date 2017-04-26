@@ -17,7 +17,6 @@ namespace Microsoft.Cci.Writers.CSharp
         private readonly ICciFilter _filter;
         private bool _forCompilation;
         private bool _forCompilationIncludeGlobalprefix;
-        private bool _forCompilationThrowPlatformNotSupported;
         private string _platformNotSupportedExceptionMessage;
         private bool _includeFakeAttributes;
 
@@ -38,7 +37,6 @@ namespace Microsoft.Cci.Writers.CSharp
             _filter = filter;
             _forCompilation = forCompilation;
             _forCompilationIncludeGlobalprefix = false;
-            _forCompilationThrowPlatformNotSupported = false;
             _platformNotSupportedExceptionMessage = null;
             _includeFakeAttributes = false;
         }
@@ -60,11 +58,7 @@ namespace Microsoft.Cci.Writers.CSharp
             get { return _forCompilationIncludeGlobalprefix; }
             set { _forCompilationIncludeGlobalprefix = value; }
         }
-        public bool ForCompilationThrowPlatformNotSupported
-        {
-            get { return _forCompilationThrowPlatformNotSupported; }
-            set { _forCompilationThrowPlatformNotSupported = value; }
-        }
+
         public string PlatformNotSupportedExceptionMessage
         {
             get { return _platformNotSupportedExceptionMessage; }
