@@ -232,7 +232,7 @@
     <Message Importance="low" Text="BinPlaceDir: @(BinPlaceDir)" />
 
     <Copy SourceFiles="@($(_BinPlaceItemName))"
-          DestinationFolder="%(BinPlaceDir.Identity)" 
+          DestinationFolder="%(BinPlaceDir.Identity)"
           SkipUnchangedFiles="true"
           OverwriteReadOnlyFiles="true"
           Retries="$(CopyRetryCount)"
@@ -242,7 +242,7 @@
     </Copy>
   </Target>
 
-  <UsingTask TaskName="SaveItems" AssemblyFile="$(CoreFxToolsTaskDir)CoreFx.Tools.dll"/>
+  <UsingTask TaskName="SaveItems" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <Target Name="BinPlaceProps"
           Condition="'@(PackageFileDir)' != ''"
           DependsOnTargets="GetBinPlaceItems"
@@ -281,7 +281,7 @@
         <TargetFramework>%(_packageFileDir.BuildConfiguration_NuGetTargetMonikerShort)</TargetFramework>
       </_docFiles>
       <_itemsToSave Include="@(_docFiles)"/>
-      
+
       <!-- Include source files. -->
       <!-- Here we use "sources" rather than "src" because MyGet treats packages with "src" as symbol packages  -->
       <_itemsToSave Condition="'@(Compile)' != ''" Include="@(Compile->'%(FullPath)')">
@@ -290,7 +290,7 @@
         <IsSourceCodeFile>true</IsSourceCodeFile>
       </_itemsToSave>
     </ItemGroup>
-    
+
     <Message Importance="low" Text="PackageFileDir: @(PackageFileDir)" />
 
     <SaveItems ItemName="%(_packageFileDir.SaveItemName)"
@@ -307,7 +307,7 @@
     </ItemGroup>
   </Target>
 
-  <UsingTask TaskName="FindBestConfigurations" AssemblyFile="$(CoreFxToolsTaskDir)CoreFx.Tools.dll"/>
+  <UsingTask TaskName="FindBestConfigurations" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <Target Name="GetBinPlaceConfiguration" DependsOnTargets="GetBuildConfigurations">
     <!-- find which, if any, build configuration of this project is best
          for each binplace configuration -->
@@ -331,11 +331,11 @@
         <SaveItemName Condition="'%(_currentBinPlaceConfigurations.SaveItemName)' == ''">RefFile</SaveItemName>
       </PackageFileDir>
 
-      <!-- permit BinplaceConfigurations to define SetProperties metadata, 
+      <!-- permit BinplaceConfigurations to define SetProperties metadata,
            set those properties when BinplaceConfiguration is active -->
       <_binplacePropertyTuples Include="%(_currentBinPlaceConfigurations.SetProperties)" />
 
-      <_binplaceSetProperty Condition="'%(_binplacePropertyTuples.Identity)' != ''" 
+      <_binplaceSetProperty Condition="'%(_binplacePropertyTuples.Identity)' != ''"
                             Include="$([System.String]::new('%(_binplacePropertyTuples.Identity)').Split('=')[0])">
         <Value>$([System.String]::new('%(_binplacePropertyTuples.Identity)').Split('=')[1])</Value>
       </_binplaceSetProperty>
