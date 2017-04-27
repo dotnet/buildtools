@@ -109,7 +109,7 @@
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets"
           Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' and '$(MSBuildProjectExtension)' == '.csproj'" />
 
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.Targets"
           Condition="'$(TargetFrameworkIdentifier)' != '.NETPortable' and '$(MSBuildProjectExtension)' == '.csproj'" />
 
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.VisualBasic.targets"
