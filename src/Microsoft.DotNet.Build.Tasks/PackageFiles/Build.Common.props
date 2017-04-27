@@ -34,7 +34,8 @@
   <!-- Common BuildTools properties -->
   <PropertyGroup>
     <ToolsDir Condition="'$(ToolsDir)'==''">$(MSBuildThisFileDirectory)</ToolsDir>
-    <DotnetCliPath Condition="'$(DotnetCliPath)'==''">$(ToolsDir)dotnetcli/</DotnetCliPath>
+    <ToolRuntimePath Condition="'$(ToolRuntimePath)'==''">$(ToolsDir)</ToolRuntimePath>
+    <DotnetCliPath Condition="'$(DotnetCliPath)'==''">$(ToolRuntimePath)dotnetcli/</DotnetCliPath>
     <OverrideToolHost Condition="'$(RunningOnUnix)' == 'true'">$(DotnetCliPath)dotnet</OverrideToolHost>
     <OverrideToolHost Condition="'$(RunningOnUnix)' != 'true'">$(DotnetCliPath)dotnet.exe</OverrideToolHost>
     <BuildToolsTaskDir Condition="'$(RunningOnCore)'!='true'">$(ToolsDir)net46/</BuildToolsTaskDir>
@@ -48,6 +49,8 @@
   <PropertyGroup>
     <IsTestProject Condition="'$(IsTestProject)'=='' And ($(MSBuildProjectFullPath.Contains('\tests\')) OR $(MSBuildProjectFullPath.Contains('/tests/')))">true</IsTestProject>
   </PropertyGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)BuildVersion.targets" />
 
   <Import Project="$(MSBuildThisFileDirectory)Roslyn.Common.props" />
 
