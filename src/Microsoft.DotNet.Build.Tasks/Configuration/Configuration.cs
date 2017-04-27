@@ -61,7 +61,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
                 if (configurationBuilder.Length > 0)
                 {
-                    configurationBuilder.Append(ConfigurationFactory.PropertySeperator);
+                    configurationBuilder.Append(ConfigurationFactory.PropertySeparator);
                 }
                 configurationBuilder.Append(value.Value);
             }
@@ -70,7 +70,7 @@ namespace Microsoft.DotNet.Build.Tasks
         }
 
         /// <summary>
-        /// Get properties assoicated with this configuration
+        /// Get properties associated with this configuration
         /// </summary>
         /// <returns></returns>
         public IDictionary<string, string> GetProperties()
@@ -159,7 +159,7 @@ namespace Microsoft.DotNet.Build.Tasks
             }
             return hashCode.Value;
         }
-        
+
         // Only examines significant properties for equality
         private class CompatibleConfigurationComparer : IEqualityComparer<Configuration>
         {

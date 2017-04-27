@@ -12,7 +12,7 @@ namespace Microsoft.DotNet.Build.Tasks
 {
     public class ConfigurationFactory
     {
-        internal const char PropertySeperator = '-';
+        internal const char PropertySeparator = '-';
 
         private Dictionary<string, PropertyInfo> Properties { get; }
 
@@ -45,7 +45,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
             AllPropertyValues = propertyValueGrouping
                 .ToDictionary(g => g.Key, g => g.Single());
-            
+
             PropertyValues = AllPropertyValues.Values
                 .GroupBy(v => v.Property)
                 .ToDictionary(g => g.Key, g => g.ToArray());
@@ -83,7 +83,7 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 throw new ArgumentException($"Unknown property name {property}");
             }
-            
+
             return GetValues(propertyInfo);
         }
 
@@ -170,7 +170,7 @@ namespace Microsoft.DotNet.Build.Tasks
         /// <returns></returns>
         internal Configuration ParseConfiguration(string configurationString, bool permitUnknownValues = false)
         {
-            var values = configurationString.Split(PropertySeperator);
+            var values = configurationString.Split(PropertySeparator);
 
             var valueSet = new PropertyValue[PropertiesByOrder.Length];
 

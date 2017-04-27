@@ -14,8 +14,8 @@ namespace Microsoft.DotNet.Build.Tasks
 {
     public class GenerateConfigurationProps : ConfigurationTask
     {
-        private const char ConfigurationSeperator = ';';
-        private const string ConfigurationSeperatorString = ";";
+        private const char ConfigurationSeparator = ';';
+        private const string ConfigurationSeparatorString = ";";
         private const string BuildConfigurationProperty = "BuildConfiguration";
         private const string AvailableBuildConfigurationsProperty = "BuildConfigurations";
         private const string ConfigurationProperty = "Configuration";
@@ -83,7 +83,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
             // delimit property for parsing, this gaurntees that every property value is surrounded in delimiters
             var parsePropertyName = $"_parse_{propertyName}";
-            var parseConfigurationValue = $"{ConfigurationFactory.PropertySeperator}$({propertyName}){ConfigurationFactory.PropertySeperator}";
+            var parseConfigurationValue = $"{ConfigurationFactory.PropertySeparator}$({propertyName}){ConfigurationFactory.PropertySeparator}";
             parseConfigurationPropertyGroup.AddProperty(parsePropertyName, parseConfigurationValue);
 
             // foreach property, pull it out of Configuration and set derived values.
@@ -94,7 +94,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
                 foreach (var value in ConfigurationFactory.GetValues(property))
                 {
-                    var propertiesCondition = CreateContainsCondition(parsePropertyName, ConfigurationFactory.PropertySeperator + value.Value + ConfigurationFactory.PropertySeperator);
+                    var propertiesCondition = CreateContainsCondition(parsePropertyName, ConfigurationFactory.PropertySeparator + value.Value + ConfigurationFactory.PropertySeparator);
                     var whenPropertiesElement = project.CreateWhenElement(propertiesCondition);
                     choosePropertiesElement.AppendChild(whenPropertiesElement);
 
@@ -164,7 +164,7 @@ namespace Microsoft.DotNet.Build.Tasks
             // pull apart BuildConfiguration, but don't set any derived properties]
             // we do this even when Configuration is already set because we want to
             // parse out the BuildConfiguration-derived property values as _bc_*.
-            // In the case Configration is set we'll not use the parsed values, 
+            // In the case Configration is set we'll not use the parsed values,
             // and immediately overwrite them with the values parsed from Configuration.
             ParseProperties(BuildConfigurationProperty, buildConfigurationProps, false, p => !p.Independent, "_bc_");
 
@@ -218,7 +218,7 @@ namespace Microsoft.DotNet.Build.Tasks
             // delimit BuildConfigurations for parsing
             var parseBuildConfigurationsPropertyGroup = configurationSpecificProps.AddPropertyGroup();
             var parseBuildConfigurationsName = $"_parse_{AvailableBuildConfigurationsProperty}";
-            var parseBuildConfigurationsValue = $"{ConfigurationSeperator}$({AvailableBuildConfigurationsProperty}.Replace('%0A','').Replace('%0D','').Replace(' ','')){ConfigurationSeperator}";
+            var parseBuildConfigurationsValue = $"{ConfigurationSeparator}$({AvailableBuildConfigurationsProperty}.Replace('%0A','').Replace('%0D','').Replace(' ','')){ConfigurationSeparator}";
             parseBuildConfigurationsPropertyGroup.AddProperty(parseBuildConfigurationsName, parseBuildConfigurationsValue);
 
             var chooseConfigurationElement = configurationSpecificProps.CreateChooseElement();
@@ -231,11 +231,11 @@ namespace Microsoft.DotNet.Build.Tasks
 
                 if (compatibleConfigurationStrings.Length > 0)
                 {
-                    compatibleConfigurationStrings.Append(ConfigurationSeperatorString);
+                    compatibleConfigurationStrings.Append(ConfigurationSeparatorString);
                 }
-                compatibleConfigurationStrings.Append(string.Join(ConfigurationSeperatorString, configurationStrings));
+                compatibleConfigurationStrings.Append(string.Join(ConfigurationSeparatorString, configurationStrings));
 
-                var guardedProjectConfigurationStrings = configurationStrings.Select(c => ConfigurationSeperator + c + ConfigurationSeperator);
+                var guardedProjectConfigurationStrings = configurationStrings.Select(c => ConfigurationSeparator + c + ConfigurationSeparator);
                 var configurationCondition = CreateContainsCondition(parseBuildConfigurationsName, guardedProjectConfigurationStrings);
                 var whenConfigurationElement = configurationSpecificProps.CreateWhenElement(configurationCondition);
                 chooseConfigurationElement.AppendChild(whenConfigurationElement);
