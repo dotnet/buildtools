@@ -38,7 +38,10 @@
     <TargetPlatformIdentifier>Portable</TargetPlatformIdentifier>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
+    <!-- We do not want to target a portable profile. -->
+    <TargetFrameworkProfile></TargetFrameworkProfile>
+    <!-- We set this property to avoid MSBuild errors regarding not setting TargetFrameworkProfile (see above line) -->
+    <PortableNuGetMode>true</PortableNuGetMode>
     <TargetFrameworkMonikerDisplayName>.NET Portable Subset</TargetFrameworkMonikerDisplayName>
     <ImplicitlyExpandTargetFramework>false</ImplicitlyExpandTargetFramework>
     <!-- Disable RAR complaining about us referencing higher .NET Portable libraries as we aren't a traditional portable library -->
@@ -114,6 +117,16 @@
 
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets"
           Condition="'$(TargetFrameworkIdentifier)' != '.NETPortable' and '$(MSBuildProjectExtension)' == '.vbproj'" />
+
+  <PropertyGroup>
+    <!--
+      We don't use any of MSBuild's resolution logic for resolving the framework, so just set these two properties to any folder
+      that exists to skip the GenerateReferenceAssemblyPaths task (not target) and to prevent it from outputting a warning (MSB3644).
+      Need to set these after the common targets import.
+      -->
+    <_TargetFrameworkDirectories>$(MSBuildThisFileDirectory)</_TargetFrameworkDirectories>
+    <_FullFrameworkReferenceAssemblyPaths>$(MSBuildThisFileDirectory)</_FullFrameworkReferenceAssemblyPaths>
+  </PropertyGroup>
 
   <PropertyGroup>
     <ResolveReferencesDependsOn>

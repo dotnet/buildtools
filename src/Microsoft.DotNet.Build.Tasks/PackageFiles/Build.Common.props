@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!-- 
-     This file will contain all of the common properties from most repos. The intention is to only have 
+  <!--
+     This file will contain all of the common properties from most repos. The intention is to only have
      repo specific properties inside the repos, and move to this file everything that is common.
   -->
 
   <!--
     Import the reference assembly props
-    
+
       Sets Properties:
         IsReferenceAssembly - Set if the project is in the ref assm path
   -->
@@ -33,10 +33,8 @@
 
   <!-- Common BuildTools properties -->
   <PropertyGroup>
-    <ToolRuntimePath Condition="'$(ToolRuntimePath)'=='' and '$(ProjectDir)'==''">$(MSBuildThisFileDirectory)</ToolRuntimePath>
-    <ToolRuntimePath Condition="'$(ToolRuntimePath)'=='' and '$(ProjectDir)'!=''">$(ProjectDir)Tools/</ToolRuntimePath>
     <ToolsDir Condition="'$(ToolsDir)'==''">$(MSBuildThisFileDirectory)</ToolsDir>
-    <DotnetCliPath Condition="'$(DotnetCliPath)'==''">$(ToolRuntimePath)dotnetcli/</DotnetCliPath>
+    <DotnetCliPath Condition="'$(DotnetCliPath)'==''">$(ToolsDir)dotnetcli/</DotnetCliPath>
     <OverrideToolHost Condition="'$(RunningOnUnix)' == 'true'">$(DotnetCliPath)dotnet</OverrideToolHost>
     <OverrideToolHost Condition="'$(RunningOnUnix)' != 'true'">$(DotnetCliPath)dotnet.exe</OverrideToolHost>
     <BuildToolsTaskDir Condition="'$(RunningOnCore)'!='true'">$(ToolsDir)net46/</BuildToolsTaskDir>
@@ -45,13 +43,26 @@
     <UseSharedCompilation Condition="'$(UseSharedCompilation)' == '' and '$(RunningOnUnix)' != 'true' and '$(UseRoslynCompilers)' != 'false'">true</UseSharedCompilation>
     <GenFacadesIgnoreBuildAndRevisionMismatch>true</GenFacadesIgnoreBuildAndRevisionMismatch>
   </PropertyGroup>
-  
+
   <!-- Setting IsTestProject prior to Build.Common.targets -->
   <PropertyGroup>
     <IsTestProject Condition="'$(IsTestProject)'=='' And ($(MSBuildProjectFullPath.Contains('\tests\')) OR $(MSBuildProjectFullPath.Contains('/tests/')))">true</IsTestProject>
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)Roslyn.Common.props" />
+
+  <!-- Restore commands -->
+  <PropertyGroup>
+    <DotnetToolCommand>$(OverrideToolHost)</DotnetToolCommand>
+    <DotnetRestoreSource>@(DotnetSourceList -> '--source %(Identity)', ' ')</DotnetRestoreSource>
+    <DotnetRestoreCommand>"$(DotnetToolCommand)"</DotnetRestoreCommand>
+    <DotnetRestoreCommand>$(DotnetRestoreCommand) restore</DotnetRestoreCommand>
+    <DotnetRestoreCommand>$(DotnetRestoreCommand) --packages "$(PackagesDir.TrimEnd('/').TrimEnd('\'))" $(DotnetRestoreSource)</DotnetRestoreCommand>
+    <DotnetRestoreCommand Condition="'$(NuGetConfigPath)'!=''">$(DotnetRestoreCommand) --configfile $(NuGetConfigPath)</DotnetRestoreCommand>
+
+    <!-- Keeping this for legacy reasons for now but should eliminate Dnu* eventually -->
+    <DnuRestoreCommand>$(DotnetRestoreCommand)</DnuRestoreCommand>
+  </PropertyGroup>
 
   <!--
     import the MicroBuild boot-strapper props (only relevant for shipping binaries)
