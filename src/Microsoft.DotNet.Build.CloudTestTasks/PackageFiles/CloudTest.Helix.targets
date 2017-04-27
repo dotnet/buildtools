@@ -327,17 +327,17 @@
 
     <WriteItemsToJson JsonFileName="%(HelixWorkItemList.BuildCompleteJson)" Items="@(BuildComplete)" />
     <Message Text="Wrote job-start (build complete) JSON for @(BuildComplete->Count()) Queues." />
-	
+    
     <CreateItem Include="%(HelixWorkItemList.BuildCompleteJson)" AdditionalMetadata="RelativeBlobPath=JobStartJsonMessages.json">
       <Output TaskParameter="Include" ItemName="JobStartJsons" />
     </CreateItem>
-	
-	<UploadToAzure
+    
+    <UploadToAzure
      ConnectionString="$(CloudDropConnectionString)"
      ContainerName="$(ContainerName)"
      Items="@(JobStartJsons)"
      Overwrite="$(OverwriteOnUpload)" />
- 	<Message Text="Uploaded job-start JSON files to $(ContainerName).   These can be used for resending the same job for debugging purposes." />
+    <Message Text="Uploaded job-start JSON files to $(ContainerName).   These can be used for resending the same job for debugging purposes." />
 
   </Target>
 
