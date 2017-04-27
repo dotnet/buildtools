@@ -109,7 +109,16 @@
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets"
           Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' and '$(MSBuildProjectExtension)' == '.csproj'" />
 
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.Targets"
+  <!--
+      workaround file casing issue where it has different casing in different places which fails on linux builds
+      https://github.com/dotnet/buildtools/issues/1464
+  -->
+  <PropertyGroup>
+    <CSharpTargetsFile>$(MSBuildToolsPath)\Microsoft.CSharp.targets</CSharpTargetsFile>
+    <CSharpTargetsFile Condition="!Exists('$(CSharpTargetsFile)')">$(MSBuildToolsPath)\Microsoft.CSharp.Targets</CSharpTargetsFile>
+  </PropertyGroup>
+
+  <Import Project="$(CSharpTargetsFile)"
           Condition="'$(TargetFrameworkIdentifier)' != '.NETPortable' and '$(MSBuildProjectExtension)' == '.csproj'" />
 
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.VisualBasic.targets"
@@ -396,11 +405,11 @@
     <FindUnderPath Path="%(AdditionalCleanDirectories.Identity)" Files="@(_CleanUniqueRemainingFileWrites)">
       <Output TaskParameter="InPath" ItemName="_CleanUniqueRemainingFileWritesInAdditionalDirectories"/>
     </FindUnderPath>
-    
+
     <Delete Files="@(_CleanUniqueRemainingFileWritesInAdditionalDirectories)" TreatErrorsAsWarnings="true">
       <Output TaskParameter="DeletedFiles" ItemName="_CleanUniqueRemainingFileWritesInAdditionalDirectoriesDeleted" />
     </Delete>
-    
+
     <!-- Create a list of everything that wasn't deleted. -->
     <ItemGroup>
       <_CleanRemainingFileWritesAfterCleanAdditionalDirectories Include="@(_CleanUniqueRemainingFileWrites)" Exclude="@(_CleanUniqueRemainingFileWritesInAdditionalDirectoriesDeleted)"/>
