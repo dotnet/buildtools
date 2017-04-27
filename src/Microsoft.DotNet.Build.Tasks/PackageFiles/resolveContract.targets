@@ -2,46 +2,35 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup Condition="'$(ResolveMatchingContract)' == 'true'">
+    <AddProjectReferencesDynamicallyDependsOn>
+      ResolveMatchingContract;
+      $(AddProjectReferencesDynamicallyDependsOn);
+    </AddProjectReferencesDynamicallyDependsOn>
     <ResolveReferencesDependsOn>
-      ResolveMatchingContract;
-      $(ResolveReferencesDependsOn)
+      $(ResolveReferencesDependsOn);
+      VerifyMatchingContract
     </ResolveReferencesDependsOn>
-    <CleanDependsOn>
-      ResolveMatchingContract;
-      $(CleanDependsOn);
-    </CleanDependsOn>
   </PropertyGroup>
-  
+
   <Target Name="ResolveMatchingContract">
-    <PropertyGroup Condition="'$(ContractProject)' == '' AND '@(ContractProject)' == ''">
-      <ContractProject>$(SourceDir)/$(AssemblyName)/ref/$(APIVersion)/$(AssemblyName).csproj</ContractProject>
-      <!-- fall back to 'current' version if specific version does not exist -->
-      <ContractProject Condition="!(Exists('$(ContractProject)'))">$(SourceDir)/$(AssemblyName)/ref/$(AssemblyName).csproj</ContractProject>
-      <!-- don't add a project if one can't be found-->
-      <ContractProject Condition="!(Exists('$(ContractProject)'))"></ContractProject>
+    <PropertyGroup>
+      <ContractProject Condition="'$(ContractProject)' == ''">$(SourceDir)/$(MSBuildProjectName)/ref/$(MSBuildProjectName).csproj</ContractProject>
+      <HasMatchingContract Condition="'$(HasMatchingContract)' == '' and Exists('$(ContractProject)')">true</HasMatchingContract>
+      <ContractAssemblyPath Condition="'$(ContractAssemblyPath)' == ''">$(ContractOutputPath)/$(MSBuildProjectName).dll</ContractAssemblyPath>
     </PropertyGroup>
 
-    <ItemGroup Condition="'@(ContractProject)' == ''">
-      <ContractProject Include="$(ContractProject)" />
-    </ItemGroup>
+    <ItemGroup Condition="'$(HasMatchingContract)' == 'true'">
+      <ResolvedMatchingContract Condition="Exists('$(ContractAssemblyPath)')" Include="$(ContractAssemblyPath)" />
 
-    <Error Condition="'@(ContractProject->Count())' &gt; '1'" Text="Only one value may be specified for ContractProject item but '@(ContractProject)' is '@(ContractProject->Count())' items." />
-
-    <ItemGroup Condition="'@(ContractProject)' != ''">
-      <!-- Don't flow the values for OSGroup/TargetGroup unless explicitly defined -->
-      <ContractProject>
-        <UndefineProperties Condition="'%(ContractProject.OSGroup)'==''">OSGroup;%(ContractProject.UndefineProperties)</UndefineProperties>
-        <AdditionalProperties Condition="'%(ContractProject.OSGroup)'!=''">OSGroup=%(ContractProject.OSGroup);%(ContractProject.AdditionalProperties)</AdditionalProperties>
-      </ContractProject>
-      <ContractProject>
-        <UndefineProperties Condition="'%(ContractProject.TargetGroup)'==''">TargetGroup;%(ContractProject.UndefineProperties)</UndefineProperties>
-        <AdditionalProperties Condition="'%(ContractProject.TargetGroup)'!=''">TargetGroup=%(ContractProject.TargetGroup);%(ContractProject.AdditionalProperties)</AdditionalProperties>
-      </ContractProject>
-
-      <ProjectReference Include="@(ContractProject)">
+      <!-- If the contract doesn't exist in the default contract output path add a project reference to the contract project to resolve -->
+      <ProjectReference Condition="'@(ResolvedMatchingContract)' == ''" Include="$(ContractProject)">
         <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
         <OutputItemType>ResolvedMatchingContract</OutputItemType>
       </ProjectReference>
     </ItemGroup>
+  </Target>
+
+  <Target Name="VerifyMatchingContract">
+    <Error Condition="'$(HasMatchingContract)' == 'true' and !Exists('%(ResolvedMatchingContract.Identity)')" Text="ResolveMatchingContract could not find a matching contract '%(ResolvedMatchingContract.Identity)' not found." />
   </Target>
 </Project>

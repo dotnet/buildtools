@@ -1,59 +1,32 @@
 ﻿@ECHO OFF
 SETLOCAL
 
-SET PACKAGE_DIR=%1
-set PACKAGE_DIR=%PACKAGE_DIR:/=\%
-IF DEFINED PACKAGE_DIR ( echo Using %PACKAGE_DIR% as folder for resolving package dependencies.) ELSE (
-echo Please specify an package source directory using PACKAGEROOT parameter
+SET RUNTIME_PATH=%1
+set RUNTIME_PATH=%RUNTIME_PATH:/=\%
+IF DEFINED RUNTIME_PATH ( echo Using %RUNTIME_PATH% as the test runtime folder.) ELSE (
+echo Please specify a test runtime folder using the RUNTIME_PATH parameter
 goto ShowUsage
 )
 set EXECUTION_DIR=%~dp0
 echo Executing in %EXECUTION_DIR% 
 
-:: ========================= BEGIN Copying files  =============================== 
-echo Hard linking dependent files... 
-:: Format here is: call :copyandcheck Path1 Path2 || GOTO EOF
-[[CopyFilesCommands]]
-
-echo Finished linking needed files, moving to running tests.
-:: ========================= END Copying files  =================================
-
 :: ========================= BEGIN Test Execution ============================= 
 echo Running tests... Start time: %TIME%
-echo Command(s):
-[[TestRunCommandsEcho]]
 pushd %EXECUTION_DIR%
+echo on
 [[TestRunCommands]]
+@echo off
 popd
 echo Finished running tests.  End time=%TIME%, Exit code = %ERRORLEVEL%
 EXIT /B %ERRORLEVEL%
 :: ========================= END Test Execution =================================
 
-:: ======== CopyAndCheck subroutine ====
-:copyandcheck
-IF EXIST %2 (
-exit /b 0
-)
-mklink /H %2 %1 > NUL 2>&1
-IF %ERRORLEVEL% == 1 (
-copy /y %1 %2 > NUL 2>&1
-)
-exit /b %ERRORLEVEL%
-:: =====================================
-:: ======== MakeDirectory subroutine ====
-:makedir
-IF EXIST %1 (
-exit /b 0
-)
-md %1 > NUL 2>&1
-exit /b %ERRORLEVEL%
-:: =====================================
 :ShowUsage
 echo.
 echo Usage:
 echo.
-echo %0 {Package root}
+echo %0 {runtime path}
 echo.
 echo Parameters:
-echo Package Root :        (Mandatory) Root path containing unzipped Nuget Packages, such as c:\GIT\corefx\packages
+echo runtime path :        (Mandatory) Root path containing the full test runtime necessary for test execution.
 EXIT /B -1

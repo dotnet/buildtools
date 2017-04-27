@@ -21,6 +21,9 @@ namespace Microsoft.DotNet.Build.Tasks
         [Required]
         public string OutputPath { get; set; }
 
+        [Required]
+        public bool OutputCodeBase { get; set; }
+
         private static XNamespace ns { get; set; }
 
         public override bool Execute()
@@ -86,7 +89,17 @@ namespace Microsoft.DotNet.Build.Tasks
                 XElement dependentAssembly = new XElement(ns + "dependentAssembly",
                     assemblyIdentity,
                     bindingRedirect);
+
+                if (OutputCodeBase)
+                {
+                    XElement codeBase = new XElement(ns + "codeBase",
+                                                new XAttribute("version", result.Version),
+                                                new XAttribute("href", Path.GetFullPath(assembly.ItemSpec)));
+                    dependentAssembly.Add(codeBase);
+                }
+
                 bindingRedirectAssemblies.Add(dependentAssembly);
+
             }
             XDocument doc = new XDocument(new XElement("configuration", new XElement("runtime", bindingRedirectAssemblies)));
             foreach (ITaskItem executable in Executables)

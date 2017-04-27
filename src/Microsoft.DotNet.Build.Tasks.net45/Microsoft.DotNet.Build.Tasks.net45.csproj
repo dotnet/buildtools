@@ -18,6 +18,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)IsRestoreRequired.Desktop.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FilterRuntimesFromSupports.Desktop.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EncryptedConfigNuGetRestore.Desktop.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BuildTask.Desktop.cs" />
   </ItemGroup>
   <ItemGroup>
     <TargetingPackReference Include="Microsoft.Build" />

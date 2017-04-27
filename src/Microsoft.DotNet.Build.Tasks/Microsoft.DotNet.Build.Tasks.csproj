@@ -82,6 +82,18 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>$(MSBuildThisFileDirectory)/Strings.resx</DependentUpon>
     </Compile>
+    <Compile Include="SaveItems.cs" />
+    <Compile Include="ConfigurationTask.cs" />
+    <Compile Include="BuildTask.cs" />
+    <Compile Include="Configuration\Configuration.cs" />
+    <Compile Include="Configuration\ConfigurationFactory.cs" />
+    <Compile Include="Configuration\PropertyValue.cs" />
+    <Compile Include="Configuration\PropertyInfo.cs" />
+    <Compile Include="GenerateConfigurationProps.cs" />
+    <Compile Include="FindBestConfigurations.cs" />
+    <Compile Include="GenerateDepsJson.cs" />
+    <Compile Include="TryGetManagedAssemblyName.cs" />
+    <Compile Include="UpdateVSConfigurations.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)/Strings.resx">

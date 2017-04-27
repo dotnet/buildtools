@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <UsingTask TaskName="ComputeDestinationsForDependencies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="PrereleaseResolveNuGetPackageAssets" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="RemoveDuplicatesWithLastOneWinsPolicy" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ZipFileCreateFromDirectory" Condition="'$(ArchiveTests)' == 'true'" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
@@ -10,158 +9,13 @@
 
   <PropertyGroup>
     <SerializeProjects Condition="'$(TestWithLocalLibraries)'=='true'">true</SerializeProjects>
-    <TargetOS Condition="'$(OSGroup)'!='AnyOS'">$(OSGroup)</TargetOS>
   </PropertyGroup>
-
-  <!-- Ideally, we'd have UseHardLinksIfPossible on by default because we copy tons of the
-       same files for every single test project here, but it doesn't currently work x-plat.
-       so we only turn it on by default for Windows builds for now. -->
-  <PropertyGroup>
-    <CreateHardLinksForCopyTestToTestDirectoryIfPossible Condition="'$(CreateHardLinksForCopyTestToTestDirectoryIfPossible)'=='' and '$(OS)' == 'Windows_NT'">true</CreateHardLinksForCopyTestToTestDirectoryIfPossible>
-    <CreateHardLinksForCopyTestToTestDirectoryIfPossible Condition="'$(CreateHardLinksForCopyTestToTestDirectoryIfPossible)'==''">$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)</CreateHardLinksForCopyTestToTestDirectoryIfPossible>
-  </PropertyGroup>
-
-  <!-- Discover the items which will be copied to the test directory at execution time when archiving the tests
-       to run in Helix, and at build-time otherwise. These are the test dependencies not discovered by
-       DiscoverTestInputs; they are not directly referenced by the test project, but are required to run the
-       tests. -->
-  <Target Name="DiscoverTestDependencies" DependsOnTargets="DiscoverTestInputs;GetDefaultTestRid">
-    <PrereleaseResolveNuGetPackageAssets Condition="Exists($(ProjectLockJson))"
-                               AllowFallbackOnTargetSelection="true"
-                               IncludeFrameworkReferences="false"
-                               NuGetPackagesDirectory="$(PackagesDir)"
-                               RuntimeIdentifier="$(TestNugetRuntimeId)"
-                               ProjectLanguage="$(Language)"
-                               ProjectLockFile="$(ProjectLockJson)"
-                               TargetMonikers="$(TestNugetTargetMoniker)">
-      <Output TaskParameter="ResolvedCopyLocalItems" ItemName="TestCopyLocal" />
-    </PrereleaseResolveNuGetPackageAssets>
-
-    <ItemGroup Condition="'$(TestWithCore)' != 'true'">
-      <_TestCopyLocalXunitFiles Include="$(PackagesDir)xunit.runner.console\2.2.0-beta2-build3300\tools\*.exe" />
-      <_TestCopyLocalXunitFiles Include="$(PackagesDir)xunit.runner.console\2.2.0-beta2-build3300\tools\*.dll" />
-      <TestCopyLocal Include="@(_TestCopyLocalXunitFiles)" >
-        <NuGetPackageId>%(FileName)</NuGetPackageId>
-        <NuGetPackageVersion>2.2.0-beta2-build3300</NuGetPackageVersion>
-        <Private>false</Private>
-      </TestCopyLocal>
-    </ItemGroup>
-
-    <GetTargetMachineInfo Condition="'$(TestWithLocalLibraries)'=='true' Or '$(TestWithLocalNativeLibraries)'=='true'">
-      <Output Condition="'$(TargetArch)'==''" TaskParameter="TargetArch" PropertyName="TargetArch" />
-      <Output Condition="'$(TargetOS)'==''" TaskParameter="TargetOS" PropertyName="TargetOS" />
-    </GetTargetMachineInfo>
-
-    <PropertyGroup>
-      <TestWithLocalNativeLibraries Condition="'$(TestWithLocalLibraries)'=='true'">true</TestWithLocalNativeLibraries>
-    </PropertyGroup>
-    <!-- Test using locally built shim libraries. -->
-    <ItemGroup Condition="'$(TestWithLocalNativeLibraries)'=='true'">
-      <TestCopyLocal Include="$(BaseOutputPath)$(TargetOS).$(TargetArch).$(ConfigurationGroup)/Native/*.*" />
-    </ItemGroup>
-
-    <!-- Test using locally built libraries if requested. Again, later entries override earlier
-         entries. -->
-    <PropertyGroup Condition="'$(TestWithLocalLibraries)'=='true'">
-      <BaseLocalLibrariesPath Condition="'$(BaseLocalLibrariesPath)'==''">$(BaseOutputPath)</BaseLocalLibrariesPath>
-      <AnyOSLocalLibrariesPath>$(BaseLocalLibrariesPath)/AnyOS.$(Platform).$(ConfigurationGroup)</AnyOSLocalLibrariesPath>
-      <UnixLocalLibrariesPath>$(BaseLocalLibrariesPath)/Unix.$(Platform).$(ConfigurationGroup)</UnixLocalLibrariesPath>
-      <TargetOSLocalLibrariesPath>$(BaseLocalLibrariesPath)/$(TargetOS).$(Platform).$(ConfigurationGroup)</TargetOSLocalLibrariesPath>
-    </PropertyGroup>
-    <ItemGroup Condition="'$(TestWithLocalLibraries)'=='true'">
-      <!-- Replace some of the resolved libraries that came from nuget by exploring the list of files that we are going to copy
-           and replacing them with local copies that were just built -->
-      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(AnyOSLocalLibrariesPath)/%(filename)/%(filename).dll')" />
-      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(AnyOSLocalLibrariesPath)/%(filename)/%(filename).pdb')" />
-      <_ReplacementCandidates Condition="'$(TargetOS)' == 'Linux' OR '$(TargetOS)' == 'OSX'" Include="@(TestCopyLocal -> '$(UnixLocalLibrariesPath)/%(filename)/%(filename).dll')" />
-      <_ReplacementCandidates Condition="'$(TargetOS)' == 'Linux' OR '$(TargetOS)' == 'OSX'" Include="@(TestCopyLocal -> '$(UnixLocalLibrariesPath)/%(filename)/%(filename).pdb')" />
-      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(TargetOSLocalLibrariesPath)/%(filename)/%(filename).dll')" />
-      <_ReplacementCandidates Include="@(TestCopyLocal -> '$(TargetOSLocalLibrariesPath)/%(filename)/%(filename).pdb')" />
-      <_ExistingReplacementCandidate Include="@(_ReplacementCandidates)" Condition="Exists('%(_ReplacementCandidates.FullPath)')" />
-      <TestCopyLocal Include="@(_ExistingReplacementCandidate)" />
-    </ItemGroup>
-
-    <ItemGroup Condition="'$(CoreLibRoot)' != ''">
-      <TestCopyLocal Include="$(CoreLibRoot)\mscorlib.dll" />
-      <TestCopyLocal Include="$(CoreLibRoot)\System.Private.CoreLib.dll" />
-      <TestCopyLocal Include="$(CoreLibRoot)\PDB\mscorlib.pdb" />
-      <TestCopyLocal Include="$(CoreLibRoot)\PDB\System.Private.CoreLib.pdb" />
-    </ItemGroup>
-
-    <PropertyGroup Condition="'$(CoreLibRoot)' != ''">
-      <!-- We're not copying native images for our private corelib -->
-      <TestWithoutNativeImages>true</TestWithoutNativeImages>
-    </PropertyGroup>
-
-    <ItemGroup>
-      <!-- Not all platforms can use the .ni.dlls that come from packages.  If TestWithoutNativeImages is specified, we'll exclude them from copy generation.
-           If we end up needing this for any other sorts of filtering, we'll want to add a list of filtered extensions to be matched on EndsWith.  -->
-      <_TestCopyLocalByFileName Include="@(TestCopyLocal->'%(RecursiveDir)%(FileName)%(Extension)')"
-                                Condition="'$(TestWithoutNativeImages)' != 'true' Or !$([System.String]::Copy('%(Identity)').EndsWith('.ni.dll'))">
-        <NugetPackageId>%(TestCopyLocal.NugetPackageId)</NugetPackageId>
-        <PackageRelativePath Condition="'%(TestCopyLocal.NugetPackageId)' != ''">$([System.String]::Copy('%(Identity)').Replace('$(PackagesDir)',''))</PackageRelativePath>
-        <SourcePath>%(Identity)</SourcePath>
-        <UseAbsolutePath Condition="'$(TestWithLocalLibraries)'=='true' Or '$(TestWithLocalNativeLibraries)'=='true'">$([System.String]::Copy('%(Identity)').StartsWith('$(BinDir)'))</UseAbsolutePath>
-      </_TestCopyLocalByFileName>
-    </ItemGroup>
-
-    <!-- Remove duplicates. Note that we mustn't just copy in sequence and let
-         the last one win that way because it will cause copies to occur on
-         every incremental build. -->
-    <RemoveDuplicatesWithLastOneWinsPolicy Inputs="@(_TestCopyLocalByFileName)">
-      <Output TaskParameter="Filtered" ItemName="_TestCopyLocalByFileNameWithoutDuplicates" />
-    </RemoveDuplicatesWithLastOneWinsPolicy>
-
-    <ComputeDestinationsForDependencies TestDependencies="@(_TestCopyLocalByFileNameWithoutDuplicates)">
-      <Output TaskParameter="TestDependenciesWithDestinations" ItemName="IncludedFileForRunnerScript" />
-    </ComputeDestinationsForDependencies>
-  </Target>
-
-  <!-- Remove items from IncludedFileForRunnerScript which are already in SourcesToCopyToTestDir.
-       The file comparison is based on the destinations of the files. -->
-  <Target Name="RemoveCommonItems"
-        AfterTargets="DiscoverTestDependencies"
-        Inputs="%(SourcesToCopyToTestDir.Destination)"
-        Outputs="none">
-    <PropertyGroup>
-      <_CommonItemToRemove>%(SourcesToCopyToTestDir.Destination)</_CommonItemToRemove>
-    </PropertyGroup>
-    <ItemGroup>
-      <IncludedFileForRunnerScript Remove="%(IncludedFileForRunnerScript.Identity)" Condition="'$(TestPath)\%(IncludedFileForRunnerScript.RelativeDestinationPath)' == '$(_CommonItemToRemove)'" />
-    </ItemGroup>
-  </Target>
-
-  <Target Name="CopyTestToTestDirectory"
-          Condition="'$(DisableCopyTestToTestDirectory)' != 'true'"
-          DependsOnTargets="DiscoverTestInputs">
-    <Copy
-      SourceFiles="@(SourcesToCopyToTestDir)"
-      DestinationFiles="@(SourcesToCopyToTestDir->'%(Destination)')"
-      SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
-      OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
-      Retries="$(CopyRetryCount)"
-      RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
-      UseHardlinksIfPossible="$(CreateHardLinksForCopyTestToTestDirectoryIfPossible)">
-
-      <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
-    </Copy>
-
-    <Exec Condition="'$(OS)'=='Unix' and Exists('$(TestPath)/corerun')"
-          Command="chmod a+x &quot;$(TestPath)/corerun&quot;" />
-  </Target>
 
   <!--
-    Copies supplemental test data to the test directory.  This is done in a separate target
-    because it does not use hard links because the supplemental test data is shared between
-    multiple projects, so using hard links would result in race conditions between the
-    archiving and copying of different links of the file.
-    
-    This separate copy may not be necessary if the output directory were archived instead of
-    the test directory and the supplemental test data were included in Content, because Content
-    is copied to the output directory without using hard links.
+    Temporary until we have proper nuget support to deploy content files.
+    Copies supplemental test data to the build output and test directories.
   -->
-  <Target Name="CopySupplementalTestData"
-          AfterTargets="CopyTestToTestDirectory">
+  <Target Name="CopySupplementalTestData" DependsOnTargets="DiscoverTestInputs">
     <!-- coalesce supplemental test data items with and without DestinationDir metadata -->
     <ItemGroup>
       <_SupplementalTestData Include="@(SupplementalTestData)" Condition="'%(DestinationDir)' != ''">
@@ -171,51 +25,75 @@
         <DestinationDir>%(RecursiveDir)</DestinationDir>
       </_SupplementalTestData>
     </ItemGroup>
+    <ItemGroup>
+      <SupplementalTestDataTestDir Include="@(_SupplementalTestData->'$(TestPath)/%(DestinationDir)%(Filename)%(Extension)')" />
+      <SupplementalTestDataOutDir Include="@(_SupplementalTestData->'$(OutDir)%(DestinationDir)%(Filename)%(Extension)')" />
+    </ItemGroup>
     <Copy
       SourceFiles="@(_SupplementalTestData)"
-      DestinationFiles="@(_SupplementalTestData->'$(TestPath)/%(DestinationDir)%(Filename)%(Extension)')"
+      DestinationFiles="@(SupplementalTestDataTestDir)"
       SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
       OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
       Retries="$(CopyRetryCount)"
       RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
-      UseHardlinksIfPossible="false">
+      UseHardlinksIfPossible="$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)">
 
       <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
     </Copy>
-  </Target>
-
-  <!-- This copies the same files as the RunTests script, when running locally.
-       This achieves two things: 
-	   1) Allows VS to work when the test dir is initially clean, since VS does not invoke the runner script
-        because it needs to attach to the XUnit process when debugging.
-	   2) For incremental build of any kind, ensures that any test dependency which is updated gets copied
-       (thanks to smarter copy logic) -->
-  <PropertyGroup Condition="'$(BuildingInsideVisualStudio)'=='true'">
-    <PrepareForRunDependsOn>$(PrepareForRunDependsOn);CopyDependenciesToTestDirectory;GenerateTestBindingRedirects</PrepareForRunDependsOn>
-  </PropertyGroup>
-  <Target Name="CopyDependenciesToTestDirectory"
-          Condition="'$(DisableCopyTestToTestDirectory)' != 'true' And '$(ArchiveTests)' != 'true'"
-          DependsOnTargets="CopyTestToTestDirectory;DiscoverTestDependencies">
     <Copy
-      SourceFiles="@(IncludedFileForRunnerScript->'%(SourcePath)')"
-      DestinationFiles="@(IncludedFileForRunnerScript->'$(TestPath)\%(RelativeDestinationPath)')"
+      SourceFiles="@(_SupplementalTestData)"
+      DestinationFiles="@(SupplementalTestDataOutDir)"
       SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
       OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
       Retries="$(CopyRetryCount)"
       RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
-      UseHardlinksIfPossible="$(CreateHardLinksForCopyTestToTestDirectoryIfPossible)">
+      UseHardlinksIfPossible="$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)">
 
       <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
     </Copy>
   </Target>
 
-  <!-- archive the test binaries along with some supporting files -->
+  <!-- Workaround for VS execution:  This will form the same list and copy the same files as
+       copied via RunTests script so VS can work when the test dir is initially clean.
+       -->
+  <PropertyGroup Condition="'$(BuildingInsideVisualStudio)'=='true'">
+    <PrepareForRunDependsOn>$(PrepareForRunDependsOn);CopyDefaultTestAssetsForVS</PrepareForRunDependsOn>
+  </PropertyGroup>
+  <Target Name="CopyDefaultTestAssetsForVS" DependsOnTargets="DiscoverTestInputs;CopySupplementalTestData">
+     <!-- This was copied from RunTestsForProject in tests.targets
+          The RunTestsForProject target does not execute in VS context and would be confused by the script based runner.
+          _TestCopyLocalByFileNameWithoutDuplicates are the precise items that are fed to the runner script generation code.
+     -->
+    <ItemGroup>
+      <!-- Not all platforms can use the .ni.dlls that come from packages.  If TestWithoutNativeImages is specified, we'll exclude them from copy generation.
+           If we end up needing this for any other sorts of filtering, we'll want to add a list of filtered extensions to be matched on EndsWith.  -->
+      <_IncludedFileForTestsInVS Include="@(_TestCopyLocalByFileNameWithoutDuplicates)"
+                                 Condition="'$(TestWithoutNativeImages)' != 'true' Or !$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').EndsWith('.ni.dll'))" >
+        <PackageRelativePath Condition="'%(_TestCopyLocalByFileNameWithoutDuplicates.NugetPackageId)' != ''">$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').Replace('$(PackagesDir)',''))</PackageRelativePath>
+        <UseAbsolutePath Condition="'$(TestWithLocalLibraries)'=='true'">$([System.String]::Copy('%(_TestCopyLocalByFileNameWithoutDuplicates.SourcePath)').StartsWith('$(BinDir)'))</UseAbsolutePath>
+        <DestinationPath>$(TestPath)\%(Filename)%(Extension)</DestinationPath>
+      </_IncludedFileForTestsInVS>
+      <_IncludedFileForTestsInVs Remove="@(_IncludedFileForTestsInVS)" Condition="Exists('%(DestinationPath)')" />
+    </ItemGroup>
+
+    <Copy
+      SourceFiles="@(_IncludedFileForTestsInVS  -> '%(SourcePath)')"
+      DestinationFiles="@(_IncludedFileForTestsInVS->'%(DestinationPath)')"
+      SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
+      OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
+      Retries="$(CopyRetryCount)"
+      RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
+      UseHardlinksIfPossible="true">
+      <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
+    </Copy>
+  </Target>
+
+    <!-- archive the test binaries along with some supporting files -->
   <Target Name="ArchiveTestBuild"
           Condition="'$(ArchiveTests)' == 'true'"
-          DependsOnTargets="CopyTestToTestDirectory;CopyDependenciesToTestDirectory;GenerateTestBindingRedirects;GenerateTestExecutionScripts">
+          DependsOnTargets="GenerateTestExecutionScripts">
     <PropertyGroup>
       <TestArchiveDir>$(TestWorkingDir)$(OSPlatformConfig)/archive/tests/$(TargetOutputRelPath)</TestArchiveDir>
-      <TestArchiveDir Condition="'$(TestTFM)' != ''">$(TestArchiveDir)$(TestTFM)/</TestArchiveDir>
       <ProjectJson Condition="!Exists('$(ProjectJson)')">$(OriginalProjectJson)</ProjectJson>
     </PropertyGroup>
     <PropertyGroup Condition="'$(TestProjectName)'==''">
