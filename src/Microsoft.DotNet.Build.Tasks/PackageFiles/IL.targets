@@ -5,7 +5,7 @@
   <Target Name="CreateManifestResourceNames" Condition="'@(EmbeddedResource)' != ''" />
 
   <Target Name="GetIlasmPath"
-          Condition="'$(OS)' == 'Windows_NT' And '$(IlasmToolPath)' == ''">
+          Condition="'$(RunningOnUnix)'!='true' And '$(IlasmToolPath)' == ''">
     <GetFrameworkPath>
       <Output TaskParameter="Path" PropertyName="IlasmPath" />
     </GetFrameworkPath>

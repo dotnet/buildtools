@@ -207,12 +207,12 @@
   <PropertyGroup>
     <GetNuGetPackageVersionsDependsOn>$(GetNuGetPackageVersionsDependsOn);CreateVersionInfoFile</GetNuGetPackageVersionsDependsOn>
   </PropertyGroup>
-    
+
   <PropertyGroup>
     <SyncInfoDirectory Condition="'$(SyncInfoDirectory)' == ''">$(ObjDir)</SyncInfoDirectory>
     <SyncInfoFile Condition="'$(SyncInfoFile)' == ''">$(SyncInfoDirectory)version.txt</SyncInfoFile>
   </PropertyGroup>
-  
+
   <Target Name="CreateVersionInfoFile"
           DependsOnTargets="CreateVersionFileDuringBuild"
           BeforeTargets="BuildAllProjects"
@@ -227,7 +227,7 @@
       Overwrite="true" />
   </Target>
 
-  <!-- 
+  <!--
     Target: CreateOrUpdateCurrentVersionFile
 
     Generates the version data and saves it to $(BuildVersionFile) if it hasn't been imported
@@ -302,7 +302,7 @@
       <VersionHostName Condition="'$(VersionHostName)' == ''">$(COMPUTERNAME)</VersionHostName>
     </PropertyGroup>
 
-    <Exec Command="hostname" Condition="'$(OSEnvironment)'!='Windows_NT' AND '$(VersionHostName)'==''" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
+    <Exec Command="hostname" Condition="'$(RunningOnUnix)'=='true' AND '$(VersionHostName)'==''" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="VersionHostName" />
     </Exec>
 
@@ -319,7 +319,7 @@
       <!-- Using the following default comparison date will produce versions that align with our internal build system. -->
       <VersionComparisonDate Condition="'$(VersionComparisonDate)'==''">1996-04-01</VersionComparisonDate>
     </PropertyGroup>
-      
+
     <GenerateCurrentVersion SeedDate="$(VersionSeedDate)" OfficialBuildId="$(OfficialBuildId)" ComparisonDate="$(VersionComparisonDate)" Padding="$(VersionPadding)">
       <Output PropertyName="BuildNumberMajor" TaskParameter="GeneratedVersion" />
       <Output PropertyName="BuildNumberMinor" TaskParameter="GeneratedRevision" />
@@ -328,7 +328,7 @@
       <VersionPadding/>
       <VersionComparisonDate/>
     </PropertyGroup>
-      
+
     <PropertyGroup>
       <VersionFileContent>
         <![CDATA[<?xml version="1.0" encoding="utf-8"?>
@@ -345,17 +345,17 @@
 ]]>
       </VersionFileContent>
     </PropertyGroup>
-    
+
     <!-- Since by default the file will get dropped at the obj dir, make sure that the dir is created already or else WriteLinesToFile will error. -->
     <MakeDir Directories="$(BuildVersionFilePath)" />
-      
+
     <WriteLinesToFile
       ContinueOnError="WarnAndContinue"
       Condition="!Exists('$(BuildVersionFile)')"
       File="$(BuildVersionFile)"
       Lines="$(VersionFileContent)"
       Overwrite="true" />
-    
+
     <!-- Delete old BuildVersion.props files -->
     <ItemGroup>
       <OldBuildVersionFiles Include="$(BuildVersionFilePath)BuildVersions-*.props" Exclude="$(BuildVersionFile)" />

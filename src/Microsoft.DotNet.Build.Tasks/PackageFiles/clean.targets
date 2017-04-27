@@ -2,10 +2,10 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <UserLocalFolder Condition="'$(OsEnvironment)'=='Windows_NT'">$(LocalAppData)/</UserLocalFolder>
-    <UserLocalFolder Condition="'$(OsEnvironment)'!='Windows_NT'">$(HOME)/.local/share/</UserLocalFolder>
-    <UserProfileFolder Condition="'$(OsEnvironment)'=='Windows_NT'">$(UserProfile)</UserProfileFolder>
-    <UserProfileFolder Condition="'$(OsEnvironment)'!='Windows_NT'">$(HOME)</UserProfileFolder>
+    <UserLocalFolder Condition="'$(RunningOnUnix)'!='true'">$(LocalAppData)/</UserLocalFolder>
+    <UserLocalFolder Condition="'$(RunningOnUnix)'=='true'">$(HOME)/.local/share/</UserLocalFolder>
+    <UserProfileFolder Condition="'$(RunningOnUnix)'!='true'">$(UserProfile)</UserProfileFolder>
+    <UserProfileFolder Condition="'$(RunningOnUnix)'=='true'">$(HOME)</UserProfileFolder>
   </PropertyGroup>
 
   <Target Name="CleanPackages">

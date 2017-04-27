@@ -92,7 +92,7 @@
     </PropertyGroup>
 
     <Error Text="Restoring optional tooling with in-memory credentials is not supported on Windows. Use the desktop framework for the encrypted credential flow."
-           Condition="'$(OS)'=='Windows_NT'" />
+           Condition="'$(RunningOnUnix)'!='true'" />
 
     <Error Text="Restoring optional tooling with in-memory credentials is not yet implemented. No cross-platform optional tooling exists yet." />
   </Target>

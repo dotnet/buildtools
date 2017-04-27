@@ -14,7 +14,7 @@
   <Target Name="PreProcessIBCData"
           BeforeTargets="OptimizeWithTrainingData"
           DependsOnTargets="ResolveOptionalTools"
-          Condition="'$(OS)'=='Windows_NT' and '$(EnableProfileGuidedOptimization)'=='true' and Exists('$(OptimizationDataDir)$(AssemblyName).dll')">
+          Condition="'$(RunningOnUnix)'!='true' and '$(EnableProfileGuidedOptimization)'=='true' and Exists('$(OptimizationDataDir)$(AssemblyName).dll')">
 
     <!-- Find IBCMerge as a resolved optional tool. -->
     <PropertyGroup>
@@ -45,7 +45,7 @@
           AfterTargets="AfterBuild"
           BeforeTargets="CopyFilesToOutputDirectory"
           DependsOnTargets="ResolveOptionalTools"
-          Condition="'$(OS)'=='Windows_NT' and '$(EnableProfileGuidedOptimization)'=='true' and Exists('$(OptimizationDataDir)$(AssemblyName).pgo')">
+          Condition="'$(RunningOnUnix)'!='true' and '$(EnableProfileGuidedOptimization)'=='true' and Exists('$(OptimizationDataDir)$(AssemblyName).pgo')">
 
     <!-- Find IBCMerge as a resolved optional tool. -->
     <PropertyGroup>

@@ -29,10 +29,10 @@
 
   <PropertyGroup Condition="'$(BuildingNETFxVertical)' != 'true'">
     <XunitRuntimeConfig>$(ToolsDir)\xunit.console.netcore.runtimeconfig.json</XunitRuntimeConfig>
-    <TestRuntimeEnvVar Condition="'$(OS)' == 'Windows_NT'">%RUNTIME_PATH%\</TestRuntimeEnvVar>
-    <TestRuntimeEnvVar Condition="'$(OS)' != 'Windows_NT'">$RUNTIME_PATH/</TestRuntimeEnvVar>
-    <TestHostExecutablePath Condition="'$(OS)'=='Windows_NT' AND '$(TestHostExecutablePath)' == '' AND '$(BuildingUAPAOTVertical)' != 'true'">$(TestRuntimeEnvVar)dotnet.exe</TestHostExecutablePath>
-    <TestHostExecutablePath Condition="'$(OS)'!='Windows_NT' AND '$(TestHostExecutablePath)' == '' AND '$(BuildingUAPAOTVertical)' != 'true'">$(TestRuntimeEnvVar)dotnet</TestHostExecutablePath>
+    <TestRuntimeEnvVar Condition="'$(RunningOnUnix)'!='true'">%RUNTIME_PATH%\</TestRuntimeEnvVar>
+    <TestRuntimeEnvVar Condition="'$(RunningOnUnix)'=='true'">$RUNTIME_PATH/</TestRuntimeEnvVar>
+    <TestHostExecutablePath Condition="'$(RunningOnUnix)'!='true' AND '$(TestHostExecutablePath)' == '' AND '$(BuildingUAPAOTVertical)' != 'true'">$(TestRuntimeEnvVar)dotnet.exe</TestHostExecutablePath>
+    <TestHostExecutablePath Condition="'$(RunningOnUnix)'=='true' AND '$(TestHostExecutablePath)' == '' AND '$(BuildingUAPAOTVertical)' != 'true'">$(TestRuntimeEnvVar)dotnet</TestHostExecutablePath>
 
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.netcore.exe</XunitExecutable>
 
@@ -73,7 +73,7 @@
     <!-- set $(TestDebugger) to eg c:\debuggers\windbg.exe to run tests under a debugger -->
     <TestCommandLine Condition="'$(TestDebugger)' != '' and !$(TestDebugger.Contains('devenv'))">$(TestDebugger) $(TestCommandLine)</TestCommandLine>
     <TestCommandLine Condition="'$(TestDebugger)' != '' and  $(TestDebugger.Contains('devenv'))">$(TestDebugger) /debugexe $(TestCommandLine)</TestCommandLine>
-    
+
   </PropertyGroup>
 
   <!-- The Code Coverage targets will override TestHost and TestCommandLine if coverage is enabled -->
@@ -137,13 +137,13 @@
     </PropertyGroup>
 
     <Copy SourceFiles="$(NETFxTestRunnerAppConfig)"
-          DestinationFiles="$(XunitRunnerNETFxConfigFile)" 
+          DestinationFiles="$(XunitRunnerNETFxConfigFile)"
           SkipUnchangedFiles="true"
           />
 
     <Copy Condition="Exists('$(TestPath)\RemoteExecutorConsoleApp.exe')"
           SourceFiles="$(NETFxTestRunnerAppConfig)"
-          DestinationFiles="$(RemoteExecutorConfigFile)" 
+          DestinationFiles="$(RemoteExecutorConfigFile)"
           SkipUnchangedFiles="true"
           />
   </Target>
@@ -227,7 +227,7 @@
       <_TestILCFolder>%RUNTIME_PATH%\TestILC</_TestILCFolder>
       <_Runtime_Path>%RUNTIME_PATH%\ILCInputFolder\</_Runtime_Path>
     </PropertyGroup>
-    
+
     <ItemGroup Condition="'$(UseDotNetNativeToolchain)' == 'true' AND '$(Performance)'!='true'" >
       <TargetExecutableNames Include="xunit.console.netcore.exe"/>
       <TargetExecutableNames Condition="'%(ProjectReference.Filename)' == 'RemoteExecutorConsoleApp'" Include="RemoteExecutorConsoleApp.exe"/>
@@ -279,11 +279,11 @@ robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
       <TestCommandLines Include="mklink /H %(RuntimePathContents.RecursiveDir)%(RuntimePathContents.Filename)%(RuntimePathContents.Extension) $(_Runtime_Path)%(RuntimePathContents.Filename)%(RuntimePathContents.Extension)" />
 
       <!-- Copy the log files and the results files from the Documents folder to the test folder -->
-      <PostExecutionTestCommandLines Include="move $(UAP_Results_Path)$(XunitTestAssembly).xml .\$(XunitResultsFileName)" /> 
+      <PostExecutionTestCommandLines Include="move $(UAP_Results_Path)$(XunitTestAssembly).xml .\$(XunitResultsFileName)" />
       <PostExecutionTestCommandLines Include="move $(UAP_Results_Path)$(XunitTestAssembly).txt .\logs.txt" />
       <PostExecutionTestCommandLines Include="type logs.txt" />
     </ItemGroup>
-      
+
     <ItemGroup Condition="'$(Performance)'!='true'">
       <!-- On Windows, call prevents the test command from making execution end prematurely -->
       <TestCommandLines  Condition="'$(TargetOS)'=='Windows_NT' and '$(TestGCStressLevel)' != ''" Include="set COMPlus_GCStress=$(TestGCStressLevel)"/>
