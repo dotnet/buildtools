@@ -17,7 +17,7 @@ using PropertyNames = NuGet.Client.ManagedCodeConventions.PropertyNames;
 
 namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
-    public class ValidatePackage : PackagingTask
+    public class ValidatePackage : ValidationTask
     {
         [Required]
         public string ContractName
@@ -75,25 +75,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             set;
         }
 
-        /// <summary>
-        /// Suppressions
-        ///     Identity: suppression name
-        ///     Value: optional semicolon-delimited list of values for the suppression
-        /// </summary>
-        public ITaskItem[] Suppressions { get;set; }
-
-        /// <summary>
-        /// A file containing names of suppressions with optional semi-colon values specified as follows
-        ///     suppression1
-        ///     suppression2=foo
-        ///     suppression3=foo;bar
-        /// </summary>
-        public string SuppressionFile
-        {
-            get;
-            set;
-        }
-
         public bool SkipGenerationCheck
         {
             get;
@@ -131,35 +112,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             get;
             set;
         }
-
-        /// <summary>
-        /// JSON file describing results of validation
-        /// </summary>
-        public string ReportFile
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Package index files used to define package version mapping.
-        /// </summary>
-        [Required]
-        public ITaskItem[] PackageIndexes { get; set; }
-
-        /// <summary>
-        /// property bag of error suppressions
-        /// </summary>
-        private Dictionary<Suppression, HashSet<string>> _suppressions;
+        
         private Dictionary<NuGetFramework, ValidationFramework> _frameworks;
-        private PackageIndex _index;
-        private PackageReport _report;
         private string _generationIdentifier = FrameworkConstants.FrameworkIdentifiers.NetStandard;
 
         public override bool Execute()
         {
-            LoadSuppressions();
-            LoadReport();
+            InitializeValidationTask();
 
             if (!SkipSupportCheck)
             {
@@ -481,102 +440,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         {
             return !String.IsNullOrWhiteSpace(path) && Path.GetExtension(path).Equals(".dll", StringComparison.OrdinalIgnoreCase);
         }
-
-        private HashSet<string> GetSuppressionValues(Suppression key)
-        {
-            HashSet<string> values;
-            _suppressions.TryGetValue(key, out values);
-            return values;
-        }
-
-        private string GetSingleSuppressionValue(Suppression key)
-        {
-            var values = GetSuppressionValues(key);
-            return (values != null && values.Count == 1) ? values.Single() : null;
-        }
-
-
-        private bool HasSuppression(Suppression key)
-        {
-            return _suppressions.ContainsKey(key);
-        }
-
-        private bool HasSuppression(Suppression key, string value)
-        {
-            HashSet<string> values;
-            if (_suppressions.TryGetValue(key, out values) && values != null)
-            {
-                return values.Contains(value);
-            }
-            return false;
-        }
-
-        private void LoadSuppressions()
-        {
-            _suppressions = new Dictionary<Suppression, HashSet<string>>();
-
-            if (Suppressions != null)
-            {
-                foreach(var suppression in Suppressions)
-                {
-                    AddSuppression(suppression.ItemSpec, suppression.GetMetadata("Value"));
-                }
-            }
-
-            if (File.Exists(SuppressionFile))
-            {
-                foreach (string suppression in File.ReadAllLines(SuppressionFile))
-                {
-                    if (suppression.TrimStart().StartsWith(@"//", StringComparison.OrdinalIgnoreCase) || String.IsNullOrWhiteSpace(suppression))
-                    {
-                        continue;
-                    }
-
-                    var parts = suppression.Split(new[] { '=' }, 2);
-
-                    AddSuppression(parts[0], parts.Length > 1 ? parts[1] : null);
-                }
-            }
-        }
-
-        private void AddSuppression(string keyString, string valueString)
-        {
-            Suppression key;
-            HashSet<string> values = null;
-
-            if (!Enum.TryParse<Suppression>(keyString, out key))
-            {
-                Log.LogError($"{SuppressionFile} contained unknown suppression {keyString}");
-                return;
-            }
-
-            _suppressions.TryGetValue(key, out values);
-
-            if (valueString != null)
-            {
-                var valuesToAdd = valueString.Split(';');
-
-                if (values == null)
-                {
-                    values = new HashSet<string>(valuesToAdd);
-                }
-                else
-                {
-                    foreach(var valueToAdd in valuesToAdd)
-                    {
-                        values.Add(valueToAdd);
-                    }
-                }
-            }
-
-            _suppressions[key] = values;
-        }
-
-        private void LoadReport()
-        {
-            _report = PackageReport.Load(ReportFile);
-        }
-
+        
         private void LoadSupport()
         {
             _frameworks = new Dictionary<NuGetFramework, ValidationFramework>();
@@ -710,7 +574,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
 
             // determine which Frameworks should support inbox
-            _index = PackageIndex.Load(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
 
             PackageInfo packageInfo;
             if (_index.Packages.TryGetValue(ContractName, out packageInfo))
@@ -791,32 +654,5 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 return item;
             }
         }
-    }
-    public enum Suppression
-    {
-        /// <summary>
-        /// Permits a runtime asset of the targets specified, semicolon delimited
-        /// </summary>
-        PermitImplementation,
-        /// <summary>
-        /// Permits an absent runtime asset on the targets specified, semicolon delimited
-        /// </summary>
-        PermitMissingImplementation,
-        /// <summary>
-        /// Permits a higher revision/build to still be considered as a match for an inbox assembly
-        /// </summary>
-        PermitInboxRevsion,
-        /// <summary>
-        /// Permits a lower version on specified frameworks, semicolon delimitied, than the generation supported by that framework
-        /// </summary>
-        PermitPortableVersionMismatch,
-        /// <summary>
-        /// Permits a compatible API version match between ref and impl, rather than exact match
-        /// </summary>
-        PermitHigherCompatibleImplementationVersion,
-        /// <summary>
-        /// Permits a non-matching targetFramework asset to be used even when a matching one exists.
-        /// </summary>
-        PermitRuntimeTargetMonikerMismatch
     }
 }

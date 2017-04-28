@@ -261,6 +261,7 @@
     </ItemGroup>
 
     <Error Condition="'$(SkipPackageFileCheck)' != 'true' AND
+                      '$(IsFrameworkPackage)' != 'true' AND
                       '%(File.SkipPackageFileCheck)' != 'true' AND
                       '%(File.FileName)' != '_' AND
                       '%(File.FileName)%(File.Extension)' != 'runtime.json' AND
@@ -1019,7 +1020,9 @@
 
   <PropertyGroup>
     <AllXamarinFrameworks Condition="'$(AllXamarinFrameworks)' == ''">MonoAndroid10;MonoTouch10;xamarinios10;xamarinmac20;xamarintvos10;xamarinwatchos10</AllXamarinFrameworks>
+  </PropertyGroup>
 
+  <PropertyGroup Condition="'$(IsFrameworkPackage)' != 'true'">
     <!-- Skip validation of runtime packages, they will be validated in the context of their reference package -->
     <SkipValidatePackage Condition="'$(SkipValidateTargetFrameworks)' == '' AND '$(PackageTargetRuntime)' != ''">true</SkipValidatePackage>
     <SkipSupportCheck Condition="'$(SkipSupportCheck)' == '' AND ($(Id.StartsWith('System.Private.')) OR $(Id.StartsWith('Microsoft.NETCore.')))">true</SkipSupportCheck>
@@ -1066,9 +1069,9 @@
                      ReportFile="$(PackageReportPath)" />
   </Target>
 
-  <Target Name="ValidatePackage"
+  <Target Name="ValidateLibraryPackage"
           DependsOnTargets="GetPackageReport"
-          Condition="'$(SkipValidatePackage)' != 'true'">
+          Condition="'$(IsFrameworkPackage)' != 'true'">
 
     <ItemGroup>
       <!-- Validation framework metadata can be sepecified in multiple ways.
@@ -1105,11 +1108,24 @@
                      SkipSupportCheck="$(SkipSupportCheck)"
                      SupportedFrameworks="@(SupportedFramework)"
                      Suppressions="@(ValidatePackageSuppression)"
-                     SuppressionFile="$(ValidationSuppressionFile)"
                      UseNetPlatform="$(UseNetPlatform)"
                      ReportFile="$(PackageReportPath)" />
 
   </Target>
+
+  <Target Name="ValidateFrameworkPackage"
+          DependsOnTargets="GetPackageReport"
+          Condition="'$(IsFrameworkPackage)' == 'true'">
+    <ValidateFrameworkPackage Framework="$(TargetFramework)"
+                              Runtime="$(PackageTargetRuntime)"
+                              PackageIndexes="@(PackageIndex)"
+                              ReportFile="$(PackageReportPath)"
+                              Suppressions="@(ValidatePackageSuppression)" />
+  </Target>
+  
+  <Target Name="ValidatePackage"
+          DependsOnTargets="ValidateLibraryPackage;ValidateFrameworkPackage"
+          Condition="'$(SkipValidatePackage)' != 'true'" />
 
   <!-- Required by Common.Targets when evaluating projectReferences -->
   <Target Name="GetNativeManifest" />
