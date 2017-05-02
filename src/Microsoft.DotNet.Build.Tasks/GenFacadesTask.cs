@@ -15,7 +15,7 @@ namespace Microsoft.DotNet.Build.Tasks
     /// <summary>
     /// Runs GenFacades In-Proc.
     /// </summary>
-    public sealed partial class GenFacadesTask : Task
+    public sealed class GenFacadesTask : BuildTask
     {
         [Required]
         public string Seeds { get; set; }
