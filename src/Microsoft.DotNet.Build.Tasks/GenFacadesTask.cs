@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using Microsoft.Build.Utilities;
 using Microsoft.Build.Framework;
 using GenFacades;
@@ -11,7 +15,7 @@ namespace Microsoft.DotNet.Build.Tasks
     /// <summary>
     /// Runs GenFacades In-Proc.
     /// </summary>
-    public sealed class GenFacadesTask : Task
+    public sealed class GenFacadesTask : BuildTask
     {
         [Required]
         public string Seeds { get; set; }
