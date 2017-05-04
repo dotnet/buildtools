@@ -206,7 +206,7 @@ namespace Microsoft.Cci.Writers.CSharp
                 Write("throw new ");
                 if (_forCompilationIncludeGlobalprefix)
                     Write("global::");
-                if(_platformNotSupportedExceptionMessage.Equals("Default"))
+                if(_platformNotSupportedExceptionMessage.Length == 0)
                     Write("System.PlatformNotSupportedException();");
                 else if(_platformNotSupportedExceptionMessage.StartsWith("SR."))
                     Write($"System.PlatformNotSupportedException({_platformNotSupportedExceptionMessage}); ");

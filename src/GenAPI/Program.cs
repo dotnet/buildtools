@@ -267,7 +267,7 @@ namespace GenAPI
                 parser.DefineAliases("hightlightInterfaceMembers", "him");
                 parser.DefineOptionalQualifier("hightlightInterfaceMembers", ref s_hightlightInterfaceMembers, "(-him) [CSDecl] Highlight interface implementation members.");
                 parser.DefineAliases("throw", "t");
-                parser.DefineOptionalQualifier("throw", ref s_exceptionMessage, "(-t) Method bodies should throw PlatformNotSupportedException with custom message. (Pass Default for PNSE default message)");
+                parser.DefineOptionalQualifier("throw", ref s_exceptionMessage, "(-t) Method bodies should throw PlatformNotSupportedException.");
                 parser.DefineAliases("global", "g");
                 parser.DefineOptionalQualifier("global", ref s_global, "(-g) Include global prefix for compilation.");
                 parser.DefineQualifier("assembly", ref s_assembly, "Path for an specific assembly or a directory to get all assemblies.");
