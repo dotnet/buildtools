@@ -65,6 +65,7 @@
     <Compile Include="ValidateFrameworkPackage.cs" />
     <Compile Include="ValidatePackage.cs" />
     <Compile Include="PackageReport.cs" />
+    <Compile Include="VerifyTypes.cs" />
     <Compile Include="VerifyClosure.cs" />
     <Compile Include="VersionUtility.cs" />
   </ItemGroup>

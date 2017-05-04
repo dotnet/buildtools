@@ -1,4 +1,8 @@
-﻿using Microsoft.Build.Framework;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.Build.Framework;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,7 +11,6 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks.Packaging
@@ -101,7 +104,18 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 AssemblyInfo existingInfo;
                 if (assemblies.TryGetValue(assemblyInfo.Name, out existingInfo))
                 {
-                    Log.LogError($"Duplicate entries for {assemblyInfo.Name} : {assemblyInfo.Path} & {existingInfo.Path}");
+                    var fileName = Path.GetFileName(assemblyInfo.Path);
+                    var existingFileName = Path.GetFileName(existingInfo.Path);
+
+                    if (fileName.Equals(existingFileName))
+                    {
+                        Log.LogError($"Duplicate entries for {assemblyInfo.Name} : {assemblyInfo.Path} & {existingInfo.Path}");
+                    }
+                    else
+                    {
+                        // tolerate mismatched filenames, eg: foo.dll and foo.ni.dll
+                        Log.LogMessage($"Duplicate entries for {assemblyInfo.Name}, but different filenames : preferring {existingInfo.Path} over {assemblyInfo.Path}.");
+                    }
                 }
                 else
                 {
