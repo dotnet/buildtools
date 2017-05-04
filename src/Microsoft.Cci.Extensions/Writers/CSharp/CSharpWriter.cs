@@ -50,10 +50,11 @@ namespace Microsoft.Cci.Writers
             get { return _declarationWriter.ForCompilationIncludeGlobalPrefix; }
             set { _declarationWriter.ForCompilationIncludeGlobalPrefix = value; }
         }
-        public bool ThrowPlatformNotSupportedForCompilation
+
+        public string PlatformNotSupportedExceptionMessage
         {
-            get { return _declarationWriter.ForCompilationThrowPlatformNotSupported; }
-            set { _declarationWriter.ForCompilationThrowPlatformNotSupported = value; }
+            get { return _declarationWriter.PlatformNotSupportedExceptionMessage; }
+            set { _declarationWriter.PlatformNotSupportedExceptionMessage = value; }
         }
 
         public void WriteAssemblies(IEnumerable<IAssembly> assemblies)

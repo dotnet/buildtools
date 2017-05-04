@@ -201,12 +201,17 @@ namespace Microsoft.Cci.Writers.CSharp
 
             WriteOutParameterInitializations(method);
 
-            if (_forCompilationThrowPlatformNotSupported)
+            if (_platformNotSupportedExceptionMessage != null)
             {
                 Write("throw new ");
                 if (_forCompilationIncludeGlobalprefix)
                     Write("global::");
-                Write("System.PlatformNotSupportedException(); ");
+                if(_platformNotSupportedExceptionMessage.Length == 0)
+                    Write("System.PlatformNotSupportedException();");
+                else if(_platformNotSupportedExceptionMessage.StartsWith("SR."))
+                    Write($"System.PlatformNotSupportedException({_platformNotSupportedExceptionMessage}); ");
+                else
+                    Write($"System.PlatformNotSupportedException(\"{_platformNotSupportedExceptionMessage}\"); ");
             }
             else if (method.ContainingTypeDefinition.IsValueType && method.IsConstructor)
             {
