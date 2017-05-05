@@ -50,7 +50,9 @@
        HelixJobProperties- Must be JSON.  String describing Helix MC-specific metadata.       Default: <Blank>
        HelixArchLabel    - If HelixJobProperties is not set, we'll use this to fill it out    Default: <Blank>
        HelixConfigLabel  - If HelixJobProperties is not set, we'll use this to fill it out    Default: <Blank>
-       
+       SecondaryQueue    - When submitting multi-stage tests, queue for secondary jobs        Default: <Blank>
+       SecondarySasValidHours - SAS Valid time for token provided for multi-stage tests.      Default: 15.0
+	   
        **********************************************************************************************************************************
        Required ITaskItems:
        **********************************************************************************************************************************
@@ -84,7 +86,10 @@
     <HelixScriptRoot>%HELIX_SCRIPT_ROOT%\</HelixScriptRoot>
     <RunnerScript>%HELIX_CORRELATION_PAYLOAD%\RunnerScripts\scriptrunner\scriptrunner.py</RunnerScript>
   </PropertyGroup>
-
+  <PropertyGroup Condition="'$(TargetsWindows)' == 'true' AND '$(UseNativeCompileRunner)' == 'true' ">
+    <RunnerScript>%HELIX_CORRELATION_PAYLOAD%\RunnerScripts\scriptrunner\nativecompilerunner.py --secondary_queue $(SecondaryQueue) --secondary_payload_dir %HELIX_WORKITEM_PAYLOAD%\native </RunnerScript>
+    <SecondarySasValidHours Condition="'$(SecondarySasValidHours)' == ''">15.0</SecondarySasValidHours>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(TargetsWindows)' != 'true' AND '$(UseScriptRunner)' == 'true' ">
     <HelixPythonPath>$HELIX_PYTHONPATH</HelixPythonPath>
     <HelixScriptRoot>$HELIX_SCRIPT_ROOT/</HelixScriptRoot>
@@ -234,9 +239,12 @@
       <CorrelationPayloadUri Include="@(SupplementalPayload->'$(DropUri)%(RelativeBlobPath)$(DropUriReadOnlyToken)')" />
       <CorrelationPayloadUri Include="@(LocalPayloadFileForUpload->'$(DropUri)%(RelativeBlobPath)$(DropUriReadOnlyToken)')" />
     </ItemGroup>
+
+    
     <PropertyGroup>
       <!-- Flatten it into a property as msbuild chokes on @(CorrelationPayloadUri) in CorrelationPayloadUris -->
       <CorrelationPayloadUris>@(CorrelationPayloadUri)</CorrelationPayloadUris>
+      <SecondaryQueuesJson Condition="'$(SecondaryQueue)' != ''">{ &quot;QueueId&quot;:&quot;$(SecondaryQueue)&quot;,&quot;SasValidHours&quot;: $(SecondarySasValidHours), &quot;EnqueueSAS&quot; : null, &quot;DropContainerUri&quot; : null,&quot;DropContainerRsas&quot; : null,&quot;DropContainerWsas&quot; : null }</SecondaryQueuesJson>
     </PropertyGroup>
 
     <ItemGroup>
@@ -249,8 +257,10 @@
         <PayloadUri>$(DropUri)%(RelativeBlobPath)$(DropUriReadOnlyToken)</PayloadUri>
         <WorkItemId>%(WorkItemId)</WorkItemId>
         <TimeoutInSeconds>%(TimeoutInSeconds)</TimeoutInSeconds>
+        <SecondaryQueues Condition="'$(SecondaryQueue)' != ''">[$(SecondaryQueuesJson)]</SecondaryQueues>		
       </HelixProcessedWorkItem>
     </ItemGroup>
+
 
     <!-- I'd love a built-in way to do this, but I'm compromising here since this lets us use 
          arbitrary extra metadata in the future to compose work items, then strip out extra stuff used along the way.
