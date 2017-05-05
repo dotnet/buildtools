@@ -62,6 +62,9 @@
       <AssemblyInfoLines Condition="'$(AssemblyComVisible)'!=''" Include="[assembly:System.Runtime.InteropServices.ComVisible($(AssemblyComVisible))]" />
       <AssemblyInfoLines Condition="'$(SkipFrameworkAssemblyMetadata)' != 'true'"
         Include="[assembly:System.Reflection.AssemblyMetadata(&quot;%(AssemblyMetadata.Identity)&quot;, &quot;%(AssemblyMetadata.Value)&quot;)]" />
+
+      <AssemblyInfoLines Condition="'$(IncludeDllSafeSearchPathAttribute)'=='true'" 
+        Include="[assembly: System.Runtime.InteropServices.DefaultDllImportSearchPathsAttribute(System.Runtime.InteropServices.DllImportSearchPath.AssemblyDirectory | System.Runtime.InteropServices.DllImportSearchPath.System32)]" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.vbproj'">
@@ -80,6 +83,9 @@
       <AssemblyInfoLines Condition="'$(AssemblyComVisible)'!=''" Include="&lt;Assembly:System.Runtime.InteropServices.ComVisible($(AssemblyComVisible))&gt;" />
       <AssemblyInfoLines Condition="'$(SkipFrameworkAssemblyMetadata)' != 'true'"
           Include="&lt;assembly:System.Reflection.AssemblyMetadata(&quot;%(AssemblyMetadata.Identity)&quot;, &quot;%(AssemblyMetadata.Value)&quot;)&gt;" />
+
+      <AssemblyInfoLines Condition="'$(IncludeDllSafeSearchPathAttribute)'=='true'" 
+        Include="&lt;Assembly:System.Runtime.InteropServices.DefaultDllImportSearchPathsAttribute(System.Runtime.InteropServices.DllImportSearchPath.AssemblyDirectory | System.Runtime.InteropServices.DllImportSearchPath.System32)&gt;" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj' And '$(GenerateThisAssemblyClass)' == 'true'">

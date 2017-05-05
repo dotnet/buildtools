@@ -42,6 +42,11 @@
     </AssemblyMetadata>
   </ItemGroup>
 
+  <!-- We need to apply the DefaultDllSafeSearchPathAttribute on all product assemblies-->
+  <PropertyGroup Condition="'$(IsDotNetFrameworkProductAssembly)' == 'true' AND '$(IsTestProject)' != 'true'">
+    <IncludeDllSafeSearchPathAttribute>true</IncludeDllSafeSearchPathAttribute>
+  </PropertyGroup>
+
   <!--
     Import the provides support for EnsureBuildToolsRuntime target which will restore a .NET Core based
     runtime and setup a $(ToolRuntimePath) and $(ToolHost) for others to consume.
