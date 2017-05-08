@@ -39,10 +39,11 @@
   </PropertyGroup>
 
   <Target Name="DecideIfWeNeedToIncludeDllSafeSearchPathAttribute" 
+    Condition="'$(IsDotNetFrameworkProductAssembly)' == 'true' AND '$(IsTestProject)' != 'true'"
     BeforeTargets="GenerateAssemblyInfo">
     
     <!-- We want to apply the IncludeDllSafeSearchPathAttribute on all DotNet assemblies (non test) that have a reference to System.Runtime.InteropServices -->
-    <PropertyGroup Condition="'$(IncludeDllSafeSearchPathAttribute)'=='' AND '$(IsDotNetFrameworkProductAssembly)' == 'true' AND '$(IsTestProject)' != 'true'">
+    <PropertyGroup Condition="'$(IncludeDllSafeSearchPathAttribute)'==''">
       <IncludeDllSafeSearchPathAttribute>false</IncludeDllSafeSearchPathAttribute> <!-- We don't need to include it by default. -->
       <IncludeDllSafeSearchPathAttribute Condition="'%(ProjectReference.Filename)'=='System.Runtime.InteropServices'">true</IncludeDllSafeSearchPathAttribute>
       <IncludeDllSafeSearchPathAttribute Condition="'%(Reference.Identity)'=='System.Runtime.InteropServices'">true</IncludeDllSafeSearchPathAttribute>
