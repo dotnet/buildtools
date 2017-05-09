@@ -75,11 +75,18 @@ namespace Microsoft.Cci.Writers
 
         public override void Visit(INamespaceDefinition ns)
         {
-            _declarationWriter.WriteDeclaration(ns);
-
-            using (_syntaxWriter.StartBraceBlock(PutBraceOnNewLine))
+            if (ns != null && string.IsNullOrEmpty(ns.Name.Value))
             {
                 base.Visit(ns);
+            }
+            else
+            {
+                _declarationWriter.WriteDeclaration(ns);
+
+                using (_syntaxWriter.StartBraceBlock(PutBraceOnNewLine))
+                {
+                    base.Visit(ns);
+                }
             }
 
             _syntaxWriter.WriteLine();
