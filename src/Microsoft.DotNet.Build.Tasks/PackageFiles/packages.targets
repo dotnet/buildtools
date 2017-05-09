@@ -10,6 +10,7 @@
   <PropertyGroup>
     <PackagesOutDir Condition="'$(PackagesOutDir)' == ''">$(OutDir)Packages\</PackagesOutDir>
     <PackagesBasePath Condition="'$(PackagesBasePath)' == ''">$(OutDir)</PackagesBasePath>
+    <IgnoreMissingFilesInNuspec Condition="'$(IgnoreMissingFilesInNuspec)' == ''">false</IgnoreMissingFilesInNuspec>
   </PropertyGroup>
 
   <UsingTask TaskName="NuGetPack" AssemblyFile="$(PackagingTaskDir)Microsoft.DotNet.Build.Tasks.Packaging.dll"/>
@@ -29,7 +30,9 @@
       BaseDirectory="$(PackagesBasePath)"
       PackageVersion="%(PackagesNuSpecFiles.PackageVersion)"
       ExcludeEmptyDirectories="true"
-      NuspecProperties="@(NuspecProperties)"/>
+      NuspecProperties="@(NuspecProperties)"
+      IgnoreMissingFiles="$(IgnoreMissingFilesInNuspec)"
+      />
 
     <Message
       Condition="'@(PackagesNuSpecFiles)'!=''"
