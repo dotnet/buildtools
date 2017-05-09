@@ -1163,8 +1163,6 @@
       <Description>WARNING: This package is missing files @(_missingPackageFile->'%(TargetPath)/%(Filename)%(Extension)') %0A$(Description)</Description>
     </PropertyGroup>
 
-    <Error Condition="'$(LicenseUrl)' == ''" Text="LicenseUrl property is not defined." />
-    
     <!-- Please Note:
          In order to avoid incremental build issues this target will always run.
          However, the task will make sure that it doesn't touch the file if the
