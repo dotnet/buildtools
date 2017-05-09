@@ -128,7 +128,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 List<string> nugetCacheDirs = GetNugetCacheDirectories();
                 if (nugetCacheDirs.Count == 0)
                 {
-                    Log.LogMessage($"Disk usage report for Nuget cache directory is not available, because that directory does NOT exist.");
+                    Log.LogMessage($"Disk usage report for Nuget cache directories is not available, because those directories do NOT exist.");
                 }
 
                 foreach (string nugetCacheDir in nugetCacheDirs)
@@ -266,6 +266,31 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 returnStatus &= cleanupTask.Result;
             }
+
+            // Cleanup the TEMP folder
+            string tempDir = GetTEMPDirectory();
+            Log.LogMessage($"Clean up the TEMP folder {tempDir}.");
+            System.Threading.Tasks.Task.WaitAll(CleanupDirectoryAsync(tempDir));
+
+            // Cleanup the Nuget Cache folders
+            List<string> nugetCacheDirs = GetNugetCacheDirectories();
+            Log.LogMessage($"Clean up the Nuget Cache folders.");
+
+            if (nugetCacheDirs.Count == 0)
+            {
+                Log.LogMessage($"Not necessary to clean up Nuget cache directories, as they do NOT exist.");
+                return returnStatus;
+            }
+
+            cleanupTasks.Clear();
+            foreach (string nugetCacheDir in nugetCacheDirs)
+                cleanupTasks.Add(CleanupDirectoryAsync(nugetCacheDir));
+            System.Threading.Tasks.Task.WaitAll(cleanupTasks.ToArray());
+            foreach (System.Threading.Tasks.Task<bool> cleanupTask in cleanupTasks)
+            {
+                returnStatus &= cleanupTask.Result;
+            }
+
             return returnStatus;
         }
 
@@ -406,7 +431,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                AddDirToListIfExist(nugetCacheDirs, Path.Combine(Environment.GetEnvironmentVariable("LocalAppData"), "NuGet\\Cache"));
+                AddDirToListIfExist(nugetCacheDirs, Path.Combine(Environment.GetEnvironmentVariable("LocalAppData"), "NuGet"));
                 AddDirToListIfExist(nugetCacheDirs, Path.Combine(Environment.GetEnvironmentVariable("UserProfile"), ".nuget\\packages"));
             }
             else // OSX or Linux
