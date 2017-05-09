@@ -55,7 +55,7 @@ namespace Microsoft.DotNet.Build.Tasks
             }
             if (Clean)
             {
-                returnValue &= CleanupAgentsAsync().Result;
+                returnValue &= CleanupDirsAsync().Result;
                 // If report and clean are both 'true', then report disk usage both before and after cleanup.
                 if (Report)
                 {
@@ -95,19 +95,12 @@ namespace Microsoft.DotNet.Build.Tasks
             string lastDirectoryChecked = AgentDirectory;
             try
             {
-                string drive = Path.GetPathRoot(AgentDirectory);
-                DriveInfo driveInfo = new DriveInfo(drive);
-                Log.LogMessage("Disk Usage Report");
-                Log.LogMessage($"  Agent directory: {AgentDirectory}");
-                Log.LogMessage($"  Drive letter: {drive}");
-                Log.LogMessage($"  Total disk size: {string.Format("{0:N0}", driveInfo.TotalSize)} bytes");
-                Log.LogMessage($"  Total disk free space: {string.Format("{0:N0}", driveInfo.TotalFreeSpace)} bytes");
+                // Report disk usage for agent directory
+                DriveInfo driveInfo = ReportCommonDiskUsage("Agent", AgentDirectory);
 
                 var workingDirectories = Directory.GetDirectories(Path.Combine(AgentDirectory, "_work"));
                 var totalWorkingDirectories = workingDirectories != null ? workingDirectories.Length : 0;
 
-                Log.LogMessage("  Agent info");
-                Log.LogMessage($"    Total size of agent directory: {string.Format("{0:N0}", GetDirectoryAttributes(AgentDirectory).Item1)} bytes");
                 Log.LogMessage($"    Total agent working directories: {totalWorkingDirectories}");
 
                 if (totalWorkingDirectories > 0)
@@ -127,6 +120,21 @@ namespace Microsoft.DotNet.Build.Tasks
                         Log.LogMessage(string.Format(columnFormat, workingDirectory, directoryAttributes.Item1, directoryAttributes.Item2));
                     }
                 }
+
+                // Report disk usage for TEMP directory
+                ReportCommonDiskUsage("TEMP", GetTEMPDirectory());
+
+                // Report disk usage for Nuget Cache directory
+                List<string> nugetCacheDirs = GetNugetCacheDirectories();
+                if (nugetCacheDirs.Count == 0)
+                {
+                    Log.LogMessage($"Disk usage report for Nuget cache directory is not available, because that directory does NOT exist.");
+                }
+
+                foreach (string nugetCacheDir in nugetCacheDirs)
+                {
+                    ReportCommonDiskUsage("Nuget cache", nugetCacheDir);
+                }
             }
             catch (PathTooLongException)
             {
@@ -143,6 +151,41 @@ namespace Microsoft.DotNet.Build.Tasks
                 {
                     Log.LogWarning($"Last directory checked : {lastDirectoryChecked} (likely the first inaccessible directory, alphabetically) ");
                 }
+            }
+        }
+
+        private DriveInfo ReportCommonDiskUsage(string dirType, string directory)
+        {
+            try
+            {
+                if (String.IsNullOrEmpty(directory))
+                {
+                    Log.LogMessage($"Disk usage report for {dirType} directory is not available, because the directory {directory} does NOT exist.");
+                }
+
+                string drive = Path.GetPathRoot(directory);
+                DriveInfo driveInfo = new DriveInfo(drive);
+
+                Log.LogMessage($"Disk usage report for {dirType} directory");
+                Log.LogMessage($"  {dirType} directory: {directory}");
+                Log.LogMessage($"  Drive letter: {drive}");
+                Log.LogMessage($"  Total disk size: {string.Format("{0:N0}", driveInfo.TotalSize)} bytes");
+                Log.LogMessage($"  Total disk free space: {string.Format("{0:N0}", driveInfo.TotalFreeSpace)} bytes");
+
+                Log.LogMessage($"  {dirType} directory info");
+                Log.LogMessage($"    Total size of {dirType} directory: {string.Format("{0:N0}", GetDirectoryAttributes(directory).Item1)} bytes");
+
+                return driveInfo;
+            }
+            catch (PathTooLongException)
+            {
+                Log.LogWarning($"Hit PathTooLongException attempting to list info about directory {directory}.  There are likely files which cannot be cleaned up on the agent.");
+                return null;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                Log.LogWarning($"Hit UnauthorizedAccessException attempting to list info about directory {directory}.  There are likely files which cannot be cleaned up on the agent.");
+                return null;
             }
         }
 
@@ -168,7 +211,7 @@ namespace Microsoft.DotNet.Build.Tasks
             return Tuple.Create(totalSize, lastModifiedDateTime);
         }
 
-        private async System.Threading.Tasks.Task<bool> CleanupAgentsAsync()
+        private async System.Threading.Tasks.Task<bool> CleanupDirsAsync()
         {
             bool returnStatus = true;
             DateTime now = DateTime.Now;
@@ -215,7 +258,7 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 if (!knownDirectories.Contains(workingDirectory))
                 {
-                    cleanupTasks.Add(CleanupAgentDirectoryAsync(workingDirectory));
+                    cleanupTasks.Add(CleanupDirectoryAsync(workingDirectory));
                 }
             }
             System.Threading.Tasks.Task.WaitAll(cleanupTasks.ToArray());
@@ -228,12 +271,12 @@ namespace Microsoft.DotNet.Build.Tasks
 
         private async System.Threading.Tasks.Task<bool> CleanupAgentAsync(string workDirectory, string sourceFolderJson)
         {
-            bool returnStatus = await CleanupAgentDirectoryAsync(workDirectory);
-            returnStatus &= await CleanupAgentDirectoryAsync(sourceFolderJson).ConfigureAwait(false);
+            bool returnStatus = await CleanupDirectoryAsync(workDirectory);
+            returnStatus &= await CleanupDirectoryAsync(sourceFolderJson).ConfigureAwait(false);
             return returnStatus;
         }
 
-        private async System.Threading.Tasks.Task<bool> CleanupAgentDirectoryAsync(string directory, int attempts = 0)
+        private async System.Threading.Tasks.Task<bool> CleanupDirectoryAsync(string directory, int attempts = 0)
         {
             try
             {
@@ -271,10 +314,10 @@ namespace Microsoft.DotNet.Build.Tasks
                 {
                     Log.LogMessage($"Will retry again in {SleepTimeInMilliseconds} ms");
                     await System.Threading.Tasks.Task.Delay(SleepTimeInMilliseconds.Value);
-                    return await CleanupAgentDirectoryAsync(directory, attempts).ConfigureAwait(false);
+                    return await CleanupDirectoryAsync(directory, attempts).ConfigureAwait(false);
                 }
             }
-            Log.LogMessage("Failed to cleanup agent");
+            Log.LogMessage("Failed to cleanup.");
             return false;
         }
 
@@ -315,6 +358,76 @@ namespace Microsoft.DotNet.Build.Tasks
                 }
             }
             return new Tuple<string, string, DateTime>(sourceFolderJson, agentBuildDirectory, lastRunOn);
+        }
+
+        private string GetTEMPDirectory()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                if (DirExists(Environment.GetEnvironmentVariable("TEMP")))
+                    return Environment.GetEnvironmentVariable("TEMP");
+                else if (DirExists(Environment.GetEnvironmentVariable("TMP")))
+                    return Environment.GetEnvironmentVariable("TMP");
+                else
+                {
+                    Log.LogMessage("No TEMP dir to clean up.");
+                    return null;
+                }
+            }
+            else
+            {
+                if (DirExists(Environment.GetEnvironmentVariable("TMPDIR")))
+                    return Environment.GetEnvironmentVariable("TMPDIR");
+                else if (DirExists(Environment.GetEnvironmentVariable("TMP")))
+                    return Environment.GetEnvironmentVariable("TMP");
+                else if (DirExists(Environment.GetEnvironmentVariable("/var/tmp")))
+                    return "/var/tmp";
+                else
+                {
+                    Log.LogMessage("No TEMP dir to clean up.");
+                    return null;
+                }
+            }
+        }
+
+        private bool DirExists(string directory)
+        {
+            if (!Directory.Exists(directory))
+            {
+                Log.LogMessage($"TEMP dir: {directory} does not exist.");
+                return false;
+            }
+            return true;
+        }
+
+        private List<string> GetNugetCacheDirectories()
+        {
+            List<string> nugetCacheDirs = new List<string>();
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                AddDirToListIfExist(nugetCacheDirs, Path.Combine(Environment.GetEnvironmentVariable("LocalAppData"), "NuGet\\Cache"));
+                AddDirToListIfExist(nugetCacheDirs, Path.Combine(Environment.GetEnvironmentVariable("UserProfile"), ".nuget\\packages"));
+            }
+            else // OSX or Linux
+            {
+                AddDirToListIfExist(nugetCacheDirs, "~/.local/share/NuGet/Cache");
+                AddDirToListIfExist(nugetCacheDirs, "~/.nuget/packages");
+            }
+            return nugetCacheDirs;
+        }
+
+        private void AddDirToListIfExist(List<string> dirs, string directory)
+        {
+            if (Directory.Exists(directory))
+            {
+                dirs.Add(directory);
+                Log.LogMessage($"Successfully add directory: {directory} to the list.");
+            }
+            else
+            {
+                Log.LogMessage($"Fail to add directory: {directory} to the list because it doesn't exist.");
+            }
         }
     }
 }
