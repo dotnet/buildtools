@@ -58,7 +58,7 @@
     <IconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</IconUrl>
     <Copyright Condition="'$(Copyright)' == ''">.NET Foundation and Contributors</Copyright>
     <Tags></Tags>
-    <RequireLicenseAcceptance>false</RequireLicenseAcceptance>
+    <RequireLicenseAcceptance Condition="'$(RequireLicenseAcceptance)' == ''">false</RequireLicenseAcceptance>
     <Serviceable Condition="'$(Serviceable)' == ''">true</Serviceable>
     <!-- we depend on nuget v2.12 / v3.4 behavior NuGet doesn't support two different min client versions
          so we declare 2.12 and mention in package description that when using 3.x we require 3.4 or later -->
