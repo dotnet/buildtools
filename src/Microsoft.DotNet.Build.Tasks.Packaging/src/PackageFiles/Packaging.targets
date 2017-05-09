@@ -54,11 +54,11 @@
     <Authors>Microsoft</Authors>
     <Owners>microsoft,dotnetframework</Owners>
     <Description>TODO</Description>
-    <LicenseUrl>http://go.microsoft.com/fwlink/?LinkId=329770</LicenseUrl>
+    <LicenseUrl Condition="'$(LicenseUrl)' == ''">http://go.microsoft.com/fwlink/?LinkId=329770</LicenseUrl>
     <IconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</IconUrl>
-    <Copyright>&#169; Microsoft Corporation.  All rights reserved.</Copyright>
+    <Copyright Condition="'$(Copyright)' == ''">.NET Foundation and Contributors</Copyright>
     <Tags></Tags>
-    <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
+    <RequireLicenseAcceptance>false</RequireLicenseAcceptance>
     <Serviceable Condition="'$(Serviceable)' == ''">true</Serviceable>
     <!-- we depend on nuget v2.12 / v3.4 behavior NuGet doesn't support two different min client versions
          so we declare 2.12 and mention in package description that when using 3.x we require 3.4 or later -->
@@ -1162,6 +1162,8 @@
     <PropertyGroup  Condition="'$(AllowPartialPackages)' == 'true' AND '@(_missingPackageFile)' != ''">
       <Description>WARNING: This package is missing files @(_missingPackageFile->'%(TargetPath)/%(Filename)%(Extension)') %0A$(Description)</Description>
     </PropertyGroup>
+
+    <Error Condition="'$(LicenseUrl)' == ''" Text="LicenseUrl property is not defined." />
     
     <!-- Please Note:
          In order to avoid incremental build issues this target will always run.
