@@ -97,7 +97,7 @@
           Include="&lt;assembly:System.Reflection.AssemblyMetadata(&quot;%(AssemblyMetadata.Identity)&quot;, &quot;%(AssemblyMetadata.Value)&quot;)&gt;" />
 
       <AssemblyInfoLines Condition="'$(IncludeDllSafeSearchPathAttribute)'=='true'" 
-        Include="&lt;Assembly:System.Runtime.InteropServices.DefaultDllImportSearchPathsAttribute(System.Runtime.InteropServices.DllImportSearchPath.AssemblyDirectory | System.Runtime.InteropServices.DllImportSearchPath.System32)&gt;" />
+        Include="&lt;Assembly:System.Runtime.InteropServices.DefaultDllImportSearchPathsAttribute(System.Runtime.InteropServices.DllImportSearchPath.AssemblyDirectory Or System.Runtime.InteropServices.DllImportSearchPath.System32)&gt;" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj' And '$(GenerateThisAssemblyClass)' == 'true'">
