@@ -209,7 +209,7 @@ namespace Microsoft.Cci.Writers.CSharp
                 if(_platformNotSupportedExceptionMessage.Length == 0)
                     Write("System.PlatformNotSupportedException();");
                 else if(_platformNotSupportedExceptionMessage.StartsWith("SR."))
-                    Write($"System.PlatformNotSupportedException({_platformNotSupportedExceptionMessage}); ");
+                    Write($"System.PlatformNotSupportedException(System.{_platformNotSupportedExceptionMessage}); ");
                 else
                     Write($"System.PlatformNotSupportedException(\"{_platformNotSupportedExceptionMessage}\"); ");
             }
