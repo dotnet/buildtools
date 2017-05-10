@@ -226,10 +226,10 @@
       <ILCBuildType Condition="'$(ILCBuildType)' == ''">ret</ILCBuildType>
       <_TestILCFolder>%RUNTIME_PATH%\TestILC</_TestILCFolder>
       <_Runtime_Path>%RUNTIME_PATH%\ILCInputFolder\</_Runtime_Path>
-      <!-- Currently (and probably forever) we can't build and then run on ARM,
+      <!-- Currently (and probably forever) we can't build UAPAOT on ARM,
            So if we're running on ARM, what we really want to do is encapsulate 
            the test command into a script that can be run on another machine -->
-      <TestCommandLine Condition="'$(ArchGroup)'=='arm'">echo $(TestCommandLine)> .\RunCompiledTest.cmd </TestCommandLine>
+      <TestCommandLine Condition="'$(ArchGroup)'=='arm'">echo $(TestCommandLine)> .\RunContinuation.cmd </TestCommandLine>
     </PropertyGroup>
 
     <ItemGroup Condition="'$(UseDotNetNativeToolchain)' == 'true' AND '$(Performance)'!='true'" >
