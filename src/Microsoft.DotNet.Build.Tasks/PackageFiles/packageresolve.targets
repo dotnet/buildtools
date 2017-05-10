@@ -90,7 +90,8 @@
                                RuntimeIdentifier="$(NuGetRuntimeIdentifier)"
                                ProjectLanguage="$(Language)"
                                ProjectLockFile="$(ProjectAssetsFile)"
-                               TargetMonikers="$(NuGetTargetMoniker)">
+                               TargetMonikers="$(NuGetTargetMoniker)"
+                               ProjectReferencesCreatingPackages="@(ProjectReference)">
       <Output TaskParameter="ResolvedAnalyzers" ItemName="Analyzer" />
       <Output TaskParameter="ResolvedReferences" ItemName="_ReferenceFromPackage" />
       <Output TaskParameter="ResolvedCopyLocalItems" ItemName="_ReferenceCopyLocalPathsFromPackage" />
