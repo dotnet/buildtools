@@ -3,7 +3,6 @@
 # Restores crossgen and runs it on all tools components.
 
 __CoreClrVersion=2.0.0-preview1-25204-02
-__SharedFxVersion=2.0.0-preview1-001913-00
 __MyGetFeed=https://dotnet.myget.org/F/dotnet-core/api/v3/index.json
 
 usage()
@@ -80,7 +79,9 @@ __scriptpath=$(cd "$(dirname "$0")"; pwd -P)
 __toolsDir=$__scriptpath/../Tools
 __dotnet=$__toolsDir/dotnetcli/dotnet
 __packagesDir=$__scriptpath/../packages
-__sharedFxDir=$__toolsDir/dotnetcli/shared/Microsoft.NETCore.App/$__SharedFxVersion/
+__mncaFolder=$__toolsDir/dotnetcli/shared/Microsoft.NETCore.App
+__sharedFxVersion=`ls $__mncaFolder | sed 'r/\([0-9]\+\).*/\1/g' | sort -n | tail -1`
+__sharedFxDir=$__toolsDir/dotnetcli/shared/Microsoft.NETCore.App/$__sharedFxVersion/
 
 case $(uname -s) in
     Darwin)
