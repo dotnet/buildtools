@@ -131,7 +131,6 @@ namespace Microsoft.DotNet.Build.VstsBuildsApi
                         "comment",
                         "createdDate",
                         "id",
-                        "path",
                         "revision",
                         "uri",
                         "url",

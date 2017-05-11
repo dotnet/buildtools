@@ -5,6 +5,7 @@
 using Microsoft.DotNet.Build.VstsBuildsApi.Configuration;
 using Newtonsoft.Json.Linq;
 using System;
+using System.IO;
 
 namespace Microsoft.DotNet.Build.VstsBuildsApi
 {
@@ -19,8 +20,17 @@ namespace Microsoft.DotNet.Build.VstsBuildsApi
 
         protected override bool IsMatching(JObject localDefinition, JObject retrievedDefinition)
         {
+            string localDefinitionPath = localDefinition["path"].ToString();
+
+            // If it's not the root directory.
+            if (Path.GetDirectoryName(localDefinitionPath) != null) {
+                // Remove trailing path separators since VSTS does the same when creating definitions.
+                localDefinitionPath = localDefinitionPath.TrimEnd(
+                    Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            }
+
             return localDefinition["quality"].ToString() == "definition" &&
-                localDefinition["path"].ToString() == retrievedDefinition["path"].ToString();
+                localDefinitionPath == retrievedDefinition["path"].ToString();
         }
 
         protected override string GetDefinitionProject(JObject definition)
