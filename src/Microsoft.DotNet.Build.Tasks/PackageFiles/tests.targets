@@ -214,7 +214,7 @@
 
       <!--======================================================
                       Section for netfx test runs
-            ====================================================== -->
+          ====================================================== -->
     <ItemGroup Condition="'$(BuildingNETFxVertical)' == 'true'" >
       <TestCommandLines Include="set DEVPATH=%RUNTIME_PATH%" />
     </ItemGroup>
@@ -226,6 +226,10 @@
       <ILCBuildType Condition="'$(ILCBuildType)' == ''">ret</ILCBuildType>
       <_TestILCFolder>%RUNTIME_PATH%\TestILC</_TestILCFolder>
       <_Runtime_Path>%RUNTIME_PATH%\ILCInputFolder\</_Runtime_Path>
+      <!-- Currently (and probably forever) we can't build UAPAOT on ARM,
+           So if we're running on ARM, what we really want to do is encapsulate 
+           the test command into a script that can be run on another machine -->
+      <TestCommandLine Condition="'$(ArchGroup)'=='arm'">echo $(TestCommandLine)> .\RunContinuation.cmd </TestCommandLine>
     </PropertyGroup>
 
     <ItemGroup Condition="'$(UseDotNetNativeToolchain)' == 'true' AND '$(Performance)'!='true'" >
@@ -245,8 +249,11 @@ robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
       <TestCommandLines Include="copy /y $(_TestILCFolder)\CRT\vcruntime140_app.dll %EXECUTION_DIR%native" />
       <TestCommandLines Include="echo > %EXECUTION_DIR%\native\$(XunitTestAssembly)"/>
       <TestCommandLines Include="cd native"/>
-      <PostExecutionTestCommandLines Include="type Xunit.Console.Output.txt" />
-      <PostExecutionTestCommandLines Include="copy /y testResults.xml %EXECUTION_DIR%\" />
+      <!-- These will cause failures if execution is skipped, such as on ARM -->
+      <PostExecutionTestCommandLines Condition="'$(ArchGroup)'!='arm'" Include="type Xunit.Console.Output.txt" />
+      <!-- The result XML part is basically unnecessary but the console output is useful. -->
+      <PostExecutionTestCommandLines Condition="'$(ArchGroup)'=='arm'" Include="echo type Xunit.Console.Output.txt >> .\RunCompiledTest.cmd" />
+      <PostExecutionTestCommandLines Condition="'$(ArchGroup)'!='arm'" Include="copy /y testResults.xml %EXECUTION_DIR%\" />
     </ItemGroup>
 
         <!--======================================================

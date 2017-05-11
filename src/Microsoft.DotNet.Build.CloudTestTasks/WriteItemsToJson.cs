@@ -79,25 +79,23 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
                                 var parts = mdValue.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
                                 foreach (var part in parts)
-                                    jsonWriter.WriteValue(part);
-
+                                {
+                                    if (part.StartsWith("{") && part.EndsWith("}"))
+                                    {
+                                        TryToWriteJObject(part, jsonWriter);
+                                    }
+                                    else
+                                    {
+                                        jsonWriter.WriteValue(part);
+                                    }
+                                }
                                 jsonWriter.WriteEndArray();
                             }
                             else
                             {
                                 if (mdValue.StartsWith("{") && mdValue.EndsWith("}"))
                                 {
-                                    // If it's a JObject, parse it and use that to write...
-                                    try
-                                    {
-                                        JObject jsonEntry = JObject.Parse(mdValue);
-                                        jsonEntry.WriteTo(jsonWriter);
-                                    }
-                                    // Leave it in... it's probably bad by here but writing it aids debugging.
-                                    catch
-                                    {
-                                        jsonWriter.WriteValue(mdValue);
-                                    }
+                                    TryToWriteJObject(mdValue, jsonWriter);
                                 }
                                 // Plain value
                                 else
@@ -118,6 +116,22 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             }
 
             return true;
+        }
+
+        private void TryToWriteJObject(string value, JsonTextWriter jsonWriter)
+        {
+            // If it's a JObject, parse it and use that to write...
+            try
+            {
+                JObject jsonEntry = JObject.Parse(value);
+                jsonEntry.WriteTo(jsonWriter);
+            }
+            // Leave it in... it's probably bad by here but writing it aids debugging.
+            catch
+            {
+                Log.LogWarning($"Failed parsing an apparent JObject : '{value}'\nMay result in malformed JSON");
+                jsonWriter.WriteValue(value);
+            }
         }
     }
 }
