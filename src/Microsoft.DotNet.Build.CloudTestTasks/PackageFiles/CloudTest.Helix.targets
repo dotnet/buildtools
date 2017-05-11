@@ -246,7 +246,6 @@
       <CorrelationPayloadUri Include="@(LocalPayloadFileForUpload->'$(DropUri)%(RelativeBlobPath)$(DropUriReadOnlyToken)')" />
     </ItemGroup>
 
-    
     <PropertyGroup>
       <!-- Flatten it into a property as msbuild chokes on @(CorrelationPayloadUri) in CorrelationPayloadUris -->
       <CorrelationPayloadUris>@(CorrelationPayloadUri)</CorrelationPayloadUris>
@@ -266,7 +265,6 @@
         <SecondaryQueues Condition="'$(SecondaryQueue)' != ''">[$(SecondaryQueuesJson)]</SecondaryQueues>		
       </HelixProcessedWorkItem>
     </ItemGroup>
-
 
     <!-- I'd love a built-in way to do this, but I'm compromising here since this lets us use 
          arbitrary extra metadata in the future to compose work items, then strip out extra stuff used along the way.
