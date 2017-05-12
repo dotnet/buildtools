@@ -160,6 +160,12 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 if (String.IsNullOrEmpty(directory))
                 {
+                    Log.LogMessage($"Disk usage report for {dirType} directory is not available, because the directory name: {directory} is null.");
+                    return null;
+                }
+
+                if (!Directory.Exists(directory))
+                {
                     Log.LogMessage($"Disk usage report for {dirType} directory is not available, because the directory {directory} does NOT exist.");
                     return null;
                 }
@@ -404,12 +410,12 @@ namespace Microsoft.DotNet.Build.Tasks
             }
             else
             {
-                if (DirExists("/tmp"))
-                    return "/tmp";
-                else if (DirExists(Environment.GetEnvironmentVariable("TMPDIR")))
+                if (DirExists(Environment.GetEnvironmentVariable("TMPDIR")))
                     return Environment.GetEnvironmentVariable("TMPDIR");
                 else if (DirExists(Environment.GetEnvironmentVariable("TMP")))
                     return Environment.GetEnvironmentVariable("TMP");
+                else if (DirExists("/tmp"))
+                    return "/tmp";
                 else
                 {
                     Log.LogMessage("No TEMP dir to clean up.");
