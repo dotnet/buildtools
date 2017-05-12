@@ -165,6 +165,12 @@ namespace Microsoft.DotNet.Build.Tasks
                 }
 
                 string drive = Path.GetPathRoot(directory);
+                if (String.IsNullOrEmpty(drive))
+                {
+                    Log.LogMessage($"Can't parse the drive correctly from directory {directory} because it's null or empty.");
+                    return null;
+                }
+
                 DriveInfo driveInfo = new DriveInfo(drive);
 
                 Log.LogMessage($"Disk usage report for {dirType} directory");
@@ -398,12 +404,12 @@ namespace Microsoft.DotNet.Build.Tasks
             }
             else
             {
-                if (DirExists(Environment.GetEnvironmentVariable("TMPDIR")))
+                if (DirExists("/tmp"))
+                    return "/tmp";
+                else if (DirExists(Environment.GetEnvironmentVariable("TMPDIR")))
                     return Environment.GetEnvironmentVariable("TMPDIR");
                 else if (DirExists(Environment.GetEnvironmentVariable("TMP")))
                     return Environment.GetEnvironmentVariable("TMP");
-                else if (DirExists("/tmp"))
-                    return "/tmp";
                 else
                 {
                     Log.LogMessage("No TEMP dir to clean up.");
@@ -435,9 +441,9 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 // Even though those two dirs exist on Linux/OSX, Directory.Exists still returns false because they are hidden.
                 // Hence always add them as they both always exist on the build machine
-                nugetCacheDirs.Add("~/.local/share/NuGet");
-                nugetCacheDirs.Add("~/.nuget");
-                Log.LogMessage($"Successfully add NuGet directories: ~/.local/share/NuGet and ~/.nuget to the list.");
+                nugetCacheDirs.Add("/home/DDITAdministrator/.local/share/NuGet");
+                nugetCacheDirs.Add("/home/DDITAdministrator/.nuget");
+                Log.LogMessage($"Successfully add NuGet directories: /home/DDITAdministrator/.local/share/NuGet and /home/DDITAdministrator/.nuget to the list.");
             }
             return nugetCacheDirs;
         }
