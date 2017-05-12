@@ -110,7 +110,7 @@ namespace Microsoft.DotNet.Build.Tasks
                     {
                         nameLength = directoryName.Length > nameLength ? directoryName.Length : nameLength;
                     }
-                    int sizeLength = string.Format("{0:N0}", driveInfo.TotalSize).Length;
+                    int sizeLength = string.Format("{0:N0}", driveInfo?.TotalSize).Length;
                     string columnFormat = "      {0,-" + nameLength.ToString() + "}  {1," + sizeLength.ToString() + ":N0}  {2}";
                     Log.LogMessage(string.Format(columnFormat, "Folder name", "Size (bytes)", "Last Modified DateTime"));
                     foreach (var workingDirectory in workingDirectories)
@@ -161,6 +161,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 if (String.IsNullOrEmpty(directory))
                 {
                     Log.LogMessage($"Disk usage report for {dirType} directory is not available, because the directory {directory} does NOT exist.");
+                    return null;
                 }
 
                 string drive = Path.GetPathRoot(directory);
@@ -286,10 +287,6 @@ namespace Microsoft.DotNet.Build.Tasks
             foreach (string nugetCacheDir in nugetCacheDirs)
                 cleanupTasks.Add(CleanupDirectoryAsync(nugetCacheDir));
             System.Threading.Tasks.Task.WaitAll(cleanupTasks.ToArray());
-            foreach (System.Threading.Tasks.Task<bool> cleanupTask in cleanupTasks)
-            {
-                returnStatus &= cleanupTask.Result;
-            }
 
             return returnStatus;
         }
@@ -405,8 +402,8 @@ namespace Microsoft.DotNet.Build.Tasks
                     return Environment.GetEnvironmentVariable("TMPDIR");
                 else if (DirExists(Environment.GetEnvironmentVariable("TMP")))
                     return Environment.GetEnvironmentVariable("TMP");
-                else if (DirExists(Environment.GetEnvironmentVariable("/var/tmp")))
-                    return "/var/tmp";
+                else if (DirExists("/tmp"))
+                    return "/tmp";
                 else
                 {
                     Log.LogMessage("No TEMP dir to clean up.");
@@ -436,8 +433,11 @@ namespace Microsoft.DotNet.Build.Tasks
             }
             else // OSX or Linux
             {
-                AddDirToListIfExist(nugetCacheDirs, "~/.local/share/NuGet/Cache");
-                AddDirToListIfExist(nugetCacheDirs, "~/.nuget/packages");
+                // Even though those two dirs exist on Linux/OSX, Directory.Exists still returns false because they are hidden.
+                // Hence always add them as they both always exist on the build machine
+                nugetCacheDirs.Add("~/.local/share/NuGet");
+                nugetCacheDirs.Add("~/.nuget");
+                Log.LogMessage($"Successfully add NuGet directories: ~/.local/share/NuGet and ~/.nuget to the list.");
             }
             return nugetCacheDirs;
         }
