@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Linq;
+
 namespace Microsoft.DotNet.Build.VstsBuildsApi.Configuration
 {
     /// <summary>
@@ -11,7 +14,35 @@ namespace Microsoft.DotNet.Build.VstsBuildsApi.Configuration
     /// </summary>
     public class VstsDefinitionClientConfig
     {
-        public VstsApiEndpointConfig BuildDefinitionEndpointConfig { get; set; }
+        private static string[] invalidBuildIdentifiableFields =
+            {
+                /* If included in the list of identifiable fields, it would be
+                 * excluded from create requests, which would prevent VSTS from
+                 * saving the build definition at the correct path.
+                 */
+                "path",
+            };
+
+        private VstsApiEndpointConfig buildDefinitionEndpointConfig;
+
+        public VstsApiEndpointConfig BuildDefinitionEndpointConfig
+        {
+            get
+            {
+                return buildDefinitionEndpointConfig;
+            }
+            set
+            {
+                if (value.InstanceIdentifiableFields.Intersect(invalidBuildIdentifiableFields).Any())
+                {
+                    throw new ArgumentException(
+                        $"{nameof(BuildDefinitionEndpointConfig.InstanceIdentifiableFields)} cannot contain any" +
+                        $" of the following fields: {string.Join(",", invalidBuildIdentifiableFields)}");
+                }
+
+                buildDefinitionEndpointConfig = value;
+            }
+        }
 
         public VstsApiEndpointConfig ReleaseDefinitionEndpointConfig { get; set; }
     }
