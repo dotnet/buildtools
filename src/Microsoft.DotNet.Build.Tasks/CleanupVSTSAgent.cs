@@ -160,7 +160,7 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 if (String.IsNullOrEmpty(directory))
                 {
-                    Log.LogMessage($"Disk usage report for {dirType} directory is not available, because the directory name: {directory} is null.");
+                    Log.LogMessage($"Disk usage report for {dirType} directory is not available, because the directory does NOT exist.");
                     return null;
                 }
 
@@ -404,7 +404,7 @@ namespace Microsoft.DotNet.Build.Tasks
                     return Environment.GetEnvironmentVariable("TMP");
                 else
                 {
-                    Log.LogMessage("No TEMP dir to clean up.");
+                    Log.LogMessage("No TEMP dir found.");
                     return null;
                 }
             }
@@ -414,11 +414,11 @@ namespace Microsoft.DotNet.Build.Tasks
                     return Environment.GetEnvironmentVariable("TMPDIR");
                 else if (DirExists(Environment.GetEnvironmentVariable("TMP")))
                     return Environment.GetEnvironmentVariable("TMP");
-                else if (DirExists("/tmp"))
-                    return "/tmp";
+                else if (DirExists("/home/DDITAdministrator/myagent/_work/_temp"))
+                    return "/home/DDITAdministrator/myagent/_work/_temp";
                 else
                 {
-                    Log.LogMessage("No TEMP dir to clean up.");
+                    Log.LogMessage("No TEMP dir found.");
                     return null;
                 }
             }
@@ -445,11 +445,8 @@ namespace Microsoft.DotNet.Build.Tasks
             }
             else // OSX or Linux
             {
-                // Even though those two dirs exist on Linux/OSX, Directory.Exists still returns false because they are hidden.
-                // Hence always add them as they both always exist on the build machine
-                nugetCacheDirs.Add("/home/DDITAdministrator/.local/share/NuGet");
-                nugetCacheDirs.Add("/home/DDITAdministrator/.nuget");
-                Log.LogMessage($"Successfully add NuGet directories: /home/DDITAdministrator/.local/share/NuGet and /home/DDITAdministrator/.nuget to the list.");
+                AddDirToListIfExist(nugetCacheDirs, "/home/DDITAdministrator/.local/share/NuGet");
+                AddDirToListIfExist(nugetCacheDirs, "/home/DDITAdministrator/.nuget");
             }
             return nugetCacheDirs;
         }
