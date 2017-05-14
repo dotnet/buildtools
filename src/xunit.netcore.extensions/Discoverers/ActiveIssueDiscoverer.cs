@@ -39,7 +39,6 @@ namespace Xunit.NetCore.Extensions
                     (platforms.HasFlag(TestPlatforms.Windows) && RuntimeInformation.IsOSPlatform(OSPlatform.Windows)))
                 {
                     yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.Failing);
-                    yield return new KeyValuePair<string, string>(XunitConstants.ActiveIssue, issue);
                 }
             }
             else
@@ -55,9 +54,8 @@ namespace Xunit.NetCore.Extensions
                     yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.NonUapAotTest);
                 if (framework.HasFlag(TargetFrameworkMonikers.NetcoreCoreRT))
                     yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.NonNetcoreCoreRTTest);
-                
-                yield return new KeyValuePair<string, string>(XunitConstants.ActiveIssue, issue);
             }
+            yield return new KeyValuePair<string, string>(XunitConstants.ActiveIssue, issue);
         }
     }
 }

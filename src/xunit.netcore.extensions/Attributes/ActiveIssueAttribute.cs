@@ -16,9 +16,7 @@ namespace Xunit
     {
         public ActiveIssueAttribute(int issueNumber, TestPlatforms platforms = TestPlatforms.Any) { }
         public ActiveIssueAttribute(string issue, TestPlatforms platforms = TestPlatforms.Any) { }
-
         public ActiveIssueAttribute(int issueNumber, TargetFrameworkMonikers framework) { }
-
         public ActiveIssueAttribute(string issueNumber, TargetFrameworkMonikers framework) { }
     }
 }
