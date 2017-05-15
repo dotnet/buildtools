@@ -9,7 +9,6 @@ namespace Xunit
     [Flags]
     public enum TargetFrameworkMonikers
     {
-        None = 0,
         Net45 = 0x1,
         Net451 = 0x2,
         Net452 = 0x4,
@@ -25,6 +24,7 @@ namespace Xunit
         Netcoreapp = 0x1000,
         Uap = 0x2000,
         UapAot = 0x4000,
-        NetcoreCoreRT = 0x8000
+        NetcoreCoreRT = 0x8000,
+        All = ~0
     }
 }

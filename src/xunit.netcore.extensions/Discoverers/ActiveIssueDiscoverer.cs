@@ -29,7 +29,7 @@ namespace Xunit.NetCore.Extensions
 
             string issue = ctorArgs.First().ToString();
             TestPlatforms platforms = TestPlatforms.Any;
-            TargetFrameworkMonikers frameworks = TargetFrameworkMonikers.None;
+            TargetFrameworkMonikers frameworks = TargetFrameworkMonikers.All;
             
             if (ctorArgs.Count() > 2)
             {
@@ -65,8 +65,6 @@ namespace Xunit.NetCore.Extensions
                     yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.NonUapAotTest);
                 if (frameworks.HasFlag(TargetFrameworkMonikers.NetcoreCoreRT))
                     yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.NonNetcoreCoreRTTest);
-                if (frameworks == TargetFrameworkMonikers.None)
-                    yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.Failing);
 
                 yield return new KeyValuePair<string, string>(XunitConstants.ActiveIssue, issue);
             }
