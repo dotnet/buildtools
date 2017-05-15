@@ -24,6 +24,8 @@
     <AssemblyFileVersion Condition="'$(AssemblyFileVersion)'==''">$(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)</AssemblyFileVersion>
   </PropertyGroup>
 
+  <Import Project="$(MSBuildThisFileDirectory)versioning.props" />
+
   <PropertyGroup>
     <GenerateAssemblyInfo Condition="'$(GenerateAssemblyInfo)'==''">true</GenerateAssemblyInfo>
   </PropertyGroup>
@@ -64,12 +66,12 @@
       <AssemblyInfoLines Include="[assembly:AssemblyTitle(&quot;$(AssemblyName)&quot;)]" />
       <AssemblyInfoLines Include="[assembly:AssemblyDescription(&quot;$(AssemblyName)&quot;)]" />
       <AssemblyInfoLines Include="[assembly:AssemblyDefaultAlias(&quot;$(AssemblyName)&quot;)]" />
-      <AssemblyInfoLines Include="[assembly:AssemblyCompany(&quot;Microsoft Corporation&quot;)]" />
-      <AssemblyInfoLines Include="[assembly:AssemblyProduct(&quot;Microsoft\x00ae .NET Framework&quot;)]" />
-      <AssemblyInfoLines Include="[assembly:AssemblyCopyright(&quot;\x00a9 Microsoft Corporation.  All rights reserved.&quot;)]" />
+      <AssemblyInfoLines Include="[assembly:AssemblyCompany(&quot;$(Company)&quot;)]" />
+      <AssemblyInfoLines Include="[assembly:AssemblyProduct(&quot;$(Product)&quot;)]" />
+      <AssemblyInfoLines Include="[assembly:AssemblyCopyright(&quot;$(Copyright)&quot;)]" />
       <AssemblyInfoLines Include="[assembly:AssemblyVersion(&quot;$(AssemblyVersion)&quot;)]" />
       <AssemblyInfoLines Include="[assembly:AssemblyFileVersion(&quot;$(AssemblyFileVersion)&quot;)]" />
-      <AssemblyInfoLines Include="[assembly:AssemblyInformationalVersion(@&quot;$(AssemblyFileVersion)$(BuiltByString). Commit Hash%3A $(LatestCommit)&quot;)]" />
+      <AssemblyInfoLines Include="[assembly:AssemblyInformationalVersion(@&quot;$(InformationalVersion)&quot;)]" />
       <AssemblyInfoLines Condition="'$(CLSCompliant)'=='true'" Include="[assembly:CLSCompliant(true)]" />
       <AssemblyInfoLines Condition="'$(AssemblyComVisible)'!=''" Include="[assembly:System.Runtime.InteropServices.ComVisible($(AssemblyComVisible))]" />
       <AssemblyInfoLines Condition="'$(SkipFrameworkAssemblyMetadata)' != 'true'"
@@ -85,12 +87,12 @@
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyTitle(&quot;$(AssemblyName)&quot;)&gt;" />
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyDescription(&quot;$(AssemblyName)&quot;)&gt;" />
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyDefaultAlias(&quot;$(AssemblyName)&quot;)&gt;" />
-      <AssemblyInfoLines Include="&lt;Assembly:AssemblyCompany(&quot;Microsoft Corporation&quot;)&gt;" />
-      <AssemblyInfoLines Include="&lt;Assembly:AssemblyProduct(&quot;Microsoft\x00ae .NET Framework&quot;)&gt;" />
-      <AssemblyInfoLines Include="&lt;Assembly:AssemblyCopyright(&quot;\x00a9 Microsoft Corporation.  All rights reserved.&quot;)&gt;" />
+      <AssemblyInfoLines Include="&lt;Assembly:AssemblyCompany(&quot;$(Company)&quot;)&gt;" />
+      <AssemblyInfoLines Include="&lt;Assembly:AssemblyProduct(&quot;$(Product)k&quot;)&gt;" />
+      <AssemblyInfoLines Include="&lt;Assembly:AssemblyCopyright(&quot;$(Copyright)&quot;)&gt;" />
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyVersion(&quot;$(AssemblyVersion)&quot;)&gt;" />
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyFileVersion(&quot;$(AssemblyFileVersion)&quot;)&gt;" />
-      <AssemblyInfoLines Include="&lt;Assembly:AssemblyInformationalVersion(&quot;$(AssemblyFileVersion)$(BuiltByString). Commit Hash%3A $(LatestCommit)&quot;)&gt;" />
+      <AssemblyInfoLines Include="&lt;Assembly:AssemblyInformationalVersion(&quot;$(InformationalVersion)&quot;)&gt;" />
       <AssemblyInfoLines Condition="'$(CLSCompliant)'=='true'" Include="&lt;Assembly:CLSCompliant(True)&gt;" />
       <AssemblyInfoLines Condition="'$(AssemblyComVisible)'!=''" Include="&lt;Assembly:System.Runtime.InteropServices.ComVisible($(AssemblyComVisible))&gt;" />
       <AssemblyInfoLines Condition="'$(SkipFrameworkAssemblyMetadata)' != 'true'"
