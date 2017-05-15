@@ -9,6 +9,7 @@ namespace Xunit
     [Flags]
     public enum TargetFrameworkMonikers
     {
+        None = 0,
         Net45 = 0x1,
         Net451 = 0x2,
         Net452 = 0x4,
