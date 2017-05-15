@@ -41,4 +41,7 @@ Utilities.setMachineAffinity(reproJob, 'Windows_NT', 'latest-or-auto')
 Utilities.standardJobSetup(reproJob, project, true, "*/${branch}")
 Utilities.addGithubPushTrigger(reproJob)
 
+//Process the msbuild log
+Utilities.addReproBuild (reproJob, "msbuild.log")
+
 Utilities.addCROSSCheck(this, project, branch)
