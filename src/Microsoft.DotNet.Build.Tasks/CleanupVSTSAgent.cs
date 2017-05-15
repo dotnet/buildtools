@@ -414,6 +414,8 @@ namespace Microsoft.DotNet.Build.Tasks
                     return Environment.GetEnvironmentVariable("TMPDIR");
                 else if (DirExists(Environment.GetEnvironmentVariable("TMP")))
                     return Environment.GetEnvironmentVariable("TMP");
+                else if (DirExists(Path.Combine(Environment.GetEnvironmentVariable("HOME"), "myagent/_work/_temp")))
+                    return Path.Combine(Environment.GetEnvironmentVariable("HOME"), "myagent/_work/_temp");
                 else
                 {
                     Log.LogMessage("No TEMP dir found.");
