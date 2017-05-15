@@ -1,5 +1,6 @@
 // Import the utility functionality.
 
+import jobs.generation.ArchivalSettings
 import jobs.generation.Utilities;
 
 def project = GithubProject
@@ -42,6 +43,10 @@ Utilities.standardJobSetup(reproJob, project, true, "*/${branch}")
 Utilities.addGithubPushTrigger(reproJob)
 
 //Process the msbuild log
-Utilities.addReproBuild (reproJob, "msbuild.log")
+def archiveSettings = new ArchivalSettings()
+archiveSettings.addFiles("msbuild.log")
+archiveSettings.setFailIfNothingArchived()
+archiveSettings.setArchiveOnFailure()
+Utilities.addReproBuild (reproJob, archiveSettings)
 
 Utilities.addCROSSCheck(this, project, branch)
