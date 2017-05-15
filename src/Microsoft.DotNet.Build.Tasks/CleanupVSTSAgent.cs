@@ -414,8 +414,8 @@ namespace Microsoft.DotNet.Build.Tasks
                     return Environment.GetEnvironmentVariable("TMPDIR");
                 else if (DirExists(Environment.GetEnvironmentVariable("TMP")))
                     return Environment.GetEnvironmentVariable("TMP");
-                else if (DirExists("/home/DDITAdministrator/myagent/_work/_temp"))
-                    return "/home/DDITAdministrator/myagent/_work/_temp";
+                else if (DirExists(Path.Combine(Environment.GetEnvironmentVariable("HOME"), "myagent/_work/_temp")))
+                    return Path.Combine(Environment.GetEnvironmentVariable("HOME"), "myagent/_work/_temp");
                 else
                 {
                     Log.LogMessage("No TEMP dir found.");
@@ -445,8 +445,8 @@ namespace Microsoft.DotNet.Build.Tasks
             }
             else // OSX or Linux
             {
-                AddDirToListIfExist(nugetCacheDirs, "/home/DDITAdministrator/.local/share/NuGet");
-                AddDirToListIfExist(nugetCacheDirs, "/home/DDITAdministrator/.nuget");
+                AddDirToListIfExist(nugetCacheDirs, Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".local/share/NuGet"));
+                AddDirToListIfExist(nugetCacheDirs, Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".nuget"));
             }
             return nugetCacheDirs;
         }
