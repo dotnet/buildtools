@@ -31,4 +31,14 @@ def branch = GithubBranchName
     }
 }
 
+// Generate a fake job to test ReproBuild functionality
+def reproJob = job(Utilities.getFullJobName(project, 'Windows_NT_ReproBuild', true)) {
+    steps {
+        batchFile('''call "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools\\VsDevCmd.bat" && build.cmd''')
+    }
+}
+Utilities.setMachineAffinity(reproJob, 'Windows_NT', 'latest-or-auto')
+Utilities.standardJobSetup(reproJob, project, true, "*/${branch}")
+Utilities.addGithubPushTrigger(reproJob)
+
 Utilities.addCROSSCheck(this, project, branch)
