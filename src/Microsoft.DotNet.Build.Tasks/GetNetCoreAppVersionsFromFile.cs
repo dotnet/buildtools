@@ -15,16 +15,11 @@ namespace Microsoft.DotNet.Build.Tasks
         [Required]
         public string PathToVersionsFile { get; set; }
 
-        [Required]
-        public ITaskItem[] VersionKeys { get; set; }
-
         [Output]
         public ITaskItem[] VersionHashes { get; set; }
 
         public override bool Execute()
         {
-            if (VersionKeys == null || VersionKeys.Length == 0)
-                return true;
             if (!File.Exists(PathToVersionsFile))
             {
                 Log.LogError($"File {PathToVersionsFile} does not exist.");
@@ -32,34 +27,19 @@ namespace Microsoft.DotNet.Build.Tasks
             }
 
             List<ITaskItem> hashes = new List<ITaskItem>();
-            string versionsFileContents = File.ReadAllText(PathToVersionsFile);
-            foreach (var key in VersionKeys)
+            var versionFileLines = File.ReadAllLines(PathToVersionsFile);
+            foreach (var line in versionFileLines)
             {
-                ITaskItem itemWithHash;
-                if (TryGetVersionHash(key, versionsFileContents, out itemWithHash))
+                var match = Regex.Match(line, @"(\S.*) (\S.*)");
+                if (match.Success && match.Groups.Count > 2)
+                {
+                    var itemWithHash = new TaskItem(match.Groups[1].Value);
+                    itemWithHash.SetMetadata("VersionHash", match.Groups[2].Value);
                     hashes.Add(itemWithHash);
-                else
-                    return false;
+                }
             }
-
             VersionHashes = hashes.ToArray();
             return true;
-        }
-
-        public bool TryGetVersionHash(ITaskItem keyItem, string fileContents, out ITaskItem itemWithHash)
-        {
-            itemWithHash = new TaskItem(keyItem.ItemSpec);
-            var match = Regex.Match(fileContents, $"^{keyItem.ItemSpec} (\\S.*)", RegexOptions.Multiline);
-            if (match.Success && match.Groups.Count > 1)
-            {
-                itemWithHash.SetMetadata("VersionHash", match.Groups[1].Value);
-                return true;
-            }
-            else
-            {
-                Log.LogError($"Failed to parse out the hash for {keyItem.ItemSpec}");
-                return false;
-            }
         }
     }
 }
