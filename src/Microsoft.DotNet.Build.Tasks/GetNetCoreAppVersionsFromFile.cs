@@ -4,6 +4,7 @@
 
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -14,45 +15,51 @@ namespace Microsoft.DotNet.Build.Tasks
         [Required]
         public string PathToVersionsFile { get; set; }
 
-        [Output]
-        public string CorefxHash { get; set; }
+        [Required]
+        public ITaskItem[] VersionKeys { get; set; }
 
         [Output]
-        public string DotnetVersionsCorefxHash { get; set; }
-
-        [Output]
-        public string CoreclrHash { get; set; }
-
-        [Output]
-        public string DotnetVersionsCoreclrHash { get; set; }
-
-        [Output]
-        public string CoresetupHash { get; set; }
-
-        [Output]
-        public bool HasCoreclrVersion { get; set; }
+        public ITaskItem[] VersionHashes { get; set; }
 
         public override bool Execute()
         {
+            if (VersionKeys == null || VersionKeys.Length == 0)
+                return true;
             if (!File.Exists(PathToVersionsFile))
             {
                 Log.LogError($"File {PathToVersionsFile} does not exist.");
                 return false;
             }
+
+            List<ITaskItem> hashes = new List<ITaskItem>();
             string versionsFileContents = File.ReadAllText(PathToVersionsFile);
-            CorefxHash = GetVersionHash("corefx", versionsFileContents);
-            DotnetVersionsCorefxHash = GetVersionHash("dotnet/versions/corefx", versionsFileContents);
-            CoreclrHash = GetVersionHash("coreclr", versionsFileContents);
-            DotnetVersionsCoreclrHash = GetVersionHash("dotnet/versions/coreclr", versionsFileContents);
-            CoresetupHash = GetVersionHash("core-setup", versionsFileContents);
-            HasCoreclrVersion = !(string.IsNullOrEmpty(CoreclrHash));
+            foreach (var key in VersionKeys)
+            {
+                ITaskItem itemWithHash;
+                if (TryGetVersionHash(key, versionsFileContents, out itemWithHash))
+                    hashes.Add(itemWithHash);
+                else
+                    return false;
+            }
+
+            VersionHashes = hashes.ToArray();
             return true;
         }
 
-        public string GetVersionHash(string repo, string fileContents)
+        public bool TryGetVersionHash(ITaskItem keyItem, string fileContents, out ITaskItem itemWithHash)
         {
-            var match = Regex.Match(fileContents, $"^{repo} (\\S.*)", RegexOptions.Multiline);
-            return (match.Success && match.Groups.Count > 1) ? match.Groups[1].Value : string.Empty;
+            itemWithHash = new TaskItem(keyItem.ItemSpec);
+            var match = Regex.Match(fileContents, $"^{keyItem.ItemSpec} (\\S.*)", RegexOptions.Multiline);
+            if (match.Success && match.Groups.Count > 1)
+            {
+                itemWithHash.SetMetadata("VersionHash", match.Groups[1].Value);
+                return true;
+            }
+            else
+            {
+                Log.LogError($"Failed to parse out the hash for {keyItem.ItemSpec}");
+                return false;
+            }
         }
     }
 }
