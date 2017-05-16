@@ -11,7 +11,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml;
-    
+
 namespace Microsoft.DotNet.Build.CloudTestTasks
 {
     public sealed class DownloadFromAzure : AzureConnectionStringBuildTask
@@ -28,6 +28,8 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         /// </summary>
         [Required]
         public string DownloadDirectory { get; set; }
+
+        public string BlobNamePrefix { get; set; }
 
         public override bool Execute()
         {
@@ -46,8 +48,10 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             Log.LogMessage(MessageImportance.Normal, "Downloading contents of container {0} from storage account '{1}' to directory {2}.",
                 ContainerName, AccountName, DownloadDirectory);
 
+            string optionalBlobPrefixForQuery = string.IsNullOrEmpty(BlobNamePrefix) ? "" : "&prefix=" + BlobNamePrefix;
+
             List<string> blobsNames = new List<string>();
-            string urlListBlobs = string.Format("https://{0}.blob.core.windows.net/{1}?restype=container&comp=list", AccountName, ContainerName);
+            string urlListBlobs = $"https://{AccountName}.blob.core.windows.net/{ContainerName}?restype=container&comp=list{optionalBlobPrefixForQuery}";
 
             Log.LogMessage(MessageImportance.Low, "Sending request to list blobsNames for container '{0}'.", ContainerName);
 

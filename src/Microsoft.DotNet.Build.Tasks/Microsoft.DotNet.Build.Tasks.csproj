@@ -41,6 +41,7 @@
     <Compile Include="GetPackageDependencies.cs" />
     <Compile Include="GetNextRevisionNumber.cs" />
     <Compile Include="GetTargetMachineInfo.cs" />
+    <Compile Include="GetNetCoreAppVersionsFromFile.cs" />
     <Compile Include="InstallPackageFromFile.cs" />
     <Compile Include="LocatePreviousContract.cs" />
     <Compile Include="NormalizePaths.cs" />
