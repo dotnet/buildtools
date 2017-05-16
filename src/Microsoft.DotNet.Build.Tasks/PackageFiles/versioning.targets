@@ -63,14 +63,14 @@
     <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
       <AssemblyInfoUsings Include="using System%3B" />
       <AssemblyInfoUsings Include="using System.Reflection%3B" />
-      <AssemblyInfoLines Include="[assembly:AssemblyTitle(&quot;$(AssemblyName)&quot;)]" />
-      <AssemblyInfoLines Include="[assembly:AssemblyDescription(&quot;$(AssemblyName)&quot;)]" />
+      <AssemblyInfoLines Include="[assembly:AssemblyTitle(&quot;$(Title)&quot;)]" />
+      <AssemblyInfoLines Include="[assembly:AssemblyDescription(&quot;$(Description)&quot;)]" />
       <AssemblyInfoLines Include="[assembly:AssemblyDefaultAlias(&quot;$(AssemblyName)&quot;)]" />
       <AssemblyInfoLines Include="[assembly:AssemblyCompany(&quot;$(Company)&quot;)]" />
       <AssemblyInfoLines Include="[assembly:AssemblyProduct(&quot;$(Product)&quot;)]" />
       <AssemblyInfoLines Include="[assembly:AssemblyCopyright(&quot;$(Copyright)&quot;)]" />
       <AssemblyInfoLines Include="[assembly:AssemblyVersion(&quot;$(AssemblyVersion)&quot;)]" />
-      <AssemblyInfoLines Include="[assembly:AssemblyFileVersion(&quot;$(AssemblyFileVersion)&quot;)]" />
+      <AssemblyInfoLines Include="[assembly:AssemblyFileVersion(&quot;$(FileVersion)&quot;)]" />
       <AssemblyInfoLines Include="[assembly:AssemblyInformationalVersion(@&quot;$(InformationalVersion)&quot;)]" />
       <AssemblyInfoLines Condition="'$(CLSCompliant)'=='true'" Include="[assembly:CLSCompliant(true)]" />
       <AssemblyInfoLines Condition="'$(AssemblyComVisible)'!=''" Include="[assembly:System.Runtime.InteropServices.ComVisible($(AssemblyComVisible))]" />
@@ -84,14 +84,14 @@
     <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.vbproj'">
       <AssemblyInfoUsings Include="Imports System" />
       <AssemblyInfoUsings Include="Imports System.Reflection" />
-      <AssemblyInfoLines Include="&lt;Assembly:AssemblyTitle(&quot;$(AssemblyName)&quot;)&gt;" />
-      <AssemblyInfoLines Include="&lt;Assembly:AssemblyDescription(&quot;$(AssemblyName)&quot;)&gt;" />
+      <AssemblyInfoLines Include="&lt;Assembly:AssemblyTitle(&quot;$(Title)&quot;)&gt;" />
+      <AssemblyInfoLines Include="&lt;Assembly:AssemblyDescription(&quot;$(Description)&quot;)&gt;" />
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyDefaultAlias(&quot;$(AssemblyName)&quot;)&gt;" />
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyCompany(&quot;$(Company)&quot;)&gt;" />
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyProduct(&quot;$(Product)k&quot;)&gt;" />
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyCopyright(&quot;$(Copyright)&quot;)&gt;" />
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyVersion(&quot;$(AssemblyVersion)&quot;)&gt;" />
-      <AssemblyInfoLines Include="&lt;Assembly:AssemblyFileVersion(&quot;$(AssemblyFileVersion)&quot;)&gt;" />
+      <AssemblyInfoLines Include="&lt;Assembly:AssemblyFileVersion(&quot;$(FileVersion)&quot;)&gt;" />
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyInformationalVersion(&quot;$(InformationalVersion)&quot;)&gt;" />
       <AssemblyInfoLines Condition="'$(CLSCompliant)'=='true'" Include="&lt;Assembly:CLSCompliant(True)&gt;" />
       <AssemblyInfoLines Condition="'$(AssemblyComVisible)'!=''" Include="&lt;Assembly:System.Runtime.InteropServices.ComVisible($(AssemblyComVisible))&gt;" />
