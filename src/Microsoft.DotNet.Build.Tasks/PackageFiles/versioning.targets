@@ -84,11 +84,7 @@
     <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.vbproj'">
       <AssemblyInfoUsings Include="Imports System" />
       <AssemblyInfoUsings Include="Imports System.Reflection" />
-<<<<<<< HEAD
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyTitle(&quot;$(AssemblyTitle)&quot;)&gt;" />
-=======
-      <AssemblyInfoLines Include="&lt;Assembly:AssemblyTitle(&quot;$(Title)&quot;)&gt;" />
->>>>>>> e494426648e2307202149d872188fa8fd84a0afe
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyDescription(&quot;$(Description)&quot;)&gt;" />
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyDefaultAlias(&quot;$(AssemblyName)&quot;)&gt;" />
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyCompany(&quot;$(Company)&quot;)&gt;" />
