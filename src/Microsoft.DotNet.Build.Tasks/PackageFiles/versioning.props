@@ -7,6 +7,6 @@
     <FileVersion Condition="'$(FileVersion)' == '' and '$(AssemblyFileVersion)' != ''">$(AssemblyFileVersion)</FileVersion>
     <InformationalVersion Condition="'$(InformationalVersion)' == ''">$(AssemblyFileVersion)$(BuiltByString). Commit Hash%3A $(LatestCommit)</InformationalVersion>
     <Product Condition="'$(Product)' == ''">Microsoft%AE .NET Framework</Product>
-    <Title Condition="'$(Title)' == ''">$(AssemblyName)</Title>
+    <AssemblyTitle Condition="'$(AssemblyTitle)' == ''">$(AssemblyName)</AssemblyTitle>
   </PropertyGroup>
 </Project>

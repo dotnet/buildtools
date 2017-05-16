@@ -63,7 +63,7 @@
     <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
       <AssemblyInfoUsings Include="using System%3B" />
       <AssemblyInfoUsings Include="using System.Reflection%3B" />
-      <AssemblyInfoLines Include="[assembly:AssemblyTitle(&quot;$(Title)&quot;)]" />
+      <AssemblyInfoLines Include="[assembly:AssemblyTitle(&quot;$(AssemblyTitle)&quot;)]" />
       <AssemblyInfoLines Include="[assembly:AssemblyDescription(&quot;$(Description)&quot;)]" />
       <AssemblyInfoLines Include="[assembly:AssemblyDefaultAlias(&quot;$(AssemblyName)&quot;)]" />
       <AssemblyInfoLines Include="[assembly:AssemblyCompany(&quot;$(Company)&quot;)]" />
@@ -84,7 +84,7 @@
     <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.vbproj'">
       <AssemblyInfoUsings Include="Imports System" />
       <AssemblyInfoUsings Include="Imports System.Reflection" />
-      <AssemblyInfoLines Include="&lt;Assembly:AssemblyTitle(&quot;$(Title)&quot;)&gt;" />
+      <AssemblyInfoLines Include="&lt;Assembly:AssemblyTitle(&quot;$(AssemblyTitle)&quot;)&gt;" />
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyDescription(&quot;$(Description)&quot;)&gt;" />
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyDefaultAlias(&quot;$(AssemblyName)&quot;)&gt;" />
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyCompany(&quot;$(Company)&quot;)&gt;" />
