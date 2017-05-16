@@ -29,7 +29,7 @@ namespace Xunit.NetCore.Extensions
 
             string issue = ctorArgs.First().ToString();
             TestPlatforms platforms = TestPlatforms.Any;
-            TargetFrameworkMonikers frameworks = (TargetFrameworkMonikers)~0;
+            TargetFrameworkMonikers frameworks = (TargetFrameworkMonikers)0;
             
             foreach (object arg in ctorArgs.Skip(1)) // First argument is the issue number.
             {
@@ -37,7 +37,7 @@ namespace Xunit.NetCore.Extensions
                 {
                     platforms = (TestPlatforms)arg;
                 }
-                else
+                else if (arg is TargetFrameworkMonikers)
                 {
                     frameworks = (TargetFrameworkMonikers)arg;
                 }
@@ -59,6 +59,8 @@ namespace Xunit.NetCore.Extensions
                     yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.NonUapAotTest);
                 if (frameworks.HasFlag(TargetFrameworkMonikers.NetcoreCoreRT))
                     yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.NonNetcoreCoreRTTest);
+                if (frameworks == (TargetFrameworkMonikers)0)
+                    yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.Failing);
 
                 yield return new KeyValuePair<string, string>(XunitConstants.ActiveIssue, issue);
             }
