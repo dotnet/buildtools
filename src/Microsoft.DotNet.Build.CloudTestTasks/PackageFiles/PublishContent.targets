@@ -12,8 +12,8 @@
     <Error Condition="'$(PublishPattern)' == ''" Text="Please specify a value for PublishPattern using standard msbuild 'include' syntax." />
 
     <PropertyGroup>
-      <ReleativeBlobPathBase>$(BlobNamePrefix)</ReleativeBlobPathBase>
-      <ReleativeBlobPathBase Condition="'$(ReleativeBlobPathBase)' != '' and !HasTrailingSlash('$(ReleativeBlobPathBase)')">$(ReleativeBlobPathBase)</ReleativeBlobPathBase>
+      <RelativeBlobPathBase>$(BlobNamePrefix)</RelativeBlobPathBase>
+      <RelativeBlobPathBase Condition="'$(RelativeBlobPathBase)' != '' and !HasTrailingSlash('$(RelativeBlobPathBase)')">$(RelativeBlobPathBase)/</RelativeBlobPathBase>
     </PropertyGroup>
     <ItemGroup>
       <ForPublishing Include="$(PublishPattern)" />
@@ -21,7 +21,7 @@
     <!-- add relative blob path metadata -->
     <ItemGroup>
       <ForPublishing>
-        <RelativeBlobPath>$(ReleativeBlobPathBase)$([System.String]::Copy('%(RecursiveDir)%(Filename)%(Extension)').Replace('\' ,'/'))</RelativeBlobPath>
+        <RelativeBlobPath>$(RelativeBlobPathBase)$([System.String]::Copy('%(RecursiveDir)%(Filename)%(Extension)').Replace('\' ,'/'))</RelativeBlobPath>
       </ForPublishing>
     </ItemGroup>
     <Error Condition="'@(ForPublishing)' == ''" Text="No items were found matching pattern '$(PublishPattern)'." />
