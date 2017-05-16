@@ -29,16 +29,10 @@ namespace Xunit.NetCore.Extensions
 
             string issue = ctorArgs.First().ToString();
             TestPlatforms platforms = TestPlatforms.Any;
-            TargetFrameworkMonikers frameworks = TargetFrameworkMonikers.All;
+            TargetFrameworkMonikers frameworks = (TargetFrameworkMonikers)~0;
             
-            if (ctorArgs.Count() > 2)
+            foreach (object arg in ctorArgs.Skip(1)) // First argument is the issue number.
             {
-                platforms = (TestPlatforms)ctorArgs.ElementAt(1);
-                frameworks = (TargetFrameworkMonikers)ctorArgs.Last();
-            }
-            else
-            {
-                object arg = ctorArgs.Last();
                 if (arg is TestPlatforms)
                 {
                     platforms = (TestPlatforms)arg;

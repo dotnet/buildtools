@@ -24,7 +24,6 @@ namespace Xunit
         Netcoreapp = 0x1000,
         Uap = 0x2000,
         UapAot = 0x4000,
-        NetcoreCoreRT = 0x8000,
-        All = ~0
+        NetcoreCoreRT = 0x8000
     }
 }
