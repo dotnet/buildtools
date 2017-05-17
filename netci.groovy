@@ -32,21 +32,29 @@ def branch = GithubBranchName
     }
 }
 
-// Generate a fake job to test ReproBuild functionality
-def reproJob = job(Utilities.getFullJobName(project, 'Windows_NT_ReproBuild', true)) {
-    steps {
-        batchFile('''call "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools\\VsDevCmd.bat" && build.cmd''')
+// Generate fake jobs to test ReproBuild functionality
+["Windows_NT", "Ubuntu14.04"].each { os ->
+    def reproJob = job(Utilities.getFullJobName(project, "${os}_ReproBuild", true)) {
+        steps {
+            if (os == 'Windows_NT') {
+                batchFile('''call "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools\\VsDevCmd.bat" && build.cmd''')
+            }
+            else {
+                shell('''./build.sh''')
+            }
+        }
     }
-}
-Utilities.setMachineAffinity(reproJob, 'Windows_NT', 'latest-or-auto')
-Utilities.standardJobSetup(reproJob, project, true, "*/${branch}")
-Utilities.addGithubPushTrigger(reproJob)
 
-//Process the msbuild log
-def archiveSettings = new ArchivalSettings()
-archiveSettings.addFiles("msbuild.log")
-archiveSettings.setFailIfNothingArchived()
-archiveSettings.setArchiveOnFailure()
-Utilities.addReproBuild (reproJob, archiveSettings)
+    Utilities.setMachineAffinity(reproJob, os, 'latest-or-auto')
+    Utilities.standardJobSetup(reproJob, project, true, "*/${branch}")
+    Utilities.addGithubPushTrigger(reproJob)
+
+    //Process the msbuild log
+    def archiveSettings = new ArchivalSettings()
+    archiveSettings.addFiles("msbuild.log")
+    archiveSettings.setFailIfNothingArchived()
+    archiveSettings.setArchiveOnFailure()
+    Utilities.addReproBuild (reproJob, archiveSettings)
+}
 
 Utilities.addCROSSCheck(this, project, branch)
