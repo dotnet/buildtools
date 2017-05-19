@@ -37,10 +37,9 @@ def branch = GithubBranchName
 def reproJob = job(Utilities.getFullJobName(project, 'Windows_NT_ReproBuild', true)) {
     steps {
         def curlCommand = """Invoke-RestMethod https://snapshotter.azurewebsites.net/api/snapshot/vm?code=\$env:SNAPSHOT_TOKEN -Method Post -Body "{ 'group': 'dotnet-ci1-vms', 'name': '\$env:computername', 'targetGroup': 'snapshot-test' }" -ContentType 'application/json' -ErrorAction Continue"""
-        batchFile("dir C:\\Jenkins")
-        batchFile("ren C:\\Jenkins\\launch.cmd C:\\Jenkins\\launch.cmddisabled")
+        powerShell("Rename-Item C:\\Jenkins\\launch.cmd C:\\Jenkins\\launch.cmd.disabled")
         powerShell("${curlCommand}")
-        batchFile("ren C:\\Jenkins\\launch.cmddisabled C:\\Jenkins\\launch.cmd")
+        powerShell("Rename-Item C:\\Jenkins\\launch.cmd.disabled C:\\Jenkins\\launch.cmd")
     }
     // Ensure credentials are bound
     wrappers {
