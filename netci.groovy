@@ -49,10 +49,9 @@ def reproJob = job(Utilities.getFullJobName(project, 'Windows_NT_ReproBuild', tr
     }
 }
 
-
-// Utilities.setMachineAffinity(reproJob, 'Windows_NT', 'latest-or-auto')
-// Utilities.standardJobSetup(reproJob, project, true, "*/${branch}")
-// Utilities.addGithubPushTrigger(reproJob)
+Utilities.setMachineAffinity(reproJob, 'Windows_NT', 'latest-or-auto')
+Utilities.standardJobSetup(reproJob, project, true, "*/${branch}")
+Utilities.addGithubPushTrigger(reproJob)
 
 //Process the msbuild log
 /*def archiveSettings = new ArchivalSettings()
