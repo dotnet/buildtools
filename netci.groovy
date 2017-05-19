@@ -36,9 +36,9 @@ def branch = GithubBranchName
 // Generate a fake job to test ReproBuild functionality
 def reproJob = job(Utilities.getFullJobName(project, 'Windows_NT_ReproBuild', true)) {
     steps {
-        def curlCommand = """Invoke-RestMethod https://snapshotter.azurewebsites.net/api/snapshot/vm?code=%SNAPSHOT_TOKEN% -Method Post -Body "{ 'group': 'dotnet-ci1-vms', 'name': '%COMPUTERNAME%', 'targetGroup': 'snapshot-test' }" -ContentType 'application/json'"""
+        def curlCommand = """Invoke-RestMethod https://snapshotter.azurewebsites.net/api/snapshot/vm?code=\$env:SNAPSHOT_TOKEN -Method Post -Body "{ 'group': 'dotnet-ci1-vms', 'name': '\$env:computername', 'targetGroup': 'snapshot-test' }" -ContentType 'application/json' -ErrorAction Continue"""
         batchFile("ren 'C:\\Jenkins\\launch.cmd' 'C:\\Jenkins\\launch.cmd.disabled'")
-        powerShell("${curlCommand} || exit 0")
+        powerShell("${curlCommand}")
         batchFile("ren 'C:\\Jenkins\\launch.cmd.disabled' 'C:\\Jenkins\\launch.cmd'")
     }
     // Ensure credentials are bound
