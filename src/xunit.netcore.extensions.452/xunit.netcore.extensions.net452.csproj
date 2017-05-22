@@ -14,5 +14,7 @@
   <ItemGroup>
     <TargetingPackReference Include="System" />
     <TargetingPackReference Include="System.Core" />
+    <TargetingPackReference Include="System.Runtime" />
+    <TargetingPackReference Include="System.Threading.Tasks" />
   </ItemGroup>
 </Project>
