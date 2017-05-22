@@ -6,9 +6,9 @@
     "xunit.abstractions": "2.0.0"
   },
   "frameworks": {
-    "net452": {
+    "net46": {
       "dependencies": {
-        "Microsoft.TargetingPack.NETFramework.v4.5.2": "1.0.1"
+        "Microsoft.TargetingPack.NETFramework.v4.6": "1.0.1"
       }
     }
   },
