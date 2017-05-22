@@ -8,6 +8,8 @@
     <ProjectsToExclude Include="Microsoft.DotNet.Build.Tasks\PackageFiles\tool-runtime\project.csproj" />
     <!-- Exclude the UWP console from the build on non windows because it requires nuget.exe to restore a packages.config -->
     <ProjectsToExclude Include="xunit.console.uwp\xunit.console.uwp.csproj" Condition="'$(OSEnvironment)' != 'Windows_NT'" />
+    <!-- Exclude xunit extensions for desktop tests from non Windows environment -->
+    <ProjectsToExclude Include="xunit.netcore.extensions.452\xunit.netcore.extensions.452.csproj" Condition="'$(OSEnvironment)' != 'Windows_NT'" />
   </ItemGroup>
 
   <ItemGroup>
