@@ -37,6 +37,8 @@ namespace Microsoft.DotNet.Build.Tasks
                     expectedConfigurations = GetConfigurationStrings(projectConfigurationPropsFile);
                 }
 
+                Log.LogMessage($"Updating {projectFile}");
+
                 var project = ProjectRootElement.Open(projectFile);
                 ICollection<ProjectPropertyGroupElement> propertyGroups;
                 var actualConfigurations = GetConfigurationFromPropertyGroups(project, out propertyGroups);
@@ -214,7 +216,21 @@ namespace Microsoft.DotNet.Build.Tasks
                 if (propertyGroup == null || !string.IsNullOrEmpty(propertyGroup.Condition))
                 {
                     propertyGroup = project.CreatePropertyGroupElement();
-                    project.InsertAfterChild(propertyGroup, project.Imports.First());
+                    ProjectElement insertAfter = project.Imports.FirstOrDefault();
+
+                    if (insertAfter == null)
+                    {
+                        insertAfter = project.Children.FirstOrDefault();
+                    }
+
+                    if (insertAfter != null)
+                    {
+                        project.InsertAfterChild(propertyGroup, insertAfter);
+                    }
+                    else
+                    {
+                        project.AppendChild(propertyGroup);
+                    }
                 }
 
                 propertyGroup.AddProperty("ProjectGuid", guid);
