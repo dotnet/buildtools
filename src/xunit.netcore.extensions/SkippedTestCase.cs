@@ -6,16 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace Xunit.NetCore.Extensions
 {
-#if FULL_FRAMEWORK
-    [Serializable]
-#endif
     /// <summary>Wraps another test case that should be skipped.</summary>
-    internal sealed class SkippedTestCase : IXunitTestCase
+    internal sealed class SkippedTestCase : LongLivedMarshalByRefObject, IXunitTestCase
     {
         private readonly IXunitTestCase _testCase;
         private readonly string _skippedReason;
