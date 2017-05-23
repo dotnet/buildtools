@@ -43,6 +43,7 @@ def collect_dump(exitcode, folder, startTimeStr, projectName):
       "--displayname", projectName,
       "--properties", "STRESS_TESTID="+projectName,
       "--verbose" ])
+  sys.exit(exitcode)
 
 def print_usage():
   print("DumplingHelper.py <command>")
