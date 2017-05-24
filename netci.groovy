@@ -36,16 +36,27 @@ def branch = GithubBranchName
 // Generate a fake job to test ReproBuild functionality
 def reproJob = job(Utilities.getFullJobName(project, 'Windows_NT_ReproBuild', true)) {
     steps {
-        def curlCommand = """Invoke-RestMethod https://snapshotter.azurewebsites.net/api/snapshot/vm?code=\$env:SNAPSHOT_TOKEN -Method Post -Body "{ 'group': 'dotnet-ci1-vms', 'name': '\$env:computername', 'targetGroup': 'snapshot-test' }" -ContentType 'application/json' -ErrorAction Continue"""
+        //def curlCommand = """Invoke-RestMethod https://snapshotter.azurewebsites.net/api/snapshot/vm?code=\$env:SNAPSHOT_TOKEN -Method Post -Body "{ 'group': 'dotnet-ci1-vms', 'name': '\$env:computername', 'targetGroup': 'snapshot-test' }" -ContentType 'application/json' -ErrorAction Continue"""
+        def zipWorkspace = '''"C:\Program Files\7-Zip\7z.exe" a -t7z ${GitBranchOrCommit}.7z -mx9 '''
+        def uploadToAzure = '''"C:\Program Files (x86)\Microsoft SDKs\Azure\AzCopy\AzCopy.exe" /Source:. /Pattern:${GitBranchOrCommit}.7z /Dest:https://cisnapshot.blob.core.windows.net/workspace /DestKey:%SNAPSHOT_STORAGE_KEY% /Y'''
+                
+        batchFile("echo Renaming launch.cmd")
         powerShell("Rename-Item C:\\Jenkins\\launch.cmd C:\\Jenkins\\launch.cmd.disabled")
-        powerShell("echo ${curlCommand}")
-        powerShell("${curlCommand}")
+        
+        batchFile("echo zip the workspace with ${zipWorkspace}")
+        batchFile("${zipWorkspace}")
+        
+        batchFile("echo upload to Azure with ${uploadToAzure}")
+        batchFile("${uploadToAzure}")
+        
+        batchFile("echo Renaming launch.cmd.disabled")
         powerShell("Rename-Item C:\\Jenkins\\launch.cmd.disabled C:\\Jenkins\\launch.cmd")
     }
     // Ensure credentials are bound
     wrappers {
         credentialsBinding {
-            string('SNAPSHOT_TOKEN', 'SnapshotToken')
+            //string('SNAPSHOT_TOKEN', 'SnapshotToken')
+            string('SNAPSHOT_STORAGE_KEY', 'snapshotStorageKey')
         }
     }
 }
