@@ -165,10 +165,6 @@
           DependsOnTargets="DiscoverTestInputs;SetupTestProperties">
     <Error Condition="'$(TargetOSTrait)' == ''" Text="TargetOS [$(TargetOS)] is unknown so we don't know how to configure the test run for this project [$(MSBuildProjectName)]" />
 
-    <ItemGroup>
-      <RunWithoutTraits Condition="'$(TargetOSTrait)'!=''" Include="$(TargetOSTrait)" />
-    </ItemGroup>
-
     <PropertyGroup>
       <RunnerScriptName Condition="'$(TargetOS)'=='Windows_NT'" >RunTests.cmd</RunnerScriptName>
       <RunnerTemplateName Condition="'$(TargetOS)'=='Windows_NT'" >RunnerTemplate.Windows.txt</RunnerTemplateName>
