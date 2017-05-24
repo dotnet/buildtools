@@ -58,6 +58,14 @@
 
     <XunitOptions>$(XunitOptions) -notrait category=non$(_bc_TargetGroup)tests</XunitOptions>
 
+    <TargetOS Condition="'$(TargetOS)' == ''">$(DefaultOSGroup)</TargetOS>
+    <TargetOSTrait Condition="'$(TargetOS)'=='Windows_NT'">nonwindowstests</TargetOSTrait>
+    <TargetOSTrait Condition="'$(TargetOS)'=='Linux'">nonlinuxtests</TargetOSTrait>
+    <TargetOSTrait Condition="'$(TargetOS)'=='OSX'">nonosxtests</TargetOSTrait>
+    <TargetOSTrait Condition="'$(TargetOS)'=='FreeBSD'">nonfreebsdtests</TargetOSTrait>
+    <TargetOSTrait Condition="'$(TargetOS)'=='NetBSD'">nonnetbsdtests</TargetOSTrait>
+    <XunitOptions Condition="'$(TargetOSTrait)' != ''">$(XunitOptions) -notrait category=$(TargetOSTrait)</XunitOptions>
+
     <XunitOptions Condition="'$(XunitMaxThreads)'!=''">$(XunitOptions) -maxthreads $(XunitMaxThreads)</XunitOptions>
     <XunitTestAssembly Condition="'$(XunitTestAssembly)' == ''">$(TargetFileName)</XunitTestAssembly>
     <XunitArguments>$(XunitTestAssembly) $(XunitOptions)</XunitArguments>
@@ -155,13 +163,6 @@
        2.  Runs the tests. -->
   <Target Name="GenerateTestExecutionScripts"
           DependsOnTargets="DiscoverTestInputs;SetupTestProperties">
-    <PropertyGroup>
-      <TargetOSTrait Condition="'$(TargetOS)'=='Windows_NT'">nonwindowstests</TargetOSTrait>
-      <TargetOSTrait Condition="'$(TargetOS)'=='Linux'">nonlinuxtests</TargetOSTrait>
-      <TargetOSTrait Condition="'$(TargetOS)'=='OSX'">nonosxtests</TargetOSTrait>
-      <TargetOSTrait Condition="'$(TargetOS)'=='FreeBSD'">nonfreebsdtests</TargetOSTrait>
-      <TargetOSTrait Condition="'$(TargetOS)'=='NetBSD'">nonnetbsdtests</TargetOSTrait>
-    </PropertyGroup>
     <Error Condition="'$(TargetOSTrait)' == ''" Text="TargetOS [$(TargetOS)] is unknown so we don't know how to configure the test run for this project [$(MSBuildProjectName)]" />
 
     <ItemGroup>
@@ -227,7 +228,7 @@
       <_TestILCFolder>%RUNTIME_PATH%\TestILC</_TestILCFolder>
       <_Runtime_Path>%RUNTIME_PATH%\ILCInputFolder\</_Runtime_Path>
       <!-- Currently (and probably forever) we can't build UAPAOT on ARM,
-           So if we're running on ARM, what we really want to do is encapsulate 
+           So if we're running on ARM, what we really want to do is encapsulate
            the test command into a script that can be run on another machine -->
       <TestCommandLine Condition="'$(ArchGroup)'=='arm'">echo $(TestCommandLine)> .\RunContinuation.cmd </TestCommandLine>
     </PropertyGroup>
@@ -382,7 +383,6 @@ robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
 
   <Target Name="CheckTestPlatforms">
     <PropertyGroup>
-      <TargetOS Condition="'$(TargetOS)' == ''">$(DefaultOSGroup)</TargetOS>
       <TestDisabled Condition="'%(UnsupportedPlatformsItems.Identity)' == '$(TargetOS)' Or '$(ConfigurationErrorMsg)' != ''">true</TestDisabled>
     </PropertyGroup>
     <Message Text="CheckTestPlatforms found TargetOS of [$(TargetOS)]." Importance="Low" />
