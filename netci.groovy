@@ -37,9 +37,9 @@ def branch = GithubBranchName
 def reproJob = job(Utilities.getFullJobName(project, 'Windows_NT_ReproBuild', true)) {
     steps {
         
-        def zipWorkspace = "'C:\\Program Files\\7-Zip\\7z.exe' a -t7z workspace.7z -mx9"
+        def zipWorkspace = "\"C:\\Program Files\\7-Zip\\7z.exe\" a -t7z workspace.7z -mx9"
         def workspaceDestination = "https://cisnapshot.blob.core.windows.net/workspace"
-        def uploadToAzure = "'C:\\Program Files (x86)\\Microsoft SDKs\\Azure\\AzCopy\\AzCopy.exe' /Source:. /Pattern:workspace.7z /Dest:${workspaceDestination} /DestKey:%SNAPSHOT_STORAGE_KEY% /Y"
+        def uploadToAzure = "\"C:\\Program Files (x86)\\Microsoft SDKs\\Azure\\AzCopy\\AzCopy.exe\" /Source:. /Pattern:workspace.7z /Dest:${workspaceDestination} /DestKey:%SNAPSHOT_STORAGE_KEY% /Y"
         def createSnapshot = """Invoke-RestMethod https://snapshotter.azurewebsites.net/api/75d89d44-c3a0-44da-958a-b63d4132ca8e/snapshot?code=\$env:SNAPSHOT_TOKEN -Method Post -Body "{ 'group': 'dotnet-ci1-vms', 'name': '\$env:computername', 'payload': \'${workspaceDestination}/workspace.7z\', 'targetContainer': 'snapshots' }" -ContentType 'application/json' -ErrorAction Continue"""
 
         batchFile("echo Renaming launch.cmd")
