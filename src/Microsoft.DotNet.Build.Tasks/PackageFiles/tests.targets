@@ -68,6 +68,8 @@
 
     <XunitOptions Condition="'$(XunitMaxThreads)'!=''">$(XunitOptions) -maxthreads $(XunitMaxThreads)</XunitOptions>
     <XunitOptions Condition="'$(XunitAdditionalOptions)' != ''">$(XunitOptions) $(XunitAdditionalOptions)</XunitOptions>
+    <XunitOptions Condition="'$(XunitMethodName)' != ''">$(XunitOptions) -method $(XunitMethodName)</XunitOptions>
+    <XunitOptions Condition="'$(XunitClassName)' != ''">$(XunitOptions) -class $(XunitClassName)</XunitOptions>
     <XunitTestAssembly Condition="'$(XunitTestAssembly)' == ''">$(TargetFileName)</XunitTestAssembly>
     <XunitArguments>$(XunitTestAssembly) $(XunitOptions)</XunitArguments>
 
