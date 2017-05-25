@@ -67,7 +67,7 @@
     <XunitOptions Condition="'$(TargetOSTrait)' != ''">$(XunitOptions) -notrait category=$(TargetOSTrait)</XunitOptions>
 
     <XunitOptions Condition="'$(XunitMaxThreads)'!=''">$(XunitOptions) -maxthreads $(XunitMaxThreads)</XunitOptions>
-    <XunitOptions Condition="'$(XunitAdditionalOptions)' != ''">$(XunitOptions) $(XunitAdditionalOptions</XunitOptions>
+    <XunitOptions Condition="'$(XunitAdditionalOptions)' != ''">$(XunitOptions) $(XunitAdditionalOptions)</XunitOptions>
     <XunitTestAssembly Condition="'$(XunitTestAssembly)' == ''">$(TargetFileName)</XunitTestAssembly>
     <XunitArguments>$(XunitTestAssembly) $(XunitOptions)</XunitArguments>
 
