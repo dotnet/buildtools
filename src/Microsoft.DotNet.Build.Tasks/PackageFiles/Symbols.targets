@@ -333,28 +333,37 @@
                       Condition="'@(SymbolFileToCatalog)'!=''" />
 
     <!-- Create the catalog file to feed into makecat. -->
+    <PropertyGroup>
+      <CatalogFileHeaderLines>
+        [CatalogHeader];
+        Name=signatures.cat;
+        ResultDir=.\;
+        PublicVersion=2;
+        CatalogVersion=2;
+        HashAlgorithms=SHA256;
+        PageHashes=true;
+        EncodingType=0x00010001;
+        CATATTR1=0x10010001:OSAttr:2:6.4;
+        [CatalogFiles]
+      </CatalogFileHeaderLines>
+    </PropertyGroup>
+
     <ItemGroup>
-      <CatalogFile Include="@(SymbolFileToCatalog -> '$(ExtractBaseDir)%(Identity).cat.cdf')">
-        <Contents>
-[CatalogHeader]
-Name=%(Filename)%(Extension).cat
-ResultDir=.\
-PublicVersion=2
-CatalogVersion=2
-HashAlgorithms=SHA256
-PageHashes=true
-EncodingType=0x00010001
-CATATTR1=0x10010001:OSAttr:2:6.4
-[CatalogFiles]
-&lt;HASH&gt;%(Filename)%(Extension)=%(Filename)%(Extension)
-        </Contents>
+      <CatalogFile Include="$(ExtractBaseDir)signatures.cat.cdf"
+                   Condition="'@(SymbolFileToCatalog)'!=''">
+        <ContentLines>$(CatalogFileHeaderLines);@(SymbolFileToCatalog -> '&lt;HASH&gt;%(Filename)%(Extension)=%(Identity);')</ContentLines>
       </CatalogFile>
     </ItemGroup>
 
     <Message Text="@(CatalogFile)" />
 
-    <WriteLinesToFile File="%(CatalogFile.FullPath)"
-                      Lines="%(Contents)"
+    <WriteLinesToFile File="@(CatalogFile)"
+                      Lines="%(ContentLines)"
+                      Condition="'@(CatalogFile)'!=''" />
+
+    <!-- Create an easily readable list of files that were cataloged. -->
+    <WriteLinesToFile File="$(ExtractBaseDir)cataloged.txt"
+                      Lines="@(SymbolFileToCatalog)"
                       Condition="'@(CatalogFile)'!=''" />
 
     <!--
@@ -376,10 +385,14 @@ CATATTR1=0x10010001:OSAttr:2:6.4
       <CatalogFile>
         <ArchivePath>%(RecursiveDir)%(Filename)%(Extension)</ArchivePath>
       </CatalogFile>
+
+      <CatalogedFileManifest Include="$(SymbolCatalogIntermediateDir)$(SymbolPackageIndex)\cataloged.txt">
+        <ArchivePath>cataloged.txt</ArchivePath>
+      </CatalogedFileManifest>
     </ItemGroup>
 
     <ZipFileInjectFile TargetArchive="$(SymbolPackageFilePath)"
-                       InjectFiles="@(CatalogFile)"
+                       InjectFiles="@(CatalogFile);@(CatalogedFileManifest)"
                        Condition="'@(CatalogFile)'!=''" />
   </Target>
 
