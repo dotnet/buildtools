@@ -77,6 +77,8 @@
     <Compile Include="$(CommonPath)\ZipFileCreateFromDirectory.cs">
       <Link>ZipFileCreateFromDirectory.cs</Link>
     </Compile>
+    <Compile Include="ZipFileGetEntries.cs" />
+    <Compile Include="ZipFileInjectFile.cs" />
     <Compile Include="ZipFileExtractToDirectory.cs" />
     <Compile Include="Strings.Designer.cs">
       <AutoGen>True</AutoGen>

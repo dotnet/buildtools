@@ -13,21 +13,27 @@ namespace Microsoft.DotNet.Build.Tasks
     public sealed class ZipFileExtractToDirectory : Task
     {
         /// <summary>
-        /// The path to the directory to be archived.
+        /// The path to the archive to be extracted.
         /// </summary>
         [Required]
         public string SourceArchive { get; set; }
 
         /// <summary>
-        /// The path of the archive to be created.
+        /// The path of the directory to extract into.
         /// </summary>
         [Required]
         public string DestinationDirectory { get; set; }
 
         /// <summary>
-        /// Indicates if the destination archive should be overwritten if it already exists.
+        /// Indicates if the destination directory should be overwritten if it already exists.
         /// </summary>
         public bool OverwriteDestination { get; set; }
+
+        /// <summary>
+        /// The paths to include in the extraction, relative to root. If null,
+        /// all files are extracted.
+        /// </summary>
+        public ITaskItem[] Include { get; set; }
 
         public override bool Execute()
         {
@@ -50,7 +56,24 @@ namespace Microsoft.DotNet.Build.Tasks
                 if (!Directory.Exists(Path.GetDirectoryName(DestinationDirectory)))
                     Directory.CreateDirectory(Path.GetDirectoryName(DestinationDirectory));
 
-                ZipFile.ExtractToDirectory(SourceArchive, DestinationDirectory);
+                using (ZipArchive archive = ZipFile.OpenRead(SourceArchive))
+                {
+                    if (Include?.Length > 0)
+                    {
+                        foreach (ITaskItem entryItem in Include)
+                        {
+                            ZipArchiveEntry entry = archive.GetEntry(entryItem.ItemSpec);
+                            string destinationPath = Path.Combine(DestinationDirectory, entryItem.ItemSpec);
+
+                            Directory.CreateDirectory(Path.GetDirectoryName(destinationPath));
+                            entry.ExtractToFile(destinationPath, overwrite: false);
+                        }
+                    }
+                    else
+                    {
+                        archive.ExtractToDirectory(DestinationDirectory);
+                    }
+                }
             }
             catch (Exception e)
             {
