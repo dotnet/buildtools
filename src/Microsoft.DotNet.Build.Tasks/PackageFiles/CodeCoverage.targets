@@ -57,7 +57,7 @@
     <CoverageOptions>-oldStyle -filter:"{CoverageFilter}" -excludebyfile:"*\Common\src\System\SR.*" -nodefaultfilters -excludebyattribute:*.ExcludeFromCodeCoverage* -skipautoprops -hideskipped:All -threshold:1</CoverageOptions>
     <CoverageCommandLine>$(CoverageOptions) -returntargetcode -register:user -target:$(TestProgram) -output:$(CoverageOutputFilePath)</CoverageCommandLine>
     <TestHost>$(CoverageHost)</TestHost>
-    <XunitOptions>$(XunitOptions) -parallel none</XunitOptions>
+    <_XunitOptions>$(_XunitOptions) -parallel none</_XunitOptions>
     <TestCommandLine>$(TestHost) $(CoverageCommandLine) -targetargs:"$(TestArguments) {XunitTraitOptions}"</TestCommandLine>
   </PropertyGroup>
 
