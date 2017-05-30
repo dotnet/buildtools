@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using Microsoft.Cci.Extensions.CSharp;
+using Microsoft.Cci.Extensions;
 
 namespace Microsoft.Cci.Writers.CSharp
 {
@@ -26,7 +27,7 @@ namespace Microsoft.Cci.Writers.CSharp
 
             if ((type.IsStruct || type.IsClass) && type.Layout != LayoutKind.Auto)
             {
-                string structLayout = "System.Runtime.InteropServices.StructLayoutAttribute";
+                FakeCustomAttribute structLayout = new FakeCustomAttribute("System.Runtime.InteropServices", "StructLayoutAttribute");
                 string layoutKind = string.Format("System.Runtime.InteropServices.LayoutKind.{0}", type.Layout.ToString());
 
                 if (_forCompilationIncludeGlobalprefix)
@@ -53,7 +54,8 @@ namespace Microsoft.Cci.Writers.CSharp
                     args.Add(charset);
                 }
 
-                WriteFakeAttribute(structLayout, args.ToArray());
+                if (IncludeAttribute(structLayout))
+                    WriteFakeAttribute(structLayout.FullTypeName, args.ToArray());
             }
 
             WriteVisibility(TypeHelper.TypeVisibilityAsTypeMemberVisibility(type));
