@@ -4,6 +4,7 @@
   <ItemGroup>
     <!-- Exclude the UAP runner from the build as it depends on Win10 SDKs -->
     <ProjectsToExclude Include="xunit.runner.uap\XUnit.Runner.Uap.csproj" />
+    <ProjectsToExclude Include="xunit.runner.uap\RunnerRemoteExecutionServiceUAP\RunnerRemoteExecutionServiceUAP.csproj" />
     <!-- tool-runtime\project.csproj is not a real project to build, it's part of the buildtools package for initialization. -->
     <ProjectsToExclude Include="Microsoft.DotNet.Build.Tasks\PackageFiles\tool-runtime\project.csproj" />
     <!-- Exclude the UWP console from the build on non windows because it requires nuget.exe to restore a packages.config -->
