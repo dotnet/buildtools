@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -98,10 +99,12 @@ namespace RunnerRemoteExecutionService
             }
             additionalArgs = argList.ToArray();
 
+            StringBuilder log = new StringBuilder();
+
             // Load the specified assembly, type, and method, then invoke the method.
             // The program's exit code is the return value of the invoked method.
             object instance = null;
-            string log = $"RemoteExecuter: {assemblyName} {methodName} {string.Join(", ", additionalArgs)}{Environment.NewLine}";
+            log.Append($"RemoteExecuter: {assemblyName} {methodName} {string.Join(", ", additionalArgs)}{Environment.NewLine}");
 
             try
             {
@@ -116,18 +119,19 @@ namespace RunnerRemoteExecutionService
 
                 // Invoke the test
                 object result = mi.Invoke(instance, additionalArgs);
-                returnData["Results"] = result is Task<int> task ? task.GetAwaiter().GetResult() : (int) result;
+                var task = result as Task<int>;
+                returnData["Results"] = task != null ? task.GetAwaiter().GetResult() : (int) result;
             }
             catch (Exception exc)
             {
                 returnData["Results"] = -4;
-                log = log + exc;
+                log.Append(exc);
             }
             finally
             {
                 (instance as IDisposable)?.Dispose();
             }
-            returnData["Log"] = log;
+            returnData["Log"] = log.ToString();
         }
 
         private bool GetStringValueFromValueSet(ValueSet message, string key, out string val)
