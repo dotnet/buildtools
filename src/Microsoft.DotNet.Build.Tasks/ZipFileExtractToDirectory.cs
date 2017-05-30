@@ -30,8 +30,8 @@ namespace Microsoft.DotNet.Build.Tasks
         public bool OverwriteDestination { get; set; }
 
         /// <summary>
-        /// The paths to include in the extraction, relative to root. If null,
-        /// all files are extracted.
+        /// File entries to include in the extraction. Entries are relative
+        /// paths inside the archive. If null or empty, all files are extracted.
         /// </summary>
         public ITaskItem[] Include { get; set; }
 
@@ -41,20 +41,19 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 if (Directory.Exists(DestinationDirectory))
                 {
-                    if (OverwriteDestination == true)
+                    if (OverwriteDestination)
                     {
-                        Log.LogMessage(MessageImportance.Low, "'{0}' already exists, trying to delete before unzipping...", DestinationDirectory);
+                        Log.LogMessage(MessageImportance.Low, $"'{DestinationDirectory}' already exists, trying to delete before unzipping...");
                         Directory.Delete(DestinationDirectory, recursive: true);
                     }
                     else
                     {
-                        Log.LogWarning("'{0}' already exists. Did you forget to set '{1}' to true?", DestinationDirectory, nameof(OverwriteDestination));
+                        Log.LogWarning($"'{DestinationDirectory}' already exists. Did you forget to set '{nameof(OverwriteDestination)}' to true?");
                     }
                 }
 
                 Log.LogMessage(MessageImportance.High, "Decompressing '{0}' into '{1}'...", SourceArchive, DestinationDirectory);
-                if (!Directory.Exists(Path.GetDirectoryName(DestinationDirectory)))
-                    Directory.CreateDirectory(Path.GetDirectoryName(DestinationDirectory));
+                Directory.CreateDirectory(Path.GetDirectoryName(DestinationDirectory));
 
                 using (ZipArchive archive = ZipFile.OpenRead(SourceArchive))
                 {

@@ -277,9 +277,12 @@
                          MakeCatCommand=$(MakeCatCommand)" />
 
     <!-- Find the catalogs to sign them. -->
+    <Error Text="'SymbolCatalogCertificateId' must be defined."
+           Condition="'$(SymbolCatalogCertificateId)'==''" />
+
     <ItemGroup>
       <FilesToSign Include="$(SymbolCatalogIntermediateDir)**\*.cat">
-        <Authenticode>$(InternalCertificateId)</Authenticode>
+        <Authenticode>$(SymbolCatalogCertificateId)</Authenticode>
       </FilesToSign>
     </ItemGroup>
 

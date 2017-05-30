@@ -19,8 +19,8 @@ namespace Microsoft.DotNet.Build.Tasks
         public string TargetArchive { get; set; }
 
         /// <summary>
-        /// Generated items where each ItemSpec is the relative location of an
-        /// entry in the zip archive.
+        /// Generated items where each ItemSpec is the relative location of a
+        /// file entry in the zip archive.
         /// </summary>
         [Output]
         public ITaskItem[] Entries { get; set; }
