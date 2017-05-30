@@ -1,7 +1,6 @@
 ﻿{
   "dependencies": {
     "Microsoft.NETCore.UniversalWindowsPlatform": "5.2.2",
-    "System.Diagnostics.Process": "4.1.0",
     "xunit": "2.2.0-beta2-build3300",
     "xunit.runner.utility": "2.2.0-beta2-build3300"
   },

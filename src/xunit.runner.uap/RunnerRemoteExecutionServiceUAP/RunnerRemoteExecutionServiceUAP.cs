@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reflection;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -36,8 +35,6 @@ namespace RunnerRemoteExecutionService
 
             ValueSet returnData = new ValueSet();
             HandleTheRequest(args.Request.Message, returnData);
-
-            returnData.Add("Process", System.Diagnostics.Process.GetCurrentProcess().Id);
 
             // Return the data to the caller.
             // Complete the deferral so that the platform knows that we're done responding to the app service call.
