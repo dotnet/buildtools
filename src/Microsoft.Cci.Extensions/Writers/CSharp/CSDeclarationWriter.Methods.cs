@@ -18,6 +18,11 @@ namespace Microsoft.Cci.Writers.CSharp
             if (method.IsPropertyOrEventAccessor())
                 return;
 
+            WriteMethodPseudoCustomAttributes(method);
+
+            WriteAttributes(method.Attributes);
+            WriteAttributes(method.SecurityAttributes);
+
             if (method.IsDestructor())
             {
                 WriteDestructor(method);
@@ -25,11 +30,6 @@ namespace Microsoft.Cci.Writers.CSharp
             }
 
             string name = method.GetMethodName();
-
-            WriteMethodPseudoCustomAttributes(method);
-
-            WriteAttributes(method.Attributes);
-            WriteAttributes(method.SecurityAttributes);
 
             if (!method.ContainingTypeDefinition.IsInterface)
             {
