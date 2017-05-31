@@ -74,11 +74,6 @@ namespace Microsoft.DotNet.Build.Tasks
             return retVal;
         }
 
-        public override bool Execute()
-        {
-            return base.Execute();
-        }
-
         protected override string ToolName
         {
             get { return "tar"; }

@@ -13,19 +13,19 @@ namespace Microsoft.DotNet.Build.Tasks
     public sealed class ZipFileExtractToDirectory : Task
     {
         /// <summary>
-        /// The path to the directory to be archived.
+        /// The path to the archive to extract.
         /// </summary>
         [Required]
         public string SourceArchive { get; set; }
 
         /// <summary>
-        /// The path of the archive to be created.
+        /// The path of the directory to which the archive should be extracted.
         /// </summary>
         [Required]
         public string DestinationDirectory { get; set; }
 
         /// <summary>
-        /// Indicates if the destination archive should be overwritten if it already exists.
+        /// Indicates if the destination directory should be cleaned if it already exists.
         /// </summary>
         public bool OverwriteDestination { get; set; }
 
