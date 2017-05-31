@@ -13,7 +13,6 @@ namespace Microsoft.Cci.Writers.CSharp
             if (field.IsSpecialName)
                 return;
 
-            // Do we care about volatile?
             WriteAttributes(field.Attributes);
             if (!field.IsStatic && field.ContainingTypeDefinition.Layout == LayoutKind.Explicit)
             {
@@ -28,6 +27,7 @@ namespace Microsoft.Cci.Writers.CSharp
             if (!field.ContainingTypeDefinition.IsEnum)
             {
                 WriteVisibility(field.Visibility);
+                WriteCustomModifiers(field.CustomModifiers);
 
                 if (field.Type.IsUnsafeType())
                     WriteKeyword("unsafe");

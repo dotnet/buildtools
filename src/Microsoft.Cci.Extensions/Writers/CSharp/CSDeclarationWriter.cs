@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using Microsoft.Cci.Extensions;
 using Microsoft.Cci.Extensions.CSharp;
 using Microsoft.Cci.Filters;
 using Microsoft.Cci.Writers.Syntax;
@@ -183,6 +184,15 @@ namespace Microsoft.Cci.Writers.CSharp
                     WriteKeyword("internal"); WriteKeyword("protected"); break; // Is this right?
                 default:
                     WriteKeyword("<Unknown-Visibility>"); break;
+            }
+        }
+
+        private void WriteCustomModifiers(IEnumerable<ICustomModifier> modifiers)
+        {
+            foreach (ICustomModifier modifier in modifiers)
+            {
+                if (modifier.Modifier.FullName() == "System.Runtime.CompilerServices.IsVolatile")
+                    WriteKeyword("volatile");
             }
         }
 
