@@ -7,6 +7,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
@@ -23,6 +24,10 @@ namespace Microsoft.DotNet.Build.Tasks
         public double RetentionDays { get; set; }
 
         public int? Retries { get; set; }
+
+        public double MaximumTimeInMinutes { get; set; } = 10;
+
+        public int MaximumWorkspacesToClean { get; set; } = 8;
 
         public int? SleepTimeInMilliseconds { get; set; }
         public ITaskItem[] ProcessNamesToKill { get; set; }
@@ -46,7 +51,23 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 SleepTimeInMilliseconds = s_DefaultSleepTime;
             }
+            bool returnValue = false;
+            Thread worker = new Thread(() => { returnValue = DoCleanupWork(); });
+            worker.Start();
 
+            if (worker.Join((int)TimeSpan.FromMinutes(MaximumTimeInMinutes).TotalMilliseconds))
+            {
+                return returnValue;
+            }
+            else
+            {
+                Log.LogWarning($" Cleanup Task ran for maximum time ({MaximumTimeInMinutes} minutes), aborting");
+                return false;
+            }
+        }
+
+        private bool DoCleanupWork()
+        {
             bool returnValue = true;
 
             if (Report)
@@ -55,7 +76,7 @@ namespace Microsoft.DotNet.Build.Tasks
             }
             if (Clean)
             {
-                returnValue &= CleanupDirsAsync().Result;
+                returnValue = CleanupDirsAsync().Result;
                 // If report and clean are both 'true', then report disk usage both before and after cleanup.
                 if (Report)
                 {
@@ -63,7 +84,6 @@ namespace Microsoft.DotNet.Build.Tasks
                     ReportDiskUsage();
                 }
             }
-
             return returnValue;
         }
 
@@ -234,7 +254,7 @@ namespace Microsoft.DotNet.Build.Tasks
             HashSet<string> knownDirectories = new HashSet<string>();
             List<System.Threading.Tasks.Task<bool>> cleanupTasks = new List<System.Threading.Tasks.Task<bool>>();
 
-            Log.LogMessage($"Found {sourceFolderJsons.Length} known agent working directories. ");
+            Log.LogMessage($"Found {sourceFolderJsons.Length} known agent working directories.  (Will clean up to {MaximumWorkspacesToClean} of them)");
 
             foreach (var sourceFolderJson in sourceFolderJsons)
             {
@@ -246,13 +266,21 @@ namespace Microsoft.DotNet.Build.Tasks
 
                 TimeSpan span = new TimeSpan(now.Ticks - agentInfo.Item3.Ticks);
 
-                if (span.TotalDays > RetentionDays)
+                if (cleanupTasks.Count < MaximumWorkspacesToClean)
                 {
-                    cleanupTasks.Add(CleanupAgentAsync(workDirectory, Path.GetDirectoryName(agentInfo.Item1)));
+                    if (span.TotalDays > RetentionDays)
+                    {
+                        cleanupTasks.Add(CleanupAgentAsync(workDirectory, Path.GetDirectoryName(agentInfo.Item1)));
+                    }
+                    else
+                    {
+                        Log.LogMessage($"Skipping cleanup for {sourceFolderJson}, it is newer than {RetentionDays} days old, last run date is '{agentInfo.Item3.ToString()}'");
+                    }
                 }
                 else
                 {
-                    Log.LogMessage($"Skipping cleanup for {sourceFolderJson}, it is newer than {RetentionDays} days old, last run date is '{agentInfo.Item3.ToString()}'");
+                    // We've taken enough cleanup tasks per the value of MaximumWorkspaces
+                    break;
                 }
             }
 
@@ -317,18 +345,6 @@ namespace Microsoft.DotNet.Build.Tasks
                 if (Directory.Exists(directory))
                 {
                     Log.LogMessage($"Attempting to cleanup {directory} ... ");
-
-                    // Unlike OSX and Linux, Windows has a hard limit of 260 chars on paths.
-                    // Some build definitions leave paths this long behind.  It's unusual, 
-                    // but robocopy has been on Windows by default since XP and understands 
-                    // how to stomp on long paths, so we'll use it to clean directories on Windows first.
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    {
-                        Log.LogMessage($"Preventing PathTooLongException by using robocopy to delete {directory} ");
-                        string emptyFolderToMirror = GetUniqueEmptyFolder();
-                        Process.Start(new ProcessStartInfo("robocopy.exe", $"/mir {emptyFolderToMirror} {directory}  /NJH /NJS /NP") { UseShellExecute = false }).WaitForExit();
-                        Directory.Delete(emptyFolderToMirror);
-                    }
                     Directory.Delete(directory, true);
                     Log.LogMessage("Success");
                 }
@@ -337,6 +353,12 @@ namespace Microsoft.DotNet.Build.Tasks
                     Log.LogMessage($"Specified directory, {directory}, does not exist");
                 }
                 return true;
+            }
+            catch (PathTooLongException)
+            {
+                // Theres no point in retrying for PathTooLong
+                Log.LogMessage($"Failed in cleanup attempt due to PathTooLongException, quitting.");
+                return false;
             }
             catch (Exception e)
             {
