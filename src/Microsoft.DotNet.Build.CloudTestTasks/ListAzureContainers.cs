@@ -49,20 +49,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             {
                 try
                 {
-                    Func<HttpRequestMessage> createRequest = () =>
-                    {
-                        DateTime dateTime = DateTime.UtcNow;
-                        var request = new HttpRequestMessage(HttpMethod.Get, url);
-                        request.Headers.Add(AzureHelper.DateHeaderString, dateTime.ToString("R", CultureInfo.InvariantCulture));
-                        request.Headers.Add(AzureHelper.VersionHeaderString, AzureHelper.StorageApiVersion);
-                        request.Headers.Add(AzureHelper.AuthorizationHeaderString, AzureHelper.AuthorizationHeader(
-                                AccountName,
-                                AccountKey,
-                                "GET",
-                                dateTime,
-                                request));
-                        return request;
-                    };
+                    var createRequest = AzureHelper.RequestMessage("GET", url, AccountName, AccountKey);
 
                     // TODO:  This task has a bug, it needs to continue when there are > 5000 containers in a storage acccount.
                     //        Fix is something like the one made to DownloadFromAzure, but not pressing since it looks like GetLatestContainerNameFromAzure is rarely / not used.
