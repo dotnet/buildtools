@@ -83,7 +83,20 @@ namespace Microsoft.Cci.Writers.CSharp
             }
             else
             {
-                WriteIdentifier(property.Name);
+                var name = property.Name.Value;
+                if (_forCompilationIncludeGlobalprefix && property.IsExplicitInterfaceProperty())
+                {
+                    if (!name.StartsWith("global::"))
+                        name = "global::" + name;
+
+                    var pos = name.IndexOf('<');
+                    if (pos > -1)
+                    {
+                        name = name.Substring(0, pos + 1) + "global::" + name.Substring(pos + 1, name.Length - pos - 1);
+                    }
+                }
+
+                WriteIdentifier(name);
             }
             WriteSpace();
             WriteSymbol("{");
