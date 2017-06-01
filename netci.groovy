@@ -36,7 +36,7 @@ def branch = GithubBranchName
 // Generate a fake job to test ReproBuild functionality
 def reproJob = job(Utilities.getFullJobName(project, 'Windows_NT_ReproBuild', true)) {
     steps {
-        batchFile('''call "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools\\VsDevCmd.bat" && build.cmd''')
+        batchFile('''call "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools\\VsDevCmd.bat" && build.cmd && exit 0''')
 
         def zipWorkspace = "\"C:\\Program Files\\7-Zip\\7z.exe\" a -t7z %COMPUTERNAME%-Workspace.7z -mx9"
         def workspaceDestination = "https://dotnetci1vmstorage2.blob.core.windows.net/workspace"
