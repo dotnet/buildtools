@@ -354,7 +354,7 @@
     <ItemGroup>
       <CatalogFile Include="$(ExtractBaseDir)signatures.cat.cdf"
                    Condition="'@(SymbolFileToCatalog)'!=''">
-        <ContentLines>$(CatalogFileHeaderLines);@(SymbolFileToCatalog -> '&lt;HASH&gt;%(Filename)%(Extension)=%(Identity);')</ContentLines>
+        <ContentLines>$(CatalogFileHeaderLines);@(SymbolFileToCatalog -> '&lt;HASH&gt;%(Identity)=%(Identity);')</ContentLines>
       </CatalogFile>
     </ItemGroup>
 
