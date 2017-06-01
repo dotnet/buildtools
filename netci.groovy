@@ -33,11 +33,9 @@ def branch = GithubBranchName
 }
 
 
-// Generate a fake job to test ReproBuild functionality
-def reproJob = job(Utilities.getFullJobName(project, 'Windows_NT_ReproBuild', true)) {
+// Generate a fake job to test Snapshot functionality
+def snapshotJob = job(Utilities.getFullJobName(project, 'Windows_NT_Snapshot', true)) {
     steps {
-        batchFile('''call "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools\\VsDevCmd.bat" && build.cmd && exit 0''')
-
         def zipWorkspace = "\"C:\\Program Files\\7-Zip\\7z.exe\" a -t7z %COMPUTERNAME%-Workspace.7z -mx9"
         def workspaceDestination = "https://dotnetci1vmstorage2.blob.core.windows.net/workspace"
         def uploadToAzure = "\"C:\\Program Files (x86)\\Microsoft SDKs\\Azure\\AzCopy\\AzCopy.exe\" /Source:. /Pattern:%COMPUTERNAME%-Workspace.7z /Dest:${workspaceDestination} /DestKey:%SNAPSHOT_STORAGE_KEY% /Y"
@@ -64,15 +62,23 @@ def reproJob = job(Utilities.getFullJobName(project, 'Windows_NT_ReproBuild', tr
     }
 }
 
+Utilities.setMachineAffinity(snapshotJob, 'Windows_NT', 'latest-or-auto')
+Utilities.standardJobSetup(snapshotJob, project, true, "*/${branch}")
+Utilities.addGithubPushTrigger(snapshotJob)
+
+// Generate a fake Repro Job
+def reproJob = job(Utilities.getFullJobName(project, 'Windows_NT_Repro', true)) {
+    steps {
+        batchFile('''call "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools\\VsDevCmd.bat" && build.cmd''')
+    }
+}
 Utilities.setMachineAffinity(reproJob, 'Windows_NT', 'latest-or-auto')
 Utilities.standardJobSetup(reproJob, project, true, "*/${branch}")
 Utilities.addGithubPushTrigger(reproJob)
 
 //Process the msbuild log
-/*def archiveSettings = new ArchivalSettings()
+def archiveSettings = new ArchivalSettings()
 archiveSettings.addFiles("msbuild.log")
 archiveSettings.setFailIfNothingArchived()
 archiveSettings.setArchiveOnFailure()
 Utilities.addReproBuild (reproJob, archiveSettings)
-*/
-Utilities.addCROSSCheck(this, project, branch)
