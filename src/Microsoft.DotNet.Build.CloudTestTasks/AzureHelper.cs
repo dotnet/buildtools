@@ -19,7 +19,6 @@ using System.Threading.Tasks;
 
 namespace Microsoft.DotNet.Build.CloudTestTasks
 {
-    // This is grabbed directly from buildtools and we should not duplicate this when we move ListAzureBlobs back to buildtools
     public static class AzureHelper
     {
         /// <summary>
