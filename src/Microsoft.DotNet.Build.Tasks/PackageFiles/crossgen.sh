@@ -54,13 +54,17 @@ crossgen_single()
 {
     __file=$1
     if [[ $__file != *.ni.dll && $__file != *.ni.exe ]]; then
-        $__crossgen /Platform_Assemblies_Paths $__sharedFxDir:$__toolsDir /nologo /MissingDependenciesOK /ReadyToRun $__file > /dev/null
-        if [ $? -eq 0 ]; then
-            __outname="${__file/.dll/.ni.dll}"
-            __outname="${__outname/.exe/.ni.exe}"
-            echo "$__file -> $__outname"
+        if [[ ($__file == *.dll && -e ${__file/.dll/.ni.dll}) || ($__file == *.exe && -e ${__file/.exe/.ni.exe}) ]]; then
+            echo "$__file has already been crossgen'd.  Skipping."
         else
-            echo "Unable to successfully compile $__file"
+            $__crossgen /Platform_Assemblies_Paths $__sharedFxDir:$__toolsDir /nologo /MissingDependenciesOK /ReadyToRun $__file > /dev/null
+            if [ $? -eq 0 ]; then
+                __outname="${__file/.dll/.ni.dll}"
+                __outname="${__outname/.exe/.ni.exe}"
+                echo "$__file -> $__outname"
+            else
+                echo "Unable to successfully compile $__file"
+            fi
         fi
     fi
 }
@@ -78,7 +82,7 @@ __targetDir=$1
 __scriptpath=$(cd "$(dirname "$0")"; pwd -P)
 __toolsDir=$__scriptpath/../Tools
 __dotnet=$__toolsDir/dotnetcli/dotnet
-__packagesDir=$__scriptpath/../packages
+__packagesDir="${NUGET_PACKAGES:-${__scriptpath}/../packages}"
 __mncaFolder=$__toolsDir/dotnetcli/shared/Microsoft.NETCore.App
 __sharedFxVersion=`ls $__mncaFolder | sed 'r/\([0-9]\+\).*/\1/g' | sort -n | tail -1`
 __sharedFxDir=$__toolsDir/dotnetcli/shared/Microsoft.NETCore.App/$__sharedFxVersion/
