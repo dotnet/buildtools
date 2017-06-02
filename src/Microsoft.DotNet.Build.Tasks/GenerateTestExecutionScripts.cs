@@ -90,7 +90,10 @@ namespace Microsoft.DotNet.Build.Tasks
             foreach (string runCommand in TestCommands)
             {
                 testRunCommands.Append($"{runCommand}\n");
-                testRunEchoes.Append($"echo \"{runCommand.Replace("\"", "").Replace("(", "").Replace(")", "")}\"\n");  // Remove parentheses and quotes from echo command before wrapping it in quotes to avoid errors on Linux
+                // Remove parentheses and quotes from echo command before wrapping it in quotes to avoid errors on Linux.
+                // Also, escape backtick and question mark characters to avoid running commands instead of echo'ing them.
+                string sanitizedRunCommand = runCommand.Replace("\"", "").Replace("(", "").Replace(")", "").Replace("`", "\\`").Replace("?", "\\");
+                testRunEchoes.Append($"echo \"{sanitizedRunCommand}\"\n");
             }
             shExecutionTemplate = shExecutionTemplate.Replace("[[TestRunCommands]]", testRunCommands.ToString());
             shExecutionTemplate = shExecutionTemplate.Replace("[[TestRunCommandsEcho]]", testRunEchoes.ToString());
