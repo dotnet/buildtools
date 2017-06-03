@@ -13,8 +13,10 @@ def get_timestamp():
 def install_dumpling():
   if (not os.path.isfile(dumplingPath)):
     url = "https://dumpling.azurewebsites.net/api/client/dumpling.py"
-    urllib.urlretrieve(url, "dumpling.py")
-    subprocess.call([sys.executable,"dumpling.py", "install", "--update"])
+    scriptPath = os.path.dirname(os.path.realpath(__file__))
+    downloadLocation = scriptPath + "/dumpling.py"
+    urllib.urlretrieve(url, downloadLocation)
+    subprocess.call([sys.executable, downloadLocation, "install", "--update"])
   subprocess.call([sys.executable, dumplingPath, "install", "--full"])
 
 def ensure_installed():
