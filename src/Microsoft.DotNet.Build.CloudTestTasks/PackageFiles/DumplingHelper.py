@@ -17,7 +17,11 @@ def install_dumpling():
     downloadLocation = scriptPath + "/dumpling.py"
     urllib.urlretrieve(url, downloadLocation)
     subprocess.call([sys.executable, downloadLocation, "install", "--update"])
-  subprocess.call([sys.executable, dumplingPath, "install", "--full"])
+  # Dumpling installation crashes on OSX when "--full" is used. See: https://github.com/Microsoft/dumpling/issues/29
+  if (sys.platform == "darwin"):
+    subprocess.call([sys.executable, dumplingPath, "install"])
+  else:
+    subprocess.call([sys.executable, dumplingPath, "install", "--full"])
 
 def ensure_installed():
   if (not os.path.isfile(dumplingPath)):
