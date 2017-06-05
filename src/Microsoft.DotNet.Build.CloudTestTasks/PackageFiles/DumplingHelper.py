@@ -22,7 +22,9 @@ def install_dumpling():
 def ensure_installed():
   if (not os.path.isfile(dumplingPath)):
     print("Dumpling has not been installed yet. Please run \"DumplingHelper.py install_dumpling\" before collect_dumps.")
-    sys.exit(1)
+    return False
+  else:
+    return True
 
 def find_latest_dump(folder, startTimeStr):
   startTime = float(startTimeStr)
@@ -45,7 +47,8 @@ def collect_dump(exitcode, folder, startTimeStr, projectName, incpaths):
   if (exitcode == "0"):
     sys.exit(exitcode)
 
-  ensure_installed()
+  if not ensure_installed():
+    sys.exit(exitcode)
 
   if (not incpaths is None):
     # Normalize incpaths so it can be passed to dumpling.py.
