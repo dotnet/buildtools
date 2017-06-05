@@ -26,21 +26,26 @@
     <Compile Include="$(CommonPath)\ZipFileCreateFromDirectory.cs">
       <Link>ZipFileCreateFromDirectory.cs</Link>
     </Compile>
-    <Compile Include="SendJobsToHelix.cs" />
-    <Compile Include="SimulateHelixExecution.cs" />
-    <Compile Include="ValidateWorkItems.cs" />
     <Compile Include="AzureConnectionStringBuildTask.cs" />
+    <Compile Include="AzureBlobLease.cs" />
     <Compile Include="AzureHelper.cs" />
+    <Compile Include="CopyAzureBlobToBlob.cs" />
     <Compile Include="CreateAzureContainer.cs" />
+    <Compile Include="DeleteAzureBlob.cs" />
     <Compile Include="DownloadFromAzure.cs" />
     <Compile Include="FilterForUpload.cs" />
     <Compile Include="GetPerfTestAssemblies.cs" />
+    <Compile Include="ListAzureBlobs.cs" />
     <Compile Include="ListAzureContainers.cs" />
+    <Compile Include="PublishStringToAzureBlob.cs" />
+    <Compile Include="RemoveItemMetadata.cs" />
+    <Compile Include="SendJobsToHelix.cs" />
     <Compile Include="SendToHelix.cs" />
+    <Compile Include="SimulateHelixExecution.cs" />
     <Compile Include="UploadClient.cs" />
     <Compile Include="UploadToAzure.cs" />
+    <Compile Include="ValidateWorkItems.cs" />
     <Compile Include="WriteBuildStatsJson.cs" />
-    <Compile Include="RemoveItemMetadata.cs" />
     <Compile Include="WriteItemsToJson.cs" />
   </ItemGroup>
   <ItemGroup>

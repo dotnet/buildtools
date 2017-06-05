@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -6,6 +6,7 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -27,34 +28,35 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         public const string DateHeaderString = "x-ms-date";
         public const string VersionHeaderString = "x-ms-version";
         public const string AuthorizationHeaderString = "Authorization";
+        public const string CacheControlString = "x-ms-blob-cache-control";
+        public const string ContentTypeString = "x-ms-blob-content-type";
 
         public enum SasAccessType
         {
-            Read, 
+            Read,
             Write,
         };
 
         public static string AuthorizationHeader(
-            string storageAccount, 
-            string storageKey, 
-            string method, 
+            string storageAccount,
+            string storageKey,
+            string method,
             DateTime now,
-            HttpRequestMessage request, 
-            string ifMatch = "", 
-            string contentMD5 = "", 
-            string size = "", 
+            HttpRequestMessage request,
+            string ifMatch = "",
+            string contentMD5 = "",
+            string size = "",
             string contentType = "")
         {
             string stringToSign = string.Format(
-                "{0}\n\n\n{1}\n{5}\n{6}\n\n\n{2}\n\n\n\n{3}{4}", 
-                method, 
-                (size == string.Empty) ? string.Empty : size, 
-                ifMatch, 
-                GetCanonicalizedHeaders(request), 
-                GetCanonicalizedResource(request.RequestUri, storageAccount), 
-                contentMD5, 
+                "{0}\n\n\n{1}\n{5}\n{6}\n\n\n{2}\n\n\n\n{3}{4}",
+                method,
+                (size == string.Empty) ? string.Empty : size,
+                ifMatch,
+                GetCanonicalizedHeaders(request),
+                GetCanonicalizedResource(request.RequestUri, storageAccount),
+                contentMD5,
                 contentType);
-
             byte[] signatureBytes = Encoding.UTF8.GetBytes(stringToSign);
             string authorizationHeader;
             using (HMACSHA256 hmacsha256 = new HMACSHA256(Convert.FromBase64String(storageKey)))
@@ -67,10 +69,10 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         }
 
         public static string CreateContainerSasToken(
-            string accountName, 
-            string containerName, 
-            string key, 
-            SasAccessType accessType, 
+            string accountName,
+            string containerName,
+            string key,
+            SasAccessType accessType,
             int validityTimeInDays)
         {
             string signedPermissions = string.Empty;
@@ -93,11 +95,11 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             string signedVersion = StorageApiVersion;
 
             string stringToSign = ConstructServiceStringToSign(
-                signedPermissions, 
-                signedVersion, 
-                signedExpiry, 
-                canonicalizedResource, 
-                signedIdentifier, 
+                signedPermissions,
+                signedVersion,
+                signedExpiry,
+                canonicalizedResource,
+                signedIdentifier,
                 signedStart);
 
             byte[] signatureBytes = Encoding.UTF8.GetBytes(stringToSign);
@@ -108,12 +110,12 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             }
 
             string sasToken = string.Format(
-                "?sv={0}&sr={1}&sig={2}&st={3}&se={4}&sp={5}", 
-                WebUtility.UrlEncode(signedVersion), 
-                WebUtility.UrlEncode("c"), 
-                WebUtility.UrlEncode(signature), 
-                WebUtility.UrlEncode(signedStart), 
-                WebUtility.UrlEncode(signedExpiry), 
+                "?sv={0}&sr={1}&sig={2}&st={3}&se={4}&sp={5}",
+                WebUtility.UrlEncode(signedVersion),
+                WebUtility.UrlEncode("c"),
+                WebUtility.UrlEncode(signature),
+                WebUtility.UrlEncode(signedStart),
+                WebUtility.UrlEncode(signedExpiry),
                 WebUtility.UrlEncode(signedPermissions));
 
             return sasToken;
@@ -252,13 +254,8 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                     if (validationCallback == null)
                     {
                         // check if the response code is within the range of failures
-                        if (IsWithinRetryRange(response.StatusCode))
+                        if (!IsWithinRetryRange(response.StatusCode))
                         {
-                            loggingHelper.LogWarning("Request failed with status code {0}", response.StatusCode);
-                        }
-                        else
-                        {
-                            loggingHelper.LogMessage(MessageImportance.Low, "Response completed with status code {0}", response.StatusCode);
                             return response;
                         }
                     }
@@ -297,35 +294,35 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         }
 
         private static string ConstructServiceStringToSign(
-            string signedPermissions, 
-            string signedVersion, 
-            string signedExpiry, 
-            string canonicalizedResource, 
-            string signedIdentifier, 
-            string signedStart, 
-            string signedIP = "", 
-            string signedProtocol = "", 
-            string rscc = "", 
-            string rscd = "", 
-            string rsce = "", 
-            string rscl = "", 
+            string signedPermissions,
+            string signedVersion,
+            string signedExpiry,
+            string canonicalizedResource,
+            string signedIdentifier,
+            string signedStart,
+            string signedIP = "",
+            string signedProtocol = "",
+            string rscc = "",
+            string rscd = "",
+            string rsce = "",
+            string rscl = "",
             string rsct = "")
         {
             // constructing string to sign based on spec in https://msdn.microsoft.com/en-us/library/azure/dn140255.aspx
             var stringToSign = string.Join(
-                "\n", 
-                signedPermissions, 
-                signedStart, 
-                signedExpiry, 
-                canonicalizedResource, 
-                signedIdentifier, 
-                signedIP, 
-                signedProtocol, 
-                signedVersion, 
-                rscc, 
-                rscd, 
-                rsce, 
-                rscl, 
+                "\n",
+                signedPermissions,
+                signedStart,
+                signedExpiry,
+                canonicalizedResource,
+                signedIdentifier,
+                signedIP,
+                signedProtocol,
+                signedVersion,
+                rscc,
+                rscd,
+                rsce,
+                rscl,
                 rsct);
             return stringToSign;
         }
@@ -393,6 +390,73 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             }
 
             return dictionary;
+        }
+
+        public static Func<HttpRequestMessage> RequestMessage(string method, string url, string accountName, string accountKey, List<Tuple<string, string>> additionalHeaders = null, string body = null)
+        {
+            Func<HttpRequestMessage> requestFunc = () =>
+            {
+                HttpMethod httpMethod = HttpMethod.Get;
+                if(method == "PUT")
+                {
+                    httpMethod = HttpMethod.Put;
+                }
+                else if (method == "DELETE")
+                {
+                    httpMethod = HttpMethod.Delete;
+                }
+                DateTime dateTime = DateTime.UtcNow;
+                var request = new HttpRequestMessage(httpMethod, url);
+                request.Headers.Add(AzureHelper.DateHeaderString, dateTime.ToString("R", CultureInfo.InvariantCulture));
+                request.Headers.Add(AzureHelper.VersionHeaderString, AzureHelper.StorageApiVersion);
+                if (additionalHeaders != null)
+                {
+                    foreach (Tuple<string, string> additionalHeader in additionalHeaders)
+                    {
+                        request.Headers.Add(additionalHeader.Item1, additionalHeader.Item2);
+                    }
+                }
+                if (body != null)
+                {
+                    request.Content = new StringContent(body);
+                    request.Headers.Add(AzureHelper.AuthorizationHeaderString, AzureHelper.AuthorizationHeader(
+                        accountName,
+                        accountKey,
+                        method,
+                        dateTime,
+                        request,
+                        "",
+                        "",
+                        request.Content.Headers.ContentLength.ToString(),
+                        request.Content.Headers.ContentType.ToString()));
+                }
+                else
+                {
+                    request.Headers.Add(AzureHelper.AuthorizationHeaderString, AzureHelper.AuthorizationHeader(
+                        accountName,
+                        accountKey,
+                        method,
+                        dateTime,
+                        request));
+                }
+                return request;
+            };
+            return requestFunc;
+        }
+
+        public static string GetRootRestUrl(string accountName)
+        {
+            return $"https://{accountName}.blob.core.windows.net";
+        } 
+       
+        public static string GetContainerRestUrl(string accountName, string containerName)
+        {
+            return $"{GetRootRestUrl(accountName)}/{containerName}";
+        }
+
+        public static string GetBlobRestUrl(string accountName, string containerName, string blob)
+        {
+            return $"{GetContainerRestUrl(accountName, containerName)}/{blob}";
         }
     }
 }

@@ -67,7 +67,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             }
 
             Log.LogMessage(
-                MessageImportance.High, 
+                MessageImportance.Normal, 
                 "Begin uploading blobs to Azure account {0} in container {1}.", 
                 AccountName, 
                 ContainerName);
@@ -79,10 +79,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             }
 
             // first check what blobs are present
-            string checkListUrl = string.Format(
-                "https://{0}.blob.core.windows.net/{1}?restype=container&comp=list", 
-                AccountName, 
-                ContainerName);
+            string checkListUrl = $"{AzureHelper.GetContainerRestUrl(AccountName, ContainerName)}?restype=container&comp=list"; 
 
             HashSet<string> blobsPresent = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -90,20 +87,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             {
                 using (HttpClient client = new HttpClient())
                 {
-                    Func<HttpRequestMessage> createRequest = () =>
-                    {
-                        DateTime dt = DateTime.UtcNow;
-                        var req = new HttpRequestMessage(HttpMethod.Get, checkListUrl);
-                        req.Headers.Add(AzureHelper.DateHeaderString, dt.ToString("R", CultureInfo.InvariantCulture));
-                        req.Headers.Add(AzureHelper.VersionHeaderString, AzureHelper.StorageApiVersion);
-                        req.Headers.Add(AzureHelper.AuthorizationHeaderString, AzureHelper.AuthorizationHeader(
-                            AccountName,
-                            AccountKey,
-                            "GET",
-                            dt,
-                            req));
-                        return req;
-                    };
+                    var createRequest = AzureHelper.RequestMessage("GET", checkListUrl, AccountName, AccountKey);
 
                     Log.LogMessage(MessageImportance.Low, "Sending request to check whether Container blobs exist");
                     using (HttpResponseMessage response = await AzureHelper.RequestWithRetry(Log, client, createRequest))
@@ -127,7 +111,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                     await ThreadingTask.WhenAll(Items.Select(item => UploadAsync(ct, item, blobsPresent, clientThrottle)));
                 }
 
-                Log.LogMessage(MessageImportance.High, "Upload to Azure is complete, a total of {0} items were uploaded.", Items.Length);
+                Log.LogMessage(MessageImportance.Normal, "Upload to Azure is complete, a total of {0} items were uploaded.", Items.Length);
             }
             catch (Exception e)
             {

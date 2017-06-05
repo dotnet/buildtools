@@ -87,27 +87,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             Log.LogMessage(MessageImportance.Low, "Sending request to create Container");
             using (HttpClient client = new HttpClient())
             {
-                Func<HttpRequestMessage> createRequest = () =>
-                {
-                    DateTime dt = DateTime.UtcNow;
-                    var req = new HttpRequestMessage(HttpMethod.Put, url);
-                    req.Headers.Add(AzureHelper.DateHeaderString, dt.ToString("R", CultureInfo.InvariantCulture));
-                    req.Headers.Add(AzureHelper.VersionHeaderString, AzureHelper.StorageApiVersion);
-                    req.Headers.Add(AzureHelper.AuthorizationHeaderString, AzureHelper.AuthorizationHeader(
-                            AccountName,
-                            AccountKey,
-                            "PUT",
-                            dt,
-                            req));
-                    byte[] bytestoWrite = new byte[0];
-                    int bytesToWriteLength = 0;
-
-                    Stream postStream = new MemoryStream();
-                    postStream.Write(bytestoWrite, 0, bytesToWriteLength);
-                    req.Content = new StreamContent(postStream);
-
-                    return req;
-                };
+                var createRequest = AzureHelper.RequestMessage("PUT", url, AccountName, AccountKey);
 
                 Func<HttpResponseMessage, bool> validate = (HttpResponseMessage response) =>
                 {
