@@ -15,11 +15,13 @@
           BeforeTargets="GenerateTestExecutionScripts">
     <PropertyGroup>
       <__DumplingIncPathsArg>@(DumplingIncPaths -> '%(Identity)', ',')</__DumplingIncPathsArg>
+      <CrashDumpFolder Condition="'$(CrashDumpFolder)' == '' and Exists('/cores/')">/cores/</CrashDumpFolder>
+      <CrashDumpFolder Condition="'$(CrashDumpFolder)' == '' and '$(OS)' == 'Unix'">`pwd`</CrashDumpFolder>
     </PropertyGroup>
     <ItemGroup Condition="'$(TargetOS)'!='Windows_NT'">
       <TestCommandLines Include="python DumplingHelper.py install_dumpling" />
       <TestCommandLines Include="__TIMESTAMP=`python DumplingHelper.py get_timestamp`" />
-      <PostExecutionTestCommandLines Include="python DumplingHelper.py collect_dump $%3F `pwd` $__TIMESTAMP $(MSBuildProjectName) $(__DumplingIncPathsArg)" />
+      <PostExecutionTestCommandLines Include="python DumplingHelper.py collect_dump $%3F $(CrashDumpFolder) $__TIMESTAMP $(MSBuildProjectName) $(__DumplingIncPathsArg)" />
     </ItemGroup>
     <Error Condition="'$(TargetOS)' == 'Windows_NT' And '$(CrashDumpFolder)' == ''" Text="CrashDumpFolder must be set to use Dumpling on Windows." />
     <ItemGroup Condition="'$(TargetOS)'=='Windows_NT'">
