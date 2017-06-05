@@ -31,6 +31,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
 
             var runtimeItems = resolver.GetRuntimeItems(NuGetFramework.Parse("netcore50"), "win10-x64-aot");
 
+            Assert.Equal(1,0);
             Assert.NotNull(runtimeItems);
             Assert.Equal(1, runtimeItems.Items.Count);
 
