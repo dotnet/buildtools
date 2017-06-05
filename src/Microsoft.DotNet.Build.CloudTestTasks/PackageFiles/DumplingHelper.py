@@ -47,8 +47,10 @@ def find_latest_dump(folder, startTimeStr):
       return latestFile
   return None
 
-def collect_dump(exitcode, folder, startTimeStr, projectName, incpaths):
-  if (exitcode == "0"):
+def collect_dump(exitcodeStr, folder, startTimeStr, projectName, incpaths):
+  exitcode = int(exitcodeStr)
+
+  if (exitcode == 0):
     sys.exit(exitcode)
 
   if not ensure_installed():
