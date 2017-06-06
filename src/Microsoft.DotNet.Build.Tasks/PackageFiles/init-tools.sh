@@ -83,30 +83,35 @@ if [ -z "${__PUBLISH_RID:-}" ]; then
             ;;
 
         Linux)
-            if [ ! -e /etc/os-release ]; then
-                echo "Can not determine distribution, assuming Ubuntu 14.04"
-                __PUBLISH_RID=ubuntu.14.04-x64
-            else
+            __PUBLISH_RID=linux-x64
+            if [ -e /etc/os-release ]; then
                 source /etc/os-release
-                if [[ "$ID" == "ubuntu" && "$VERSION_ID" != "14.04" && "$VERSION_ID" != "16.04" ]]; then
-                echo "Unsupported Ubuntu version, falling back to Ubuntu 14.04"
-                __PUBLISH_RID=ubuntu.14.04-x64
-                else
-                __PUBLISH_RID=$ID.$VERSION_ID-x64
+                OS_RELEASE_RID=$ID.$VERSION_ID-x64
+                # RHEL bumps their OS Version with minor releases, but we only put the "rhel.7-x64" RID in our
+                # tool runtime, since there's binary compatibility between minor versions.
+                if [[ $OS_RELEASE_RID == rhel.7*-x64 ]]; then
+                    OS_RELEASE_RID=rhel.7-x64
                 fi
+
+                SUPPORTED_RIDS=("alpine.3.4.3-x64" "centos.7-x64" "debian.8-x64" "fedora.24-x64" "fedora.25-x64" "opensuse.42.1-x64" \
+                                "rhel.7-x64" "ubuntu.14.04-x64" "ubuntu.16.04-x64" "ubuntu.16.10-x64" )
+                for SUPPORTED_RID in "${SUPPORTED_RIDS[@]}"
+                do
+                    if [ "$SUPPORTED_RID" == "$OS_RELEASE_RID" ] ; then
+                        __PUBLISH_RID=$OS_RELEASE_RID
+                        break
+                    fi
+                done
             fi
 
-            # RHEL bumps their OS Version with minor releases, but we only put the "rhel.7-x64" RID in our
-            # tool runtime, since there's binary compatibility between minor versions.
-
-            if [[ $__PUBLISH_RID == rhel.7*-x64 ]]; then
-                __PUBLISH_RID=rhel.7-x64
+            if [ "$__PUBLISH_RID" == "linux-x64" ]; then
+                echo "Unsupported Linux flavor. Using Portable Linux."
             fi
             ;;
 
         *)
-            echo "Unsupported OS '$OSName' detected. Downloading ubuntu-x64 tools."
-            __PUBLISH_RID=ubuntu.14.04-x64
+            echo "Unsupported OS '$OSName' detected. Downloading linux-x64 tools."
+            __PUBLISH_RID=linux-x64
             ;;
     esac
 fi
@@ -116,7 +121,7 @@ cp -R $__TOOLS_DIR/* $__TOOLRUNTIME_DIR
 __TOOLRUNTIME_PROJECT=$__TOOLS_DIR/tool-runtime/project.$__PROJECT_EXTENSION
 
 echo "Running: $__DOTNET_CMD restore \"${__TOOLRUNTIME_PROJECT}\" $__TOOLRUNTIME_RESTORE_ARGS"
-$__DOTNET_CMD restore "${__TOOLRUNTIME_PROJECT}" $__TOOLRUNTIME_RESTORE_ARGS
+$__DOTNET_CMD restore "${__TOOLRUNTIME_PROJECT}" -r ${__PUBLISH_RID} $__TOOLRUNTIME_RESTORE_ARGS
 
 echo "Running: $__DOTNET_CMD publish \"${__TOOLRUNTIME_PROJECT}\" -f ${__PUBLISH_TFM} -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR"
 $__DOTNET_CMD publish "${__TOOLRUNTIME_PROJECT}" -f ${__PUBLISH_TFM} -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR
