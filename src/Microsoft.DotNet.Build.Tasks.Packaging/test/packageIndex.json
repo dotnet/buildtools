@@ -2,6 +2,12 @@
   "Packages": {
     "System.Runtime": {
       "BaselineVersion": "4.0.21"
+    },
+    "StableVersionTest": {
+      "StableVersions": [
+        "1.0.0",
+        "1.1.0"
+      ]
     }
   }
 }

@@ -16,6 +16,7 @@
   <ItemGroup>
     <Compile Include="CreateTrimDependencyGroupsTests.cs" />
     <Compile Include="ApplyBaseLineTests.cs" />
+    <Compile Include="GetLastStablePackageTests.cs" />
     <Compile Include="HarvestPackageTests.cs" />
     <Compile Include="NugetPropertyStringProviderTests.cs" />
     <Compile Include="NuGetAssetResolverTests.cs" />

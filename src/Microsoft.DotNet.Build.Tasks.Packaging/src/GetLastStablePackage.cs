@@ -96,6 +96,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     Log.LogError($"Could not parse version {versionString} for StablePackage {packageId}");
                     continue;
                 }
+                stableVersion = VersionUtility.As4PartVersion(stableVersion);
 
                 // only consider a stable version less or equal to than current version
                 if (latestVersion != null && stableVersion >= latestVersion)
@@ -135,7 +136,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 PackageInfo info;
                 if (index.Packages.TryGetValue(packageId, out info))
                 {
-                    var candidateVersions = (latestVersion == null) ? info.StableVersions : info.StableVersions.Where(sv => sv < latestVersion);
+                    var candidateVersions = (latestVersion == null) ? info.StableVersions : info.StableVersions.Where(sv => VersionUtility.As4PartVersion(sv) < latestVersion);
 
                     if (candidateVersions.Any())
                     {
