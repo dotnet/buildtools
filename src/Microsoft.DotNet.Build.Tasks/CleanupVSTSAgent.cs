@@ -29,11 +29,14 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public int MaximumWorkspacesToClean { get; set; } = 8;
 
+        public bool EnableLongPathRemoval { get; set; } = true;
+
         public int? SleepTimeInMilliseconds { get; set; }
         public ITaskItem[] ProcessNamesToKill { get; set; }
 
         private static readonly int s_DefaultRetries = 3;
         private static readonly int s_DefaultSleepTime = 2000;
+        private DateTime _timerStarted;
 
         public override bool Execute()
         {
@@ -54,6 +57,9 @@ namespace Microsoft.DotNet.Build.Tasks
             bool returnValue = false;
             Thread worker = new Thread(() => { returnValue = DoCleanupWork(); });
             worker.Start();
+
+            //  We'll use this to make sure that we at least try to clean up processes we start before tearing down.
+            _timerStarted = DateTime.Now;
 
             if (worker.Join((int)TimeSpan.FromMinutes(MaximumTimeInMinutes).TotalMilliseconds))
             {
@@ -345,6 +351,34 @@ namespace Microsoft.DotNet.Build.Tasks
                 if (Directory.Exists(directory))
                 {
                     Log.LogMessage($"Attempting to cleanup {directory} ... ");
+
+                    // Unlike OSX and Linux, Windows has a hard limit of 260 chars on paths.
+                    // Some build definitions leave paths this long behind.  It's unusual, 
+                    // but robocopy has been on Windows by default since XP and understands 
+                    // how to stomp on long paths, so we'll use it to clean directories on Windows first.
+                    if (EnableLongPathRemoval && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        // leave it 1 second to die if we have to kill it:
+                        int maxTimeMilliseconds = (int) ((TimeSpan.FromMinutes(MaximumTimeInMinutes) - (DateTime.Now - _timerStarted)).TotalMilliseconds - 1000);
+                        // And only start it if it has at least 1 second to run:
+                        if (maxTimeMilliseconds > 1000)
+                        {
+                            Log.LogMessage($"Preventing PathTooLongException by using robocopy to delete {directory} ");
+                            string emptyFolderToMirror = GetUniqueEmptyFolder();
+                            Process roboProcess = Process.Start(new ProcessStartInfo("robocopy.exe", $"/mir {emptyFolderToMirror} {directory}  /NJH /NJS /NP") { UseShellExecute = false });
+                            roboProcess.WaitForExit(maxTimeMilliseconds);
+
+                            roboProcess.Refresh();
+                            if (!roboProcess.HasExited)
+                            {
+                                Log.LogWarning($"RoboCopy process (PID: {roboProcess.Id}) did not exit in maximum allotted time ({maxTimeMilliseconds / 1000} sec), will try to kill");
+                                roboProcess.Kill();
+                            }
+
+                            Directory.Delete(emptyFolderToMirror);
+                        }
+                    }
+
                     Directory.Delete(directory, true);
                     Log.LogMessage("Success");
                 }
