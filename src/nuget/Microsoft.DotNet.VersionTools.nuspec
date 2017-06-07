@@ -18,8 +18,8 @@
       <group targetFramework="netstandard1.5">
         <dependency id="NETStandard.Library" version="1.6.0" />
         <dependency id="Newtonsoft.Json" version="9.0.1" />
-        <dependency id="NuGet.Packaging" version="4.0.0-rc-2129" />
-        <dependency id="NuGet.Versioning" version="4.0.0-rc-2129" />
+        <dependency id="NuGet.Packaging" version="4.3.0-preview2-4095" />
+        <dependency id="NuGet.Versioning" version="4.3.0-preview2-4095" />
         <dependency id="System.Diagnostics.Process" version="4.1.0" />
         <dependency id="System.Diagnostics.TraceSource" version="4.0.0" />
       </group>
