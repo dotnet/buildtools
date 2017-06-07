@@ -29,14 +29,14 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public int MaximumWorkspacesToClean { get; set; } = 8;
 
-        public bool AttemptMaxPathFolderRemoval { get; set; } = true;
+        public bool EnableLongPathRemoval { get; set; } = true;
 
         public int? SleepTimeInMilliseconds { get; set; }
         public ITaskItem[] ProcessNamesToKill { get; set; }
 
         private static readonly int s_DefaultRetries = 3;
         private static readonly int s_DefaultSleepTime = 2000;
-        private DateTime timerStarted;
+        private DateTime _timerStarted;
 
         public override bool Execute()
         {
@@ -59,7 +59,7 @@ namespace Microsoft.DotNet.Build.Tasks
             worker.Start();
 
             //  We'll use this to make sure that we at least try to clean up processes we start before tearing down.
-            timerStarted = DateTime.Now;
+            _timerStarted = DateTime.Now;
 
             if (worker.Join((int)TimeSpan.FromMinutes(MaximumTimeInMinutes).TotalMilliseconds))
             {
@@ -356,10 +356,10 @@ namespace Microsoft.DotNet.Build.Tasks
                     // Some build definitions leave paths this long behind.  It's unusual, 
                     // but robocopy has been on Windows by default since XP and understands 
                     // how to stomp on long paths, so we'll use it to clean directories on Windows first.
-                    if (AttemptMaxPathFolderRemoval && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    if (EnableLongPathRemoval && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
                         // leave it 1 second to die if we have to kill it:
-                        int maxTimeMilliseconds = (int) ((TimeSpan.FromMinutes(MaximumTimeInMinutes) - (DateTime.Now - timerStarted)).TotalMilliseconds - 1000);
+                        int maxTimeMilliseconds = (int) ((TimeSpan.FromMinutes(MaximumTimeInMinutes) - (DateTime.Now - _timerStarted)).TotalMilliseconds - 1000);
                         // And only start it if it has at least 1 second to run:
                         if (maxTimeMilliseconds > 1000)
                         {
