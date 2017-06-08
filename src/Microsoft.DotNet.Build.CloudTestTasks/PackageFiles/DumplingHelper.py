@@ -11,17 +11,17 @@ def get_timestamp():
   print(time.time())
 
 def install_dumpling():
-  if (not os.path.isfile(dumplingPath)):
-    url = "https://dumpling.azurewebsites.net/api/client/dumpling.py"
-    scriptPath = os.path.dirname(os.path.realpath(__file__))
-    downloadLocation = scriptPath + "/dumpling.py"
-    urllib.urlretrieve(url, downloadLocation)
-    subprocess.call([sys.executable, downloadLocation, "install", "--update"])
-  # Dumpling installation crashes on OSX when "--full" is used. See: https://github.com/Microsoft/dumpling/issues/29
-  if (sys.platform == "darwin"):
+  try:
+    if (not os.path.isfile(dumplingPath)):
+      url = "https://dumpling.azurewebsites.net/api/client/dumpling.py"
+      scriptPath = os.path.dirname(os.path.realpath(__file__))
+      downloadLocation = scriptPath + "/dumpling.py"
+      urllib.urlretrieve(url, downloadLocation)
+      subprocess.call([sys.executable, downloadLocation, "install", "--update"])
+
     subprocess.call([sys.executable, dumplingPath, "install"])
-  else:
-    subprocess.call([sys.executable, dumplingPath, "install", "--full"])
+  except:
+    print("An unexpected error was encountered while installing dumpling.py: " + sys.exc_info()[0])
 
 def ensure_installed():
   if (not os.path.isfile(dumplingPath)):
