@@ -14,7 +14,6 @@
     "NuGet.Commands": "4.3.0-preview2-4095",
     "NuGet.Packaging": "4.3.0-preview2-4095",
     "NuGet.ProjectModel": "4.3.0-preview2-4095",
-    "NuGet.RuntimeModel": "4.3.0-preview2-4095",
     "NuGet.Versioning": "4.3.0-preview2-4095",
     "System.Diagnostics.TraceSource": "4.0.0",
     "System.Dynamic.Runtime": "4.0.11",
