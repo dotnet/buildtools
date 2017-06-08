@@ -18,4 +18,4 @@ foreach ($file in Get-ChildItem $ToolRuntimePath *.runtimeconfig.json)
 # Make a directory in the root of the tools folder that matches the buildtools version, this is done so
 # the init-tools.cmd (that is checked into each repository that uses buildtools) can write the semaphore
 # marker into this file once tool initialization is complete.
-New-Item -Type Directory (Join-Path $ToolRuntimePath (Split-Path -Leaf (Split-Path $BuildToolsPackageDir)))
+New-Item -Force -Type Directory (Join-Path $ToolRuntimePath (Split-Path -Leaf (Split-Path $BuildToolsPackageDir)))
