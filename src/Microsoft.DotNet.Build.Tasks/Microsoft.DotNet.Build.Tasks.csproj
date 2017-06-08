@@ -49,6 +49,7 @@
     <Compile Include="GetDoItemsIntersect.cs" />
     <Compile Include="NugetMsBuildLogger.cs" />
     <Compile Include="NuGetPackageObject.cs" />
+    <Compile Include="ExecWithRetries.cs" />
     <Compile Include="OpenSourceSign.cs" />
     <Compile Include="ParseTestCoverageInfo.cs" />
     <Compile Include="PreprocessFile.cs" />
