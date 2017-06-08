@@ -83,6 +83,11 @@
   <Import Project="$(MSBuildThisFileDirectory)Symbols.targets" />
 
   <!--
+    Import the PublishProduct.targets file for publish tooling like NuGetPush.
+  -->
+  <Import Project="$(MSBuildThisFileDirectory)PublishProduct.targets" />
+
+  <!--
     Import the default target framework targets.
 
     Inputs:
