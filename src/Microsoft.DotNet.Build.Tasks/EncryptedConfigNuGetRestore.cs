@@ -44,7 +44,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 Log = new NugetMsBuildLogger(new TaskLoggingHelper(this))
             };
 
-            RestoreRunner.Run(args).Wait();
+            RestoreRunner.RunAsync(args).Wait();
 
             return !Log.HasLoggedErrors;
         }
