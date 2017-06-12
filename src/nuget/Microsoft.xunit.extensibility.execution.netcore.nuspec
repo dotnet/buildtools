@@ -11,8 +11,8 @@
         in the xunit-perfomance library (github.com/Microsoft/xunit-performance)
     </description>
     <language>en-US</language>
-    <projectUrl>https://github.com/Microsoft/xunit-performance</projectUrl>
-    <licenseUrl>https://raw.githubusercontent.com/Microsoft/xunit-performance/master/LICENSE</licenseUrl>
+    <projectUrl>http://go.microsoft.com/fwlink/?LinkId=518631</projectUrl>
+    <licenseUrl>http://go.microsoft.com/fwlink/?LinkId=329770</licenseUrl>
     <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <dependencies>
