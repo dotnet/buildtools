@@ -2,7 +2,6 @@
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration>Release</Configuration>
-    <Platform>x64</Platform>
   </PropertyGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.props))\dir.props" />
   <ItemGroup Label="ProjectConfigurations">
@@ -12,6 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
+    <Configuration>Release</Configuration>
+    <Platform>x64</Platform>
     <ProjectGuid>{177AA879-D233-4A16-8398-8BDF5D5E1ED8}</ProjectGuid>
     <Keyword>ManagedCProj</Keyword>
     <RootNamespace>WindowsStoreAppLauncher</RootNamespace>
