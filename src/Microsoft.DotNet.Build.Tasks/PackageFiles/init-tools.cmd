@@ -118,7 +118,13 @@ Robocopy "%PACKAGES_DIR%\MicroBuild.Core\%MICROBUILD_VERSION%\build\." "%TOOLRUN
 :: Copy Roslyn Compilers Over to ToolRuntime
 Robocopy "%PACKAGES_DIR%\Microsoft.Net.Compilers\%ROSLYNCOMPILERS_VERSION%\." "%TOOLRUNTIME_DIR%\net46\roslyn\." /E
 
-echo "Calling powershell initialization script."
+@echo on
 powershell -NoProfile -ExecutionPolicy unrestricted %BUILDTOOLS_PACKAGE_DIR%\init-tools.ps1 -ToolRuntimePath %TOOLRUNTIME_DIR% -DotnetCmd %DOTNET_CMD% -BuildToolsPackageDir %BUILDTOOLS_PACKAGE_DIR%
+set POWERSHELL_INIT_TOOLS_ERROR_LEVEL=%ERRORLEVEL%
+@echo off
+if not [%POWERSHELL_INIT_TOOLS_ERROR_LEVEL%]==[0] (
+  echo ERROR: An error occurred when running: 'powershell -NoProfile -ExecutionPolicy unrestricted %BUILDTOOLS_PACKAGE_DIR%\init-tools.ps1 -ToolRuntimePath %TOOLRUNTIME_DIR% -DotnetCmd %DOTNET_CMD% -BuildToolsPackageDir %BUILDTOOLS_PACKAGE_DIR%'. Please check above for more details.
+  exit /b %POWERSHELL_INIT_TOOLS_ERROR_LEVEL%
+)
 
 exit /b 0
