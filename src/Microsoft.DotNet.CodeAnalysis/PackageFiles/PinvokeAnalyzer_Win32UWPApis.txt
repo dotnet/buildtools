@@ -38,6 +38,7 @@ advapi32.dll!CryptGetUserKey
 advapi32.dll!CryptHashData
 advapi32.dll!CryptImportKey
 advapi32.dll!CryptReleaseContext
+Advapi32.dll!CryptReleaseContext
 advapi32.dll!CryptSetHashParam
 advapi32.dll!CryptSetKeyParam
 advapi32.dll!CryptSetProvParam
@@ -2981,6 +2982,8 @@ kernel32.dll!ExpandEnvironmentStringsA
 kernel32.dll!ExpandEnvironmentStringsW
 kernel32.dll!FileTimeToLocalFileTime
 kernel32.dll!FileTimeToSystemTime
+kernel32.dll!FillConsoleOutputAttribute
+kernel32.dll!FillConsoleOutputCharacterW
 kernel32.dll!FindClose
 kernel32.dll!FindFirstFileA
 kernel32.dll!FindFirstFileExA
@@ -3011,6 +3014,12 @@ kernel32.dll!GetCommandLineA
 kernel32.dll!GetCommandLineW
 kernel32.dll!GetComputerNameA
 kernel32.dll!GetComputerNameW
+kernel32.dll!GetConsoleCP
+kernel32.dll!GetConsoleCursorInfo
+kernel32.dll!GetConsoleMode
+kernel32.dll!GetConsoleOutputCP
+kernel32.dll!GetConsoleScreenBufferInfo
+kernel32.dll!GetConsoleTitleW
 kernel32.dll!GetCPInfo
 kernel32.dll!GetCPInfoExW
 kernel32.dll!GetCurrencyFormatEx
@@ -3052,6 +3061,7 @@ kernel32.dll!GetFullPathNameA
 kernel32.dll!GetFullPathNameW
 kernel32.dll!GetGeoInfoW
 kernel32.dll!GetLargePageMinimum
+kernel32.dll!GetLargestConsoleWindowSize
 kernel32.dll!GetLastError
 kernel32.dll!GetLocaleInfoA
 kernel32.dll!GetLocaleInfoEx
@@ -3216,6 +3226,7 @@ kernel32.dll!PackageFamilyNameFromId
 kernel32.dll!PackageFullNameFromId
 kernel32.dll!PackageIdFromFullName
 kernel32.dll!PackageNameAndPublisherIdFromFamilyName
+kernel32.dll!PeekConsoleInputW
 kernel32.dll!PeekNamedPipe
 kernel32.dll!PostQueuedCompletionStatus
 kernel32.dll!QueryAuxiliaryCounterFrequency
@@ -3230,6 +3241,9 @@ kernel32.dll!QueryUnbiasedInterruptTimePrecise
 kernel32.dll!QueueUserAPC
 kernel32.dll!RaiseException
 kernel32.dll!RaiseFailFastException
+kernel32.dll!ReadConsoleInputW
+kernel32.dll!ReadConsoleOutputW
+kernel32.dll!ReadConsoleW
 kernel32.dll!ReadDirectoryChangesW
 kernel32.dll!ReadFile
 kernel32.dll!ReadFileEx
@@ -3254,6 +3268,16 @@ kernel32.dll!RtlLookupFunctionEntry
 kernel32.dll!RtlPcToFileHeader
 kernel32.dll!RtlUnwind
 kernel32.dll!RtlUnwindEx
+kernel32.dll!SetConsoleCP
+kernel32.dll!SetConsoleCtrlHandler
+kernel32.dll!SetConsoleCursorInfo
+kernel32.dll!SetConsoleCursorPosition
+kernel32.dll!SetConsoleMode
+kernel32.dll!SetConsoleOutputCP
+kernel32.dll!SetConsoleScreenBufferSize
+kernel32.dll!SetConsoleTextAttribute
+kernel32.dll!SetConsoleTitleW
+kernel32.dll!SetConsoleWindowInfo
 kernel32.dll!SetCriticalSectionSpinCount
 kernel32.dll!SetCurrentDirectoryW
 kernel32.dll!SetEndOfFile
@@ -3354,6 +3378,8 @@ kernel32.dll!WerUnregisterExcludedMemoryBlock
 kernel32.dll!WerUnregisterFile
 kernel32.dll!WerUnregisterMemoryBlock
 kernel32.dll!WideCharToMultiByte
+kernel32.dll!WriteConsoleOutputW
+kernel32.dll!WriteConsoleW
 kernel32.dll!WriteFile
 kernel32.dll!WriteFileEx
 kernel32legacy.dll!GetSystemPowerStatus
