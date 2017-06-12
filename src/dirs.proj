@@ -3,7 +3,7 @@
 
   <ItemGroup>
     <!-- Exclude the UAP runner from the build as it depends on Win10 SDKs -->
-    <ProjectsToExclude Include="xunit.runner.uap\XUnit.Runner.Uap.csproj" />
+    <ProjectsToExclude Include="xunit.runner.uap\XUnit.Runner.Uap.csproj" Condition="'$(OSEnvironment)' != 'Windows_NT'" />
     <ProjectsToExclude Include="xunit.runner.uap\RunnerRemoteExecutionServiceUAP\RunnerRemoteExecutionServiceUAP.csproj" />
     <!-- tool-runtime\project.csproj is not a real project to build, it's part of the buildtools package for initialization. -->
     <ProjectsToExclude Include="Microsoft.DotNet.Build.Tasks\PackageFiles\tool-runtime\project.csproj" />
@@ -14,6 +14,7 @@
   <ItemGroup>
     <Project Include="*\**\*.csproj" Exclude="@(ProjectsToExclude)" />
     <Project Include="*\**\*.depproj" />
+    <Project Include="WindowsStoreAppLauncher\WindowsStoreAppLauncher.vcxproj" Condition="'$(OSEnvironment)' == 'Windows_NT'" />
   </ItemGroup>
 
   <Import Project="..\dir.targets" />
