@@ -40,6 +40,7 @@
 
     <AdditionalFiles Include="$(MSBuildProjectDirectory)/*.analyzerdata" />
     <AdditionalFiles Include="$(MSBuildProjectDirectory)/*.analyzerdata.$(Platform)" />
+    <AdditionalFiles Include="$(MSBuildProjectDirectory)/*.analyzerdata.$(TargetGroup)" />
 
     <!-- Add the necessary valid Pinvoke mapping file -->
     <AdditionalFiles Condition="'$(ValidPInvokeMappings)' != ''" Include="$(ValidPInvokeMappings)"/>
