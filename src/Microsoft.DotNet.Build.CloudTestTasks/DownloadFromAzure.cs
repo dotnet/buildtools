@@ -87,6 +87,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                         int dirIndex = blob.LastIndexOf("/");
                         string blobDirectory = string.Empty;
                         string blobFilename = string.Empty;
+
                         if (dirIndex == -1)
                         {
                             blobFilename = blob;
@@ -95,10 +96,16 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                         {
                             blobDirectory = blob.Substring(0, dirIndex);
                             blobFilename = blob.Substring(dirIndex + 1);
-                        }
-                        if(BlobNamePrefix != null)
-                        {
-                            blobDirectory = blobDirectory.Substring(BlobNamePrefix.Length);
+
+                            // Trim blob name prefix (directory part) from download to blob directory
+                            if(BlobNamePrefix != null)
+                            {
+                                if(BlobNamePrefix.Length > dirIndex)
+                                {
+                                    BlobNamePrefix = BlobNamePrefix.Substring(0, dirIndex);
+                                }
+                                blobDirectory = blobDirectory.Substring(BlobNamePrefix.Length);
+                            }
                         }
                         string downloadBlobDirectory = Path.Combine(DownloadDirectory, blobDirectory);
                         if (!Directory.Exists(downloadBlobDirectory))
