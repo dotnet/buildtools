@@ -126,6 +126,7 @@
     </ItemGroup>
 
     <PrereleaseResolveNuGetPackageAssets ProjectLockFile="$(OptionalToolingProjectLockJsonPath)"
+                                         NuGetPackagesDirectory="$(PackagesDir)"
                                          TargetMonikers="@(OptionalToolingTargetMoniker)">
       <Output TaskParameter="ResolvedReferences" ItemName="ResolvedOptionalToolReferences" />
     </PrereleaseResolveNuGetPackageAssets>
