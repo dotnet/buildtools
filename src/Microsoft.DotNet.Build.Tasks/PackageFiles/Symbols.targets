@@ -315,7 +315,9 @@
     </ZipFileGetEntries>
 
     <ItemGroup>
-      <SymbolPackageEntryCrossExtensionsToCatalog Include="@(SymbolPackageEntry)">
+      <!-- files like _.pdb and _._ are empty and makecat doesn't handle empty files -->
+      <FilteredSymbolPackageEntries Include="@(SymbolPackageEntry)" Condition="'%(Filename)' != '_'" />
+      <SymbolPackageEntryCrossExtensionsToCatalog Include="@(FilteredSymbolPackageEntries)">
         <AttemptMatchExtension>%(ExtensionToCatalog.Identity)</AttemptMatchExtension>
       </SymbolPackageEntryCrossExtensionsToCatalog>
 
@@ -344,7 +346,7 @@
         PublicVersion=2;
         CatalogVersion=2;
         HashAlgorithms=SHA256;
-        PageHashes=true;
+        PageHashes=false;
         EncodingType=0x00010001;
         CATATTR1=0x10010001:OSAttr:2:6.4;
         [CatalogFiles]
