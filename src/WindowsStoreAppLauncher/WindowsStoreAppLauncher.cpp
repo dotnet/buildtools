@@ -250,12 +250,11 @@ void Execute(const unique_ptr<App>& app, const ArgInfo& info, DWORD& exitCode)
       app->Stop();
     }
 
-    wprintf(L"Disabling the debugger...\n");
     app->DisableDebug();
 
-    if (info.isTestApp)
+    if (info.isTestApp && !app->GetAppStdOutContent().empty())
     {
-      wprintf(L"\n\nSTDOUT & STDERR from imersive process:\n");
+      wprintf(L"\n\nSTDOUT & STDERR from app:\n");
       wprintf(L"==================================================================================\n");
       wprintf(L"%s\n", app->GetAppStdOutContent().c_str());
       wprintf(L"==================================================================================\n");

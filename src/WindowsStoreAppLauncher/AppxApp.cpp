@@ -396,7 +396,7 @@ wstring AppxApp::GetAppStdOutContent()
   }
   catch (...)
   {
-    return L"(null)";
+    return L"";
   }
 }
 
