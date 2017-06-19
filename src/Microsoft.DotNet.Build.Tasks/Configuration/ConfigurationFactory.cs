@@ -44,7 +44,7 @@ namespace Microsoft.DotNet.Build.Tasks
             }
 
             AllPropertyValues = propertyValueGrouping
-                .ToDictionary(g => g.Key, g => g.Single());
+                .ToDictionary(g => g.Key, g => g.Single(), StringComparer.OrdinalIgnoreCase);
 
             PropertyValues = AllPropertyValues.Values
                 .GroupBy(v => v.Property)
