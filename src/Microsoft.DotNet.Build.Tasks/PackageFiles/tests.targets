@@ -224,6 +224,8 @@
             ====================================================== -->
     <PropertyGroup Condition="'$(UseDotNetNativeToolchain)' == 'true'">
       <ILCBuildType Condition="'$(ILCBuildType)' == ''">ret</ILCBuildType>
+      <EnableMultifileTesting Condition="'$(ConfigurationGroup)' == 'Release' And '$(ArchGroup)' == 'x64'">true</EnableMultifileTesting>
+      <_UseSharedAssemblies Condition="'$(EnableMultifileTesting)' == 'true'">-useSharedAssemblies</_UseSharedAssemblies>
       <_TestILCFolder>%RUNTIME_PATH%\TestILC</_TestILCFolder>
       <_Runtime_Path>%RUNTIME_PATH%\ILCInputFolder\</_Runtime_Path>
       <!-- Currently (and probably forever) we can't build UAPAOT on ARM,
@@ -240,8 +242,9 @@
       <TestCommandLines Include="copy /y $(_TestILCFolder)\default.rd.xml  %EXECUTION_DIR%" />
       <TestCommandLines Include="rmdir /S /Q %EXECUTION_DIR%int" />
       <TestCommandLines Include="rmdir /S /Q %EXECUTION_DIR%native" />
+      <TestCommandLines Condition="'$(EnableMultifileTesting)' == 'true'" Include="call %RUNTIME_PATH%\TestILC\ilc.exe -buildSharedAssemblies -buildtype $(ILCBuildType) -v diag"/>
       <TestCommandLines Include="@(TargetExecutableNames -> '
-call %RUNTIME_PATH%\TestILC\ilc.exe -ExeName %(Identity) -in %EXECUTION_DIR% -out %EXECUTION_DIR%int\%(Identity)\ -usedefaultpinvoke -buildtype $(ILCBuildType) -v diag
+call %RUNTIME_PATH%\TestILC\ilc.exe -ExeName %(Identity) -in %EXECUTION_DIR% -out %EXECUTION_DIR%int\%(Identity)\ -usedefaultpinvoke -buildtype $(ILCBuildType) -v diag $(_UseSharedAssemblies)
 set ILCERRORLEVEL=%ERRORLEVEL%
 if NOT [%ILCERRORLEVEL%] == [0] exit /b %ILCERRORLEVEL%
 robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
