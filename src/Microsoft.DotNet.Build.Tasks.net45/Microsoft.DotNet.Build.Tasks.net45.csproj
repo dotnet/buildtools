@@ -7,6 +7,7 @@
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
     <ImportedProjectRelativePath>..\Microsoft.DotNet.Build.Tasks\</ImportedProjectRelativePath>
     <ProjectGuid>{B3331D88-7569-42D5-919B-F267DA011911}</ProjectGuid>
+    <DefineConstants>net45</DefineConstants>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <Import Project="$(ImportedProjectRelativePath)Microsoft.DotNet.Build.Tasks.csproj" />
