@@ -25,8 +25,6 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public int? Retries { get; set; }
 
-        public double MaximumTimeInMinutes { get; set; } = 10;
-
         public int MaximumWorkspacesToClean { get; set; } = 8;
 
         public bool EnableLongPathRemoval { get; set; } = true;

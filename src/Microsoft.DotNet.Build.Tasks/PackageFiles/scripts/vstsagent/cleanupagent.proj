@@ -10,7 +10,6 @@
     <RetentionDays Condition="'$(RetentionDays)' == ''">1</RetentionDays>
     <DoClean Condition="'$(DoClean)' == ''">false</DoClean>
     <DoReport Condition="'$(DoReport)' == ''">true</DoReport>
-    <MaximumTimeInMinutes>10</MaximumTimeInMinutes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,7 +22,6 @@
                       RetentionDays="$(RetentionDays)"
                       Clean="$(DoClean)"
                       Report="$(DoReport)"
-                      ProcessNamesToKill="@(ProcessNamesToKill)"
-                      MaximumTimeInMinutes="$(MaximumTimeInMinutes)" />
+                      ProcessNamesToKill="@(ProcessNamesToKill)" />
   </Target>
 </Project>
