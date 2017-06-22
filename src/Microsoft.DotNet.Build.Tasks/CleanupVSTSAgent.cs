@@ -225,72 +225,81 @@ namespace Microsoft.DotNet.Build.Tasks
             bool returnStatus = true;
             DateTime now = DateTime.Now;
             int cleanupTaskCount = 0;
-
-            // Cleanup the agents that the VSTS agent is tracking
-            string[] sourceFolderJsons = Directory.GetFiles(Path.Combine(AgentDirectory, "_work", "SourceRootMapping"), "SourceFolder.json", SearchOption.AllDirectories);
-            HashSet<string> knownDirectories = new HashSet<string>();
             List<System.Threading.Tasks.Task<bool>> cleanupTasks = new List<System.Threading.Tasks.Task<bool>>();
 
-            Log.LogMessage($"Found {sourceFolderJsons.Length} known agent working directories.  (Will clean up to {MaximumWorkspacesToClean} of them)");
-
-            foreach (var sourceFolderJson in sourceFolderJsons)
+            // Cleanup the agents that the VSTS agent is tracking
+            if (Directory.Exists(AgentDirectory))
             {
-                Log.LogMessage($"Examining {sourceFolderJson} ...");
+                string[] sourceFolderJsons = Directory.GetFiles(AgentDirectory, "SourceFolder.json", SearchOption.AllDirectories);
+                HashSet<string> knownDirectories = new HashSet<string>();
 
-                Tuple<string, string, DateTime> agentInfo = await GetAgentInfoAsync(sourceFolderJson);
-                string workDirectory = Path.Combine(AgentDirectory, "_work", agentInfo.Item2);
-                knownDirectories.Add(workDirectory);
+                Log.LogMessage($"Found {sourceFolderJsons.Length} known agent working directories.  (Will clean up to {MaximumWorkspacesToClean} of them)");
 
-                TimeSpan span = new TimeSpan(now.Ticks - agentInfo.Item3.Ticks);
-                if (cleanupTaskCount < MaximumWorkspacesToClean)
+                string workDirectoryRoot = Directory.GetDirectories(AgentDirectory, "_work", SearchOption.AllDirectories).FirstOrDefault();
+
+                foreach (var sourceFolderJson in sourceFolderJsons)
                 {
-                    if (span.TotalDays > RetentionDays)
+                    Log.LogMessage($"Examining {sourceFolderJson} ...");
+
+                    Tuple<string, string, DateTime> agentInfo = await GetAgentInfoAsync(sourceFolderJson);
+                    string workDirectory = Path.Combine(workDirectoryRoot, agentInfo.Item2);
+                    knownDirectories.Add(workDirectory);
+
+                    TimeSpan span = new TimeSpan(now.Ticks - agentInfo.Item3.Ticks);
+                    if (cleanupTaskCount < MaximumWorkspacesToClean)
                     {
-                        cleanupTasks.Add(CleanupAgentAsync(workDirectory, Path.GetDirectoryName(agentInfo.Item1)));
-                        cleanupTaskCount++;
+                        if (span.TotalDays > RetentionDays)
+                        {
+                            cleanupTasks.Add(CleanupAgentAsync(workDirectory, Path.GetDirectoryName(agentInfo.Item1)));
+                            cleanupTaskCount++;
+                        }
+                        else
+                        {
+                            Log.LogMessage($"Skipping cleanup for {sourceFolderJson}, it is newer than {RetentionDays} days old, last run date is '{agentInfo.Item3.ToString()}'");
+                        }
                     }
                     else
                     {
-                        Log.LogMessage($"Skipping cleanup for {sourceFolderJson}, it is newer than {RetentionDays} days old, last run date is '{agentInfo.Item3.ToString()}'");
-                    }
-                }
-                else
-                {
-                    // We've taken enough cleanup tasks per the value of MaximumWorkspaces
-                    break;
-                }
-            }
-
-            System.Threading.Tasks.Task.WaitAll(cleanupTasks.ToArray());
-            foreach (var cleanupTask in cleanupTasks)
-            {
-                returnStatus &= cleanupTask.Result;
-            }
-
-            // Attempt to cleanup any working folders which the VSTS agent doesn't know about.
-            Log.LogMessage("Looking for additional '_work' directories which are unknown to the agent.");
-            cleanupTasks.Clear();
-            if (cleanupTaskCount < MaximumWorkspacesToClean)
-            {
-                Regex workingDirectoryRegex = new Regex(@"[/\\]\d+$");
-                var workingDirectories = Directory.GetDirectories(Path.Combine(AgentDirectory, "_work"), "*", SearchOption.TopDirectoryOnly).Where(w => workingDirectoryRegex.IsMatch(w));
-                foreach (var workingDirectory in workingDirectories)
-                {
-                    if (cleanupTaskCount >= MaximumWorkspacesToClean)
-                    {
+                        // We've taken enough cleanup tasks per the value of MaximumWorkspaces
                         break;
                     }
-                    if (!knownDirectories.Contains(workingDirectory))
+                }
+
+                System.Threading.Tasks.Task.WaitAll(cleanupTasks.ToArray());
+                foreach (var cleanupTask in cleanupTasks)
+                {
+                    returnStatus &= cleanupTask.Result;
+                }
+
+                // Attempt to cleanup any working folders which the VSTS agent doesn't know about.
+                Log.LogMessage("Looking for additional '_work' directories which are unknown to the agent.");
+                cleanupTasks.Clear();
+                if (cleanupTaskCount < MaximumWorkspacesToClean)
+                {
+                    Regex workingDirectoryRegex = new Regex(@"[/\\]\d+$");
+                    var workingDirectories = Directory.GetDirectories(workDirectoryRoot, "*", SearchOption.TopDirectoryOnly).Where(w => workingDirectoryRegex.IsMatch(w));
+                    foreach (var workingDirectory in workingDirectories)
                     {
-                        cleanupTasks.Add(CleanupDirectoryAsync(workingDirectory));
-                        cleanupTaskCount++;
+                        if (cleanupTaskCount >= MaximumWorkspacesToClean)
+                        {
+                            break;
+                        }
+                        if (!knownDirectories.Contains(workingDirectory))
+                        {
+                            cleanupTasks.Add(CleanupDirectoryAsync(workingDirectory));
+                            cleanupTaskCount++;
+                        }
                     }
                 }
+                System.Threading.Tasks.Task.WaitAll(cleanupTasks.ToArray());
+                foreach (var cleanupTask in cleanupTasks)
+                {
+                    returnStatus &= cleanupTask.Result;
+                }
             }
-            System.Threading.Tasks.Task.WaitAll(cleanupTasks.ToArray());
-            foreach (var cleanupTask in cleanupTasks)
+            else
             {
-                returnStatus &= cleanupTask.Result;
+                Log.LogMessage($"Agent directory not found at '{AgentDirectory}', skipping agent cleanup.");
             }
 
             // Cleanup the TEMP folder
@@ -333,7 +342,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 // The cleanup task should never try to clean itself up
                 foreach (string protectedDirectory in protectedDirectories)
                 {
-                    if (protectedDirectory.Contains(directory))
+                    if (protectedDirectory.Contains(directory) || directory.Contains(protectedDirectory))
                     {
                         Console.WriteLine($"Specified cleanup directory ('{directory}') is a protected directory ('{protectedDirectory}'), skipping.");
                         return true;
