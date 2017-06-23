@@ -63,8 +63,6 @@
   <!-- list of nuget package sources passed to nuget.exe -->
   <ItemGroup>
     <NuGetSourceList Include="https:%2F%2Fdotnet.myget.org/F/dotnet-buildtools" />
-    <!-- DO NOT USE THIS SOURCE! It is not retained, and only in this commit for testing. -->
-    <NuGetSourceList Include="https:%2F%2Fdotnet.myget.org/F/nuget-build/api/v3/index.json" />
     <NuGetSourceList Include="https:%2F%2Fwww.nuget.org/api/v2" />
   </ItemGroup>
 
