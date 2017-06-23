@@ -231,6 +231,11 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 innerWriter.WriteNameArray(name, values);
             }
 
+            public void WriteNameValue(string name, bool value)
+            {
+                innerWriter.WriteNameValue(name, value);
+            }
+
             public void WriteNameValue(string name, string value)
             {
                 // if we are writing a version range with no upper bound, only write the lower bound

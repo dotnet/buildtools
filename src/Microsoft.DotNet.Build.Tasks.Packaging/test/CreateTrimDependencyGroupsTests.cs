@@ -139,9 +139,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
             Assert.Equal(0, _log.WarningsLogged);
 
             // Assert that we're adding dependency groups that cover all inbox TFMs
-            Assert.Equal(2, task.TrimmedDependencies.Length);
+            Assert.Equal(1, task.TrimmedDependencies.Length);
             Assert.Equal(1, task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Equals("portable45-net45+win8+wp8+wpa81")).Count());
-            Assert.Equal(1, task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Equals("xamarinmac20")).Count());
             // Assert these are empty dependencygroups.
             Assert.All(task.TrimmedDependencies, f => f.ToString().Equals("_._"));
         }
@@ -307,10 +306,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
             IEnumerable<string> tmp = task.TrimmedDependencies.Select(f => f.GetMetadata("TargetFramework"));
 
             // Assert that we're creating new dependency groups
-            Assert.Equal(2, task.TrimmedDependencies.Length);
-
-            // System.Collections.Immutable is not inbox
-            Assert.Equal(1, task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Equals("xamarinmac20")).Count());
+            Assert.Equal(1, task.TrimmedDependencies.Length);
 
             // The only added dependency in portable45-net45+win8+wpa81 is System.Collections.Immutable
             Assert.Equal("System.Collections.Immutable", task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Equals("portable45-net45+win8+wpa81")).Single().ItemSpec);

@@ -70,12 +70,13 @@
     </StaticDependency>
 
     <NuGetDependency Include="NuGet.Client"/>
+    <NuGetDependency Include="NuGet.Commands"/>
     <NuGetDependency Include="NuGet.Packaging"/>
     <NuGetDependency Include="NuGet.ProjectModel"/>
     <NuGetDependency Include="NuGet.RuntimeModel"/>
     <NuGetDependency Include="NuGet.Versioning"/>
     <StaticDependency Include="@(NuGetDependency)">
-      <Version>4.0.0-rc-2129</Version>
+      <Version>4.3.0-preview2-4095</Version>
     </StaticDependency>
 
     <NETCoreDependency Include="Microsoft.NETCore.App"/>
