@@ -52,7 +52,13 @@
 
   <!-- If we have specified any analyzers that need to be disabled write them into the file -->
   <Target Name="GenerateAnalyzerConfigFile" BeforeTargets="CoreCompile" Condition="'@(DisabledAnalyzers)'!='' and '$(EnableDotnetAnalyzers)' == 'true'" >
-    <WriteLinesToFile File="$(IntermediateOutputPath)/disabledAnalyzers.config" Lines="@(DisabledAnalyzers)" Overwrite="true" />
+    <!-- Write the file only if it changed -->
+    <ReadLinesFromFile File="$(IntermediateOutputPath)/disabledAnalyzers.config">
+      <Output TaskParameter="Lines" ItemName="_DisabledAnalyzers" />
+    </ReadLinesFromFile>
+
+    <WriteLinesToFile File="$(IntermediateOutputPath)/disabledAnalyzers.config" Lines="@(DisabledAnalyzers)" Overwrite="true" 
+                      Condition="'@(DisabledAnalyzers)' != '@(_DisabledAnalyzers)'"/>
 
     <ItemGroup>
       <AdditionalFiles Include="$(IntermediateOutputPath)/disabledAnalyzers.config"/>
