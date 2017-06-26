@@ -25,8 +25,6 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public int? Retries { get; set; }
 
-        public double MaximumTimeInMinutes { get; set; } = 10;
-
         public int MaximumWorkspacesToClean { get; set; } = 8;
 
         public bool EnableLongPathRemoval { get; set; } = true;
@@ -38,8 +36,21 @@ namespace Microsoft.DotNet.Build.Tasks
         private static readonly int s_DefaultSleepTime = 2000;
         private DateTime _timerStarted;
 
+        private List<string> protectedDirectories = new List<string>();
+
         public override bool Execute()
         {
+            string entryLocation = System.Reflection.Assembly.GetEntryAssembly().Location;
+            if(!string.IsNullOrEmpty(entryLocation))
+            {
+                protectedDirectories.Add(entryLocation);
+            }
+            string currentDirectory = Directory.GetCurrentDirectory();
+            if (!string.IsNullOrEmpty(currentDirectory))
+            {
+                protectedDirectories.Add(currentDirectory);
+            }
+
             KillStaleProcesses();
             if (!Directory.Exists(AgentDirectory))
             {
@@ -54,27 +65,9 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 SleepTimeInMilliseconds = s_DefaultSleepTime;
             }
-            bool returnValue = false;
-            Thread worker = new Thread(() => { returnValue = DoCleanupWork(); });
-            worker.Start();
 
-            //  We'll use this to make sure that we at least try to clean up processes we start before tearing down.
-            _timerStarted = DateTime.Now;
-
-            if (worker.Join((int)TimeSpan.FromMinutes(MaximumTimeInMinutes).TotalMilliseconds))
-            {
-                return returnValue;
-            }
-            else
-            {
-                Log.LogWarning($" Cleanup Task ran for maximum time ({MaximumTimeInMinutes} minutes), aborting");
-                return false;
-            }
-        }
-
-        private bool DoCleanupWork()
-        {
             bool returnValue = true;
+            _timerStarted = DateTime.Now;
 
             if (Report)
             {
@@ -122,30 +115,7 @@ namespace Microsoft.DotNet.Build.Tasks
             try
             {
                 // Report disk usage for agent directory
-                DriveInfo driveInfo = ReportCommonDiskUsage("Agent", AgentDirectory);
-
-                var workingDirectories = Directory.GetDirectories(Path.Combine(AgentDirectory, "_work"));
-                var totalWorkingDirectories = workingDirectories != null ? workingDirectories.Length : 0;
-
-                Log.LogMessage($"    Total agent working directories: {totalWorkingDirectories}");
-
-                if (totalWorkingDirectories > 0)
-                {
-                    int nameLength = 0;
-                    foreach (string directoryName in workingDirectories)
-                    {
-                        nameLength = directoryName.Length > nameLength ? directoryName.Length : nameLength;
-                    }
-                    int sizeLength = string.Format("{0:N0}", driveInfo?.TotalSize).Length;
-                    string columnFormat = "      {0,-" + nameLength.ToString() + "}  {1," + sizeLength.ToString() + ":N0}  {2}";
-                    Log.LogMessage(string.Format(columnFormat, "Folder name", "Size (bytes)", "Last Modified DateTime"));
-                    foreach (var workingDirectory in workingDirectories)
-                    {
-                        lastDirectoryChecked = workingDirectory;
-                        Tuple<long, DateTime> directoryAttributes = GetDirectoryAttributes(workingDirectory);
-                        Log.LogMessage(string.Format(columnFormat, workingDirectory, directoryAttributes.Item1, directoryAttributes.Item2));
-                    }
-                }
+                ReportCommonDiskUsage("Agent", AgentDirectory);
 
                 // Report disk usage for TEMP directory
                 ReportCommonDiskUsage("TEMP", GetTEMPDirectory());
@@ -164,7 +134,7 @@ namespace Microsoft.DotNet.Build.Tasks
             }
             catch (PathTooLongException)
             {
-                Log.LogWarning("Hit PathTooLongException attempting to list info about agent directory.  There are likely files which cannot be cleaned up on the agent.");
+                Log.LogWarning("Hit PathTooLongException attempting to list info about agent directory.  Ensure you are running the framework version of this task and 'EnableLongPathRemoval' is 'true'..");
                 if (!string.IsNullOrEmpty(lastDirectoryChecked))
                 {
                     Log.LogWarning($"Last directory checked : {lastDirectoryChecked} (likely the first inaccessible directory, alphabetically) ");
@@ -218,7 +188,7 @@ namespace Microsoft.DotNet.Build.Tasks
             }
             catch (PathTooLongException)
             {
-                Log.LogWarning($"Hit PathTooLongException attempting to list info about directory {directory}.  There are likely files which cannot be cleaned up on the agent.");
+                Log.LogWarning($"Hit PathTooLongException attempting to list info about directory {directory}.  Ensure you are running the framework version of this task and 'EnableLongPathRemoval' is 'true'.");
                 return null;
             }
             catch (UnauthorizedAccessException)
@@ -254,70 +224,88 @@ namespace Microsoft.DotNet.Build.Tasks
         {
             bool returnStatus = true;
             DateTime now = DateTime.Now;
-
-            // Cleanup the agents that the VSTS agent is tracking
-            string[] sourceFolderJsons = Directory.GetFiles(Path.Combine(AgentDirectory, "_work", "SourceRootMapping"), "SourceFolder.json", SearchOption.AllDirectories);
-            HashSet<string> knownDirectories = new HashSet<string>();
+            int cleanupTaskCount = 0;
             List<System.Threading.Tasks.Task<bool>> cleanupTasks = new List<System.Threading.Tasks.Task<bool>>();
 
-            Log.LogMessage($"Found {sourceFolderJsons.Length} known agent working directories.  (Will clean up to {MaximumWorkspacesToClean} of them)");
-
-            foreach (var sourceFolderJson in sourceFolderJsons)
+            // Cleanup the agents that the VSTS agent is tracking
+            if (Directory.Exists(AgentDirectory))
             {
-                Log.LogMessage($"Examining {sourceFolderJson} ...");
+                string[] sourceFolderJsons = Directory.GetFiles(AgentDirectory, "SourceFolder.json", SearchOption.AllDirectories);
+                HashSet<string> knownDirectories = new HashSet<string>();
 
-                Tuple<string, string, DateTime> agentInfo = await GetAgentInfoAsync(sourceFolderJson);
-                string workDirectory = Path.Combine(AgentDirectory, "_work", agentInfo.Item2);
-                knownDirectories.Add(workDirectory);
+                Log.LogMessage($"Found {sourceFolderJsons.Length} known agent working directories.  (Will clean up to {MaximumWorkspacesToClean} of them)");
 
-                TimeSpan span = new TimeSpan(now.Ticks - agentInfo.Item3.Ticks);
+                string workDirectoryRoot = Directory.GetDirectories(AgentDirectory, "_work", SearchOption.AllDirectories).FirstOrDefault();
 
-                if (cleanupTasks.Count < MaximumWorkspacesToClean)
+                foreach (var sourceFolderJson in sourceFolderJsons)
                 {
-                    if (span.TotalDays > RetentionDays)
+                    Log.LogMessage($"Examining {sourceFolderJson} ...");
+
+                    Tuple<string, string, DateTime> agentInfo = await GetAgentInfoAsync(sourceFolderJson);
+                    string workDirectory = Path.Combine(workDirectoryRoot, agentInfo.Item2);
+                    knownDirectories.Add(workDirectory);
+
+                    TimeSpan span = new TimeSpan(now.Ticks - agentInfo.Item3.Ticks);
+                    if (cleanupTaskCount < MaximumWorkspacesToClean)
                     {
-                        cleanupTasks.Add(CleanupAgentAsync(workDirectory, Path.GetDirectoryName(agentInfo.Item1)));
+                        if (span.TotalDays > RetentionDays)
+                        {
+                            cleanupTasks.Add(CleanupAgentAsync(workDirectory, Path.GetDirectoryName(agentInfo.Item1)));
+                            cleanupTaskCount++;
+                        }
+                        else
+                        {
+                            Log.LogMessage($"Skipping cleanup for {sourceFolderJson}, it is newer than {RetentionDays} days old, last run date is '{agentInfo.Item3.ToString()}'");
+                        }
                     }
                     else
                     {
-                        Log.LogMessage($"Skipping cleanup for {sourceFolderJson}, it is newer than {RetentionDays} days old, last run date is '{agentInfo.Item3.ToString()}'");
+                        // We've taken enough cleanup tasks per the value of MaximumWorkspaces
+                        break;
                     }
                 }
-                else
+
+                System.Threading.Tasks.Task.WaitAll(cleanupTasks.ToArray());
+                foreach (var cleanupTask in cleanupTasks)
                 {
-                    // We've taken enough cleanup tasks per the value of MaximumWorkspaces
-                    break;
+                    returnStatus &= cleanupTask.Result;
+                }
+
+                // Attempt to cleanup any working folders which the VSTS agent doesn't know about.
+                Log.LogMessage("Looking for additional '_work' directories which are unknown to the agent.");
+                cleanupTasks.Clear();
+                if (cleanupTaskCount < MaximumWorkspacesToClean)
+                {
+                    Regex workingDirectoryRegex = new Regex(@"[/\\]\d+$");
+                    var workingDirectories = Directory.GetDirectories(workDirectoryRoot, "*", SearchOption.TopDirectoryOnly).Where(w => workingDirectoryRegex.IsMatch(w));
+                    foreach (var workingDirectory in workingDirectories)
+                    {
+                        if (cleanupTaskCount >= MaximumWorkspacesToClean)
+                        {
+                            break;
+                        }
+                        if (!knownDirectories.Contains(workingDirectory))
+                        {
+                            cleanupTasks.Add(CleanupDirectoryAsync(workingDirectory));
+                            cleanupTaskCount++;
+                        }
+                    }
+                }
+                System.Threading.Tasks.Task.WaitAll(cleanupTasks.ToArray());
+                foreach (var cleanupTask in cleanupTasks)
+                {
+                    returnStatus &= cleanupTask.Result;
                 }
             }
-
-            System.Threading.Tasks.Task.WaitAll(cleanupTasks.ToArray());
-            foreach (var cleanupTask in cleanupTasks)
+            else
             {
-                returnStatus &= cleanupTask.Result;
-            }
-
-            // Attempt to cleanup any working folders which the VSTS agent doesn't know about.
-            Log.LogMessage("Looking for additional '_work' directories which are unknown to the agent.");
-            cleanupTasks.Clear();
-            Regex workingDirectoryRegex = new Regex(@"\\\d+$");
-            var workingDirectories = Directory.GetDirectories(Path.Combine(AgentDirectory, "_work"), "*", SearchOption.TopDirectoryOnly).Where(w => workingDirectoryRegex.IsMatch(w));
-            foreach (var workingDirectory in workingDirectories)
-            {
-                if (!knownDirectories.Contains(workingDirectory))
-                {
-                    cleanupTasks.Add(CleanupDirectoryAsync(workingDirectory));
-                }
-            }
-            System.Threading.Tasks.Task.WaitAll(cleanupTasks.ToArray());
-            foreach (var cleanupTask in cleanupTasks)
-            {
-                returnStatus &= cleanupTask.Result;
+                Log.LogMessage($"Agent directory not found at '{AgentDirectory}', skipping agent cleanup.");
             }
 
             // Cleanup the TEMP folder
             string tempDir = GetTEMPDirectory();
             Log.LogMessage($"Clean up the TEMP folder {tempDir}.");
-            System.Threading.Tasks.Task.WaitAll(CleanupDirectoryAsync(tempDir));
+            System.Threading.Tasks.Task.WaitAll(CleanupDirectoryAsync(tempDir, 0, true));
 
             // Cleanup the Nuget Cache folders
             List<string> nugetCacheDirs = GetNugetCacheDirectories();
@@ -331,7 +319,9 @@ namespace Microsoft.DotNet.Build.Tasks
 
             cleanupTasks.Clear();
             foreach (string nugetCacheDir in nugetCacheDirs)
+            {
                 cleanupTasks.Add(CleanupDirectoryAsync(nugetCacheDir));
+            }
             System.Threading.Tasks.Task.WaitAll(cleanupTasks.ToArray());
 
             return returnStatus;
@@ -344,85 +334,71 @@ namespace Microsoft.DotNet.Build.Tasks
             return returnStatus;
         }
 
-        private async System.Threading.Tasks.Task<bool> CleanupDirectoryAsync(string directory, int attempts = 0)
+        private async System.Threading.Tasks.Task<bool> CleanupDirectoryAsync(string directory, int attempts = 0, bool ignoreExceptions = false)
         {
             try
             {
-                if (Directory.Exists(directory))
+                // A protected directory is, for instance, the directory which is currently running the cleanup task.
+                // The cleanup task should never try to clean itself up
+                foreach (string protectedDirectory in protectedDirectories)
+                {
+                    if (protectedDirectory.Contains(directory) || directory.Contains(protectedDirectory))
+                    {
+                        Console.WriteLine($"Specified cleanup directory ('{directory}') is a protected directory ('{protectedDirectory}'), skipping.");
+                        return true;
+                    }
+                }
+                if (!Directory.Exists(directory))
+                {
+                    Log.LogMessage($"Specified directory, {directory}, does not exist");
+                }
+                else
                 {
                     Log.LogMessage($"Attempting to cleanup {directory} ... ");
-
+#if net45
                     // Unlike OSX and Linux, Windows has a hard limit of 260 chars on paths.
                     // Some build definitions leave paths this long behind.  It's unusual, 
                     // but robocopy has been on Windows by default since XP and understands 
                     // how to stomp on long paths, so we'll use it to clean directories on Windows first.
                     if (EnableLongPathRemoval && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
-                        // leave it 1 second to die if we have to kill it:
-                        int maxTimeMilliseconds = (int) ((TimeSpan.FromMinutes(MaximumTimeInMinutes) - (DateTime.Now - _timerStarted)).TotalMilliseconds - 1000);
-                        // And only start it if it has at least 1 second to run:
-                        if (maxTimeMilliseconds > 1000)
-                        {
-                            Log.LogMessage($"Preventing PathTooLongException by using robocopy to delete {directory} ");
-                            string emptyFolderToMirror = GetUniqueEmptyFolder();
-                            Process roboProcess = Process.Start(new ProcessStartInfo("robocopy.exe", $"/mir {emptyFolderToMirror} {directory}  /NJH /NJS /NP") { UseShellExecute = false });
-                            roboProcess.WaitForExit(maxTimeMilliseconds);
-
-                            roboProcess.Refresh();
-                            if (!roboProcess.HasExited)
-                            {
-                                Log.LogWarning($"RoboCopy process (PID: {roboProcess.Id}) did not exit in maximum allotted time ({maxTimeMilliseconds / 1000} sec), will try to kill");
-                                roboProcess.Kill();
-                            }
-
-                            Directory.Delete(emptyFolderToMirror);
-                        }
+                        RemoveDirectoryRecursiveLongPath(directory);
                     }
-
-                    Directory.Delete(directory, true);
+                    else
+                    {
+#endif
+                        Directory.Delete(directory, true);
+#if net45
+                    }
+#endif
                     Log.LogMessage("Success");
-                }
-                else
-                {
-                    Log.LogMessage($"Specified directory, {directory}, does not exist");
                 }
                 return true;
             }
-            catch (PathTooLongException)
-            {
-                // Theres no point in retrying for PathTooLong
-                Log.LogMessage($"Failed in cleanup attempt due to PathTooLongException, quitting.");
-                return false;
-            }
             catch (Exception e)
             {
-                attempts++;
-                Log.LogMessage($"Failed in cleanup attempt... {Retries - attempts} retries left.");
-                Log.LogMessage($"{e.GetType().ToString()} - {e.Message}");
-                Log.LogMessage(e.StackTrace);
-                if (attempts < Retries)
+                if (ignoreExceptions)
                 {
-                    Log.LogMessage($"Will retry again in {SleepTimeInMilliseconds} ms");
-                    await System.Threading.Tasks.Task.Delay(SleepTimeInMilliseconds.Value);
-                    return await CleanupDirectoryAsync(directory, attempts).ConfigureAwait(false);
+                    Log.LogMessage($"Failed in cleanup attempt of '{directory}', but directory is non-blocking, ignoring failure.");
+                    Log.LogMessage($"{e.GetType().ToString()} - {e.Message}");
+                    return true;
+                }
+                else
+                {
+                    attempts++;
+                    Log.LogMessage($"Failed in cleanup attempt... {Retries - attempts} retries left.");
+                    Log.LogMessage($"{e.GetType().ToString()} - {e.Message}");
+                    Log.LogMessage(e.StackTrace);
+                    if (attempts < Retries)
+                    {
+                        Log.LogMessage($"Will retry again in {SleepTimeInMilliseconds} ms");
+                        await System.Threading.Tasks.Task.Delay(SleepTimeInMilliseconds.Value);
+                        return await CleanupDirectoryAsync(directory, attempts).ConfigureAwait(false);
+                    }
                 }
             }
             Log.LogMessage("Failed to cleanup.");
             return false;
-        }
-
-        private static string GetUniqueEmptyFolder()
-        {
-            string uniquePath;
-            do
-            {
-                Guid guid = Guid.NewGuid();
-                string uniqueSubFolderName = guid.ToString();
-                uniquePath = Path.GetTempPath() + uniqueSubFolderName;
-            }
-            while (Directory.Exists(uniquePath));
-            Directory.CreateDirectory(uniquePath);
-            return uniquePath;
         }
 
         private async System.Threading.Tasks.Task<Tuple<string, string, DateTime>> GetAgentInfoAsync(string sourceFolderJson)
@@ -519,5 +495,152 @@ namespace Microsoft.DotNet.Build.Tasks
                 Log.LogMessage($"Fail to add directory: {directory} to the list because it doesn't exist.");
             }
         }
+#if net45
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool DeleteFileW([MarshalAs(UnmanagedType.LPWStr)]string lpFileName);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool RemoveDirectory(string lpFileName);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern IntPtr FindFirstFile(string lpFileName, out WIN32_FIND_DATA lpFindFileData);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+        static extern bool FindNextFile(IntPtr hFindFile, out WIN32_FIND_DATA lpFindFileData);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+        static extern bool FindClose(IntPtr hFindFile);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern bool SetFileAttributesW(string lpFileName, FileAttributes dwFileAttributes);
+
+        // The CharSet must match the CharSet of the corresponding PInvoke signature
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        public struct WIN32_FIND_DATA
+        {
+            public uint dwFileAttributes;
+            public System.Runtime.InteropServices.ComTypes.FILETIME ftCreationTime;
+            public System.Runtime.InteropServices.ComTypes.FILETIME ftLastAccessTime;
+            public System.Runtime.InteropServices.ComTypes.FILETIME ftLastWriteTime;
+            public uint nFileSizeHigh;
+            public uint nFileSizeLow;
+            public uint dwReserved0;
+            public uint dwReserved1;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
+            public string cFileName;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 14)]
+            public string cAlternateFileName;
+        }
+
+        // Many Windows API's will use the unicode syntax when the path is prepended with '\\?\', this
+        // is instead of the ANSI paths which have a 260 character max path limit
+        private string MakeLongPath(string path)
+        {
+            if (path == null ||
+                path.Length == 0)
+            {
+                return path;
+            }
+            if (!path.StartsWith(@"\\?\"))
+            {
+                path = @"\\?\" + path;
+            }
+            return path;
+        }
+
+        private bool RemoveDirectoryRecursiveLongPath(string directory)
+        {
+            string[] directories = GetDirectoriesLongPath(directory);
+
+            // Windows DeleteFile API will only delete a directory if it is empty,
+            // so recurse down to the leaf directory 
+            foreach (string dir in directories)
+            {
+                RemoveDirectoryRecursiveLongPath(dir);
+            }
+
+            string[] files = GetFilesLongPath(directory);
+            foreach (string file in files)
+            {
+                // Clear read-only attribute
+                SetFileAttributesW(file, FileAttributes.Normal);
+
+                bool deleted = DeleteFileW(MakeLongPath(file));
+                if (!deleted)
+                {
+                    ThrowIfWindowsErrorCode($"Failed to delete file '{file}'");
+                }
+            }
+            directories = GetDirectoriesLongPath(directory);
+            foreach (string dir in directories)
+            {
+                RemoveDirectoryLongPath(MakeLongPath(dir));
+            }
+
+            RemoveDirectoryLongPath(directory);
+            return true;
+        }
+
+        private string[] GetDirectoriesLongPath(string directory)
+        {
+            return GetFilesByAttributes(directory, FileAttributes.Directory);
+        }
+
+        private string[] GetFilesLongPath(string directory)
+        {
+            return GetFilesByAttributes(directory, FileAttributes.Normal | FileAttributes.Archive | FileAttributes.NotContentIndexed);
+        }
+
+        // Given a directory, return an array of files in that directory with the specified attributes.  Supports long paths.
+        private string[] GetFilesByAttributes(string directory, FileAttributes attributes)
+        {
+            directory = MakeLongPath(directory);
+            List<string> files = new List<string>();
+            WIN32_FIND_DATA findData;
+
+            IntPtr hFile = FindFirstFile(directory + "\\*", out findData);
+            int error = Marshal.GetLastWin32Error();
+
+            if (hFile.ToInt32() != -1)
+            {
+                do
+                {
+                    string file = findData.cFileName;
+                    if ((findData.dwFileAttributes & (uint)attributes) != 0)
+                    {
+                        if (file != "." && file != "..")
+                        {
+                            files.Add(Path.Combine(directory, file));
+                        }
+                    }
+                }
+                while (FindNextFile(hFile, out findData));
+
+                FindClose(hFile);
+            }
+            return files.ToArray();
+        }
+
+        private void RemoveDirectoryLongPath(string directory)
+        {
+            bool deleted = RemoveDirectory(MakeLongPath(directory));
+            if (!deleted)
+            {
+                ThrowIfWindowsErrorCode($"Failed to remove directory '{directory}'");
+            }
+        }
+
+        private void ThrowIfWindowsErrorCode(string message)
+        {
+            int lastError = Marshal.GetLastWin32Error();
+            if(lastError != 0)
+            {
+                // Not trying to translate all of the error codes possibilities into readable text, just report the code
+                throw new Exception($"{message}: error={lastError}, error code values are described at https://msdn.microsoft.com/en-us/library/windows/desktop/ms681382(v=vs.85).aspx");
+            }
+        }
+#endif
     }
 }
