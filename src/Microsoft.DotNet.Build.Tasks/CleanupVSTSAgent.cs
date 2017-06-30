@@ -30,25 +30,30 @@ namespace Microsoft.DotNet.Build.Tasks
         public bool EnableLongPathRemoval { get; set; } = true;
 
         public int? SleepTimeInMilliseconds { get; set; }
+
         public ITaskItem[] ProcessNamesToKill { get; set; }
+
+        public string [] AdditionalCleanupDirectories { get; set; }
 
         private static readonly int s_DefaultRetries = 3;
         private static readonly int s_DefaultSleepTime = 2000;
         private DateTime _timerStarted;
 
-        private List<string> protectedDirectories = new List<string>();
+        private HashSet<string> _protectedDirectories = new HashSet<string>();
+        private HashSet<string> _additionalCleanupDirectories = new HashSet<string>();
+        private Dictionary<string, bool> _availableUnixCommands = new Dictionary<string, bool>();
 
         public override bool Execute()
         {
             string entryLocation = System.Reflection.Assembly.GetEntryAssembly().Location;
             if(!string.IsNullOrEmpty(entryLocation))
             {
-                protectedDirectories.Add(entryLocation);
+                _protectedDirectories.Add(entryLocation);
             }
             string currentDirectory = Directory.GetCurrentDirectory();
             if (!string.IsNullOrEmpty(currentDirectory))
             {
-                protectedDirectories.Add(currentDirectory);
+                _protectedDirectories.Add(currentDirectory);
             }
 
             KillStaleProcesses();
@@ -69,6 +74,7 @@ namespace Microsoft.DotNet.Build.Tasks
             bool returnValue = true;
             _timerStarted = DateTime.Now;
 
+            GenerateAdditionalCleanupDirectories();
             if (Report)
             {
                 ReportDiskUsage();
@@ -84,6 +90,37 @@ namespace Microsoft.DotNet.Build.Tasks
                 }
             }
             return returnValue;
+        }
+
+        private void GenerateAdditionalCleanupDirectories()
+        {
+            if (AdditionalCleanupDirectories != null)
+            {
+                _additionalCleanupDirectories = new HashSet<string>(AdditionalCleanupDirectories);
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                _additionalCleanupDirectories.Add(Path.Combine(Environment.GetEnvironmentVariable("LocalAppData"), "NuGet"));
+                _additionalCleanupDirectories.Add(Path.Combine(Environment.GetEnvironmentVariable("UserProfile"), ".nuget\\packages"));
+                _additionalCleanupDirectories.Add(Environment.GetEnvironmentVariable("TEMP"));
+                _additionalCleanupDirectories.Add(Environment.GetEnvironmentVariable("TMP"));
+            }
+            else
+            {
+                _additionalCleanupDirectories.Add(Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".local/share/NuGet"));
+                _additionalCleanupDirectories.Add(Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".nuget"));
+                _additionalCleanupDirectories.Add(Environment.GetEnvironmentVariable("TMPDIR"));
+                _additionalCleanupDirectories.Add(Environment.GetEnvironmentVariable("TMP"));
+                _additionalCleanupDirectories.Add(Path.Combine(Environment.GetEnvironmentVariable("HOME"), "myagent/_work/_temp"));
+            }
+            _additionalCleanupDirectories.RemoveWhere(f => string.IsNullOrWhiteSpace(f));
+            _additionalCleanupDirectories.RemoveWhere(f => !Directory.Exists(f));
+
+            foreach(string additionalCleanupDirectory in _additionalCleanupDirectories)
+            {
+                Log.LogMessage($"Found additional cleanup directory {additionalCleanupDirectory}");
+            }
         }
 
         private void KillStaleProcesses()
@@ -117,19 +154,9 @@ namespace Microsoft.DotNet.Build.Tasks
                 // Report disk usage for agent directory
                 ReportCommonDiskUsage("Agent", AgentDirectory);
 
-                // Report disk usage for TEMP directory
-                ReportCommonDiskUsage("TEMP", GetTEMPDirectory());
-
-                // Report disk usage for Nuget Cache directory
-                List<string> nugetCacheDirs = GetNugetCacheDirectories();
-                if (nugetCacheDirs.Count == 0)
+                foreach (string additionalCleanupDirectory in _additionalCleanupDirectories)
                 {
-                    Log.LogMessage($"Disk usage report for Nuget cache directories is not available, because those directories do NOT exist.");
-                }
-
-                foreach (string nugetCacheDir in nugetCacheDirs)
-                {
-                    ReportCommonDiskUsage("Nuget cache", nugetCacheDir);
+                    ReportCommonDiskUsage("Cleanup", additionalCleanupDirectory);
                 }
             }
             catch (PathTooLongException)
@@ -302,25 +329,11 @@ namespace Microsoft.DotNet.Build.Tasks
                 Log.LogMessage($"Agent directory not found at '{AgentDirectory}', skipping agent cleanup.");
             }
 
-            // Cleanup the TEMP folder
-            string tempDir = GetTEMPDirectory();
-            Log.LogMessage($"Clean up the TEMP folder {tempDir}.");
-            System.Threading.Tasks.Task.WaitAll(CleanupDirectoryAsync(tempDir, 0, true));
-
-            // Cleanup the Nuget Cache folders
-            List<string> nugetCacheDirs = GetNugetCacheDirectories();
-            Log.LogMessage($"Clean up the Nuget Cache folders.");
-
-            if (nugetCacheDirs.Count == 0)
-            {
-                Log.LogMessage($"Not necessary to clean up Nuget cache directories, as they do NOT exist.");
-                return returnStatus;
-            }
 
             cleanupTasks.Clear();
-            foreach (string nugetCacheDir in nugetCacheDirs)
+            foreach (string additionalCleanupDirectory in _additionalCleanupDirectories)
             {
-                cleanupTasks.Add(CleanupDirectoryAsync(nugetCacheDir));
+                cleanupTasks.Add(CleanupDirectoryAsync(additionalCleanupDirectory, 0, true));
             }
             System.Threading.Tasks.Task.WaitAll(cleanupTasks.ToArray());
 
@@ -338,9 +351,13 @@ namespace Microsoft.DotNet.Build.Tasks
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(directory))
+                {
+                    return true;
+                }
                 // A protected directory is, for instance, the directory which is currently running the cleanup task.
                 // The cleanup task should never try to clean itself up
-                foreach (string protectedDirectory in protectedDirectories)
+                foreach (string protectedDirectory in _protectedDirectories)
                 {
                     if (protectedDirectory.Contains(directory) || directory.Contains(protectedDirectory))
                     {
@@ -354,6 +371,23 @@ namespace Microsoft.DotNet.Build.Tasks
                 }
                 else
                 {
+                    // Change file permissions on directory we're attempting to delete so we don't hit "Permission denied"
+                    if(IsUnixCommandAvailable("sudo") &&
+                       IsUnixCommandAvailable("chmod"))
+                    {
+                        string chmodPermissions = "777";
+                        Log.LogMessage($"Changing file permissions to '{chmodPermissions}' for directory '{directory}'");
+                        int maximumChmodTimeInMinutes = 3;
+                        int maxTimeMilliseconds = (int)((TimeSpan.FromMinutes(maximumChmodTimeInMinutes) - (DateTime.Now - _timerStarted)).TotalMilliseconds - 1000);
+                        Process chmodProcess = Process.Start(new ProcessStartInfo("sudo", $"chmod {chmodPermissions} -R {directory}"));
+                        chmodProcess.WaitForExit(maxTimeMilliseconds);
+                        chmodProcess.Refresh();
+                        if (!chmodProcess.HasExited)
+                        {
+                            Log.LogWarning($"Chmod process (PID: {chmodProcess.Id} did not exit in maximumalloted time ({maximumChmodTimeInMinutes} mins), will try to kill");
+                            chmodProcess.Kill();
+                        }
+                    }
                     Log.LogMessage($"Attempting to cleanup {directory} ... ");
 #if net45
                     // Unlike OSX and Linux, Windows has a hard limit of 260 chars on paths.
@@ -401,6 +435,27 @@ namespace Microsoft.DotNet.Build.Tasks
             return false;
         }
 
+        // Keep a dictionary of Unix commands which we check for availability so that we have quick access to 
+        // determine if the command has already been checked and if it is available.
+        private bool IsUnixCommandAvailable(string command)
+        {
+            if(_availableUnixCommands.ContainsKey(command))
+            {
+                return _availableUnixCommands[command];
+            }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                _availableUnixCommands.Add(command, false);
+            }
+            else
+            {
+                Process commandProcess = Process.Start(new ProcessStartInfo("which", command));
+                commandProcess.WaitForExit();
+                _availableUnixCommands.Add(command, commandProcess.ExitCode == 0);
+            }
+            return _availableUnixCommands[command];
+        }
+
         private async System.Threading.Tasks.Task<Tuple<string, string, DateTime>> GetAgentInfoAsync(string sourceFolderJson)
         {
             Regex getValueRegex = new Regex(".*\": \"(?<value>[^\"]+)\"");
@@ -424,76 +479,6 @@ namespace Microsoft.DotNet.Build.Tasks
                 }
             }
             return new Tuple<string, string, DateTime>(sourceFolderJson, agentBuildDirectory, lastRunOn);
-        }
-
-        private string GetTEMPDirectory()
-        {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                if (DirExists(Environment.GetEnvironmentVariable("TEMP")))
-                    return Environment.GetEnvironmentVariable("TEMP");
-                else if (DirExists(Environment.GetEnvironmentVariable("TMP")))
-                    return Environment.GetEnvironmentVariable("TMP");
-                else
-                {
-                    Log.LogMessage("No TEMP dir found.");
-                    return null;
-                }
-            }
-            else
-            {
-                if (DirExists(Environment.GetEnvironmentVariable("TMPDIR")))
-                    return Environment.GetEnvironmentVariable("TMPDIR");
-                else if (DirExists(Environment.GetEnvironmentVariable("TMP")))
-                    return Environment.GetEnvironmentVariable("TMP");
-                else if (DirExists(Path.Combine(Environment.GetEnvironmentVariable("HOME"), "myagent/_work/_temp")))
-                    return Path.Combine(Environment.GetEnvironmentVariable("HOME"), "myagent/_work/_temp");
-                else
-                {
-                    Log.LogMessage("No TEMP dir found.");
-                    return null;
-                }
-            }
-        }
-
-        private bool DirExists(string directory)
-        {
-            if (!Directory.Exists(directory))
-            {
-                Log.LogMessage($"TEMP dir: {directory} does not exist.");
-                return false;
-            }
-            return true;
-        }
-
-        private List<string> GetNugetCacheDirectories()
-        {
-            List<string> nugetCacheDirs = new List<string>();
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                AddDirToListIfExist(nugetCacheDirs, Path.Combine(Environment.GetEnvironmentVariable("LocalAppData"), "NuGet"));
-                AddDirToListIfExist(nugetCacheDirs, Path.Combine(Environment.GetEnvironmentVariable("UserProfile"), ".nuget\\packages"));
-            }
-            else // OSX or Linux
-            {
-                AddDirToListIfExist(nugetCacheDirs, Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".local/share/NuGet"));
-                AddDirToListIfExist(nugetCacheDirs, Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".nuget"));
-            }
-            return nugetCacheDirs;
-        }
-
-        private void AddDirToListIfExist(List<string> dirs, string directory)
-        {
-            if (Directory.Exists(directory))
-            {
-                dirs.Add(directory);
-                Log.LogMessage($"Successfully add directory: {directory} to the list.");
-            }
-            else
-            {
-                Log.LogMessage($"Fail to add directory: {directory} to the list because it doesn't exist.");
-            }
         }
 #if net45
         [DllImport("kernel32.dll", SetLastError = true)]

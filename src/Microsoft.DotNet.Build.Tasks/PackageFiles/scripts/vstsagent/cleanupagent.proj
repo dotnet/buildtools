@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProcessNamesToKill Condition="'@(ProcessNamesToKill)' == ''" Include="git;vbcscompiler" />
+    <AdditionalCleanupDirectories Include="$(AdditionalCleanupDirectories)" />    
   </ItemGroup>
 
   <Target Name="Clean">
@@ -22,6 +23,7 @@
                       RetentionDays="$(RetentionDays)"
                       Clean="$(DoClean)"
                       Report="$(DoReport)"
-                      ProcessNamesToKill="@(ProcessNamesToKill)" />
+                      ProcessNamesToKill="@(ProcessNamesToKill)"
+                      AdditionalCleanupDirectories="@(AdditionalCleanupDirectories)" />
   </Target>
 </Project>
