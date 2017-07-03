@@ -925,6 +925,9 @@
   <Target Name="GetPackageMetadata"
           DependsOnTargets="GetPackageDescription;GetPackageIdentity" />
   <!-- END Metadata -->
+  <PropertyGroup>
+    <UAPvNextTFM Condition="'$(UAPvNextTFM)' == ''">uap10.1</UAPvNextTFM>
+  </PropertyGroup>
 
   <!-- BEGIN validation and output -->
   <ItemGroup>
@@ -986,7 +989,7 @@
     <DefaultValidateFramework Include="uap10.0">
       <RuntimeIDs>win10-x86;win10-x86-aot;win10-x64;win10-x64-aot;win10-arm;win10-arm-aot</RuntimeIDs>
     </DefaultValidateFramework>
-    <DefaultValidateFramework Include="uap10.1">
+    <DefaultValidateFramework Include="$(UAPvNextTFM)">
       <RuntimeIDs>win10-x86;win10-x86-aot;win10-x64;win10-x64-aot;win10-arm;win10-arm-aot</RuntimeIDs>
     </DefaultValidateFramework>
   </ItemGroup>
