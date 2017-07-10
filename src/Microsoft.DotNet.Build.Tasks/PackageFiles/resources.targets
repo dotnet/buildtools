@@ -20,7 +20,6 @@
           GenerateResourcesSource;
           $(CompileDependsOn);
       </CompileDependsOn>
-      <ResourcesFolderPath Condition="'$(BuildingUAPVertical)' == 'true'">$(RuntimePath)resw</ResourcesFolderPath>
   </PropertyGroup>
 
   <Target Name="GenerateResourcesSource"
