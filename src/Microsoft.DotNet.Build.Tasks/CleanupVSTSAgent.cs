@@ -436,7 +436,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 chmodProcess.Refresh();
                 if (!chmodProcess.HasExited)
                 {
-                    Log.LogWarning($"Chmod process (PID: {chmodProcess.Id} did not exit in maximumalloted time ({maximumChmodTimeInMinutes} mins), will try to kill");
+                    Log.LogWarning($"Chmod process (PID: {chmodProcess.Id} did not exit in maximum alloted time ({maximumChmodTimeInMinutes} mins), will try to kill");
                     chmodProcess.Kill();
                 }
             }
