@@ -20,19 +20,24 @@
           GenerateResourcesSource;
           $(CompileDependsOn);
       </CompileDependsOn>
+      <ResourcesFolderPath Condition="'$(BuildingUAPVertical)' == 'true'">$(RuntimePath)resw</ResourcesFolderPath>
   </PropertyGroup>
 
   <Target Name="GenerateResourcesSource"
           Condition="'$(StringResourcesPath)'!='' AND '$(OmitResources)'!='true'"
           Inputs="$(StringResourcesPath)"
           Outputs="$(IntermediateResOutputFileFullPath)">
-    
-    
 
     <GenerateResourcesCode
         ResxFilePath="$(StringResourcesPath)" 
         OutputSourceFilePath="$(IntermediateResOutputFileFullPath)" 
         AssemblyName="$(AssemblyName)" />
+
+    <Copy Condition="'$(BuildingUAPVertical)' == 'true'"
+          SourceFiles="$(StringResourcesPath)"
+          DestinationFiles="$(ResourcesFolderPath)\$(AssemblyName).resw"
+          SkipUnchangedFiles="true"
+          />
 
     <ItemGroup>
       <!-- The following Compile element has to be included dynamically inside the Target otherwise intellisense will not work -->
