@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <UsingTask TaskName="AddItemIndices" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="ConvertPdbsToPortablePdbs" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ZipFileExtractToDirectory" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ZipFileGetEntries" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ZipFileInjectFile" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
@@ -119,6 +120,7 @@
   -->
   <Target Name="CreateSymbolsFileList"
           DependsOnTargets="UnzipSymbolPackagesForPublish;
+                            GenerateAdditionalSymbolsForArchive;
                             PublishSymbolFilesToFileShare">
     <PropertyGroup>
       <SymbolFileListPath>$(SymbolsRequestIntermediateDir)SymbolFileList.txt</SymbolFileListPath>
@@ -223,6 +225,43 @@
     <ItemGroup>
       <IndexedExtensions Include=".dll;.pdb;.exe" Condition="'@(IndexedExtensions)'==''" />
       <SymbolFileToPublish Include="$(SymbolPackageExtractDir)**\*%(IndexedExtensions.Identity)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Generate any extra symbols (e.g. Windows PDBs) that also need to be archived. -->
+  <Target Name="GenerateAdditionalSymbolsForArchive"
+          DependsOnTargets="SetArchivePropertiesCreateWindowsPdbsFromPortablePdbs;
+                            CreateWindowsPdbsFromPortablePdbs;
+                            AddConvertedWindowsPdbsToPublishList" />
+
+  <!--
+    Set up properties for CreateWindowsPdbsFromPortablePdbs that will generate Windows PDBs for
+    files in the unzipped symbol packages.
+  -->
+  <Target Name="SetArchivePropertiesCreateWindowsPdbsFromPortablePdbs">
+    <PropertyGroup>
+      <WindowsPdbConversionTargetPath>$(SymbolPackageExtractDir)WindowsPDB\</WindowsPdbConversionTargetPath>
+    </PropertyGroup>
+    <ItemGroup>
+      <_ToPublishDllWithPdbCandidate Include="@(SymbolFileToPublish)"
+                            Condition="'%(Extension)'=='.dll'">
+        <PdbPath>%(RootDir)%(Directory)%(Filename).pdb</PdbPath>
+      </_ToPublishDllWithPdbCandidate>
+      <PortableFileToConvert Include="@(_ToPublishDllWithPdbCandidate)"
+                             Condition="Exists('%(PdbPath)')">
+        <TargetPath>$(WindowsPdbConversionTargetPath)%(RecursiveDir)%(Filename).pdb</TargetPath>
+      </PortableFileToConvert>
+    </ItemGroup>
+  </Target>
+
+  <!--
+    Add Windows PDBs created in CreateWindowsPdbsFromPortablePdbs to the list of symbol files to
+    publish. We need to wait until after the conversion: only Portable PDBs will be converted, and
+    we can't tell beforehand which PDBs are portable.
+  -->
+  <Target Name="AddConvertedWindowsPdbsToPublishList">
+    <ItemGroup>
+      <SymbolFileToPublish Include="$(WindowsPdbConversionTargetPath)**\*.pdb" />
     </ItemGroup>
   </Target>
 
@@ -401,6 +440,26 @@
     <ZipFileInjectFile TargetArchive="$(SymbolPackageFilePath)"
                        InjectFiles="@(CatalogFile);@(CatalogedFileManifest)"
                        Condition="'@(CatalogFile)'!=''" />
+  </Target>
+
+  <!--
+    Generates Windows PDBs from Portable PDBs.
+    
+    [In]
+    @(PortableFileToConvert)
+      * ItemSpec: The DLL file associated with a Portable PDB to convert.
+      * PdbPath: The path to the Portable PDB file to convert.
+      * TargetPath: The output path for the generated Windows PDB. Full filename.
+    @(ConversionOptions) [optional]
+      * ItemSpec: An entry in the Microsoft.DiaSymReader.Tools.PdbConversionOptions flags enum to
+        use for all conversions performed.
+  -->
+  <Target Name="CreateWindowsPdbsFromPortablePdbs">
+    <Error Text="BuildTools does not support Portable PDB conversion to Windows PDB in .NET Core. Run msbuild using the desktop framework."
+           Condition="'$(MSBuildRuntimeType)'=='core'" />
+
+    <ConvertPdbsToPortablePdbs Files="@(PortableFileToConvert)"
+                               ConversionOptions="@(ConversionOptions)" />
   </Target>
 
 </Project>
