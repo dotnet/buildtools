@@ -257,6 +257,7 @@ namespace Microsoft.DotNet.Build.Tasks
             // Cleanup the agents that the VSTS agent is tracking
             if (Directory.Exists(AgentDirectory))
             {
+                GiveFullPermissionsIfUnixFolder(AgentDirectory);
                 string[] sourceFolderJsons = Directory.GetFiles(AgentDirectory, "SourceFolder.json", SearchOption.AllDirectories);
                 HashSet<string> knownDirectories = new HashSet<string>();
 
@@ -371,23 +372,8 @@ namespace Microsoft.DotNet.Build.Tasks
                 }
                 else
                 {
-                    // Change file permissions on directory we're attempting to delete so we don't hit "Permission denied"
-                    if(IsUnixCommandAvailable("sudo") &&
-                       IsUnixCommandAvailable("chmod"))
-                    {
-                        string chmodPermissions = "777";
-                        Log.LogMessage($"Changing file permissions to '{chmodPermissions}' for directory '{directory}'");
-                        int maximumChmodTimeInMinutes = 3;
-                        int maxTimeMilliseconds = (int)((TimeSpan.FromMinutes(maximumChmodTimeInMinutes) - (DateTime.Now - _timerStarted)).TotalMilliseconds - 1000);
-                        Process chmodProcess = Process.Start(new ProcessStartInfo("sudo", $"chmod {chmodPermissions} -R {directory}"));
-                        chmodProcess.WaitForExit(maxTimeMilliseconds);
-                        chmodProcess.Refresh();
-                        if (!chmodProcess.HasExited)
-                        {
-                            Log.LogWarning($"Chmod process (PID: {chmodProcess.Id} did not exit in maximumalloted time ({maximumChmodTimeInMinutes} mins), will try to kill");
-                            chmodProcess.Kill();
-                        }
-                    }
+                    GiveFullPermissionsIfUnixFolder(directory);
+
                     Log.LogMessage($"Attempting to cleanup {directory} ... ");
 #if net45
                     // Unlike OSX and Linux, Windows has a hard limit of 260 chars on paths.
@@ -433,6 +419,27 @@ namespace Microsoft.DotNet.Build.Tasks
             }
             Log.LogMessage("Failed to cleanup.");
             return false;
+        }
+
+        private void GiveFullPermissionsIfUnixFolder(string directory)
+        {
+            // Change file permissions on directory we're attempting to delete so we don't hit "Permission denied"
+            if (IsUnixCommandAvailable("sudo") &&
+               IsUnixCommandAvailable("chmod"))
+            {
+                string chmodPermissions = "777";
+                Log.LogMessage($"Changing file permissions to '{chmodPermissions}' for directory '{directory}'");
+                int maximumChmodTimeInMinutes = 3;
+                int maxTimeMilliseconds = (int)((TimeSpan.FromMinutes(maximumChmodTimeInMinutes) - (DateTime.Now - _timerStarted)).TotalMilliseconds - 1000);
+                Process chmodProcess = Process.Start(new ProcessStartInfo("sudo", $"chmod {chmodPermissions} -R {directory}"));
+                chmodProcess.WaitForExit(maxTimeMilliseconds);
+                chmodProcess.Refresh();
+                if (!chmodProcess.HasExited)
+                {
+                    Log.LogWarning($"Chmod process (PID: {chmodProcess.Id} did not exit in maximum allotted time ({maximumChmodTimeInMinutes} mins), will try to kill");
+                    chmodProcess.Kill();
+                }
+            }
         }
 
         // Keep a dictionary of Unix commands which we check for availability so that we have quick access to 
@@ -593,7 +600,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 do
                 {
                     string file = findData.cFileName;
-                    if ((findData.dwFileAttributes & (uint)attributes) != 0)
+                    if ((findData.dwFileAttributes & (int)attributes) != 0)
                     {
                         if (file != "." && file != "..")
                         {
