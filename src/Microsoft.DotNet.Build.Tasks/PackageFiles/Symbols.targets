@@ -292,7 +292,9 @@
         signs files that are under these paths.
       -->
       <OutDir Condition="'$(OutDir)'==''">$(BinDir)</OutDir>
-      <IntermediateOutputPath Condition="'$(IntermediateOutputPath)'==''">$(SymbolCatalogIntermediateDir)</IntermediateOutputPath>
+      <!-- always overwrite IntermediateOutputPath so we know we can sign the catalogs.
+           some repos do weird things with BaseIntermediateOutputPath -->
+      <IntermediateOutputPath>$(SymbolCatalogIntermediateDir)</IntermediateOutputPath>
     </PropertyGroup>
   </Target>
 
