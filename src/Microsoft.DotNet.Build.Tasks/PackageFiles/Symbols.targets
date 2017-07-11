@@ -119,8 +119,7 @@
         replaces 'PrefixToStrip' with 'UNCPath' when calculating the share location of each file.
   -->
   <Target Name="CreateSymbolsFileList"
-          DependsOnTargets="UnzipSymbolPackagesForPublish;
-                            GenerateAdditionalSymbolsForArchive;
+          DependsOnTargets="GetAllSymbolFilesToPublish;
                             PublishSymbolFilesToFileShare">
     <PropertyGroup>
       <SymbolFileListPath>$(SymbolsRequestIntermediateDir)SymbolFileList.txt</SymbolFileListPath>
@@ -138,6 +137,13 @@
                       Lines="@(SymbolFileToPublish -> '%(FullPath)')"
                       Overwrite="true" />
   </Target>
+
+  <!--
+    Gets every symbol file to publish onto disk and creates SymbolFileToPublish items.
+  -->
+  <Target Name="GetAllSymbolFilesToPublish"
+          DependsOnTargets="UnzipSymbolPackagesForPublish;
+                            GenerateAdditionalSymbolsForArchive" />
 
   <!--
     Copies symbols to a directory based on the given search glob path. The target should be a file
