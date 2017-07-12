@@ -34,7 +34,7 @@
 
     <Copy Condition="'$(BuildingUAPVertical)' == 'true'"
           SourceFiles="$(StringResourcesPath)"
-          DestinationFiles="$(ResourcesFolderPath)\$(AssemblyName).resw"
+          DestinationFiles="$(ResourcesFolderPath)\FxResources.$(AssemblyName).SR.resw"
           SkipUnchangedFiles="true"
           />
 
