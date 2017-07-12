@@ -460,7 +460,10 @@
       * ItemSpec: An entry in the Microsoft.DiaSymReader.Tools.PdbConversionOptions flags enum to
         use for all conversions performed.
   -->
-  <Target Name="CreateWindowsPdbsFromPortablePdbs">
+  <Target Name="CreateWindowsPdbsFromPortablePdbs"
+          Condition="'$(SkipCreateWindowsPdbsFromPortablePdbs)'!='true'">
+
+    <!-- Early exit for unsupported scenario. See https://github.com/dotnet/buildtools/issues/1607 -->
     <Error Text="BuildTools does not support Portable PDB conversion to Windows PDB in .NET Core. Run msbuild using the desktop framework."
            Condition="'$(MSBuildRuntimeType)'=='core'" />
 
