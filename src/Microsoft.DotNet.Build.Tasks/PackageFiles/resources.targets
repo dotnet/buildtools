@@ -35,8 +35,11 @@
     <Copy Condition="'$(BuildingUAPVertical)' == 'true'"
           SourceFiles="$(StringResourcesPath)"
           DestinationFiles="$(ResourcesFolderPath)\FxResources.$(AssemblyName).SR.resw"
-          SkipUnchangedFiles="true"
-          />
+          SkipUnchangedFiles="true" />
+
+    <Delete Condition="'$(BuildingUAPVertical)' == 'true' AND Exists('$(CommonPriFile)')"
+            Files="$(CommonPriFile)"
+            ContinueOnError="true" />
 
     <ItemGroup>
       <!-- The following Compile element has to be included dynamically inside the Target otherwise intellisense will not work -->
