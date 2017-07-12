@@ -11,7 +11,6 @@
     
     <!-- For UAP, we need to bin place the resources as resw files to create the runner's pri file. -->
     <ResourcesFolderPath Condition="'$(ResourcesFolderPath)' == ''">$(RuntimePath)resw</ResourcesFolderPath>
-    <CommonPriFile Condition="'$(CommonPriFile)' == ''">$(ResourcesFolderPath)/resources.pri</CommonPriFile>
 
     <!-- A number of the imports below depend on these default properties -->
     <AssemblyVersion Condition="'$(AssemblyVersion)'==''">999.999.999.999</AssemblyVersion>
