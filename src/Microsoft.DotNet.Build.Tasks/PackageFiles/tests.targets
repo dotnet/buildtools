@@ -6,6 +6,7 @@
   <Import Project="$(ToolsDir)PerfTesting.targets" Condition="Exists('$(ToolsDir)PerfTesting.targets') and '$(Performance)' == 'true'"/>
   <UsingTask TaskName="GenerateTestExecutionScripts" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="GetTargetMachineInfo" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="MakeResourcesPriFile" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
     <!-- Which categories of tests to run by default -->
   <PropertyGroup>
@@ -159,13 +160,55 @@
           />
   </Target>
 
+  <PropertyGroup Condition="'$(BuildingUAPVertical)' == 'true'">
+    <CommonPriFile Condition="'$(CommonPriFile)' == ''">$(RuntimePath)/resw/resources.pri</CommonPriFile>
+    <TestSpecificPriFile>$(TestPath)\resources.pri</TestSpecificPriFile>
+  </PropertyGroup>
+
+
+
+  <Target Name="CalculateResWFiles" Condition="'$(BuildingUAPVertical)' == 'true'">
+    <ItemGroup>
+      <TestResWFiles Include="$(TestResourcesFolderPath)\*.resw" />
+      <CommonResWFiles Include="$(ResourcesFolderPath)\*.resw" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="MakeCommonResourcesPriFile"
+          DependsOnTargets="CalculateResWFiles"
+          Condition="'$(BuildingUAPVertical)' == 'true'"
+          Inputs="@(CommonResWFiles)"
+          Outputs="$(CommonPriFile)">
+
+    <MakeResourcesPriFile ResWFiles="@(CommonResWFiles)"
+                          RunnersPriFilePath="$(TestHostRootPath.Replace('/', '\'))\Runner\resources.pri"
+                          NewPriFilePath="$(CommonPriFile.Replace('/', '\'))"
+                          MakePriExecutablePath="$(ToolsDir.Replace('/', '\'))\net46\makepri.exe"
+                          ConfigFilePath="$(ToolsDir.Replace('/', '\'))\MakePriConfigFile.xml" />
+
+  </Target>
+
+  <Target Name="MakeTestSpecificResourcesPriFile"
+          DependsOnTargets="MakeCommonResourcesPriFile"
+          Condition="'$(BuildingUAPVertical)' == 'true' AND '$(TestProjectNeedsModifiedPriFile)' == 'true'"
+          Inputs="@(TestResWFiles)"
+          Outputs="$(TestSpecificPriFile)" >
+
+    <MakeResourcesPriFile ResWFiles="@(TestResWFiles)"
+                          RunnersPriFilePath="$(CommonPriFile.Replace('/', '\'))"
+                          NewPriFilePath="$(TestPath.Replace('/', '\'))"
+                          MakePriExecutablePath="$(ToolsDir.Replace('/', '\'))\net46\makepri.exe"
+                          ConfigFilePath="$(ToolsDir.Replace('/', '\'))\MakePriConfigFile.xml" />
+
+  </Target>
+
   <!-- Generate the script to run the tests.  The script performs two high-level steps:
        1.  Copies the common test runtime dependencies calculated in DiscoverTestDependencies to the test
            execution directory. Each copy command no-ops if the file already exists in the test execution
            directory.
        2.  Runs the tests. -->
   <Target Name="GenerateTestExecutionScripts"
-          DependsOnTargets="DiscoverTestInputs;SetupTestProperties">
+          DependsOnTargets="DiscoverTestInputs;SetupTestProperties;MakeTestSpecificResourcesPriFile;MakeCommonResourcesPriFile">
     <Error Condition="'$(TargetOSTrait)' == ''" Text="TargetOS [$(TargetOS)] is unknown so we don't know how to configure the test run for this project [$(MSBuildProjectName)]" />
 
     <PropertyGroup>
@@ -196,6 +239,12 @@
       <OutputPathForScriptGenerator>$(OutputFolderForScriptGenerator)/$(RunnerScriptName)</OutputPathForScriptGenerator>
       <OutputFolderForTestDependencies>$(BinDir)/TestDependencies</OutputFolderForTestDependencies>
     </PropertyGroup>
+
+    <!-- For UAP we need to copy the generated resources.pri containing the framework resources to the test folder -->
+    <Copy Condition="'$(BuildingUAPVertical)' == 'true' AND '$(TestProjectNeedsModifiedPriFile)' != 'true'"
+          SourceFiles="$(CommonPriFile)"
+          DestinationFiles="$(TestPath)\resources.pri"
+          SkipUnchangedFiles="true" />
 
     <MakeDir Condition="'$(CoverageEnabledForProject)'=='true'" Directories="$(CoverageReportDir)" />
 
@@ -274,7 +323,7 @@ robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
 
     <ItemGroup Condition="'$(BuildingUAPVertical)' == 'true'" >
       <!-- Copy the runner files into the test directory -->
-      <RunnerFolderContents Include="$(TestHostRootPath)\Runner\**\*" />
+      <RunnerFolderContents Include="$(TestHostRootPath)\Runner\**\*" Exclude="$(TestHostRootPath)\Runner\**\*.pri"/>
 
       <TestCommandLines Include="mkdir Assets" />
       <TestCommandLines Include="mkdir entrypoint" />
@@ -283,7 +332,7 @@ robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
       <TestCommandLines Include="mklink /H %(RunnerFolderContents.RecursiveDir)%(RunnerFolderContents.Filename)%(RunnerFolderContents.Extension) %RUNTIME_PATH%\Runner\%(RunnerFolderContents.RecursiveDir)%(RunnerFolderContents.Filename)%(RunnerFolderContents.Extension)" />
 
       <!-- Copy the runtime binaries over -->
-      <RuntimePathContents Include="$(RuntimePath)\**\*" />
+      <RuntimePathContents Include="$(TestHostRootPath)\UAPLayout\*"/>
       <TestCommandLines Include="mklink /H %(RuntimePathContents.RecursiveDir)%(RuntimePathContents.Filename)%(RuntimePathContents.Extension) $(_Runtime_Path)%(RuntimePathContents.Filename)%(RuntimePathContents.Extension)" />
 
       <!-- We need to have the ni as well as the non-ni version of the binary. The host (being a rather old build) looks for the ni name first (so we need that as well for now.) -->

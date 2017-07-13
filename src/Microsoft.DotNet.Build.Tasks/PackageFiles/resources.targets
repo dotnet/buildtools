@@ -9,11 +9,32 @@
 
   <PropertyGroup>
     <ResourcesSourceOutputDirectory Condition="'$(ResourcesSourceOutputDirectory)' == ''">$(MSBuildProjectDirectory)/Resources/</ResourcesSourceOutputDirectory>
-    <StringResourcesPath Condition="'$(StringResourcesPath)'=='' And Exists('$(ResourcesSourceOutputDirectory)Strings.resx')">$(ResourcesSourceOutputDirectory)/Strings.resx</StringResourcesPath>
+    <StringResourcesPath Condition="'$(StringResourcesPath)'=='' And Exists('$(ResourcesSourceOutputDirectory)Strings.resx')">$(ResourcesSourceOutputDirectory)Strings.resx</StringResourcesPath>
     <IntermediateResOutputFileFullPath Condition="'$(MSBuildProjectExtension)' == '.csproj'">$(IntermediateOutputPath)SR.cs</IntermediateResOutputFileFullPath>
     <IntermediateResOutputFileFullPath Condition="'$(MSBuildProjectExtension)' == '.vbproj'">$(IntermediateOutputPath)SR.vb</IntermediateResOutputFileFullPath>
     <DefineConstants Condition="'$(ConfigurationGroup)' == 'Debug'">$(DefineConstants);DEBUGRESOURCES</DefineConstants>
   </PropertyGroup>
+
+  <Target Name="CopyResxFilesToReswFiles" Condition="'$(BuildingUAPVertical)' == 'true'" BeforeTargets="CoreCompile">
+
+    <ItemGroup Condition="'$(BuildingUAPVertical)' == 'true'">
+      <AllResxFiles Include="@(EmbeddedResource)" Condition="'%(Extension)' == '.resx'">
+        <ReswName Condition="'%(EmbeddedResource.ReswName)' == ''">%(EmbeddedResource.ManifestResourceName)</ReswName>
+      </AllResxFiles>
+    </ItemGroup>
+
+    <PropertyGroup>
+      <ProjectHasResources Condition="'@(AllResxFiles)' != ''">true</ProjectHasResources>
+      <TestProjectNeedsModifiedPriFile Condition="'$(IsTestProject)' == 'true' AND '$(ProjectHasResources)' == 'true' AND '$(ResourcesShouldGoToCommonPri)' != 'true'">true</TestProjectNeedsModifiedPriFile>
+      <TestResourcesFolderPath Condition="'$(TestProjectNeedsModifiedPriFile)' == 'true'">$(RuntimePath)$(AssemblyName).Resw</TestResourcesFolderPath>
+      <ResWDestinationPath Condition="'$(TestResourcesFolderPath)' != ''">$(TestResourcesFolderPath)</ResWDestinationPath>
+      <ResWDestinationPath Condition="'$(TestResourcesFolderPath)' == ''">$(ResourcesFolderPath)</ResWDestinationPath>
+    </PropertyGroup>
+
+    <Copy SourceFiles="@(AllResxFiles->'%(FullPath)')"
+          DestinationFiles="@(AllResxFiles->'$(ResWDestinationPath)/%(ReswName).resw')"
+          SkipUnchangedFiles="true" />
+  </Target>
   
   <PropertyGroup Condition="'$(StringResourcesPath)'!=''">
       <CompileDependsOn>
@@ -32,11 +53,6 @@
         OutputSourceFilePath="$(IntermediateResOutputFileFullPath)" 
         AssemblyName="$(AssemblyName)" />
 
-    <Copy Condition="'$(BuildingUAPVertical)' == 'true'"
-          SourceFiles="$(StringResourcesPath)"
-          DestinationFiles="$(ResourcesFolderPath)\FxResources.$(AssemblyName).SR.resw"
-          SkipUnchangedFiles="true" />
-
     <ItemGroup>
       <!-- The following Compile element has to be included dynamically inside the Target otherwise intellisense will not work -->
       <Compile Include="$(IntermediateResOutputFileFullPath)" />
@@ -46,11 +62,12 @@
       <FileWrites Include="$(IntermediateResOutputFileFullPath)" />
     </ItemGroup>
   </Target>
-  
+
   <ItemGroup Condition="'$(StringResourcesPath)'!='' AND '$(OmitResources)'!='true'">
     <EmbeddedResource Include="$(StringResourcesPath)">
       <Visible>true</Visible>
       <LogicalName>FxResources.$(AssemblyName).SR.resources</LogicalName>
+      <ReswName Condition="'$(BuildingUAPVertical)' == 'true'">FxResources.$(AssemblyName).SR</ReswName>
     </EmbeddedResource>
   </ItemGroup>
   
