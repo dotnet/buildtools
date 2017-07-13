@@ -287,7 +287,7 @@
 
     <!-- The GitHubRepositoryUrl is formed out of the simple GitHubRepositoryName (e.g. coreclr or corefx) -->
     <PropertyGroup Condition="'$(GitHubOwnerName)' != '' AND '$(GitHubRepositoryName)' != '' AND '$(GitHubRepositoryUrl)' == ''">
-      <GitHubRepositoryUrl>https:/github.com/$(GitHubOwnerName)/$(GitHubRepositoryName)</GitHubRepositoryUrl>
+      <GitHubRepositoryUrl>https://github.com/$(GitHubOwnerName)/$(GitHubRepositoryName)</GitHubRepositoryUrl>
     </PropertyGroup>
     
     <!-- ************************* -->
