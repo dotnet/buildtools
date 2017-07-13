@@ -294,11 +294,11 @@
 
     <!-- SrcCodeRef is something that identifies the source code along with at tag (e.g. SrcCode: http//.....) -->
     <!-- We do the best we can, and fall back as necessary -->
-    <PropertyGroup Condition="'$(GitHubRepositoryUrl)' != ''">
+    <PropertyGroup Condition="'$(GitHubRepositoryUrl)' != '' AND '$(LatestCommit)' != 'N/A'">
       <SrcCodeRef>SrcCode%3A $(GitHubRepositoryUrl)/tree/$(LatestCommit)</SrcCodeRef>
     </PropertyGroup>
     <!-- If we dont have the GitHubRepositoryUrl at least put the commit ID (which is N/A if that does not exist) -->
-    <PropertyGroup Condition="'$(GitHubRepositoryUrl)' == ''">
+    <PropertyGroup Condition="'$(GitHubRepositoryUrl)' == '' OR '$(LatestCommit)' == 'N/A'">
       <SrcCodeRef>Commit%3A $(LatestCommit)</SrcCodeRef>
     </PropertyGroup>
 
