@@ -292,7 +292,7 @@
     
     <!-- ************************* -->
 
-    <!-- SrcCodeRef is something that identifies the source code along with at tag (e.g. SrcCode: http//.....) -->
+    <!-- SrcCodeRef is something that identifies the source code along with at tag (e.g. SrcCode: https://.....) -->
     <!-- We do the best we can, and fall back as necessary -->
     <PropertyGroup Condition="'$(GitHubRepositoryUrl)' != '' AND '$(LatestCommit)' != 'N/A'">
       <SrcCodeRef>SrcCode%3A $(GitHubRepositoryUrl)/tree/$(LatestCommit)</SrcCodeRef>
