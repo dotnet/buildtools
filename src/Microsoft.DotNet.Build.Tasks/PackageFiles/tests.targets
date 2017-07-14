@@ -237,7 +237,7 @@
       <TargetExecutableNames Include="xunit.console.netcore.exe"/>
       <TargetExecutableNames Condition="'%(ProjectReference.Filename)' == 'RemoteExecutorConsoleApp'" Include="RemoteExecutorConsoleApp.exe"/>
       <IlcInputFolderContents Include="$(ILCFXInputFolder)/*" />
-      <TestCommandLines Include="mklink /H %(IlcInputFolderContents.Filename)%(IlcInputFolderContents.Extension) $(_Runtime_Path)%(IlcInputFolderContents.Filename)%(IlcInputFolderContents.Extension)" />
+      <TestCommandLines Include="if not exist %(IlcInputFolderContents.Filename)%(IlcInputFolderContents.Extension) mklink /H %(IlcInputFolderContents.Filename)%(IlcInputFolderContents.Extension) $(_Runtime_Path)%(IlcInputFolderContents.Filename)%(IlcInputFolderContents.Extension)" />
       <TestCommandLines Include="copy /y $(_TestILCFolder)\default.rd.xml  %EXECUTION_DIR%" />
       <TestCommandLines Include="rmdir /S /Q %EXECUTION_DIR%int" />
       <TestCommandLines Include="rmdir /S /Q %EXECUTION_DIR%native" />
@@ -276,18 +276,18 @@ robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
       <!-- Copy the runner files into the test directory -->
       <RunnerFolderContents Include="$(TestHostRootPath)\Runner\**\*" />
 
-      <TestCommandLines Include="mkdir Assets" />
-      <TestCommandLines Include="mkdir entrypoint" />
-      <TestCommandLines Include="mkdir Properties" />
-      <TestCommandLines Include="mkdir WinMetadata" />
-      <TestCommandLines Include="mklink /H %(RunnerFolderContents.RecursiveDir)%(RunnerFolderContents.Filename)%(RunnerFolderContents.Extension) %RUNTIME_PATH%\Runner\%(RunnerFolderContents.RecursiveDir)%(RunnerFolderContents.Filename)%(RunnerFolderContents.Extension)" />
+      <TestCommandLines Include="if not exist Assets mkdir Assets" />
+      <TestCommandLines Include="if not exist entrypoint mkdir entrypoint" />
+      <TestCommandLines Include="if not exist Properties mkdir Properties" />
+      <TestCommandLines Include="if not exist WinMetadata mkdir WinMetadata" />
+      <TestCommandLines Include="if not exist %(RunnerFolderContents.RecursiveDir)%(RunnerFolderContents.Filename)%(RunnerFolderContents.Extension) mklink /H %(RunnerFolderContents.RecursiveDir)%(RunnerFolderContents.Filename)%(RunnerFolderContents.Extension) %RUNTIME_PATH%\Runner\%(RunnerFolderContents.RecursiveDir)%(RunnerFolderContents.Filename)%(RunnerFolderContents.Extension)" />
 
       <!-- Copy the runtime binaries over -->
       <RuntimePathContents Include="$(RuntimePath)\**\*" />
-      <TestCommandLines Include="mklink /H %(RuntimePathContents.RecursiveDir)%(RuntimePathContents.Filename)%(RuntimePathContents.Extension) $(_Runtime_Path)%(RuntimePathContents.Filename)%(RuntimePathContents.Extension)" />
+      <TestCommandLines Include="if not exist %(RuntimePathContents.RecursiveDir)%(RuntimePathContents.Filename)%(RuntimePathContents.Extension) mklink /H %(RuntimePathContents.RecursiveDir)%(RuntimePathContents.Filename)%(RuntimePathContents.Extension) $(_Runtime_Path)%(RuntimePathContents.Filename)%(RuntimePathContents.Extension)" />
 
       <!-- We need to have the ni as well as the non-ni version of the binary. The host (being a rather old build) looks for the ni name first (so we need that as well for now.) -->
-      <TestCommandLines Include="copy /y $(_Runtime_Path)System.Private.CoreLib.dll System.Private.CoreLib.ni.dll" />
+      <TestCommandLines Include="copy /y $(_Runtime_Path)System.Private.CoreLib.dll System.Private.CoreLib.ni.dll &gt; nul" />
 
       <!-- Copy the log files and the results files from the Documents folder to the test folder -->
       <PostExecutionTestCommandLines Include="move $(UAP_Results_Path)$(XunitTestAssembly).xml .\$(XunitResultsFileName)" />
