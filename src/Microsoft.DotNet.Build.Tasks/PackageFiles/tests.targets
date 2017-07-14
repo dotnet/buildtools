@@ -186,6 +186,10 @@
                           MakePriExecutablePath="$(ToolsDir.Replace('/', '\'))\net46\makepri.exe"
                           ConfigFilePath="$(ToolsDir.Replace('/', '\'))\MakePriConfigFile.xml" />
 
+    <ItemGroup>
+      <FileWrites Include="$(CommonPriFile)" />
+    </ItemGroup>
+
   </Target>
 
   <Target Name="MakeTestSpecificResourcesPriFile"
@@ -199,6 +203,10 @@
                           NewPriFilePath="$(TestPath.Replace('/', '\'))"
                           MakePriExecutablePath="$(ToolsDir.Replace('/', '\'))\net46\makepri.exe"
                           ConfigFilePath="$(ToolsDir.Replace('/', '\'))\MakePriConfigFile.xml" />
+
+    <ItemGroup>
+      <FileWrites Include="$(TestSpecificPriFile)" />
+    </ItemGroup>
 
   </Target>
 

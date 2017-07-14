@@ -33,7 +33,13 @@
 
     <Copy SourceFiles="@(AllResxFiles->'%(FullPath)')"
           DestinationFiles="@(AllResxFiles->'$(ResWDestinationPath)/%(ReswName).resw')"
-          SkipUnchangedFiles="true" />
+          SkipUnchangedFiles="true">
+          <Output TaskParameter="CopiedFiles" ItemName="FilesCreated" />
+    </Copy>
+
+    <!-- We need to touch the copied files so that the target that uses them can track the inputs and outputs with the copied timestamp -->
+    <Touch Files="@(FilesCreated)" />
+    
   </Target>
   
   <PropertyGroup Condition="'$(StringResourcesPath)'!=''">
