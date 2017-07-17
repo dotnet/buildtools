@@ -15,24 +15,42 @@
     <DefineConstants Condition="'$(ConfigurationGroup)' == 'Debug'">$(DefineConstants);DEBUGRESOURCES</DefineConstants>
   </PropertyGroup>
 
-  <Target Name="CopyResxFilesToReswFiles" Condition="'$(BuildingUAPVertical)' == 'true'" BeforeTargets="CoreCompile">
+  <PropertyGroup Condition="'$(BuildingUAPVertical)' == 'true'">
+    <CompileDependsOn>
+      CopyResxFilesToReswFiles;
+      $(CompileDependsOn);
+    </CompileDependsOn>
+  </PropertyGroup>
 
-    <ItemGroup Condition="'$(BuildingUAPVertical)' == 'true'">
-      <AllResxFiles Include="@(EmbeddedResource)" Condition="'%(Extension)' == '.resx'">
+  <Target Name="CalculateResourcesFileNames" Condition="'$(BuildingUAPVertical)' == 'true'">
+    <ItemGroup>
+      <_AllResxFiles Include="@(EmbeddedResource)" Condition="'%(Extension)' == '.resx'">
         <ReswName Condition="'%(EmbeddedResource.ReswName)' == ''">%(EmbeddedResource.ManifestResourceName)</ReswName>
-      </AllResxFiles>
+      </_AllResxFiles>
     </ItemGroup>
 
     <PropertyGroup>
-      <ProjectHasResources Condition="'@(AllResxFiles)' != ''">true</ProjectHasResources>
-      <TestProjectNeedsModifiedPriFile Condition="'$(IsTestProject)' == 'true' AND '$(ProjectHasResources)' == 'true' AND '$(ResourcesShouldGoToCommonPri)' != 'true'">true</TestProjectNeedsModifiedPriFile>
+      <ProjectHasResources Condition="'@(_AllResxFiles)' != ''">true</ProjectHasResources>
+      <TestProjectNeedsModifiedPriFile Condition="'$(IsTestProject)' == 'true' AND '$(ProjectHasResources)' == 'true'">true</TestProjectNeedsModifiedPriFile>
       <TestResourcesFolderPath Condition="'$(TestProjectNeedsModifiedPriFile)' == 'true'">$(RuntimePath)$(AssemblyName).Resw</TestResourcesFolderPath>
-      <ResWDestinationPath Condition="'$(TestResourcesFolderPath)' != ''">$(TestResourcesFolderPath)</ResWDestinationPath>
-      <ResWDestinationPath Condition="'$(TestResourcesFolderPath)' == ''">$(ResourcesFolderPath)</ResWDestinationPath>
+      <_ResWDestinationPath Condition="'$(TestResourcesFolderPath)' != ''">$(TestResourcesFolderPath)</_ResWDestinationPath>
+      <_ResWDestinationPath Condition="'$(TestResourcesFolderPath)' == ''">$(ResourcesFolderPath)</_ResWDestinationPath>
     </PropertyGroup>
 
-    <Copy SourceFiles="@(AllResxFiles->'%(FullPath)')"
-          DestinationFiles="@(AllResxFiles->'$(ResWDestinationPath)/%(ReswName).resw')"
+    <ItemGroup>
+      <_ReswOutputFiles Include="@(_AllResxFiles->'$(_ResWDestinationPath)/%(ReswName).resw')" />
+    </ItemGroup>
+
+  </Target>
+
+  <Target Name="CopyResxFilesToReswFiles" 
+          Condition="'$(BuildingUAPVertical)' == 'true'" 
+          DependsOnTargets="CalculateResourcesFileNames"
+          Inputs="@(_AllResxFiles->'%(FullPath)')"
+          Outputs="@(_ReswOutputFiles)" >
+
+    <Copy SourceFiles="@(_AllResxFiles->'%(FullPath)')"
+          DestinationFiles="@(_ReswOutputFiles)"
           SkipUnchangedFiles="true">
           <Output TaskParameter="CopiedFiles" ItemName="FilesCreated" />
     </Copy>
