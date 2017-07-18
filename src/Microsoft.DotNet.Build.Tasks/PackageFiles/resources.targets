@@ -24,7 +24,7 @@
 
   <Target Name="CalculateResourcesFileNames" Condition="'$(BuildingUAPVertical)' == 'true'">
     <ItemGroup>
-      <_AllResxFiles Include="@(EmbeddedResource)" Condition="'%(Extension)' == '.resx'">
+      <_AllResxFiles Include="@(EmbeddedResource->'%(FullPath)')" Condition="'%(Extension)' == '.resx'">
         <ReswName Condition="'%(EmbeddedResource.ReswName)' == ''">%(EmbeddedResource.ManifestResourceName)</ReswName>
       </_AllResxFiles>
     </ItemGroup>
@@ -46,10 +46,10 @@
   <Target Name="CopyResxFilesToReswFiles" 
           Condition="'$(BuildingUAPVertical)' == 'true'" 
           DependsOnTargets="CalculateResourcesFileNames"
-          Inputs="@(_AllResxFiles->'%(FullPath)')"
+          Inputs="@(_AllResxFiles)"
           Outputs="@(_ReswOutputFiles)" >
 
-    <Copy SourceFiles="@(_AllResxFiles->'%(FullPath)')"
+    <Copy SourceFiles="@(_AllResxFiles)"
           DestinationFiles="@(_ReswOutputFiles)"
           SkipUnchangedFiles="true">
           <Output TaskParameter="CopiedFiles" ItemName="FilesCreated" />
