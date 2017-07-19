@@ -55,15 +55,19 @@ namespace Microsoft.DotNet.Build.VstsBuildsApi
                 definition);
 
         /// <summary>
-        /// Retrieve a VSTS Definition by name and VSTS folder path
+        /// Retrieve a VSTS Definition by ID.
         /// </summary>
+        /// <param name="definition">A definition containing the definition ID.</param>
+        /// <returns>The VSTS definition.</returns>
         public async Task<JObject> RetrieveDefinitionByIdAsync(JObject definition) =>
             await JsonClient.GetAsync(
                 GetRequestUri(definition, $"definitions/{definition["id"]}"));
 
         /// <summary>
-        /// Retrieve a VSTS Definition by name and VSTS folder path
+        /// Retrieve a list of VSTS Definitions by name and VSTS folder path.
         /// </summary>
+        /// <param name="definition">A definition containing the definition's name and path in VSTS.</param>
+        /// <returns>A list of VSTS definitions with summarized data (not the full definition data in VSTS).</returns>
         public async Task<IReadOnlyList<JObject>> RetrieveDefinitionsListByNameAndPathAsync(JObject definition)
         {
             string requestUrl = GetRequestUri(
