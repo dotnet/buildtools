@@ -4796,7 +4796,6 @@ shcore.dll!CreateRandomAccessStreamOnFile
 shcore.dll!CreateRandomAccessStreamOverStream
 shcore.dll!CreateStreamOverRandomAccessStream
 shcore.dll!IsProcessInIsolatedContainer
-shell32.dll!SHGetKnownFolderPath
 shlwapi.dll!GetAcceptLanguagesA
 shlwapi.dll!GetAcceptLanguagesW
 srpapi.dll!SrpDoesPolicyAllowAppExecution
