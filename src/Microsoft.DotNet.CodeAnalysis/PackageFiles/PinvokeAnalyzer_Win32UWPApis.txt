@@ -3210,6 +3210,7 @@ kernel32.dll!OpenMutexW
 kernel32.dll!OpenPrivateNamespaceA
 kernel32.dll!OpenPrivateNamespaceW
 kernel32.dll!OpenProcess
+kernel32.dll!OpenProcessToken
 kernel32.dll!OpenSemaphoreW
 kernel32.dll!OpenThread
 kernel32.dll!OpenWaitableTimerA
