@@ -112,6 +112,7 @@ advapi32.dll!LookupPrivilegeValueA
 advapi32.dll!LookupPrivilegeValueW
 advapi32.dll!MakeAbsoluteSD
 advapi32.dll!MakeSelfRelativeSD
+advapi32.dll!OpenProcessToken
 advapi32.dll!OpenThreadToken
 advapi32.dll!OpenTraceW
 advapi32.dll!ProcessTrace
@@ -3092,6 +3093,7 @@ kernel32.dll!InterlockedPushListSListEx
 kernel32.dll!IsDBCSLeadByte
 kernel32.dll!IsDBCSLeadByteEx
 kernel32.dll!IsDebuggerPresent
+kernel32.dll!IsNLSDefinedString
 kernel32.dll!IsNormalizedString
 kernel32.dll!IsProcessorFeaturePresent
 kernel32.dll!IsThreadAFiber
