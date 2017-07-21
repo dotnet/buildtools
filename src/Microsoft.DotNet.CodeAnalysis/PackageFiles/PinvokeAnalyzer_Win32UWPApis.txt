@@ -113,6 +113,7 @@ advapi32.dll!LookupPrivilegeValueA
 advapi32.dll!LookupPrivilegeValueW
 advapi32.dll!MakeAbsoluteSD
 advapi32.dll!MakeSelfRelativeSD
+advapi32.dll!OpenProcessToken
 advapi32.dll!OpenThreadToken
 advapi32.dll!OpenTraceW
 advapi32.dll!ProcessTrace
@@ -3075,6 +3076,7 @@ kernel32.dll!GetOverlappedResult
 kernel32.dll!GetOverlappedResultEx
 kernel32.dll!GetPriorityClass
 kernel32.dll!GetProcAddress
+kernel32.dll!GetProcessAffinityMask
 kernel32.dll!GetProcessDefaultCpuSets
 kernel32.dll!GetProcessHeap
 kernel32.dll!GetProcessId
@@ -3092,6 +3094,8 @@ kernel32.dll!GetStringTypeExW
 kernel32.dll!GetStringTypeW
 kernel32.dll!GetSystemCpuSetInformation
 kernel32.dll!GetSystemDefaultLocaleName
+kernel32.dll!GetSystemDirectoryA
+kernel32.dll!GetSystemDirectoryW
 kernel32.dll!GetSystemInfo
 kernel32.dll!GetSystemTime
 kernel32.dll!GetSystemTimeAsFileTime
@@ -3163,6 +3167,7 @@ kernel32.dll!InterlockedPushListSListEx
 kernel32.dll!IsDBCSLeadByte
 kernel32.dll!IsDBCSLeadByteEx
 kernel32.dll!IsDebuggerPresent
+kernel32.dll!IsNLSDefinedString
 kernel32.dll!IsNormalizedString
 kernel32.dll!IsProcessorFeaturePresent
 kernel32.dll!IsThreadAFiber
@@ -3205,7 +3210,6 @@ kernel32.dll!OpenMutexW
 kernel32.dll!OpenPrivateNamespaceA
 kernel32.dll!OpenPrivateNamespaceW
 kernel32.dll!OpenProcess
-kernel32.dll!OpenProcessToken
 kernel32.dll!OpenSemaphoreW
 kernel32.dll!OpenThread
 kernel32.dll!OpenWaitableTimerA
@@ -3293,12 +3297,14 @@ kernel32.dll!SetFileTime
 kernel32.dll!SetLastError
 kernel32.dll!SetNamedPipeHandleState
 kernel32.dll!SetPriorityClass
+kernel32.dll!SetProcessAffinityMask
 kernel32.dll!SetProcessDefaultCpuSets
 kernel32.dll!SetProcessInformation
 kernel32.dll!SetProcessPriorityBoost
 kernel32.dll!SetProcessWorkingSetSizeEx
 kernel32.dll!SetStdHandle
 kernel32.dll!SetStdHandleEx
+kernel32.dll!SetThreadAffinityMask
 kernel32.dll!SetThreadDescription
 kernel32.dll!SetThreadErrorMode
 kernel32.dll!SetThreadIdealProcessor
@@ -4920,6 +4926,7 @@ urlmon.dll!UrlMkSetSessionOption
 user32.dll!ClipCursor
 user32.dll!GetKeyNameTextA
 user32.dll!GetKeyNameTextW
+user32.dll!GetKeyState
 user32.dll!GetLastInputInfo
 user32.dll!MapVirtualKeyA
 user32.dll!MapVirtualKeyExA
