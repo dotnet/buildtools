@@ -40,8 +40,8 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 return false;
             }
 
-            Log.LogMessage(MessageImportance.Normal, "List of Azure containers in storage account '{0}'.", AccountName);
-            string url = string.Format("https://{0}.blob.core.windows.net/?comp=list", AccountName);
+            Log.LogMessage(MessageImportance.Normal, "Listing Azure containers in storage account '{0}'.", AccountName);
+            string url =$"https://{AccountName}.blob.core.windows.net/?comp=list";
 
             Log.LogMessage(MessageImportance.Low, "Sending request to list containers in account '{0}'.", AccountName);
             List<ITaskItem> discoveredContainers = new List<ITaskItem>();
@@ -50,30 +50,20 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 string nextMarker = string.Empty;
                 try
                 {
-                    var createRequest = AzureHelper.RequestMessage("GET", url, AccountName, AccountKey);
-
-                    XmlDocument responseFile;
-                    using (HttpResponseMessage response = await AzureHelper.RequestWithRetry(Log, client, createRequest))
+                    do
                     {
-                        responseFile = new XmlDocument();
-                        responseFile.LoadXml(await response.Content.ReadAsStringAsync());
-                        XmlNodeList elemList = responseFile.GetElementsByTagName("Name");
+                        string urlToUse = url;
+                        if (!string.IsNullOrEmpty(nextMarker))
+                        {
+                            urlToUse = $"{url}&marker={nextMarker}";
+                        }
+                        var createRequest = AzureHelper.RequestMessage("GET", urlToUse, AccountName, AccountKey);
 
-
-                        discoveredContainers.AddRange(from x in elemList.Cast<XmlNode>()
-                                                      where x.InnerText.Contains(Prefix)
-                                                      select new TaskItem(x.InnerText));
-
-                        nextMarker = responseFile.GetElementsByTagName("NextMarker").Cast<XmlNode>().FirstOrDefault()?.InnerText;
-                    }
-                    while (!string.IsNullOrEmpty(nextMarker))
-                    {
-                        string urlNext = string.Format($"{url}&marker={nextMarker}");
-                        var nextRequest = AzureHelper.RequestMessage("GET", urlNext, AccountName, AccountKey);
-                        using (HttpResponseMessage nextResponse = AzureHelper.RequestWithRetry(Log, client, nextRequest).GetAwaiter().GetResult())
+                        XmlDocument responseFile;
+                        using (HttpResponseMessage response = await AzureHelper.RequestWithRetry(Log, client, createRequest))
                         {
                             responseFile = new XmlDocument();
-                            responseFile.LoadXml(await nextResponse.Content.ReadAsStringAsync());
+                            responseFile.LoadXml(await response.Content.ReadAsStringAsync());
                             XmlNodeList elemList = responseFile.GetElementsByTagName("Name");
 
                             discoveredContainers.AddRange(from x in elemList.Cast<XmlNode>()
@@ -83,6 +73,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                             nextMarker = responseFile.GetElementsByTagName("NextMarker").Cast<XmlNode>().FirstOrDefault()?.InnerText;
                         }
                     }
+                    while (!string.IsNullOrEmpty(nextMarker));
                 }
                 catch (Exception e)
                 {
