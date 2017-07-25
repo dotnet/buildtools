@@ -5,7 +5,7 @@
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System;
-using System.Globalization;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -18,7 +18,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         /// <summary>
         /// Prefix of Azure containers desired to return;
         /// </summary>
-        public string Prefix { get; set; }
+        public string Prefix { get; set; } = String.Empty;
 
         /// <summary>
         /// An item group of container names to download.  
@@ -40,41 +40,51 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 return false;
             }
 
-            Log.LogMessage(MessageImportance.Normal, "List of Azure containers in storage account '{0}'.", AccountName);
-            string url = string.Format("https://{0}.blob.core.windows.net/?comp=list", AccountName);
+            Log.LogMessage(MessageImportance.Normal, "Listing Azure containers in storage account '{0}'.", AccountName);
+            string url =$"https://{AccountName}.blob.core.windows.net/?comp=list";
 
             Log.LogMessage(MessageImportance.Low, "Sending request to list containers in account '{0}'.", AccountName);
-
+            List<ITaskItem> discoveredContainers = new List<ITaskItem>();
             using (HttpClient client = new HttpClient())
             {
+                string nextMarker = string.Empty;
                 try
                 {
-                    var createRequest = AzureHelper.RequestMessage("GET", url, AccountName, AccountKey);
-
-                    // TODO:  This task has a bug, it needs to continue when there are > 5000 containers in a storage acccount.
-                    //        Fix is something like the one made to DownloadFromAzure, but not pressing since it looks like GetLatestContainerNameFromAzure is rarely / not used.
-                    XmlDocument responseFile;
-                    using (HttpResponseMessage response = await AzureHelper.RequestWithRetry(Log, client, createRequest))
+                    do
                     {
-                        responseFile = new XmlDocument();
-                        responseFile.LoadXml(await response.Content.ReadAsStringAsync());
-                        XmlNodeList elemList = responseFile.GetElementsByTagName("Name");
+                        string urlToUse = url;
+                        if (!string.IsNullOrEmpty(nextMarker))
+                        {
+                            urlToUse = $"{url}&marker={nextMarker}";
+                        }
+                        var createRequest = AzureHelper.RequestMessage("GET", urlToUse, AccountName, AccountKey);
 
-                        ContainerNames = (from x in elemList.Cast<XmlNode>()
-                                          where x.InnerText.Contains(Prefix)
-                                          select new TaskItem(x.InnerText)).ToArray();
+                        XmlDocument responseFile;
+                        using (HttpResponseMessage response = await AzureHelper.RequestWithRetry(Log, client, createRequest))
+                        {
+                            responseFile = new XmlDocument();
+                            responseFile.LoadXml(await response.Content.ReadAsStringAsync());
+                            XmlNodeList elemList = responseFile.GetElementsByTagName("Name");
 
-                        if (ContainerNames.Length == 0)
-                            Log.LogWarning("No containers were found.");
-                        else
-                            Log.LogMessage("Found {0} containers.", ContainerNames.Length);
+                            discoveredContainers.AddRange(from x in elemList.Cast<XmlNode>()
+                                                          where x.InnerText.Contains(Prefix)
+                                                          select new TaskItem(x.InnerText));
+
+                            nextMarker = responseFile.GetElementsByTagName("NextMarker").Cast<XmlNode>().FirstOrDefault()?.InnerText;
+                        }
                     }
+                    while (!string.IsNullOrEmpty(nextMarker));
                 }
                 catch (Exception e)
                 {
                     Log.LogErrorFromException(e, true);
                 }
             }
+            ContainerNames = discoveredContainers.ToArray();
+            if (ContainerNames.Length == 0)
+                Log.LogWarning("No containers were found.");
+            else
+                Log.LogMessage("Found {0} containers.", ContainerNames.Length);
 
             return !Log.HasLoggedErrors;
         }
