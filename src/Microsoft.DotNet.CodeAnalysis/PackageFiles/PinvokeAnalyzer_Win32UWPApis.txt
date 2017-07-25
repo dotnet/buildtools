@@ -3134,7 +3134,6 @@ kernel32.dll!MoveFileExW
 kernel32.dll!MulDiv
 kernel32.dll!MultiByteToWideChar
 kernel32.dll!NormalizeString
-kernel32.dll!OpenCommPort
 kernel32.dll!OpenEventA
 kernel32.dll!OpenEventW
 kernel32.dll!OpenMutexA
@@ -3321,6 +3320,7 @@ kernel32.dll!WriteFile
 kernel32.dll!WriteFileEx
 kernel32legacy.dll!GetSystemPowerStatus
 kernelbase.dll!GetIntegratedDisplaySize
+kernelbase.dll!OpenCommPort
 kernelbase.dll!PathAllocCanonicalize
 kernelbase.dll!PathAllocCombine
 kernelbase.dll!PathCchAddBackslash
