@@ -73,6 +73,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// </summary>
         public ITaskItem[] InboxFrameworkLayoutFolders { get; set; }
 
+        public bool SetBaselineVersionsToLatestStableVersion { get; set; }
+
         /// <summary>
         /// Pre-release version to use for all pre-release packages covered by this index.
         /// </summary>
@@ -169,6 +171,14 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 }
             }
 
+            if (SetBaselineVersionsToLatestStableVersion)
+            {
+                foreach(var packageInfo in index.Packages.Values)
+                {
+                    var maxVersion = packageInfo.StableVersions.Max();
+                    packageInfo.BaselineVersion = maxVersion;
+                }
+            }
 
             if (!String.IsNullOrEmpty(PreRelease))
             {
