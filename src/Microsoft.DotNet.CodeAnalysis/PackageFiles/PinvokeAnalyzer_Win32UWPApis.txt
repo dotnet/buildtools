@@ -7,7 +7,6 @@ advapi32.dll!AdjustTokenPrivileges
 advapi32.dll!AllocateAndInitializeSid
 advapi32.dll!AllocateLocallyUniqueId
 advapi32.dll!CheckTokenMembership
-advapi32.dll!CheckTokenMembershipEx
 advapi32.dll!CloseTrace
 advapi32.dll!ControlTraceW
 advapi32.dll!ConvertSecurityDescriptorToStringSecurityDescriptorW
@@ -2802,6 +2801,7 @@ kernel32.dll!CancelIoEx
 kernel32.dll!CancelThreadpoolIo
 kernel32.dll!CancelWaitableTimer
 kernel32.dll!CeipIsOptedIn
+kernel32.dll!CheckTokenMembershipEx
 kernel32.dll!ClearCommBreak
 kernel32.dll!ClearCommError
 kernel32.dll!CloseHandle
