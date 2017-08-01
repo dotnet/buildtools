@@ -18,16 +18,21 @@ namespace Microsoft.DotNet.Build.Tasks
     public class ExecWithRetriesForNuGetPush : ExecWithRetries
     {
         /// <summary>
-        /// There's a very special failure scenario that we want to ignore.  That scenario is
-        /// when NuGet hits a timeout on one "push" attempt, and then gets a "Forbidden" response
-        /// because the package "already exists" on the next response.  This indicates that the
-        /// timeout occurred, but the push was actually successful.
-        ///
-        /// To address the condition, I'm implementing a special "IgnoredErrorMessagesWithConditional"
-        /// property that allows you to specify error messages which you want to ignore.  If you
+        /// The "IgnoredErrorMessagesWithConditional" item collection
+        /// allows you to specify error messages which you want to ignore.  If you
         /// specify the "ConditionalErrorMessage" metadata on the Item, then the error message is
         /// only ignored if the "conditional" error message was detected in a previous (or current)
         /// Exec attempt.
+        /// 
+        /// Example: <IgnoredErrorMessagesWithConditional>publish failed</IgnoredErrorMessagesWithConditional>
+        ///            Specifying this item would tell the task to report success, even if "publish failed" is detected
+        ///            in the Exec output
+        ///
+        ///            <IgnorableErrorMessages Include="Overwriting existing packages is forbidden according to the package retention settings for this feed.">
+        ///               <ConditionalErrorMessage>Pushing took too long</ConditionalErrorMessage>
+        ///            </IgnorableErrorMessages>
+        ///            This tells the task to report success if "Overwriting existing packages is forbidden..." is detected
+        ///            in the Exec output, but only if a previous Exec attempt failed and reported "Pushing took too long".
         /// </summary>
         public ITaskItem[] IgnoredErrorMessagesWithConditional { get; set; }
 
@@ -41,7 +46,7 @@ namespace Microsoft.DotNet.Build.Tasks
             // Add any "Ignore" messages that don't have conditionals to our active list.
             if (IgnoredErrorMessagesWithConditional != null)
             {
-                foreach(var message in IgnoredErrorMessagesWithConditional)
+                foreach (var message in IgnoredErrorMessagesWithConditional)
                 {
                     string conditional = message.GetMetadata("ConditionalErrorMessage");
                     if (string.IsNullOrEmpty(conditional))
@@ -79,8 +84,10 @@ namespace Microsoft.DotNet.Build.Tasks
                 {
                     var consoleOutput = _runningExec.ConsoleOutput.Select(c => c.ItemSpec);
                     // If the console output contains a "conditional" message, add the item to the active list.
-                    var conditionMessages = IgnoredErrorMessagesWithConditional.Where(m => consoleOutput.Any(n => n.Contains(m.GetMetadata("ConditionalErrorMessage"))));
-                    foreach(var condition in conditionMessages)
+                    var conditionMessages = IgnoredErrorMessagesWithConditional.Where(m => 
+                                               consoleOutput.Any(n => 
+                                                  n.Contains(m.GetMetadata("ConditionalErrorMessage"))));
+                    foreach (var condition in conditionMessages)
                     {
                         activeIgnorableErrorMessages.Add(condition.ItemSpec);
                     }

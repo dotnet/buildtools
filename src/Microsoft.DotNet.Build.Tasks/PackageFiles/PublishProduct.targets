@@ -31,6 +31,11 @@
     <ItemGroup>
       <NuGetPushCommand Include="@(PackagesToPush -> '$(NuGetExePath) $(NuGetPushArgsBase) %(Identity)')" />
 
+      <!-- There's a very special failure scenario that we want to ignore.  That scenario is
+           when NuGet hits a timeout on one "push" attempt, and then gets a "Forbidden" response
+           because the package "already exists" on the next response.  This indicates that the
+           timeout occurred, but the push was actually successful.
+      -->
       <IgnorableErrorMessages Include="Overwriting existing packages is forbidden according to the package retention settings for this feed.">
         <ConditionalErrorMessage>Pushing took too long</ConditionalErrorMessage>
       </IgnorableErrorMessages>
