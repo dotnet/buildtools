@@ -15,8 +15,24 @@ namespace Microsoft.DotNet.Build.Tasks
     /// <summary>
     /// Run a command and retry if the exit code is not 0.
     /// </summary>
-    public class ExecWithRetriesForNuGetPush : ExecWithRetries
+    public class ExecWithRetriesForNuGetPush : Microsoft.Build.Utilities.Task, ICancelableTask
     {
+        [Required]
+        public string Command { get; set; }
+
+        public int MaxAttempts { get; set; } = 5;
+
+        /// <summary>
+        /// Base, in seconds, raised to the power of the number of retries so far.
+        /// </summary>
+        public double RetryDelayBase { get; set; } = 6;
+
+        /// <summary>
+        /// A constant, in seconds, added to (base^retries) to find the delay before retrying.
+        /// 
+        /// The default is -1 to make the first retry instant, because ((base^0)-1) == 0.
+        /// </summary>
+        public double RetryDelayConstant { get; set; } = -1;
         /// <summary>
         /// The "IgnoredErrorMessagesWithConditional" item collection
         /// allows you to specify error messages which you want to ignore.  If you
@@ -39,6 +55,12 @@ namespace Microsoft.DotNet.Build.Tasks
         private CancellationTokenSource _cancelTokenSource = new CancellationTokenSource();
 
         private Exec _runningExec;
+
+        public void Cancel()
+        {
+            _runningExec?.Cancel();
+            _cancelTokenSource.Cancel();
+        }
 
         public override bool Execute()
         {
