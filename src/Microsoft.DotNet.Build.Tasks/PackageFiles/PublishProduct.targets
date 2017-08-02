@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <UsingTask TaskName="ExecWithRetries" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="ExecWithRetriesForNuGetPush" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
 
   <!--
-    Utility target for pushing a set of packages using the ExecWithRetries task.
+    Utility target for pushing a set of packages using the ExecWithRetriesForNuGetPush task.
     The per-package retries make this target more reliable than using NuGet.exe
     when there is a hang.
   -->
@@ -30,13 +30,23 @@
 
     <ItemGroup>
       <NuGetPushCommand Include="@(PackagesToPush -> '$(NuGetExePath) $(NuGetPushArgsBase) %(Identity)')" />
+
+      <!-- There's a very special failure scenario that we want to ignore.  That scenario is
+           when NuGet hits a timeout on one "push" attempt, and then gets a "Forbidden" response
+           because the package "already exists" on the next response.  This indicates that the
+           timeout occurred, but the push was actually successful.
+      -->
+      <IgnorableErrorMessages Include="Overwriting existing packages is forbidden according to the package retention settings for this feed.">
+        <ConditionalErrorMessage>Pushing took too long</ConditionalErrorMessage>
+      </IgnorableErrorMessages>
     </ItemGroup>
 
-    <ExecWithRetries
+    <ExecWithRetriesForNuGetPush
       Command="%(NuGetPushCommand.Identity)"
       MaxAttempts="$(MaxAttempts)"
       RetryDelayBase="$(RetryDelayBase)"
-      RetryDelayConstant="$(RetryDelayConstant)" />
+      RetryDelayConstant="$(RetryDelayConstant)"
+      IgnoredErrorMessagesWithConditional="@(IgnorableErrorMessages)" />
   </Target>
 
 </Project>
