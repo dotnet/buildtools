@@ -33,6 +33,7 @@ namespace Microsoft.DotNet.Build.Tasks
         /// The default is -1 to make the first retry instant, because ((base^0)-1) == 0.
         /// </summary>
         public double RetryDelayConstant { get; set; } = -1;
+
         /// <summary>
         /// The "IgnoredErrorMessagesWithConditional" item collection
         /// allows you to specify error messages which you want to ignore.  If you
@@ -40,13 +41,13 @@ namespace Microsoft.DotNet.Build.Tasks
         /// only ignored if the "conditional" error message was detected in a previous (or current)
         /// Exec attempt.
         /// 
-        /// Example: <IgnoredErrorMessagesWithConditional>publish failed</IgnoredErrorMessagesWithConditional>
+        /// Example: <IgnoredErrorMessagesWithConditional Include="publish failed" />
         ///            Specifying this item would tell the task to report success, even if "publish failed" is detected
         ///            in the Exec output
         ///
-        ///            <IgnorableErrorMessages Include="Overwriting existing packages is forbidden according to the package retention settings for this feed.">
+        ///            <IgnoredErrorMessagesWithConditional Include="Overwriting existing packages is forbidden according to the package retention settings for this feed.">
         ///               <ConditionalErrorMessage>Pushing took too long</ConditionalErrorMessage>
-        ///            </IgnorableErrorMessages>
+        ///            </IgnoredErrorMessagesWithConditional>
         ///            This tells the task to report success if "Overwriting existing packages is forbidden..." is detected
         ///            in the Exec output, but only if a previous Exec attempt failed and reported "Pushing took too long".
         /// </summary>
