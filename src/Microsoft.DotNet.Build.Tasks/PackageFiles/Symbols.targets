@@ -2,6 +2,7 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <UsingTask TaskName="AddItemIndices" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ConvertPdbsToPortablePdbs" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="ExecWithRetries" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ZipFileExtractToDirectory" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ZipFileGetEntries" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ZipFileInjectFile" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
@@ -236,28 +237,38 @@
 
   <!-- Generate any extra symbols (e.g. Windows PDBs) that also need to be archived. -->
   <Target Name="GenerateAdditionalSymbolsForArchive"
-          DependsOnTargets="SetArchivePropertiesCreateWindowsPdbsFromPortablePdbs;
-                            CreateWindowsPdbsFromPortablePdbs;
+          DependsOnTargets="ExecCreateWindowsPdbsFromPortablePdbs;
                             AddConvertedWindowsPdbsToPublishList" />
 
   <!--
     Set up properties for CreateWindowsPdbsFromPortablePdbs that will generate Windows PDBs for
     files in the unzipped symbol packages.
   -->
-  <Target Name="SetArchivePropertiesCreateWindowsPdbsFromPortablePdbs">
+  <Target Name="ExecCreateWindowsPdbsFromPortablePdbs">
     <PropertyGroup>
-      <WindowsPdbConversionTargetPath>$(SymbolPackageExtractDir)WindowsPDB\</WindowsPdbConversionTargetPath>
+      <PortablePdbToConvertGlob>$(SymbolPackageExtractDir)**\*.pdb</PortablePdbToConvertGlob>
+
+      <!-- Note: uses / instead of \ to avoid escaping &quot; in the command. -->
+      <WindowsPdbConversionTargetPath>$(SymbolPackageExtractDir)WindowsPDB/</WindowsPdbConversionTargetPath>
+
+      <!--
+        Run symbol conversion in a new process so that we can safely retry when PDB conversion hits
+        an AccessViolation exception.
+      -->
+      <_ConvertPdbCommand>&quot;$(MSBuildBinPath)\msbuild.exe&quot;</_ConvertPdbCommand>
+      <_ConvertPdbCommand>$(_ConvertPdbCommand) /v:Detailed</_ConvertPdbCommand>
+      <_ConvertPdbCommand>$(_ConvertPdbCommand) &quot;$(MSBuildProjectFullPath)&quot;</_ConvertPdbCommand>
+      <_ConvertPdbCommand>$(_ConvertPdbCommand) /t:CreateWindowsPdbsFromPortablePdbs</_ConvertPdbCommand>
+      <_ConvertPdbCommand>$(_ConvertPdbCommand) &quot;/p:PortablePdbToConvertGlob=$(PortablePdbToConvertGlob)&quot;</_ConvertPdbCommand>
+      <_ConvertPdbCommand>$(_ConvertPdbCommand) &quot;/p:WindowsPdbConversionTargetPath=$(WindowsPdbConversionTargetPath)&quot;</_ConvertPdbCommand>
     </PropertyGroup>
-    <ItemGroup>
-      <_ToPublishDllWithPdbCandidate Include="@(SymbolFileToPublish)"
-                            Condition="'%(Extension)'=='.dll'">
-        <PdbPath>%(RootDir)%(Directory)%(Filename).pdb</PdbPath>
-      </_ToPublishDllWithPdbCandidate>
-      <PortableFileToConvert Include="@(_ToPublishDllWithPdbCandidate)"
-                             Condition="Exists('%(PdbPath)')">
-        <TargetPath>$(WindowsPdbConversionTargetPath)%(RecursiveDir)%(Filename).pdb</TargetPath>
-      </PortableFileToConvert>
-    </ItemGroup>
+
+    <!-- Only retry once, and don't delay. Failure hasn't been observed twice in a row yet. -->
+    <ExecWithRetries Command="$(_ConvertPdbCommand)"
+                     IgnoreStandardErrorWarningFormat="true"
+                     MaxAttempts="2"
+                     RetryDelayBase="0"
+                     RetryDelayConstant="0"/>
   </Target>
 
   <!--
@@ -449,13 +460,15 @@
   </Target>
 
   <!--
-    Generates Windows PDBs from Portable PDBs.
+    Generates Windows PDBs from Portable PDBs. PDBs passed that are not Portable are skipped.
     
     [In]
-    @(PortableFileToConvert)
-      * ItemSpec: The DLL file associated with a Portable PDB to convert.
-      * PdbPath: The path to the Portable PDB file to convert.
-      * TargetPath: The output path for the generated Windows PDB. Full filename.
+    $(PortablePdbToConvertGlob)
+      * A path glob that matches all portable PDBs to convert. Conversion requires the DLL, and this
+        option assumes that the DLL is in the same directory with the same filename.
+    $(WindowsPdbConversionTargetPath)
+      * Location to place converted PDBs when using PortablePdbToConvertGlob. Recursive directory
+        is preserved, if one is present in the glob.
     @(ConversionOptions) [optional]
       * ItemSpec: An entry in the Microsoft.DiaSymReader.Tools.PdbConversionOptions flags enum to
         use for all conversions performed.
@@ -466,6 +479,30 @@
     <!-- Early exit for unsupported scenario. See https://github.com/dotnet/buildtools/issues/1607 -->
     <Error Text="BuildTools does not support Portable PDB conversion to Windows PDB in .NET Core. Run msbuild using the desktop framework."
            Condition="'$(MSBuildRuntimeType)'=='core'" />
+
+    <!-- Find DLL/PDB pairs based on the optional path glob given. -->
+    <ItemGroup Condition="'$(PortablePdbToConvertGlob)'!=''">
+      <_PdbCandidate Include="$(PortablePdbToConvertGlob)" />
+
+      <_ToPublishDllCandidate Include="@(_PdbCandidate -> '%(RootDir)%(Directory)%(Filename).dll')">
+        <PdbPath>%(Identity)</PdbPath>
+        <PdbRecursiveDir>%(RecursiveDir)</PdbRecursiveDir>
+      </_ToPublishDllCandidate>
+
+      <!--
+        If this target becomes reliable, we could start calling directly in msbuild and define these
+        items as parameters:
+        
+        @(PortableFileToConvert)
+          * ItemSpec: The DLL file associated with a Portable PDB to convert.
+          * PdbPath: The path to the Portable PDB file to convert.
+          * TargetPath: The output path for the generated Windows PDB. Full filename.
+      -->
+      <PortableFileToConvert Include="@(_ToPublishDllCandidate)"
+                             Condition="Exists('%(Identity)')">
+        <TargetPath>$(WindowsPdbConversionTargetPath)%(PdbRecursiveDir)%(Filename).pdb</TargetPath>
+      </PortableFileToConvert>
+    </ItemGroup>
 
     <ConvertPdbsToPortablePdbs Files="@(PortableFileToConvert)"
                                ConversionOptions="@(ConversionOptions)" />
