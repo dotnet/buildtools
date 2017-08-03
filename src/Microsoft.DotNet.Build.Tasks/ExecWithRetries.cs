@@ -18,6 +18,8 @@ namespace Microsoft.DotNet.Build.Tasks
         [Required]
         public string Command { get; set; }
 
+        public bool IgnoreStandardErrorWarningFormat { get; set; }
+
         public int MaxAttempts { get; set; } = 5;
 
         /// <summary>
@@ -52,6 +54,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 {
                     BuildEngine = BuildEngine,
                     Command = Command,
+                    IgnoreStandardErrorWarningFormat = IgnoreStandardErrorWarningFormat,
                     LogStandardErrorAsError = false,
                     IgnoreExitCode = true
                 };
