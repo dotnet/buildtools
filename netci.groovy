@@ -28,6 +28,14 @@ def branch = GithubBranchName
         else {
             Utilities.addGithubPushTrigger(newJob)
         }
+        
+        newJob.with {
+            publishers {
+                azureVMAgentPostBuildAction {
+                    agentPostBuildAction('Delete agent after build execution (when idle).')
+                }
+            }
+        }
     }
 }
 
