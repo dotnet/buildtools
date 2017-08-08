@@ -106,8 +106,10 @@
   <Import Project="IL.targets"
            Condition="'$(MSBuildProjectExtension)' == '.ilproj' AND '$(SkipImportILTargets)'!='true'" />
 
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets"
-          Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' and '$(MSBuildProjectExtension)' == '.csproj'" />
+  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable'">
+    <CSharpCoreTargetsPath>$(MSBuildExtensionsPath32)\Roslyn\Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
+    <VisualBasicCoreTargetsPath>$(MSBuildExtensionsPath32)\Roslyn\Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>
+  </PropertyGroup>
 
   <!--
       workaround file casing issue where it has different casing in different places which fails on linux builds
@@ -118,10 +120,13 @@
     <CSharpTargetsFile Condition="!Exists('$(CSharpTargetsFile)')">$(MSBuildToolsPath)\Microsoft.CSharp.Targets</CSharpTargetsFile>
   </PropertyGroup>
 
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft.CSharp.targets"
+          Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' and '$(MSBuildProjectExtension)' == '.csproj'" />
+
   <Import Project="$(CSharpTargetsFile)"
           Condition="'$(TargetFrameworkIdentifier)' != '.NETPortable' and '$(MSBuildProjectExtension)' == '.csproj'" />
 
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.VisualBasic.targets"
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft.VisualBasic.targets"
           Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' and '$(MSBuildProjectExtension)' == '.vbproj'" />
 
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets"
