@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using Xunit.Abstractions;
@@ -54,10 +55,29 @@ namespace Xunit.NetCore.Extensions
                 if (symbols.Length == 2)
                 {
                     conditionMemberName = symbols[1];
-                    ITypeInfo type = testMethod.TestClass.Class.Assembly.GetTypes(false).Where(t => t.Name.Contains(symbols[0])).FirstOrDefault();
+
+                    // First, try to find the method in the assembly of the test method.
+                    ITypeInfo type = GetTypeFromSymbol(testMethod.TestClass.Class.Assembly, symbols[0]);
                     if (type != null)
                     {
                         declaringType = type.ToRuntimeType();
+                    }
+                    else
+                    {
+                        try
+                        {
+                            var assemblyName = new AssemblyName("CoreFx.Private.TestUtilities");
+                            Assembly testUtilitiesAssembly = Assembly.Load(assemblyName);
+                            type = GetTypeFromSymbol(Reflector.Wrap(testUtilitiesAssembly), symbols[0]);
+                            if (type != null)
+                            {
+                                declaringType = type.ToRuntimeType();
+                            }
+                        }
+                        catch (FileNotFoundException)
+                        {
+                            // The assembly may not exist in all repositories, so ignore any failures.
+                        }
                     }
                 }
 
@@ -124,6 +144,11 @@ namespace Xunit.NetCore.Extensions
                 return pi.GetMethod;
 
             return LookupConditionalMethod(ti.BaseType, name);
+        }
+
+        private static ITypeInfo GetTypeFromSymbol(IAssemblyInfo assembly, string symbol)
+        {
+            return assembly.GetTypes(false).FirstOrDefault(t => t.Name.Contains(symbol));
         }
     }
 }
