@@ -12,7 +12,7 @@ using System.Resources;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class CreateExternalAssembliesResources : Task
+    public class ExtractResWResourcesFromAssemblies : Task
     {
         [Required]
         public ITaskItem[] InputAssemblies { get; set; }
@@ -24,11 +24,7 @@ namespace Microsoft.DotNet.Build.Tasks
         {
             try
             {
-                if (!Directory.Exists(OutputPath))
-                {
-                    Directory.CreateDirectory(OutputPath);
-                }
-
+                Directory.CreateDirectory(OutputPath);
                 CreateReswFiles();
             }
             catch (Exception e)
@@ -56,9 +52,8 @@ namespace Microsoft.DotNet.Build.Tasks
 
                         string reswName = Path.GetFileNameWithoutExtension(resourceName);
                         string reswPath = Path.Combine(OutputPath, $"{reswName}.resw");
-                        using (FileStream stream = File.Create(reswPath))
                         using (ResourceReader resourceReader = new ResourceReader(assembly.GetManifestResourceStream(resourceName)))
-                        using (ResXResourceWriter resourceWriter = new ResXResourceWriter(stream))
+                        using (ResXResourceWriter resourceWriter = new ResXResourceWriter(reswPath))
                         {
                             IDictionaryEnumerator enumerator = resourceReader.GetEnumerator();
                             while (enumerator.MoveNext())

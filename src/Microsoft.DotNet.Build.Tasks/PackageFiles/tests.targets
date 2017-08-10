@@ -6,7 +6,7 @@
   <Import Project="$(ToolsDir)PerfTesting.targets" Condition="Exists('$(ToolsDir)PerfTesting.targets') and '$(Performance)' == 'true'"/>
   <UsingTask TaskName="GenerateTestExecutionScripts" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="GetTargetMachineInfo" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
-  <UsingTask Condition="'$(BuildingUAPVertical)' == 'true'" TaskName="CreateExternalAssembliesResources" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask Condition="'$(BuildingUAPVertical)' == 'true'" TaskName="ExtractResWResourcesFromAssemblies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
     <!-- Which categories of tests to run by default -->
   <PropertyGroup>
@@ -185,7 +185,7 @@
       <_RuntimeDllFilesWithoutResw Include="@(_AllRuntimeDllFiles)" Condition="!Exists('$(ResourcesFolderPath)\FxResources.%(FileName).SR.resw')" />
     </ItemGroup>
 
-    <CreateExternalAssembliesResources InputAssemblies="@(_RuntimeDllFilesWithoutResw)"
+    <ExtractResWResourcesFromAssemblies InputAssemblies="@(_RuntimeDllFilesWithoutResw)"
                                        OutputPath="$(ResourcesFolderPath)" />
   </Target>
 
