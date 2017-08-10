@@ -23,11 +23,37 @@ namespace Xunit.NetCore.Extensions
                                                         IMessageSink diagnosticMessageSink,
                                                         ITestMethod testMethod,
                                                         IEnumerable<IXunitTestCase> testCases,
-                                                        IEnumerable<string> conditionMemberNames)
+                                                        object[] conditionArguments)
         {
             // A null or empty list of conditionMemberNames is treated as "no conditions".
             // and the test cases will not be skipped.
-            // Example: [ConditionalFact()] or [ConditionalFact((string[]) null)]
+            // Example: [ConditionalFact()]
+            if (conditionArguments == null || conditionArguments.Length == 0)
+            {
+                return testCases;
+            }
+
+            string [] conditionMemberNames;
+
+            Type calleeType = conditionArguments[0] as Type;
+            if (calleeType != null)
+            {
+                if (conditionArguments.Length < 2)
+                {
+                    // [ConditionalFact(typeof(x))] no provided methods.
+                    return testCases;
+                }
+
+                // [ConditionalFact(typeof(x), "MethodName")]
+                conditionMemberNames = conditionArguments[1] as string[];
+            }
+            else
+            {
+                // [ConditionalFact("MethodName")]
+                conditionMemberNames = conditionArguments[0] as string[];
+            }
+
+            // [ConditionalFact((string[]) null)]
             int conditionCount = conditionMemberNames == null ? 0 : conditionMemberNames.Count();
             if (conditionCount == 0)
             {
@@ -48,35 +74,44 @@ namespace Xunit.NetCore.Extensions
                     continue;
                 }
 
-                Type declaringType = testMethodDeclaringType;
+                Type declaringType;
 
-                // We have qualified type name with the assembly name, something like
-                // [ConditionalFact("System.PlatformDetection, CoreFx.Private.TestUtilities!" + nameof(PlatformDetection.IsNonZeroLowerBoundArraySupported))]
-                // We don't use '.' as separator in such case and use '!' because the qualified type name can have '.' to include the type namespace.
-                if (conditionMemberName.IndexOf('!') > 0)
+                if (calleeType != null)
                 {
-                    // get the method name
-                    string[] symbols = conditionMemberName.Split('!');
-                    if (symbols.Length == 2)
-                    {
-                        conditionMemberName = symbols[1];
-                        Type requestedType = Type.GetType(symbols[0]);
-                        if (requestedType != null)
-                        {
-                            declaringType = requestedType;
-                        }
-                    }
+                    declaringType = calleeType;
                 }
                 else
                 {
-                    string[] symbols = conditionMemberName.Split('.');
-                    if (symbols.Length == 2)
+                    declaringType = testMethodDeclaringType;
+
+                    // We have qualified type name with the assembly name, something like
+                    // [ConditionalFact("System.PlatformDetection, CoreFx.Private.TestUtilities!" + nameof(PlatformDetection.IsNonZeroLowerBoundArraySupported))]
+                    // We don't use '.' as separator in such case and use '!' because the qualified type name can have '.' to include the type namespace.
+                    if (conditionMemberName.IndexOf('!') > 0)
                     {
-                        conditionMemberName = symbols[1];
-                        ITypeInfo type = testMethod.TestClass.Class.Assembly.GetTypes(false).Where(t => t.Name.Contains(symbols[0])).FirstOrDefault();
-                        if (type != null)
+                        // get the method name
+                        string[] symbols = conditionMemberName.Split('!');
+                        if (symbols.Length == 2)
                         {
-                            declaringType = type.ToRuntimeType();
+                            conditionMemberName = symbols[1];
+                            Type requestedType = Type.GetType(symbols[0]);
+                            if (requestedType != null)
+                            {
+                                declaringType = requestedType;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        string[] symbols = conditionMemberName.Split('.');
+                        if (symbols.Length == 2)
+                        {
+                            conditionMemberName = symbols[1];
+                            ITypeInfo type = testMethod.TestClass.Class.Assembly.GetTypes(false).Where(t => t.Name.Contains(symbols[0])).FirstOrDefault();
+                            if (type != null)
+                            {
+                                declaringType = type.ToRuntimeType();
+                            }
                         }
                     }
                 }
@@ -90,7 +125,7 @@ namespace Xunit.NetCore.Extensions
                             diagnosticMessageSink,
                             discoveryOptions.MethodDisplayOrDefault(),
                             testMethod,
-                            GetFailedLookupString(conditionMemberName))
+                            GetFailedLookupString(conditionMemberName, declaringType))
                     };
                 }
 
@@ -120,11 +155,11 @@ namespace Xunit.NetCore.Extensions
             return testCases;
         }
 
-        internal static string GetFailedLookupString(string name)
+        internal static string GetFailedLookupString(string name, Type type)
         {
             return
-                "An appropriate member \"" + name + "\" could not be found. " +
-                "The conditional method needs to be a static method or property on this or any ancestor type, " +
+                $"An appropriate member '{name}' could not be found. " +
+                $"The conditional method needs to be a static method or property on the type {type} or any ancestor, " +
                 "of any visibility, accepting zero arguments, and having a return type of Boolean.";
         }
         
