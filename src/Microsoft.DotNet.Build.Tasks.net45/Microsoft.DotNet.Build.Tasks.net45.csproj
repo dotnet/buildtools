@@ -20,6 +20,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)FilterRuntimesFromSupports.Desktop.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EncryptedConfigNuGetRestore.Desktop.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)BuildTask.Desktop.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CreateExternalAssembliesResources.cs" />
   </ItemGroup>
   <ItemGroup>
     <TargetingPackReference Include="Microsoft.Build" />
@@ -38,6 +39,7 @@
     <TargetingPackReference Include="System.Threading.Tasks" />
     <TargetingPackReference Include="System.Xml" />
     <TargetingPackReference Include="System.Xml.Linq" />
+    <TargetingPackReference Include="System.Windows.Forms" />
   </ItemGroup>
   <Target Name="AfterBuild">
     <!--

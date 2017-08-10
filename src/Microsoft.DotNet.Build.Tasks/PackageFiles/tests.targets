@@ -6,6 +6,7 @@
   <Import Project="$(ToolsDir)PerfTesting.targets" Condition="Exists('$(ToolsDir)PerfTesting.targets') and '$(Performance)' == 'true'"/>
   <UsingTask TaskName="GenerateTestExecutionScripts" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="GetTargetMachineInfo" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask Condition="'$(BuildingUAPVertical)' == 'true'" TaskName="CreateExternalAssembliesResources" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
     <!-- Which categories of tests to run by default -->
   <PropertyGroup>
@@ -170,6 +171,23 @@
     <_ReswListFile>$(_MakePriHelpersDir)/reswlist.RESFILES</_ReswListFile>
     <_PriListFile>$(_MakePriHelpersDir)/prilist.RESFILES</_PriListFile>
   </PropertyGroup>
+  
+  <ItemGroup Condition="'$(BuildingUAPVertical)' == 'true'">
+    <_AllRuntimeDllFiles Include="$(RuntimePath)\*.dll" />
+  </ItemGroup>
+
+  <Target Name="CreateReswFilesForExternalDependencies" 
+          Condition="'$(BuildingUAPVertical)' == 'true'"
+          Inputs="@(_AllRuntimeDllFiles)"
+          Outputs="$(_CommonPriFile)">
+
+    <ItemGroup>
+      <_RuntimeDllFilesWithoutResw Include="@(_AllRuntimeDllFiles)" Condition="!Exists('$(ResourcesFolderPath)\FxResources.%(FileName).SR.resw')" />
+    </ItemGroup>
+
+    <CreateExternalAssembliesResources InputAssemblies="@(_RuntimeDllFilesWithoutResw)"
+                                       OutputPath="$(ResourcesFolderPath)" />
+  </Target>
 
   <!-- This target the necessary config file in order to create the UAP runner's resources.pri file using MakePri.exe -->
   <Target Name="CreateMakePriConfigFileFromTemplate"
@@ -190,7 +208,10 @@
   </Target>
 
   <!-- This target gets all the resw files to be used to create the UAP runner's resources.pri file -->
-  <Target Name="CalculateResWFiles" Condition="'$(BuildingUAPVertical)' == 'true'">
+  <Target Name="CalculateResWFiles" 
+          Condition="'$(BuildingUAPVertical)' == 'true'"
+          DependsOnTargets="CreateReswFilesForExternalDependencies">
+
     <ItemGroup>
       <_TestResWFiles Include="$(TestResourcesFolderPath)\*.resw" />
       <_CommonResWFiles Include="$(ResourcesFolderPath)\*.resw" />
