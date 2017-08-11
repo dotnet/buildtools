@@ -84,34 +84,14 @@ namespace Xunit.NetCore.Extensions
                 {
                     declaringType = testMethodDeclaringType;
 
-                    // We have qualified type name with the assembly name, something like
-                    // [ConditionalFact("System.PlatformDetection, CoreFx.Private.TestUtilities!" + nameof(PlatformDetection.IsNonZeroLowerBoundArraySupported))]
-                    // We don't use '.' as separator in such case and use '!' because the qualified type name can have '.' to include the type namespace.
-                    if (conditionMemberName.IndexOf('!') > 0)
+                    string[] symbols = conditionMemberName.Split('.');
+                    if (symbols.Length == 2)
                     {
-                        // get the method name
-                        string[] symbols = conditionMemberName.Split('!');
-                        if (symbols.Length == 2)
+                        conditionMemberName = symbols[1];
+                        ITypeInfo type = testMethod.TestClass.Class.Assembly.GetTypes(false).Where(t => t.Name.Contains(symbols[0])).FirstOrDefault();
+                        if (type != null)
                         {
-                            conditionMemberName = symbols[1];
-                            Type requestedType = Type.GetType(symbols[0]);
-                            if (requestedType != null)
-                            {
-                                declaringType = requestedType;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        string[] symbols = conditionMemberName.Split('.');
-                        if (symbols.Length == 2)
-                        {
-                            conditionMemberName = symbols[1];
-                            ITypeInfo type = testMethod.TestClass.Class.Assembly.GetTypes(false).Where(t => t.Name.Contains(symbols[0])).FirstOrDefault();
-                            if (type != null)
-                            {
-                                declaringType = type.ToRuntimeType();
-                            }
+                            declaringType = type.ToRuntimeType();
                         }
                     }
                 }
