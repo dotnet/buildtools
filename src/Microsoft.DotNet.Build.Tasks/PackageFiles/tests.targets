@@ -170,23 +170,31 @@
     <_MakePriConfigFile>$(_MakePriHelpersDir)/ModifiedConfigFile.xml</_MakePriConfigFile>
     <_ReswListFile>$(_MakePriHelpersDir)/reswlist.RESFILES</_ReswListFile>
     <_PriListFile>$(_MakePriHelpersDir)/prilist.RESFILES</_PriListFile>
+    <_ExternalReswOutputPath>$(ResourcesFolderPath)/external/</_ExternalReswOutputPath>
   </PropertyGroup>
   
   <ItemGroup Condition="'$(BuildingUAPVertical)' == 'true'">
     <_AllRuntimeDllFiles Include="$(RuntimePath)\*.dll" />
+    <_ExternalReswFiles Include="$(_ExternalReswOutputPath)*.resw" />
+    
+    <!-- The first time the CreateReswFilesForExternalDependencies target is executed the itemgroup _ExternalReswFiles will be empty
+    and that will avoid the target from executing, so we add a dummy file if they are empty so that the target is executed the first time. -->
+    <_ExternalReswFiles Condition="@(_ExternalReswFiles) == ''" Include="$(_ExternalReswOutputPath)dummy.resw" />
   </ItemGroup>
 
   <Target Name="CreateReswFilesForExternalDependencies" 
           Condition="'$(BuildingUAPVertical)' == 'true'"
           Inputs="@(_AllRuntimeDllFiles)"
-          Outputs="$(_CommonPriFile)">
+          Outputs="@(_ExternalReswFiles)">
 
     <ItemGroup>
-      <_RuntimeDllFilesWithoutResw Include="@(_AllRuntimeDllFiles)" Condition="!Exists('$(ResourcesFolderPath)\FxResources.%(FileName).SR.resw')" />
+      <_RuntimeDllFilesWithoutResw Include="@(_AllRuntimeDllFiles)"
+                                   Condition="!Exists('$(ResourcesFolderPath)\FxResources.%(FileName).SR.resw') AND !Exists('$(_ExternalReswOutputPath)\FxResources.%(FileName).SR.resw')" />
     </ItemGroup>
 
     <ExtractResWResourcesFromAssemblies InputAssemblies="@(_RuntimeDllFilesWithoutResw)"
-                                       OutputPath="$(ResourcesFolderPath)" />
+                                        OutputPath="$(_ExternalReswOutputPath)" />
+
   </Target>
 
   <!-- This target the necessary config file in order to create the UAP runner's resources.pri file using MakePri.exe -->
@@ -214,7 +222,7 @@
 
     <ItemGroup>
       <_TestResWFiles Include="$(TestResourcesFolderPath)\*.resw" />
-      <_CommonResWFiles Include="$(ResourcesFolderPath)\*.resw" />
+      <_CommonResWFiles Include="$(ResourcesFolderPath)\**\*.resw" />
     </ItemGroup>
   </Target>
 

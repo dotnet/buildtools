@@ -39,7 +39,6 @@
     <TargetingPackReference Include="System.Threading.Tasks" />
     <TargetingPackReference Include="System.Xml" />
     <TargetingPackReference Include="System.Xml.Linq" />
-    <TargetingPackReference Include="System.Windows.Forms" />
   </ItemGroup>
   <Target Name="AfterBuild">
     <!--
