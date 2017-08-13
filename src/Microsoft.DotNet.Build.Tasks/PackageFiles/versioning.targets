@@ -167,11 +167,11 @@
       <NativeVersionLines Include="#undef VER_PRODUCTVERSION" />
       <NativeVersionLines Include="#define VER_PRODUCTVERSION          $(MajorVersion),$(MinorVersion),$(BuildNumberMajor),$(BuildNumberMinor)" />
       <NativeVersionLines Include="#undef VER_PRODUCTVERSION_STR" />
-      <NativeVersionLines Include="#define VER_PRODUCTVERSION_STR      &quot;$(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)$(BuiltByString). $(SrcCodeRef)&quot;" />
+      <NativeVersionLines Include="#define VER_PRODUCTVERSION_STR      &quot;$(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)$(BuiltByString)&quot;" />
       <NativeVersionLines Include="#undef VER_FILEVERSION" />
       <NativeVersionLines Include="#define VER_FILEVERSION             $(MajorVersion),$(MinorVersion),$(BuildNumberMajor),$(BuildNumberMinor)" />
       <NativeVersionLines Include="#undef VER_FILEVERSION_STR" />
-      <NativeVersionLines Include="#define VER_FILEVERSION_STR         &quot;$(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)$(BuiltByString). $(SrcCodeRef)&quot;" />
+      <NativeVersionLines Include="#define VER_FILEVERSION_STR         &quot;$(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)$(BuiltByString)&quot;" />
       <NativeVersionLines Include="#ifndef VER_LEGALCOPYRIGHT_STR" />
       <NativeVersionLines Include="#define VER_LEGALCOPYRIGHT_STR      &quot;\xa9 Microsoft Corporation.  All rights reserved.&quot;" />
       <NativeVersionLines Include="#endif" />
@@ -207,7 +207,7 @@
 
     <ItemGroup>
       <SourceFileLines />
-      <SourceFileLines Include="static char sccsid%5B%5D %5F%5Fattribute%5F%5F%28%28used%29%29 %3D %22%40%28%23%29Version $(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)$(BuiltByString). $(SrcCodeRef)%22%3B" />
+      <SourceFileLines Include="static char sccsid%5B%5D %5F%5Fattribute%5F%5F%28%28used%29%29 %3D %22%40%28%23%29Version $(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)$(BuiltByString)%22%3B" />
       <!-- Since this is a source file, compiler will complain if there is no new line at end of file, so adding one bellow. -->
       <SourceFileLines Include=" " />
     </ItemGroup>
@@ -290,18 +290,6 @@
       <GitHubRepositoryUrl>https://github.com/$(GitHubOwnerName)/$(GitHubRepositoryName)</GitHubRepositoryUrl>
     </PropertyGroup>
     
-    <!-- ************************* -->
-
-    <!-- SrcCodeRef is something that identifies the source code along with at tag (e.g. SrcCode: https://.....) -->
-    <!-- We do the best we can, and fall back as necessary -->
-    <PropertyGroup Condition="'$(GitHubRepositoryUrl)' != '' AND '$(LatestCommit)' != 'N/A'">
-      <SrcCodeRef>SrcCode%3A $(GitHubRepositoryUrl)/tree/$(LatestCommit)</SrcCodeRef>
-    </PropertyGroup>
-    <!-- If we dont have the GitHubRepositoryUrl at least put the commit ID (which is N/A if that does not exist) -->
-    <PropertyGroup Condition="'$(GitHubRepositoryUrl)' == '' OR '$(LatestCommit)' == 'N/A'">
-      <SrcCodeRef>Commit%3A $(LatestCommit)</SrcCodeRef>
-    </PropertyGroup>
-
     <PropertyGroup>
       <LatestCommitExitCode/>
     </PropertyGroup>
@@ -360,8 +348,16 @@
       <Output TaskParameter="ConsoleOutput" PropertyName="VersionHostName" />
     </Exec>
 
-    <PropertyGroup>
-      <BuiltByString Condition="'$(BuiltByString)' == '' AND '$(VersionUserName)' != '' AND '$(VersionHostName)' != ''">%20built by: $(VersionUserName)-$(VersionHostName)</BuiltByString>
+    <!-- Set BuiltByString (which is added to the end of the informational version) -->
+    <!-- This string has additional information as well (like the GIT commit URL) -->
+    <!-- and has the general form @Name1: Value1 @Name2: Value2  ... which makes it easy to parse -->
+    <PropertyGroup Condition="'$(BuiltByString)' == ''">
+      <!-- Set the @BuiltBy key-value pair -->
+      <BuiltByString Condition="'$(VersionUserName)' != '' AND '$(VersionHostName)' != ''">$(BuiltByString)%20%40BuiltBy: $(VersionUserName)-$(VersionHostName)</BuiltByString>
+      <!-- Set the @SrcCode key-value pair -->
+      <BuiltByString Condition="'$(GitHubRepositoryUrl)' != '' AND '$(LatestCommit)' != 'N/A'">$(BuiltByString)%20%40SrcCode%3A $(GitHubRepositoryUrl)/tree/$(LatestCommit)</BuiltByString>
+      <!-- If that does not work, try setting the @Commit key-value pair -->
+      <BuiltByString Condition="'$(GitHubRepositoryUrl)' == '' AND '$(LatestCommit)' != 'N/A'">$(BuiltByString)%20%40Commit%3A $(LatestCommit)</BuiltByString>
       <VersionUserName/>
       <VersionHostName/>
     </PropertyGroup>
