@@ -56,15 +56,13 @@ namespace Microsoft.DotNet.Build.Tasks
                         string reswName = Path.GetFileNameWithoutExtension(resourceName);
                         string reswPath = Path.Combine(OutputPath, $"{reswName}.resw");
                         using (ResourceReader resourceReader = new ResourceReader(assembly.GetManifestResourceStream(resourceName)))
+                        using (ReswResourceWriter resourceWriter = new ReswResourceWriter(reswPath))
                         {
-                            ReswResourceWriter resourceWriter = new ReswResourceWriter(reswPath);
                             IDictionaryEnumerator enumerator = resourceReader.GetEnumerator();
                             while (enumerator.MoveNext())
                             {
                                 resourceWriter.AddResource(enumerator.Key.ToString(), enumerator.Value.ToString());
                             }
-
-                            resourceWriter.Close();
                         }
                     }
                 }
@@ -76,7 +74,7 @@ namespace Microsoft.DotNet.Build.Tasks
         }
     }
 
-    internal class ReswResourceWriter
+    internal class ReswResourceWriter : IDisposable
     {
         private readonly XElement _root;
 
@@ -102,7 +100,7 @@ namespace Microsoft.DotNet.Build.Tasks
             _root.Add(newElement);
         }
 
-        internal void Close()
+        public void Dispose()
         {
             _document.Save(_filePath);
         }
