@@ -10,7 +10,6 @@ if [%PACKAGES_DIR%] == [] set PACKAGES_DIR=%TOOLRUNTIME_DIR%
 set PACKAGES_DIR=%PACKAGES_DIR:"=%
 set BUILDTOOLS_PACKAGE_DIR=%~dp0
 set MICROBUILD_VERSION=0.2.0
-set PORTABLETARGETS_VERSION=0.1.1-dev
 set ROSLYNCOMPILERS_VERSION=2.0.0-rc
 
 :: Determine if the CLI supports MSBuild projects. This controls whether csproj files are used for initialization and package restore.
@@ -29,7 +28,6 @@ if [%BUILDTOOLS_USE_CSPROJ%]==[] (
   "dependencies": ^
     { ^
       "MicroBuild.Core": "%MICROBUILD_VERSION%", ^
-      "Microsoft.Portable.Targets": "%PORTABLETARGETS_VERSION%", ^
       "Microsoft.Net.Compilers": "%ROSLYNCOMPILERS_VERSION%" ^
     }, ^
   "frameworks": {"netcoreapp1.0": {},"net46": {}} ^
@@ -45,7 +43,6 @@ if [%BUILDTOOLS_USE_CSPROJ%]==[] (
   ^^^</PropertyGroup^^^> ^
   ^^^<ItemGroup^^^> ^
     ^^^<PackageReference Include=^"MicroBuild.Core^" Version=^"%MICROBUILD_VERSION%^" /^^^> ^
-    ^^^<PackageReference Include=^"Microsoft.Portable.Targets^" Version=^"%PORTABLETARGETS_VERSION%^" /^^^> ^
     ^^^<PackageReference Include=^"Microsoft.Net.Compilers^" Version=^"%ROSLYNCOMPILERS_VERSION%^" /^^^> ^
   ^^^</ItemGroup^^^> ^
  ^^^</Project^^^>
@@ -94,11 +91,7 @@ if not [%NET46_PUBLISH_ERROR_LEVEL%]==[0] (
   exit /b %NET46_PUBLISH_ERROR_LEVEL%
 )
 
-:: Copy some roslyn files which are published into runtimes\any\native to the root
 Robocopy "%TOOLRUNTIME_DIR%\runtimes\any\native" "%TOOLRUNTIME_DIR%\."
-
-:: Microsoft.Build.Runtime dependency is causing the MSBuild.runtimeconfig.json buildtools copy to be overwritten - re-copy the buildtools version.
-Robocopy "%BUILDTOOLS_PACKAGE_DIR%\." "%TOOLRUNTIME_DIR%\." "MSBuild.runtimeconfig.json"
 
 :: Copy Portable Targets Over to ToolRuntime
 if not exist "%PACKAGES_DIR%\generated" mkdir "%PACKAGES_DIR%\generated"
@@ -112,10 +105,7 @@ if not [%RESTORE_PORTABLETARGETS_ERROR_LEVEL%]==[0] (
   echo ERROR: An error ocurred when running: '"%DOTNET_CMD%" restore "%PORTABLETARGETS_PROJECT%"'. Please check above for more details.
   exit /b %RESTORE_PORTABLETARGETS_ERROR_LEVEL%
 )
-Robocopy "%PACKAGES_DIR%\Microsoft.Portable.Targets\%PORTABLETARGETS_VERSION%\contentFiles\any\any\Extensions." "%TOOLRUNTIME_DIR%\." /E
 Robocopy "%PACKAGES_DIR%\MicroBuild.Core\%MICROBUILD_VERSION%\build\." "%TOOLRUNTIME_DIR%\." /E
-
-:: Copy Roslyn Compilers Over to ToolRuntime
 Robocopy "%PACKAGES_DIR%\Microsoft.Net.Compilers\%ROSLYNCOMPILERS_VERSION%\." "%TOOLRUNTIME_DIR%\net46\roslyn\." /E
 
 @echo on
