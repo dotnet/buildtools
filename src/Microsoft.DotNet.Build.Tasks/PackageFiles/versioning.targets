@@ -353,11 +353,11 @@
     <!-- and has the general form @Name1: Value1 @Name2: Value2  ... which makes it easy to parse -->
     <PropertyGroup Condition="'$(BuiltByString)' == ''">
       <!-- Set the @BuiltBy key-value pair -->
-      <BuiltByString Condition="'$(VersionUserName)' != '' AND '$(VersionHostName)' != ''">$(BuiltByString)%20%40BuiltBy: $(VersionUserName)-$(VersionHostName)</BuiltByString>
+      <BuiltByString Condition="'$(VersionUserName)' != '' AND '$(VersionHostName)' != ''">$(BuiltByString) %40BuiltBy: $(VersionUserName)-$(VersionHostName)</BuiltByString>
       <!-- Set the @SrcCode key-value pair -->
-      <BuiltByString Condition="'$(GitHubRepositoryUrl)' != '' AND '$(LatestCommit)' != 'N/A'">$(BuiltByString)%20%40SrcCode%3A $(GitHubRepositoryUrl)/tree/$(LatestCommit)</BuiltByString>
+      <BuiltByString Condition="'$(GitHubRepositoryUrl)' != '' AND '$(LatestCommit)' != 'N/A'">$(BuiltByString) %40SrcCode: $(GitHubRepositoryUrl)/tree/$(LatestCommit)</BuiltByString>
       <!-- If that does not work, try setting the @Commit key-value pair -->
-      <BuiltByString Condition="'$(GitHubRepositoryUrl)' == '' AND '$(LatestCommit)' != 'N/A'">$(BuiltByString)%20%40Commit%3A $(LatestCommit)</BuiltByString>
+      <BuiltByString Condition="'$(GitHubRepositoryUrl)' == '' AND '$(LatestCommit)' != 'N/A'">$(BuiltByString) %40Commit: $(LatestCommit)</BuiltByString>
       <VersionUserName/>
       <VersionHostName/>
     </PropertyGroup>
