@@ -6,8 +6,6 @@ using Microsoft.Build.Framework;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -32,7 +30,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         private string _leaseId;
         private string _leaseUrl;
 
-        public AzureBlobLease(string accountName, string accountKey, string connectionString, string containerName, string blobName, Microsoft.Build.Utilities.TaskLoggingHelper log, string maxWait = null, string delay=null)
+        public AzureBlobLease(string accountName, string accountKey, string connectionString, string containerName, string blobName, Microsoft.Build.Utilities.TaskLoggingHelper log, string maxWait = null, string delay = null)
         {
             _accountName = accountName;
             _accountKey = accountKey;
@@ -45,7 +43,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             _leaseUrl = $"{AzureHelper.GetBlobRestUrl(_accountName, _containerName, _blobName)}?comp=lease";
         }
 
-        public void Acquire()
+        public string Acquire()
         {
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
@@ -60,7 +58,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                     { AutoRenewLeaseOnBlob(this, _accountName, _accountKey, _containerName, _blobName, leaseId, _leaseUrl, _log); },
                       _cancellationTokenSource.Token);
                     _leaseId = leaseId;
-                    return;
+                    return _leaseId;
                 }
                 catch (Exception e)
                 {

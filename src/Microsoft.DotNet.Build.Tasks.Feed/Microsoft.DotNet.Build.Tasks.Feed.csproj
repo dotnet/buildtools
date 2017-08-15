@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.props))\dir.props" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.DotNet.Build.Tasks.Feed</RootNamespace>
+    <AssemblyName>Microsoft.DotNet.Build.Tasks.Feed</AssemblyName>
+    <CLSCompliant>false</CLSCompliant>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <ProjectGuid>{6623492E-9EAD-40F0-B8F4-AF0AFBF98890}</ProjectGuid>
+    <NuGetTargetMoniker>.NETStandard,Version=v1.5</NuGetTargetMoniker>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\Microsoft.DotNet.Build.CloudTestTasks\AzureBlobLease.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.CloudTestTasks\AzureConnectionStringBuildTask.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.CloudTestTasks\AzureHelper.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.CloudTestTasks\ListAzureBlobs.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.CloudTestTasks\UploadClient.cs" />
+    <Compile Include="BlobFeed.cs" />
+    <Compile Include="BlobFeedAction.cs" />
+    <Compile Include="ConfigureInputFeed.cs" />
+    <Compile Include="PushToBlobFeed.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="PackageFiles\**\*.*" />
+    <None Include="project.json" />
+  </ItemGroup>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
+  <Target Name="AfterBuild">
+    <ItemGroup>
+      <PackageFiles Include="$(MSBuildThisProjectDirectory)PackageFiles\**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PackageFiles)" DestinationFolder="$(OutputPath)\PackageFiles\%(RecursiveDir)" SkipUnchangedFiles="true" />
+  </Target>
+</Project>

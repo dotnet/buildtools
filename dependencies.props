@@ -83,7 +83,6 @@
       <Version>$(MicrosoftDiaSymReaderConverterPackageVersion)</Version>
     </StaticDependency>
 
-    <NuGetDependency Include="NuGet.Client"/>
     <NuGetDependency Include="NuGet.Commands"/>
     <NuGetDependency Include="NuGet.Packaging"/>
     <NuGetDependency Include="NuGet.ProjectModel"/>

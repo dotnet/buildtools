@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Xml;
 using System.Threading.Tasks;
 using System.Linq;
+using Microsoft.Build.Utilities;
 
 namespace Microsoft.DotNet.Build.CloudTestTasks
 {
@@ -32,7 +33,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             return ExecuteAsync().GetAwaiter().GetResult();
         }
 
-        public static string [] Execute(string accountName,
+        public static string[] Execute(string accountName,
                                    string accountKey,
                                    string connectionString,
                                    string containerName,
@@ -57,12 +58,20 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         public async Task<bool> ExecuteAsync()
         {
             ParseConnectionString();
-
-            if (Log.HasLoggedErrors)
+            try
             {
-                return false;
+                List<string> blobNames = await ListBlobs(Log, AccountName, AccountKey, ContainerName, FilterBlobNames);
+                BlobNames = blobNames.ToArray();
             }
+            catch (Exception e)
+            {
+                Log.LogErrorFromException(e, true);
+            }
+            return !Log.HasLoggedErrors;
+        }
 
+        public static async Task<List<string>> ListBlobs(TaskLoggingHelper Log, string AccountName, string AccountKey, string ContainerName, string FilterBlobNames)
+        {
             List<string> blobsNames = new List<string>();
             string urlListBlobs = string.Format("https://{0}.blob.core.windows.net/{1}?restype=container&comp=list", AccountName, ContainerName);
             if (!string.IsNullOrWhiteSpace(FilterBlobNames))
@@ -73,16 +82,31 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
             using (HttpClient client = new HttpClient())
             {
-                try
-                {
-                    var createRequest = AzureHelper.RequestMessage("GET", urlListBlobs, AccountName, AccountKey);
 
-                    XmlDocument responseFile;
-                    string nextMarker = string.Empty;
-                    using (HttpResponseMessage response = await AzureHelper.RequestWithRetry(Log, client, createRequest))
+                var createRequest = AzureHelper.RequestMessage("GET", urlListBlobs, AccountName, AccountKey);
+
+                XmlDocument responseFile;
+                string nextMarker = string.Empty;
+                using (HttpResponseMessage response = await AzureHelper.RequestWithRetry(Log, client, createRequest))
+                {
+                    responseFile = new XmlDocument();
+                    responseFile.LoadXml(await response.Content.ReadAsStringAsync());
+                    XmlNodeList elemList = responseFile.GetElementsByTagName("Name");
+
+                    blobsNames.AddRange(elemList.Cast<XmlNode>()
+                                                .Select(x => x.InnerText)
+                                                .ToList());
+
+                    nextMarker = responseFile.GetElementsByTagName("NextMarker").Cast<XmlNode>().FirstOrDefault()?.InnerText;
+                }
+                while (!string.IsNullOrEmpty(nextMarker))
+                {
+                    urlListBlobs = string.Format($"https://{AccountName}.blob.core.windows.net/{ContainerName}?restype=container&comp=list&marker={nextMarker}");
+                    var nextRequest = AzureHelper.RequestMessage("GET", urlListBlobs, AccountName, AccountKey);
+                    using (HttpResponseMessage nextResponse = AzureHelper.RequestWithRetry(Log, client, nextRequest).GetAwaiter().GetResult())
                     {
                         responseFile = new XmlDocument();
-                        responseFile.LoadXml(await response.Content.ReadAsStringAsync());
+                        responseFile.LoadXml(await nextResponse.Content.ReadAsStringAsync());
                         XmlNodeList elemList = responseFile.GetElementsByTagName("Name");
 
                         blobsNames.AddRange(elemList.Cast<XmlNode>()
@@ -91,31 +115,9 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
                         nextMarker = responseFile.GetElementsByTagName("NextMarker").Cast<XmlNode>().FirstOrDefault()?.InnerText;
                     }
-                    while (!string.IsNullOrEmpty(nextMarker))
-                    {
-                        urlListBlobs = string.Format($"https://{AccountName}.blob.core.windows.net/{ContainerName}?restype=container&comp=list&marker={nextMarker}");
-                        var nextRequest = AzureHelper.RequestMessage("GET", urlListBlobs, AccountName, AccountKey);
-                        using (HttpResponseMessage nextResponse = AzureHelper.RequestWithRetry(Log, client, nextRequest).GetAwaiter().GetResult())
-                        {
-                            responseFile = new XmlDocument();
-                            responseFile.LoadXml(await nextResponse.Content.ReadAsStringAsync());
-                            XmlNodeList elemList = responseFile.GetElementsByTagName("Name");
-
-                            blobsNames.AddRange(elemList.Cast<XmlNode>()
-                                                        .Select(x => x.InnerText)
-                                                        .ToList());
-
-                            nextMarker = responseFile.GetElementsByTagName("NextMarker").Cast<XmlNode>().FirstOrDefault()?.InnerText;
-                        }
-                    }
-                    BlobNames = blobsNames.ToArray();
                 }
-                catch (Exception e)
-                {
-                    Log.LogErrorFromException(e, true);
-                }
-                return !Log.HasLoggedErrors;
             }
+            return blobsNames;
         }
     }
 

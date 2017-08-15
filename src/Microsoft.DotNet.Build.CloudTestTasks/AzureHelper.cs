@@ -397,7 +397,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             Func<HttpRequestMessage> requestFunc = () =>
             {
                 HttpMethod httpMethod = HttpMethod.Get;
-                if(method == "PUT")
+                if (method == "PUT")
                 {
                     httpMethod = HttpMethod.Put;
                 }
@@ -447,8 +447,8 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         public static string GetRootRestUrl(string accountName)
         {
             return $"https://{accountName}.blob.core.windows.net";
-        } 
-       
+        }
+
         public static string GetContainerRestUrl(string accountName, string containerName)
         {
             return $"{GetRootRestUrl(accountName)}/{containerName}";
