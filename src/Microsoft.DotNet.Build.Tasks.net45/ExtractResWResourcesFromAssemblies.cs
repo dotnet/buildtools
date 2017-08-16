@@ -6,12 +6,10 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Resources;
 using System.Xml.Linq;
-using System.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
@@ -22,6 +20,9 @@ namespace Microsoft.DotNet.Build.Tasks
 
         [Required]
         public string OutputPath { get; set; }
+
+        [Required]
+        public string InternalReswDirectory { get; set; }
 
         public override bool Execute()
         {
@@ -43,6 +44,12 @@ namespace Microsoft.DotNet.Build.Tasks
             foreach (ITaskItem assemblySpec in InputAssemblies)
             {
                 string assemblyPath = assemblySpec.ItemSpec;
+
+                if (!ShouldExtractResources($"FxResources.{Path.GetFileNameWithoutExtension(assemblyPath)}.SR.resw", assemblyPath))
+                {
+                    continue; // we skip framework assemblies that resources already exist and don't need to be extracted to avoid reading dll metadata.
+                }
+                
                 try
                 {
                     Assembly assembly = Assembly.LoadFrom(assemblyPath);
@@ -53,8 +60,14 @@ namespace Microsoft.DotNet.Build.Tasks
                             continue; // we only need to get the resources strings to produce the resw files.
                         }
 
-                        string reswName = Path.GetFileNameWithoutExtension(resourceName);
-                        string reswPath = Path.Combine(OutputPath, $"{reswName}.resw");
+                        string reswName = $"{Path.GetFileNameWithoutExtension(resourceName)}.resw";
+
+                        if (!reswName.StartsWith("FxResources") && !ShouldExtractResources(reswName, assemblyPath)) // already checked for FxResources previously
+                        {
+                            continue; // resw output file already exists and is up to date, so we should skip this resource file.
+                        }
+
+                        string reswPath = Path.Combine(OutputPath, reswName);
                         using (ResourceReader resourceReader = new ResourceReader(assembly.GetManifestResourceStream(resourceName)))
                         using (ReswResourceWriter resourceWriter = new ReswResourceWriter(reswPath))
                         {
@@ -71,6 +84,25 @@ namespace Microsoft.DotNet.Build.Tasks
                     continue; // native assemblies can't be loaded.
                 }
             }
+        }
+
+        private bool ShouldExtractResources(string expectedReswFileName, string assemblyPath)
+        {
+            string internalReswPath = Path.Combine(InternalReswDirectory, expectedReswFileName);
+            if (File.Exists(internalReswPath))
+            {
+                return false; // internal resw files are handled in build time by resources.targets, so we shouldn't care about timestamps since it uses incremental build
+            }
+
+            string externalReswPath = Path.Combine(OutputPath, expectedReswFileName);
+            if (File.Exists(externalReswPath))
+            {
+                var reswFileInfo = new FileInfo(externalReswPath);
+                var assemblyFileInfo = new FileInfo(assemblyPath);
+                return reswFileInfo.LastWriteTimeUtc < assemblyFileInfo.LastWriteTimeUtc;
+            }
+
+            return true;
         }
     }
 

@@ -187,13 +187,9 @@
           Inputs="@(_AllRuntimeDllFiles)"
           Outputs="@(_ExternalReswFiles)">
 
-    <ItemGroup>
-      <_RuntimeDllFilesWithoutResw Include="@(_AllRuntimeDllFiles)"
-                                   Condition="!Exists('$(ResourcesFolderPath)\FxResources.%(FileName).SR.resw') AND !Exists('$(_ExternalReswOutputPath)\FxResources.%(FileName).SR.resw')" />
-    </ItemGroup>
-
-    <ExtractResWResourcesFromAssemblies InputAssemblies="@(_RuntimeDllFilesWithoutResw)"
-                                        OutputPath="$(_ExternalReswOutputPath)" />
+    <ExtractResWResourcesFromAssemblies InputAssemblies="@(_AllRuntimeDllFiles)"
+                                        OutputPath="$(_ExternalReswOutputPath)"
+                                        InternalReswDirectory="$(ResourcesFolderPath)" />
 
   </Target>
 
