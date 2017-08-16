@@ -340,5 +340,6 @@
   </Target>
 
   <!-- This helps collect crash dumps and requires python installed -->
-  <Import Project="$(MSBuildThisFileDirectory)Dumpling.targets" Condition="'$(EnableDumpling)' == 'true' OR '$(EnableCloudTest)' == 'true'" />
+  <!-- Enable if dumpling is not explicitly disabled in cloud test scenarios, or if it is enabled explicitly in local scenarios -->
+  <Import Project="$(MSBuildThisFileDirectory)Dumpling.targets" Condition="'$(EnableDumpling)' == 'true' OR ('$(EnableDumpling)' != 'false' AND '$(EnableCloudTest)' == 'true')" />
 </Project>
