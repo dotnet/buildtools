@@ -10,9 +10,11 @@ using System.IO;
 using System.Reflection;
 using System.Resources;
 using System.Xml.Linq;
+using System.Reflection.PortableExecutable;
+using System.Reflection.Metadata;
 
 namespace Microsoft.DotNet.Build.Tasks
-{
+{ 
     public class ExtractResWResourcesFromAssemblies : Task
     {
         [Required]
@@ -33,7 +35,7 @@ namespace Microsoft.DotNet.Build.Tasks
             }
             catch (Exception e)
             {
-                Log.LogErrorFromException(e, showStackTrace: false);
+                Log.LogErrorFromException(e, showStackTrace: true);
             }
 
             return !Log.HasLoggedErrors;
@@ -44,48 +46,76 @@ namespace Microsoft.DotNet.Build.Tasks
             foreach (ITaskItem assemblySpec in InputAssemblies)
             {
                 string assemblyPath = assemblySpec.ItemSpec;
+                string assemblyName = Path.GetFileNameWithoutExtension(assemblyPath);
 
-                if (!ShouldExtractResources($"FxResources.{Path.GetFileNameWithoutExtension(assemblyPath)}.SR.resw", assemblyPath))
+                if (assemblyName.Equals("System.Private.CoreLib"))
+                {
+                    continue; // we don't want to extract the resources from Private CoreLib since this resources are managed by the legacy ResourceManager which gets them from the embedded and not from PRI. 
+                }
+
+                if (!ShouldExtractResources($"FxResources.{assemblyName}.SR.resw", assemblyPath))
                 {
                     continue; // we skip framework assemblies that resources already exist and don't need to be extracted to avoid reading dll metadata.
                 }
-                
+
                 try
                 {
-                    Assembly assembly = Assembly.LoadFrom(assemblyPath);
-                    foreach (string resourceName in assembly.GetManifestResourceNames())
+                    using (FileStream assemblyStream = File.OpenRead(assemblyPath))
+                    using (PEReader peReader = new PEReader(assemblyStream))
                     {
-                        if (!resourceName.EndsWith(".resources"))
+                        if (!peReader.HasMetadata)
                         {
-                            continue; // we only need to get the resources strings to produce the resw files.
+                            continue; // native assembly
                         }
 
-                        string reswName = $"{Path.GetFileNameWithoutExtension(resourceName)}.resw";
-
-                        if (!reswName.StartsWith("FxResources") && !ShouldExtractResources(reswName, assemblyPath)) // already checked for FxResources previously
+                        MetadataReader metadataReader = peReader.GetMetadataReader();
+                        foreach (ManifestResourceHandle resourceHandle in metadataReader.ManifestResources)
                         {
-                            continue; // resw output file already exists and is up to date, so we should skip this resource file.
-                        }
+                            ManifestResource resource = metadataReader.GetManifestResource(resourceHandle);
 
-                        string reswPath = Path.Combine(OutputPath, reswName);
-                        using (ResourceReader resourceReader = new ResourceReader(assembly.GetManifestResourceStream(resourceName)))
-                        using (ReswResourceWriter resourceWriter = new ReswResourceWriter(reswPath))
-                        {
-                            IDictionaryEnumerator enumerator = resourceReader.GetEnumerator();
-                            while (enumerator.MoveNext())
+                            if (!resource.Implementation.IsNil)
                             {
-                                resourceWriter.AddResource(enumerator.Key.ToString(), enumerator.Value.ToString());
+                                continue; // not embedded resource
+                            }
+
+                            string resourceName = metadataReader.GetString(resource.Name);
+
+                            if (!resourceName.EndsWith(".resources"))
+                            {
+                                continue; // we only need to get the resources strings to produce the resw files.
+                            }
+
+                            string reswName = $"{Path.GetFileNameWithoutExtension(resourceName)}.resw";
+
+                            if (!reswName.StartsWith("FxResources") && !ShouldExtractResources(reswName, assemblyPath)) // already checked for FxResources previously
+                            {
+                                continue; // resw output file already exists and is up to date, so we should skip this resource file.
+                            }
+
+                            string reswPath = Path.Combine(OutputPath, reswName);
+                            using (Stream resourceStream = GetResourceStream(peReader, resource))
+                            using (ResourceReader resourceReader = new ResourceReader(resourceStream))
+                            using (ReswResourceWriter resourceWriter = new ReswResourceWriter(reswPath))
+                            {
+                                IDictionaryEnumerator enumerator = resourceReader.GetEnumerator();
+                                while (enumerator.MoveNext())
+                                {
+                                    resourceWriter.AddResource(enumerator.Key.ToString(), enumerator.Value.ToString());
+                                }
                             }
                         }
                     }
                 }
                 catch (BadImageFormatException)
                 {
-                    continue; // native assemblies can't be loaded.
+                    continue; // not a Portable Executable. 
                 }
             }
         }
 
+        // If the repo that we are building has some projects that contain an embedded resx file we will create the resw file for that project when building the src project in resources.targets
+        // those resw files live in "InternalReswDirectory" so that is why in this case we don't need to check for a timestamp if the resw file already exists there we just skip those resources.
+        // the reason why we skip it is because the incremental build will handle the timestamps, as we have a target to copy the resx files to resw files from EmbeddedResources inside the .csproj
         private bool ShouldExtractResources(string expectedReswFileName, string assemblyPath)
         {
             string internalReswPath = Path.Combine(InternalReswDirectory, expectedReswFileName);
@@ -103,6 +133,40 @@ namespace Microsoft.DotNet.Build.Tasks
             }
 
             return true;
+        }
+
+        private unsafe Stream GetResourceStream(PEReader peReader, ManifestResource resource)
+        {
+            checked // arithmetic overflow here could cause AV
+            {
+                PEMemoryBlock memoryBlock = peReader.GetEntireImage();
+                byte * peImageStart = memoryBlock.Pointer;
+                byte * peImageEnd = peImageStart + memoryBlock.Length;
+
+                // Locate resource's offset within the Portable Executable image.
+                int resourcesDirectoryOffset;
+                if (!peReader.PEHeaders.TryGetDirectoryOffset(peReader.PEHeaders.CorHeader.ResourcesDirectory, out resourcesDirectoryOffset))
+                {
+                    throw new InvalidDataException("Failed to extract the resources from assembly when getting the offset to resources in the PE file.");
+                }
+
+                byte * resourceStart = peImageStart + resourcesDirectoryOffset + resource.Offset;
+
+                // We need to get the resource length out from the first int in the resourceStart pointer
+                if (resourceStart >= peImageEnd - sizeof(int))
+                {
+                    throw new InvalidDataException("Failed to extract the resources from assembly because resource offset was out of bounds.");
+                }
+
+                int resourceLength = new BlobReader(resourceStart, sizeof(int)).ReadInt32();
+                resourceStart += sizeof(int);
+                if (resourceLength < 0 || resourceStart >= peImageEnd - resourceLength)
+                {
+                    throw new InvalidDataException($"Failed to extract the resources from assembly because resource offset or length was out of bounds.");
+                }
+
+                return new UnmanagedMemoryStream(resourceStart, resourceLength);
+            }
         }
     }
 
@@ -134,7 +198,10 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public void Dispose()
         {
-            _document.Save(_filePath);
+            using (Stream fileStream = File.Create(_filePath))
+            {
+                _document.Save(fileStream);
+            }
         }
 
         private string headers = 
