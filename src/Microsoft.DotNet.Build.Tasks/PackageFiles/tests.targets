@@ -183,7 +183,7 @@
   </ItemGroup>
 
   <Target Name="CreateReswFilesForExternalDependencies" 
-          Condition="'$(BuildingUAPVertical)' == 'true'"
+          Condition="'$(BuildingUAPVertical)' == 'true' AND '$(ShouldSkipExternalResources)' != 'true'"
           Inputs="@(_AllRuntimeDllFiles)"
           Outputs="@(_ExternalReswFiles)">
 
@@ -276,8 +276,13 @@
     <!-- We call MakePri.exe to create common resources.pri file only if this test project has its own resources. -->
     <Exec Command="$(_MakePriCommand)" StandardOutputImportance="Low" StdErrEncoding="Unicode" Condition="'$(TestProjectNeedsModifiedPriFile)' == 'true'" />
 
-    <Copy Condition="'$(TestProjectNeedsModifiedPriFile)' != 'true'"
+    <Copy Condition="'$(TestProjectNeedsModifiedPriFile)' != 'true' AND Exists('$(_CommonPriFile)')"
           SourceFiles="$(_CommonPriFile)"
+          DestinationFiles="$(TestPath)\resources.pri"
+          SkipUnchangedFiles="true" />
+
+    <Copy Condition="'$(TestProjectNeedsModifiedPriFile)' != 'true' AND !Exists('$(_CommonPriFile)')"
+          SourceFiles="$(TestHostRootPath)\Runner\resources.pri"
           DestinationFiles="$(TestPath)\resources.pri"
           SkipUnchangedFiles="true" />
 
