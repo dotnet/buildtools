@@ -6,6 +6,7 @@
   <Import Project="$(ToolsDir)PerfTesting.targets" Condition="Exists('$(ToolsDir)PerfTesting.targets') and '$(Performance)' == 'true'"/>
   <UsingTask TaskName="GenerateTestExecutionScripts" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="GetTargetMachineInfo" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask Condition="'$(BuildingUAPVertical)' == 'true'" TaskName="ExtractResWResourcesFromAssemblies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
     <!-- Which categories of tests to run by default -->
   <PropertyGroup>
@@ -169,7 +170,28 @@
     <_MakePriConfigFile>$(_MakePriHelpersDir)/ModifiedConfigFile.xml</_MakePriConfigFile>
     <_ReswListFile>$(_MakePriHelpersDir)/reswlist.RESFILES</_ReswListFile>
     <_PriListFile>$(_MakePriHelpersDir)/prilist.RESFILES</_PriListFile>
+    <_ExternalReswOutputPath>$(ResourcesFolderPath)/external/</_ExternalReswOutputPath>
   </PropertyGroup>
+  
+  <ItemGroup Condition="'$(BuildingUAPVertical)' == 'true'">
+    <_AllRuntimeDllFiles Include="$(RuntimePath)\*.dll" />
+    <_ExternalReswFiles Include="$(_ExternalReswOutputPath)*.resw" />
+    
+    <!-- The first time the CreateReswFilesForExternalDependencies target is executed the itemgroup _ExternalReswFiles will be empty
+    and that will avoid the target from executing, so we add a dummy file if they are empty so that the target is executed the first time. -->
+    <_ExternalReswFiles Condition="@(_ExternalReswFiles) == ''" Include="$(_ExternalReswOutputPath)dummy.resw" />
+  </ItemGroup>
+
+  <Target Name="CreateReswFilesForExternalDependencies" 
+          Condition="'$(BuildingUAPVertical)' == 'true' AND '$(ShouldSkipExternalResources)' != 'true'"
+          Inputs="@(_AllRuntimeDllFiles)"
+          Outputs="@(_ExternalReswFiles)">
+
+    <ExtractResWResourcesFromAssemblies InputAssemblies="@(_AllRuntimeDllFiles)"
+                                        OutputPath="$(_ExternalReswOutputPath)"
+                                        InternalReswDirectory="$(ResourcesFolderPath)" />
+
+  </Target>
 
   <!-- This target the necessary config file in order to create the UAP runner's resources.pri file using MakePri.exe -->
   <Target Name="CreateMakePriConfigFileFromTemplate"
@@ -190,10 +212,13 @@
   </Target>
 
   <!-- This target gets all the resw files to be used to create the UAP runner's resources.pri file -->
-  <Target Name="CalculateResWFiles" Condition="'$(BuildingUAPVertical)' == 'true'">
+  <Target Name="CalculateResWFiles" 
+          Condition="'$(BuildingUAPVertical)' == 'true'"
+          DependsOnTargets="CreateReswFilesForExternalDependencies">
+
     <ItemGroup>
       <_TestResWFiles Include="$(TestResourcesFolderPath)\*.resw" />
-      <_CommonResWFiles Include="$(ResourcesFolderPath)\*.resw" />
+      <_CommonResWFiles Include="$(ResourcesFolderPath)\**\*.resw" />
     </ItemGroup>
   </Target>
 
@@ -251,8 +276,13 @@
     <!-- We call MakePri.exe to create common resources.pri file only if this test project has its own resources. -->
     <Exec Command="$(_MakePriCommand)" StandardOutputImportance="Low" StdErrEncoding="Unicode" Condition="'$(TestProjectNeedsModifiedPriFile)' == 'true'" />
 
-    <Copy Condition="'$(TestProjectNeedsModifiedPriFile)' != 'true'"
+    <Copy Condition="'$(TestProjectNeedsModifiedPriFile)' != 'true' AND Exists('$(_CommonPriFile)')"
           SourceFiles="$(_CommonPriFile)"
+          DestinationFiles="$(TestPath)\resources.pri"
+          SkipUnchangedFiles="true" />
+
+    <Copy Condition="'$(TestProjectNeedsModifiedPriFile)' != 'true' AND !Exists('$(_CommonPriFile)')"
+          SourceFiles="$(TestHostRootPath)\Runner\resources.pri"
           DestinationFiles="$(TestPath)\resources.pri"
           SkipUnchangedFiles="true" />
 
