@@ -53,7 +53,7 @@ namespace Microsoft.DotNet.Build.Tasks
                     continue; // we don't want to extract the resources from Private CoreLib since this resources are managed by the legacy ResourceManager which gets them from the embedded and not from PRI. 
                 }
 
-                if (!ShouldExtractResources($"FxResources.{assemblyName}.SR.resw", assemblyPath))
+                if (!ShouldExtractResources($"FxResources.{Helper.NormalizeAssemblyName(assemblyName)}.SR.resw", assemblyPath))
                 {
                     continue; // we skip framework assemblies that resources already exist and don't need to be extracted to avoid reading dll metadata.
                 }
