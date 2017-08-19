@@ -15,7 +15,7 @@ namespace Microsoft.DotNet.Build.Tasks
             if (String.IsNullOrEmpty(name))
                 return name;
 
-            bool insertUnderscore = Char.IsNumber(name[0]) ? true : false;
+            bool insertUnderscore = Char.IsNumber(name[0]);
             int i = 0;
 
             while (i < name.Length)
