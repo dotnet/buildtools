@@ -37,6 +37,7 @@
     <Compile Include="GenerateCurrentVersion.cs" />
     <Compile Include="GenerateResourcesCode.cs" />
     <Compile Include="GenerateEncodingTable.cs" />
+    <Compile Include="Helper.cs" />
     <Compile Include="EncryptedConfigNuGetRestore.cs" />
     <Compile Include="GenerateUnencryptedNuGetConfig.cs" />
     <Compile Include="GenFacadesTask.cs" />
