@@ -31,13 +31,17 @@ namespace Microsoft.DotNet.Build.Tasks
         [Required]
         public string AssemblyName { get; set; }
 
+        [Output]
+        public string NormalizedAssemblyName { get; set; }
+
         public bool DebugOnly { get; set; }
 
         public override bool Execute()
         {
             try
             {
-                _resourcesName = "FxResources." + AssemblyName;
+                NormalizedAssemblyName = Helper.NormalizeAssemblyName(AssemblyName);
+                _resourcesName = "FxResources." + NormalizedAssemblyName;
 
                 using (_targetStream = File.CreateText(OutputSourceFilePath))
                 {
