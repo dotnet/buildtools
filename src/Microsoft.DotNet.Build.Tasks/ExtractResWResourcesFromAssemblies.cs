@@ -15,7 +15,7 @@ using System.Reflection.Metadata;
 
 namespace Microsoft.DotNet.Build.Tasks
 { 
-    public class ExtractResWResourcesFromAssemblies : Task
+    public class ExtractResWResourcesFromAssemblies : BuildTask
     {
         [Required]
         public ITaskItem[] InputAssemblies { get; set; }
