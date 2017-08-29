@@ -70,7 +70,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 string uploadPath = feed.CalculateBlobPath(item, relativePath);
                 string packageDirectory = feed.CalculateRelativeUploadPath(item, relativePath);
 
-                if (await feed.CheckIfBlobExists(uploadPath) && !allowOverwrite)
+                if (!allowOverwrite && await feed.CheckIfBlobExists(uploadPath))
                 {
                     throw new Exception($"Item {uploadPath} already exists and Overwrite is false.");
                 }
