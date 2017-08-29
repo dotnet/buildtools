@@ -18,7 +18,7 @@ namespace Microsoft.DotNet.Build.Tasks
     /// An alternative is to acquire nuget.exe, but it's heavier than NuGet.Commands and is harder
     /// to use in the build.
     /// </summary>
-    public partial class EncryptedConfigNuGetRestore : Task
+    public partial class EncryptedConfigNuGetRestore : BuildTask
     {
         public ITaskItem[] Inputs { get; set; }
 

@@ -16,7 +16,7 @@ using System.IO;
 /// </summary>
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public sealed class WriteVisualBasicDefineResponseFile : Task
+    public sealed class WriteVisualBasicDefineResponseFile : BuildTask
     {
         /// <summary>
         /// The set of DefineConstants that would be passed to the Vbc Task.

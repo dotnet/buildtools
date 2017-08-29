@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class ValidateExactRestore : Task
+    public class ValidateExactRestore : BuildTask
     {
         [Required]
         public ITaskItem[] ProjectLockJsons { get; set; }

@@ -13,7 +13,7 @@ using System.Xml.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class GetPackageDependencies : Task
+    public class GetPackageDependencies : BuildTask
     {
         /// <summary>
         /// An ItemGroup of full paths to packages.config NuGet files.

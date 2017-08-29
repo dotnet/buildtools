@@ -10,7 +10,7 @@ using System.Text;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class GenerateTestExecutionScripts : Task
+    public class GenerateTestExecutionScripts : BuildTask
     {
         [Required]
         public string[] TestCommands { get; set; }

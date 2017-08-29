@@ -11,7 +11,7 @@ using System.Threading;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class CleanupVSTSAgent : Microsoft.Build.Utilities.Task
+    public class CleanupVSTSAgent : BuildTask
     {
         public bool Clean { get; set; }
 

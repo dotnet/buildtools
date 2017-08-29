@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class GetDoItemsIntersect : Task
+    public class GetDoItemsIntersect : BuildTask
     {
         [Required]
         public ITaskItem[] ItemGroup1 { get; set; }

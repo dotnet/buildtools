@@ -10,7 +10,7 @@ using Task = Microsoft.Build.Utilities.Task;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class GenerateBindingRedirect : Task
+    public class GenerateBindingRedirect : BuildTask
     {
         [Required]
         public ITaskItem[] Assemblies { get; set; }

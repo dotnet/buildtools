@@ -10,7 +10,7 @@ using System.Security.Cryptography;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class GenerateChecksums : Task
+    public class GenerateChecksums : BuildTask
     {
         /// <summary>
         /// An item collection of files for which to generate checksums.  Each item must have metadata
