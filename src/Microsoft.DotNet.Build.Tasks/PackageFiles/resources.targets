@@ -63,13 +63,13 @@
   
   <PropertyGroup Condition="'$(StringResourcesPath)'!=''">
       <CompileDependsOn>
-          AssemblyNameNormalization;
+          NormalizeAssemblyName;
           GenerateResourcesSource;
           $(CompileDependsOn);
       </CompileDependsOn>
   </PropertyGroup>
 
-  <Target Name="AssemblyNameNormalization" Condition="'$(StringResourcesPath)'!='' AND '$(OmitResources)'!='true'">
+  <Target Name="NormalizeAssemblyName" Condition="'$(StringResourcesPath)'!='' AND '$(OmitResources)'!='true'">
     <NormalizeAssemblyName
         AssemblyName="$(AssemblyName)" >
         <Output TaskParameter="NormalizedAssemblyName" PropertyName="_NormalizedAssemblyName" />
