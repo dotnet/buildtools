@@ -10,7 +10,7 @@ using Microsoft.Build.Utilities;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class GatherDirectoriesToRestore : Task
+    public class GatherDirectoriesToRestore : BuildTask
     {
         [Required]
         public string[] RootDirectories { get; set; }

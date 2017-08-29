@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks.VersionTools
 {
-    public class UpdatePublishedVersions : Task
+    public class UpdatePublishedVersions : BuildTask
     {
         [Required]
         public ITaskItem[] ShippedNuGetPackage { get; set; }

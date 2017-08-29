@@ -11,7 +11,7 @@ using System.IO;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public sealed class ReadSigningRequired : Task
+    public sealed class ReadSigningRequired : BuildTask
     {
         /// <summary>
         /// Gets or sets the list of signing marker files.

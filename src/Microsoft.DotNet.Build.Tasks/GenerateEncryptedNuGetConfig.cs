@@ -12,7 +12,7 @@ using System.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class GenerateEncryptedNuGetConfig : Task
+    public class GenerateEncryptedNuGetConfig : BuildTask
     {
         [Required]
         public string ConfigPath { get; set; }

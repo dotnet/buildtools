@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public sealed class GenerateCurrentVersion : Task
+    public sealed class GenerateCurrentVersion : BuildTask
     {
         /// <summary>
         /// The passed in date that will be used to generate a version. (yyyy-MM-dd format)

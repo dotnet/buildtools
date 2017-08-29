@@ -14,7 +14,7 @@ using System.Text;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class GenerateResourcesCode : Task
+    public class GenerateResourcesCode : BuildTask
     {
         private TargetLanguage _targetLanguage = TargetLanguage.CSharp;
         private StreamWriter _targetStream;
