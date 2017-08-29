@@ -1,0 +1,19 @@
+{
+  "dependencies": {
+    "Newtonsoft.Json": "9.0.1",
+    "NuGet.Versioning": "4.3.0-preview2-4095",
+    "NuGet.Packaging": "4.3.0-preview2-4095",
+    "System.Reflection.Metadata": "1.4.1",
+    "System.Runtime.InteropServices.RuntimeInformation": "4.4.0-beta-24813-03"
+  },
+  "frameworks": {
+    "net45": {
+      "dependencies": {
+        "Microsoft.TargetingPack.NETFramework.v4.5": "1.0.1"
+      }
+    }
+  },
+  "runtimes": {
+    "win7-x64": {}
+  }
+}
