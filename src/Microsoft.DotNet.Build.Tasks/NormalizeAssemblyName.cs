@@ -8,7 +8,7 @@ using System;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class NormalizeAssemblyName : Task
+    public class NormalizeAssemblyName : BuildTask
     {
         [Required]
         public string AssemblyName { get; set; }
