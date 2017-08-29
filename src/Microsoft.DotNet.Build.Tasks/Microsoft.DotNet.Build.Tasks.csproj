@@ -49,6 +49,7 @@
     <Compile Include="InstallPackageFromFile.cs" />
     <Compile Include="LocatePreviousContract.cs" />
     <Compile Include="NormalizePaths.cs" />
+    <Compile Include="NormalizeAssemblyName.cs" />
     <Compile Include="GetDoItemsIntersect.cs" />
     <Compile Include="NugetMsBuildLogger.cs" />
     <Compile Include="NuGetPackageObject.cs" />
