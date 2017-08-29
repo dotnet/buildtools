@@ -9,7 +9,7 @@ using System.IO;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class LocatePreviousContract : Task
+    public class LocatePreviousContract : BuildTask
     {
         [Required]
         public string CurrentContractProjectPath { get; set; }

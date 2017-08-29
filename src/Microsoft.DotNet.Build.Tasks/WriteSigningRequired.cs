@@ -9,7 +9,7 @@ using System.IO;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public sealed class WriteSigningRequired : Task
+    public sealed class WriteSigningRequired : BuildTask
     {
         /// <summary>
         /// Gets or sets the name of the Authenticode signature to apply.

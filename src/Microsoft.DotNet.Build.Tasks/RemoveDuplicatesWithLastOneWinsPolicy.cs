@@ -14,7 +14,7 @@ namespace Microsoft.DotNet.Build.Tasks
     /// Unlike <see cref="RemoveDuplicates"/>, the last item in the list wins rather than the first.
     /// That distinction is important when the items have different metadata.
     /// </summary>
-    public class RemoveDuplicatesWithLastOneWinsPolicy : Task
+    public class RemoveDuplicatesWithLastOneWinsPolicy : BuildTask
     {
         /// <summary>
         /// The list of items from which to remove duplicates.

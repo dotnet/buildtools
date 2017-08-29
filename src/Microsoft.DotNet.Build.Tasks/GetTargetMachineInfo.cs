@@ -9,7 +9,7 @@ using Microsoft.DotNet.PlatformAbstractions;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class GetTargetMachineInfo : Task
+    public class GetTargetMachineInfo : BuildTask
     {
         [Output]
         public string TargetOS { get; set; }

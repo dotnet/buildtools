@@ -13,7 +13,7 @@ using System.Xml.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class GetNextRevisionNumber : Task
+    public class GetNextRevisionNumber : BuildTask
     {
         [Required]
         public string VersionPropsFile { get; set; }

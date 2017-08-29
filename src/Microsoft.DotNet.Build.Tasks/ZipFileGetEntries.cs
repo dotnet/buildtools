@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public sealed class ZipFileGetEntries : Task
+    public sealed class ZipFileGetEntries : BuildTask
     {
         /// <summary>
         /// The path to the archive.

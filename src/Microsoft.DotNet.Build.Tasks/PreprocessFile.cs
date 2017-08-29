@@ -11,7 +11,7 @@ using Microsoft.Build.Utilities;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class PreprocessFile : Task
+    public class PreprocessFile : BuildTask
     {
         [Required]
         public string SourceFile { get; set; }

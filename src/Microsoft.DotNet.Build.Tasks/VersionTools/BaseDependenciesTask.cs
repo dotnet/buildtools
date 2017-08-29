@@ -15,7 +15,7 @@ using System.Text.RegularExpressions;
 
 namespace Microsoft.DotNet.Build.Tasks.VersionTools
 {
-    public abstract class BaseDependenciesTask : Task
+    public abstract class BaseDependenciesTask : BuildTask
     {
         internal const string RawUrlMetadataName = "RawUrl";
         internal const string RawVersionsBaseUrlMetadataName = "RawVersionsBaseUrl";

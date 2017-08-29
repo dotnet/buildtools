@@ -9,7 +9,7 @@ using System.IO;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class ComputeDestinationsForDependencies : Task
+    public class ComputeDestinationsForDependencies : BuildTask
     {
         [Required]
         public ITaskItem[] TestDependencies { get; set; }
