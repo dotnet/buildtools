@@ -345,7 +345,7 @@
     <ItemGroup>
       <_currentBinPlaceConfigurations Include="@(_bestBinlaceConfigurations)" Condition="'%(Identity)' == '$(Configuration)' OR '%(Identity)-$(ConfigurationGroup)' == '$(Configuration)'" />
 
-      <BinPlaceDir Condition="'$(BinPlaceTest)' == 'true'" Include="@(_currentBinPlaceConfigurations->'%(TestWorkingPath)')" />
+      <BinPlaceDir Condition="'$(BinPlaceTest)' == 'true'" Include="@(_currentBinPlaceConfigurations->'%(TestPath)')" />
       <BinPlaceDir Condition="'$(BinPlaceRuntime)' == 'true'" Include="@(_currentBinPlaceConfigurations->'%(RuntimePath)')" />
       <BinPlaceDir Condition="'$(BinPlaceRef)' == 'true'" Include="@(_currentBinPlaceConfigurations->'%(RefPath)')" />
 
@@ -377,7 +377,7 @@
     <AdditionalCleanDirectories Include="@(BinPlaceConfiguration->'%(RuntimePath)')" />
     <AdditionalCleanDirectories Include="@(BinPlaceConfiguration->'%(PackageFileRefPath)')" />
     <AdditionalCleanDirectories Include="@(BinPlaceConfiguration->'%(PackageFileRuntimePath)')" />
-    <AdditionalCleanDirectories Include="@(BinPlaceConfiguration->'%(TestWorkingPath)')" />
+    <AdditionalCleanDirectories Include="@(BinPlaceConfiguration->'%(TestPath)')" />
   </ItemGroup>
 
   <Target Name="_CleanGetCurrentAdditionalFileWrites" BeforeTargets="_CleanGetCurrentAndPriorFileWrites" Condition="'@(AdditionalCleanDirectories)' != ''">
