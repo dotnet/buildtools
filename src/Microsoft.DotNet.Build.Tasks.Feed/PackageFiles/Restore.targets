@@ -1,5 +1,5 @@
 <Project ToolsVersion="12.0" DefaultTargets="ConfigureInputFeeds" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <UsingTask TaskName="ConfigureInputFeeds" AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
+  <UsingTask TaskName="ConfigureInputFeed" AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
   
     <!-- This is the target used to configure feeds for restore. It can be used to specify the sources from which you would restore your packages from.
          Parameters to specify:
@@ -12,6 +12,6 @@
             Condition="'@(EnableFeeds)' == ''" />
       
       <Message Importance="High" Text="Configuring input feeds started" />
-      <ConfigureInputFeeds EnableFeeds="@(EnableFeeds)" />
+      <ConfigureInputFeed EnableFeeds="@(EnableFeeds)" />
     </Target>
 </Project>

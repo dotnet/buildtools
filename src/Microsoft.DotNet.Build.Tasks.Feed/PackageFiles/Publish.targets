@@ -17,6 +17,8 @@
             Condition="'$(AccountName)' == ''" />  
       <Error Text="The AccountKey property must be set on the command line."  
             Condition="'$(AccountKey)' == ''" />
+      <Error Text="The ContainerName property must be set on the command line."  
+            Condition="'$(ContainerName)' == ''" />
       
       <Message Importance="High" Text="Publish to $(ContainerName) started" />
       <PushToBlobFeed AccountName="$(AccountName)"
@@ -24,6 +26,7 @@
                       ContainerName="$(ContainerName)"
                       ItemsToPush="@(ItemsToPush)"
                       RelativePath="$(RelativePath)"
-                      PublishFlatContainer="$(PublishFlatContainer)" />
+                      PublishFlatContainer="$(PublishFlatContainer)"
+                      Overwrite="$(Overwrite)" />
     </Target>
 </Project>
