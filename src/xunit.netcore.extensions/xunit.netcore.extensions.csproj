@@ -30,6 +30,7 @@
     <Compile Include="Discoverers\SkipOnTargetFrameworkDiscoverer.cs" />
     <Compile Include="SkippedTestCase.cs" />
     <Compile Include="TargetFrameworkMonikers.cs" />
+    <Compile Include="TestArchitectures.cs" />
     <Compile Include="TestPlatforms.cs" />
     <Compile Include="XunitConstants.cs" />
   </ItemGroup>

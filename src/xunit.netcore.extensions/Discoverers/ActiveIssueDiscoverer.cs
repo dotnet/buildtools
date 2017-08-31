@@ -30,7 +30,8 @@ namespace Xunit.NetCore.Extensions
             string issue = ctorArgs.First().ToString();
             TestPlatforms platforms = TestPlatforms.Any;
             TargetFrameworkMonikers frameworks = (TargetFrameworkMonikers)0;
-            
+            TestArchitectures architectures = TestArchitectures.Any;
+
             foreach (object arg in ctorArgs.Skip(1)) // First argument is the issue number.
             {
                 if (arg is TestPlatforms)
@@ -41,13 +42,26 @@ namespace Xunit.NetCore.Extensions
                 {
                     frameworks = (TargetFrameworkMonikers)arg;
                 }
+                else if (arg is TestArchitectures)
+                {
+                    architectures = (TestArchitectures)arg;
+                }
             }
-        
-            if ((platforms.HasFlag(TestPlatforms.FreeBSD) && RuntimeInformation.IsOSPlatform(OSPlatform.Create("FREEBSD"))) ||
+
+            bool appliesToPlatform =
+                (platforms.HasFlag(TestPlatforms.FreeBSD) && RuntimeInformation.IsOSPlatform(OSPlatform.Create("FREEBSD"))) ||
                 (platforms.HasFlag(TestPlatforms.Linux) && RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) ||
                 (platforms.HasFlag(TestPlatforms.NetBSD) && RuntimeInformation.IsOSPlatform(OSPlatform.Create("NETBSD"))) ||
                 (platforms.HasFlag(TestPlatforms.OSX) && RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) ||
-                (platforms.HasFlag(TestPlatforms.Windows) && RuntimeInformation.IsOSPlatform(OSPlatform.Windows)))
+                (platforms.HasFlag(TestPlatforms.Windows) && RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
+
+            bool appliesToArchitecture =
+                (architectures.HasFlag(TestArchitectures.X86) && RuntimeInformation.ProcessArchitecture == Architecture.X86) ||
+                (architectures.HasFlag(TestArchitectures.X64) && RuntimeInformation.ProcessArchitecture == Architecture.X64) ||
+                (architectures.HasFlag(TestArchitectures.Arm) && RuntimeInformation.ProcessArchitecture == Architecture.Arm) ||
+                (architectures.HasFlag(TestArchitectures.Arm64) && RuntimeInformation.ProcessArchitecture == Architecture.Arm64);
+
+            if (appliesToPlatform && appliesToArchitecture)
             {
                 if (frameworks.HasFlag(TargetFrameworkMonikers.NetFramework))
                     yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.NonNetfxTest);
