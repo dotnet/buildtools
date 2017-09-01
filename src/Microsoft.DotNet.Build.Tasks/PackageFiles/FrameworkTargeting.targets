@@ -232,7 +232,7 @@
   <!-- Binplacing targets and properties -->
   <PropertyGroup>
     <BinPlaceUseHardlinksIfPossible Condition="'$(BinPlaceUseHardlinksIfPossible)' == ''">true</BinPlaceUseHardlinksIfPossible>
-    <EnableBinPlacing Condition="'$(EnableBinPlacing)' == '' AND ('$(BinPlaceRef)' == 'true' OR '$(BinPlaceRuntime)' == 'true')">true</EnableBinPlacing>
+    <EnableBinPlacing Condition="'$(EnableBinPlacing)' == '' AND ('$(BinPlaceRef)' == 'true' OR '$(BinPlaceRuntime)' == 'true' OR '$(BinPlaceTest)' == 'true')">true</EnableBinPlacing>
   </PropertyGroup>
 
   <Target Name="BinPlace"
@@ -345,6 +345,7 @@
     <ItemGroup>
       <_currentBinPlaceConfigurations Include="@(_bestBinlaceConfigurations)" Condition="'%(Identity)' == '$(Configuration)' OR '%(Identity)-$(ConfigurationGroup)' == '$(Configuration)'" />
 
+      <BinPlaceDir Condition="'$(BinPlaceTest)' == 'true'" Include="@(_currentBinPlaceConfigurations->'%(TestPath)')" />
       <BinPlaceDir Condition="'$(BinPlaceRuntime)' == 'true'" Include="@(_currentBinPlaceConfigurations->'%(RuntimePath)')" />
       <BinPlaceDir Condition="'$(BinPlaceRef)' == 'true'" Include="@(_currentBinPlaceConfigurations->'%(RefPath)')" />
 
@@ -376,6 +377,7 @@
     <AdditionalCleanDirectories Include="@(BinPlaceConfiguration->'%(RuntimePath)')" />
     <AdditionalCleanDirectories Include="@(BinPlaceConfiguration->'%(PackageFileRefPath)')" />
     <AdditionalCleanDirectories Include="@(BinPlaceConfiguration->'%(PackageFileRuntimePath)')" />
+    <AdditionalCleanDirectories Include="@(BinPlaceConfiguration->'%(TestPath)')" />
   </ItemGroup>
 
   <Target Name="_CleanGetCurrentAdditionalFileWrites" BeforeTargets="_CleanGetCurrentAndPriorFileWrites" Condition="'@(AdditionalCleanDirectories)' != ''">
