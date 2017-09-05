@@ -17,7 +17,7 @@
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.3.409" />
     <PackageReference Include="Microsoft.Build" Version="15.3.409" />
     <PackageReference Include="Microsoft.DotNet.PlatformAbstractions" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Net.Compilers.netcore" Version="2.0.0-rc4" />
+    <PackageReference Include="Microsoft.Net.Compilers.netcore" Version="2.6.0-rdonly-ref-61915-01" />
     <PackageReference Include="Microsoft.Net.Compilers.Targets.NetCore" Version="0.1.5-dev" />
     <PackageReference Include="Microsoft.Cci" Version="4.0.0-rc4-24217-00" />
     <PackageReference Include="System.Composition" Version="1.1.0" />

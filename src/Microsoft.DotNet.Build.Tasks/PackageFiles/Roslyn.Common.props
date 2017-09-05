@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <RoslynVersion>2.0.0-rc4</RoslynVersion>
+    <RoslynVersion>2.6.0-rdonly-ref-61915-01</RoslynVersion>
     <RoslynPackageName>Microsoft.Net.Compilers</RoslynPackageName>
     <RoslynTargetsPath>$(ToolRuntimePath)</RoslynTargetsPath>
   </PropertyGroup>
 
   <PropertyGroup>
-    <RoslynPropsFile Condition="'$(RoslynPropsFile)' == '' and '$(RunningOnCore)' != 'true'">$(BuildToolsTaskDir)/roslyn/build/Microsoft.Net.Compilers.props</RoslynPropsFile>
+    <RoslynPropsFile Condition="'$(RoslynPropsFile)' == '' and '$(RunningOnCore)' != 'true'">$(BuildToolsTaskDir)roslyn/build/Microsoft.Net.Compilers.props</RoslynPropsFile>
   </PropertyGroup>
 
   <!--
@@ -22,4 +22,17 @@
     -->
     <DebugType>Portable</DebugType>
   </PropertyGroup>
+
+
+  <!-- If we're not using the compiler server, set ToolPath/Exe to direct to
+       the exes in this package -->
+  <PropertyGroup Condition="'$(UseRoslynCompilers)' != 'false'">
+    <CscToolPath Condition="'$(RunningOnCore)' == 'true'">$(RoslynPackageDir)tools</CscToolPath>
+    <CscToolPath Condition="'$(RunningOnCore)' != 'true'">$(BuildToolsTaskDir)roslyn/tools</CscToolPath>
+    <CscToolExe>csc.exe</CscToolExe>
+    <VbcToolPath Condition="'$(RunningOnCore)' == 'true'">$(RoslynPackageDir)tools</VbcToolPath>
+    <VbcToolPath Condition="'$(RunningOnCore)' != 'true'">$(BuildToolsTaskDir)roslyn/tools</VbcToolPath>
+    <VbcToolExe>vbc.exe</VbcToolExe>
+  </PropertyGroup>
+
 </Project>
