@@ -26,7 +26,7 @@
 
   <!-- If we're not using the compiler server, set ToolPath/Exe to direct to
        the exes in this package -->
-  <PropertyGroup Condition="'$(UseRoslynCompilers)' != 'false'">
+  <PropertyGroup Condition="'$(OverridePathToRoslyn)' == 'true'">
     <CscToolPath Condition="'$(RunningOnCore)' == 'true'">$(RoslynPackageDir)tools</CscToolPath>
     <CscToolPath Condition="'$(RunningOnCore)' != 'true'">$(BuildToolsTaskDir)roslyn/tools</CscToolPath>
     <CscToolExe>csc.exe</CscToolExe>
