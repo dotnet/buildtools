@@ -489,6 +489,15 @@ namespace GenFacades
                             return forwardedTypes.TryGetValue(oldType.DocId(), out newType) ? newType : oldType;
                         });
 
+                        var remainingTypes = assembly.AllTypes.Where(t => t.Name.Value != "<Module>");
+
+                        if (!remainingTypes.Any())
+                        {
+                            Trace.TraceInformation($"Removed all types from {contractAssembly.Name} thus will remove ReferenceAssemblyAttribute.");
+                            assembly.AssemblyAttributes.RemoveAll(ca => ca.FullName() == "System.Runtime.CompilerServices.ReferenceAssemblyAttribute");
+                            assembly.Flags &= ~ReferenceAssemblyFlag;
+                        }
+
                         typeRefRewriter.Rewrite(assembly);
                     }
                 }
