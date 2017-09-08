@@ -8,5 +8,14 @@
     <InformationalVersion Condition="'$(InformationalVersion)' == ''">$(AssemblyFileVersion)$(BuiltByString)</InformationalVersion>
     <Product Condition="'$(Product)' == ''">Microsoft%AE .NET Framework</Product>
     <AssemblyTitle Condition="'$(AssemblyTitle)' == ''">$(AssemblyName)</AssemblyTitle>
+    
+	<!-- File passed to C# compiler that defines the mapping from source to GIT URL.  Created in versioning.targets --> 
+    <SourceLinkFilePath>$(BaseIntermediateOutputPath)source_link.json</SourceLinkFilePath>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(UseSourceLink)' == 'true' AND Exists('$(SourceLinkFilePath)')">
+    <!-- Defining this variable tells the C# compiler to use this as the /sourcelink option value. -->
+    <SourceLink>$(SourceLinkFilePath)</SourceLink>
+  </PropertyGroup>
+
 </Project>
