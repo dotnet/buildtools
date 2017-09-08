@@ -9,7 +9,7 @@ using System.IO.Compression;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public sealed class ZipFileInjectFile : Task
+    public sealed class ZipFileInjectFile : BuildTask
     {
         /// <summary>
         /// The path to the zip archive to be injected into.

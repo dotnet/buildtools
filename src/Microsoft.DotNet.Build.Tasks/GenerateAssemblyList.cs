@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class GenerateAssemblyList : Task
+    public class GenerateAssemblyList : BuildTask
     {
         [Required]
         public string InputListLocation { get; set; }

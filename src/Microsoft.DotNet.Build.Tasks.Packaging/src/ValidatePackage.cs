@@ -226,7 +226,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     }
                     else
                     {
-                        if (validateFramework.IsInbox)
+                        if (validateFramework.IsInbox && !HasSuppression(Suppression.TreatAsOutOfBox, fx))
                         {
                             if (!hasCompileAsset && !hasCompilePlaceHolder)
                             {
@@ -251,7 +251,17 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                             Version referenceAssemblyVersion = null;
                             if (!hasCompileAsset)
                             {
-                                Log.LogError($"{ContractName} should be supported on {target} but has no compile assets.");
+                                if (hasCompilePlaceHolder)
+                                {
+                                    Log.LogError($"{ContractName} should be supported on {target} but has a compile placeholder.  You may need to remove InboxOnTargetFramework Include=\"{fx.GetShortFolderName()}\" /> from your project.");
+                                }
+                                else
+                                {
+                                    Log.LogError($"{ContractName} should be supported on {target} but has no compile assets.");
+                                }
+
+                                // skip the runtime checks
+                                continue;
                             }
                             else
                             {

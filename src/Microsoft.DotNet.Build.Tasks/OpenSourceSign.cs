@@ -17,7 +17,7 @@ namespace Microsoft.DotNet.Build.Tasks
     /// without registering for verification skipping. The assembly cannot be installed to the
     /// GAC.
     /// </summary>
-    public sealed class OpenSourceSign : Task
+    public sealed class OpenSourceSign : BuildTask
     {
         /// <summary>
         /// The full path to the assembly to "Open Source Sign". The file will be modified in place.

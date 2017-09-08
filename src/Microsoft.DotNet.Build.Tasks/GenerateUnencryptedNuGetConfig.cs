@@ -11,7 +11,7 @@ using System.Xml;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class GenerateUnencryptedNuGetConfig : Task
+    public class GenerateUnencryptedNuGetConfig : BuildTask
     {
         private const string NotImplementedMessage =
             "Unencrypted NuGet.Config functionality is unavailable. Use an encrypted " +

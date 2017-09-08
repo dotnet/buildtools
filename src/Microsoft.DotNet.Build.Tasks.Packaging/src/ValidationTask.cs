@@ -85,6 +85,17 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             return false;
         }
 
+        protected bool HasSuppression(Suppression key, NuGetFramework framework)
+        {
+            HashSet<string> values;
+            if (_suppressions.TryGetValue(key, out values) && values != null)
+            {
+                var frameworkValues = new[] { framework.DotNetFrameworkName, framework.Framework, framework.GetShortFolderName() };
+                return frameworkValues.Any(fx => values.Contains(fx));
+            }
+            return false;
+        }
+
         private void LoadSuppressions()
         {
             _suppressions = new Dictionary<Suppression, HashSet<string>>();
@@ -174,6 +185,10 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// <summary>
         /// Permits an inbox assembly to be missing from framework package.  This is used for cases where the assembly is part of the framework itself (eg: in desktop).
         /// </summary>
-        PermitMissingInbox
+        PermitMissingInbox,
+        /// <summary>
+        /// Treats an assembly as out of box on the given frameworks, but it must provide an assembly version that is compatible with the inbox version (>=)
+        /// </summary>
+        TreatAsOutOfBox
     }
 }

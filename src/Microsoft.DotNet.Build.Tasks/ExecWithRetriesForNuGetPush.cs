@@ -15,7 +15,7 @@ namespace Microsoft.DotNet.Build.Tasks
     /// <summary>
     /// Run a command and retry if the exit code is not 0.
     /// </summary>
-    public class ExecWithRetriesForNuGetPush : Microsoft.Build.Utilities.Task, ICancelableTask
+    public class ExecWithRetriesForNuGetPush : BuildTask
     {
         [Required]
         public string Command { get; set; }

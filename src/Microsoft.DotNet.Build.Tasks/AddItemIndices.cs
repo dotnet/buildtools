@@ -11,7 +11,7 @@ namespace Microsoft.DotNet.Build.Tasks
     /// <summary>
     /// Takes Input, adds Index metadata with each item's location in the array, and outputs them.
     /// </summary>
-    public class AddItemIndices : Task
+    public class AddItemIndices : BuildTask
     {
         [Required]
         public ITaskItem[] Input { get; set; }

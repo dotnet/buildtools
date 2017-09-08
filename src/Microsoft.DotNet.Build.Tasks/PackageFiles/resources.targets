@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <UsingTask TaskName="GenerateResourcesCode" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="NormalizeAssemblyName" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
 
   <PropertyGroup>
     <GenerateResourceMSBuildRuntime>CurrentRuntime</GenerateResourceMSBuildRuntime>
@@ -62,10 +63,29 @@
   
   <PropertyGroup Condition="'$(StringResourcesPath)'!=''">
       <CompileDependsOn>
+          NormalizeAssemblyName;
           GenerateResourcesSource;
           $(CompileDependsOn);
       </CompileDependsOn>
   </PropertyGroup>
+
+  <Target Name="NormalizeAssemblyName" Condition="'$(StringResourcesPath)'!='' AND '$(OmitResources)'!='true'">
+    <NormalizeAssemblyName
+        AssemblyName="$(AssemblyName)" >
+        <Output TaskParameter="NormalizedAssemblyName" PropertyName="_NormalizedAssemblyName" />
+    </NormalizeAssemblyName>
+
+    <ItemGroup>
+      <!--
+         EmbeddedResource is defined outside the target and cannot be defined inside this target
+         we need to update logical name and ReswName after we normalize the assembly name.
+      -->
+      <EmbeddedResource Condition="'%(EmbeddedResource.LogicalName)'=='FxResources.$(AssemblyName).SR.resources'">
+        <LogicalName>FxResources.$(_NormalizedAssemblyName).SR.resources</LogicalName>
+        <ReswName Condition="'$(BuildingUAPVertical)' == 'true'">FxResources.$(_NormalizedAssemblyName).SR</ReswName>
+      </EmbeddedResource>
+    </ItemGroup>
+  </Target>
 
   <Target Name="GenerateResourcesSource"
           Condition="'$(StringResourcesPath)'!='' AND '$(OmitResources)'!='true'"
@@ -73,9 +93,10 @@
           Outputs="$(IntermediateResOutputFileFullPath)">
 
     <GenerateResourcesCode
-        ResxFilePath="$(StringResourcesPath)" 
-        OutputSourceFilePath="$(IntermediateResOutputFileFullPath)" 
-        AssemblyName="$(AssemblyName)" />
+        ResxFilePath="$(StringResourcesPath)"
+        OutputSourceFilePath="$(IntermediateResOutputFileFullPath)"
+        AssemblyName="$(_NormalizedAssemblyName)" >
+    </GenerateResourcesCode>
 
     <ItemGroup>
       <!-- The following Compile element has to be included dynamically inside the Target otherwise intellisense will not work -->
@@ -94,7 +115,7 @@
       <ReswName Condition="'$(BuildingUAPVertical)' == 'true'">FxResources.$(AssemblyName).SR</ReswName>
     </EmbeddedResource>
   </ItemGroup>
-  
+
   <Choose>
     <When Condition="Exists('$(StringResourcesPath)') And '$(SkipCommonResourcesIncludes)'=='' AND '$(OmitResources)'!='true'">
       <Choose>

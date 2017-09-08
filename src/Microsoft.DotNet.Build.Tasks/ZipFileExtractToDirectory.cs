@@ -10,7 +10,7 @@ using System.IO.Compression;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public sealed class ZipFileExtractToDirectory : Task
+    public sealed class ZipFileExtractToDirectory : BuildTask
     {
         /// <summary>
         /// The path to the archive to be extracted.

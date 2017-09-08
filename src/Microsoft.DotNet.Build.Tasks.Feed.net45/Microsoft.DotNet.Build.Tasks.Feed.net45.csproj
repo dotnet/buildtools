@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <NuGetRuntimeIdentifier>win7-x64</NuGetRuntimeIdentifier>
+    <CopyNuGetImplementations>true</CopyNuGetImplementations>
+    <ImportedProjectRelativePath>..\Microsoft.DotNet.Build.Tasks.Feed\</ImportedProjectRelativePath>
+    <ProjectGuid>{17C66BCE-EB35-44CA-893C-8AAFB67708E9}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(ImportedProjectRelativePath)Microsoft.DotNet.Build.Tasks.Feed.csproj" />
+  <PropertyGroup>
+    <NuGetTargetMoniker>.NETFramework,Version=v4.5</NuGetTargetMoniker>
+  </PropertyGroup>
+  <ItemGroup>
+    <TargetingPackReference Include="Microsoft.Build.Tasks.v4.0" />
+    <TargetingPackReference Include="Microsoft.Build.Framework" />
+    <TargetingPackReference Include="Microsoft.Build.Utilities.v4.0" />
+    <TargetingPackReference Include="System" />
+    <TargetingPackReference Include="System.Net.Http" />
+    <TargetingPackReference Include="System.Core" />
+    <TargetingPackReference Include="System.IO" />
+    <TargetingPackReference Include="System.IO.Compression" />
+    <TargetingPackReference Include="System.IO.Compression.FileSystem" />
+    <TargetingPackReference Include="System.Runtime" />
+    <TargetingPackReference Include="System.Xml" />
+    <TargetingPackReference Include="System.Xml.Linq" />
+  </ItemGroup>
+</Project>

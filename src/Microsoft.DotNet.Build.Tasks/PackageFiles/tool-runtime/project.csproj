@@ -3,8 +3,6 @@
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.0;net46</TargetFrameworks>
     <EnableDefaultItems>false</EnableDefaultItems>
-    <RuntimeFrameworkVersion Condition=" '$(TargetFramework)' == 'netcoreapp2.0' ">2.0.0-beta-001776-00</RuntimeFrameworkVersion>
-    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp2.0' ">$(PackageTargetFallback);dnxcore50;portable-net45+win8</PackageTargetFallback>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
 
@@ -13,25 +11,25 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.0' ">
-    <PackageReference Include="Microsoft.Build.Framework" Version="15.1.0-preview-000523-01" />
-    <PackageReference Include="Microsoft.Build.Runtime" Version="15.1.0-preview-000523-01" />
-    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.1.0-preview-000523-01" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.1.0-preview-000523-01" />
-    <PackageReference Include="Microsoft.Build" Version="15.1.0-preview-000523-01" />
-    <PackageReference Include="Microsoft.DotNet.PlatformAbstractions" Version="1.2.0-beta-001090" />
-    <PackageReference Include="Microsoft.Net.Compilers.netcore" Version="2.0.0-rc" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="15.3.409" />
+    <PackageReference Include="Microsoft.Build.Runtime" Version="15.3.409" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.3.409" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.3.409" />
+    <PackageReference Include="Microsoft.Build" Version="15.3.409" />
+    <PackageReference Include="Microsoft.DotNet.PlatformAbstractions" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Net.Compilers.netcore" Version="2.0.0-rc4" />
     <PackageReference Include="Microsoft.Net.Compilers.Targets.NetCore" Version="0.1.5-dev" />
     <PackageReference Include="Microsoft.Cci" Version="4.0.0-rc4-24217-00" />
-    <PackageReference Include="System.Composition" Version="1.1.0-preview1-25204-02" />
-    <PackageReference Include="Newtonsoft.Json" Version="10.0.2" />
+    <PackageReference Include="System.Composition" Version="1.1.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
     <PackageReference Include="Microsoft.Cci" Version="4.0.0-rc4-24217-00" />
     <PackageReference Include="Microsoft.NETCore.Windows.ApiSets" Version="1.0.1" />
-    <PackageReference Include="System.IO.FileSystem" Version="4.0.1" />
-    <PackageReference Include="System.Diagnostics.FileVersionInfo" Version="4.0.0" />
-    <PackageReference Include="System.Diagnostics.TraceSource" Version="4.0.0" />
+    <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
+    <PackageReference Include="System.Diagnostics.FileVersionInfo" Version="4.3.0" />
+    <PackageReference Include="System.Diagnostics.TraceSource" Version="4.3.0" />
   </ItemGroup>
 
 </Project>

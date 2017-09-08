@@ -25,7 +25,7 @@ namespace Microsoft.DotNet.Build.Tasks
     /// 2. Provide a versions files, this becomes the source of package versions
     /// If both a package drop and a version file are provided, then the package drop takes precedent over the version file.
     /// </summary>
-    public class AddDependenciesToProjectJson : Microsoft.Build.Utilities.Task
+    public class AddDependenciesToProjectJson : BuildTask
     {
         // Additional Dependencies to add to the project.json. May Optionally contain a version.
         // Will Override dependencies present in the project if there is a conflict.
