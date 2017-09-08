@@ -289,8 +289,8 @@
     <PropertyGroup Condition="'$(GitHubOwnerName)' != '' AND '$(GitHubRepositoryName)' != '' AND '$(GitHubRepositoryUrl)' == ''">
       <GitHubRepositoryUrl>https://github.com/$(GitHubOwnerName)/$(GitHubRepositoryName)</GitHubRepositoryUrl>
     </PropertyGroup>
-    
-	   <!-- ******* SourceLink Support, activated by setting $(UseSourceLink) ********* -->
+
+    <!-- ******* SourceLink Support, activated by setting $(UseSourceLink) ********* -->
 
     <!-- Generate the SourceLink file that will be passed to the C# compiler (using ProjectDir and GitHubRepositoryUrl as data) -->
     <MakeDir Directories="$(BaseIntermediateOutputPath)" />
