@@ -2,7 +2,7 @@
 <package>
   <metadata minClientVersion="2.8.1">
     <id>Microsoft.DotNet.BuildTools.ApiCompat</id>
-    <version>1.0.0-beta3</version>
+    <version>1.0.0-servicing</version>
     <title>API Compatibility Checker (ApiCompat)</title>
     <authors>Microsoft</authors>
     <owners>Microsoft</owners>

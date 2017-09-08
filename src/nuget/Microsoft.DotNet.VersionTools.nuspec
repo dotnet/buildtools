@@ -2,7 +2,7 @@
 <package>
   <metadata minClientVersion="2.8.1">
     <id>Microsoft.DotNet.VersionTools</id>
-    <version>1.0.27-prerelease</version>
+    <version>1.0.27-servicing</version>
     <title>Microsoft DotNet VersionTools</title>
     <authors>Microsoft</authors>
     <owners>Microsoft</owners>

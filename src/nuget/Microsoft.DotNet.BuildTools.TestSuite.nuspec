@@ -2,7 +2,7 @@
 <package>
   <metadata minClientVersion="2.8.1">
     <id>Microsoft.DotNet.BuildTools.TestSuite</id>
-    <version>1.0.1-prerelease</version>
+    <version>1.0.1-servicing</version>
     <title>xUnit suite of .NET Core test projects</title>
     <authors>Microsoft</authors>
     <owners>Microsoft</owners>
