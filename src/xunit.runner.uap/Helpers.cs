@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,6 +14,15 @@ namespace XUnit.Runner.Uap
         {
             var folder = await KnownFolders.DocumentsLibrary.CreateFolderAsync("TestResults", CreationCollisionOption.OpenIfExists);
             return await folder.CreateFileAsync(test, CreationCollisionOption.ReplaceExisting);
+        }
+
+        public static StreamWriter GetStreamToFileInLocalStorage(string pathInLocalStorage)
+        {
+            string appSharedPath = Directory.GetParent(Windows.Storage.ApplicationData.Current.LocalFolder.Path).FullName;
+            return new StreamWriter(File.Create(Path.Combine(appSharedPath, pathInLocalStorage)))
+            {
+                AutoFlush = true
+            };
         }
 
     }

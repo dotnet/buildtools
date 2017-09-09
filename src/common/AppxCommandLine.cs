@@ -40,9 +40,9 @@ namespace Xunit.Shared
 
         public bool? ParallelizeTestCollections { get; set; }
 
-        public IRunnerReporter Reporter { get; protected set; }
-
         public bool Serialize { get; protected set; }
+
+        public bool ShowProgress { get; protected set; }
 
         public bool Wait { get; protected set; }
         public string InstallLocation { get; internal set; }
@@ -86,7 +86,6 @@ namespace Xunit.Shared
         protected XunitProject Parse(Predicate<string> fileExists)
         {
             var assemblies = new List<Tuple<string, string>>();
-            Reporter = new DefaultRunnerReporter();
 
             while (arguments.Count > 0)
             {
@@ -165,6 +164,11 @@ namespace Xunit.Shared
                 {
                     GuardNoOptionValue(option);
                     Serialize = true;
+                }
+                else if (optionName == "showprogress")
+                {
+                    GuardNoOptionValue(option);
+                    ShowProgress = true;
                 }
                 else if (optionName == "wait")
                 {
