@@ -54,11 +54,11 @@
     <Authors>Microsoft</Authors>
     <Owners>microsoft,dotnetframework</Owners>
     <Description>TODO</Description>
-    <LicenseUrl>http://go.microsoft.com/fwlink/?LinkId=329770</LicenseUrl>
+    <LicenseUrl Condition="'$(LicenseUrl)' == ''">http://go.microsoft.com/fwlink/?LinkId=329770</LicenseUrl>
     <IconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</IconUrl>
-    <Copyright>&#169; Microsoft Corporation.  All rights reserved.</Copyright>
+    <Copyright Condition="'$(Copyright)' == ''">.NET Foundation and Contributors</Copyright>
     <Tags></Tags>
-    <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
+    <RequireLicenseAcceptance Condition="'$(RequireLicenseAcceptance)' == ''">false</RequireLicenseAcceptance>
     <Serviceable Condition="'$(Serviceable)' == ''">true</Serviceable>
     <!-- we depend on nuget v2.12 / v3.4 behavior NuGet doesn't support two different min client versions
          so we declare 2.12 and mention in package description that when using 3.x we require 3.4 or later -->
@@ -261,6 +261,7 @@
     </ItemGroup>
 
     <Error Condition="'$(SkipPackageFileCheck)' != 'true' AND
+                      '$(IsFrameworkPackage)' != 'true' AND
                       '%(File.SkipPackageFileCheck)' != 'true' AND
                       '%(File.FileName)' != '_' AND
                       '%(File.FileName)%(File.Extension)' != 'runtime.json' AND
@@ -924,6 +925,9 @@
   <Target Name="GetPackageMetadata"
           DependsOnTargets="GetPackageDescription;GetPackageIdentity" />
   <!-- END Metadata -->
+  <PropertyGroup>
+    <UAPvNextTFM Condition="'$(UAPvNextTFM)' == ''">uap10.1</UAPvNextTFM>
+  </PropertyGroup>
 
   <!-- BEGIN validation and output -->
   <ItemGroup>
@@ -935,7 +939,7 @@
       <RuntimeIDs>win7-x86;win7-x64;osx.10.10-x64;osx.10.11-x64;centos.7-x64;debian.8-x64;fedora.23-x64;fedora.24-x64;linuxmint.17-x64;opensuse.13.2-x64;opensuse.42.1-x64;rhel.7-x64;rhel.7.2-x64;ubuntu.14.04-x64;ubuntu.16.04-x64;ubuntu.16.10-x64</RuntimeIDs>
     </DefaultValidateFramework>
     <DefaultValidateFramework Include="netcoreapp2.0">
-      <RuntimeIDs>win7-x86;win7-x64;win10-arm64;alpine.3.4.3-x64;osx.10.10-x64;osx.10.11-x64;centos.7-x64;debian.8-x64;fedora.23-x64;fedora.24-x64;linuxmint.17-x64;opensuse.13.2-x64;opensuse.42.1-x64;rhel.7-x64;rhel.7.2-x64;ubuntu.14.04-x64;ubuntu.16.04-x64;ubuntu.16.10-x64</RuntimeIDs>
+      <RuntimeIDs>win7-x86;win7-x64;win10-arm64;osx.10.10-x64;osx.10.11-x64;centos.7-x64;debian.8-x64;fedora.23-x64;fedora.24-x64;linuxmint.17-x64;opensuse.13.2-x64;opensuse.42.1-x64;rhel.7-x64;rhel.7.2-x64;ubuntu.14.04-x64;ubuntu.16.04-x64;ubuntu.16.10-x64</RuntimeIDs>
     </DefaultValidateFramework>
 
     <DefaultValidateFramework Include="netcore50">
@@ -985,7 +989,7 @@
     <DefaultValidateFramework Include="uap10.0">
       <RuntimeIDs>win10-x86;win10-x86-aot;win10-x64;win10-x64-aot;win10-arm;win10-arm-aot</RuntimeIDs>
     </DefaultValidateFramework>
-    <DefaultValidateFramework Include="uap10.1">
+    <DefaultValidateFramework Include="$(UAPvNextTFM)">
       <RuntimeIDs>win10-x86;win10-x86-aot;win10-x64;win10-x64-aot;win10-arm;win10-arm-aot</RuntimeIDs>
     </DefaultValidateFramework>
   </ItemGroup>
@@ -1019,7 +1023,9 @@
 
   <PropertyGroup>
     <AllXamarinFrameworks Condition="'$(AllXamarinFrameworks)' == ''">MonoAndroid10;MonoTouch10;xamarinios10;xamarinmac20;xamarintvos10;xamarinwatchos10</AllXamarinFrameworks>
+  </PropertyGroup>
 
+  <PropertyGroup Condition="'$(IsFrameworkPackage)' != 'true'">
     <!-- Skip validation of runtime packages, they will be validated in the context of their reference package -->
     <SkipValidatePackage Condition="'$(SkipValidateTargetFrameworks)' == '' AND '$(PackageTargetRuntime)' != ''">true</SkipValidatePackage>
     <SkipSupportCheck Condition="'$(SkipSupportCheck)' == '' AND ($(Id.StartsWith('System.Private.')) OR $(Id.StartsWith('Microsoft.NETCore.')))">true</SkipSupportCheck>
@@ -1066,9 +1072,9 @@
                      ReportFile="$(PackageReportPath)" />
   </Target>
 
-  <Target Name="ValidatePackage"
+  <Target Name="ValidateLibraryPackage"
           DependsOnTargets="GetPackageReport"
-          Condition="'$(SkipValidatePackage)' != 'true'">
+          Condition="'$(IsFrameworkPackage)' != 'true'">
 
     <ItemGroup>
       <!-- Validation framework metadata can be sepecified in multiple ways.
@@ -1105,11 +1111,24 @@
                      SkipSupportCheck="$(SkipSupportCheck)"
                      SupportedFrameworks="@(SupportedFramework)"
                      Suppressions="@(ValidatePackageSuppression)"
-                     SuppressionFile="$(ValidationSuppressionFile)"
                      UseNetPlatform="$(UseNetPlatform)"
                      ReportFile="$(PackageReportPath)" />
 
   </Target>
+
+  <Target Name="ValidateFrameworkPackage"
+          DependsOnTargets="GetPackageReport"
+          Condition="'$(IsFrameworkPackage)' == 'true'">
+    <ValidateFrameworkPackage Framework="$(TargetFramework)"
+                              Runtime="$(PackageTargetRuntime)"
+                              PackageIndexes="@(PackageIndex)"
+                              ReportFile="$(PackageReportPath)"
+                              Suppressions="@(ValidatePackageSuppression)" />
+  </Target>
+  
+  <Target Name="ValidatePackage"
+          DependsOnTargets="ValidateLibraryPackage;ValidateFrameworkPackage"
+          Condition="'$(SkipValidatePackage)' != 'true'" />
 
   <!-- Required by Common.Targets when evaluating projectReferences -->
   <Target Name="GetNativeManifest" />
@@ -1146,7 +1165,7 @@
     <PropertyGroup  Condition="'$(AllowPartialPackages)' == 'true' AND '@(_missingPackageFile)' != ''">
       <Description>WARNING: This package is missing files @(_missingPackageFile->'%(TargetPath)/%(Filename)%(Extension)') %0A$(Description)</Description>
     </PropertyGroup>
-    
+
     <!-- Please Note:
          In order to avoid incremental build issues this target will always run.
          However, the task will make sure that it doesn't touch the file if the

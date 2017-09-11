@@ -3,12 +3,62 @@
   <UsingTask TaskName="GenerateResourcesCode" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
 
   <PropertyGroup>
+    <GenerateResourceMSBuildRuntime>CurrentRuntime</GenerateResourceMSBuildRuntime>
+    <GenerateResourceMSBuildArchitecture>CurrentArchitecture</GenerateResourceMSBuildArchitecture>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <ResourcesSourceOutputDirectory Condition="'$(ResourcesSourceOutputDirectory)' == ''">$(MSBuildProjectDirectory)/Resources/</ResourcesSourceOutputDirectory>
-    <StringResourcesPath Condition="'$(StringResourcesPath)'=='' And Exists('$(ResourcesSourceOutputDirectory)Strings.resx')">$(ResourcesSourceOutputDirectory)/Strings.resx</StringResourcesPath>
+    <StringResourcesPath Condition="'$(StringResourcesPath)'=='' And Exists('$(ResourcesSourceOutputDirectory)Strings.resx')">$(ResourcesSourceOutputDirectory)Strings.resx</StringResourcesPath>
     <IntermediateResOutputFileFullPath Condition="'$(MSBuildProjectExtension)' == '.csproj'">$(IntermediateOutputPath)SR.cs</IntermediateResOutputFileFullPath>
     <IntermediateResOutputFileFullPath Condition="'$(MSBuildProjectExtension)' == '.vbproj'">$(IntermediateOutputPath)SR.vb</IntermediateResOutputFileFullPath>
     <DefineConstants Condition="'$(ConfigurationGroup)' == 'Debug'">$(DefineConstants);DEBUGRESOURCES</DefineConstants>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(BuildingUAPVertical)' == 'true'">
+    <CompileDependsOn>
+      CopyResxFilesToReswFiles;
+      $(CompileDependsOn);
+    </CompileDependsOn>
+  </PropertyGroup>
+
+  <Target Name="CalculateResourcesFileNames" Condition="'$(BuildingUAPVertical)' == 'true'">
+    <ItemGroup>
+      <_AllResxFiles Include="@(EmbeddedResource->'%(FullPath)')" Condition="'%(Extension)' == '.resx'">
+        <ReswName Condition="'%(EmbeddedResource.ReswName)' == ''">%(EmbeddedResource.ManifestResourceName)</ReswName>
+      </_AllResxFiles>
+    </ItemGroup>
+
+    <PropertyGroup>
+      <ProjectHasResources Condition="'@(_AllResxFiles)' != ''">true</ProjectHasResources>
+      <TestProjectNeedsModifiedPriFile Condition="'$(IsTestProject)' == 'true' AND '$(ProjectHasResources)' == 'true'">true</TestProjectNeedsModifiedPriFile>
+      <TestResourcesFolderPath Condition="'$(TestProjectNeedsModifiedPriFile)' == 'true'">$(RuntimePath)$(AssemblyName).Resw</TestResourcesFolderPath>
+      <_ResWDestinationPath Condition="'$(TestResourcesFolderPath)' != ''">$(TestResourcesFolderPath)</_ResWDestinationPath>
+      <_ResWDestinationPath Condition="'$(TestResourcesFolderPath)' == ''">$(ResourcesFolderPath)</_ResWDestinationPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <_ReswOutputFiles Include="@(_AllResxFiles->'$(_ResWDestinationPath)/%(ReswName).resw')" />
+    </ItemGroup>
+
+  </Target>
+
+  <Target Name="CopyResxFilesToReswFiles" 
+          Condition="'$(BuildingUAPVertical)' == 'true'" 
+          DependsOnTargets="CalculateResourcesFileNames"
+          Inputs="@(_AllResxFiles)"
+          Outputs="@(_ReswOutputFiles)" >
+
+    <Copy SourceFiles="@(_AllResxFiles)"
+          DestinationFiles="@(_ReswOutputFiles)"
+          SkipUnchangedFiles="true">
+          <Output TaskParameter="CopiedFiles" ItemName="FilesCreated" />
+    </Copy>
+
+    <!-- We need to touch the copied files so that the target that uses them can track the inputs and outputs with the copied timestamp -->
+    <Touch Files="@(FilesCreated)" />
+    
+  </Target>
   
   <PropertyGroup Condition="'$(StringResourcesPath)'!=''">
       <CompileDependsOn>
@@ -21,8 +71,6 @@
           Condition="'$(StringResourcesPath)'!='' AND '$(OmitResources)'!='true'"
           Inputs="$(StringResourcesPath)"
           Outputs="$(IntermediateResOutputFileFullPath)">
-    
-    
 
     <GenerateResourcesCode
         ResxFilePath="$(StringResourcesPath)" 
@@ -38,11 +86,12 @@
       <FileWrites Include="$(IntermediateResOutputFileFullPath)" />
     </ItemGroup>
   </Target>
-  
+
   <ItemGroup Condition="'$(StringResourcesPath)'!='' AND '$(OmitResources)'!='true'">
     <EmbeddedResource Include="$(StringResourcesPath)">
       <Visible>true</Visible>
       <LogicalName>FxResources.$(AssemblyName).SR.resources</LogicalName>
+      <ReswName Condition="'$(BuildingUAPVertical)' == 'true'">FxResources.$(AssemblyName).SR</ReswName>
     </EmbeddedResource>
   </ItemGroup>
   

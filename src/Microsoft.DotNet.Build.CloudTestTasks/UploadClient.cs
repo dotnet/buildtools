@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -16,8 +16,6 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.DotNet.Build.CloudTestTasks
 {
-
-
     public class UploadClient
     {
         private TaskLoggingHelper log;
@@ -49,8 +47,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             string filePath,
             string destinationBlob)
         {
-           
-            string resourceUrl = string.Format("https://{0}.blob.core.windows.net/{1}", AccountName, ContainerName);
+            string resourceUrl = AzureHelper.GetContainerRestUrl(AccountName, ContainerName);
 
             string fileName = destinationBlob;
             fileName = fileName.Replace("\\", "/");
@@ -91,7 +88,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                             DateTime dt = DateTime.UtcNow;
                             var req = new HttpRequestMessage(HttpMethod.Put, blockUploadUrl);
                             req.Headers.Add(
-                                AzureHelper.DateHeaderString,
+                                AzureHelper.DateHeaderString, 
                                 dt.ToString("R", CultureInfo.InvariantCulture));
                             req.Headers.Add(AzureHelper.VersionHeaderString, AzureHelper.StorageApiVersion);
                             req.Headers.Add(
@@ -144,6 +141,16 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                     var req = new HttpRequestMessage(HttpMethod.Put, blockListUploadUrl);
                     req.Headers.Add(AzureHelper.DateHeaderString, dt1.ToString("R", CultureInfo.InvariantCulture));
                     req.Headers.Add(AzureHelper.VersionHeaderString, AzureHelper.StorageApiVersion);
+                    string contentType = DetermineContentTypeBasedOnFileExtension(filePath);
+                    if (!string.IsNullOrEmpty(contentType))
+                    {
+                        req.Headers.Add(AzureHelper.ContentTypeString, contentType);
+                    }
+                    string cacheControl = DetermineCacheControlBasedOnFileExtension(filePath);
+                    if (!string.IsNullOrEmpty(cacheControl))
+                    {
+                        req.Headers.Add(AzureHelper.CacheControlString, cacheControl);
+                    }
 
                     var body = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?><BlockList>");
                     foreach (object item in blockIds)
@@ -162,7 +169,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                             string.Empty,
                             string.Empty,
                             bodyData.Length.ToString(),
-                            ""));
+                            string.Empty));
                     Stream postStream = new MemoryStream();
                     postStream.Write(bodyData, 0, bodyData.Length);
                     postStream.Seek(0, SeekOrigin.Begin);
@@ -180,6 +187,26 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                         await response.Content.ReadAsStringAsync());
                 }
             }
+        }
+        private string DetermineContentTypeBasedOnFileExtension(string filename)
+        {
+            if(Path.GetExtension(filename) == ".svg")
+            {
+                return "image/svg+xml";
+            }
+            else if(Path.GetExtension(filename) == ".version")
+            {
+                return "text/plain";
+            }
+            return string.Empty;
+        }
+        private string DetermineCacheControlBasedOnFileExtension(string filename)
+        {
+            if(Path.GetExtension(filename) == ".svg")
+            {
+                return "No-Cache";
+            }
+            return string.Empty;
         }
     }
 }

@@ -13,21 +13,27 @@ namespace Microsoft.DotNet.Build.Tasks
     public sealed class ZipFileExtractToDirectory : Task
     {
         /// <summary>
-        /// The path to the directory to be archived.
+        /// The path to the archive to be extracted.
         /// </summary>
         [Required]
         public string SourceArchive { get; set; }
 
         /// <summary>
-        /// The path of the archive to be created.
+        /// The path of the directory to extract into.
         /// </summary>
         [Required]
         public string DestinationDirectory { get; set; }
 
         /// <summary>
-        /// Indicates if the destination archive should be overwritten if it already exists.
+        /// Indicates if the destination directory should be overwritten if it already exists.
         /// </summary>
         public bool OverwriteDestination { get; set; }
+
+        /// <summary>
+        /// File entries to include in the extraction. Entries are relative
+        /// paths inside the archive. If null or empty, all files are extracted.
+        /// </summary>
+        public ITaskItem[] Include { get; set; }
 
         public override bool Execute()
         {
@@ -35,22 +41,38 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 if (Directory.Exists(DestinationDirectory))
                 {
-                    if (OverwriteDestination == true)
+                    if (OverwriteDestination)
                     {
-                        Log.LogMessage(MessageImportance.Low, "'{0}' already exists, trying to delete before unzipping...", DestinationDirectory);
+                        Log.LogMessage(MessageImportance.Low, $"'{DestinationDirectory}' already exists, trying to delete before unzipping...");
                         Directory.Delete(DestinationDirectory, recursive: true);
                     }
                     else
                     {
-                        Log.LogWarning("'{0}' already exists. Did you forget to set '{1}' to true?", DestinationDirectory, nameof(OverwriteDestination));
+                        Log.LogWarning($"'{DestinationDirectory}' already exists. Did you forget to set '{nameof(OverwriteDestination)}' to true?");
                     }
                 }
 
                 Log.LogMessage(MessageImportance.High, "Decompressing '{0}' into '{1}'...", SourceArchive, DestinationDirectory);
-                if (!Directory.Exists(Path.GetDirectoryName(DestinationDirectory)))
-                    Directory.CreateDirectory(Path.GetDirectoryName(DestinationDirectory));
+                Directory.CreateDirectory(Path.GetDirectoryName(DestinationDirectory));
 
-                ZipFile.ExtractToDirectory(SourceArchive, DestinationDirectory);
+                using (ZipArchive archive = ZipFile.OpenRead(SourceArchive))
+                {
+                    if (Include?.Length > 0)
+                    {
+                        foreach (ITaskItem entryItem in Include)
+                        {
+                            ZipArchiveEntry entry = archive.GetEntry(entryItem.ItemSpec);
+                            string destinationPath = Path.Combine(DestinationDirectory, entryItem.ItemSpec);
+
+                            Directory.CreateDirectory(Path.GetDirectoryName(destinationPath));
+                            entry.ExtractToFile(destinationPath, overwrite: false);
+                        }
+                    }
+                    else
+                    {
+                        archive.ExtractToDirectory(DestinationDirectory);
+                    }
+                }
             }
             catch (Exception e)
             {

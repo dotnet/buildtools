@@ -7,6 +7,7 @@
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
     <ImportedProjectRelativePath>..\Microsoft.DotNet.Build.Tasks\</ImportedProjectRelativePath>
     <ProjectGuid>{B3331D88-7569-42D5-919B-F267DA011911}</ProjectGuid>
+    <DefineConstants>net45</DefineConstants>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <Import Project="$(ImportedProjectRelativePath)Microsoft.DotNet.Build.Tasks.csproj" />
@@ -18,6 +19,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)IsRestoreRequired.Desktop.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FilterRuntimesFromSupports.Desktop.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EncryptedConfigNuGetRestore.Desktop.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BuildTask.Desktop.cs" />
   </ItemGroup>
   <ItemGroup>
     <TargetingPackReference Include="Microsoft.Build" />
@@ -37,4 +39,28 @@
     <TargetingPackReference Include="System.Xml" />
     <TargetingPackReference Include="System.Xml.Linq" />
   </ItemGroup>
+  <Target Name="AfterBuild">
+    <!--
+      Manually binplace DiaSymReader runtimes for win7-x86, which the official builds use.
+      This workaround should be removed, see https://github.com/dotnet/buildtools/issues/1608
+    -->
+    <PrereleaseResolveNuGetPackageAssets AllowFallbackOnTargetSelection="true"
+                                         IncludeFrameworkReferences="false"
+                                         NuGetPackagesDirectory="$(PackagesDir)"
+                                         RuntimeIdentifier="win7-x86"
+                                         ProjectLanguage="$(Language)"
+                                         ProjectLockFile="project.lock.json"
+                                         TargetMonikers="$(NuGetTargetMoniker)">
+      <Output TaskParameter="ResolvedCopyLocalItems"
+              ItemName="_ReferenceCopyLocalPathsFromDependencies" />
+    </PrereleaseResolveNuGetPackageAssets>
+
+    <ItemGroup>
+      <_DiaSymReaderNativeCopyLocalItems Include='@(_ReferenceCopyLocalPathsFromDependencies)'
+                                         Condition="'%(NuGetPackageId)' == 'Microsoft.DiaSymReader.Native'" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(_DiaSymReaderNativeCopyLocalItems)"
+          DestinationFolder="$(OutputPath)" />
+  </Target>
 </Project>

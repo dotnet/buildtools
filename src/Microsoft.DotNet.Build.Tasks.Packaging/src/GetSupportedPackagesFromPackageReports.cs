@@ -5,6 +5,7 @@
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Newtonsoft.Json;
+using NuGet.Frameworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,10 +36,12 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 {
                     var fx = fxRIDGrouping.Key;
                     var rids = fxRIDGrouping.ToArray();
+                    var nugetFx = NuGetFramework.Parse(fx);
 
                     var supportedPackage = new TaskItem(packageId);
                     supportedPackage.SetMetadata("Version", packageVersion);
                     supportedPackage.SetMetadata("TargetFramework", fx);
+                    supportedPackage.SetMetadata("TargetFrameworkShort", nugetFx.GetShortFolderName());
 
                     var ridList = string.Join(";", rids);
 

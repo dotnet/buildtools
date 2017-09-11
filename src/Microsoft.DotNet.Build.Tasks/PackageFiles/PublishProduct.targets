@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <UsingTask TaskName="ExecWithRetriesForNuGetPush" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+
+  <!--
+    Utility target for pushing a set of packages using the ExecWithRetriesForNuGetPush task.
+    The per-package retries make this target more reliable than using NuGet.exe
+    when there is a hang.
+  -->
+  <Target Name="NuGetPush">
+    <!-- Interpret an input glob for easy direct usage from command line. -->
+    <ItemGroup Condition="'$(PackagesGlob)'!=''">
+      <PackagesToPush Include="$(PackagesGlob)" />
+    </ItemGroup>
+
+    <Error Text="NuGetSource property is not defined."
+           Condition="'$(NuGetSource)'==''" />
+
+    <PropertyGroup>
+      <NuGetTimeout Condition="'$(NuGetTimeout)'==''">600</NuGetTimeout>
+      <NuGetVerbosity Condition="'$(NuGetVerbosity)'==''">Detailed</NuGetVerbosity>
+
+      <NuGetPushArgsBase>$(NuGetPushArgsBase) push</NuGetPushArgsBase>
+      <NuGetPushArgsBase>$(NuGetPushArgsBase) -Source $(NuGetSource)</NuGetPushArgsBase>
+      <NuGetPushArgsBase>$(NuGetPushArgsBase) -Timeout $(NuGetTimeout)</NuGetPushArgsBase>
+      <NuGetPushArgsBase>$(NuGetPushArgsBase) -Verbosity $(NuGetVerbosity)</NuGetPushArgsBase>
+      <NuGetPushArgsBase Condition="'$(NuGetApiKey)'!=''">$(NuGetPushArgsBase) -ApiKey $(NuGetApiKey)</NuGetPushArgsBase>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <NuGetPushCommand Include="@(PackagesToPush -> '$(NuGetExePath) $(NuGetPushArgsBase) %(Identity)')" />
+
+      <!-- There's a very special failure scenario that we want to ignore.  That scenario is
+           when NuGet hits a timeout on one "push" attempt, and then gets a "Forbidden" response
+           because the package "already exists" on the next response.  This indicates that the
+           timeout occurred, but the push was actually successful.
+      -->
+      <IgnorableErrorMessages Include="Overwriting existing packages is forbidden according to the package retention settings for this feed.">
+        <ConditionalErrorMessage>Pushing took too long</ConditionalErrorMessage>
+      </IgnorableErrorMessages>
+    </ItemGroup>
+
+    <ExecWithRetriesForNuGetPush
+      Command="%(NuGetPushCommand.Identity)"
+      MaxAttempts="$(MaxAttempts)"
+      RetryDelayBase="$(RetryDelayBase)"
+      RetryDelayConstant="$(RetryDelayConstant)"
+      IgnoredErrorMessagesWithConditional="@(IgnorableErrorMessages)" />
+  </Target>
+
+</Project>

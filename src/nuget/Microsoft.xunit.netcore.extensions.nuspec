@@ -2,7 +2,7 @@
 <package>
   <metadata minClientVersion="2.8.1">
     <id>Microsoft.xunit.netcore.extensions</id>
-    <version>1.0.1-prerelease</version>
+    <version>1.0.1-servicing</version>
     <title>xUnit extensions of .NET Core test projects</title>
     <authors>Microsoft</authors>
     <owners>Microsoft</owners>
@@ -39,7 +39,7 @@
   </metadata>
   <files>
     <file src="xunit.netcore.extensions\xunit.netcore.extensions.dll" target="lib/netstandard1.0" />
-
+    <file src="xunit.netcore.extensions.net46\xunit.netcore.extensions.dll" target="lib\net46" />
     <file src="..\obj\version.txt" target="" />
   </files>
 </package>

@@ -24,6 +24,8 @@
     <AssemblyFileVersion Condition="'$(AssemblyFileVersion)'==''">$(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)</AssemblyFileVersion>
   </PropertyGroup>
 
+  <Import Project="$(MSBuildThisFileDirectory)versioning.props" />
+
   <PropertyGroup>
     <GenerateAssemblyInfo Condition="'$(GenerateAssemblyInfo)'==''">true</GenerateAssemblyInfo>
   </PropertyGroup>
@@ -38,6 +40,18 @@
     <CoreCompileDependsOn>$(CoreCompileDependsOn);GenerateAssemblyInfo</CoreCompileDependsOn>
   </PropertyGroup>
 
+  <Target Name="DecideIfWeNeedToIncludeDllSafeSearchPathAttribute" 
+    Condition="'$(IsDotNetFrameworkProductAssembly)' == 'true' AND '$(IsTestProject)' != 'true'"
+    BeforeTargets="GenerateAssemblyInfo">
+    
+    <!-- We want to apply the IncludeDllSafeSearchPathAttribute on all DotNet assemblies (non test) that have a reference to System.Runtime.InteropServices -->
+    <PropertyGroup Condition="'$(IncludeDllSafeSearchPathAttribute)'==''">
+      <IncludeDllSafeSearchPathAttribute>false</IncludeDllSafeSearchPathAttribute> <!-- We don't need to include it by default. -->
+      <IncludeDllSafeSearchPathAttribute Condition="'%(ProjectReference.Filename)'=='System.Runtime.InteropServices'">true</IncludeDllSafeSearchPathAttribute>
+      <IncludeDllSafeSearchPathAttribute Condition="'%(Reference.Identity)'=='System.Runtime.InteropServices'">true</IncludeDllSafeSearchPathAttribute>
+    </PropertyGroup>
+  </Target>
+
   <Target Name="GenerateAssemblyInfo"
       Inputs="$(MSBuildProjectFile)"
       Outputs="$(AssemblyInfoFile)"
@@ -49,37 +63,43 @@
     <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
       <AssemblyInfoUsings Include="using System%3B" />
       <AssemblyInfoUsings Include="using System.Reflection%3B" />
-      <AssemblyInfoLines Include="[assembly:AssemblyTitle(&quot;$(AssemblyName)&quot;)]" />
-      <AssemblyInfoLines Include="[assembly:AssemblyDescription(&quot;$(AssemblyName)&quot;)]" />
+      <AssemblyInfoLines Include="[assembly:AssemblyTitle(&quot;$(AssemblyTitle)&quot;)]" />
+      <AssemblyInfoLines Include="[assembly:AssemblyDescription(&quot;$(Description)&quot;)]" />
       <AssemblyInfoLines Include="[assembly:AssemblyDefaultAlias(&quot;$(AssemblyName)&quot;)]" />
-      <AssemblyInfoLines Include="[assembly:AssemblyCompany(&quot;Microsoft Corporation&quot;)]" />
-      <AssemblyInfoLines Include="[assembly:AssemblyProduct(&quot;Microsoft\x00ae .NET Framework&quot;)]" />
-      <AssemblyInfoLines Include="[assembly:AssemblyCopyright(&quot;\x00a9 Microsoft Corporation.  All rights reserved.&quot;)]" />
+      <AssemblyInfoLines Include="[assembly:AssemblyCompany(&quot;$(Company)&quot;)]" />
+      <AssemblyInfoLines Include="[assembly:AssemblyProduct(&quot;$(Product)&quot;)]" />
+      <AssemblyInfoLines Include="[assembly:AssemblyCopyright(&quot;$(Copyright)&quot;)]" />
       <AssemblyInfoLines Include="[assembly:AssemblyVersion(&quot;$(AssemblyVersion)&quot;)]" />
-      <AssemblyInfoLines Include="[assembly:AssemblyFileVersion(&quot;$(AssemblyFileVersion)&quot;)]" />
-      <AssemblyInfoLines Include="[assembly:AssemblyInformationalVersion(@&quot;$(AssemblyFileVersion)$(BuiltByString). Commit Hash%3A $(LatestCommit)&quot;)]" />
+      <AssemblyInfoLines Include="[assembly:AssemblyFileVersion(&quot;$(FileVersion)&quot;)]" />
+      <AssemblyInfoLines Include="[assembly:AssemblyInformationalVersion(@&quot;$(InformationalVersion)&quot;)]" />
       <AssemblyInfoLines Condition="'$(CLSCompliant)'=='true'" Include="[assembly:CLSCompliant(true)]" />
       <AssemblyInfoLines Condition="'$(AssemblyComVisible)'!=''" Include="[assembly:System.Runtime.InteropServices.ComVisible($(AssemblyComVisible))]" />
       <AssemblyInfoLines Condition="'$(SkipFrameworkAssemblyMetadata)' != 'true'"
         Include="[assembly:System.Reflection.AssemblyMetadata(&quot;%(AssemblyMetadata.Identity)&quot;, &quot;%(AssemblyMetadata.Value)&quot;)]" />
+
+      <AssemblyInfoLines Condition="'$(IncludeDllSafeSearchPathAttribute)'=='true'" 
+        Include="[assembly: System.Runtime.InteropServices.DefaultDllImportSearchPathsAttribute(System.Runtime.InteropServices.DllImportSearchPath.AssemblyDirectory | System.Runtime.InteropServices.DllImportSearchPath.System32)]" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.vbproj'">
       <AssemblyInfoUsings Include="Imports System" />
       <AssemblyInfoUsings Include="Imports System.Reflection" />
-      <AssemblyInfoLines Include="&lt;Assembly:AssemblyTitle(&quot;$(AssemblyName)&quot;)&gt;" />
-      <AssemblyInfoLines Include="&lt;Assembly:AssemblyDescription(&quot;$(AssemblyName)&quot;)&gt;" />
+      <AssemblyInfoLines Include="&lt;Assembly:AssemblyTitle(&quot;$(AssemblyTitle)&quot;)&gt;" />
+      <AssemblyInfoLines Include="&lt;Assembly:AssemblyDescription(&quot;$(Description)&quot;)&gt;" />
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyDefaultAlias(&quot;$(AssemblyName)&quot;)&gt;" />
-      <AssemblyInfoLines Include="&lt;Assembly:AssemblyCompany(&quot;Microsoft Corporation&quot;)&gt;" />
-      <AssemblyInfoLines Include="&lt;Assembly:AssemblyProduct(&quot;Microsoft\x00ae .NET Framework&quot;)&gt;" />
-      <AssemblyInfoLines Include="&lt;Assembly:AssemblyCopyright(&quot;\x00a9 Microsoft Corporation.  All rights reserved.&quot;)&gt;" />
+      <AssemblyInfoLines Include="&lt;Assembly:AssemblyCompany(&quot;$(Company)&quot;)&gt;" />
+      <AssemblyInfoLines Include="&lt;Assembly:AssemblyProduct(&quot;$(Product)k&quot;)&gt;" />
+      <AssemblyInfoLines Include="&lt;Assembly:AssemblyCopyright(&quot;$(Copyright)&quot;)&gt;" />
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyVersion(&quot;$(AssemblyVersion)&quot;)&gt;" />
-      <AssemblyInfoLines Include="&lt;Assembly:AssemblyFileVersion(&quot;$(AssemblyFileVersion)&quot;)&gt;" />
-      <AssemblyInfoLines Include="&lt;Assembly:AssemblyInformationalVersion(&quot;$(AssemblyFileVersion)$(BuiltByString). Commit Hash%3A $(LatestCommit)&quot;)&gt;" />
+      <AssemblyInfoLines Include="&lt;Assembly:AssemblyFileVersion(&quot;$(FileVersion)&quot;)&gt;" />
+      <AssemblyInfoLines Include="&lt;Assembly:AssemblyInformationalVersion(&quot;$(InformationalVersion)&quot;)&gt;" />
       <AssemblyInfoLines Condition="'$(CLSCompliant)'=='true'" Include="&lt;Assembly:CLSCompliant(True)&gt;" />
       <AssemblyInfoLines Condition="'$(AssemblyComVisible)'!=''" Include="&lt;Assembly:System.Runtime.InteropServices.ComVisible($(AssemblyComVisible))&gt;" />
       <AssemblyInfoLines Condition="'$(SkipFrameworkAssemblyMetadata)' != 'true'"
           Include="&lt;assembly:System.Reflection.AssemblyMetadata(&quot;%(AssemblyMetadata.Identity)&quot;, &quot;%(AssemblyMetadata.Value)&quot;)&gt;" />
+
+      <AssemblyInfoLines Condition="'$(IncludeDllSafeSearchPathAttribute)'=='true'" 
+        Include="&lt;Assembly:System.Runtime.InteropServices.DefaultDllImportSearchPathsAttribute(System.Runtime.InteropServices.DllImportSearchPath.AssemblyDirectory | System.Runtime.InteropServices.DllImportSearchPath.System32)&gt;" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj' And '$(GenerateThisAssemblyClass)' == 'true'">
@@ -94,7 +114,7 @@
 
     <WriteLinesToFile
       File="$(AssemblyInfoFile)"
-      Lines="@(AssemblyInfoUsings);@(AssemblyInfoLines)"
+      Lines="@(AssemblyInfoUsings);@(AssemblyInfoLines);@(AssemblyInfoSource)"
       Overwrite="true" />
 
     <ItemGroup>
@@ -147,11 +167,11 @@
       <NativeVersionLines Include="#undef VER_PRODUCTVERSION" />
       <NativeVersionLines Include="#define VER_PRODUCTVERSION          $(MajorVersion),$(MinorVersion),$(BuildNumberMajor),$(BuildNumberMinor)" />
       <NativeVersionLines Include="#undef VER_PRODUCTVERSION_STR" />
-      <NativeVersionLines Include="#define VER_PRODUCTVERSION_STR      &quot;$(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)$(BuiltByString). Commit Hash%3A $(LatestCommit)&quot;" />
+      <NativeVersionLines Include="#define VER_PRODUCTVERSION_STR      &quot;$(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)$(BuiltByString). $(SrcCodeRef)&quot;" />
       <NativeVersionLines Include="#undef VER_FILEVERSION" />
       <NativeVersionLines Include="#define VER_FILEVERSION             $(MajorVersion),$(MinorVersion),$(BuildNumberMajor),$(BuildNumberMinor)" />
       <NativeVersionLines Include="#undef VER_FILEVERSION_STR" />
-      <NativeVersionLines Include="#define VER_FILEVERSION_STR         &quot;$(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)$(BuiltByString). Commit Hash%3A $(LatestCommit)&quot;" />
+      <NativeVersionLines Include="#define VER_FILEVERSION_STR         &quot;$(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)$(BuiltByString). $(SrcCodeRef)&quot;" />
       <NativeVersionLines Include="#ifndef VER_LEGALCOPYRIGHT_STR" />
       <NativeVersionLines Include="#define VER_LEGALCOPYRIGHT_STR      &quot;\xa9 Microsoft Corporation.  All rights reserved.&quot;" />
       <NativeVersionLines Include="#endif" />
@@ -187,7 +207,7 @@
 
     <ItemGroup>
       <SourceFileLines />
-      <SourceFileLines Include="static char sccsid%5B%5D %5F%5Fattribute%5F%5F%28%28used%29%29 %3D %22%40%28%23%29Version $(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)$(BuiltByString). Commit Hash%3A $(LatestCommit)%22%3B" />
+      <SourceFileLines Include="static char sccsid%5B%5D %5F%5Fattribute%5F%5F%28%28used%29%29 %3D %22%40%28%23%29Version $(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)$(BuiltByString). $(SrcCodeRef)%22%3B" />
       <!-- Since this is a source file, compiler will complain if there is no new line at end of file, so adding one bellow. -->
       <SourceFileLines Include=" " />
     </ItemGroup>
@@ -207,12 +227,12 @@
   <PropertyGroup>
     <GetNuGetPackageVersionsDependsOn>$(GetNuGetPackageVersionsDependsOn);CreateVersionInfoFile</GetNuGetPackageVersionsDependsOn>
   </PropertyGroup>
-    
+
   <PropertyGroup>
     <SyncInfoDirectory Condition="'$(SyncInfoDirectory)' == ''">$(ObjDir)</SyncInfoDirectory>
     <SyncInfoFile Condition="'$(SyncInfoFile)' == ''">$(SyncInfoDirectory)version.txt</SyncInfoFile>
   </PropertyGroup>
-  
+
   <Target Name="CreateVersionInfoFile"
           DependsOnTargets="CreateVersionFileDuringBuild"
           BeforeTargets="BuildAllProjects"
@@ -227,7 +247,7 @@
       Overwrite="true" />
   </Target>
 
-  <!-- 
+  <!--
     Target: CreateOrUpdateCurrentVersionFile
 
     Generates the version data and saves it to $(BuildVersionFile) if it hasn't been imported
@@ -243,15 +263,45 @@
       BeforeTargets="ResolveProjectReferences"
       Condition="'$(SkipVersionGeneration)' != 'true' AND '$(VersionPropsImported)' != 'true'">
     <!-- ############################### -->
+
+    <PropertyGroup Condition="'$(LatestCommit)' != ''">
+      <LatestCommitExitCode>0</LatestCommitExitCode>
+    </PropertyGroup>
+
     <!-- Get the latest commit hash -->
-    <Exec Command="git rev-parse HEAD 2>&amp;1" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
+    <Exec Command="git rev-parse HEAD 2>&amp;1" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true" Condition="'$(LatestCommit)' == ''">
       <Output TaskParameter="ConsoleOutput" PropertyName="LatestCommit" />
       <Output TaskParameter="ExitCode" PropertyName="LatestCommitExitCode" />
     </Exec>
+
     <!-- We shouldn't fail the build if we can't retreive the commit hash, so in this case just set it to N/A -->
     <PropertyGroup Condition="'$(LatestCommitExitCode)'!='0'">
       <LatestCommit>N/A</LatestCommit>
     </PropertyGroup>
+
+    <!-- The GitHubOwnerName is the name of the entity that 'owns' a particular github repository (e.g the 'dotnet in https://github/dotnet/coreclr) -->
+    <!-- we assume by default that these build tools are used by the 'dotnet' group.  This can be overridden. -->
+    <PropertyGroup Condition="'$(GitHubOwnerName)' == ''">
+      <GitHubOwnerName>dotnet</GitHubOwnerName>
+    </PropertyGroup>
+
+    <!-- The GitHubRepositoryUrl is formed out of the simple GitHubRepositoryName (e.g. coreclr or corefx) -->
+    <PropertyGroup Condition="'$(GitHubOwnerName)' != '' AND '$(GitHubRepositoryName)' != '' AND '$(GitHubRepositoryUrl)' == ''">
+      <GitHubRepositoryUrl>https://github.com/$(GitHubOwnerName)/$(GitHubRepositoryName)</GitHubRepositoryUrl>
+    </PropertyGroup>
+    
+    <!-- ************************* -->
+
+    <!-- SrcCodeRef is something that identifies the source code along with at tag (e.g. SrcCode: https://.....) -->
+    <!-- We do the best we can, and fall back as necessary -->
+    <PropertyGroup Condition="'$(GitHubRepositoryUrl)' != '' AND '$(LatestCommit)' != 'N/A'">
+      <SrcCodeRef>SrcCode%3A $(GitHubRepositoryUrl)/tree/$(LatestCommit)</SrcCodeRef>
+    </PropertyGroup>
+    <!-- If we dont have the GitHubRepositoryUrl at least put the commit ID (which is N/A if that does not exist) -->
+    <PropertyGroup Condition="'$(GitHubRepositoryUrl)' == '' OR '$(LatestCommit)' == 'N/A'">
+      <SrcCodeRef>Commit%3A $(LatestCommit)</SrcCodeRef>
+    </PropertyGroup>
+
     <PropertyGroup>
       <LatestCommitExitCode/>
     </PropertyGroup>
@@ -263,11 +313,15 @@
     </ItemGroup>
     <!-- Windows Exec command requires DOS escaping for the percent sign since it secretly runs the process in a shell instead of calling createprocess. -->
     <PropertyGroup>
-      <LatestDateCommand Condition="'$(OsEnvironment)'=='Windows_NT'">git show -s --format=^%25%25cd --date=short HEAD</LatestDateCommand>
-      <LatestDateCommand Condition="'$(OsEnvironment)'!='Windows_NT'">git show -s --format=%25cd --date=short HEAD</LatestDateCommand>
+      <LatestDateCommand Condition="'$(RunningOnUnix)'!='true'">git show -s --format=^%25%25cd --date=short HEAD</LatestDateCommand>
+      <LatestDateCommand Condition="'$(RunningOnUnix)'=='true'">git show -s --format=%25cd --date=short HEAD</LatestDateCommand>
     </PropertyGroup>
-      
-    <Exec Command="$(LatestDateCommand)" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
+
+    <PropertyGroup Condition="'$(VersionSeedDate)' != ''">
+      <LatestDateCommandExitCode>0</LatestDateCommandExitCode>
+    </PropertyGroup>
+
+    <Exec Command="$(LatestDateCommand)" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true" Condition="'$(VersionSeedDate)' == ''">
       <Output TaskParameter="ConsoleOutput" PropertyName="VersionSeedDate" />
       <Output TaskParameter="ExitCode" PropertyName="LatestDateCommandExitCode" />
     </Exec>
@@ -302,7 +356,7 @@
       <VersionHostName Condition="'$(VersionHostName)' == ''">$(COMPUTERNAME)</VersionHostName>
     </PropertyGroup>
 
-    <Exec Command="hostname" Condition="'$(OSEnvironment)'!='Windows_NT' AND '$(VersionHostName)'==''" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
+    <Exec Command="hostname" Condition="'$(RunningOnUnix)'=='true' AND '$(VersionHostName)'==''" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="VersionHostName" />
     </Exec>
 
@@ -319,7 +373,7 @@
       <!-- Using the following default comparison date will produce versions that align with our internal build system. -->
       <VersionComparisonDate Condition="'$(VersionComparisonDate)'==''">1996-04-01</VersionComparisonDate>
     </PropertyGroup>
-      
+
     <GenerateCurrentVersion SeedDate="$(VersionSeedDate)" OfficialBuildId="$(OfficialBuildId)" ComparisonDate="$(VersionComparisonDate)" Padding="$(VersionPadding)">
       <Output PropertyName="BuildNumberMajor" TaskParameter="GeneratedVersion" />
       <Output PropertyName="BuildNumberMinor" TaskParameter="GeneratedRevision" />
@@ -328,7 +382,7 @@
       <VersionPadding/>
       <VersionComparisonDate/>
     </PropertyGroup>
-      
+
     <PropertyGroup>
       <VersionFileContent>
         <![CDATA[<?xml version="1.0" encoding="utf-8"?>
@@ -345,17 +399,17 @@
 ]]>
       </VersionFileContent>
     </PropertyGroup>
-    
+
     <!-- Since by default the file will get dropped at the obj dir, make sure that the dir is created already or else WriteLinesToFile will error. -->
     <MakeDir Directories="$(BuildVersionFilePath)" />
-      
+
     <WriteLinesToFile
       ContinueOnError="WarnAndContinue"
       Condition="!Exists('$(BuildVersionFile)')"
       File="$(BuildVersionFile)"
       Lines="$(VersionFileContent)"
       Overwrite="true" />
-    
+
     <!-- Delete old BuildVersion.props files -->
     <ItemGroup>
       <OldBuildVersionFiles Include="$(BuildVersionFilePath)BuildVersions-*.props" Exclude="$(BuildVersionFile)" />

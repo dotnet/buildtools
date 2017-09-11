@@ -66,7 +66,7 @@ namespace Microsoft.Cci.Writers.CSharp
             if (property.ReturnValueIsByRef)
                 WriteKeyword("ref");
 
-            WriteTypeName(property.Type);
+            WriteTypeName(property.Type, isDynamic: IsDynamic(property.Attributes));
 
             if (isIndexer)
             {
@@ -106,6 +106,7 @@ namespace Microsoft.Cci.Writers.CSharp
         {
             WriteSpace();
             WriteAttributes(accessor.Attributes, writeInline: true);
+            WriteAttributes(accessor.SecurityAttributes, writeInline: true);
             // If the accessor is an internal call (or a PInvoke) we should put those attributes here as well
 
             WriteMethodPseudoCustomAttributes(accessor);

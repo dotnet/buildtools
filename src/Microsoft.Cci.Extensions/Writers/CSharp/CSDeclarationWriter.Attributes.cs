@@ -198,12 +198,7 @@ namespace Microsoft.Cci.Writers.CSharp
             if (parameters.Length > 0)
             {
                 WriteSymbol("(");
-                _writer.WriteList(parameters, p =>
-                    {
-                        if (_forCompilationIncludeGlobalprefix)
-                            p = "global::" + p;
-                        Write(p);
-                    });
+                _writer.WriteList(parameters, p => Write(p));
                 WriteSymbol(")");
             }
 
@@ -309,7 +304,7 @@ namespace Microsoft.Cci.Writers.CSharp
             }
             else if (value is int)
             {
-                // int is the default and most used constant value so lets 
+                // int is the default and most used constant value so lets
                 // special case int to avoid a bunch of useless casts.
                 Write(value.ToString());
             }

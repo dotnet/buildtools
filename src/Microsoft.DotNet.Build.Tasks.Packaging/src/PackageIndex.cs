@@ -578,6 +578,21 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
         }
 
+        public bool IsAnyVersionInbox(NuGetFramework framework)
+        {
+            var normalizedFramework = NormalizeFramework(framework);
+            var key = GetFrameworkKey(normalizedFramework);
+
+            SortedDictionary<Version, Version> mappings;
+            if (!inboxVersions.TryGetValue(key, out mappings))
+            {
+                // no inbox info for this framework
+                return false;
+            }
+
+            return mappings.Keys.Any(fxVer => fxVer <= framework.Version);
+        }
+
         public bool IsInbox(NuGetFramework framework, Version assemblyVersion, bool permitRevisions = false)
         {
             var normalizedFramework = NormalizeFramework(framework);

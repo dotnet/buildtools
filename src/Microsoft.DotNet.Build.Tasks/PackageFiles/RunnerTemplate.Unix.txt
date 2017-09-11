@@ -1,13 +1,7 @@
 ﻿#!/usr/bin/env bash
 
-export PACKAGE_DIR=$1
+export RUNTIME_PATH=$1
 export EXECUTION_DIR=$(dirname "$0")
-
-function copy_and_check {
-  if ! [ -f $2 ]; then
-    ln $1 $(dirname "$2") || exit $?
-  fi
-}
 
 function print_info_from_core_file {
   local core_file_name=$1
@@ -46,22 +40,12 @@ function copy_core_file_to_temp_location {
   fi
 }
 
-if [ "$PACKAGE_DIR" == "" ]
+if [ "$RUNTIME_PATH" == "" ]
 then
-echo error: PACKAGE_DIR is not defined.  Usage: $0 PackageRoot ExecutionDir
+echo error: RUNTIME_PATH is not defined.  Usage: $0 RUNTIME_PATH
 exit -1
 fi
-echo Using $PACKAGE_DIR as folder for resolving package dependencies.
-
-echo Executing in $EXECUTION_DIR
-
-# ========================= BEGIN Copying files  =============================
-echo Hard linking dependent files... 
-# Format here is: cp -l $PACKAGE_DIR/<File Path> $/EXECUTION_DIR/<File Path> || exit $?
-[[CopyFilesCommands]]
-
-echo "Finished linking needed files, moving to running tests."
-# ========================= END Copying files  ===============================
+echo Using $RUNTIME_DIR as the test runtime folder.
 
 # ========================= BEGIN Core File Setup ============================
 if [ "$(uname -s)" == "Darwin" ]; then
@@ -91,9 +75,10 @@ fi
 echo Running tests... Start time: $(date +"%T")
 echo Commands:
 [[TestRunCommandsEcho]]
-cd $EXECUTION_DIR
+pushd $EXECUTION_DIR
 [[TestRunCommands]]
 test_exitcode=$?
+popd
 echo Finished running tests.  End time=$(date +"%T").  Return value was $test_exitcode
 # ========================= END Test Execution ===============================
 # ======================= BEGIN Core File Inspection =========================

@@ -37,6 +37,9 @@
             </uap:SupportedFileTypes>
           </uap:FileTypeAssociation>
         </uap:Extension>
+        <uap:Extension Category="windows.appService" EntryPoint="RunnerRemoteExecutionService.RemoteExecutor">
+          <uap:AppService Name="com.microsoft.corefxuaptests"/>
+        </uap:Extension>        
       </Extensions>
     </Application>
   </Applications>
@@ -44,7 +47,16 @@
     <Capability Name="internetClient" />
     <Capability Name="internetClientServer" />
     <Capability Name="privateNetworkClientServer" />
-    <uap:Capability Name="enterpriseAuthentication" />    
+    <Capability Name="codeGeneration" />
+    <uap:Capability Name="enterpriseAuthentication" />
+    <uap:Capability Name="sharedUserCertificates" /> 
     <uap:Capability Name="documentsLibrary" />
+    <uap:Capability Name="musicLibrary" />
+    <uap:Capability Name="picturesLibrary" />
+    <uap:Capability Name="videosLibrary" />
+    <uap:Capability Name="removableStorage" />
+    <uap:Capability Name="appointments" />
+    <uap:Capability Name="contacts" />
+    <uap:Capability Name="userAccountInformation" />
   </Capabilities>
 </Package>

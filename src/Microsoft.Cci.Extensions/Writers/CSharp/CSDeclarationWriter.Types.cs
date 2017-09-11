@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using Microsoft.Cci.Extensions.CSharp;
+using Microsoft.Cci.Extensions;
 
 namespace Microsoft.Cci.Writers.CSharp
 {
@@ -24,21 +25,37 @@ namespace Microsoft.Cci.Writers.CSharp
             // But we need also consider if this attribute is filtered out or not but I guess
             // we have the same problem with all the fake attributes at this point.
 
-            if (type.IsStruct && type.Layout != LayoutKind.Auto)
+            if ((type.IsStruct || type.IsClass) && type.Layout != LayoutKind.Auto)
             {
-                // What about the Pack, and CharSet properties?
-                string structLayout = "System.Runtime.InteropServices.StructLayoutAttribute";
+                FakeCustomAttribute structLayout = new FakeCustomAttribute("System.Runtime.InteropServices", "StructLayoutAttribute");
                 string layoutKind = string.Format("System.Runtime.InteropServices.LayoutKind.{0}", type.Layout.ToString());
+
+                if (_forCompilationIncludeGlobalprefix)
+                    layoutKind = "global::" + layoutKind;
+
+                var args = new List<string>();
+                args.Add(layoutKind);
 
                 if (type.SizeOf != 0)
                 {
                     string sizeOf = string.Format("Size={0}", type.SizeOf);
-                    WriteFakeAttribute(structLayout, layoutKind, sizeOf);
+                    args.Add(sizeOf);
                 }
-                else
+
+                if (type.Alignment != 0)
                 {
-                    WriteFakeAttribute(structLayout, layoutKind);
+                    string pack = string.Format("Pack={0}", type.Alignment);
+                    args.Add(pack);
                 }
+
+                if (type.StringFormat != StringFormatKind.Ansi)
+                {
+                    string charset = string.Format("CharSet={0}System.Runtime.InteropServices.CharSet.{1}", _forCompilationIncludeGlobalprefix ? "global::" : "", type.StringFormat);
+                    args.Add(charset);
+                }
+
+                if (IncludeAttribute(structLayout))
+                    WriteFakeAttribute(structLayout.FullTypeName, args.ToArray());
             }
 
             WriteVisibility(TypeHelper.TypeVisibilityAsTypeMemberVisibility(type));
@@ -73,7 +90,7 @@ namespace Microsoft.Cci.Writers.CSharp
 
         // Note that the metadata order for interfaces may change from one release to another.
         // This isn't an incompatibility in surface area.  So, we must sort our list of base types
-        // to reflect this.  
+        // to reflect this.
         private void WriteBaseTypes(ITypeDefinition type)
         {
             List<ITypeReference> baseTypes = new List<ITypeReference>();

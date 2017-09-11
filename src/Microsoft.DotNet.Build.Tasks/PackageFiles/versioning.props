@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Company Condition="'$(Company)' == ''">Microsoft Corporation</Company>
+    <Copyright Condition="'$(Copyright)' == ''">%A9 Microsoft Corporation.  All rights reserved.</Copyright>
+    <Description Condition="'$(Description)' == ''">$(AssemblyName)</Description>
+    <FileVersion Condition="'$(FileVersion)' == '' and '$(AssemblyFileVersion)' != ''">$(AssemblyFileVersion)</FileVersion>
+    <InformationalVersion Condition="'$(InformationalVersion)' == ''">$(AssemblyFileVersion)$(BuiltByString). $(SrcCodeRef)</InformationalVersion>
+    <Product Condition="'$(Product)' == ''">Microsoft%AE .NET Framework</Product>
+    <AssemblyTitle Condition="'$(AssemblyTitle)' == ''">$(AssemblyName)</AssemblyTitle>
+  </PropertyGroup>
+</Project>

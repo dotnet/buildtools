@@ -428,10 +428,10 @@ namespace GenFacades
 
                 // Add all the type forwards
                 bool error = false;
-                bool addedForward = false;
 
                 Dictionary<string, INamedTypeDefinition> existingDocIds = assembly.AllTypes.ToDictionary(typeDef => typeDef.RefDocId(), typeDef => typeDef);
                 IEnumerable<string> docIdsToForward = buildPartialReferenceFacade ? existingDocIds.Keys : docIds.Where(id => !existingDocIds.ContainsKey(id));
+                Dictionary<string, INamedTypeReference> forwardedTypes = new Dictionary<string, INamedTypeReference>();
                 foreach (string docId in docIdsToForward)
                 {
                     IReadOnlyList<INamedTypeDefinition> seedTypes;
@@ -460,20 +460,37 @@ namespace GenFacades
                         bool keepType = _seedTypePreferences.TryGetValue(docId, out preferredSeedAssembly) &&
                             contractAssemblyName.Equals(preferredSeedAssembly, StringComparison.OrdinalIgnoreCase);
 
-                        if (!keepType)
+                        if (keepType)
                         {
-                            assembly.AllTypes.Remove(existingDocIds[docId]);
+                            continue;
                         }
+
+                        assembly.AllTypes.Remove(existingDocIds[docId]);
+                        forwardedTypes.Add(docId, seedType);
                     }
 
                     AddTypeForward(assembly, seedType);
-                    addedForward = true;
                 }
 
-                if (buildPartialReferenceFacade &&  !addedForward)
+                if (buildPartialReferenceFacade)
                 {
-                    Trace.TraceError("Did not find any types in any of the seed assemblies.");
-                    return null;
+                    if (forwardedTypes.Count == 0)
+                    {
+                        Trace.TraceError("Did not find any types in any of the seed assemblies.");
+                        return null;
+                    }
+                    else
+                    {
+                        // for any thing that's now a typeforward, make sure typerefs point to that rather than
+                        // the type previously inside the assembly.
+                        TypeReferenceRewriter typeRefRewriter = new TypeReferenceRewriter(_seedHost, oldType =>
+                        {
+                            INamedTypeReference newType = null;
+                            return forwardedTypes.TryGetValue(oldType.DocId(), out newType) ? newType : oldType;
+                        });
+
+                        typeRefRewriter.Rewrite(assembly);
+                    }
                 }
 
                 if (error)

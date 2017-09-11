@@ -75,42 +75,6 @@ if [ ! -d "$__TOOLRUNTIME_DIR" ]; then
     mkdir $__TOOLRUNTIME_DIR
 fi
 
-if [ -z "${__PUBLISH_RID:-}" ]; then
-    OSName=$(uname -s)
-    case $OSName in
-        Darwin)
-            __PUBLISH_RID=osx.10.10-x64
-            ;;
-
-        Linux)
-            if [ ! -e /etc/os-release ]; then
-                echo "Can not determine distribution, assuming Ubuntu 14.04"
-                __PUBLISH_RID=ubuntu.14.04-x64
-            else
-                source /etc/os-release
-                if [[ "$ID" == "ubuntu" && "$VERSION_ID" != "14.04" && "$VERSION_ID" != "16.04" ]]; then
-                echo "Unsupported Ubuntu version, falling back to Ubuntu 14.04"
-                __PUBLISH_RID=ubuntu.14.04-x64
-                else
-                __PUBLISH_RID=$ID.$VERSION_ID-x64
-                fi
-            fi
-
-            # RHEL bumps their OS Version with minor releases, but we only put the "rhel.7-x64" RID in our
-            # tool runtime, since there's binary compatibility between minor versions.
-
-            if [[ $__PUBLISH_RID == rhel.7*-x64 ]]; then
-                __PUBLISH_RID=rhel.7-x64
-            fi
-            ;;
-
-        *)
-            echo "Unsupported OS '$OSName' detected. Downloading ubuntu-x64 tools."
-            __PUBLISH_RID=ubuntu.14.04-x64
-            ;;
-    esac
-fi
-
 cp -R $__TOOLS_DIR/* $__TOOLRUNTIME_DIR
 
 __TOOLRUNTIME_PROJECT=$__TOOLS_DIR/tool-runtime/project.$__PROJECT_EXTENSION
@@ -118,16 +82,8 @@ __TOOLRUNTIME_PROJECT=$__TOOLS_DIR/tool-runtime/project.$__PROJECT_EXTENSION
 echo "Running: $__DOTNET_CMD restore \"${__TOOLRUNTIME_PROJECT}\" $__TOOLRUNTIME_RESTORE_ARGS"
 $__DOTNET_CMD restore "${__TOOLRUNTIME_PROJECT}" $__TOOLRUNTIME_RESTORE_ARGS
 
-echo "Running: $__DOTNET_CMD publish \"${__TOOLRUNTIME_PROJECT}\" -f ${__PUBLISH_TFM} -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR"
-$__DOTNET_CMD publish "${__TOOLRUNTIME_PROJECT}" -f ${__PUBLISH_TFM} -r ${__PUBLISH_RID} -o $__TOOLRUNTIME_DIR
-
-# Microsoft.Build.Runtime dependency is causing the MSBuild.runtimeconfig.json buildtools copy to be overwritten - re-copy the buildtools version.
-cp -f "$__TOOLS_DIR/MSBuild.runtimeconfig.json" "$__TOOLRUNTIME_DIR/."
-
-if [ -n "${BUILDTOOLS_OVERRIDE_RUNTIME:-}" ]; then
-    find $__TOOLRUNTIME_DIR -name *.ni.* | xargs rm 2>/dev/null
-    cp -R $BUILDTOOLS_OVERRIDE_RUNTIME/* $__TOOLRUNTIME_DIR
-fi
+echo "Running: $__DOTNET_CMD publish \"${__TOOLRUNTIME_PROJECT}\" -f ${__PUBLISH_TFM} -o $__TOOLRUNTIME_DIR"
+$__DOTNET_CMD publish "${__TOOLRUNTIME_PROJECT}" -f ${__PUBLISH_TFM} -o $__TOOLRUNTIME_DIR
 
 # Copy Portable Targets Over to ToolRuntime
 if [ ! -d "${__PACKAGES_DIR}/generated" ]; then mkdir "${__PACKAGES_DIR}/generated"; fi
@@ -143,7 +99,11 @@ cp -R "${__PACKAGES_DIR}"/[Mm]icrosoft.[Pp]ortable.[Tt]argets/"${__PORTABLETARGE
 cp -R "${__PACKAGES_DIR}"/[Mm]icro[Bb]uild.[Cc]ore/"${__MICROBUILD_VERSION}/build/." "$__TOOLRUNTIME_DIR/."
 
 # Temporary Hacks to fix couple of issues in the msbuild and roslyn nuget packages
+# https://github.com/dotnet/buildtools/issues/1464
 [ -e "$__TOOLRUNTIME_DIR/Microsoft.CSharp.Targets" ] || mv "$__TOOLRUNTIME_DIR/Microsoft.CSharp.targets" "$__TOOLRUNTIME_DIR/Microsoft.CSharp.Targets"
+
+# Copy some roslyn files over
+cp $__TOOLRUNTIME_DIR/runtimes/any/native/* $__TOOLRUNTIME_DIR/
 
 # Override versions in runtimeconfig.json files with highest available runtime version.
 __MNCA_FOLDER=$(dirname $__DOTNET_CMD)/shared/Microsoft.NETCore.App

@@ -46,7 +46,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             // compile falls back to runtime pattern in the case of lib with no ref, this won't fallback
             // to a runtime asset since we have no RID passed in.
             return _sourceItems.FindBestItemGroup(managedCriteria,
-                _conventions.Patterns.CompileAssemblies,
+                _conventions.Patterns.CompileRefAssemblies,
                 _conventions.Patterns.RuntimeAssemblies);
         }
 
@@ -197,7 +197,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             {
                 resolvedAssets.Add(package,
                     _packages[package].FindBestItemGroup(managedCriteria,
-                        _conventions.Patterns.CompileAssemblies,
+                        _conventions.Patterns.CompileRefAssemblies,
                         _conventions.Patterns.RuntimeAssemblies));
             }
 

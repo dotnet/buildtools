@@ -11,10 +11,14 @@ namespace Xunit
     /// Apply this attribute to your test method to specify an active issue.
     /// </summary>
     [TraitDiscoverer("Xunit.NetCore.Extensions.ActiveIssueDiscoverer", "Xunit.NetCore.Extensions")]
-    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = true)]
     public class ActiveIssueAttribute : Attribute, ITraitAttribute
     {
-        public ActiveIssueAttribute(int issueNumber, TestPlatforms platforms = TestPlatforms.Any) { }
-        public ActiveIssueAttribute(string issue, TestPlatforms platforms = TestPlatforms.Any) { }
+        public ActiveIssueAttribute(int issueNumber, TestPlatforms platforms) { }
+        public ActiveIssueAttribute(string issue, TestPlatforms platforms) { }
+        public ActiveIssueAttribute(int issueNumber, TargetFrameworkMonikers framework) { }
+        public ActiveIssueAttribute(string issue, TargetFrameworkMonikers framework) { }
+        public ActiveIssueAttribute(int issueNumber, TestPlatforms platforms = TestPlatforms.Any, TargetFrameworkMonikers framework = (TargetFrameworkMonikers)0) { }
+        public ActiveIssueAttribute(string issue, TestPlatforms platforms = TestPlatforms.Any, TargetFrameworkMonikers framework = (TargetFrameworkMonikers)0) { }
     }
 }

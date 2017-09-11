@@ -22,6 +22,7 @@
     <TargetingPackReference Include="System.Core" />
     <TargetingPackReference Include="System.IO" />
     <TargetingPackReference Include="System.IO.Compression" />
+    <TargetingPackReference Include="System.Reflection.Primitives" />
     <TargetingPackReference Include="System.Runtime" />
     <TargetingPackReference Include="System.Xml" />
     <TargetingPackReference Include="System.Xml.Linq" />

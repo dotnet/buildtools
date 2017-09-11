@@ -6,7 +6,7 @@ namespace GenFacades
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
             string seeds = null;
             string contracts = null;
@@ -47,12 +47,12 @@ namespace GenFacades
 
             if (!parsingSucceeded)
             {
-                return;
+                return 1;
             }
 
             CommandLineTraceHandler.Enable();
 
-            Generator.Execute(
+            return Generator.Execute(
                 seeds,
                 contracts,
                 facadePath,
@@ -68,7 +68,7 @@ namespace GenFacades
                 forceZeroVersionSeeds,
                 producePdb,
                 partialFacadeAssemblyPath,
-                buildPartialReferenceFacade);
+                buildPartialReferenceFacade) ? 0 : 1;
         }
     }
 }

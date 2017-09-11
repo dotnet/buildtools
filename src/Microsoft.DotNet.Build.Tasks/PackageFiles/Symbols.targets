@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <UsingTask TaskName="AddItemIndices" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="ConvertPdbsToPortablePdbs" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="ExecWithRetries" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ZipFileExtractToDirectory" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="ZipFileGetEntries" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="ZipFileInjectFile" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
   <PropertyGroup>
     <SymbolsRequestIntermediateDir Condition="'$(SymbolsRequestIntermediateDir)'==''">$(BaseIntermediateOutputPath)SymbolsRequest\</SymbolsRequestIntermediateDir>
@@ -116,7 +120,7 @@
         replaces 'PrefixToStrip' with 'UNCPath' when calculating the share location of each file.
   -->
   <Target Name="CreateSymbolsFileList"
-          DependsOnTargets="UnzipSymbolPackagesForPublish;
+          DependsOnTargets="GetAllSymbolFilesToPublish;
                             PublishSymbolFilesToFileShare">
     <PropertyGroup>
       <SymbolFileListPath>$(SymbolsRequestIntermediateDir)SymbolFileList.txt</SymbolFileListPath>
@@ -134,6 +138,13 @@
                       Lines="@(SymbolFileToPublish -> '%(FullPath)')"
                       Overwrite="true" />
   </Target>
+
+  <!--
+    Gets every symbol file to publish onto disk and creates SymbolFileToPublish items.
+  -->
+  <Target Name="GetAllSymbolFilesToPublish"
+          DependsOnTargets="UnzipSymbolPackagesForPublish;
+                            GenerateAdditionalSymbolsForArchive" />
 
   <!--
     Copies symbols to a directory based on the given search glob path. The target should be a file
@@ -222,6 +233,279 @@
       <IndexedExtensions Include=".dll;.pdb;.exe" Condition="'@(IndexedExtensions)'==''" />
       <SymbolFileToPublish Include="$(SymbolPackageExtractDir)**\*%(IndexedExtensions.Identity)" />
     </ItemGroup>
+  </Target>
+
+  <!-- Generate any extra symbols (e.g. Windows PDBs) that also need to be archived. -->
+  <Target Name="GenerateAdditionalSymbolsForArchive"
+          DependsOnTargets="ExecCreateWindowsPdbsFromPortablePdbs;
+                            AddConvertedWindowsPdbsToPublishList" />
+
+  <!--
+    Set up properties for CreateWindowsPdbsFromPortablePdbs that will generate Windows PDBs for
+    files in the unzipped symbol packages.
+  -->
+  <Target Name="ExecCreateWindowsPdbsFromPortablePdbs">
+    <PropertyGroup>
+      <PortablePdbToConvertGlob>$(SymbolPackageExtractDir)**\*.pdb</PortablePdbToConvertGlob>
+
+      <!-- Note: uses / instead of \ to avoid escaping &quot; in the command. -->
+      <WindowsPdbConversionTargetPath>$(SymbolPackageExtractDir)WindowsPDB/</WindowsPdbConversionTargetPath>
+
+      <!--
+        Run symbol conversion in a new process so that we can safely retry when PDB conversion hits
+        an AccessViolation exception.
+      -->
+      <_ConvertPdbCommand>&quot;$(MSBuildBinPath)\msbuild.exe&quot;</_ConvertPdbCommand>
+      <_ConvertPdbCommand>$(_ConvertPdbCommand) /v:Detailed</_ConvertPdbCommand>
+      <_ConvertPdbCommand>$(_ConvertPdbCommand) &quot;$(MSBuildProjectFullPath)&quot;</_ConvertPdbCommand>
+      <_ConvertPdbCommand>$(_ConvertPdbCommand) /t:CreateWindowsPdbsFromPortablePdbs</_ConvertPdbCommand>
+      <_ConvertPdbCommand>$(_ConvertPdbCommand) &quot;/p:PortablePdbToConvertGlob=$(PortablePdbToConvertGlob)&quot;</_ConvertPdbCommand>
+      <_ConvertPdbCommand>$(_ConvertPdbCommand) &quot;/p:WindowsPdbConversionTargetPath=$(WindowsPdbConversionTargetPath)&quot;</_ConvertPdbCommand>
+    </PropertyGroup>
+
+    <!-- Only retry once, and don't delay. Failure hasn't been observed twice in a row yet. -->
+    <ExecWithRetries Command="$(_ConvertPdbCommand)"
+                     IgnoreStandardErrorWarningFormat="true"
+                     MaxAttempts="2"
+                     RetryDelayBase="0"
+                     RetryDelayConstant="0"/>
+  </Target>
+
+  <!--
+    Add Windows PDBs created in CreateWindowsPdbsFromPortablePdbs to the list of symbol files to
+    publish. We need to wait until after the conversion: only Portable PDBs will be converted, and
+    we can't tell beforehand which PDBs are portable.
+  -->
+  <Target Name="AddConvertedWindowsPdbsToPublishList">
+    <ItemGroup>
+      <SymbolFileToPublish Include="$(WindowsPdbConversionTargetPath)**\*.pdb" />
+    </ItemGroup>
+  </Target>
+
+  <!-- This will be overridden if we're building with MicroBuild. -->
+  <Target Name="SignFiles">
+    <Message Text="Fake sign target.  Would sign: @(FilesToSign)" />
+  </Target>
+
+  <!--
+    Entry point: inject signed symbol catalogs into all specified symbol packages.
+  -->
+  <Target Name="InjectSignedSymbolCatalogIntoSymbolPackages"
+          DependsOnTargets="GenerateSymbolCatalogs;
+                            SignFiles">
+    <MSBuild Targets="InjectSignedSymbolCatalogsForPackage"
+             Projects="$(MSBuildProjectFile)"
+             Properties="SymbolPackageFilePath=%(SymbolPackageFileWithIndex.Identity);
+                         SymbolPackageIndex=%(SymbolPackageFileWithIndex.Index);
+                         SymbolCatalogIntermediateDir=$(SymbolCatalogIntermediateDir);"
+             Condition="'@(SymbolPackageFileWithIndex)'!=''" />
+  </Target>
+
+  <!--
+    Generate symbol catalogs for all symbol packages specified. Creates FilesToSign items for each
+    catalog so they can be sigend.
+  -->
+  <Target Name="GenerateSymbolCatalogs">
+    <PropertyGroup>
+      <SymbolCatalogIntermediateDir Condition="'$(SymbolCatalogIntermediateDir)' == ''">$(BaseIntermediateOutputPath)SymbolsCatalog\</SymbolCatalogIntermediateDir>
+      <ExtensionsToCatalog Condition="'$(ExtensionsToCatalog)'==''">.dll;.pdb;.a;.so;.dbg;.dylib;.dwarf</ExtensionsToCatalog>
+      <MakeCatCommand Condition="'$(MakeCatCommand)'==''">makecat -v</MakeCatCommand>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <SymbolPackageFile Include="$(SymbolPackagesToPublishGlob)" />
+    </ItemGroup>
+
+    <!-- Extract to the index of the symbol package, not file name, to avoid exceeding max path. -->
+    <AddItemIndices Input="@(SymbolPackageFile)">
+      <Output TaskParameter="Output" ItemName="SymbolPackageFileWithIndex" />
+    </AddItemIndices>
+
+    <RemoveDir Directories="$(SymbolCatalogIntermediateDir)"
+               Condition="Exists('$(SymbolCatalogIntermediateDir)')" />
+
+    <MSBuild Targets="GenerateSymbolCatalogsForPackage"
+             Projects="$(MSBuildProjectFile)"
+             Properties="SymbolPackageFilePath=%(SymbolPackageFileWithIndex.Identity);
+                         SymbolPackageIndex=%(SymbolPackageFileWithIndex.Index);
+                         ExtensionsToCatalog=$(ExtensionsToCatalog);
+                         SymbolCatalogIntermediateDir=$(SymbolCatalogIntermediateDir);
+                         MakeCatCommand=$(MakeCatCommand)" />
+
+    <!-- Find the catalogs to sign them. -->
+    <Error Text="'SymbolCatalogCertificateId' must be defined."
+           Condition="'$(SymbolCatalogCertificateId)'==''" />
+
+    <ItemGroup>
+      <FilesToSign Include="$(SymbolCatalogIntermediateDir)**\*.cat">
+        <Authenticode>$(SymbolCatalogCertificateId)</Authenticode>
+      </FilesToSign>
+    </ItemGroup>
+
+    <PropertyGroup>
+      <!--
+        The OutDir and IntermediateOutputPath properties are required by MicroBuild. MicroBuild only
+        signs files that are under these paths.
+      -->
+      <OutDir Condition="'$(OutDir)'==''">$(BinDir)</OutDir>
+      <!-- always overwrite IntermediateOutputPath so we know we can sign the catalogs.
+           some repos do weird things with BaseIntermediateOutputPath -->
+      <IntermediateOutputPath>$(SymbolCatalogIntermediateDir)</IntermediateOutputPath>
+    </PropertyGroup>
+  </Target>
+
+  <!--
+    Generates any catalogs needed to sign a specific symbol package.
+  -->
+  <Target Name="GenerateSymbolCatalogsForPackage">
+    <ItemGroup>
+      <!-- Create a single item for the symbol package to get metadata about it. -->
+      <SymbolPackageFile Include="$(SymbolPackageFilePath)" />
+      <ExtensionToCatalog Include="$(ExtensionsToCatalog)" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <ExtractBaseDir>$(SymbolCatalogIntermediateDir)$(SymbolPackageIndex)\</ExtractBaseDir>
+    </PropertyGroup>
+
+    <ZipFileGetEntries TargetArchive="$(SymbolPackageFilePath)">
+      <Output TaskParameter="Entries" ItemName="SymbolPackageEntry" />
+    </ZipFileGetEntries>
+
+    <ItemGroup>
+      <!-- files like _.pdb and _._ are empty and makecat doesn't handle empty files -->
+      <FilteredSymbolPackageEntries Include="@(SymbolPackageEntry)" Condition="'%(Filename)' != '_'" />
+      <SymbolPackageEntryCrossExtensionsToCatalog Include="@(FilteredSymbolPackageEntries)">
+        <AttemptMatchExtension>%(ExtensionToCatalog.Identity)</AttemptMatchExtension>
+      </SymbolPackageEntryCrossExtensionsToCatalog>
+
+      <SymbolFileToCatalog Include="@(SymbolPackageEntryCrossExtensionsToCatalog)"
+                           Condition="'%(Extension)'=='%(AttemptMatchExtension)'" />
+    </ItemGroup>
+
+
+    <ZipFileExtractToDirectory SourceArchive="$(SymbolPackageFilePath)"
+                               Include="@(SymbolFileToCatalog)"
+                               DestinationDirectory="$(ExtractBaseDir)"
+                               Condition="'@(SymbolFileToCatalog)'!=''" />
+
+    <!-- Leave a marker so a package can be associated with its numbered dir. -->
+    <WriteLinesToFile File="$(SymbolCatalogIntermediateDir)%(SymbolPackageFile.Filename)"
+                      Lines="$(SymbolPackageIndex)"
+                      Overwrite="true"
+                      Condition="'@(SymbolFileToCatalog)'!=''" />
+
+    <!-- Create the catalog file to feed into makecat. -->
+    <PropertyGroup>
+      <CatalogFileHeaderLines>
+        [CatalogHeader];
+        Name=signatures.cat;
+        ResultDir=.\;
+        PublicVersion=2;
+        CatalogVersion=2;
+        HashAlgorithms=SHA256;
+        PageHashes=false;
+        EncodingType=0x00010001;
+        CATATTR1=0x10010001:OSAttr:2:6.4;
+        [CatalogFiles]
+      </CatalogFileHeaderLines>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <CatalogFile Include="$(ExtractBaseDir)signatures.cat.cdf"
+                   Condition="'@(SymbolFileToCatalog)'!=''">
+        <ContentLines>$(CatalogFileHeaderLines);@(SymbolFileToCatalog -> '&lt;HASH&gt;%(Identity)=%(Identity);&lt;HASH&gt;%(Identity)ATTR1=0x11010001:Filename:%(Identity);')</ContentLines>
+      </CatalogFile>
+    </ItemGroup>
+
+    <Message Text="@(CatalogFile)" />
+
+    <WriteLinesToFile File="@(CatalogFile)"
+                      Lines="%(ContentLines)"
+                      Condition="'@(CatalogFile)'!=''" />
+
+    <!-- Create an easily readable list of files that were cataloged. -->
+    <WriteLinesToFile File="$(ExtractBaseDir)cataloged.txt"
+                      Lines="@(SymbolFileToCatalog)"
+                      Condition="'@(CatalogFile)'!=''" />
+
+    <!--
+      Don't include cdf path because it may be too long for makecat.
+      See https://stackoverflow.com/a/18682676
+    -->
+    <Exec Command="$(MakeCatCommand) %(CatalogFile.Filename)%(CatalogFile.Extension)"
+          WorkingDirectory="%(CatalogFile.RootDir)%(CatalogFile.Directory)"
+          Condition="'@(CatalogFile)'!=''" />
+  </Target>
+
+  <!--
+    Inject all symbol catalogs found in the extracted symbol package dir into a new copy of the
+    symbol package in the intermediate dir.
+  -->
+  <Target Name="InjectSignedSymbolCatalogsForPackage">
+    <ItemGroup>
+      <CatalogFile Include="$(SymbolCatalogIntermediateDir)$(SymbolPackageIndex)\**\*.cat" />
+      <CatalogFile>
+        <ArchivePath>%(RecursiveDir)%(Filename)%(Extension)</ArchivePath>
+      </CatalogFile>
+
+      <CatalogedFileManifest Include="$(SymbolCatalogIntermediateDir)$(SymbolPackageIndex)\cataloged.txt">
+        <ArchivePath>cataloged.txt</ArchivePath>
+      </CatalogedFileManifest>
+    </ItemGroup>
+
+    <ZipFileInjectFile TargetArchive="$(SymbolPackageFilePath)"
+                       InjectFiles="@(CatalogFile);@(CatalogedFileManifest)"
+                       Condition="'@(CatalogFile)'!=''" />
+  </Target>
+
+  <!--
+    Generates Windows PDBs from Portable PDBs. PDBs passed that are not Portable are skipped.
+    
+    [In]
+    $(PortablePdbToConvertGlob)
+      * A path glob that matches all portable PDBs to convert. Conversion requires the DLL, and this
+        option assumes that the DLL is in the same directory with the same filename.
+    $(WindowsPdbConversionTargetPath)
+      * Location to place converted PDBs when using PortablePdbToConvertGlob. Recursive directory
+        is preserved, if one is present in the glob.
+    @(ConversionOptions) [optional]
+      * ItemSpec: An entry in the Microsoft.DiaSymReader.Tools.PdbConversionOptions flags enum to
+        use for all conversions performed.
+  -->
+  <Target Name="CreateWindowsPdbsFromPortablePdbs"
+          Condition="'$(SkipCreateWindowsPdbsFromPortablePdbs)'!='true'">
+
+    <!-- Early exit for unsupported scenario. See https://github.com/dotnet/buildtools/issues/1607 -->
+    <Error Text="BuildTools does not support Portable PDB conversion to Windows PDB in .NET Core. Run msbuild using the desktop framework."
+           Condition="'$(MSBuildRuntimeType)'=='core'" />
+
+    <!-- Find DLL/PDB pairs based on the optional path glob given. -->
+    <ItemGroup Condition="'$(PortablePdbToConvertGlob)'!=''">
+      <_PdbCandidate Include="$(PortablePdbToConvertGlob)" />
+
+      <_ToPublishDllCandidate Include="@(_PdbCandidate -> '%(RootDir)%(Directory)%(Filename).dll')">
+        <PdbPath>%(Identity)</PdbPath>
+        <PdbRecursiveDir>%(RecursiveDir)</PdbRecursiveDir>
+      </_ToPublishDllCandidate>
+
+      <!--
+        If this target becomes reliable, we could start calling directly in msbuild and define these
+        items as parameters:
+        
+        @(PortableFileToConvert)
+          * ItemSpec: The DLL file associated with a Portable PDB to convert.
+          * PdbPath: The path to the Portable PDB file to convert.
+          * TargetPath: The output path for the generated Windows PDB. Full filename.
+      -->
+      <PortableFileToConvert Include="@(_ToPublishDllCandidate)"
+                             Condition="Exists('%(Identity)')">
+        <TargetPath>$(WindowsPdbConversionTargetPath)%(PdbRecursiveDir)%(Filename).pdb</TargetPath>
+      </PortableFileToConvert>
+    </ItemGroup>
+
+    <ConvertPdbsToPortablePdbs Files="@(PortableFileToConvert)"
+                               ConversionOptions="@(ConversionOptions)" />
   </Target>
 
 </Project>

@@ -8,8 +8,6 @@ set PACKAGES_DIR=%4
 if [%PACKAGES_DIR%] == [] set PACKAGES_DIR=%TOOLRUNTIME_DIR%
 :: Remove quotes to the packages directory
 set PACKAGES_DIR=%PACKAGES_DIR:"=%
-IF [%BUILDTOOLS_TARGET_RUNTIME%]==[] set BUILDTOOLS_TARGET_RUNTIME=win7-x64
-IF [%BUILDTOOLS_NET46_TARGET_RUNTIME%]==[] set BUILDTOOLS_NET46_TARGET_RUNTIME=win7-x86
 set BUILDTOOLS_PACKAGE_DIR=%~dp0
 set MICROBUILD_VERSION=0.2.0
 set PORTABLETARGETS_VERSION=0.1.1-dev
@@ -80,7 +78,7 @@ if not [%RESTORE_ERROR_LEVEL%]==[0] (
   exit /b %RESTORE_ERROR_LEVEL%
 )
 @echo on
-call "%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECT%" -f %PUBLISH_TFM% -r %BUILDTOOLS_TARGET_RUNTIME% -o "%TOOLRUNTIME_DIR%"
+call "%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECT%" -f %PUBLISH_TFM% -o "%TOOLRUNTIME_DIR%"
 set TOOLRUNTIME_PUBLISH_ERROR_LEVEL=%ERRORLEVEL%
 @echo off
 if not [%TOOLRUNTIME_PUBLISH_ERROR_LEVEL%]==[0] (
@@ -88,13 +86,16 @@ if not [%TOOLRUNTIME_PUBLISH_ERROR_LEVEL%]==[0] (
   exit /b %TOOLRUNTIME_PUBLISH_ERROR_LEVEL%
 )
 @echo on
-call "%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECT%" -f net46 -r %BUILDTOOLS_NET46_TARGET_RUNTIME% -o "%TOOLRUNTIME_DIR%\net46"
+call "%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECT%" -f net46 -o "%TOOLRUNTIME_DIR%\net46"
 set NET46_PUBLISH_ERROR_LEVEL=%ERRORLEVEL%
 @echo off
 if not [%NET46_PUBLISH_ERROR_LEVEL%]==[0] (
   echo ERROR: An error ocurred when running: '"%DOTNET_CMD%" publish "%TOOLRUNTIME_PROJECT%" -f net46'. Please check above for more details.
   exit /b %NET46_PUBLISH_ERROR_LEVEL%
 )
+
+:: Copy some roslyn files which are published into runtimes\any\native to the root
+Robocopy "%TOOLRUNTIME_DIR%\runtimes\any\native" "%TOOLRUNTIME_DIR%\."
 
 :: Microsoft.Build.Runtime dependency is causing the MSBuild.runtimeconfig.json buildtools copy to be overwritten - re-copy the buildtools version.
 Robocopy "%BUILDTOOLS_PACKAGE_DIR%\." "%TOOLRUNTIME_DIR%\." "MSBuild.runtimeconfig.json"
@@ -117,7 +118,13 @@ Robocopy "%PACKAGES_DIR%\MicroBuild.Core\%MICROBUILD_VERSION%\build\." "%TOOLRUN
 :: Copy Roslyn Compilers Over to ToolRuntime
 Robocopy "%PACKAGES_DIR%\Microsoft.Net.Compilers\%ROSLYNCOMPILERS_VERSION%\." "%TOOLRUNTIME_DIR%\net46\roslyn\." /E
 
-echo "Calling powershell initialization script."
-powershell %BUILDTOOLS_PACKAGE_DIR%\init-tools.ps1 -ToolRuntimePath %TOOLRUNTIME_DIR% -DotnetCmd %DOTNET_CMD%
+@echo on
+powershell -NoProfile -ExecutionPolicy unrestricted %BUILDTOOLS_PACKAGE_DIR%\init-tools.ps1 -ToolRuntimePath %TOOLRUNTIME_DIR% -DotnetCmd %DOTNET_CMD% -BuildToolsPackageDir %BUILDTOOLS_PACKAGE_DIR%
+set POWERSHELL_INIT_TOOLS_ERROR_LEVEL=%ERRORLEVEL%
+@echo off
+if not [%POWERSHELL_INIT_TOOLS_ERROR_LEVEL%]==[0] (
+  echo ERROR: An error occurred when running: 'powershell -NoProfile -ExecutionPolicy unrestricted %BUILDTOOLS_PACKAGE_DIR%\init-tools.ps1 -ToolRuntimePath %TOOLRUNTIME_DIR% -DotnetCmd %DOTNET_CMD% -BuildToolsPackageDir %BUILDTOOLS_PACKAGE_DIR%'. Please check above for more details.
+  exit /b %POWERSHELL_INIT_TOOLS_ERROR_LEVEL%
+)
 
 exit /b 0

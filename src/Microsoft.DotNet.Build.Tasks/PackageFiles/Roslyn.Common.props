@@ -4,18 +4,16 @@
     <RoslynVersion>2.0.0-rc</RoslynVersion>
     <RoslynPackageName>Microsoft.Net.Compilers</RoslynPackageName>
     <RoslynTargetsPath>$(ToolRuntimePath)</RoslynTargetsPath>
-    <CSharpCoreTargetsPath Condition="'$(CSharpCoreTargetsPath)' == ''">$(RoslynTargetsPath)$(RoslynPackageName)\$(RoslynVersion)\tools\Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
-    <VisualBasicCoreTargetsPath Condition="'$(VisualBasicCoreTargetsPath)' == ''">$(RoslynTargetsPath)$(RoslynPackageName)\$(RoslynVersion)\tools\Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>
   </PropertyGroup>
 
   <PropertyGroup>
-    <RoslynPropsFile Condition="'$(RoslynPropsFile)' == '' and '$(OsEnvironment)' != 'Unix'">$(BuildToolsTaskDir)/roslyn/build/Microsoft.Net.Compilers.props</RoslynPropsFile>
+    <RoslynPropsFile Condition="'$(RoslynPropsFile)' == '' and '$(RunningOnCore)' != 'true'">$(BuildToolsTaskDir)/roslyn/build/Microsoft.Net.Compilers.props</RoslynPropsFile>
   </PropertyGroup>
 
   <!--
     On Unix we always use a version of Roslyn we restore from NuGet and we have to work around some known issues.
   -->
-  <PropertyGroup Condition="'$(RoslynPropsFile)' == '' and '$(OsEnvironment)'=='Unix'">
+  <PropertyGroup Condition="'$(RoslynPropsFile)' == '' and '$(RunningOnCore)' == 'true'">
     <RoslynPackageDir>$(PackagesDir)/$(RoslynPackageName).$(RoslynVersion)/</RoslynPackageDir>
     <RoslynPropsFile>$(RoslynPackageDir)build/$(RoslynPackageName).props</RoslynPropsFile>
 
@@ -23,24 +21,5 @@
       Portable PDBs are now supported in Linux and OSX with .Net Core MSBuild.
     -->
     <DebugType>Portable</DebugType>
-
-    <!--
-      Delay signing with the ECMA key currently doesn't work.
-      https://github.com/dotnet/roslyn/issues/2444
-    -->
-    <UseECMAKey>false</UseECMAKey>
-
-    <!--
-      Full signing with Open key doesn't work with Portable Csc.
-      https://github.com/dotnet/roslyn/issues/8210
-    -->
-    <UseOpenKey>false</UseOpenKey>
-
-    <!--
-      Mono currently doesn't include VB targets for portable, notably /lib/mono/xbuild/Microsoft/Portable/v4.5/Microsoft.Portable.VisualBasic.targets.
-      Fixed in https://github.com/mono/mono/pull/1726.
-    -->
-    <IncludeVbProjects>false</IncludeVbProjects>
   </PropertyGroup>
-  
 </Project>

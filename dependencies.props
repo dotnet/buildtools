@@ -12,6 +12,11 @@
     <MicrosoftNETCorePlatformsVersion>1.1.0</MicrosoftNETCorePlatformsVersion>
   </PropertyGroup>
 
+  <!-- Package versions to validate, but not in a build-info file. -->
+  <PropertyGroup>
+    <MicrosoftDiaSymReaderConverterPackageVersion>1.0.0-beta1-61722-03</MicrosoftDiaSymReaderConverterPackageVersion>
+  </PropertyGroup>
+
   <!-- Package dependency verification/auto-upgrade configuration. -->
   <PropertyGroup>
     <BaseDotNetBuildInfo>build-info/dotnet/</BaseDotNetBuildInfo>
@@ -69,13 +74,23 @@
       <Version>4.4.0-beta-24813-03</Version>
     </StaticDependency>
 
+    <!--
+      Microsoft.DiaSymReader.Converter and its dependencies are on these feeds:
+      https://dotnet.myget.org/gallery/symreader-converter
+      https://dotnet.myget.org/gallery/symreader-native
+    -->
+    <StaticDependency Include="Microsoft.DiaSymReader.Converter">
+      <Version>$(MicrosoftDiaSymReaderConverterPackageVersion)</Version>
+    </StaticDependency>
+
     <NuGetDependency Include="NuGet.Client"/>
+    <NuGetDependency Include="NuGet.Commands"/>
     <NuGetDependency Include="NuGet.Packaging"/>
     <NuGetDependency Include="NuGet.ProjectModel"/>
     <NuGetDependency Include="NuGet.RuntimeModel"/>
     <NuGetDependency Include="NuGet.Versioning"/>
     <StaticDependency Include="@(NuGetDependency)">
-      <Version>4.0.0-rc-2129</Version>
+      <Version>4.3.0-preview2-4095</Version>
     </StaticDependency>
 
     <NETCoreDependency Include="Microsoft.NETCore.App"/>

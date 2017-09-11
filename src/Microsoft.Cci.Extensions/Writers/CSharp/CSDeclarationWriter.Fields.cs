@@ -13,16 +13,21 @@ namespace Microsoft.Cci.Writers.CSharp
             if (field.IsSpecialName)
                 return;
 
-            // Do we care about volatile?
             WriteAttributes(field.Attributes);
             if (!field.IsStatic && field.ContainingTypeDefinition.Layout == LayoutKind.Explicit)
             {
                 WriteFakeAttribute("System.Runtime.InteropServices.FieldOffsetAttribute", field.Offset.ToString());
             }
 
+            if (field.IsNotSerialized)
+            {
+                WriteFakeAttribute("System.NonSerializedAttribute");
+            }
+
             if (!field.ContainingTypeDefinition.IsEnum)
             {
                 WriteVisibility(field.Visibility);
+                WriteCustomModifiers(field.CustomModifiers);
 
                 if (field.Type.IsUnsafeType())
                     WriteKeyword("unsafe");
@@ -52,7 +57,11 @@ namespace Microsoft.Cci.Writers.CSharp
                 {
                     WriteSpace();
                     WriteSymbol("=", true);
-                    WriteMetadataConstant(field.Constant);
+                    if (field.Type.IsEnum) {
+                        WriteFieldDefinitionValue(field);
+                    } else {
+                        WriteMetadataConstant(field.Constant);
+                    }
                 }
 
                 WriteSymbol(";");
@@ -68,6 +77,29 @@ namespace Microsoft.Cci.Writers.CSharp
                 }
                 WriteSymbol(",");
             }
+        }
+
+        private void WriteFieldDefinitionValue(IFieldDefinition field) {
+            var resolvedType = field.Type.ResolvedType;
+
+            if (resolvedType != null) {
+                foreach (var enumField in resolvedType.Fields) {
+                    var enumFieldValue = enumField?.Constant?.Value;
+                    if (enumFieldValue != null && enumFieldValue.Equals(field.Constant.Value))
+                    {
+                        WriteTypeName(field.Type, noSpace: true);
+                        WriteSymbol(".");
+                        WriteIdentifier(enumField.Name);
+                        return;
+                    }
+                }
+            }
+
+            // couldn't find a symbol for enum, just cast it
+            WriteSymbol("(");
+            WriteTypeName(field.Type, noSpace: true);
+            WriteSymbol(")");
+            WriteMetadataConstant(field.Constant);
         }
     }
 }

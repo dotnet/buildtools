@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <PropertyGroup Condition="'$(GeneratePlatformNotSupportedAssembly)' == 'true'">
+  <PropertyGroup Condition="'$(GeneratePlatformNotSupportedAssembly)' == 'true' OR '$(GeneratePlatformNotSupportedAssemblyMessage)' != ''">
     <!-- Tell ResolveMatchingContract to run and resolve contract to project reference -->
     <ResolveMatchingContract>true</ResolveMatchingContract>
     <NotSupportedSourceFile>$(IntermediateOutputPath)$(TargetName).notsupported.cs</NotSupportedSourceFile>
     <CoreCompileDependsOn>$(CoreCompileDependsOn);GenerateNotSupportedSource</CoreCompileDependsOn>
-    <OmitResources>true</OmitResources>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(GeneratePlatformNotSupportedAssembly)' == 'true'">
+  <ItemGroup Condition="'$(GeneratePlatformNotSupportedAssembly)' == 'true' OR '$(GeneratePlatformNotSupportedAssemblyMessage)' != ''">
     <AssemblyMetadata Include="NotSupported">
       <Value>True</Value>
     </AssemblyMetadata>
@@ -40,7 +39,7 @@
       <GenAPIArgs>-assembly:"%(ResolvedMatchingContract.Identity)"</GenAPIArgs>
       <GenAPIArgs>$(GenAPIArgs) -libPath:"@(_referencePathDirectories)"</GenAPIArgs>
       <GenAPIArgs>$(GenAPIArgs) -out:"$(NotSupportedSourceFile)"</GenAPIArgs>
-      <GenAPIArgs>$(GenAPIArgs) -throw</GenAPIArgs>
+      <GenAPIArgs Condition="'$(GeneratePlatformNotSupportedAssembly)' == 'true' OR '$(GeneratePlatformNotSupportedAssemblyMessage)' != ''">$(GenAPIArgs) -throw:"$(GeneratePlatformNotSupportedAssemblyMessage)"</GenAPIArgs>
     </PropertyGroup>
 
     <PropertyGroup>

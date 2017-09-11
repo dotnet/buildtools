@@ -5,44 +5,84 @@ import glob
 import time
 import sys
 import subprocess
+import string
 
 def get_timestamp():
   print(time.time())
 
 def install_dumpling():
+  try:
+    if (not os.path.isfile(dumplingPath)):
+      url = "https://dumpling.azurewebsites.net/api/client/dumpling.py"
+      scriptPath = os.path.dirname(os.path.realpath(__file__))
+      downloadLocation = scriptPath + "/dumpling.py"
+      urllib.urlretrieve(url, downloadLocation)
+      subprocess.call([sys.executable, downloadLocation, "install", "--update"])
+
+    subprocess.call([sys.executable, dumplingPath, "install"])
+  except:
+    print("An unexpected error was encountered while installing dumpling.py: " + sys.exc_info()[0])
+
+def ensure_installed():
   if (not os.path.isfile(dumplingPath)):
-    url = "https://dumpling.azurewebsites.net/api/client/dumpling.py"
-    urllib.urlretrieve(url, "dumpling.py")
-    subprocess.call([sys.executable,"dumpling.py", "install", "--update"])
-  subprocess.call([sys.executable, dumplingPath, "install", "--full"])
+    print("Dumpling has not been installed yet. Please run \"DumplingHelper.py install_dumpling\" before collect_dumps.")
+    return False
+  else:
+    return True
 
 def find_latest_dump(folder, startTimeStr):
   startTime = float(startTimeStr)
-  allFiles = glob.glob(folder + "/*");
+  globPattern = "/*";
+
+  # Outside of Windows, core files are generally dumped into the executable's directory,
+  # so it may have many other files in it. Filter those out.
+  if sys.platform != "win32":
+    globPattern = "/*core*"
+
+  allFiles = glob.glob(folder + globPattern);
   if allFiles:
-    latestFile = max(allFiles, key=os.path.getctime)
-    latestTime = os.path.getctime(latestFile)
+    latestFile = max(allFiles, key=os.path.getmtime)
+    latestTime = os.path.getmtime(latestFile)
     if (latestTime > startTime):
       return latestFile
   return None
 
-def collect_dump(exitcode, folder, startTimeStr, projectName):
-  if (exitcode == "0"):
-    return
+def collect_dump(exitcodeStr, folder, startTimeStr, projectName, incpaths):
+  exitcode = int(exitcodeStr)
+
+  if (exitcode == 0):
+    sys.exit(exitcode)
+
+  if not ensure_installed():
+    sys.exit(exitcode)
+
+  if (not incpaths is None):
+    # Normalize incpaths so it can be passed to dumpling.py.
+    incpaths = incpaths.split(",")
+    incpaths = string.join(incpaths, " ")
+
+  # Find candidate crash dumps in the given folder.
   print("Trying to find crash dumps for project: " + projectName)
   file = find_latest_dump(folder, startTimeStr)
   if (file is None):
     print("No new dump file was found in " + folder)
   else:
+    # File was found; upload it.
     print("Uploading dump file: " + file)
-    subprocess.call(
-      [sys.executable, dumplingPath, "upload",
+    procArgs = string.join([
+      sys.executable, dumplingPath, "upload",
       "--dumppath", file,
       "--noprompt",
       "--triage", "full",
       "--displayname", projectName,
-      "--properties", "STRESS_TESTID="+projectName,
-      "--verbose" ])
+      "--properties", "STRESS_TESTID="+projectName
+      ], " ");
+    if (not incpaths is None):
+      procArgs = procArgs + " --incpaths " + incpaths
+
+    subprocess.call(procArgs, shell=True)
+
+  sys.exit(exitcode)
 
 def print_usage():
   print("DumplingHelper.py <command>")
@@ -51,24 +91,30 @@ def print_usage():
   print("      - Installs dumpling globally on the machine.")
   print("  get_timestamp:")
   print("      - Prints out the current timestamp of the machine.")
-  print("  collect_dump <exitcode> <folder> <starttime> <projectname>:")
+  print("  collect_dump <exitcode> <folder> <starttime> <projectname> <incpaths>:")
   print("      - Collects and uploads the latest dump (after start time) from the folder to the dumpling service.")
 
 # Main
 def main(argv):
   if (len(argv) <= 1):
     print_usage()
-    return
+    sys.exit(1)
   if (argv[1] == "install_dumpling"):
     install_dumpling()
   elif (argv[1] == "get_timestamp"):
     get_timestamp()
   elif (argv[1] == "collect_dump"):
-    collect_dump(argv[2], argv[3], argv[4], argv[5])
+    if (len(argv) == 6):
+      collect_dump(argv[2], argv[3], argv[4], argv[5], None)
+    elif (len(argv) == 7):
+      collect_dump(argv[2], argv[3], argv[4], argv[5], argv[6])
+    else:
+      print("Invalid number of arguments passed to collect_dump.")
+      sys.exit(1)
   else:
     print(argv[1] + " is not a valid command.")
     print_usage()
-    return
+    sys.exit(1)
 
 dumplingPath = os.path.expanduser("~/.dumpling/dumpling.py")
 if __name__ == '__main__':

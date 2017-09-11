@@ -11,7 +11,7 @@
   <UsingTask TaskName="ZipFileCreateFromDependencyLists" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
 
   <!-- See Documentation\Samples\CloudTest.Helix.targets.sampleproject for a sample project.
-  
+
        Some helpful Helix environment variables: (Use appropriate-for-OS means to access, i.e. %WINDOWS% or $Linux, $OSX )
        **********************************************************************************************************************************
         HELIX_WORKITEM_PAYLOAD      - Execution folder of helix workitem, current directory when using relative path.
@@ -20,7 +20,7 @@
         HELIX_CORRELATION_PAYLOAD   - Correlation payload folder;  root of where all correlation payloads are unzipped.
         HELIX_WORKITEM_FRIENDLYNAME - Friendly name of work item
        **********************************************************************************************************************************
-    
+
        Variables that CloudTest.Helix.Targets cares about:
        **********************************************************************************************************************************
        Required Properties:
@@ -50,7 +50,15 @@
        HelixJobProperties- Must be JSON.  String describing Helix MC-specific metadata.       Default: <Blank>
        HelixArchLabel    - If HelixJobProperties is not set, we'll use this to fill it out    Default: <Blank>
        HelixConfigLabel  - If HelixJobProperties is not set, we'll use this to fill it out    Default: <Blank>
-       
+
+       **********************************************************************************************************************************
+       Re-queuing Properties:
+       **********************************************************************************************************************************
+       UseContinuationRunner  - Use runner script that is capable of sending to another queue when finished  Default: False
+       SecondaryQueue         - When submitting multi-stage tests, queue for secondary jobs                  Default: <Blank>
+       SecondarySasValidHours - SAS Valid time for token provided for multi-stage tests.                     Default: 15.0
+       SecondaryPayloadDir    - Folder to make into workitem payload for continued execution                 Default: <Blank>
+
        **********************************************************************************************************************************
        Required ITaskItems:
        **********************************************************************************************************************************
@@ -84,7 +92,10 @@
     <HelixScriptRoot>%HELIX_SCRIPT_ROOT%\</HelixScriptRoot>
     <RunnerScript>%HELIX_CORRELATION_PAYLOAD%\RunnerScripts\scriptrunner\scriptrunner.py</RunnerScript>
   </PropertyGroup>
-
+  <PropertyGroup Condition="'$(TargetsWindows)' == 'true' AND '$(UseContinuationRunner)' == 'true' ">
+    <RunnerScript>%HELIX_CORRELATION_PAYLOAD%\RunnerScripts\scriptrunner\continuationrunner.py --next_queue $(SecondaryQueue) --next_payload_dir $(SecondaryPayloadDir)</RunnerScript>
+    <SecondarySasValidHours Condition="'$(SecondarySasValidHours)' == ''">15.0</SecondarySasValidHours>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(TargetsWindows)' != 'true' AND '$(UseScriptRunner)' == 'true' ">
     <HelixPythonPath>$HELIX_PYTHONPATH</HelixPythonPath>
     <HelixScriptRoot>$HELIX_SCRIPT_ROOT/</HelixScriptRoot>
@@ -234,9 +245,11 @@
       <CorrelationPayloadUri Include="@(SupplementalPayload->'$(DropUri)%(RelativeBlobPath)$(DropUriReadOnlyToken)')" />
       <CorrelationPayloadUri Include="@(LocalPayloadFileForUpload->'$(DropUri)%(RelativeBlobPath)$(DropUriReadOnlyToken)')" />
     </ItemGroup>
+
     <PropertyGroup>
       <!-- Flatten it into a property as msbuild chokes on @(CorrelationPayloadUri) in CorrelationPayloadUris -->
       <CorrelationPayloadUris>@(CorrelationPayloadUri)</CorrelationPayloadUris>
+      <SecondaryQueuesJson Condition="'$(SecondaryQueue)' != ''">{ &quot;QueueId&quot;:&quot;$(SecondaryQueue)&quot;,&quot;SasValidHours&quot;: $(SecondarySasValidHours), &quot;EnqueueSAS&quot; : null, &quot;DropContainerUri&quot; : null,&quot;DropContainerRsas&quot; : null,&quot;DropContainerWsas&quot; : null }</SecondaryQueuesJson>
     </PropertyGroup>
 
     <ItemGroup>
@@ -249,6 +262,7 @@
         <PayloadUri>$(DropUri)%(RelativeBlobPath)$(DropUriReadOnlyToken)</PayloadUri>
         <WorkItemId>%(WorkItemId)</WorkItemId>
         <TimeoutInSeconds>%(TimeoutInSeconds)</TimeoutInSeconds>
+        <SecondaryQueues Condition="'$(SecondaryQueue)' != ''">[$(SecondaryQueuesJson)]</SecondaryQueues>		
       </HelixProcessedWorkItem>
     </ItemGroup>
 
@@ -326,7 +340,18 @@
     </ItemGroup>
 
     <WriteItemsToJson JsonFileName="%(HelixWorkItemList.BuildCompleteJson)" Items="@(BuildComplete)" />
-    <Message Text="Wrote build complete JSON for @(BuildComplete->Count()) Queues." />
+    <Message Text="Wrote job-start (build complete) JSON for @(BuildComplete->Count()) Queues." />
+    
+    <CreateItem Include="%(HelixWorkItemList.BuildCompleteJson)" AdditionalMetadata="RelativeBlobPath=JobStartJsonMessages.json">
+      <Output TaskParameter="Include" ItemName="JobStartJsons" />
+    </CreateItem>
+    
+    <UploadToAzure
+     ConnectionString="$(CloudDropConnectionString)"
+     ContainerName="$(ContainerName)"
+     Items="@(JobStartJsons)"
+     Overwrite="$(OverwriteOnUpload)" />
+    <Message Text="Uploaded job-start JSON files to $(ContainerName).   These can be used for resending the same job for debugging purposes." />
 
   </Target>
 

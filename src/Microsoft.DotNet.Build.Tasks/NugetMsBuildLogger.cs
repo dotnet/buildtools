@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using NuGet.Common;
 using ILogger = NuGet.Common.ILogger;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
@@ -58,6 +61,49 @@ namespace Microsoft.DotNet.Build.Tasks
         public void LogWarning(string data)
         {
             _taskLogging.LogWarning(data);
+        }
+
+        public void Log(LogLevel level, string data)
+        {
+            LogAsync(level, data).Wait();
+        }
+
+        public Task LogAsync(LogLevel level, string data)
+        {
+            switch (level)
+            {
+                case LogLevel.Debug:
+                    LogDebug(data);
+                    break;
+                case LogLevel.Verbose:
+                    LogVerbose(data);
+                    break;
+                case LogLevel.Information:
+                    LogInformation(data);
+                    break;
+                case LogLevel.Minimal:
+                    LogMinimal(data);
+                    break;
+                case LogLevel.Warning:
+                    LogWarning(data);
+                    break;
+                case LogLevel.Error:
+                    LogError(data);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(level), level, null);
+            }
+            return Task.CompletedTask;
+        }
+
+        public void Log(ILogMessage message)
+        {
+            LogAsync(message).Wait();
+        }
+
+        public async Task LogAsync(ILogMessage message)
+        {
+            await LogAsync(message.Level, message.Message);
         }
     }
 }

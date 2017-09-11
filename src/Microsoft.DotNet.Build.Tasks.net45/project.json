@@ -1,14 +1,15 @@
 ﻿{
   "dependencies": {
+    "Microsoft.DiaSymReader.Converter": "1.0.0-beta1-61722-03",
     "Microsoft.DotNet.PlatformAbstractions": "1.2.0-beta-001090",
     "Microsoft.NETCore.Platforms": "1.0.1",
     "Newtonsoft.Json": "9.0.1",
-    "NuGet.Commands": "4.0.0-rc-2129",
-    "NuGet.Packaging": "4.0.0-rc-2129",
-    "NuGet.ProjectModel": "4.0.0-rc-2129",
-    "NuGet.Versioning": "4.0.0-rc-2129",
-    "System.Collections.Immutable": "1.2.0",
-    "System.Reflection.Metadata": "1.4.1",
+    "NuGet.Commands": "4.3.0-preview2-4095",
+    "NuGet.Packaging": "4.3.0-preview2-4095",
+    "NuGet.ProjectModel": "4.3.0-preview2-4095",
+    "NuGet.Versioning": "4.3.0-preview2-4095",
+    "System.Collections.Immutable": "1.3.1",
+    "System.Reflection.Metadata": "1.4.2",
     "System.Runtime.InteropServices.RuntimeInformation": "4.4.0-beta-24813-03"
   },
   "frameworks": {
@@ -19,6 +20,7 @@
     }
   },
   "runtimes": {
-    "win7-x64": {}
+    "win7-x64": {},
+    "win7-x86": {}
   }
 }
