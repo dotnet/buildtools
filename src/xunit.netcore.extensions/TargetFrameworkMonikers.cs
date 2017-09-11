@@ -23,6 +23,7 @@ namespace Xunit
         NetFramework = 0x800,
         Netcoreapp = 0x1000,
         UapNotUapAot = 0x2000,
+        IsInAppContainer = UapNotUapAot, // If we begin to run AOT tests in AC, tests using IsInAppContainer need not change 
         UapAot = 0x4000,
         Uap = UapAot | UapNotUapAot,
         NetcoreCoreRT = 0x8000
