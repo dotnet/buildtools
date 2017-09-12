@@ -16,10 +16,11 @@ namespace XUnit.Runner.Uap
             return await folder.CreateFileAsync(test, CreationCollisionOption.ReplaceExisting);
         }
 
-        public static StreamWriter GetStreamToFileInLocalStorage(string pathInLocalStorage)
+        public static async Task<StreamWriter> GetFileStreamWriterInLocalStorageAsync(string fileName)
         {
-            string appSharedPath = Directory.GetParent(Windows.Storage.ApplicationData.Current.LocalFolder.Path).FullName;
-            return new StreamWriter(File.Create(Path.Combine(appSharedPath, pathInLocalStorage)))
+            var localFolder = await ApplicationData.Current.LocalFolder.CreateFolderAsync("AC", CreationCollisionOption.OpenIfExists);
+            var file = await localFolder.CreateFileAsync(fileName, CreationCollisionOption.ReplaceExisting);
+            return new StreamWriter(await file.OpenStreamForWriteAsync())
             {
                 AutoFlush = true
             };

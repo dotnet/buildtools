@@ -23,7 +23,7 @@ namespace XUnit.Runner.Uap
         {
             // Run tests for assemblies in current directory
             XunitTestRunner runner = new XunitTestRunner();
-            log = Helpers.GetStreamToFileInLocalStorage(@"AC\Temp\stdout.txt");
+            log = Helpers.GetFileStreamWriterInLocalStorageAsync("stdout.txt").GetAwaiter().GetResult();
 
             Task.Run(() => runner.RunTests(App.LaunchArgs.Arguments, log));
         }
@@ -34,7 +34,7 @@ namespace XUnit.Runner.Uap
 
             if (log == null)
             {
-                log = Helpers.GetStreamToFileInLocalStorage(@"AC\Temp\stdout.txt");
+                log = Helpers.GetFileStreamWriterInLocalStorageAsync("stdout.txt").GetAwaiter().GetResult();
             }
 
             if (ex != null)
