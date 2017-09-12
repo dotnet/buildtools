@@ -50,7 +50,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 AssemblyName result;
                 if (TryGetManagedAssemblyName(file, out result))
                 {
-                    assemblyNames.Add(new FileNameAssemblyPair(result, Path.GetFileNameWithoutExtension(file)));
+                    assemblyNames.Add(new FileNameAssemblyPair(result, Path.GetFileName(file)));
                 }
                 else
                 {
@@ -116,8 +116,8 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 JObject runtimes = new JObject();
                 JObject runtimeLocation = new JObject();
-                string key = $"{assembly.FileName}/{assembly.AssemblyName.Version.Major}.{assembly.AssemblyName.Version.Minor}.{assembly.AssemblyName.Version.Build}";
-                runtimeLocation.Add(assembly.FileName + ".dll", new JObject());
+                string key = $"{assembly.AssemblyName.Name}/{assembly.AssemblyName.Version.Major}.{assembly.AssemblyName.Version.Minor}.{assembly.AssemblyName.Version.Build}";
+                runtimeLocation.Add(assembly.FileName, new JObject());
                 runtimes.Add("runtime", runtimeLocation);
                 try
                 {
