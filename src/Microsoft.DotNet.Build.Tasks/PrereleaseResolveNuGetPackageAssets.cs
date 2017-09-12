@@ -20,7 +20,7 @@ namespace Microsoft.DotNet.Build.Tasks
     /// <summary>
     /// Resolves the assets out of packages in the project.lock.json
     /// </summary>
-    public sealed class PrereleaseResolveNuGetPackageAssets : Task
+    public sealed class PrereleaseResolveNuGetPackageAssets : BuildTask
     {
         internal const string NuGetPackageIdMetadata = "NuGetPackageId";
         internal const string NuGetPackageVersionMetadata = "NuGetPackageVersion";

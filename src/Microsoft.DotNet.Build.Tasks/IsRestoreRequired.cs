@@ -15,7 +15,7 @@ using System.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public partial class IsRestoreRequired : Task
+    public partial class IsRestoreRequired : BuildTask
     {
         [Required]
         public ITaskItem[] ProjectJsons { get; set; }

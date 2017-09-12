@@ -16,7 +16,7 @@ using ThreadingTask = System.Threading.Tasks.Task;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class InstallPackageFromFile : Task, ICancelableTask
+    public class InstallPackageFromFile : BuildTask, ICancelableTask
     {
         [Required]
         public string PackageFile { get; set; }

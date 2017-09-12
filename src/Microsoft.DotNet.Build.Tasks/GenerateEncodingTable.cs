@@ -13,7 +13,7 @@ using System.Text;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class GenerateEncodingTable : Task
+    public class GenerateEncodingTable : BuildTask
     {
         private const string CommentIndicator = "#";
         private const char FieldDelimiter = ';';

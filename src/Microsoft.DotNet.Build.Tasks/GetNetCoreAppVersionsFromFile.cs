@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class GetNetCoreAppVersionsFromFile : Task
+    public class GetNetCoreAppVersionsFromFile : BuildTask
     {
         [Required]
         public string PathToVersionsFile { get; set; }

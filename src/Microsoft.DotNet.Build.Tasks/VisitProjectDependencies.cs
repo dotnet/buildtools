@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public abstract class VisitProjectDependencies : Task
+    public abstract class VisitProjectDependencies : BuildTask
     {
         [Required]
         public ITaskItem[] ProjectJsons { get; set; }

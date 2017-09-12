@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class NormalizePaths : Task
+    public class NormalizePaths : BuildTask
     {
         [Required]
         public ITaskItem[] InputPaths { get; set; }

@@ -12,7 +12,7 @@ using Microsoft.Build.Utilities;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class ParseTestCoverageInfo : Task
+    public class ParseTestCoverageInfo : BuildTask
     {
         // Path to the directory that contains *.coverage.xml coverage info.
         [Required]

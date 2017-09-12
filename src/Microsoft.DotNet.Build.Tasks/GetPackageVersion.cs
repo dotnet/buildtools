@@ -12,7 +12,7 @@ using System.Xml.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class GetPackageVersion : Task
+    public class GetPackageVersion : BuildTask
     {
         [Required]
         public string RevisionNumber { get; set; }
