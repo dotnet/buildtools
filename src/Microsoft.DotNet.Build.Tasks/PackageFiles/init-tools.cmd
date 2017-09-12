@@ -11,7 +11,7 @@ set PACKAGES_DIR=%PACKAGES_DIR:"=%
 set BUILDTOOLS_PACKAGE_DIR=%~dp0
 set MICROBUILD_VERSION=0.2.0
 set PORTABLETARGETS_VERSION=0.1.1-dev
-set ROSLYNCOMPILERS_VERSION=2.6.0-rdonly-ref-61915-01
+set ROSLYNCOMPILERS_VERSION=2.0.0-rc4
 
 :: Determine if the CLI supports MSBuild projects. This controls whether csproj files are used for initialization and package restore.
 set CLI_VERSION=
