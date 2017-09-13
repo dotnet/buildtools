@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <UsingTask TaskName="GenerateEncryptedNuGetConfig" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="GenerateUnencryptedNuGetConfig" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="EncryptedConfigNuGetRestore" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="PrereleaseResolveNuGetPackageAssets" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+
+  <Target Name="RestoreOptionalToolingPackages"
+          DependsOnTargets="RestoreOptionalToolingEncrypted;
+                            RestoreOptionalToolingUnencrypted;
+                            CleanOptionalToolingRestore"
+          BeforeTargets="Sync"
+          Condition="'$(OptionalToolSource)'!=''" />
+
+  <!--
+    Create items for any feeds specified by parameters. This makes it easy to pass in an optional
+    source with an msbuild command.
+  -->
+  <Target Name="CreateOptionalRestoreFeedItems">
+    <ItemGroup>
+      <OptionalRestoreSource Include="FeedFromProperties">
+        <Uri>$(OptionalToolSource)</Uri>
+        <Username Condition="'$(OptionalToolSourceUser)'!=''">$(OptionalToolSourceUser)</Username>
+        <Password Condition="'$(OptionalToolSourcePassword)'!=''">$(OptionalToolSourcePassword)</Password>
+      </OptionalRestoreSource>
+    </ItemGroup>
+  </Target>
+
+  <!--
+    Determine the paths of the optional tool runtime project.json and lockfile.
+  -->
+  <Target Name="GetOptionalToolingPaths">
+    <PropertyGroup>
+      <OptionalToolingDir>$(ToolsDir)optional-tool-runtime\</OptionalToolingDir>
+      <OptionalToolingJsonPath>$(OptionalToolingDir)optional.json</OptionalToolingJsonPath>
+      <OptionalToolingProjectJsonPath>$(OptionalToolingDir)project.json</OptionalToolingProjectJsonPath>
+      <OptionalToolingProjectLockJsonPath>$(OptionalToolingDir)project.lock.json</OptionalToolingProjectLockJsonPath>
+    </PropertyGroup>
+  </Target>
+
+  <!--
+    Copy the mangled "optional.json" file to "project.json", so that we can restore it. The name
+    is optional.json so that recursive restore will not normally find the file: it contains
+    optional tooling that typical recursive restores do not provide, such as the buildtools build.
+  -->
+  <Target Name="PrepareOptionalToolProjectJson"
+          DependsOnTargets="GetOptionalToolingPaths">
+
+    <Copy SourceFiles="$(OptionalToolingJsonPath)"
+          DestinationFiles="$(OptionalToolingProjectJsonPath)"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+  <!--
+    Restore optional tooling using a NuGet.Config on disk with encrypted credentials inside.
+    Not supported on .NET Core.
+  -->
+  <Target Name="RestoreOptionalToolingEncrypted"
+          DependsOnTargets="CreateOptionalRestoreFeedItems;
+                            PrepareOptionalToolProjectJson"
+          Condition="'$(MSBuildRuntimeType)'!='core'">
+    <PropertyGroup>
+      <GeneratedNuGetConfigDir>$(ObjDir)generatedNuGetConfig/</GeneratedNuGetConfigDir>
+      <OptionalRestoreConfigPath>$(GeneratedNuGetConfigDir)optional.NuGet.Config</OptionalRestoreConfigPath>
+    </PropertyGroup>
+
+    <GenerateEncryptedNuGetConfig ConfigPath="$(OptionalRestoreConfigPath)"
+                                  Sources="@(OptionalRestoreSource)" />
+
+    <EncryptedConfigNuGetRestore Inputs="$(OptionalToolingProjectJsonPath)"
+                                 ConfigFile="$(OptionalRestoreConfigPath)"
+                                 PackagesDir="$(PackagesDir)" />
+  </Target>
+
+  <!--
+    Restore optional tooling by generating the XML string of a NuGet.Config with plaintext
+    credentials, then injecting it into "dotnet restore" using /dev/stdin.
+    Not supported on Windows.
+  -->
+  <Target Name="RestoreOptionalToolingUnencrypted"
+          DependsOnTargets="CreateOptionalRestoreFeedItems;
+                            PrepareOptionalToolProjectJson"
+          Condition="'$(MSBuildRuntimeType)'=='core'">
+    <PropertyGroup>
+      <!-- Create a new restore command with no source parameters, only configfile. -->
+      <OptionalRestoreCommand>"$(DnuToolPath)"</OptionalRestoreCommand>
+      <OptionalRestoreCommand>$(OptionalRestoreCommand) restore</OptionalRestoreCommand>
+      <OptionalRestoreCommand Condition="'$(UseNuGetHttpCache)'!='true'">$(OptionalRestoreCommand) --no-cache</OptionalRestoreCommand>
+      <OptionalRestoreCommand>$(OptionalRestoreCommand) --packages "$(PackagesDir.TrimEnd('/\'.ToCharArray()))"</OptionalRestoreCommand>
+      <OptionalRestoreCommand>$(OptionalRestoreCommand) --configfile $(OptionalRestoreConfigPath)</OptionalRestoreCommand>
+    </PropertyGroup>
+
+    <Error Text="Restoring optional tooling with in-memory credentials is not supported on Windows. Use the desktop framework for the encrypted credential flow."
+           Condition="'$(OS)'=='Windows_NT'" />
+
+    <Error Text="Restoring optional tooling with in-memory credentials is not yet implemented. No cross-platform optional tooling exists yet." />
+  </Target>
+
+  <!--
+    Cleanup steps: try to ensure non-authenticated restore attempts don't attempt to restore
+    optional packages and reduce credential exposure to the remaining steps in the build.
+  -->
+  <Target Name="CleanOptionalToolingRestore"
+          Condition="'$(SkipCleanOptionalToolingRestore)'!='true'">
+    <ItemGroup>
+      <OptionalRestoreTemporaryFilePath Include="$(OptionalRestoreConfigPath);
+                                                 $(OptionalToolingProjectJsonPath)" />
+    </ItemGroup>
+
+    <Delete Files="@(OptionalRestoreTemporaryFilePath)" Condition="Exists('%(Identity)')" />
+  </Target>
+
+  <!--
+    Resolve tooling from the optional restore lockfile. Other targets can find optional tooling
+    in ResolvedOptionalToolReferences.
+  -->
+  <Target Name="ResolveOptionalTools"
+          DependsOnTargets="GetOptionalToolingPaths">
+
+    <Error Text="Optional tooling has not been restored. Use the 'RestoreOptionalToolingPackages' target first."
+           Condition="!Exists('$(OptionalToolingProjectLockJsonPath)')" />
+
+    <ItemGroup>
+      <OptionalToolingTargetMoniker Include=".NETFramework,Version=v4.5" />
+    </ItemGroup>
+
+    <PrereleaseResolveNuGetPackageAssets ProjectLockFile="$(OptionalToolingProjectLockJsonPath)"
+                                         NuGetPackagesDirectory="$(PackagesDir)"
+                                         TargetMonikers="@(OptionalToolingTargetMoniker)">
+      <Output TaskParameter="ResolvedReferences" ItemName="ResolvedOptionalToolReferences" />
+    </PrereleaseResolveNuGetPackageAssets>
+  </Target>
+
+</Project>

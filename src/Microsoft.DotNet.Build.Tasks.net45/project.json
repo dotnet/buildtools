@@ -2,6 +2,7 @@
   "dependencies": {
     "Microsoft.NETCore.Platforms": "1.0.1",
     "Newtonsoft.Json": "9.0.1",
+    "NuGet.Commands": "3.5.0-rc1-final",
     "NuGet.Packaging": "3.5.0-rc1-final",
     "NuGet.ProjectModel": "3.5.0-rc1-final",
     "NuGet.Versioning": "3.5.0-rc1-final",

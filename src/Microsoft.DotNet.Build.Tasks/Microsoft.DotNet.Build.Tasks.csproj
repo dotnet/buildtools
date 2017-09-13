@@ -28,6 +28,9 @@
     <Compile Include="GenerateCurrentVersion.cs" />
     <Compile Include="GenerateResourcesCode.cs" />
     <Compile Include="GenerateEncodingTable.cs" />
+    <Compile Include="EncryptedConfigNuGetRestore.cs" />
+    <Compile Include="GenerateUnencryptedNuGetConfig.cs" />
+    <Compile Include="GenerateEncryptedNuGetConfig.cs" />
     <Compile Include="GetPackageVersion.cs" />
     <Compile Include="GetPackageDependencies.cs" />
     <Compile Include="GetNextRevisionNumber.cs" />
@@ -35,6 +38,7 @@
     <Compile Include="LocatePreviousContract.cs" />
     <Compile Include="NormalizePaths.cs" />
     <Compile Include="GetDoItemsIntersect.cs" />
+    <Compile Include="NugetMsBuildLogger.cs" />
     <Compile Include="NuGetPackageObject.cs" />
     <Compile Include="OpenSourceSign.cs" />
     <Compile Include="ParseTestCoverageInfo.cs" />
