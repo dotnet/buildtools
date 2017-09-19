@@ -420,6 +420,8 @@ robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
 
       <!-- Copy the log files and the results files from the Documents folder to the test folder -->
       <PostExecutionTestCommandLines Include="move $(UAP_Results_Path)$(XunitTestAssembly).xml .\$(XunitResultsFileName)" />
+      <PostExecutionTestCommandLines Include="move $(UAP_Results_Path)$(XunitTestAssembly).txt .\logs.txt" />
+      <PostExecutionTestCommandLines Include="type logs.txt" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(Performance)'!='true'">
