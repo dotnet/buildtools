@@ -5,6 +5,10 @@
     </Content>
     <DumplingIncPaths Include="$(RuntimePath)" />
     <DumplingIncPaths Include="$(TestPath)" />
+    <DumplingIncPaths Condition="'$(TargetOS)'!='Windows_NT'" Include="/lib/x86_64-linux-gnu/" />
+    <DumplingIncPaths Condition="'$(TargetOS)'!='Windows_NT'" Include="/usr/lib/x86_64-linux-gnu/" />
+    <DumplingIncPaths Condition="'$(TargetOS)'!='Windows_NT'" Include="$HELIX_CORRELATION_PAYLOAD" />
+    <DumplingIncPaths Condition="'$(TargetOS)'!='Windows_NT'" Include="/lib64/" />
   </ItemGroup>
   <Target Name="PreinstallDumpling"
           BeforeTargets="TestAllProjects">
