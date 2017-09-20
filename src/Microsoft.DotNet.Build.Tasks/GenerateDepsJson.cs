@@ -110,52 +110,56 @@ namespace Microsoft.DotNet.Build.Tasks
                 }
             }
 
-            targetsSection.Remove(runtimeTarget);
-            newDepsJson.Remove("libraries");
+            string platformPackageName = "";
+            foreach (var package in targetsSection[runtimeTarget].Children())
+            {
+                JProperty packageProperty = package as JProperty;
+                if (packageProperty != null && packageProperty.Name.Contains($"runtime.{rid}.Microsoft.NETCore.App"))
+                {
+                    platformPackageName = packageProperty.Name;
+                    break;
+                }
+            }
+
+            if (string.IsNullOrEmpty(platformPackageName))
+                Log.LogError($"Unable to find platform package that matches runtime.{rid}.Microsoft.NETCore.App when generating deps.json file.");
+
+            JObject platformPackage = (JObject)targetsSection[runtimeTarget][platformPackageName];
+            platformPackage.Remove("runtime");
+            platformPackage.Remove("native");
+            JObject platformRuntime = new JObject();
+            JObject platformNative = new JObject();
+
             foreach (var assembly in assemblyNames)
             {
-                JObject runtimes = new JObject();
-                JObject runtimeLocation = new JObject();
-                string key = $"{assembly.AssemblyName.Name}/{assembly.AssemblyName.Version.Major}.{assembly.AssemblyName.Version.Minor}.{assembly.AssemblyName.Version.Build}";
-                runtimeLocation.Add(assembly.FileName, new JObject());
-                runtimes.Add("runtime", runtimeLocation);
                 try
                 {
-                    targetValue.Add(key, runtimes);
-                }
-                catch (System.ArgumentException)
-                {
-
-                }
-
-                try
-                {
-                    libraryValue.Add(key, ConstructLibraryNode());
+                    platformRuntime.Add($"runtimes/{rid}/lib/netcoreapp2.0/{assembly.FileName}", new JObject());
                 }
                 catch (System.ArgumentException)
                 {
 
                 }
             }
-            targetsSection.Add(runtimeTarget, targetValue);
-            newDepsJson.Add("libraries", libraryValue);
+            // Add mscorlib and System facades to platformRuntime
+            platformRuntime.Add($"runtimes/{rid}/lib/netcoreapp2.0/mscorlib.dll", new JObject());
+            platformRuntime.Add($"runtimes/{rid}/lib/netcoreapp2.0/System.dll", new JObject());
 
-            // Delete mscorlib.dll references comming from CoreCLR package. They do not exist anymore.
-            var mscorlibProperties = new List<JProperty>();
-            foreach (var item in newDepsJson.Descendants())
+            foreach (var nativeAssembly in nonManagedAssemblyFilePaths)
             {
-                var property = item as JProperty;
-                if (property == null)
-                    continue;
+                try
+                {
+                    if (nativeAssembly.EndsWith(".dll"))
+                        platformNative.Add($"runtimes/{rid}/native/{nativeAssembly}", new JObject());
+                }
+                catch (System.ArgumentException)
+                {
 
-                var name = property.Name;
-                if (name.EndsWith("/lib/netstandard1.0/mscorlib.dll") || name.EndsWith("/native/mscorlib.ni.dll"))
-                    mscorlibProperties.Add(property);
+                }
             }
-            foreach (var item in mscorlibProperties)
-            {
-                item.Remove();
-            }
+
+            platformPackage.Add("runtime", platformRuntime);
+            platformPackage.Add("native", platformNative);
 
             if (!string.IsNullOrEmpty(OutputPath))
             {
