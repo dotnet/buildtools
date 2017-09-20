@@ -103,6 +103,10 @@
   -->
   <Target Name="UpdateDependenciesAndSubmitPullRequest"
           DependsOnTargets="CreateDefaultDependencyInfos">
+    <PropertyGroup>
+      <MaintainersCanModifyPullRequest Condition="'$(MaintainersCanModifyPullRequest)' == ''">true</MaintainersCanModifyPullRequest>
+    </PropertyGroup>
+
     <UpdateDependenciesAndSubmitPullRequest DependencyInfo="@(DependencyInfo)"
                                             ProjectJsonFiles="@(ProjectJsonFiles)"
                                             UpdateStep="@(UpdateStep)"
@@ -116,6 +120,7 @@
                                             NotifyGitHubUsers="@(NotifyGitHubUsers)"
                                             CurrentRefXmlPath="$(CurrentRefXmlPath)"
                                             AlwaysCreateNewPullRequest="$(AlwaysCreateNewPullRequest)"
+                                            MaintainersCanModifyPullRequest="$(MaintainersCanModifyPullRequest)"
                                             CommitMessage="$(CommitMessage)" />
   </Target>
 </Project>

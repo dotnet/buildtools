@@ -27,6 +27,8 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 
         public bool AlwaysCreateNewPullRequest { get; set; }
 
+        public bool MaintainersCanModifyPullRequest { get; set; }
+
         /// <summary>
         /// A commit message to use instead of the default generated message.
         /// </summary>
@@ -62,7 +64,8 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                         CommitMessage,
                         CommitMessage + $" ({ProjectRepoBranch})",
                         body,
-                        forceCreate: AlwaysCreateNewPullRequest).Wait();
+                        forceCreate: AlwaysCreateNewPullRequest,
+                        maintainersCanModify: MaintainersCanModifyPullRequest).Wait();
                 }
                 else
                 {
