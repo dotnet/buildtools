@@ -1,6 +1,10 @@
 # .NET Core Build Tools
 
-[![Build status](https://ci.dot.net/job/dotnet_buildtools/job/master/job/innerloop/badge/icon)](https://ci.dot.net/job/dotnet_buildtools/job/master/job/innerloop/)
+### Windows
+[![Build Status](https://ci.dot.net/job/dotnet_buildtools/job/master/job/Windows_NT/badge/icon)](https://ci.dot.net/job/dotnet_buildtools/job/master/job/Windows_NT/)
+
+### Ubuntu 14.04
+[![Build Status](https://ci.dot.net/job/dotnet_buildtools/job/master/job/Ubuntu14.04/badge/icon)](https://ci.dot.net/job/dotnet_buildtools/job/master/job/Ubuntu14.04/)
 
 [![Packages](https://img.shields.io/dotnet.myget/dotnet-buildtools/v/Microsoft.DotNet.BuildTools.svg?label=Packages)](https://dotnet.myget.org/gallery/dotnet-buildtools/)
 
