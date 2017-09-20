@@ -17,25 +17,17 @@ namespace XUnit.Runner.Uap
             Application.Current.UnhandledException += OnUnhandledException;
         }
 
-        internal static StreamWriter log;
-
         private void RunXunitTestsInDirectory(object sender, RoutedEventArgs e)
         {
             // Run tests for assemblies in current directory
             XunitTestRunner runner = new XunitTestRunner();
-            log = Helpers.GetFileStreamWriterInLocalStorageAsync("stdout.txt").GetAwaiter().GetResult();
-
-            Task.Run(() => runner.RunTests(App.LaunchArgs.Arguments, log));
+            Task.Run(() => runner.RunTests(App.LaunchArgs.Arguments));
         }
 
         static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             var ex = e.Exception as Exception;
-
-            if (log == null)
-            {
-                log = Helpers.GetFileStreamWriterInLocalStorageAsync("stdout.txt").GetAwaiter().GetResult();
-            }
+            StreamWriter log = Helpers.GetFileStreamWriterInLocalStorageAsync("stdout.txt").GetAwaiter().GetResult();
 
             if (ex != null)
             {

@@ -18,9 +18,9 @@ namespace XUnit.Runner.Uap
 
         private static StreamWriter log;
 
-        public async void RunTests(string arguments, StreamWriter sbLog)
+        public async void RunTests(string arguments)
         {
-            log = sbLog;
+            log = await Helpers.GetFileStreamWriterInLocalStorageAsync("stdout.txt");
 
             string[] args = arguments.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
