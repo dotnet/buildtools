@@ -149,7 +149,7 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 try
                 {
-                    if (nativeAssembly.EndsWith(".dll"))
+                    if (!nativeAssembly.EndsWith(".pdb"))
                         platformNative.Add($"runtimes/{rid}/native/{nativeAssembly}", new JObject());
                 }
                 catch (System.ArgumentException)
