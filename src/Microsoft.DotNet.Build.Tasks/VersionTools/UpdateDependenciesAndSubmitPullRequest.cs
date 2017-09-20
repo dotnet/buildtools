@@ -38,6 +38,8 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 
         public bool AlwaysCreateNewPullRequest { get; set; }
 
+        public bool MaintainersCanModifyPullRequest { get; set; }
+
         protected override void TraceListenedExecute()
         {
             // Use the commit sha of versions repo master (not just "master") for stable upgrade.
@@ -110,7 +112,8 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                     suggestedMessage,
                     suggestedMessage + $" ({ProjectRepoBranch})",
                     body,
-                    forceCreate: AlwaysCreateNewPullRequest).Wait();
+                    forceCreate: AlwaysCreateNewPullRequest,
+                    maintainersCanModify: MaintainersCanModifyPullRequest).Wait();
             }
             else
             {
