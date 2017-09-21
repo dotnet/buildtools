@@ -12,6 +12,7 @@ foreach ($file in Get-ChildItem $ToolRuntimePath *.runtimeconfig.json)
 {
     Write-Host "Correcting runtime version of" $file.FullName
     $text = (Get-Content $file.FullName) -replace "1.1.0","$highestVersion"
+    $text = (Get-Content $file.FullName) -replace "2.0.0-preview1-001913-00","$highestVersion"
     Set-Content $file.FullName $text
 }
 
