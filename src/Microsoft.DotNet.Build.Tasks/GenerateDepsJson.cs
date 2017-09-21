@@ -29,7 +29,7 @@ namespace Microsoft.DotNet.Build.Tasks
             }
         }
 
-        public bool GenerateLegacyDepsJson { get; set; }
+        public bool GenerateNewDepsJson { get; set; }
 
         public string RuntimeDirectory { get; set; }
 
@@ -112,7 +112,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 }
             }
 
-            if (GenerateLegacyDepsJson)
+            if (!GenerateNewDepsJson)
             {
                 targetsSection.Remove(runtimeTarget);
                 newDepsJson.Remove("libraries");
