@@ -70,10 +70,6 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 string uploadPath = feed.CalculateBlobPath(item, relativePath);
                 string packageDirectory = feed.CalculateRelativeUploadPath(item, relativePath);
 
-                if (!allowOverwrite && await feed.CheckIfBlobExists(uploadPath))
-                {
-                    throw new Exception($"Item {uploadPath} already exists and Overwrite is false.");
-                }
                 await UploadAsync(CancellationToken, item, uploadPath, clientThrottle, allowOverwrite);
 
                 List<string> listAzureBlobs = await ListAzureBlobs.ListBlobs(Log, feed.AccountName, feed.AccountKey, feed.ContainerName, packageDirectory);
@@ -106,14 +102,10 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 }
             }
             string packageIndexJsonLocation = feed.GeneratePackageServiceIndex(packageDirectory, updatedVersions);
-            if (!await feed.CheckIfBlobExists(packageIndexJsonLocation))
-            {
-                allowOverwrite = false;
-            }
-            await UploadAsync(CancellationToken, packageIndexJsonLocation, packageDirectory + "/index.json", clientThrottle, allowOverwrite);
+            await UploadAsync(CancellationToken, packageIndexJsonLocation, packageDirectory + "/index.json", clientThrottle, true);
         }
 
-        private async Task UploadAsync(CancellationToken ct, string item, string uploadPath, SemaphoreSlim clientThrottle, bool isLeaseRequired)
+        private async Task UploadAsync(CancellationToken ct, string item, string uploadPath, SemaphoreSlim clientThrottle, bool allowOverwrite)
         {
             if (!File.Exists(item))
                 throw new Exception(string.Format("The file '{0}' does not exist.", item));
@@ -121,6 +113,8 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             await clientThrottle.WaitAsync();
             string leaseId = string.Empty;
             AzureBlobLease blobLease = new AzureBlobLease(feed.AccountName, feed.AccountKey, string.Empty, feed.ContainerName, uploadPath, Log, "60", "10");
+
+            bool isLeaseRequired = allowOverwrite && await feed.CheckIfBlobExists(uploadPath);
 
             if (isLeaseRequired)
             {
@@ -135,17 +129,26 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             }
             try
             {
-                Log.LogMessage($"Uploading {item} to {uploadPath}.");
-                UploadClient uploadClient = new UploadClient(Log);
-                await
-                    uploadClient.UploadBlockBlobAsync(
-                        ct,
-                        feed.AccountName,
-                        feed.AccountKey,
-                        feed.ContainerName,
-                        item,
-                        uploadPath,
-                        leaseId);
+                bool isExists = await feed.CheckIfBlobExists(uploadPath);
+                if (!isExists || allowOverwrite)
+                {
+                    Log.LogMessage($"Uploading {item} to {uploadPath}.");
+                    UploadClient uploadClient = new UploadClient(Log);
+                    await
+                        uploadClient.UploadBlockBlobAsync(
+                            ct,
+                            feed.AccountName,
+                            feed.AccountKey,
+                            feed.ContainerName,
+                            item,
+                            uploadPath,
+                            leaseId);
+
+                }
+                else
+                {
+                    Log.LogMessage($"Skipping uploading of {item} to {uploadPath}. Already exists.");
+                }
             }
             catch (Exception)
             {

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using MSBuild = Microsoft.Build.Utilities;
 using Microsoft.Build.Framework;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Microsoft.DotNet.Build.Tasks.Feed
 {
@@ -41,6 +42,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public async Task<bool> ExecuteAsync()
         {
+            Debugger.Launch();
             try
             {
                 Log.LogMessage(MessageImportance.High, "Performing feed push...");

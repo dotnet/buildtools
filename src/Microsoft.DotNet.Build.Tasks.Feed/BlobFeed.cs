@@ -86,13 +86,13 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     {
                         Log.LogMessage(
                             MessageImportance.Low,
-                            $"Container {ContainerName} exists for {AccountName}: Status Code:{response.StatusCode} Status Desc: {await response.Content.ReadAsStringAsync()}");
+                            $"Blob {blobPath} exists for {AccountName}: Status Code:{response.StatusCode} Status Desc: {await response.Content.ReadAsStringAsync()}");
                     }
                     else
                     {
                         Log.LogMessage(
                             MessageImportance.Low,
-                            $"Container {ContainerName} does not exist for {AccountName}: Status Code:{response.StatusCode} Status Desc: {await response.Content.ReadAsStringAsync()}");
+                            $"Blob {blobPath} does not exist for {AccountName}: Status Code:{response.StatusCode} Status Desc: {await response.Content.ReadAsStringAsync()}");
                     }
                     return response.IsSuccessStatusCode;
                 }
