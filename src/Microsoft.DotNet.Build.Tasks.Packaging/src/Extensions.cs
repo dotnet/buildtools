@@ -20,11 +20,20 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
     {
         private static readonly NuGetFramework NullFramework = new NuGetFramework("Null,Version=v1.0");
 
+        public static string GetString(this ITaskItem taskItem, string metadataName)
+        {
+            var metadataValue = taskItem.GetMetadata(metadataName)?.Trim();
+            return String.IsNullOrEmpty(metadataValue) ? null : metadataValue;
+        }
+
         public static bool GetBoolean(this ITaskItem taskItem, string metadataName, bool defaultValue = false)
         {
             bool result = false;
             var metadataValue = taskItem.GetMetadata(metadataName);
-            bool.TryParse(metadataValue, out result);
+            if (!bool.TryParse(metadataValue, out result))
+            {
+                result = defaultValue;
+            }
             return result;
         }
 
@@ -85,6 +94,17 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 return metadataValue.Split(';');
             }
             return null;
+        }
+
+        public static IEnumerable<string> GetStrings(this ITaskItem taskItem, string metadataName)
+        {
+            var metadataValue = taskItem.GetMetadata(metadataName)?.Trim();
+            if (!string.IsNullOrEmpty(metadataValue))
+            {
+                return metadataValue.Split(';').Where(v => !String.IsNullOrEmpty(v.Trim())).ToArray();
+            }
+
+            return Enumerable.Empty<string>();
         }
 
         public static IEnumerable<T> NullAsEmpty<T>(this IEnumerable<T> source)

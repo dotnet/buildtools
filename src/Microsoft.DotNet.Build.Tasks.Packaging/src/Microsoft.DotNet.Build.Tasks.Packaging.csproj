@@ -21,6 +21,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ApplyMetaPackages.cs" />
+    <Compile Include="GenerateRuntimeGraph.cs" />
     <Compile Include="GetSupportedPackagesFromPackageReports.cs" />
     <Compile Include="GetLayoutFiles.cs" />
     <Compile Include="FilterUnknownPackages.cs" />
