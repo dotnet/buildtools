@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
@@ -37,7 +38,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         ///     be omitted from the RuntimeGraph.  This is useful in cases where overlapping RuntimeGroups are used and one is 
         ///     designated to be "best" for some set of calculated RIDs, the others may omit the overlapping RIDs.
         /// </summary>
-        [Required]
         public ITaskItem[] RuntimeGroups
         {
             get;
@@ -75,8 +75,25 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// <summary>
         /// Where to write the final runtime.json
         /// </summary>
-        [Required]
         public ITaskItem RuntimeJson
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// When defined, specifies the file to write compatibility precedence for each RID in the graph.
+        /// </summary>
+        public ITaskItem CompatibilityMap
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// When defined, specifies the file to write a DGML representation of the runtime graph.
+        /// </summary>
+        public ITaskItem RuntimeDirectedGraph
         {
             get;
             set;
@@ -87,9 +104,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         public override bool Execute()
         {
 
-            if (RuntimeJson == null)
+            if (RuntimeGroups != null && RuntimeGroups.Any() && RuntimeJson == null)
             {
-                Log.LogError($"{nameof(RuntimeJson)} argument must be specified");
+                Log.LogError($"{nameof(RuntimeJson)} argument must be specified when {nameof(RuntimeGroups)} is specified.");
                 return false;
             }
 
@@ -123,7 +140,20 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             ValidateImports(runtimeGraph);
 
-            JsonRuntimeFormat.WriteRuntimeGraph(RuntimeJson.ItemSpec, runtimeGraph);
+            if (RuntimeJson != null)
+            {
+                JsonRuntimeFormat.WriteRuntimeGraph(RuntimeJson.ItemSpec, runtimeGraph);
+            }
+
+            if (CompatibilityMap != null)
+            {
+                WriteCompatibilityMap(runtimeGraph, CompatibilityMap.ItemSpec);
+            }
+
+            if (RuntimeDirectedGraph != null)
+            {
+                WriteRuntimeGraph(runtimeGraph, RuntimeDirectedGraph.ItemSpec);
+            }
 
             return !Log.HasLoggedErrors;
         }
@@ -336,6 +366,66 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 rids = rids.Where(rid => !OmitRIDs.Contains(rid.RuntimeIdentifier));
 
                 return new RuntimeGraph(rids);
+            }
+        }
+
+
+        private static void WriteCompatibilityMap(RuntimeGraph graph, string mapFile)
+        {
+            Dictionary<string, IEnumerable<string>> compatibilityMap = new Dictionary<string, IEnumerable<string>>();
+
+            foreach(var rid in graph.Runtimes.Keys.OrderBy(rid  => rid, StringComparer.Ordinal))
+            {
+                compatibilityMap.Add(rid, graph.ExpandRuntime(rid));
+            }
+
+            var serializer = new JsonSerializer()
+            {
+                Formatting = Formatting.Indented,
+                StringEscapeHandling = StringEscapeHandling.EscapeNonAscii
+            };
+
+            string directory = Path.GetDirectoryName(mapFile);
+            if (!String.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            using (var file = File.CreateText(mapFile))
+            {
+                serializer.Serialize(file, compatibilityMap);
+            }
+        }
+
+
+        private static XNamespace s_dgmlns = @"http://schemas.microsoft.com/vs/2009/dgml";
+        private static void WriteRuntimeGraph(RuntimeGraph graph, string dependencyGraphFilePath)
+        {
+
+            var doc = new XDocument(new XElement(s_dgmlns + "DirectedGraph"));
+            var nodesElement = new XElement(s_dgmlns + "Nodes");
+            var linksElement = new XElement(s_dgmlns + "Links");
+            doc.Root.Add(nodesElement);
+            doc.Root.Add(linksElement);
+
+            var nodeIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var runtimeDescription in graph.Runtimes.Values)
+            {
+                nodesElement.Add(new XElement(s_dgmlns + "Node",
+                    new XAttribute("Id", runtimeDescription.RuntimeIdentifier)));
+
+                foreach (var import in runtimeDescription.InheritedRuntimes)
+                {
+                    linksElement.Add(new XElement(s_dgmlns + "Link",
+                        new XAttribute("Source", runtimeDescription.RuntimeIdentifier),
+                        new XAttribute("Target", import)));
+                }
+            }
+
+            using (var file = File.Create(dependencyGraphFilePath))
+            {
+                doc.Save(file);
             }
         }
     }
