@@ -116,7 +116,5 @@ cp ${__TOOLRUNTIME_DIR}/runtimes/unix/lib/netstandard1.3/*.dll $__TOOLRUNTIME_DI
 __MNCA_FOLDER=$(dirname $__DOTNET_CMD)/shared/Microsoft.NETCore.App
 __HIGHEST_RUNTIME_VERSION=`ls $__MNCA_FOLDER | sed 'r/\([0-9]\+\).*/\1/g' | sort -n | tail -1`
 sed -i -e "s/1.1.0/$__HIGHEST_RUNTIME_VERSION/g" $__TOOLRUNTIME_DIR/*.runtimeconfig.json
-# MSBuild uses a different version of the runtime by default, so changing that one as well
-sed -i -e "s/2.0.0-preview1-001913-00/$__HIGHEST_RUNTIME_VERSION/g" $__TOOLRUNTIME_DIR/*.runtimeconfig.json
 
 exit 0
