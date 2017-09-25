@@ -22,24 +22,34 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
     public sealed class BlobFeed
     {
         private MSBuild.TaskLoggingHelper Log;
+
         public string AccountName { get; set; }
+
         public string AccountKey { get; set; }
+
         public string ContainerName { get; set; }
+
+        public string RelativePath { get; set; }
+
         public string IndexDirectory { get; set; }
+
+        bool IsPublic { get; set; }
 
         private static readonly CancellationTokenSource TokenSource = new CancellationTokenSource();
         private static readonly CancellationToken CancellationToken = TokenSource.Token;
 
-        public BlobFeed(string accountName, string accountKey, string containerName, string indexDirectory, MSBuild.TaskLoggingHelper loggingHelper)
+        public BlobFeed(string accountName, string accountKey, string containerName, string relativePath, string indexDirectory, MSBuild.TaskLoggingHelper loggingHelper, bool isPublic)
         {
             AccountName = accountName;
             AccountKey = accountKey;
             ContainerName = containerName;
             IndexDirectory = indexDirectory;
+            RelativePath = relativePath;
+            IsPublic = isPublic;
             Log = loggingHelper;
         }
 
-        public string FeedUrl
+        public string FeedContainerUrl
         {
             get
             {
@@ -49,7 +59,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public async Task<bool> CheckIfFeedExists()
         {
-            string url = $"{FeedUrl}?restype=container";
+            string url = $"{FeedContainerUrl}?restype=container";
             using (HttpClient client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Clear();
@@ -75,7 +85,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public async Task<bool> CheckIfBlobExists(string blobPath)
         {
-            string url = $"{FeedUrl}/{blobPath}?comp=metadata";
+            string url = $"{FeedContainerUrl}/{blobPath}?comp=metadata";
             using (HttpClient client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Clear();
@@ -194,7 +204,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 writer.WriteStartArray();
                 writer.WriteStartObject();
                 writer.WritePropertyName("@id");
-                writer.WriteRawValue($"\"{FeedUrl}/{redirectUrl}/\"");
+                writer.WriteRawValue($"\"{FeedContainerUrl}/{redirectUrl}/\"");
                 writer.WritePropertyName("@type");
                 writer.WriteRawValue("\"PackageBaseAddress/3.0.0\"");
                 writer.WritePropertyName("comment");
@@ -236,14 +246,18 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             return true;
         }
 
-        public async Task<bool> CreateFeedContainer(string relativePath)
+        public async Task<bool> CreateFeedContainer()
         {
             ValidateContainerName(ContainerName);
-            string url = $"{FeedUrl}?restype=container";
+            string url = $"{FeedContainerUrl}?restype=container";
             using (HttpClient client = new HttpClient())
             {
-                Tuple<string, string> headerBlobType = new Tuple<string, string>("x-ms-blob-public-access", "blob");
-                List<Tuple<string, string>> additionalHeaders = new List<Tuple<string, string>>() { headerBlobType };
+                List<Tuple<string, string>> additionalHeaders = null;
+                if (IsPublic)
+                {
+                    Tuple<string, string> headerBlobType = new Tuple<string, string>("x-ms-blob-public-access", "blob");
+                    additionalHeaders = new List<Tuple<string, string>>() { headerBlobType };
+                }
                 var createRequest = AzureHelper.RequestMessage("PUT", url, AccountName, AccountKey, additionalHeaders);
 
                 using (HttpResponseMessage response = await AzureHelper.RequestWithRetry(Log, client, createRequest))
@@ -261,8 +275,8 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     }
                 }
             }
-            string item = GenerateRootServiceIndex(relativePath);
-            string uploadPath = CalculateBlobPath(item, relativePath);
+            string item = GenerateRootServiceIndex(RelativePath);
+            string uploadPath = CalculateBlobPath(item, RelativePath);
             Log.LogMessage($"Uploading root index.json to {uploadPath}.");
             try
             {

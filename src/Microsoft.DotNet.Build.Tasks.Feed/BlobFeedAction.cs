@@ -11,6 +11,7 @@ using System.Threading;
 using System.IO;
 using Microsoft.DotNet.Build.CloudTestTasks;
 using NuGet.Versioning;
+using System.Text.RegularExpressions;
 
 namespace Microsoft.DotNet.Build.Tasks.Feed
 {
@@ -22,14 +23,31 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public BlobFeed feed;
         public int MaxClients { get; set; } = 8;
+        
+        const string feedRegex = @"(?<feedurl>https:\/\/(?<accountname>[^\.-]+)(?<domain>[^\/]*)\/((?<token>[a-zA-Z0-9+\/]*?\/\d{4}-\d{2}-\d{2})\/)?(?<containername>[^\/]+)\/(?<relativepath>.*)\/)index\.json";
 
-        public BlobFeedAction(string accountName, string accountKey, string containerName, string indexDirectory, MSBuild.TaskLoggingHelper Log)
+        public BlobFeedAction(string expectedFeedUrl, string accountKey, string indexDirectory, MSBuild.TaskLoggingHelper Log)
         {
-            this.feed = new BlobFeed(accountName, accountKey, containerName, string.IsNullOrWhiteSpace(indexDirectory) ? Path.GetTempPath() : indexDirectory, Log);
             this.Log = Log;
+            Match m = Regex.Match(expectedFeedUrl, feedRegex);
+
+            if (m.Success)
+            {
+                string accountName = m.Groups["accountname"].Value;
+                string containerName = m.Groups["containername"].Value;
+                string relativePath = m.Groups["relativepath"].Value;
+                string feedUrl = m.Groups["feedurl"].Value;
+
+                bool isPublic = string.IsNullOrWhiteSpace(m.Groups["token"].Value);
+                this.feed = new BlobFeed(accountName, accountKey, containerName, feedUrl, string.IsNullOrWhiteSpace(indexDirectory) ? Path.GetTempPath() : indexDirectory, Log, isPublic);
+            }
+            else
+            { 
+                throw new Exception("Unable to parse expected feed. Please check ExpectedFeedUrl.");
+            }
         }
 
-        public async Task<bool> PushToFeed(IEnumerable<string> items, string relativePath, bool allowOverwrite = false)
+        public async Task<bool> PushToFeed(IEnumerable<string> items, bool allowOverwrite = false)
         {
             if (feed.IsSanityChecked(items))
             {
@@ -41,14 +59,14 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
                 using (var clientThrottle = new SemaphoreSlim(this.MaxClients, this.MaxClients))
                 {
-                    await Task.WhenAll(items.Select(item => PushItemToFeed(item, relativePath, clientThrottle, allowOverwrite)));
+                    await Task.WhenAll(items.Select(item => PushItemToFeed(item, feed.RelativePath, clientThrottle, allowOverwrite)));
                 }
             }
 
             return !Log.HasLoggedErrors;
         }
 
-        public async Task<bool> PushToFeedFlat(IEnumerable<string> items, string relativePath, bool allowOverwrite = false)
+        public async Task<bool> PushToFeedFlat(IEnumerable<string> items, bool allowOverwrite = false)
         {
             if (CancellationToken.IsCancellationRequested)
             {
@@ -58,7 +76,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
             using (var clientThrottle = new SemaphoreSlim(this.MaxClients, this.MaxClients))
             {
-                await Task.WhenAll(items.Select(item => PushItemToFeed(item, relativePath, clientThrottle, allowOverwrite)));
+                await Task.WhenAll(items.Select(item => PushItemToFeed(item, feed.RelativePath, clientThrottle, allowOverwrite)));
             }
             return !Log.HasLoggedErrors;
         }

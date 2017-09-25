@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using MSBuild = Microsoft.Build.Utilities;
 using Microsoft.Build.Framework;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace Microsoft.DotNet.Build.Tasks.Feed
 {
@@ -15,19 +14,13 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
     public class PushToBlobFeed : MSBuild.Task
     {
         [Required]
-        public string AccountName { get; set; }
+        public string ExpectedFeedUrl { get; set; }
 
         [Required]
         public string AccountKey { get; set; }
 
         [Required]
-        public string ContainerName { get; set; }
-
-        [Required]
         public ITaskItem[] ItemsToPush { get; set; }
-
-        [Required]
-        public string RelativePath { get; set; }
 
         public string IndexDirectory { get; set; }
 
@@ -42,7 +35,6 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public async Task<bool> ExecuteAsync()
         {
-            Debugger.Launch();
             try
             {
                 Log.LogMessage(MessageImportance.High, "Performing feed push...");
@@ -50,30 +42,26 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 {
                     Log.LogError($"No items to push. Please check ItemGroup ItemsToPush.");
                 }
-                if (string.IsNullOrEmpty(RelativePath))
-                {
-                    Log.LogWarning($"No relative path. Items are pushed to root of container.");
-                }
-                BlobFeedAction blobFeedAction = new BlobFeedAction(AccountName, AccountKey, ContainerName, IndexDirectory, Log);
+                BlobFeedAction blobFeedAction = new BlobFeedAction(ExpectedFeedUrl, AccountKey, IndexDirectory, Log);
                 bool containerExists = await blobFeedAction.feed.CheckIfFeedExists();
                 if (!containerExists)
                 {
-                    await blobFeedAction.feed.CreateFeedContainer(RelativePath);
+                    await blobFeedAction.feed.CreateFeedContainer();
                 }
                 if (!PublishFlatContainer)
                 {
                     if (!containerExists)
                     {
-                        await blobFeedAction.PushToFeed(ConvertToStringLists(ItemsToPush), RelativePath);
+                        await blobFeedAction.PushToFeed(ConvertToStringLists(ItemsToPush));
                     }
                     else
                     {
-                        await blobFeedAction.PushToFeed(ConvertToStringLists(ItemsToPush), RelativePath, Overwrite);
+                        await blobFeedAction.PushToFeed(ConvertToStringLists(ItemsToPush), Overwrite);
                     }
                 }
                 else
                 {
-                    await blobFeedAction.PushToFeedFlat(ConvertToStringLists(ItemsToPush), RelativePath, Overwrite);
+                    await blobFeedAction.PushToFeedFlat(ConvertToStringLists(ItemsToPush), Overwrite);
                 }
             }
             catch (Exception e)
