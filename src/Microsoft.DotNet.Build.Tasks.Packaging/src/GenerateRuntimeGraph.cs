@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Xml.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks.Packaging
@@ -34,9 +35,15 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         ///   AdditionalQualifiers: A list of strings delimited by semi-colons that represent the additional qualifiers for this RID.
         ///     Additional qualifers do not stack, each only applies to the qualifier-less RIDs (so as not to cause combinatorial 
         ///     exponential growth of RIDs).
+        ///
+        ///   *Use at your own risk*
         ///   OmitRIDs: A list of strings delimited by semi-colons that represent RIDs calculated from this RuntimeGroup that should
-        ///     be omitted from the RuntimeGraph.  This is useful in cases where overlapping RuntimeGroups are used and one is 
-        ///     designated to be "best" for some set of calculated RIDs, the others may omit the overlapping RIDs.
+        ///     be omitted from the RuntimeGraph.  These RIDs will not be referenced nor defined.
+        ///   OmitRIDDefinitions: A list of strings delimited by semi-colons that represent RIDs calculated from this RuntimeGroup 
+        ///     that should be omitted from the RuntimeGraph.  These RIDs will not be defined by this runtimegroup, but will be 
+        ///     refereenced: usefull in case some other RuntimeGroup (or runtime.json template) defines them.
+        ///   OmitRIDReferences: A list of strings delimited by semi-colons that represent RIDs calculated from this RuntimeGroup 
+        ///     that should be omitted from the RuntimeGraph.  These RIDs will be defined but not referenced by this runtimeGroup.
         /// </summary>
         public ITaskItem[] RuntimeGroups
         {
@@ -45,28 +52,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         }
 
         /// <summary>
-        /// A set of QualifierPolicies that can be used to define the ordering of qualifer-specific RIDs in imports.
-        ///   Identity: the qualifier name.  This should match what is used in RuntimeGroups.AdditionalQualifiers
-        ///   VersionPrecedence: default is false.  When set to true, a qualifier-specific RID should import the 
-        ///     qualifier-less RID before any other RIDs that are not of the same version.  When false, the qualifier-
-        ///     less RID should be imported after all qualifier specific RIDs.
-        ///     
-        ///     Given the RID of  foo.1.0-x64 : [ foo.1.0, foo.0.8-x64 ]
-        ///     Applying the qualifier "bar" the following is the result for each value of VersionPrecedence:
-        ///       True: foo.1.0-x64-bar : [ foo.1.0-bar, foo.1.0-x64, foo.0.8-x64-bar ]
-        ///       False: foo.1.0-x64-bar : [ foo.1.0-bar, foo.0.8-x64-bar, foo.1.0-x64 ]
-        /// </summary>
-        public ITaskItem[] QualifierPolicies
-        {
-            get;
-            set;
-        }
-
-
-        /// <summary>
         /// Optional source Runtime.json to use as a starting point when merging additional RuntimeGroups
         /// </summary>
-        public ITaskItem SourceRuntimeJson
+        public string SourceRuntimeJson
         {
             get;
             set;
@@ -75,7 +63,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// <summary>
         /// Where to write the final runtime.json
         /// </summary>
-        public ITaskItem RuntimeJson
+        public string RuntimeJson
         {
             get;
             set;
@@ -84,7 +72,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// <summary>
         /// When defined, specifies the file to write compatibility precedence for each RID in the graph.
         /// </summary>
-        public ITaskItem CompatibilityMap
+        public string CompatibilityMap
         {
             get;
             set;
@@ -93,17 +81,14 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         /// <summary>
         /// When defined, specifies the file to write a DGML representation of the runtime graph.
         /// </summary>
-        public ITaskItem RuntimeDirectedGraph
+        public string RuntimeDirectedGraph
         {
             get;
             set;
         }
 
-        private Dictionary<string, QualifierPolicy> qualifierPolicies = new Dictionary<string, QualifierPolicy>();
-
         public override bool Execute()
         {
-
             if (RuntimeGroups != null && RuntimeGroups.Any() && RuntimeJson == null)
             {
                 Log.LogError($"{nameof(RuntimeJson)} argument must be specified when {nameof(RuntimeGroups)} is specified.");
@@ -111,26 +96,19 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
 
             RuntimeGraph runtimeGraph;
-            if (SourceRuntimeJson != null)
+            if (!String.IsNullOrEmpty(SourceRuntimeJson))
             {
-                var sourceRuntimeFilePath = SourceRuntimeJson.GetMetadata("FullPath");
-
-                if (!File.Exists(sourceRuntimeFilePath))
+                if (!File.Exists(SourceRuntimeJson))
                 {
-                    Log.LogError($"{nameof(SourceRuntimeJson)} did not exist at {sourceRuntimeFilePath}.");
+                    Log.LogError($"{nameof(SourceRuntimeJson)} did not exist at {SourceRuntimeJson}.");
                     return false;
                 }
 
-                runtimeGraph = JsonRuntimeFormat.ReadRuntimeGraph(sourceRuntimeFilePath);
+                runtimeGraph = JsonRuntimeFormat.ReadRuntimeGraph(SourceRuntimeJson);
             }
             else
             {
                 runtimeGraph = new RuntimeGraph();
-            }
-
-            foreach(var qualifierPolicy in QualifierPolicies.NullAsEmpty().Select(i => new QualifierPolicy(i)))
-            {
-                qualifierPolicies[qualifierPolicy.Qualifier] = qualifierPolicy;
             }
             
             foreach(var runtimeGroup in RuntimeGroups.NullAsEmpty().Select(i => new RuntimeGroup(i)))
@@ -140,19 +118,19 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             ValidateImports(runtimeGraph);
 
-            if (RuntimeJson != null)
+            if (!String.IsNullOrEmpty(RuntimeJson))
             {
-                JsonRuntimeFormat.WriteRuntimeGraph(RuntimeJson.ItemSpec, runtimeGraph);
+                JsonRuntimeFormat.WriteRuntimeGraph(RuntimeJson, runtimeGraph);
             }
 
-            if (CompatibilityMap != null)
+            if (!String.IsNullOrEmpty(CompatibilityMap))
             {
-                WriteCompatibilityMap(runtimeGraph, CompatibilityMap.ItemSpec);
+                WriteCompatibilityMap(runtimeGraph, CompatibilityMap);
             }
 
-            if (RuntimeDirectedGraph != null)
+            if (!String.IsNullOrEmpty(RuntimeDirectedGraph))
             {
-                WriteRuntimeGraph(runtimeGraph, RuntimeDirectedGraph.ItemSpec);
+                WriteRuntimeGraph(runtimeGraph, RuntimeDirectedGraph);
             }
 
             return !Log.HasLoggedErrors;
@@ -161,7 +139,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
         private RuntimeGraph SafeMerge(RuntimeGraph existingGraph, RuntimeGroup runtimeGroup)
         {
-            var runtimeGraph = runtimeGroup.GetRuntimeGraph(qualifierPolicies);
+            var runtimeGraph = runtimeGroup.GetRuntimeGraph();
 
             foreach (var existingRuntimeDescription in existingGraph.Runtimes.Values)
             {
@@ -194,18 +172,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
         }
 
-        class QualifierPolicy
-        {
-            public QualifierPolicy(ITaskItem item)
-            {
-                Qualifier = item.ItemSpec;
-                VersionPrecedence = item.GetBoolean(nameof(VersionPrecedence));
-            }
-
-            public string Qualifier { get; }
-            public bool VersionPrecedence { get; }
-        }
-
         class RuntimeGroup
         {
             private const string rootRID = "any";
@@ -224,6 +190,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 Architectures = item.GetStrings(nameof(Architectures));
                 AdditionalQualifiers = item.GetStrings(nameof(AdditionalQualifiers));
                 OmitRIDs = new HashSet<string>(item.GetStrings(nameof(OmitRIDs)));
+                OmitRIDs = new HashSet<string>(item.GetStrings(nameof(OmitRIDDefinitions)));
+                OmitRIDs = new HashSet<string>(item.GetStrings(nameof(OmitRIDReferences)));
             }
 
             public string BaseRID { get; }
@@ -235,137 +203,276 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             public IEnumerable<string> Architectures { get; }
             public IEnumerable<string> AdditionalQualifiers { get; }
             public ICollection<string> OmitRIDs { get; }
+            public ICollection<string> OmitRIDDefinitions { get; }
+            public ICollection<string> OmitRIDReferences { get; }
 
-            public IEnumerable<RuntimeDescription> GetRuntimeDescriptions()
+            private class RIDMapping
             {
-                // define the base as importing the parent
-                yield return new RuntimeDescription(BaseRID, Parent == null ? Enumerable.Empty<string>() : new[] { Parent });
-
-                // define each arch as importing base and parent-arch
-                foreach(var architecture in Architectures)
+                public RIDMapping(RID runtimeIdentifier)
                 {
-                    var imports = new List<string>();
-                    imports.Add(BaseRID);
-
-                    if (Parent != null && Parent != rootRID)
-                    {
-                        imports.Add($"{Parent}-{architecture}");
-                    }
-
-                    yield return new RuntimeDescription($"{BaseRID}-{architecture}", imports);
+                    RuntimeIdentifier = runtimeIdentifier;
+                    Imports = Enumerable.Empty<RID>();
                 }
 
-                var versionDelimiter = OmitVersionDelimiter ? String.Empty : VersionDelimiter.ToString();
+                public RIDMapping(RID runtimeIdentifier, IEnumerable<RID> imports)
+                {
+                    RuntimeIdentifier = runtimeIdentifier;
+                    Imports = imports;
+                }
+
+                public RID RuntimeIdentifier { get; }
+
+                public IEnumerable<RID> Imports { get; }
+            }
+
+            private class RID
+            {
+                public string BaseRID { get; set; }
+                public string VersionDelimiter { get; set; }
+                public string Version { get; set; }
+                public string ArchitectureDelimiter { get; set; }
+                public string Architecture { get; set; }
+                public string QualifierDelimiter { get; set; }
+                public string Qualifier { get; set; }
+
+                public override string ToString()
+                {
+                    StringBuilder builder = new StringBuilder(BaseRID);
+
+                    if (HasVersion())
+                    {
+                        builder.Append(VersionDelimiter);
+                        builder.Append(Version);
+                    }
+
+                    if (HasArchitecture())
+                    {
+                        builder.Append(ArchitectureDelimiter);
+                        builder.Append(Architecture);
+                    }
+
+                    if (HasQualifier())
+                    {
+                        builder.Append(QualifierDelimiter);
+                        builder.Append(Qualifier);
+                    }
+
+                    return builder.ToString();
+                }
+
+                public bool HasVersion()
+                {
+                    return Version != null;
+                }
+
+                public bool HasArchitecture()
+                {
+                    return Architecture != null;
+                }
+
+                public bool HasQualifier()
+                {
+                    return Qualifier != null;
+                }
+            }
+
+            private RID CreateRuntime(string baseRid, string version = null, string architecture = null, string qualifier = null)
+            {
+                return new RID()
+                {
+                    BaseRID = baseRid,
+                    VersionDelimiter = OmitVersionDelimiter ? String.Empty : VersionDelimiter.ToString(),
+                    Version = version,
+                    ArchitectureDelimiter = ArchitectureDelimiter.ToString(),
+                    Architecture = architecture,
+                    QualifierDelimiter = QualifierDelimiter.ToString(),
+                    Qualifier = qualifier
+                };
+            }
+
+            private IEnumerable<RIDMapping> GetRIDMappings()
+            {
+                // base =>
+                //      Parent
+                yield return Parent == null ? 
+                    new RIDMapping(CreateRuntime(BaseRID)) :
+                    new RIDMapping(CreateRuntime(BaseRID), new[] { CreateRuntime(Parent) });
+                
+                foreach(var architecture in Architectures)
+                {
+                    // base + arch =>
+                    //      base,
+                    //      parent + arch
+                    var imports = new List<RID>()
+                    {
+                        CreateRuntime(BaseRID)
+                    };
+
+                    if (!IsNullOrRoot(Parent))
+                    {
+                        imports.Add(CreateRuntime(Parent, architecture: architecture));
+                    }
+
+                    yield return new RIDMapping(CreateRuntime(BaseRID, architecture: architecture), imports);
+                }
+
                 string lastVersion = null;
                 foreach (var version in Versions)
                 {
-                    var imports = new List<string>();
-
-                    // define each version as importing the version-less base or previous version
-                    if ((lastVersion == null) || !TreatVersionsAsCompatible)
+                    // base + version =>
+                    //      base + lastVersion,
+                    //      parent + version (optionally)
+                    var imports = new List<RID>()
                     {
-                        imports.Add(BaseRID);
-                    }
-                    else
-                    {
-                        imports.Add($"{BaseRID}{versionDelimiter}{lastVersion}");
-                    }
+                        CreateRuntime(BaseRID, version: lastVersion)
+                    };
 
                     if (ApplyVersionsToParent)
                     {
-                        imports.Add($"{Parent}{versionDelimiter}{version}");
+                        imports.Add(CreateRuntime(Parent, version: version));
                     }
 
-                    yield return new RuntimeDescription($"{BaseRID}{versionDelimiter}{version}", imports);
+                    yield return new RIDMapping(CreateRuntime(BaseRID, version: version), imports);
 
                     foreach (var architecture in Architectures)
                     {
-                        // define each arch-specific version as importing the versioned base and either a previous version arch-specific RID or the base arch-specific RID
-                        var archImports = new List<string>();
-
-                        archImports.Add($"{BaseRID}{versionDelimiter}{version}");
-
-                        if ((lastVersion == null) || !TreatVersionsAsCompatible)
+                        // base + version + architecture =>
+                        //      base + version,
+                        //      base + lastVersion + architecture,
+                        //      parent + version + architecture (optionally)
+                        var archImports = new List<RID>()
                         {
-                            archImports.Add($"{BaseRID}{ArchitectureDelimiter}{architecture}");
-                        }
-                        else
-                        {
-                            archImports.Add($"{BaseRID}{versionDelimiter}{lastVersion}{ArchitectureDelimiter}{architecture}");
-                        }
+                            CreateRuntime(BaseRID, version: version),
+                            CreateRuntime(BaseRID, version: lastVersion, architecture: architecture)
+                        };
 
                         if (ApplyVersionsToParent)
                         {
-                            archImports.Add($"{Parent}{versionDelimiter}{version}{ArchitectureDelimiter}{architecture}");
+                            archImports.Add(CreateRuntime(Parent, version: version, architecture: architecture));
                         }
 
-
-                        yield return new RuntimeDescription($"{BaseRID}{versionDelimiter}{version}{ArchitectureDelimiter}{architecture}", archImports);
+                        yield return new RIDMapping(CreateRuntime(BaseRID, version: version, architecture: architecture), archImports);
                     }
 
-                    lastVersion = version;
-                }
-            }
-
-            private IEnumerable<RuntimeDescription> AddQualifiers(IEnumerable<RuntimeDescription> unQualifiedruntimeDescriptions, Dictionary<string, QualifierPolicy> qualifierPolicies)
-            {
-                foreach(var runtimeDescription in unQualifiedruntimeDescriptions)
-                {
-                    yield return runtimeDescription;
-
-                    foreach(var qualifier in AdditionalQualifiers)
+                    if (TreatVersionsAsCompatible)
                     {
-                        var imports = new List<string>(runtimeDescription.InheritedRuntimes
-                                            .NullAsEmpty()
-                                            .Select(rid => rid == null || rid == rootRID ? qualifier : $"{rid}-{qualifier}"));
+                        lastVersion = version;
+                    }
+                }
 
-
-                        QualifierPolicy qualifierPolicy = null;
-
-                        if (qualifierPolicies.TryGetValue(qualifier, out qualifierPolicy) && qualifierPolicy.VersionPrecedence)
+                foreach(var qualifier in AdditionalQualifiers)
+                {
+                    // base + qual =>
+                    //      base,
+                    //      parent + qual
+                    yield return new RIDMapping(CreateRuntime(BaseRID, qualifier: qualifier),
+                        new[]
                         {
-                            var versionedRid = runtimeDescription.RuntimeIdentifier;
+                            CreateRuntime(BaseRID),
+                            IsNullOrRoot(Parent) ? CreateRuntime(qualifier) : CreateRuntime(Parent, qualifier:qualifier)
+                        });
 
-                            var archIndex = versionedRid.IndexOf('-');
+                    foreach(var architecture in Architectures)
+                    {
+                        // base + arch + qualifier =>
+                        //      base + qualifier,
+                        //      base + arch
+                        //      parent + arch + qualifier
+                        var imports = new List<RID>()
+                        {
+                            CreateRuntime(BaseRID, qualifier: qualifier),
+                            CreateRuntime(BaseRID, architecture: architecture)
+                        };
 
-                            if (archIndex != -1)
+                        if (!IsNullOrRoot(Parent))
+                        {
+                            imports.Add(CreateRuntime(Parent, architecture: architecture, qualifier: qualifier));
+                        }
+
+                        yield return new RIDMapping(CreateRuntime(BaseRID, architecture: architecture, qualifier:qualifier), imports);
+                    }
+
+                    lastVersion = null;
+                    foreach (var version in Versions)
+                    {
+                        // base + version + qualifier =>
+                        //      base + version,
+                        //      base + lastVersion + qualifier
+                        //      parent + version + qualifier (optionally)
+                        var imports = new List<RID>()
+                        {
+                            CreateRuntime(BaseRID, version: version),
+                            CreateRuntime(BaseRID, version: lastVersion, qualifier: qualifier)
+                        };
+
+                        if (ApplyVersionsToParent)
+                        {
+                            imports.Add(CreateRuntime(Parent, version: version, qualifier: qualifier));
+                        }
+
+                        yield return new RIDMapping(CreateRuntime(BaseRID, version: version, qualifier: qualifier), imports);
+
+                        foreach (var architecture in Architectures)
+                        {
+                            // base + version + architecture + qualifier =>
+                            //      base + version + qualifier, 
+                            //      base + version + architecture, 
+                            //      base + version
+                            //      base + lastVersion + architecture + qualifier
+                            //      parent + version + architecture + qualifier (optionally)
+                            var archImports = new List<RID>()
                             {
-                                versionedRid = versionedRid.Substring(0, archIndex);
+                                CreateRuntime(BaseRID, version: version, qualifier: qualifier),
+                                CreateRuntime(BaseRID, version: version, architecture: architecture),
+                                CreateRuntime(BaseRID, version: version),
+                                CreateRuntime(BaseRID, version: lastVersion, architecture: architecture, qualifier: qualifier)
+                            };
+
+                            if (ApplyVersionsToParent)
+                            {
+                                imports.Add(CreateRuntime(Parent, version: version, architecture: architecture, qualifier: qualifier));
                             }
 
-                            int insertAt = 0;
-
-
-                            while (insertAt < imports.Count && imports[insertAt].StartsWith(versionedRid))
-                            {
-                                insertAt++;
-                            }
-
-                            imports.Insert(insertAt, runtimeDescription.RuntimeIdentifier);
+                            yield return new RIDMapping(CreateRuntime(BaseRID, version: version, architecture:architecture, qualifier: qualifier), archImports);
                         }
-                        else
+
+                        if (TreatVersionsAsCompatible)
                         {
-                            imports.Add(runtimeDescription.RuntimeIdentifier);
+                            lastVersion = version;
                         }
-
-
-                        yield return new RuntimeDescription($"{runtimeDescription.RuntimeIdentifier}{QualifierDelimiter}{qualifier}", imports);
-                        
                     }
                 }
             }
 
-            public RuntimeGraph GetRuntimeGraph(Dictionary<string, QualifierPolicy> qualifierPolicies)
+            private bool IsNullOrRoot(string rid)
             {
-                var rids = GetRuntimeDescriptions();
+                return rid == null || rid == rootRID;
+            }
 
-                rids = rids.Where(rid => !OmitRIDs.Contains(rid.RuntimeIdentifier));
 
-                rids = AddQualifiers(rids, qualifierPolicies);
+            public IEnumerable<RuntimeDescription> GetRuntimeDescriptions()
+            {
+                foreach(var mapping in GetRIDMappings())
+                {
+                    var rid = mapping.RuntimeIdentifier.ToString();
 
-                rids = rids.Where(rid => !OmitRIDs.Contains(rid.RuntimeIdentifier));
+                    if (OmitRIDs.Contains(rid) || OmitRIDDefinitions.Contains(rid))
+                    {
+                        continue;
+                    }
 
-                return new RuntimeGraph(rids);
+                    var imports = mapping.Imports
+                           .Select(i => i.ToString())
+                           .Where(i => !OmitRIDs.Contains(i) && !OmitRIDReferences.Contains(i))
+                           .ToArray();
+
+                    yield return new RuntimeDescription(rid, imports);
+                }
+            }
+
+            public RuntimeGraph GetRuntimeGraph()
+            {
+                return new RuntimeGraph(GetRuntimeDescriptions());
             }
         }
 
