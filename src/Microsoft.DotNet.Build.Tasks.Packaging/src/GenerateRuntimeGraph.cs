@@ -36,14 +36,18 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         ///     Additional qualifers do not stack, each only applies to the qualifier-less RIDs (so as not to cause combinatorial 
         ///     exponential growth of RIDs).
         ///
-        ///   *Use at your own risk*
+        /// The following options can be used under special circumstances but break the normal precedence rules we try to establish
+        /// by generating the RID graph from common logic. These options make it possible to create a RID fallback chain that doesn't 
+        /// match the rest of the RIDs and therefore is hard for developers/package authors to reason about. 
+        /// Only use these options for cases where you know what you are doing and have carefully reviewed the resulting RID fallbacks
+        /// using the CompatibliltyMap.
         ///   OmitRIDs: A list of strings delimited by semi-colons that represent RIDs calculated from this RuntimeGroup that should
         ///     be omitted from the RuntimeGraph.  These RIDs will not be referenced nor defined.
         ///   OmitRIDDefinitions: A list of strings delimited by semi-colons that represent RIDs calculated from this RuntimeGroup 
-        ///     that should be omitted from the RuntimeGraph.  These RIDs will not be defined by this runtimegroup, but will be 
-        ///     refereenced: usefull in case some other RuntimeGroup (or runtime.json template) defines them.
+        ///     that should be omitted from the RuntimeGraph.  These RIDs will not be defined by this RuntimeGroup, but will be 
+        ///     referenced: useful in case some other RuntimeGroup (or runtime.json template) defines them.
         ///   OmitRIDReferences: A list of strings delimited by semi-colons that represent RIDs calculated from this RuntimeGroup 
-        ///     that should be omitted from the RuntimeGraph.  These RIDs will be defined but not referenced by this runtimeGroup.
+        ///     that should be omitted from the RuntimeGraph.  These RIDs will be defined but not referenced by this RuntimeGroup.
         /// </summary>
         public ITaskItem[] RuntimeGroups
         {
@@ -110,8 +114,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             {
                 runtimeGraph = new RuntimeGraph();
             }
-            
-            foreach(var runtimeGroup in RuntimeGroups.NullAsEmpty().Select(i => new RuntimeGroup(i)))
+
+            foreach (var runtimeGroup in RuntimeGroups.NullAsEmpty().Select(i => new RuntimeGroup(i)))
             {
                 runtimeGraph = SafeMerge(runtimeGraph, runtimeGroup);
             }
@@ -150,7 +154,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     // overlapping RID, ensure that the imports match (same ordering and content)
                     if (!existingRuntimeDescription.InheritedRuntimes.SequenceEqual(newRuntimeDescription.InheritedRuntimes))
                     {
-                        Log.LogError($"RuntimeGroup {runtimeGroup.BaseRID} defines RID {newRuntimeDescription.RuntimeIdentifier} with imports {String.Join(";", newRuntimeDescription.InheritedRuntimes)} which differ from existing imports {String.Join(";", existingRuntimeDescription.InheritedRuntimes)}.  You may avoid this by specifying OmitRIDs metadata with {newRuntimeDescription.RuntimeIdentifier}.");
+                        Log.LogError($"RuntimeGroup {runtimeGroup.BaseRID} defines RID {newRuntimeDescription.RuntimeIdentifier} with imports {String.Join(";", newRuntimeDescription.InheritedRuntimes)} which differ from existing imports {String.Join(";", existingRuntimeDescription.InheritedRuntimes)}.  You may avoid this by specifying {nameof(RuntimeGroup.OmitRIDDefinitions)} metadata with {newRuntimeDescription.RuntimeIdentifier}.");
                     }
                 }
             }
@@ -160,9 +164,9 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
         private void ValidateImports(RuntimeGraph runtimeGraph)
         {
-            foreach(var runtimeDescription in runtimeGraph.Runtimes.Values)
+            foreach (var runtimeDescription in runtimeGraph.Runtimes.Values)
             {
-                foreach(var import in runtimeDescription.InheritedRuntimes)
+                foreach (var import in runtimeDescription.InheritedRuntimes)
                 {
                     if (!runtimeGraph.Runtimes.ContainsKey(import))
                     {
@@ -190,8 +194,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 Architectures = item.GetStrings(nameof(Architectures));
                 AdditionalQualifiers = item.GetStrings(nameof(AdditionalQualifiers));
                 OmitRIDs = new HashSet<string>(item.GetStrings(nameof(OmitRIDs)));
-                OmitRIDs = new HashSet<string>(item.GetStrings(nameof(OmitRIDDefinitions)));
-                OmitRIDs = new HashSet<string>(item.GetStrings(nameof(OmitRIDReferences)));
+                OmitRIDDefinitions = new HashSet<string>(item.GetStrings(nameof(OmitRIDDefinitions)));
+                OmitRIDReferences = new HashSet<string>(item.GetStrings(nameof(OmitRIDReferences)));
             }
 
             public string BaseRID { get; }
@@ -294,11 +298,11 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             {
                 // base =>
                 //      Parent
-                yield return Parent == null ? 
+                yield return Parent == null ?
                     new RIDMapping(CreateRuntime(BaseRID)) :
                     new RIDMapping(CreateRuntime(BaseRID), new[] { CreateRuntime(Parent) });
-                
-                foreach(var architecture in Architectures)
+
+                foreach (var architecture in Architectures)
                 {
                     // base + arch =>
                     //      base,
@@ -360,7 +364,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     }
                 }
 
-                foreach(var qualifier in AdditionalQualifiers)
+                foreach (var qualifier in AdditionalQualifiers)
                 {
                     // base + qual =>
                     //      base,
@@ -372,7 +376,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                             IsNullOrRoot(Parent) ? CreateRuntime(qualifier) : CreateRuntime(Parent, qualifier:qualifier)
                         });
 
-                    foreach(var architecture in Architectures)
+                    foreach (var architecture in Architectures)
                     {
                         // base + arch + qualifier =>
                         //      base + qualifier,
@@ -389,7 +393,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                             imports.Add(CreateRuntime(Parent, architecture: architecture, qualifier: qualifier));
                         }
 
-                        yield return new RIDMapping(CreateRuntime(BaseRID, architecture: architecture, qualifier:qualifier), imports);
+                        yield return new RIDMapping(CreateRuntime(BaseRID, architecture: architecture, qualifier: qualifier), imports);
                     }
 
                     lastVersion = null;
@@ -417,8 +421,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                             // base + version + architecture + qualifier =>
                             //      base + version + qualifier, 
                             //      base + version + architecture, 
-                            //      base + version
-                            //      base + lastVersion + architecture + qualifier
+                            //      base + version,
+                            //      base + lastVersion + architecture + qualifier,
                             //      parent + version + architecture + qualifier (optionally)
                             var archImports = new List<RID>()
                             {
@@ -433,7 +437,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                                 imports.Add(CreateRuntime(Parent, version: version, architecture: architecture, qualifier: qualifier));
                             }
 
-                            yield return new RIDMapping(CreateRuntime(BaseRID, version: version, architecture:architecture, qualifier: qualifier), archImports);
+                            yield return new RIDMapping(CreateRuntime(BaseRID, version: version, architecture: architecture, qualifier: qualifier), archImports);
                         }
 
                         if (TreatVersionsAsCompatible)
@@ -452,7 +456,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             public IEnumerable<RuntimeDescription> GetRuntimeDescriptions()
             {
-                foreach(var mapping in GetRIDMappings())
+                foreach (var mapping in GetRIDMappings())
                 {
                     var rid = mapping.RuntimeIdentifier.ToString();
 
@@ -481,7 +485,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         {
             Dictionary<string, IEnumerable<string>> compatibilityMap = new Dictionary<string, IEnumerable<string>>();
 
-            foreach(var rid in graph.Runtimes.Keys.OrderBy(rid  => rid, StringComparer.Ordinal))
+            foreach (var rid in graph.Runtimes.Keys.OrderBy(rid => rid, StringComparer.Ordinal))
             {
                 compatibilityMap.Add(rid, graph.ExpandRuntime(rid));
             }
