@@ -52,7 +52,7 @@
 
   <Import Project="$(MSBuildThisFileDirectory)BuildVersion.targets" />
 
-  <Import Project="$(MSBuildThisFileDirectory)Roslyn.Common.props" />
+  <Import Project="$(MSBuildThisFileDirectory)Roslyn.Common.props" Condition="'$(DisableBuildToolsRoslynVersion)' != 'true'" />
 
   <!-- Restore commands -->
   <PropertyGroup>
