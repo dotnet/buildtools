@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal EnableDelayedExpansion 
 
 :: Note: We've disabled node reuse because it causes file locking issues.
 ::       The issue is that we extend the build with our own targets which
@@ -22,6 +22,29 @@ if not defined VisualStudioVersion (
     exit /b 1
 )
 
+REM Process arguments passed in to build.cmd
+set "__args= %*"
+set __ConfigurationGroup=Debug
+set processedArgs=
+set __Platform=AnyCPU
+:Arg_Loop
+if "%1" == "" goto ArgsDone
+
+if /i "%1" == "-release"                 (set __ConfigurationGroup=Release&set processedArgs=!processedArgs! %1&shift&goto Arg_Loop)
+if /i "%1" == "-debug"                 (set __ConfigurationGroup=Debug&set processedArgs=!processedArgs! %1&shift&goto Arg_Loop)
+if /i "%1" == "-platform"                 (set __Platform=%2&set processedArgs=!processedArgs! %1 %2&shift&shift&goto Arg_Loop)
+if /i "%1" == "--"                 (set processedArgs=!processedArgs! %1&shift&goto Arg_Loop)
+
+if [!processedArgs!]==[] (
+  set __UnprocessedBuildArgs=%__args%
+) else (
+  set __UnprocessedBuildArgs=%__args%
+  for %%t in (!processedArgs!) do (
+    set __UnprocessedBuildArgs=!__UnprocessedBuildArgs:*%%t=!
+  )
+)
+:ArgsDone
+
 :EnvSet
 
 call %~dp0init-tools.cmd
@@ -41,7 +64,7 @@ call :build %*
 goto :AfterBuild
 
 :build
-%_buildprefix% msbuild "%_buildproj%" /nologo /maxcpucount /verbosity:minimal /nodeReuse:false /fileloggerparameters:Verbosity=normal;LogFile="%_buildlog%";Append %* %_buildpostfix%
+%_buildprefix% msbuild "%_buildproj%" /nologo /maxcpucount /verbosity:minimal /nodeReuse:false /fileloggerparameters:Verbosity=normal;LogFile="%_buildlog%";Append /p:ConfigurationGroup=%__ConfigurationGroup% /p:Platform=%__Platform% !__UnprocessedBuildArgs! %_buildpostfix%
 set BUILDERRORLEVEL=%ERRORLEVEL%
 goto :eof
 
