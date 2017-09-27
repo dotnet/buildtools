@@ -14,8 +14,8 @@
   </ItemGroup>
 
   <!-- Tasks to update the dotnet/versions repository. -->
-  <UsingTask TaskName="UpdatePublishedVersions" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
-  <UsingTask TaskName="LocalUpdatePublishedVersions" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="UpdatePublishedVersions" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.VersionTools.dll" />
+  <UsingTask TaskName="LocalUpdatePublishedVersions" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.VersionTools.dll" />
 
   <ItemGroup Condition="'$(ShippedNuGetPackageGlobPath)'!=''">
     <ShippedNuGetPackage Include="$(ShippedNuGetPackageGlobPath)" />
@@ -38,7 +38,7 @@
   </Target>
 
   <!-- Task to update dependencies to expected values. -->
-  <UsingTask TaskName="UpdateDependencies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="UpdateDependencies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.VersionTools.dll" />
 
   <ItemGroup Condition="'$(NotifyGitHubUsers)'!=''">
     <NotifyGitHubUsers Include="$(NotifyGitHubUsers)" />
@@ -52,7 +52,7 @@
   </Target>
 
   <!-- Task to perform dependency verification. -->
-  <UsingTask TaskName="VerifyDependencies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="VerifyDependencies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.VersionTools.dll" />
 
   <Target Name="VerifyDependencies" Condition="'$(SkipVerifyPackageVersions)'!='true'">
     <!-- Add message so it's clear what's happening when building with verbosity:minimal. For example, "sync -p". -->
@@ -67,7 +67,7 @@
   </Target>
 
   <!-- Task to create a dependency update pull request. -->
-  <UsingTask TaskName="UpdateDependenciesAndSubmitPullRequest" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="UpdateDependenciesAndSubmitPullRequest" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.VersionTools.dll" />
 
   <Target Name="UpdateDependenciesAndSubmitPullRequest">
     <PropertyGroup>

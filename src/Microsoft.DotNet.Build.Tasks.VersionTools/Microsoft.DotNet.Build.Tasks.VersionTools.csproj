@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.props))\dir.props" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.DotNet.Build.Tasks.VersionTools</RootNamespace>
+    <AssemblyName>Microsoft.DotNet.Build.Tasks.VersionTools</AssemblyName>
+    <CLSCompliant>false</CLSCompliant>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <ProjectGuid>{D4D6ACB6-9D73-488E-B184-4A1C00D026D2}</ProjectGuid>
+    <NuGetTargetMoniker>.NETStandard,Version=v1.5</NuGetTargetMoniker>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\BuildTask.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\VersionTools\BaseDependenciesTask.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\VersionTools\LocalUpdatePublishedVersions.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\VersionTools\MsBuildTraceListener.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\VersionTools\TraceListenerCollectionExtensions.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\VersionTools\UpdateDependencies.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\VersionTools\UpdateDependenciesAndSubmitPullRequest.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\VersionTools\UpdatePublishedVersions.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.Tasks\VersionTools\VerifyDependencies.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.DotNet.VersionTools\Microsoft.DotNet.VersionTools.csproj">
+      <Project>{8d524fa5-a8c5-4ebd-ba8b-2a4fed03ee58}</Project>
+      <Name>Microsoft.DotNet.VersionTools</Name>
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
+</Project>

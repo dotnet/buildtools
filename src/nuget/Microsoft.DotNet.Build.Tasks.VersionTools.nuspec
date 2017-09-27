@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata minClientVersion="2.8.1">
+    <id>Microsoft.DotNet.Build.Tasks.VersionTools</id>
+    <version>1.0.0-prerelease</version>
+    <title>DotNet Build VersionTools</title>
+    <authors>Microsoft</authors>
+    <owners>Microsoft</owners>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <licenseUrl>http://go.microsoft.com/fwlink/?LinkId=329770</licenseUrl>
+    <projectUrl>http://go.microsoft.com/fwlink/?LinkId=518631</projectUrl>
+    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
+    <summary>DotNet Build VersionTools</summary>
+    <description>This package provides support for updating the versions repo
+    </description>
+    <copyright>Copyright © Microsoft Corporation</copyright>
+    <tags></tags>
+    <dependencies>
+     <!-- Do not add any dependencies to this package as we want to install it versionless (i.e. -ExcludeVersion) and we don't want the dependencies to be installed that way -->
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="Microsoft.DotNet.Build.Tasks.VersionTools\Microsoft.DotNet.Build.Tasks.VersionTools.dll" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks.VersionTools.net45\*.dll" target="lib" Exclude="Microsoft.DotNet.Build.Tasks.VersionTools\Microsoft.DotNet.Build.Tasks.VersionTools.dll"/>
+    <file src="Microsoft.DotNet.Build.Tasks.VersionTools.net45\*.dll" target="lib\desktop" />
+    <file src="Microsoft.DotNet.VersionTools\Microsoft.DotNet.VersionTools.dll" target="lib" />
+    <file src="Microsoft.DotNet.VersionTools.net45\Microsoft.DotNet.VersionTools.dll" target="lib\desktop" />
+    <file src="Microsoft.DotNet.Build.Tasks\PackageFiles\VersionTools.targets" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks\PackageFiles\VersionTools.targets" target="lib\desktop" />
+    <file src="..\obj\version.txt" target="" />
+  </files>
+</package>

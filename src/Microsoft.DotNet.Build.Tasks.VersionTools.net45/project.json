@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "NuGet.Packaging": "4.3.0-preview2-4095"
+  },
+  "frameworks": {
+    "net45": {
+      "dependencies": {
+        "Microsoft.TargetingPack.NETFramework.v4.5": "1.0.1"
+      }
+    }
+  },
+  "runtimes": {
+    "win7-x64": {}
+  }
+}

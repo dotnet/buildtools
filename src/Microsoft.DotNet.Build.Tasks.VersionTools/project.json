@@ -1,0 +1,19 @@
+﻿{
+  "dependencies": {
+    "Microsoft.Build": "0.1.0-preview-00022",
+    "Microsoft.Build.Framework": "0.1.0-preview-00022",
+    "Microsoft.Build.Utilities.Core": "0.1.0-preview-00022",
+    "Microsoft.Build.Tasks.Core": "0.1.0-preview-00022",
+    "Microsoft.Tpl.Dataflow": {
+      "version": "4.5.24",
+      "exclude": "all"
+    },
+    "NETStandard.Library": "1.6.0",
+    "NuGet.Packaging": "4.3.0-preview2-4095"
+  },
+  "frameworks": {
+    "netstandard1.5": {
+      "imports": "dnxcore50"
+    }
+  }
+}
