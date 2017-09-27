@@ -29,14 +29,7 @@
     <Compile Include="..\Microsoft.DotNet.Build.Tasks\ZipFileInjectFile.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="PackageFiles\**\*.*" />
     <None Include="project.json" />
   </ItemGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
-  <Target Name="AfterBuild">
-    <ItemGroup>
-      <PackageFiles Include="$(MSBuildThisProjectDirectory)PackageFiles\**\*.*" />
-    </ItemGroup>
-    <Copy SourceFiles="@(PackageFiles)" DestinationFolder="$(OutputPath)\PackageFiles\%(RecursiveDir)" SkipUnchangedFiles="true" />
-  </Target>
 </Project>

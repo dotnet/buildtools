@@ -25,6 +25,7 @@
     <file src="Microsoft.DotNet.Build.CloudTestTasks\PackageFiles\**\*.*" target="lib" />
     <file src="Microsoft.DotNet.Build.CloudTestTasks\RunnerScripts\**\*.*" target="lib\RunnerScripts" />
     <file src="Microsoft.DotNet.Build.Tasks.Symbols\Microsoft.DotNet.Build.Tasks.Symbols.dll" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks.Symbols.net45\*.dll" target="lib\net46" />
     <file src="Microsoft.DotNet.Build.Tasks\PackageFiles\**\*.*" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\Microsoft.DotNet.Build.Tasks.dll" target="lib" />
     <file src="Run\run.exe" target="lib" />
@@ -51,6 +52,7 @@
     <file src="Microsoft.DotNet.Build.Tasks.Packaging\PackageFiles\**\*.*" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks.Packaging.Desktop\Microsoft.DotNet.Build.Tasks.Packaging.dll" target="lib\net46" />
     <file src="Microsoft.DotNet.Build.Tasks.Packaging.Desktop\NuGet.*.dll" target="lib\net46" />
+
     <file src="Microsoft.DotNet.VersionTools\Microsoft.DotNet.VersionTools.dll" target="lib" />
     <file src="Microsoft.DotNet.VersionTools.net45\Microsoft.DotNet.VersionTools.dll" target="lib\net46" />
 
