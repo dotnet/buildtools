@@ -23,6 +23,7 @@
     <Compile Include="CleanupVSTSAgent.cs" />
     <Compile Include="ComputeDestinationsForDependencies.cs" />
     <Compile Include="Delegates.cs" />
+    <Compile Include="DownloadFileFromUrl.cs" />
     <Compile Include="ExceptionFromResource.cs" />
     <Compile Include="ExecWithMutex.cs" />
     <Compile Include="ExtractResWResourcesFromAssemblies.cs" />
