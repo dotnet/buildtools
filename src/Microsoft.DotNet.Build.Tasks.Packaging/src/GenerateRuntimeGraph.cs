@@ -82,6 +82,18 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             set;
         }
 
+
+        /// <summary>
+        /// True to write the generated runtime.json to RuntimeJson and compatibility map to CompatibilityMap, otherwise files are read and diffed 
+        /// with generated versions and an error is emitted if they differ.
+        /// Setting UpdateRuntimeFiles will overwrite files even when the file is marked ReadOnly.
+        /// </summary>
+        public bool UpdateRuntimeFiles
+        {
+            get;
+            set;
+        }
+
         /// <summary>
         /// When defined, specifies the file to write a DGML representation of the runtime graph.
         /// </summary>
@@ -124,12 +136,55 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             if (!String.IsNullOrEmpty(RuntimeJson))
             {
-                JsonRuntimeFormat.WriteRuntimeGraph(RuntimeJson, runtimeGraph);
+                if (UpdateRuntimeFiles)
+                {
+                    EnsureWritable(RuntimeJson);
+                    JsonRuntimeFormat.WriteRuntimeGraph(RuntimeJson, runtimeGraph);
+                }
+                else
+                {
+                    // validate that existing file matches generated file
+                    if (!File.Exists(RuntimeJson))
+                    {
+                        Log.LogError($"{nameof(RuntimeJson)} did not exist at {RuntimeJson} and {nameof(UpdateRuntimeFiles)} was not specified.");
+                    }
+                    else
+                    {
+                        var existingRuntimeGraph = JsonRuntimeFormat.ReadRuntimeGraph(RuntimeJson);
+
+                        if (!existingRuntimeGraph.Equals(runtimeGraph))
+                        {
+                            Log.LogError($"The generated {nameof(RuntimeJson)} differs from {RuntimeJson} and {nameof(UpdateRuntimeFiles)} was not specified.  Please specify {nameof(UpdateRuntimeFiles)}=true to commit the changes.");
+                        }
+                    }
+                }
             }
 
             if (!String.IsNullOrEmpty(CompatibilityMap))
             {
-                WriteCompatibilityMap(runtimeGraph, CompatibilityMap);
+                var compatibilityMap = GetCompatibilityMap(runtimeGraph);
+                if (UpdateRuntimeFiles)
+                {
+                    EnsureWritable(CompatibilityMap);
+                    WriteCompatibilityMap(compatibilityMap, CompatibilityMap);
+                }
+                else
+                {
+                    // validate that existing file matches generated file
+                    if (!File.Exists(CompatibilityMap))
+                    {
+                        Log.LogError($"{nameof(CompatibilityMap)} did not exist at {CompatibilityMap} and {nameof(UpdateRuntimeFiles)} was not specified.");
+                    }
+                    else
+                    {
+                        var existingCompatibilityMap = ReadCompatibilityMap(CompatibilityMap);
+
+                        if (!CompatibilityMapEquals(existingCompatibilityMap, compatibilityMap))
+                        {
+                            Log.LogError($"The generated {nameof(CompatibilityMap)} differs from {CompatibilityMap} and {nameof(UpdateRuntimeFiles)} was not specified.  Please specify {nameof(UpdateRuntimeFiles)}=true to commit the changes.");
+                        }
+                    }
+                }
             }
 
             if (!String.IsNullOrEmpty(RuntimeDirectedGraph))
@@ -140,6 +195,18 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             return !Log.HasLoggedErrors;
         }
 
+        private void EnsureWritable(string file)
+        {
+            if (File.Exists(file))
+            {
+                var existingAttributes = File.GetAttributes(file);
+
+                if ((existingAttributes & FileAttributes.ReadOnly) != 0)
+                {
+                    File.SetAttributes(file, existingAttributes &= ~FileAttributes.ReadOnly);
+                }
+            }
+        }
 
         private RuntimeGraph SafeMerge(RuntimeGraph existingGraph, RuntimeGroup runtimeGroup)
         {
@@ -480,8 +547,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
         }
 
-
-        private static void WriteCompatibilityMap(RuntimeGraph graph, string mapFile)
+        private static IDictionary<string, IEnumerable<string>> GetCompatibilityMap(RuntimeGraph graph)
         {
             Dictionary<string, IEnumerable<string>> compatibilityMap = new Dictionary<string, IEnumerable<string>>();
 
@@ -490,6 +556,21 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 compatibilityMap.Add(rid, graph.ExpandRuntime(rid));
             }
 
+            return compatibilityMap;
+        }
+
+        private static IDictionary<string, IEnumerable<string>> ReadCompatibilityMap(string mapFile)
+        {
+            var serializer = new JsonSerializer();
+            using (var file = File.OpenText(mapFile))
+            using (var jsonTextReader = new JsonTextReader(file))
+            {
+                return serializer.Deserialize<IDictionary<string, IEnumerable<string>>>(jsonTextReader);
+            }
+        }
+
+        private static void WriteCompatibilityMap(IDictionary<string, IEnumerable<string>> compatibilityMap, string mapFile)
+        {
             var serializer = new JsonSerializer()
             {
                 Formatting = Formatting.Indented,
@@ -508,6 +589,30 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             }
         }
 
+        private static bool CompatibilityMapEquals(IDictionary<string, IEnumerable<string>> left, IDictionary<string, IEnumerable<string>> right)
+        {
+            if (left.Count != right.Count)
+            {
+                return false;
+            }
+
+            foreach (var leftPair in left)
+            {
+                IEnumerable<string> rightValue;
+
+                if (!right.TryGetValue(leftPair.Key, out rightValue))
+                {
+                    return false;
+                }
+
+                if (!rightValue.SequenceEqual(leftPair.Value))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
 
         private static XNamespace s_dgmlns = @"http://schemas.microsoft.com/vs/2009/dgml";
         private static void WriteRuntimeGraph(RuntimeGraph graph, string dependencyGraphFilePath)
