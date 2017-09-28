@@ -27,6 +27,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public override bool Execute()
         {
+            bool success = false;
             try
             {
                 Log.LogMessage(MessageImportance.High, $"Downloading {DownloadSource} -> {DestinationFile}");
@@ -44,15 +45,10 @@ namespace Microsoft.DotNet.Build.Tasks
                                 {
                                     result.Content.CopyToAsync(stream).GetAwaiter().GetResult();
                                     Log.LogMessage(MessageImportance.High, $"Finished downloading: {DownloadSource}");
+                                    success = true;
                                 }
                                 else
                                 {
-                                    if (File.Exists(DestinationFile))
-                                    {
-                                        // If we fail to download, we want to do cleanup to not leave empty files.
-                                        File.Delete(DestinationFile);
-                                    }
-
                                     if (TreatErrorsAsWarnings)
                                     {
                                         Log.LogWarning($"Downloading {DownloadSource} failed with status code: {result.StatusCode}");
@@ -77,6 +73,17 @@ namespace Microsoft.DotNet.Build.Tasks
                 {
                     Log.LogError($"Downloading {DownloadSource} failed with exception: ");
                     Log.LogErrorFromException(e, showStackTrace: true);
+                }
+            }
+            finally
+            {
+                if (!success)
+                {
+                    if (File.Exists(DestinationFile))
+                    {
+                        // if we fail, do cleanup and delete file.
+                        File.Delete(DestinationFile);
+                    }
                 }
             }
 
