@@ -13,6 +13,8 @@
   -->
   <Import Project="$(MSBuildThisFileDirectory)ReferenceAssemblies.props" Condition="'$(ExcludeReferenceAssembliesImport)'!='true'" />
 
+  <Import Project="$(MSBuildThisFileDirectory)RepoAPI.Mapping.props" />
+
   <PropertyGroup>
     <CompilerResponseFile Condition="'$(CheckSumSHA256)'!='false'">$(MSBuildThisFileDirectory)checksum.rsp</CompilerResponseFile>
   </PropertyGroup>
