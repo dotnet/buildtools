@@ -5,10 +5,20 @@
     </Content>
     <DumplingIncPaths Include="$(RuntimePath)" />
     <DumplingIncPaths Include="$(TestPath)" />
-    <DumplingIncPaths Condition="'$(TargetOS)'!='Windows_NT'" Include="/lib/x86_64-linux-gnu/" />
-    <DumplingIncPaths Condition="'$(TargetOS)'!='Windows_NT'" Include="/usr/lib/x86_64-linux-gnu/" />
     <DumplingIncPaths Condition="'$(TargetOS)'!='Windows_NT'" Include="$HELIX_CORRELATION_PAYLOAD" />
-    <DumplingIncPaths Condition="'$(TargetOS)'!='Windows_NT'" Include="/lib64/" />
+    <!-- Only save off the files that we need.  This list was obatined by using ldd on libcoreclr.so -->
+    <DumplingIncPaths Condition="'$(TargetOS)'!='Windows_NT'" Include="/lib/x86_64-linux-gnu/libgcc_s.so.1" />
+    <DumplingIncPaths Condition="'$(TargetOS)'!='Windows_NT'" Include="/lib/x86_64-linux-gnu/libpthread.so.0" />
+    <DumplingIncPaths Condition="'$(TargetOS)'!='Windows_NT'" Include="/lib/x86_64-linux-gnu/librt.so.1" />
+    <DumplingIncPaths Condition="'$(TargetOS)'!='Windows_NT'" Include="/usr/lib/x86_64-linux-gnu/libunwind.so.8" />
+    <DumplingIncPaths Condition="'$(TargetOS)'!='Windows_NT'" Include="/lib/x86_64-linux-gnu/libdl.so.2" />
+    <DumplingIncPaths Condition="'$(TargetOS)'!='Windows_NT'" Include="/lib/x86_64-linux-gnu/libuuid.so.1" />
+    <DumplingIncPaths Condition="'$(TargetOS)'!='Windows_NT'" Include="/usr/lib/x86_64-linux-gnu/libunwind-x86_64.so.8" />
+    <DumplingIncPaths Condition="'$(TargetOS)'!='Windows_NT'" Include="/usr/lib/x86_64-linux-gnu/libstdc++.so.6" />
+    <DumplingIncPaths Condition="'$(TargetOS)'!='Windows_NT'" Include="/lib/x86_64-linux-gnu/libm.so.6" />
+    <DumplingIncPaths Condition="'$(TargetOS)'!='Windows_NT'" Include="/lib/x86_64-linux-gnu/libc.so.6" />
+    <DumplingIncPaths Condition="'$(TargetOS)'!='Windows_NT'" Include="/lib64/ld-linux-x86-64.so.2" />
+    <DumplingIncPaths Condition="'$(TargetOS)'!='Windows_NT'" Include="/lib/x86_64-linux-gnu/liblzma.so.5" />
   </ItemGroup>
   <Target Name="PreinstallDumpling"
           BeforeTargets="TestAllProjects">
