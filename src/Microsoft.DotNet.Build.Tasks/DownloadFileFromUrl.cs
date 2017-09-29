@@ -3,94 +3,130 @@ using System;
 using System.IO;
 using System.Net.Http;
 using System.Net;
+using System.Collections.Generic;
+using Microsoft.Build.Utilities;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
     public sealed class DownloadFileFromUrl : BuildTask
     {
+        private static readonly HttpClient s_client = new HttpClient(GetHttpHandler());
+
         /// <summary>
-        /// The url to download the file from.
+        /// The items to download.
+        /// Url and DestinationFile are required in the item's metadata, DestinationDir is optional.
         /// </summary>
         [Required]
-        public string DownloadSource { get; set; }
-        
+        public ITaskItem[] Items { get; set; }
+
         /// <summary>
-        /// The directory where the file will be downloaded to.
+        /// The destination directory for all the items to be downloaded.
+        /// This parameter can be overriden per item, if an item has DestinationDir in it's metadata, we will take that directory.
+        /// If both, the item's and this property are empty, the items will be downloaded to the working directory.
         /// </summary>
-        [Required]
-        public string DestinationFile { get; set; }
+        public string DestinationDir { get; set; }
 
         /// <summary>
         /// The default is to fail on error, set this to true if you want to just warn.
         /// </summary>
         public bool TreatErrorsAsWarnings { get; set; }
 
+        /// <summary>
+        /// The list of files created. It is not guaranted that all the input items will be successfully downloaded
+        /// when TreatErrorsAsWarings is set to true.
+        /// </summary>
+        [Output]
+        public ITaskItem[] FilesCreated { get; set; }
+
         public override bool Execute()
         {
-            bool success = false;
-            try
+            var filesCreated = new List<ITaskItem>();
+            foreach (var item in Items)
             {
-                Log.LogMessage(MessageImportance.High, $"Downloading {DownloadSource} -> {DestinationFile}");
-                var directory = Path.GetDirectoryName(DestinationFile);
-                Directory.CreateDirectory(directory);
-                using (FileStream stream = File.Create(DestinationFile))
+                string downloadSource = item.GetMetadata("Url");
+                if (string.IsNullOrWhiteSpace(downloadSource))
                 {
-                    using (var handler = GetHttpHandler())
+                    if (TreatErrorsAsWarnings)
                     {
-                        using (var client = new HttpClient(handler))
+                        Log.LogWarning($"Item {item.ItemSpec} is missing Url to download from in it's metadata.");
+                        continue;
+                    }
+                    else
+                    {
+                        Log.LogError($"Item {item.ItemSpec} is missing Url to download from in it's metadata.");
+                        return false;
+                    }
+                }
+
+                string fileName = item.GetMetadata("DestinationFile");
+                if (string.IsNullOrWhiteSpace(fileName))
+                {
+                    if (TreatErrorsAsWarnings)
+                    {
+                        Log.LogWarning($"Item {item.ItemSpec} is missing DestinationFile as download destination in it's metadata.");
+                        continue;
+                    }
+                    else
+                    {
+                        Log.LogError($"Item {item.ItemSpec} is missing DestinationFile as download destination in it's metadata.");
+                        return false;
+                    }
+                }
+
+                string destinationDirectory = item.GetMetadata("DestinationDir");
+                if (string.IsNullOrWhiteSpace(destinationDirectory))
+                {
+                    destinationDirectory = DestinationDir;
+                }
+
+                try
+                {
+                    string destinationFullPath = fileName;
+
+                    if (!string.IsNullOrWhiteSpace(destinationDirectory))
+                    {
+                        Directory.CreateDirectory(destinationDirectory);
+                        destinationFullPath = Path.Combine(destinationDirectory, fileName);
+                    }
+
+                    Log.LogMessage(MessageImportance.Normal, $"Downloading {downloadSource} -> {destinationFullPath}");
+
+                    using (Stream responseStream = s_client.GetStreamAsync(new Uri(downloadSource)).GetAwaiter().GetResult())
+                    {
+                        using (Stream destinationStream = File.OpenWrite(destinationFullPath))
                         {
-                            using (var result = client.GetAsync(DownloadSource).GetAwaiter().GetResult())
-                            {
-                                if (result.IsSuccessStatusCode)
-                                {
-                                    result.Content.CopyToAsync(stream).GetAwaiter().GetResult();
-                                    Log.LogMessage(MessageImportance.High, $"Finished downloading: {DownloadSource}");
-                                    success = true;
-                                }
-                                else
-                                {
-                                    if (TreatErrorsAsWarnings)
-                                    {
-                                        Log.LogWarning($"Downloading {DownloadSource} failed with status code: {result.StatusCode}");
-                                    }
-                                    else
-                                    {
-                                        Log.LogError($"Downloading {DownloadSource} failed with status code: {result.StatusCode}");
-                                    }
-                                }
-                            }
+                            responseStream.CopyToAsync(destinationStream).GetAwaiter().GetResult();
+                            TaskItem createdItem = new TaskItem(destinationFullPath);
+                            item.CopyMetadataTo(createdItem);
+                            filesCreated.Add(createdItem);
+                            Log.LogMessage(MessageImportance.Normal, $"Finished downloading: {downloadSource}");
                         }
                     }
                 }
-            }
-            catch (Exception e)
-            {
-                if (TreatErrorsAsWarnings)
+                catch (Exception e)
                 {
-                    Log.LogWarningFromException(e, showStackTrace: true);
-                }
-                else
-                {
-                    Log.LogError($"Downloading {DownloadSource} failed with exception: ");
-                    Log.LogErrorFromException(e, showStackTrace: true);
-                }
-            }
-            finally
-            {
-                if (!success)
-                {
-                    if (File.Exists(DestinationFile))
+                    if (TreatErrorsAsWarnings)
                     {
-                        // if we fail, do cleanup and delete file.
-                        File.Delete(DestinationFile);
+                        Log.LogWarning($"Downloading {downloadSource} failed with exception: ");
+                        Log.LogWarningFromException(e, showStackTrace: true);
+                    }
+                    else
+                    {
+                        s_client.Dispose();
+                        Log.LogError($"Downloading {downloadSource} failed with exception: ");
+                        Log.LogErrorFromException(e, showStackTrace: true);
+                        return false;
                     }
                 }
             }
+
+            FilesCreated = filesCreated.ToArray();
+            s_client.Dispose();
 
             return !Log.HasLoggedErrors;
         }
 
-        public HttpClientHandler GetHttpHandler()
+        private static HttpClientHandler GetHttpHandler()
         {
             HttpClientHandler handler = new HttpClientHandler();
 #if !net45
