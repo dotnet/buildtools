@@ -23,7 +23,7 @@
 
   <!-- Use passed NuGet restore sources, if any. -->
   <PropertyGroup>
-    <RestoreSources>$(DotNetRestoreSources)</RestoreSources>
+    <RestoreSources>$(RestoreSources);$(DotNetRestoreSources)</RestoreSources>
   </PropertyGroup>
 
   <!--
