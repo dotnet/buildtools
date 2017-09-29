@@ -8,7 +8,7 @@ using Microsoft.Build.Utilities;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public sealed class DownloadFileFromUrl : BuildTask
+    public sealed class DownloadFilesFromUrl : BuildTask
     {
         private static readonly HttpClient s_client = new HttpClient(GetHttpHandler());
 
