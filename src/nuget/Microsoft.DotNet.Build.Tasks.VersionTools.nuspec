@@ -20,13 +20,13 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="Microsoft.DotNet.Build.Tasks.VersionTools\Microsoft.DotNet.Build.Tasks.VersionTools.dll" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks.VersionTools.net45\*.dll" target="lib" Exclude="Microsoft.DotNet.Build.Tasks.VersionTools\Microsoft.DotNet.Build.Tasks.VersionTools.dll"/>
-    <file src="Microsoft.DotNet.Build.Tasks.VersionTools.net45\*.dll" target="lib\desktop" />
-    <file src="Microsoft.DotNet.VersionTools\Microsoft.DotNet.VersionTools.dll" target="lib" />
-    <file src="Microsoft.DotNet.VersionTools.net45\Microsoft.DotNet.VersionTools.dll" target="lib\desktop" />
-    <file src="Microsoft.DotNet.Build.Tasks\PackageFiles\VersionTools.targets" target="lib" />
-    <file src="Microsoft.DotNet.Build.Tasks\PackageFiles\VersionTools.targets" target="lib\desktop" />
+    <file src="Microsoft.DotNet.Build.Tasks.VersionTools\Microsoft.DotNet.Build.Tasks.VersionTools.dll" target="lib\netstandard1.5" />
+    <file src="Microsoft.DotNet.Build.Tasks.VersionTools.net45\*.dll" target="lib\netstandard1.5" Exclude="Microsoft.DotNet.Build.Tasks.VersionTools\Microsoft.DotNet.Build.Tasks.VersionTools.dll"/>
+    <file src="Microsoft.DotNet.Build.Tasks.VersionTools.net45\*.dll" target="lib\net46" />
+    <file src="Microsoft.DotNet.VersionTools\Microsoft.DotNet.VersionTools.dll" target="lib\netstandard1.5" />
+    <file src="Microsoft.DotNet.VersionTools.net45\Microsoft.DotNet.VersionTools.dll" target="lib\net46" />
+    <file src="Microsoft.DotNet.Build.Tasks\PackageFiles\VersionTools.targets" target="lib\netstandard1.5" />
+    <file src="Microsoft.DotNet.Build.Tasks\PackageFiles\VersionTools.targets" target="lib\net46" />
     <file src="..\obj\version.txt" target="" />
   </files>
 </package>
