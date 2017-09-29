@@ -3,29 +3,29 @@
   
     <!-- This is the standard publish target. It can be used to publish assets for the intermediate output of individual build legs and
          the finalized output of an official build. 
-         AccountName - The storage account in your Azure subscription
-         AccountKey - The password from your Azure storage account from above
-         ContainerName - Container in which the feed is created
+         ExpectedFeedUrl - The url of the nuget feed you would like to generate (should contain the storage account, container and relative path) and end with index.json
+         AccountKey - The access key from your Azure storage account 
          ItemsToPush - items to publish to feed
-         RelativePath - the relative path in the container where the feed is created.
+         
+         Optional parameters:
+         IndexDirectory - the directory in which the temporary index.json files live
+         PublishFlatContainer - push without generating the feed useful for flat assets like installers
+         Overwrite - Allow overwrite, will skip if file already exists when false
 
         PublishDependsOn can be customized at build time on the commandline to determine the pre steps required to publish 
     -->
 
     <Target Name="PublishOutputLeg" DependsOnTargets="@(PublishDependsOn)" >
-      <Error Text="The AccountName property must be set on the command line."  
-            Condition="'$(AccountName)' == ''" />  
+      <Error Text="The ExpectedFeedUrl  property must be set on the command line."  
+            Condition="'$(ExpectedFeedUrl)' == ''" />  
       <Error Text="The AccountKey property must be set on the command line."  
             Condition="'$(AccountKey)' == ''" />
-      <Error Text="The ContainerName property must be set on the command line."  
-            Condition="'$(ContainerName)' == ''" />
       
       <Message Importance="High" Text="Publish to $(ContainerName) started" />
-      <PushToBlobFeed AccountName="$(AccountName)"
+      <PushToBlobFeed ExpectedFeedUrl="$(ExpectedFeedUrl)"
                       AccountKey="$(AccountKey)"
-                      ContainerName="$(ContainerName)"
                       ItemsToPush="@(ItemsToPush)"
-                      RelativePath="$(RelativePath)"
+                      IndexDirectory="$(IndexDirectory)"
                       PublishFlatContainer="$(PublishFlatContainer)"
                       Overwrite="$(Overwrite)" />
     </Target>
