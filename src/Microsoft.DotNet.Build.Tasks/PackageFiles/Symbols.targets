@@ -2,6 +2,7 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <UsingTask TaskName="AddItemIndices" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ConvertPdbsToPortablePdbs" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="DownloadFilesFromUrl" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ExecWithRetries" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ZipFileExtractToDirectory" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ZipFileGetEntries" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
@@ -461,7 +462,7 @@
 
   <!--
     Generates Windows PDBs from Portable PDBs. PDBs passed that are not Portable are skipped.
-    
+
     [In]
     $(PortablePdbToConvertGlob)
       * A path glob that matches all portable PDBs to convert. Conversion requires the DLL, and this
@@ -506,6 +507,40 @@
 
     <ConvertPdbsToPortablePdbs Files="@(PortableFileToConvert)"
                                ConversionOptions="@(ConversionOptions)" />
+  </Target>
+
+  <!--
+    Downloads and unzip symbol packages passed in as an ItemGroup
+
+    [In]
+    @(SymbolPackagesToDownload)
+      * An ItemGroup with the following characteristics.
+        * ItemSpec: The name of the package. (Not used within the target)
+        * Url [Required]: The url endpoint to download the package from.
+        * DestinationFile [Required]: The file name where the source will be downloaded to, must be a zip. i.e NugetId.symbols.nupkg.zip
+        * UnzipDestinationDir [Required]: This is the directory where the package contents will be extracted to.
+    $(SymbolPackagesDir) [optional]
+      * Location where the packages are going to be downloaded to as a cache. If empty, then will be the working directory.
+
+    [Out]
+    @(SymbolPackagesDownloaded)
+      * ItemSpec: The full path to the downloaded file.
+      Includes the same metadata that was passed in @(SymbolPackagesToDownload)
+  -->
+  <Target Name="DownloadAndUnzipSymbolPackage">
+
+      <DownloadFilesFromUrl Items="@(SymbolPackagesToDownload)"
+                           DestinationDir="$(SymbolPackagesDir)"
+                           TreatErrorsAsWarnings="true">
+        <Output TaskParameter="FilesCreated" ItemName="SymbolPackagesDownloaded" />
+      </DownloadFilesFromUrl>
+
+      <Warning Text="Failed to download symbols" Condition="@(SymbolPackagesDownloaded) == ''" />
+
+      <ZipFileExtractToDirectory SourceArchive="%(SymbolPackagesDownloaded.Identity)"
+                                 DestinationDirectory="%(SymbolPackagesDownloaded.UnzipDestinationDir)"
+                                 OverwriteDestination="true"
+                                 Condition="@(SymbolPackagesDownloaded) != ''" />
   </Target>
 
 </Project>

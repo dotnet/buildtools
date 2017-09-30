@@ -44,32 +44,35 @@ namespace Microsoft.DotNet.Build.Tasks
             foreach (var item in Items)
             {
                 string downloadSource = item.GetMetadata("Url");
-                if (string.IsNullOrWhiteSpace(downloadSource))
+                if (!Uri.IsWellFormedUriString(downloadSource, UriKind.Absolute))
                 {
                     if (TreatErrorsAsWarnings)
                     {
-                        Log.LogWarning($"Item {item.ItemSpec} is missing Url to download from in it's metadata.");
+                        Log.LogWarning($"Item {item.ItemSpec} Url is not a valid url.");
                         continue;
                     }
                     else
                     {
-                        Log.LogError($"Item {item.ItemSpec} is missing Url to download from in it's metadata.");
-                        return false;
+                        return ExitWithError($"Item {item.ItemSpec} Url is not a valid url.");
                     }
                 }
 
+                Uri downloadUri = new Uri(downloadSource);
                 string fileName = item.GetMetadata("DestinationFile");
                 if (string.IsNullOrWhiteSpace(fileName))
                 {
-                    if (TreatErrorsAsWarnings)
+                    // starts with file://
+                    if (downloadUri.IsFile)
                     {
-                        Log.LogWarning($"Item {item.ItemSpec} is missing DestinationFile as download destination in it's metadata.");
-                        continue;
+                        fileName = Path.GetFileName(downloadUri.LocalPath);
                     }
                     else
                     {
-                        Log.LogError($"Item {item.ItemSpec} is missing DestinationFile as download destination in it's metadata.");
-                        return false;
+                        string[] urlContents = downloadSource.Split('/');
+
+                        // we set the filename to whatever is at the end of the url.
+                        // with this we ensure that if the metadata doesn't contain a file name, we always get one.
+                        fileName = urlContents[urlContents.Length - 1];
                     }
                 }
 
@@ -82,7 +85,6 @@ namespace Microsoft.DotNet.Build.Tasks
                 try
                 {
                     string destinationFullPath = fileName;
-
                     if (!string.IsNullOrWhiteSpace(destinationDirectory))
                     {
                         Directory.CreateDirectory(destinationDirectory);
@@ -91,7 +93,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
                     Log.LogMessage(MessageImportance.Normal, $"Downloading {downloadSource} -> {destinationFullPath}");
 
-                    using (Stream responseStream = s_client.GetStreamAsync(new Uri(downloadSource)).GetAwaiter().GetResult())
+                    using (Stream responseStream = s_client.GetStreamAsync(downloadUri).GetAwaiter().GetResult())
                     {
                         using (Stream destinationStream = File.OpenWrite(destinationFullPath))
                         {
@@ -112,10 +114,7 @@ namespace Microsoft.DotNet.Build.Tasks
                     }
                     else
                     {
-                        s_client.Dispose();
-                        Log.LogError($"Downloading {downloadSource} failed with exception: ");
-                        Log.LogErrorFromException(e, showStackTrace: true);
-                        return false;
+                        return ExitWithError($"Downloading {downloadSource} failed with exception: ", e);
                     }
                 }
             }
@@ -124,6 +123,19 @@ namespace Microsoft.DotNet.Build.Tasks
             s_client.Dispose();
 
             return !Log.HasLoggedErrors;
+        }
+
+        private bool ExitWithError(string errorMessage, Exception e = null)
+        {
+            s_client.Dispose();
+            Log.LogError(errorMessage);
+
+            if (e != null)
+            {
+                Log.LogErrorFromException(e, showStackTrace: true);
+            }
+
+            return false;
         }
 
         private static HttpClientHandler GetHttpHandler()
