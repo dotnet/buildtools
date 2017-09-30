@@ -68,11 +68,29 @@ namespace Microsoft.DotNet.Build.Tasks
                     }
                     else
                     {
+                        while (downloadSource.EndsWith("/"))
+                        {
+                            downloadSource = downloadSource.Substring(0, downloadSource.Length - 1);
+                        }
+
                         string[] urlContents = downloadSource.Split('/');
 
                         // we set the filename to whatever is at the end of the url.
                         // with this we ensure that if the metadata doesn't contain a file name, we always get one.
                         fileName = urlContents[urlContents.Length - 1];
+
+                        if (string.IsNullOrEmpty(fileName))
+                        {
+                            if (TreatErrorsAsWarnings)
+                            {
+                                Log.LogWarning($"Item {item.ItemSpec} DestinationFile metadata was empty, we tried getting the name from the url but ended up with empty.");
+                                continue;
+                            }
+                            else
+                            {
+                                return ExitWithError($"Item {item.ItemSpec} DestinationFile metadata was empty, we tried getting the name from the url but ended up with empty.");
+                            }
+                        }
                     }
                 }
 
