@@ -302,7 +302,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                     var cycle = depStack.Reverse().ToArray();
                     Log.LogMessage($"Cycle detected for {depAssm.Path} : {PrintCycle(cycle)}.");
 
-                    var suspectAssembly = cycle.First(a => a != root);
+                    var suspectAssembly = cycle.FirstOrDefault(a => a != root) ?? root;
 
                     AssemblyInfo[] existingCycle;
                     if (!suspectCycles.TryGetValue(suspectAssembly, out existingCycle) ||
