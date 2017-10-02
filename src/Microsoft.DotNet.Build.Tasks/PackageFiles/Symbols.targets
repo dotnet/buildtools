@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <UsingTask TaskName="AddItemIndices" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
-  <UsingTask TaskName="ConvertPdbsToPortablePdbs" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
-  <UsingTask TaskName="ExecWithRetries" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
-  <UsingTask TaskName="ZipFileExtractToDirectory" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
-  <UsingTask TaskName="ZipFileGetEntries" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
-  <UsingTask TaskName="ZipFileInjectFile" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="AddItemIndices" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.Symbols.dll"/>
+  <UsingTask TaskName="ConvertPdbsToPortablePdbs" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.Symbols.dll"/>
+  <UsingTask TaskName="ExecWithRetries" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.Symbols.dll"/>
+  <UsingTask TaskName="ZipFileExtractToDirectory" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.Symbols.dll"/>
+  <UsingTask TaskName="ZipFileGetEntries" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.Symbols.dll"/>
+  <UsingTask TaskName="ZipFileInjectFile" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.Symbols.dll"/>
 
   <PropertyGroup>
     <SymbolsRequestIntermediateDir Condition="'$(SymbolsRequestIntermediateDir)'==''">$(BaseIntermediateOutputPath)SymbolsRequest\</SymbolsRequestIntermediateDir>
