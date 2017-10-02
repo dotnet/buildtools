@@ -183,6 +183,10 @@ namespace Microsoft.DotNet.Build.Tasks
                 JObject platformRuntime = new JObject();
                 JObject platformNative = new JObject();
 
+                // Add mscorlib and System facades to platformRuntime
+                platformRuntime.Add($"runtimes/{rid}/lib/netcoreapp2.0/mscorlib.dll", new JObject());
+                platformRuntime.Add($"runtimes/{rid}/lib/netcoreapp2.0/System.dll", new JObject());
+
                 foreach (var assembly in assemblyNames)
                 {
                     try
@@ -194,9 +198,6 @@ namespace Microsoft.DotNet.Build.Tasks
 
                     }
                 }
-                // Add mscorlib and System facades to platformRuntime
-                platformRuntime.Add($"runtimes/{rid}/lib/netcoreapp2.0/mscorlib.dll", new JObject());
-                platformRuntime.Add($"runtimes/{rid}/lib/netcoreapp2.0/System.dll", new JObject());
 
                 foreach (var nativeAssembly in nonManagedAssemblyFilePaths)
                 {
