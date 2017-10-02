@@ -10,7 +10,7 @@
 def call(String packageName, String packageVersion, String source, String outputDirectory, Closure body) {
     def nuGetPath = getNuGet()
     assert fileExists(nuGetPath)
-    _withNuGetCommand(nuGetPath, "install ${packageName} -OutputDirectory ${outputDirectory} -Version ${packageVersion} -Source ${source}", body)
+    _withNuGetCommand(nuGetPath, "install ${packageName} -NoCache -DirectDownload -OutputDirectory ${outputDirectory} -Version ${packageVersion} -Source ${source}", body)
 }
 
 /**
@@ -51,7 +51,7 @@ def call(String packageName, String packageVersion, List<Map> sources, String ou
       _withNuGetCommand(nuGetPath, args)
     }
   }
-  _withNuGetCommand(nuGetPath, "install ${packageName} -OutputDirectory ${outputDirectory} -Version ${packageVersion} -ConfigFile ${nuGetConfigFolder}\\NuGet.Config", body)
+  _withNuGetCommand(nuGetPath, "install ${packageName} -NoCache -DirectDownload -OutputDirectory ${outputDirectory} -Version ${packageVersion} -ConfigFile ${nuGetConfigFolder}\\NuGet.Config", body)
 }
 
 def _withNuGetCommand(String nuGetPath, String args, Closure body = null) {
