@@ -59,7 +59,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
                 using (var clientThrottle = new SemaphoreSlim(this.MaxClients, this.MaxClients))
                 {
-                    await Task.WhenAll(items.Select(item => PushItemToFeed(item, feed.RelativePath, clientThrottle, allowOverwrite)));
+                    await Task.WhenAll(items.Select(item => PushItemToFeed(item, feed.RelativePath, clientThrottle, allowOverwrite, false)));
                 }
             }
 
@@ -76,12 +76,12 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
             using (var clientThrottle = new SemaphoreSlim(this.MaxClients, this.MaxClients))
             {
-                await Task.WhenAll(items.Select(item => PushItemToFeed(item, feed.RelativePath, clientThrottle, allowOverwrite)));
+                await Task.WhenAll(items.Select(item => PushItemToFeed(item, feed.RelativePath, clientThrottle, allowOverwrite, true)));
             }
             return !Log.HasLoggedErrors;
         }
 
-        public async Task<bool> PushItemToFeed(string item, string relativePath, SemaphoreSlim clientThrottle, bool allowOverwrite)
+        public async Task<bool> PushItemToFeed(string item, string relativePath, SemaphoreSlim clientThrottle, bool allowOverwrite, bool isFlat)
         {
             try
             {
@@ -90,13 +90,16 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
                 await UploadAsync(CancellationToken, item, uploadPath, clientThrottle, allowOverwrite);
 
-                List<string> listAzureBlobs = await ListAzureBlobs.ListBlobs(Log, feed.AccountName, feed.AccountKey, feed.ContainerName, packageDirectory);
-                if (!listAzureBlobs.Any(x => x.Contains(uploadPath)))
+                if (!isFlat)
                 {
-                    throw new Exception($"Uploaded package {uploadPath} is not present on feed. Cannot update index.json.");
-                }
+                    List<string> listAzureBlobs = await ListAzureBlobs.ListBlobs(Log, feed.AccountName, feed.AccountKey, feed.ContainerName, packageDirectory);
+                    if (!listAzureBlobs.Any(x => x.Contains(uploadPath)))
+                    {
+                        throw new Exception($"Uploaded package {uploadPath} is not present on feed. Cannot update index.json.");
+                    }
 
-                await UploadIndexJson(clientThrottle, true, packageDirectory, listAzureBlobs);
+                    await UploadIndexJson(clientThrottle, true, packageDirectory, listAzureBlobs);
+                }
             }
             catch (Exception e)
             {

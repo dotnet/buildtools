@@ -153,13 +153,13 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             if (Path.GetExtension(item) == ".nupkg")
             {
                 Tuple<string, NuGetVersion> nugetPackage = GetNugetPackageVersion(item);
-                blobPath = Path.Combine(Path.Combine(relativePath, Path.Combine(nugetPackage.Item1, nugetPackage.Item2.ToFullString())), Path.GetFileName(item));
+                blobPath = Path.Combine(Path.Combine(relativePath, Path.Combine(nugetPackage.Item1, nugetPackage.Item2.ToFullString())), Path.GetFileName(item)).ToLowerInvariant();
             }
             else
             {
-                blobPath = item.Substring(item.IndexOf(relativePath));
+                blobPath = Path.Combine(relativePath, Path.GetFileName(item));
             }
-            return blobPath.ToLowerInvariant().Replace("\\", "/");
+            return blobPath.Replace("\\", "/");
         }
 
         public string GeneratePackageServiceIndex(string redirectUrl, IEnumerable<string> values)
