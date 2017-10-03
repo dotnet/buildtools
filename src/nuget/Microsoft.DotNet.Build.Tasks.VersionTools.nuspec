@@ -11,14 +11,13 @@
     <projectUrl>http://go.microsoft.com/fwlink/?LinkId=518631</projectUrl>
     <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
     <summary>DotNet Build VersionTools</summary>
-    <description>This package provides support for updating the versions repo
-    </description>
+    <description>This package provides support for updating the versions repo</description>
     <copyright>Copyright © Microsoft Corporation</copyright>
     <tags></tags>
   </metadata>
   <files>
     <file src="Microsoft.DotNet.Build.Tasks\Microsoft.DotNet.Build.Tasks.dll" target="lib\netstandard1.5" />
-    <file src="Microsoft.DotNet.VersionTools\*.dll" target="lib\netstandard1.5" />
+    <file src="Microsoft.DotNet.VersionTools\Microsoft.DotNet.VersionTools.dll" target="lib\netstandard1.5" />
     <file src="Microsoft.DotNet.Build.Tasks.net45\Microsoft.DotNet.Build.Tasks.dll" target="lib\net46" />
     <file src="Microsoft.DotNet.VersionTools.net45\*.dll" target="lib\net46" />
     <file src="Microsoft.DotNet.Build.Tasks\PackageFiles\VersionTools.targets" target="build" />
