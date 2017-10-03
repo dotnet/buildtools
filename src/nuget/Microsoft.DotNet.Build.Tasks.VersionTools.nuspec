@@ -15,21 +15,11 @@
     </description>
     <copyright>Copyright © Microsoft Corporation</copyright>
     <tags></tags>
-    <dependencies>
-      <group targetFramework="netstandard1.5">
-        <dependency id="NETStandard.Library" version="1.6.0" />
-        <dependency id="Newtonsoft.Json" version="9.0.1" />
-        <dependency id="NuGet.Packaging" version="4.3.0-preview2-4095" />
-        <dependency id="NuGet.Versioning" version="4.3.0-preview2-4095" />
-        <dependency id="System.Diagnostics.Process" version="4.1.0" />
-        <dependency id="System.Diagnostics.TraceSource" version="4.0.0" />
-      </group>
-    </dependencies>  </metadata>
+  </metadata>
   <files>
     <file src="Microsoft.DotNet.Build.Tasks\Microsoft.DotNet.Build.Tasks.dll" target="lib\netstandard1.5" />
-    <file src="Microsoft.DotNet.VersionTools\Microsoft.DotNet.VersionTools.dll" target="lib\netstandard1.5" />
+    <file src="Microsoft.DotNet.VersionTools\*.dll" target="lib\netstandard1.5" />
     <file src="Microsoft.DotNet.Build.Tasks.net45\Microsoft.DotNet.Build.Tasks.dll" target="lib\net46" />
-    <file src="Microsoft.DotNet.Build.Tasks.Packaging.Desktop\NuGet.*.dll" target="lib\net46" />
     <file src="Microsoft.DotNet.VersionTools.net45\*.dll" target="lib\net46" />
     <file src="Microsoft.DotNet.Build.Tasks\PackageFiles\VersionTools.targets" target="build" />
     <file src="..\obj\version.txt" target="" />
