@@ -61,35 +61,19 @@ namespace Microsoft.DotNet.Build.Tasks
                 string fileName = item.GetMetadata("DestinationFile");
                 if (string.IsNullOrWhiteSpace(fileName))
                 {
-                    // starts with file://
-                    if (downloadUri.IsFile)
+                    // we use absolute path in case the url has query string (?param=blah) to remove them before trying to get the file name.
+                    fileName = Path.GetFileName(downloadUri.AbsolutePath);
+
+                    if (string.IsNullOrEmpty(fileName))
                     {
-                        fileName = Path.GetFileName(downloadUri.LocalPath);
-                    }
-                    else
-                    {
-                        while (downloadSource.EndsWith("/"))
+                        if (TreatErrorsAsWarnings)
                         {
-                            downloadSource = downloadSource.Substring(0, downloadSource.Length - 1);
+                            Log.LogWarning($"Item {item.ItemSpec} DestinationFile metadata was empty, tried getting the name from the url but ended up with empty.");
+                            continue;
                         }
-
-                        string[] urlContents = downloadSource.Split('/');
-
-                        // we set the filename to whatever is at the end of the url.
-                        // with this we ensure that if the metadata doesn't contain a file name, we always get one.
-                        fileName = urlContents[urlContents.Length - 1];
-
-                        if (string.IsNullOrEmpty(fileName))
+                        else
                         {
-                            if (TreatErrorsAsWarnings)
-                            {
-                                Log.LogWarning($"Item {item.ItemSpec} DestinationFile metadata was empty, we tried getting the name from the url but ended up with empty.");
-                                continue;
-                            }
-                            else
-                            {
-                                return ExitWithError($"Item {item.ItemSpec} DestinationFile metadata was empty, we tried getting the name from the url but ended up with empty.");
-                            }
+                            return ExitWithError($"Item {item.ItemSpec} DestinationFile metadata was empty, tried getting the name from the url but ended up with empty.");
                         }
                     }
                 }
