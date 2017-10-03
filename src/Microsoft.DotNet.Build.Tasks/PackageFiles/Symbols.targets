@@ -526,6 +526,7 @@
     @(SymbolPackagesDownloaded)
       * ItemSpec: The full path to the downloaded file.
       Includes the same metadata that was passed in @(SymbolPackagesToDownload)
+      If this itemgroup is empty the task failed to download the files.
   -->
   <Target Name="DownloadAndUnzipSymbolPackage">
 
@@ -534,8 +535,6 @@
                            TreatErrorsAsWarnings="true">
         <Output TaskParameter="FilesCreated" ItemName="SymbolPackagesDownloaded" />
       </DownloadFilesFromUrl>
-
-      <Warning Text="Failed to download symbols" Condition="@(SymbolPackagesDownloaded) == ''" />
 
       <ZipFileExtractToDirectory SourceArchive="%(SymbolPackagesDownloaded.Identity)"
                                  DestinationDirectory="%(SymbolPackagesDownloaded.UnzipDestinationDir)"
