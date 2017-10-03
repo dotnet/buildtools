@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata minClientVersion="2.8.1">
+    <id>Microsoft.DotNet.Build.Tasks.PublishProduct</id>
+    <version>2.0.0-servicing</version>
+    <title>DotNet Build PublishProduct</title>
+    <authors>Microsoft</authors>
+    <owners>Microsoft</owners>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <licenseUrl>http://go.microsoft.com/fwlink/?LinkId=329770</licenseUrl>
+    <projectUrl>http://go.microsoft.com/fwlink/?LinkId=518631</projectUrl>
+    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
+    <summary>DotNet Build PublishProduct</summary>
+    <description>This package provides support for publishing to NuGet</description>
+    <copyright>Copyright © Microsoft Corporation</copyright>
+    <tags></tags>
+  </metadata>
+  <files>
+    <file src="Microsoft.DotNet.Build.Tasks\Microsoft.DotNet.Build.Tasks.dll" target="lib\netstandard1.5" />
+    <file src="Microsoft.DotNet.Build.Tasks.net45\Microsoft.DotNet.Build.Tasks.dll" target="lib\net46" />
+    <file src="Microsoft.DotNet.Build.Tasks\PackageFiles\PublishProduct.targets" target="build" />
+    <file src="..\obj\version.txt" target="" />
+  </files>
+</package>
