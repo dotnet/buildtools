@@ -39,7 +39,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 string feedUrl = m.Groups["feedurl"].Value;
 
                 bool isPublic = string.IsNullOrWhiteSpace(m.Groups["token"].Value);
-                this.feed = new BlobFeed(accountName, accountKey, containerName, feedUrl, string.IsNullOrWhiteSpace(indexDirectory) ? Path.GetTempPath() : indexDirectory, Log, isPublic);
+                this.feed = new BlobFeed(accountName, accountKey, containerName, relativePath, feedUrl, string.IsNullOrWhiteSpace(indexDirectory) ? Path.GetTempPath() : indexDirectory, Log, isPublic);
             }
             else
             { 

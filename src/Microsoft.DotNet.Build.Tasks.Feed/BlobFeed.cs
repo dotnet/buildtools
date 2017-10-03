@@ -35,16 +35,19 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         bool IsPublic { get; set; }
 
+        string FeedUrl { get; set; }
+
         private static readonly CancellationTokenSource TokenSource = new CancellationTokenSource();
         private static readonly CancellationToken CancellationToken = TokenSource.Token;
 
-        public BlobFeed(string accountName, string accountKey, string containerName, string relativePath, string indexDirectory, MSBuild.TaskLoggingHelper loggingHelper, bool isPublic)
+        public BlobFeed(string accountName, string accountKey, string containerName, string relativePath, string feedUrl, string indexDirectory, MSBuild.TaskLoggingHelper loggingHelper, bool isPublic)
         {
             AccountName = accountName;
             AccountKey = accountKey;
             ContainerName = containerName;
             IndexDirectory = indexDirectory;
             RelativePath = relativePath;
+            FeedUrl = feedUrl;
             IsPublic = isPublic;
             Log = loggingHelper;
         }
@@ -204,7 +207,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 writer.WriteStartArray();
                 writer.WriteStartObject();
                 writer.WritePropertyName("@id");
-                writer.WriteRawValue($"\"{FeedContainerUrl}/{redirectUrl}/\"");
+                writer.WriteRawValue($"\"{FeedUrl}\"");
                 writer.WritePropertyName("@type");
                 writer.WriteRawValue("\"PackageBaseAddress/3.0.0\"");
                 writer.WritePropertyName("comment");
