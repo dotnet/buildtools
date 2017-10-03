@@ -1,0 +1,158 @@
+using Microsoft.Build.Framework;
+using System;
+using System.IO;
+using System.Net.Http;
+using System.Net;
+using System.Collections.Generic;
+using Microsoft.Build.Utilities;
+
+namespace Microsoft.DotNet.Build.Tasks
+{
+    public sealed class DownloadFilesFromUrl : BuildTask
+    {
+        private static readonly HttpClient s_client = new HttpClient(GetHttpHandler());
+
+        /// <summary>
+        /// The items to download.
+        /// Url and DestinationFile are required in the item's metadata, DestinationDir is optional.
+        /// </summary>
+        [Required]
+        public ITaskItem[] Items { get; set; }
+
+        /// <summary>
+        /// The destination directory for all the items to be downloaded.
+        /// This parameter can be overriden per item, if an item has DestinationDir in it's metadata, we will take that directory.
+        /// If both, the item's and this property are empty, the items will be downloaded to the working directory.
+        /// </summary>
+        public string DestinationDir { get; set; }
+
+        /// <summary>
+        /// The default is to fail on error, set this to true if you want to just warn.
+        /// </summary>
+        public bool TreatErrorsAsWarnings { get; set; }
+
+        /// <summary>
+        /// The list of files created. It is not guaranted that all the input items will be successfully downloaded
+        /// when TreatErrorsAsWarings is set to true.
+        /// </summary>
+        [Output]
+        public ITaskItem[] FilesCreated { get; set; }
+
+        public override bool Execute()
+        {
+            var filesCreated = new List<ITaskItem>();
+            foreach (var item in Items)
+            {
+                string downloadSource = item.GetMetadata("Url");
+                if (!Uri.IsWellFormedUriString(downloadSource, UriKind.Absolute))
+                {
+                    if (TreatErrorsAsWarnings)
+                    {
+                        Log.LogWarning($"Item {item.ItemSpec} Url is not a valid url.");
+                        continue;
+                    }
+                    else
+                    {
+                        return ExitWithError($"Item {item.ItemSpec} Url is not a valid url.");
+                    }
+                }
+
+                Uri downloadUri = new Uri(downloadSource);
+                string fileName = item.GetMetadata("DestinationFile");
+                if (string.IsNullOrWhiteSpace(fileName))
+                {
+                    // we use absolute path in case the url has query string (?param=blah) to remove them before trying to get the file name.
+                    fileName = Path.GetFileName(downloadUri.AbsolutePath);
+
+                    if (string.IsNullOrEmpty(fileName))
+                    {
+                        if (TreatErrorsAsWarnings)
+                        {
+                            Log.LogWarning($"Item {item.ItemSpec} DestinationFile metadata was empty, tried getting the name from the url but ended up with empty.");
+                            continue;
+                        }
+                        else
+                        {
+                            return ExitWithError($"Item {item.ItemSpec} DestinationFile metadata was empty, tried getting the name from the url but ended up with empty.");
+                        }
+                    }
+                }
+
+                string destinationDirectory = item.GetMetadata("DestinationDir");
+                if (string.IsNullOrWhiteSpace(destinationDirectory))
+                {
+                    destinationDirectory = DestinationDir;
+                }
+
+                try
+                {
+                    string destinationFullPath = fileName;
+                    if (!string.IsNullOrWhiteSpace(destinationDirectory))
+                    {
+                        Directory.CreateDirectory(destinationDirectory);
+                        destinationFullPath = Path.Combine(destinationDirectory, fileName);
+                    }
+
+                    Log.LogMessage(MessageImportance.Normal, $"Downloading {downloadSource} -> {destinationFullPath}");
+
+                    using (Stream responseStream = s_client.GetStreamAsync(downloadUri).GetAwaiter().GetResult())
+                    {
+                        using (Stream destinationStream = File.OpenWrite(destinationFullPath))
+                        {
+                            responseStream.CopyToAsync(destinationStream).GetAwaiter().GetResult();
+                            TaskItem createdItem = new TaskItem(destinationFullPath);
+                            item.CopyMetadataTo(createdItem);
+                            filesCreated.Add(createdItem);
+                            Log.LogMessage(MessageImportance.Normal, $"Finished downloading: {downloadSource}");
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    if (TreatErrorsAsWarnings)
+                    {
+                        Log.LogWarning($"Downloading {downloadSource} failed with exception: ");
+                        Log.LogWarningFromException(e, showStackTrace: true);
+                    }
+                    else
+                    {
+                        return ExitWithError($"Downloading {downloadSource} failed with exception: ", e);
+                    }
+                }
+            }
+
+            FilesCreated = filesCreated.ToArray();
+            s_client.Dispose();
+
+            return !Log.HasLoggedErrors;
+        }
+
+        private bool ExitWithError(string errorMessage, Exception e = null)
+        {
+            s_client.Dispose();
+            Log.LogError(errorMessage);
+
+            if (e != null)
+            {
+                Log.LogErrorFromException(e, showStackTrace: true);
+            }
+
+            return false;
+        }
+
+        private static HttpClientHandler GetHttpHandler()
+        {
+            HttpClientHandler handler = new HttpClientHandler();
+#if !net45
+            handler.DefaultProxyCredentials = CredentialCache.DefaultCredentials;
+#else
+            handler.Proxy = WebRequest.DefaultWebProxy;
+
+            if (handler.Proxy != null)
+                handler.Proxy.Credentials = CredentialCache.DefaultCredentials;
+#endif // net45
+
+            return handler;
+        }
+    }
+}
