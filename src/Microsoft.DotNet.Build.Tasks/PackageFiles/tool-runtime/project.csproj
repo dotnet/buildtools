@@ -4,8 +4,8 @@
     <TargetFrameworks>netcoreapp2.0;net46</TargetFrameworks>
     <EnableDefaultItems>false</EnableDefaultItems>
     <RuntimeFrameworkVersion Condition=" '$(TargetFramework)' == 'netcoreapp2.0' ">2.0.0-beta-001776-00</RuntimeFrameworkVersion>
-    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp2.0' ">$(PackageTargetFallback);dnxcore50;portable-net45+win8</PackageTargetFallback>
     <OutputType>Exe</OutputType>
+    <NoWarn>$(NoWarn);NU1605</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
