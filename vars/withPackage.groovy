@@ -6,6 +6,9 @@
  *    source - public feed to retrieve package from
  *    outputDirectory - directory to install package to
  *    body - Closure of code to execute
+ *
+ *  Use instances: 
+ *    https://github.com/chcosta/corefx/blob/vsts-to-jenkins/buildpipeline/publish.groovy#L62 and throughout the file
  */
 def call(String packageName, String packageVersion, String source, String outputDirectory, Closure body) {
     def nuGetPath = getNuGet()
@@ -27,6 +30,13 @@ def call(String packageName, String packageVersion, String source, String output
  *    outputDirectory - directory to install package to
  *    nuGetConfigFolder - directory to generate the NuGet.Config file in which is used for the restore, it is recommended that a unique directory be used
  *    body - Closure of code to execute
+ *
+ *  Use instances:
+ *    https://github.com/chcosta/corefx/blob/vsts-to-jenkins/buildpipeline/windows.groovy#L74
+ *    https://github.com/chcosta/corefx/blob/vsts-to-jenkins/buildpipeline/windows.groovy#L169
+ *    throughout https://github.com/chcosta/corefx/blob/vsts-to-jenkins/buildpipeline/publish.groovy
+ *    
+ *    
  */
 def call(String packageName, String packageVersion, List<Map> sources, String outputDirectory, String nuGetConfigFolder = "${WORKSPACE}\\CiTemp", Closure body) {
   def nuGetPath = getNuGet()

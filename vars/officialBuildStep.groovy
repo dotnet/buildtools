@@ -9,6 +9,11 @@
  *    officialBuildStep(false) {
  *        echo "this is NOT an official build"
  *    }
+ *  Use instances:
+ *    https://github.com/chcosta/corefx/blob/vsts-to-jenkins/buildpipeline/linux.groovy
+ *    https://github.com/chcosta/corefx/blob/vsts-to-jenkins/buildpipeline/osx.groovy
+ *    https://github.com/chcosta/corefx/blob/vsts-to-jenkins/buildpipeline/publish.groovy
+ *    https://github.com/chcosta/corefx/blob/vsts-to-jenkins/buildpipeline/windows.groovy
  */
 def call(Boolean runOfficialBuildStep = true, Closure body) {
     if(isOfficialBuild()) {
