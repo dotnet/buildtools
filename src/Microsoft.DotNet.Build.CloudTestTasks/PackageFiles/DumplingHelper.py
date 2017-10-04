@@ -73,7 +73,7 @@ def collect_dump(exitcodeStr, folder, startTimeStr, projectName, incpaths):
       sys.executable, dumplingPath, "upload",
       "--dumppath", file,
       "--noprompt",
-      "--triage", "full",
+      "--triage", "none",
       "--displayname", projectName,
       "--properties", "STRESS_TESTID="+projectName
       ], " ");
