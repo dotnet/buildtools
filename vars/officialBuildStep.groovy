@@ -21,5 +21,4 @@ def call(Boolean runOfficialBuildStep = true, Closure body) {
             body()
         }
     }
-
 }

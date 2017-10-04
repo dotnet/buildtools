@@ -1,4 +1,4 @@
-/* return true if officialBuildId is valid
+/* return true if officialBuildId is set
  */
 def call() {
     if(env.OfficialBuildId != null && 
