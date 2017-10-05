@@ -157,7 +157,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             }
             else
             {
-                blobPath = Path.Combine(relativePath, Path.GetFileName(item));
+                blobPath = Path.Combine(relativePath.ToLowerInvariant(), Path.GetFileName(item));
             }
             return blobPath.Replace("\\", "/");
         }
