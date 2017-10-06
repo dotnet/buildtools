@@ -10,8 +10,6 @@ namespace Microsoft.DotNet.Build.Tasks
 {
     public sealed class DownloadFilesFromUrl : BuildTask
     {
-        private static readonly HttpClient s_client = new HttpClient(GetHttpHandler());
-
         /// <summary>
         /// The items to download.
         /// Url and DestinationFile are required in the item's metadata, DestinationDir is optional.
@@ -41,103 +39,96 @@ namespace Microsoft.DotNet.Build.Tasks
         public override bool Execute()
         {
             var filesCreated = new List<ITaskItem>();
-            foreach (var item in Items)
+            using (HttpClient client = new HttpClient(GetHttpHandler()))
             {
-                string downloadSource = item.GetMetadata("Url");
-                if (!Uri.IsWellFormedUriString(downloadSource, UriKind.Absolute))
+                foreach (var item in Items)
                 {
-                    if (TreatErrorsAsWarnings)
-                    {
-                        Log.LogWarning($"Item {item.ItemSpec} Url is not a valid url.");
-                        continue;
-                    }
-                    else
-                    {
-                        return ExitWithError($"Item {item.ItemSpec} Url is not a valid url.");
-                    }
-                }
-
-                Uri downloadUri = new Uri(downloadSource);
-                string fileName = item.GetMetadata("DestinationFile");
-                if (string.IsNullOrWhiteSpace(fileName))
-                {
-                    // we use absolute path in case the url has query string (?param=blah) to remove them before trying to get the file name.
-                    fileName = Path.GetFileName(downloadUri.AbsolutePath);
-
-                    if (string.IsNullOrEmpty(fileName))
+                    string downloadSource = item.GetMetadata("Url");
+                    if (!Uri.IsWellFormedUriString(downloadSource, UriKind.Absolute))
                     {
                         if (TreatErrorsAsWarnings)
                         {
-                            Log.LogWarning($"Item {item.ItemSpec} DestinationFile metadata was empty, tried getting the name from the url but ended up with empty.");
+                            Log.LogWarning($"Item {item.ItemSpec} Url is not a valid url.");
                             continue;
                         }
                         else
                         {
-                            return ExitWithError($"Item {item.ItemSpec} DestinationFile metadata was empty, tried getting the name from the url but ended up with empty.");
+                            Log.LogError($"Item {item.ItemSpec} Url is not a valid url.");
+                            return false;
                         }
                     }
-                }
 
-                string destinationDirectory = item.GetMetadata("DestinationDir");
-                if (string.IsNullOrWhiteSpace(destinationDirectory))
-                {
-                    destinationDirectory = DestinationDir;
-                }
-
-                try
-                {
-                    string destinationFullPath = fileName;
-                    if (!string.IsNullOrWhiteSpace(destinationDirectory))
+                    Uri downloadUri = new Uri(downloadSource);
+                    string fileName = item.GetMetadata("DestinationFile");
+                    if (string.IsNullOrWhiteSpace(fileName))
                     {
-                        Directory.CreateDirectory(destinationDirectory);
-                        destinationFullPath = Path.Combine(destinationDirectory, fileName);
-                    }
+                        // we use absolute path in case the url has query string (?param=blah) to remove them before trying to get the file name.
+                        fileName = Path.GetFileName(downloadUri.AbsolutePath);
 
-                    Log.LogMessage(MessageImportance.Normal, $"Downloading {downloadSource} -> {destinationFullPath}");
-
-                    using (Stream responseStream = s_client.GetStreamAsync(downloadUri).GetAwaiter().GetResult())
-                    {
-                        using (Stream destinationStream = File.OpenWrite(destinationFullPath))
+                        if (string.IsNullOrEmpty(fileName))
                         {
-                            responseStream.CopyToAsync(destinationStream).GetAwaiter().GetResult();
-                            TaskItem createdItem = new TaskItem(destinationFullPath);
-                            item.CopyMetadataTo(createdItem);
-                            filesCreated.Add(createdItem);
-                            Log.LogMessage(MessageImportance.Normal, $"Finished downloading: {downloadSource}");
+                            if (TreatErrorsAsWarnings)
+                            {
+                                Log.LogWarning($"Item {item.ItemSpec} DestinationFile metadata was empty, tried getting the name from the url but ended up with empty.");
+                                continue;
+                            }
+                            else
+                            {
+                                Log.LogError($"Item {item.ItemSpec} DestinationFile metadata was empty, tried getting the name from the url but ended up with empty.");
+                                return false;
+                            }
                         }
                     }
-                }
-                catch (Exception e)
-                {
-                    if (TreatErrorsAsWarnings)
+
+                    string destinationDirectory = item.GetMetadata("DestinationDir");
+                    if (string.IsNullOrWhiteSpace(destinationDirectory))
                     {
-                        Log.LogWarning($"Downloading {downloadSource} failed with exception: ");
-                        Log.LogWarningFromException(e, showStackTrace: true);
+                        destinationDirectory = DestinationDir;
                     }
-                    else
+
+                    try
                     {
-                        return ExitWithError($"Downloading {downloadSource} failed with exception: ", e);
+                        string destinationFullPath = fileName;
+                        if (!string.IsNullOrWhiteSpace(destinationDirectory))
+                        {
+                            Directory.CreateDirectory(destinationDirectory);
+                            destinationFullPath = Path.Combine(destinationDirectory, fileName);
+                        }
+
+                        Log.LogMessage(MessageImportance.Normal, $"Downloading {downloadSource} -> {destinationFullPath}");
+
+                        using (Stream responseStream = client.GetStreamAsync(downloadUri).GetAwaiter().GetResult())
+                        {
+                            using (Stream destinationStream = File.OpenWrite(destinationFullPath))
+                            {
+                                responseStream.CopyToAsync(destinationStream).GetAwaiter().GetResult();
+                                TaskItem createdItem = new TaskItem(destinationFullPath);
+                                item.CopyMetadataTo(createdItem);
+                                filesCreated.Add(createdItem);
+                                Log.LogMessage(MessageImportance.Normal, $"Finished downloading: {downloadSource}");
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        if (TreatErrorsAsWarnings)
+                        {
+                            Log.LogWarning($"Downloading {downloadSource} failed with exception: ");
+                            Log.LogWarningFromException(e, showStackTrace: true);
+                        }
+                        else
+                        {
+                            Log.LogError($"Downloading {downloadSource} failed with exception: ");
+                            Log.LogErrorFromException(e, showStackTrace: true);
+                            return false;
+                        }
                     }
                 }
             }
 
             FilesCreated = filesCreated.ToArray();
-            s_client.Dispose();
 
             return !Log.HasLoggedErrors;
-        }
-
-        private bool ExitWithError(string errorMessage, Exception e = null)
-        {
-            s_client.Dispose();
-            Log.LogError(errorMessage);
-
-            if (e != null)
-            {
-                Log.LogErrorFromException(e, showStackTrace: true);
-            }
-
-            return false;
         }
 
         private static HttpClientHandler GetHttpHandler()
