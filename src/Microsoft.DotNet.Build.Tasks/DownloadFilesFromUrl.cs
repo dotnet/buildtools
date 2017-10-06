@@ -10,7 +10,7 @@ namespace Microsoft.DotNet.Build.Tasks
 {
     public sealed class DownloadFilesFromUrl : BuildTask
     {
-        private static readonly HttpClient s_client = new HttpClient(GetHttpHandler());
+        private readonly HttpClient _client = new HttpClient(GetHttpHandler());
 
         /// <summary>
         /// The items to download.
@@ -95,7 +95,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
                     Log.LogMessage(MessageImportance.Normal, $"Downloading {downloadSource} -> {destinationFullPath}");
 
-                    using (Stream responseStream = s_client.GetStreamAsync(downloadUri).GetAwaiter().GetResult())
+                    using (Stream responseStream = _client.GetStreamAsync(downloadUri).GetAwaiter().GetResult())
                     {
                         using (Stream destinationStream = File.OpenWrite(destinationFullPath))
                         {
@@ -122,14 +122,14 @@ namespace Microsoft.DotNet.Build.Tasks
             }
 
             FilesCreated = filesCreated.ToArray();
-            s_client.Dispose();
+            _client.Dispose();
 
             return !Log.HasLoggedErrors;
         }
 
         private bool ExitWithError(string errorMessage, Exception e = null)
         {
-            s_client.Dispose();
+            _client.Dispose();
             Log.LogError(errorMessage);
 
             if (e != null)
