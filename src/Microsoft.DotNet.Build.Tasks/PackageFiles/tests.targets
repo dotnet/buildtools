@@ -422,6 +422,14 @@ robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
       <PostExecutionTestCommandLines Include="move $(UAP_Results_Path)$(XunitTestAssembly).xml .\$(XunitResultsFileName)" />
     </ItemGroup>
 
+    <!-- If the PreExecutionTestScript property is set, then it should be set to the full path to a script that will be directly incorporated
+         into the generated runtests.cmd script, immediately before the test is run. This can be used to set a number of JIT stress modes,
+         for example.
+     -->
+    <ItemGroup Condition="'$(PreExecutionTestScript)'!=''">
+      <TestCommandLines Include="$([System.IO.File]::ReadAllText('$(PreExecutionTestScript)'))" />
+    </ItemGroup>
+
     <ItemGroup Condition="'$(Performance)'!='true'">
       <!-- On Windows, call prevents the test command from making execution end prematurely -->
       <TestCommandLines  Condition="'$(TargetOS)'=='Windows_NT' and '$(TestGCStressLevel)' != ''" Include="set COMPlus_GCStress=$(TestGCStressLevel)"/>
