@@ -9,7 +9,7 @@
     "System.Runtime.InteropServices.RuntimeInformation": "4.4.0-beta-24813-03",
     "System.Linq.Parallel": "4.0.1",
     "OpenCover": "4.6.519",
-    "ReportGenerator": "2.5.0",
+    "ReportGenerator": "3.0.1",
     "Microsoft.DotNet.xunit.performance.analysis": "1.0.0-alpha-build0035",
     "Microsoft.DotNet.xunit.performance.analysis.cli": "1.0.0-alpha-build0035",
     "Microsoft.DotNet.xunit.performance.runner.cli": "1.0.0-alpha-build0035",
