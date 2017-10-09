@@ -52,12 +52,6 @@
   <!-- Import Build tools common props file where repo-independent properties are found -->
   <Import Project="$(ToolsDir)Build.Common.props" />
 
-  <!-- Test runtime -->
-  <PropertyGroup>
-    <TestRuntimeProjectJson Condition="'$(TestRuntimeProjectJson)' == ''">$(SourceDir)Microsoft.DotNet.Build.Tasks/PackageFiles/test-runtime/project.json</TestRuntimeProjectJson>
-    <TestRuntimeProjectLockJson Condition="'$(TestRuntimeProjectLockJson)' == ''">$(SourceDir)Microsoft.DotNet.Build.Tasks/PackageFiles/test-runtime/project.lock.json</TestRuntimeProjectLockJson>
-  </PropertyGroup>
-
   <Import Project="$(ProjectDir)dependencies.props" />
 
   <!-- list of nuget package sources passed to nuget.exe -->
