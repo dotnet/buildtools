@@ -38,6 +38,11 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public override bool Execute()
         {
+            if (Items == null || Items.Length <= 0)
+            {
+                return true;
+            }
+
             var filesCreated = new List<ITaskItem>();
             using (HttpClient client = new HttpClient(GetHttpHandler()))
             {
