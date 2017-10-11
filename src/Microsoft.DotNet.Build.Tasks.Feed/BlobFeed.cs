@@ -153,7 +153,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             if (Path.GetExtension(item) == ".nupkg")
             {
                 Tuple<string, NuGetVersion> nugetPackage = GetNugetPackageVersion(item);
-                blobPath = Path.Combine(Path.Combine(relativePath, Path.Combine(nugetPackage.Item1, nugetPackage.Item2.ToFullString()).ToLowerInvariant()), Path.GetFileName(item));
+                blobPath = Path.Combine(Path.Combine(relativePath, Path.Combine(nugetPackage.Item1, nugetPackage.Item2.ToFullString()).ToLowerInvariant()), Path.GetFileName(item).ToLowerInvariant());
             }
             else
             {
