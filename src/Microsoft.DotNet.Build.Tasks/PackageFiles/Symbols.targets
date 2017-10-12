@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <UsingTask TaskName="AddItemIndices" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
-  <UsingTask TaskName="ConvertPdbsToPortablePdbs" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="ConvertPortablePdbsToWindowsPdbs" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="DownloadFilesFromUrl" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ExecWithRetries" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="ZipFileExtractToDirectory" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
@@ -505,8 +505,8 @@
       </PortableFileToConvert>
     </ItemGroup>
 
-    <ConvertPdbsToPortablePdbs Files="@(PortableFileToConvert)"
-                               ConversionOptions="@(ConversionOptions)" />
+    <ConvertPortablePdbsToWindowsPdbs Files="@(PortableFileToConvert)"
+                                      ConversionOptions="@(ConversionOptions)" />
   </Target>
 
   <!--
