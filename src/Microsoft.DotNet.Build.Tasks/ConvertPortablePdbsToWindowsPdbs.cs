@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
 using Microsoft.DiaSymReader.Tools;
 using System;
 using System.Globalization;
@@ -13,7 +12,7 @@ using System.Reflection.PortableExecutable;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class ConvertPdbsToPortablePdbs : BuildTask
+    public class ConvertPortablePdbsToWindowsPdbs : BuildTask
     {
         private const string PdbPathMetadata = "PdbPath";
         private const string TargetPathMetadata = "TargetPath";
