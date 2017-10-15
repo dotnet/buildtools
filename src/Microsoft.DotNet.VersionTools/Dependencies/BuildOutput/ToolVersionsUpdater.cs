@@ -8,15 +8,19 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Microsoft.DotNet.VersionTools.Dependencies
+namespace Microsoft.DotNet.VersionTools.Dependencies.BuildOutput
 {
     public class ToolVersionsUpdater : IDependencyUpdater
     {
         public string Path { get; set; }
 
         public IEnumerable<DependencyUpdateTask> GetUpdateTasks(
-            IEnumerable<DependencyBuildInfo> dependencyBuildInfos)
+            IEnumerable<IDependencyInfo> dependencyInfos)
         {
+            DependencyBuildInfo[] dependencyBuildInfos = dependencyInfos
+                .OfType<DependencyBuildInfo>()
+                .ToArray();
+
             var lineResults = new List<ToolUpdateLineResult>();
 
             Action updateTask = FileUtils.GetUpdateFileContentsTask(
@@ -31,7 +35,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
                     {
                         var result = new ToolUpdateLineResult(line, dependencyBuildInfos);
                         writer.WriteLine(result.Content);
-                        if (result.UsedBuildInfo != null)
+                        if (result.UsedInfo != null)
                         {
                             lineResults.Add(result);
                         }
@@ -44,7 +48,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
             {
                 yield return new DependencyUpdateTask(
                     updateTask,
-                    lineResults.Select(c => c.UsedBuildInfo),
+                    lineResults.Select(c => c.UsedInfo),
                     lineResults.Select(c => $"In '{Path}', '{c.ToolName}' '{c.OriginalVersion}' must be '{c.NewVersion}'."));
             }
         }
@@ -53,7 +57,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
         {
             public string Content { get; }
 
-            public BuildInfo UsedBuildInfo { get; }
+            public DependencyBuildInfo UsedInfo { get; }
 
             public string ToolName { get; }
 
@@ -84,7 +88,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
                     {
                         Content = $"{name}={version}";
                         NewVersion = version;
-                        UsedBuildInfo = info.BuildInfo;
+                        UsedInfo = info;
                         break;
                     }
                 }

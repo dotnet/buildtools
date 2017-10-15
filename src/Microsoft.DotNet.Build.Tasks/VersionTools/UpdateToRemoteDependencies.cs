@@ -10,48 +10,76 @@ using Microsoft.DotNet.VersionTools.Util;
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Microsoft.DotNet.VersionTools.Dependencies;
+using Microsoft.DotNet.VersionTools.Dependencies.Submodule;
 
 namespace Microsoft.DotNet.Build.Tasks.VersionTools
 {
-    public class UpdateDependenciesAndSubmitPullRequest : BaseDependenciesTask
+    public class UpdateToRemoteDependencies : BaseDependenciesTask
     {
-        public string ProjectRepoOwner { get; set; }
+        public string CurrentRefXmlPath { get; set; }
 
-        [Required]
-        public string ProjectRepoName { get; set; }
-        [Required]
-        public string ProjectRepoBranch { get; set; }
-
-        [Required]
+        /// <summary>
+        /// If provided, GitHub authentication info is used to fetch the remote dotnet/versions
+        /// commit. The anonymous user rate limit is small, and this can be used to use an account's
+        /// quota instead. The "...AndSubmitPullRequest" subclass also uses this to create the PR.
+        /// </summary>
         public string GitHubAuthToken { get; set; }
         public string GitHubUser { get; set; }
         public string GitHubEmail { get; set; }
 
-        /// <summary>
-        /// The git author of the update commit. Defaults to the same as GitHubUser.
-        /// </summary>
-        public string GitHubAuthor { get; set; }
-
-        public ITaskItem[] NotifyGitHubUsers { get; set; }
-
-        public string CurrentRefXmlPath { get; set; }
-
-        public bool AlwaysCreateNewPullRequest { get; set; }
-
         protected override void TraceListenedExecute()
         {
-            // Use the commit sha of versions repo master (not just "master") for stable upgrade.
-            var gitHubAuth = new GitHubAuth(GitHubAuthToken, GitHubUser, GitHubEmail);
-            var client = new GitHubClient(gitHubAuth);
-            string masterSha = client
+            using (GitHubClient client = CreateClient(allowAnonymous: true))
+            {
+                DependencyUpdateResults updateResults = UpdateToRemote(client);
+
+                Log.LogMessage(
+                    MessageImportance.Low,
+                    $"Suggested commit message: '{updateResults.GetSuggestedCommitMessage()}'");
+            }
+        }
+
+        protected GitHubClient CreateClient(bool allowAnonymous)
+        {
+            GitHubAuth gitHubAuth = null;
+            if (string.IsNullOrEmpty(GitHubAuthToken))
+            {
+                if (allowAnonymous)
+                {
+                    Log.LogMessage(
+                        MessageImportance.Low,
+                        $"No value for '{nameof(GitHubAuthToken)}'. " +
+                        "Accessing GitHub API anonymously.");
+                }
+                else
+                {
+                    throw new ArgumentException(
+                        $"Required argument '{nameof(GitHubAuthToken)}' is null or empty.");
+                }
+            }
+            else
+            {
+                gitHubAuth = new GitHubAuth(GitHubAuthToken, GitHubUser, GitHubEmail);
+            }
+
+            return new GitHubClient(gitHubAuth);
+        }
+
+        protected DependencyUpdateResults UpdateToRemote(GitHubClient client)
+        {
+            // Use the commit hash of the remote dotnet/versions repo master branch.
+            string versionsCommitHash = client
                 .GetReferenceAsync(new GitHubProject("versions", "dotnet"), "heads/master")
                 .Result.Object.Sha;
+
+            IDependencyUpdater[] updaters = CreateUpdaters().ToArray();
 
             foreach (ITaskItem item in DependencyBuildInfo)
             {
                 if (!string.IsNullOrEmpty(item.GetMetadata(CurrentRefMetadataName)))
                 {
-                    item.SetMetadata(CurrentRefMetadataName, masterSha);
+                    item.SetMetadata(CurrentRefMetadataName, versionsCommitHash);
                 }
                 string autoUpgradeBranch = item.GetMetadata(AutoUpgradeBranchMetadataName);
                 if (!string.IsNullOrEmpty(autoUpgradeBranch))
@@ -61,8 +89,9 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
             }
 
             DependencyUpdateResults updateResults = DependencyUpdateUtils.Update(
-                CreateUpdaters().ToArray(),
-                CreateBuildInfoDependencies().ToArray());
+                updaters,
+                CreateBuildInfoDependencies().ToArray(),
+                UnpinUpdaterDependencyInfo);
 
             // Update CurrentRef and CurrentBranch for each applicable build info used.
             if (!string.IsNullOrEmpty(CurrentRefXmlPath))
@@ -76,7 +105,7 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                         UpdateProperty(
                             CurrentRefXmlPath,
                             $"{info.Name}{CurrentRefMetadataName}",
-                            masterSha);
+                            versionsCommitHash);
                     }
 
                     string autoUpgradeBranch = infoItem.GetMetadata(AutoUpgradeBranchMetadataName);
@@ -90,32 +119,15 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                 }
             }
 
-            if (updateResults.ChangesDetected())
-            {
-                var origin = new GitHubProject(ProjectRepoName, GitHubUser);
+            return updateResults;
+        }
 
-                var upstreamBranch = new GitHubBranch(
-                    ProjectRepoBranch,
-                    new GitHubProject(ProjectRepoName, ProjectRepoOwner));
-
-                string suggestedMessage = updateResults.GetSuggestedCommitMessage();
-                string body = string.Empty;
-                if (NotifyGitHubUsers != null)
-                {
-                    body += PullRequestCreator.NotificationString(NotifyGitHubUsers.Select(item => item.ItemSpec));
-                }
-
-                var prCreator = new PullRequestCreator(gitHubAuth, origin, upstreamBranch, GitHubAuthor);
-                prCreator.CreateOrUpdateAsync(
-                    suggestedMessage,
-                    suggestedMessage + $" ({ProjectRepoBranch})",
-                    body,
-                    forceCreate: AlwaysCreateNewPullRequest).Wait();
-            }
-            else
-            {
-                Log.LogMessage("No update required: no changes detected.");
-            }
+        /// <summary>
+        /// Unpin the IDependencyInfo generated by an updater such as the submodule updater.
+        /// </summary>
+        private void UnpinUpdaterDependencyInfo(IDependencyInfo info)
+        {
+            (info as SubmoduleDependencyInfo)?.Unpin();
         }
 
         private ITaskItem FindDependencyBuildInfo(string name)

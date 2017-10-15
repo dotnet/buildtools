@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.DotNet.VersionTools.Dependencies.BuildOutput;
 using Microsoft.DotNet.VersionTools.Util;
 using System;
 using System.Collections.Generic;
@@ -17,10 +18,10 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
         public Regex Regex { get; set; }
         public string VersionGroupName { get; set; }
 
-        public IEnumerable<DependencyUpdateTask> GetUpdateTasks(IEnumerable<DependencyBuildInfo> dependencyBuildInfos)
+        public IEnumerable<DependencyUpdateTask> GetUpdateTasks(IEnumerable<IDependencyInfo> dependencyInfos)
         {
-            IEnumerable<BuildInfo> usedBuildInfos;
-            string newValue = TryGetDesiredValue(dependencyBuildInfos, out usedBuildInfos);
+            IEnumerable<IDependencyInfo> usedInfos;
+            string newValue = TryGetDesiredValue(dependencyInfos, out usedInfos);
 
             if (newValue == null)
             {
@@ -44,16 +45,16 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
                     var messageLines = new[]
                     {
                         $"In '{Path}', '{originalValue}' must be '{newValue}' based on build info " +
-                            $"'{string.Join(", ", usedBuildInfos.Select(info => info.Name))}'"
+                            $"'{string.Join(", ", usedInfos.Select(info => info.SimpleName))}'"
                     };
-                    yield return new DependencyUpdateTask(update, usedBuildInfos, messageLines);
+                    yield return new DependencyUpdateTask(update, usedInfos, messageLines);
                 }
             }
         }
 
         protected abstract string TryGetDesiredValue(
-            IEnumerable<DependencyBuildInfo> dependencyBuildInfos,
-            out IEnumerable<BuildInfo> usedBuildInfos);
+            IEnumerable<IDependencyInfo> dependencyInfos,
+            out IEnumerable<IDependencyInfo> usedDependencyInfos);
 
         private static string ReplaceGroupValue(
             Regex regex,

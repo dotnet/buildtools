@@ -7,9 +7,9 @@ using NuGet.Versioning;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.DotNet.VersionTools.Dependencies
+namespace Microsoft.DotNet.VersionTools.Dependencies.BuildOutput
 {
-    public class DependencyBuildInfo
+    public class DependencyBuildInfo : IDependencyInfo
     {
         public BuildInfo BuildInfo { get; }
 
@@ -47,5 +47,9 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
                 .Select(pair => new PackageIdentity(pair.Key, new NuGetVersion(pair.Value)))
                 .ToArray();
         }
+
+        public string SimpleName => BuildInfo.Name;
+
+        public string SimpleVersion => BuildInfo.LatestReleaseVersion;
     }
 }

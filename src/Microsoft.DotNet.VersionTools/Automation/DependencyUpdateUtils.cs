@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.DotNet.VersionTools.Dependencies;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,24 +12,30 @@ namespace Microsoft.DotNet.VersionTools.Automation
     public static class DependencyUpdateUtils
     {
         /// <summary>
-        /// Runs the updaters given using buildInfo sources, and returns information about the
-        /// updates performed, such as a recommended commit name based on the BuildInfos used.
+        /// Runs the updaters given using given dependency info sources. Returns information about
+        /// the updates performed, such as a recommended commit name.
         /// </summary>
         public static DependencyUpdateResults Update(
             IEnumerable<IDependencyUpdater> updaters,
-            IEnumerable<DependencyBuildInfo> buildInfoDependencies)
+            IEnumerable<IDependencyInfo> externalDependencyInfos,
+            Action<IDependencyInfo> modifyUpdaterDependencyInfo = null)
         {
-            IEnumerable<BuildInfo> distinctUsedBuildInfos = GetUpdateTasks(updaters, buildInfoDependencies)
+            IEnumerable<DependencyUpdateTask> updateTasks = GetUpdateTasks(
+                updaters,
+                externalDependencyInfos,
+                modifyUpdaterDependencyInfo);
+
+            IDependencyInfo[] distinctUsedDependencyInfos = updateTasks
                 .Select(task =>
                 {
                     task.Start();
                     return task.Result;
                 })
-                .SelectMany(results => results.UsedBuildInfos)
+                .SelectMany(results => results.UsedInfos)
                 .Distinct()
                 .ToArray();
 
-            return new DependencyUpdateResults(distinctUsedBuildInfos);
+            return new DependencyUpdateResults(distinctUsedDependencyInfos);
         }
 
         /// <summary>
@@ -36,9 +43,22 @@ namespace Microsoft.DotNet.VersionTools.Automation
         /// </summary>
         public static IEnumerable<DependencyUpdateTask> GetUpdateTasks(
             IEnumerable<IDependencyUpdater> updaters,
-            IEnumerable<DependencyBuildInfo> buildInfoDependencies)
+            IEnumerable<IDependencyInfo> externalDependencyInfos,
+            Action<IDependencyInfo> modifyUpdaterDependencyInfo = null)
         {
-            return updaters.SelectMany(updater => updater.GetUpdateTasks(buildInfoDependencies));
+            IDependencyInfo[] updaterDependencyInfos = updaters
+                .OfType<IDependencyInfoProvider>()
+                .SelectMany(updater => updater.CreateDependencyInfos())
+                .ToArray();
+
+            foreach (var info in updaterDependencyInfos)
+            {
+                modifyUpdaterDependencyInfo?.Invoke(info);
+            }
+
+            var allDependencyInfos = updaterDependencyInfos.Concat(externalDependencyInfos);
+
+            return updaters.SelectMany(updater => updater.GetUpdateTasks(allDependencyInfos));
         }
     }
 }

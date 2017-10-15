@@ -18,6 +18,12 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
 {
     public class GitHubClient : IDisposable
     {
+        /// <summary>
+        /// A default user agent to use if none is provided to the constructor. GitHub always
+        /// requires a user agent even if no auth token is set.
+        /// </summary>
+        private const string DefaultUserAgent = "Microsoft.DotNet.VersionTools";
+
         private static JsonSerializerSettings s_jsonSettings = new JsonSerializerSettings
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver()
@@ -30,18 +36,21 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             "X-RateLimit-Reset"
         };
 
-        private GitHubAuth _auth;
-
         private HttpClient _httpClient;
+
+        public GitHubAuth Auth { get; }
 
         public GitHubClient(GitHubAuth auth)
         {
-            _auth = auth;
+            Auth = auth;
 
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Add("Accept", "application/vnd.github.v3+json");
-            _httpClient.DefaultRequestHeaders.Add("Authorization", $"token {auth.AuthToken}");
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", auth.User);
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", auth?.User ?? DefaultUserAgent);
+            if (auth?.AuthToken != null)
+            {
+                _httpClient.DefaultRequestHeaders.Add("Authorization", $"token {auth.AuthToken}");
+            }
         }
 
         public async Task<GitHubContents> GetGitHubFileAsync(
@@ -93,8 +102,8 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
                 message = commitMessage,
                 committer = new
                 {
-                    name = _auth.User,
-                    email = _auth.Email
+                    name = Auth.User,
+                    email = Auth.Email
                 },
                 content = ToBase64(newFileContents),
                 sha = currentSha

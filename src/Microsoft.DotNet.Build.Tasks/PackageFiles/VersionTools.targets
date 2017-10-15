@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <UsingTask TaskName="LocalUpdatePublishedVersions" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="UpdateDependencies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="UpdatePublishedVersions" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="UpdateToRemoteDependencies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="UpdateToRemoteDependenciesAndSubmitPullRequest" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="VerifyDependencies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+
   <PropertyGroup>
     <!-- Cache of build info files retrieved from versions repository. -->
     <BuildInfoCacheDir>$(ToolsDir)BuildInfoCache/</BuildInfoCacheDir>
@@ -13,12 +20,12 @@
     </UpdateStep>
   </ItemGroup>
 
-  <!-- Tasks to update the dotnet/versions repository. -->
-  <UsingTask TaskName="UpdatePublishedVersions" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
-  <UsingTask TaskName="LocalUpdatePublishedVersions" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
-
   <ItemGroup Condition="'$(ShippedNuGetPackageGlobPath)'!=''">
     <ShippedNuGetPackage Include="$(ShippedNuGetPackageGlobPath)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(NotifyGitHubUsers)'!=''">
+    <NotifyGitHubUsers Include="$(NotifyGitHubUsers)" />
   </ItemGroup>
 
   <Target Name="UpdatePublishedVersions">
@@ -37,22 +44,12 @@
                                   VersionsRepoPath="$(VersionsRepoPath)" />
   </Target>
 
-  <!-- Task to update dependencies to expected values. -->
-  <UsingTask TaskName="UpdateDependencies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
-
-  <ItemGroup Condition="'$(NotifyGitHubUsers)'!=''">
-    <NotifyGitHubUsers Include="$(NotifyGitHubUsers)" />
-  </ItemGroup>
-
   <Target Name="UpdateDependencies">
     <UpdateDependencies DependencyBuildInfo="@(DependencyBuildInfo)"
                         ProjectJsonFiles="@(ProjectJsonFiles)"
                         UpdateStep="@(UpdateStep)"
                         BuildInfoCacheDir="$(BuildInfoCacheDir)" />
   </Target>
-
-  <!-- Task to perform dependency verification. -->
-  <UsingTask TaskName="VerifyDependencies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
 
   <Target Name="VerifyDependencies" Condition="'$(SkipVerifyPackageVersions)'!='true'">
     <!-- Add message so it's clear what's happening when building with verbosity:minimal. For example, "sync -p". -->
@@ -66,22 +63,47 @@
     <Message Importance="High" Text="[$([System.DateTime]::Now.ToString('HH:mm:ss.ff'))] Verifying all auto-upgradeable dependencies... Done." />
   </Target>
 
-  <!-- Task to create a dependency update pull request. -->
-  <UsingTask TaskName="UpdateDependenciesAndSubmitPullRequest" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <!--
+    Update to the latest dependencies available remotely. A "UpdateDependencies" call uses the local
+    source of truth, but this looks up the latest truth on the remote. For example, this uses the
+    latest dotnet/versions remote commit for build-infos, and it uses the project's GitHub
+    repository to find the latest commit for a submodule.
 
-  <Target Name="UpdateDependenciesAndSubmitPullRequest">
-    <UpdateDependenciesAndSubmitPullRequest DependencyBuildInfo="@(DependencyBuildInfo)"
-                                            ProjectJsonFiles="@(ProjectJsonFiles)"
-                                            UpdateStep="@(UpdateStep)"
-                                            ProjectRepoName="$(ProjectRepoName)"
-                                            ProjectRepoOwner="$(ProjectRepoOwner)"
-                                            ProjectRepoBranch="$(ProjectRepoBranch)"
-                                            GitHubAuthToken="$(GitHubAuthToken)"
-                                            GitHubUser="$(GitHubUser)"
-                                            GitHubEmail="$(GitHubEmail)"
-                                            GitHubAuthor="$(GitHubAuthor)"
-                                            NotifyGitHubUsers="@(NotifyGitHubUsers)"
-                                            CurrentRefXmlPath="$(CurrentRefXmlPath)"
-                                            AlwaysCreateNewPullRequest="$(AlwaysCreateNewPullRequest)" />
+    If using the remote causes any updates, the local source of truth is modified to match it.
+  -->
+  <Target Name="UpdateToRemoteDependencies">
+    <UpdateToRemoteDependencies DependencyBuildInfo="@(DependencyBuildInfo)"
+                                ProjectJsonFiles="@(ProjectJsonFiles)"
+                                UpdateStep="@(UpdateStep)"
+                                CurrentRefXmlPath="$(CurrentRefXmlPath)" />
+  </Target>
+
+  <!--
+    Update to the latest dependencies available remotely, then submit a pull request.
+  -->
+  <Target Name="UpdateToRemoteDependenciesAndSubmitPullRequest">
+    <UpdateToRemoteDependenciesAndSubmitPullRequest DependencyBuildInfo="@(DependencyBuildInfo)"
+                                                    ProjectJsonFiles="@(ProjectJsonFiles)"
+                                                    UpdateStep="@(UpdateStep)"
+                                                    ProjectRepoName="$(ProjectRepoName)"
+                                                    ProjectRepoOwner="$(ProjectRepoOwner)"
+                                                    ProjectRepoBranch="$(ProjectRepoBranch)"
+                                                    GitHubAuthToken="$(GitHubAuthToken)"
+                                                    GitHubUser="$(GitHubUser)"
+                                                    GitHubEmail="$(GitHubEmail)"
+                                                    GitHubAuthor="$(GitHubAuthor)"
+                                                    NotifyGitHubUsers="@(NotifyGitHubUsers)"
+                                                    CurrentRefXmlPath="$(CurrentRefXmlPath)"
+                                                    AlwaysCreateNewPullRequest="$(AlwaysCreateNewPullRequest)"
+                                                    CommitMessage="$(CommitMessage)" />
+  </Target>
+
+  <!--
+    Deprecated auto-upgrade PR target. Redirects to the target's new name.
+  -->
+  <Target Name="UpdateDependenciesAndSubmitPullRequest"
+          DependsOnTargets="UpdateToRemoteDependenciesAndSubmitPullRequest">
+    <Message Text="'UpdateDependenciesAndSubmitPullRequest' has been renamed to 'UpdateToRemoteDependenciesAndSubmitPullRequest'. The old name is deprecated. Ran the new target instead."
+             Importance="high" />
   </Target>
 </Project>

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.DotNet.VersionTools.Dependencies.BuildOutput;
 using NuGet.Packaging.Core;
 using System;
 using System.Collections.Generic;
@@ -40,10 +41,10 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.Submodule
         }
 
         protected override string GetDesiredCommitHash(
-            IEnumerable<DependencyBuildInfo> dependencyBuildInfos,
-            out IEnumerable<DependencyBuildInfo> usedBuildInfos)
+            IEnumerable<IDependencyInfo> dependencyInfos,
+            out IEnumerable<IDependencyInfo> usedDependencyInfos)
         {
-            foreach (var info in dependencyBuildInfos)
+            foreach (var info in dependencyInfos.OfType<DependencyBuildInfo>())
             {
                 PackageIdentity package = info.Packages
                     .FirstOrDefault(p => p.Id == IndicatorPackageId);
@@ -69,14 +70,14 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.Submodule
                         string packageCommitHash = versionTxtReader.ReadLine();
                         Trace.TraceInformation($"Found commit '{packageCommitHash}' in versions.txt.");
 
-                        usedBuildInfos = new[] { info };
+                        usedDependencyInfos = new[] { info };
                         return packageCommitHash;
                     }
                 }
             }
 
             Trace.TraceError($"Failed to find '{IndicatorPackageId}' specifying a commit in any build-info.");
-            usedBuildInfos = Enumerable.Empty<DependencyBuildInfo>();
+            usedDependencyInfos = Enumerable.Empty<DependencyBuildInfo>();
             return null;
         }
 

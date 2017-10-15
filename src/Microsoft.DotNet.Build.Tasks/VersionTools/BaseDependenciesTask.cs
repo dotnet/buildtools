@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Microsoft.DotNet.VersionTools.Dependencies.BuildOutput;
 
 namespace Microsoft.DotNet.Build.Tasks.VersionTools
 {

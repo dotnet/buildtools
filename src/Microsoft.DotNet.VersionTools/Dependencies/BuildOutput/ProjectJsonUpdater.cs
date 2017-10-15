@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace Microsoft.DotNet.VersionTools.Dependencies
+namespace Microsoft.DotNet.VersionTools.Dependencies.BuildOutput
 {
     public class ProjectJsonUpdater : IDependencyUpdater
     {
@@ -23,8 +23,12 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
             ProjectJsonPaths = projectJsonPaths;
         }
 
-        public IEnumerable<DependencyUpdateTask> GetUpdateTasks(IEnumerable<DependencyBuildInfo> dependencyBuildInfos)
+        public IEnumerable<DependencyUpdateTask> GetUpdateTasks(IEnumerable<IDependencyInfo> dependencyInfos)
         {
+            DependencyBuildInfo[] dependencyBuildInfos = dependencyInfos
+                .OfType<DependencyBuildInfo>()
+                .ToArray();
+
             var tasks = new List<DependencyUpdateTask>();
             foreach (string projectJsonFile in ProjectJsonPaths)
             {
@@ -45,7 +49,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
                     {
                         tasks.Add(new DependencyUpdateTask(
                             update,
-                            dependencyChanges.Select(change => change.BuildInfo),
+                            dependencyChanges.Select(change => change.Info),
                             dependencyChanges.Select(change => $"In '{projectJsonFile}', {change.ToString()}")));
                     }
                 }
@@ -130,7 +134,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
 
                         return new DependencyChange
                         {
-                            BuildInfo = info.BuildInfo,
+                            Info = info,
                             PackageId = id,
                             Before = oldNuGetVersion,
                             After = packageInfo.Version
@@ -153,7 +157,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
 
         private class DependencyChange
         {
-            public BuildInfo BuildInfo { get; set; }
+            public DependencyBuildInfo Info { get; set; }
             public string PackageId { get; set; }
             public NuGetVersion Before { get; set; }
             public NuGetVersion After { get; set; }
@@ -161,7 +165,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
             public override string ToString()
             {
                 return $"'{PackageId} {Before.ToNormalizedString()}' must be " +
-                    $"'{After.ToNormalizedString()}' ({BuildInfo.Name})";
+                    $"'{After.ToNormalizedString()}' ({Info.BuildInfo.Name})";
             }
         }
     }
