@@ -20,18 +20,19 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\Microsoft.DotNet.Build.CloudTestTasks\AzureBlobLease.cs" />
-    <Compile Include="..\Microsoft.DotNet.Build.CloudTestTasks\AzureConnectionStringBuildTask.cs" />
-    <Compile Include="..\Microsoft.DotNet.Build.CloudTestTasks\AzureHelper.cs" />
-    <Compile Include="..\Microsoft.DotNet.Build.CloudTestTasks\ListAzureBlobs.cs" />
-    <Compile Include="..\Microsoft.DotNet.Build.CloudTestTasks\UploadClient.cs" />
     <Compile Include="BlobFeed.cs" />
     <Compile Include="BlobFeedAction.cs" />
     <Compile Include="ConfigureInputFeed.cs" />
     <Compile Include="PushToBlobFeed.cs" />
+    <Compile Include="SleetLogger.cs" />
+    <Compile Include="SleetSettings.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="PackageFiles\**\*.*" />
+    <None Include="config\sleet.json" />
+    <None Include="PackageFiles\Publish.targets">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="PackageFiles\Restore.targets" />
     <None Include="project.json" />
   </ItemGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />

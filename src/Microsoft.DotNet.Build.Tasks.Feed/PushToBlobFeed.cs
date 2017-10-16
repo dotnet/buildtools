@@ -14,17 +14,16 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
     public class PushToBlobFeed : MSBuild.Task
     {
         [Required]
-        public string ExpectedFeedUrl { get; set; }
+        public string AccountName { get; set; }
 
         [Required]
         public string AccountKey { get; set; }
 
         [Required]
-        public ITaskItem[] ItemsToPush { get; set; }
+        public string ContainerName { get; set; }
 
-        public string IndexDirectory { get; set; }
-
-        public bool PublishFlatContainer { get; set; }
+        [Required]
+        public string PackagesPath { get; set; }
 
         public bool Overwrite { get; set; }
 
@@ -38,30 +37,14 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             try
             {
                 Log.LogMessage(MessageImportance.High, "Performing feed push...");
-                if (ItemsToPush == null)
+                if (PackagesPath == null)
                 {
                     Log.LogError($"No items to push. Please check ItemGroup ItemsToPush.");
                 }
-                BlobFeedAction blobFeedAction = new BlobFeedAction(ExpectedFeedUrl, AccountKey, IndexDirectory, Log);
-                bool containerExists = await blobFeedAction.feed.CheckIfFeedExists();
-                if (!containerExists)
-                {
-                    await blobFeedAction.feed.CreateFeedContainer();
-                }
-                if (!PublishFlatContainer)
-                {
-                    if (!containerExists)
-                    {
-                        await blobFeedAction.PushToFeed(ConvertToStringLists(ItemsToPush));
-                    }
-                    else
-                    {
-                        await blobFeedAction.PushToFeed(ConvertToStringLists(ItemsToPush), Overwrite);
-                    }
-                }
                 else
                 {
-                    await blobFeedAction.PushToFeedFlat(ConvertToStringLists(ItemsToPush), Overwrite);
+                    BlobFeedAction blobFeedAction = new BlobFeedAction(AccountName, AccountKey, ContainerName, PackagesPath, Log);
+                    await blobFeedAction.PushToFeed();
                 }
             }
             catch (Exception e)
@@ -69,16 +52,6 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 Log.LogErrorFromException(e, true);
             }
             return !Log.HasLoggedErrors;
-        }
-
-        private List<string> ConvertToStringLists(ITaskItem[] taskItems)
-        {
-            List<string> stringList = new List<string>();
-            foreach (var item in taskItems)
-            {
-                stringList.Add(item.ItemSpec);
-            }
-            return stringList;
         }
     }
 }

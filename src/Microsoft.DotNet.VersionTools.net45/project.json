@@ -1,8 +1,8 @@
 {
   "dependencies": {
     "Newtonsoft.Json": "9.0.1",
-    "NuGet.Packaging": "4.3.0-preview2-4095",
-    "NuGet.Versioning": "4.3.0-preview2-4095",
+    "NuGet.Packaging": "4.3.0",
+    "NuGet.Versioning": "4.3.0",
     "Microsoft.NETCore.Platforms": "1.0.1",
     "System.Runtime.InteropServices.RuntimeInformation": "4.4.0-beta-24813-03"
   },
