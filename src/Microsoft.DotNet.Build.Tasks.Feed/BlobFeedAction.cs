@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using Sleet;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,18 +23,31 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         private static readonly CancellationToken CancellationToken = TokenSource.Token;
 
         public BlobFeed feed;
-        
-        const string feedRegex = @"(?<feedurl>https:\/\/(?<accountname>[^\.-]+)(?<domain>[^\/]*)\/((?<token>[a-zA-Z0-9+\/]*?\/\d{4}-\d{2}-\d{2})\/)?(?<containername>[^\/]+)\/(?<relativepath>.*)\/)index\.json";
+        public string feedUrl;
 
-        public BlobFeedAction(string accountName, string accountKey, string containerName, string packagesPath, MSBuild.TaskLoggingHelper Log)
+        const string feedRegex = @"(?<feedurl>https:\/\/(?<accountname>[^\.-]+)(?<domain>[^\/]*)\/((?<token>[a-zA-Z0-9+\/]*?\/\d{4}-\d{2}-\d{2})\/)?(?<containername>[^\/]+)\/\/)index\.json";
+
+        public BlobFeedAction(string expectedFeedUrl, string accountKey, ITaskItem[] itemstoPush, MSBuild.TaskLoggingHelper Log)
         {
             this.Log = Log;
-            this.feed = new BlobFeed(accountName, accountKey, containerName, packagesPath, Log);
+            Match m = Regex.Match(expectedFeedUrl, feedRegex);
+            if (m.Success)
+            {
+                string accountName = m.Groups["accountname"].Value;
+                string containerName = m.Groups["containername"].Value;
+                bool isPublic = string.IsNullOrWhiteSpace(m.Groups["token"].Value);
+                feed = new BlobFeed(accountName, accountKey, containerName, Log);
+                feedUrl = expectedFeedUrl;
+            }
+            else
+            {
+               throw new Exception("Unable to parse expected feed. Please check ExpectedFeedUrl.");
+            }
         }
 
-        public async Task<bool> PushToFeed(bool allowOverwrite = false)
+        public async Task<bool> PushToFeed(IEnumerable<string> items, bool allowOverwrite = false)
         {
-            if (feed.IsSanityChecked(feed.PackagesPath))
+            if (feed.IsSanityChecked(items))
             {
                 if (CancellationToken.IsCancellationRequested)
                 {
@@ -41,13 +55,13 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     CancellationToken.ThrowIfCancellationRequested();
                 }
 
-                await PushItemsToFeedAsync(feed.PackagesPath, allowOverwrite);
+                await PushItemsToFeedAsync(items, allowOverwrite);
             }
 
             return !Log.HasLoggedErrors;
         }
 
-        public async Task<bool> PushItemsToFeedAsync(string packagesPath, bool allowOverwrite)
+        public async Task<bool> PushItemsToFeedAsync(IEnumerable<string> items, bool allowOverwrite)
         {
             Log.LogMessage(MessageImportance.Low, $"START pushing items to feed");
 
@@ -57,7 +71,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 {
                     Name = feed.ContainerName,
                     Type = "azure",
-                    Path = $"https://{feed.AccountName}.blob.core.windows.net/{feed.ContainerName}/",
+                    Path = feedUrl,
                     Container = feed.ContainerName,
                     ConnectionString = $"DefaultEndpointsProtocol=https;AccountName={feed.AccountName};AccountKey={feed.AccountKey};EndpointSuffix=core.windows.net"
                 };
@@ -77,7 +91,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
                 CloudStorageAccount storageAccount = CloudStorageAccount.Parse(source.ConnectionString);
                 AzureFileSystem fileSystem = new AzureFileSystem(new LocalCache(), new Uri(source.Path), storageAccount, source.Name);
-                bool result = await PushCommand.RunAsync(settings, fileSystem, new List<string> { packagesPath }, true, true, new SleetLogger(Log));
+                bool result = await PushCommand.RunAsync(settings, fileSystem, items.ToList(), true, true, new SleetLogger(Log));
 
                 return result;
             }

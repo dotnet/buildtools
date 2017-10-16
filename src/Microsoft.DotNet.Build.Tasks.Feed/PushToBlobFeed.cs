@@ -14,16 +14,12 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
     public class PushToBlobFeed : MSBuild.Task
     {
         [Required]
-        public string AccountName { get; set; }
+        public string ExpectedFeedUrl { get; set; }
 
         [Required]
         public string AccountKey { get; set; }
 
-        [Required]
-        public string ContainerName { get; set; }
-
-        [Required]
-        public string PackagesPath { get; set; }
+        public ITaskItem[] ItemsToPush { get; set; }
 
         public bool Overwrite { get; set; }
 
@@ -37,14 +33,14 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             try
             {
                 Log.LogMessage(MessageImportance.High, "Performing feed push...");
-                if (PackagesPath == null)
+                if (ItemsToPush == null)
                 {
                     Log.LogError($"No items to push. Please check ItemGroup ItemsToPush.");
                 }
                 else
                 {
-                    BlobFeedAction blobFeedAction = new BlobFeedAction(AccountName, AccountKey, ContainerName, PackagesPath, Log);
-                    await blobFeedAction.PushToFeed();
+                    BlobFeedAction blobFeedAction = new BlobFeedAction(ExpectedFeedUrl, AccountKey, ItemsToPush, Log);
+                    await blobFeedAction.PushToFeed(ConvertToStringLists(ItemsToPush), Overwrite);
                 }
             }
             catch (Exception e)
@@ -52,6 +48,16 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 Log.LogErrorFromException(e, true);
             }
             return !Log.HasLoggedErrors;
+        }
+
+        private List<string> ConvertToStringLists(ITaskItem[] taskItems)
+        {
+            List<string> stringList = new List<string>();
+            foreach (var item in taskItems)
+            {
+                stringList.Add(item.ItemSpec);
+            }
+            return stringList;
         }
     }
 }

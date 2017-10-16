@@ -28,24 +28,20 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public string ContainerName { get; set; }
 
-        public string PackagesPath { get; set; }
 
         private static readonly CancellationTokenSource TokenSource = new CancellationTokenSource();
         private static readonly CancellationToken CancellationToken = TokenSource.Token;
 
-        public BlobFeed(string accountName, string accountKey, string containerName, string packagesPath, MSBuild.TaskLoggingHelper loggingHelper)
+        public BlobFeed(string accountName, string accountKey, string containerName, MSBuild.TaskLoggingHelper loggingHelper)
         {
             AccountName = accountName;
             AccountKey = accountKey;
             ContainerName = containerName;
-            PackagesPath = packagesPath;
             Log = loggingHelper;
         }
 
-        public bool IsSanityChecked(string packagesPath)
+        public bool IsSanityChecked(IEnumerable<string> items)
         {
-            IEnumerable<string> items = Directory.GetFiles(packagesPath, "*.nupkg", SearchOption.AllDirectories);
-
             Log.LogMessage(MessageImportance.Low, $"START checking sanitized items for feed");
             foreach (var item in items)
             {
