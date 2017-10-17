@@ -113,11 +113,11 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
             }
         }
 
-        protected IEnumerable<DependencyBuildInfo> CreateBuildInfoDependencies()
+        protected IEnumerable<BuildDependencyInfo> CreateBuildInfoDependencies()
         {
             return DependencyBuildInfo
                 ?.Select(item => CreateBuildInfoDependency(item, BuildInfoCacheDir))
-                ?? Enumerable.Empty<DependencyBuildInfo>();
+                ?? Enumerable.Empty<BuildDependencyInfo>();
         }
 
         private FileRegexUpdater CreateXmlUpdater(ITaskItem step)
@@ -147,7 +147,7 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
             return updater;
         }
 
-        private static DependencyBuildInfo CreateBuildInfoDependency(ITaskItem item, string cacheDir)
+        private static BuildDependencyInfo CreateBuildInfoDependency(ITaskItem item, string cacheDir)
         {
             BuildInfo info = CreateBuildInfo(item, cacheDir);
 
@@ -159,7 +159,7 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                 .GetMetadata("DisabledPackages")
                 .Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 
-            return new DependencyBuildInfo(info, updateStaticDependencies, disabledPackages);
+            return new BuildDependencyInfo(info, updateStaticDependencies, disabledPackages);
         }
 
         private static BuildInfo CreateBuildInfo(ITaskItem item, string cacheDir)

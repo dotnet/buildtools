@@ -17,8 +17,8 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.BuildOutput
         public IEnumerable<DependencyUpdateTask> GetUpdateTasks(
             IEnumerable<IDependencyInfo> dependencyInfos)
         {
-            DependencyBuildInfo[] dependencyBuildInfos = dependencyInfos
-                .OfType<DependencyBuildInfo>()
+            BuildDependencyInfo[] buildDependencyInfos = dependencyInfos
+                .OfType<BuildDependencyInfo>()
                 .ToArray();
 
             var lineResults = new List<ToolUpdateLineResult>();
@@ -33,7 +33,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.BuildOutput
                     string line;
                     while ((line = reader.ReadLine()) != null)
                     {
-                        var result = new ToolUpdateLineResult(line, dependencyBuildInfos);
+                        var result = new ToolUpdateLineResult(line, buildDependencyInfos);
                         writer.WriteLine(result.Content);
                         if (result.UsedInfo != null)
                         {
@@ -57,7 +57,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.BuildOutput
         {
             public string Content { get; }
 
-            public DependencyBuildInfo UsedInfo { get; }
+            public BuildDependencyInfo UsedInfo { get; }
 
             public string ToolName { get; }
 
@@ -65,7 +65,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.BuildOutput
 
             public string NewVersion { get; }
 
-            public ToolUpdateLineResult(string line, IEnumerable<DependencyBuildInfo> buildInfos)
+            public ToolUpdateLineResult(string line, IEnumerable<BuildDependencyInfo> buildInfos)
             {
                 Content = line;
 

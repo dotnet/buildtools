@@ -16,8 +16,8 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.BuildOutput
             IEnumerable<IDependencyInfo> dependencyInfos,
             out IEnumerable<IDependencyInfo> usedDependencyInfos)
         {
-            DependencyBuildInfo project = dependencyInfos
-                .OfType<DependencyBuildInfo>()
+            BuildDependencyInfo project = dependencyInfos
+                .OfType<BuildDependencyInfo>()
                 .SingleOrDefault(d => d.BuildInfo.Name == BuildInfoName);
 
             if (project == null)

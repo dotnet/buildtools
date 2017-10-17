@@ -44,7 +44,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.Submodule
             IEnumerable<IDependencyInfo> dependencyInfos,
             out IEnumerable<IDependencyInfo> usedDependencyInfos)
         {
-            foreach (var info in dependencyInfos.OfType<DependencyBuildInfo>())
+            foreach (var info in dependencyInfos.OfType<BuildDependencyInfo>())
             {
                 PackageIdentity package = info.Packages
                     .FirstOrDefault(p => p.Id == IndicatorPackageId);
@@ -77,11 +77,11 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.Submodule
             }
 
             Trace.TraceError($"Failed to find '{IndicatorPackageId}' specifying a commit in any build-info.");
-            usedDependencyInfos = Enumerable.Empty<DependencyBuildInfo>();
+            usedDependencyInfos = Enumerable.Empty<BuildDependencyInfo>();
             return null;
         }
 
-        protected async Task<ZipArchive> DownloadPackageAsync(DependencyBuildInfo info, PackageIdentity package)
+        protected async Task<ZipArchive> DownloadPackageAsync(BuildDependencyInfo info, PackageIdentity package)
         {
             if (PackageDownloadBaseUrl == null)
             {

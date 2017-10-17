@@ -23,7 +23,7 @@ namespace Microsoft.DotNet.VersionTools.Automation
             UsedInfos = usedInfos;
 
             UsedBuildInfos = UsedInfos
-                .OfType<DependencyBuildInfo>()
+                .OfType<BuildDependencyInfo>()
                 .Select(i => i.BuildInfo)
                 .Distinct()
                 .ToArray();

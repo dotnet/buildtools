@@ -17,7 +17,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.BuildOutput
             out IEnumerable<IDependencyInfo> usedDependencyInfos)
         {
             var matchingBuildInfo = dependencyInfos
-                .OfType<DependencyBuildInfo>()
+                .OfType<BuildDependencyInfo>()
                 .FirstOrDefault(d => d.RawPackages.ContainsKey(PackageId));
 
             if (matchingBuildInfo == null)

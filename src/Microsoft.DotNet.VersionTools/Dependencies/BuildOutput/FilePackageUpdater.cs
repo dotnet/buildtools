@@ -19,7 +19,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.BuildOutput
         public IEnumerable<DependencyUpdateTask> GetUpdateTasks(
             IEnumerable<IDependencyInfo> dependencyInfos)
         {
-            foreach (DependencyBuildInfo info in dependencyInfos.OfType<DependencyBuildInfo>())
+            foreach (BuildDependencyInfo info in dependencyInfos.OfType<BuildDependencyInfo>())
             {
                 string version;
                 if (info.RawPackages.TryGetValue(PackageId, out version))

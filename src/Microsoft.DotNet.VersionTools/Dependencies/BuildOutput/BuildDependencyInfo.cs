@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace Microsoft.DotNet.VersionTools.Dependencies.BuildOutput
 {
-    public class DependencyBuildInfo : IDependencyInfo
+    public class BuildDependencyInfo : IDependencyInfo
     {
         public BuildInfo BuildInfo { get; }
 
@@ -31,7 +31,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.BuildOutput
         /// </summary>
         public IEnumerable<PackageIdentity> Packages { get; }
 
-        public DependencyBuildInfo(
+        public BuildDependencyInfo(
             BuildInfo buildInfo,
             bool upgradeStableVersions,
             IEnumerable<string> disabledPackages)

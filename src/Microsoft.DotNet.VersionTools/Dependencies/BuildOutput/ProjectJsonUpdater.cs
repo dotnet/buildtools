@@ -25,8 +25,8 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.BuildOutput
 
         public IEnumerable<DependencyUpdateTask> GetUpdateTasks(IEnumerable<IDependencyInfo> dependencyInfos)
         {
-            DependencyBuildInfo[] dependencyBuildInfos = dependencyInfos
-                .OfType<DependencyBuildInfo>()
+            BuildDependencyInfo[] buildDependencyInfos = dependencyInfos
+                .OfType<BuildDependencyInfo>()
                 .ToArray();
 
             var tasks = new List<DependencyUpdateTask>();
@@ -41,7 +41,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.BuildOutput
                         contents => ReplaceAllDependencyVersions(
                             contents,
                             projectJsonFile,
-                            dependencyBuildInfos,
+                            buildDependencyInfos,
                             out dependencyChanges));
 
                     // The output json may be different even if there weren't any changes made.
@@ -64,7 +64,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.BuildOutput
         private string ReplaceAllDependencyVersions(
             string input,
             string projectJsonFile,
-            IEnumerable<DependencyBuildInfo> buildInfos,
+            IEnumerable<BuildDependencyInfo> buildInfos,
             out IEnumerable<DependencyChange> dependencyChanges)
         {
             JObject projectRoot = JObject.Parse(input);
@@ -85,10 +85,10 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.BuildOutput
         private DependencyChange ReplaceDependencyVersion(
             string projectJsonFile,
             JProperty dependencyProperty,
-            IEnumerable<DependencyBuildInfo> parsedBuildInfos)
+            IEnumerable<BuildDependencyInfo> parsedBuildInfos)
         {
             string id = dependencyProperty.Name;
-            foreach (DependencyBuildInfo info in parsedBuildInfos)
+            foreach (BuildDependencyInfo info in parsedBuildInfos)
             {
                 foreach (PackageIdentity packageInfo in info.Packages)
                 {
@@ -157,7 +157,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.BuildOutput
 
         private class DependencyChange
         {
-            public DependencyBuildInfo Info { get; set; }
+            public BuildDependencyInfo Info { get; set; }
             public string PackageId { get; set; }
             public NuGetVersion Before { get; set; }
             public NuGetVersion After { get; set; }
