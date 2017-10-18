@@ -1,4 +1,4 @@
-@echo off
+@if not defined _echo @echo off
 setlocal
 
 set PROJECT_DIR=%~1
@@ -13,31 +13,7 @@ set MICROBUILD_VERSION=0.2.0
 set PORTABLETARGETS_VERSION=0.1.1-dev
 set ROSLYNCOMPILERS_VERSION=2.6.0-beta1-62126-01
 
-:: Determine if the CLI supports MSBuild projects. This controls whether csproj files are used for initialization and package restore.
-set CLI_VERSION=
-for /f "delims=" %%a in ('%DOTNET_CMD% --version') do @set CLI_VERSION=%%a
-:: Check the first character in the version string. Version 2 and above supports MSBuild.
-set CLI_VERSION=%CLI_VERSION:~0,1%
-if %CLI_VERSION% geq 2 (
-  set BUILDTOOLS_USE_CSPROJ=true
-  echo "Detected a 2.0-capable CLI."
-)
-
-if [%BUILDTOOLS_USE_CSPROJ%]==[] (
-  set MSBUILD_PROJECT_CONTENT= ^
-{ ^
-  "dependencies": ^
-    { ^
-      "MicroBuild.Core": "%MICROBUILD_VERSION%", ^
-      "Microsoft.Portable.Targets": "%PORTABLETARGETS_VERSION%", ^
-      "Microsoft.Net.Compilers": "%ROSLYNCOMPILERS_VERSION%" ^
-    }, ^
-  "frameworks": {"netcoreapp1.0": {},"net46": {}} ^
-}
-  set PROJECT_EXTENSION=json
-  set PUBLISH_TFM=netcoreapp1.0
-) ELSE (
-  set MSBUILD_PROJECT_CONTENT= ^
+set MSBUILD_PROJECT_CONTENT= ^
  ^^^<Project Sdk=^"Microsoft.NET.Sdk^"^^^> ^
   ^^^<PropertyGroup^^^> ^
     ^^^<TargetFrameworks^^^>netcoreapp1.0;net46^^^</TargetFrameworks^^^> ^
@@ -49,9 +25,9 @@ if [%BUILDTOOLS_USE_CSPROJ%]==[] (
     ^^^<PackageReference Include=^"Microsoft.Net.Compilers^" Version=^"%ROSLYNCOMPILERS_VERSION%^" /^^^> ^
   ^^^</ItemGroup^^^> ^
  ^^^</Project^^^>
-  set PROJECT_EXTENSION=csproj
-  set PUBLISH_TFM=netcoreapp2.0
-)
+
+set PUBLISH_TFM=netcoreapp2.0
+
 set INIT_TOOLS_RESTORE_ARGS=--source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json %INIT_TOOLS_RESTORE_ARGS%
 set TOOLRUNTIME_RESTORE_ARGS=--source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json %INIT_TOOLS_RESTORE_ARGS%
 
@@ -67,7 +43,7 @@ if not exist "%DOTNET_CMD%" (
 
 ROBOCOPY "%BUILDTOOLS_PACKAGE_DIR%\." "%TOOLRUNTIME_DIR%" /E
 
-set TOOLRUNTIME_PROJECT=%BUILDTOOLS_PACKAGE_DIR%\tool-runtime\project.%PROJECT_EXTENSION%
+set TOOLRUNTIME_PROJECT=%BUILDTOOLS_PACKAGE_DIR%\tool-runtime\project.csproj
 
 @echo on
 call "%DOTNET_CMD%" restore "%TOOLRUNTIME_PROJECT%" %TOOLRUNTIME_RESTORE_ARGS%
@@ -102,7 +78,7 @@ Robocopy "%BUILDTOOLS_PACKAGE_DIR%\." "%TOOLRUNTIME_DIR%\." "MSBuild.runtimeconf
 
 :: Copy Portable Targets Over to ToolRuntime
 if not exist "%PACKAGES_DIR%\generated" mkdir "%PACKAGES_DIR%\generated"
-set PORTABLETARGETS_PROJECT=%PACKAGES_DIR%\generated\project.%PROJECT_EXTENSION%
+set PORTABLETARGETS_PROJECT=%PACKAGES_DIR%\generated\project.csproj
 echo %MSBUILD_PROJECT_CONTENT% > "%PORTABLETARGETS_PROJECT%"
 @echo on
 call "%DOTNET_CMD%" restore "%PORTABLETARGETS_PROJECT%" %INIT_TOOLS_RESTORE_ARGS% --packages "%PACKAGES_DIR%\."
