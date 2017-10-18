@@ -76,8 +76,7 @@ namespace Microsoft.DotNet.VersionTools.Util
         internal static void Fetch(
             string path,
             string repository = "",
-            string refspec = "",
-            bool all = false)
+            string refspec = "")
         {
             Create("-C", path, "fetch", repository, refspec)
                 .Execute()

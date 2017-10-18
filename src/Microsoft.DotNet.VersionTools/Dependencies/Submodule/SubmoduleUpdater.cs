@@ -62,7 +62,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.Submodule
         protected virtual void FetchRemoteBranch()
         {
             Trace.TraceInformation($"Fetching all configured remotes for '{Path}'.");
-            GitCommand.Fetch(Path, all: true);
+            GitCommand.FetchAll(Path);
         }
 
         protected string GetCurrentCommitHash()
