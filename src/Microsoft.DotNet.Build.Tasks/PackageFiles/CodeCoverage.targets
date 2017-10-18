@@ -56,7 +56,7 @@
          when OpenCover directly supports Portable PDBs (probably by early 2018) -->
 
     <!-- We look for the DLL being tested for coverage and its PDB create a WindowsPDB\*.pdb which has
-         the windows PDB.   We tell OpenCover to search there with the -searchdirs qualifer.   -->
+         the windows PDB.  -->
     <ItemGroup>
       <PortableDllsToConvert Include="$(NETCoreAppTestSharedFrameworkPath)$(AssemblyBeingTestedName).dll">
         <PdbPath>$(NETCoreAppTestSharedFrameworkPath)$(AssemblyBeingTestedName).pdb</PdbPath>
@@ -73,9 +73,11 @@
     <ConvertPortablePdbsToWindowsPdbs Files="@(ExistingPortableDllsToConvert)" ContinueOnError="WarnAndContinue"/>
 
     <!-- This is a work around because it seems that OpenCover does not seem to accept the PDB unless 
-         it is right next to the DLL it is for.  This code puts it there.  However it also clobbers 
-         the original portable PDB in the process.   I don't like this but it does unblock things
-         and this is all intended to be temporary until OpenCover supports portable PDBs directly  -->
+         it is right next to the DLL it is for.  (-searchDir:XXX does not seem to work).   
+         This code puts next to the DLL as a work-around.   However doing thi also clobbers 
+         the original portable PDB in the runtime directory in the process.   I don't like this but 
+         it does unblock things and this is all intended to be temporary until OpenCover supports 
+         portable PDBs directly  -->
     <Message Importance="high" Text="Replacing Portable PDB with Windows Pdb in place!" />
     <Copy SourceFiles="%(ExistingPortableDllsToConvert.TargetPath)" DestinationFolder="$(NETCoreAppTestSharedFrameworkPath)" Condition="Exists('%(ExistingPortableDllsToConvert.TargetPath)')"/>
 
