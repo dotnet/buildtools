@@ -38,7 +38,7 @@
         The metadata names match up.
       -->
       <DependencyInfo Include="@(UpdateStep)"
-                      Condition="'%(UpdaterType)' == 'Submodule from latest'">
+                      Condition="'%(UpdateStep.UpdaterType)' == 'Submodule from latest'">
         <DependencyType>Submodule</DependencyType>
       </DependencyInfo>
     </ItemGroup>
