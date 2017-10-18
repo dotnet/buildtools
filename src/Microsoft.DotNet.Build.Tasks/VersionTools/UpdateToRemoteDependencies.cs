@@ -79,20 +79,16 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
             // Update CurrentRef for each applicable build info used.
             if (!string.IsNullOrEmpty(CurrentRefXmlPath))
             {
-                foreach (BuildInfo info in updateResults.UsedInfos
-                    .OfType<BuildDependencyInfo>()
-                    .Select(i => i.BuildInfo)
-                    .Distinct())
+                foreach (ITaskItem item in updateResults.UsedInfos
+                    .OfType<TaskItemBuildDependencyInfo>()
+                    .Distinct()
+                    .Select(info => info.SourceItem)
+                    .Where(item => !string.IsNullOrEmpty(item.GetMetadata(CurrentRefMetadataName))))
                 {
-                    ITaskItem infoItem = FindBuildDependencyInfoItem(info.Name);
-
-                    if (!string.IsNullOrEmpty(infoItem.GetMetadata(CurrentRefMetadataName)))
-                    {
-                        UpdateProperty(
-                            CurrentRefXmlPath,
-                            $"{info.Name}{CurrentRefMetadataName}",
-                            versionsCommitHash);
-                    }
+                    UpdateProperty(
+                        CurrentRefXmlPath,
+                        $"{item.ItemSpec}{CurrentRefMetadataName}",
+                        versionsCommitHash);
                 }
             }
 

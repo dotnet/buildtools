@@ -174,7 +174,7 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
             return updater;
         }
 
-        private static BuildDependencyInfo CreateBuildInfoDependency(ITaskItem item, string cacheDir)
+        private static TaskItemBuildDependencyInfo CreateBuildInfoDependency(ITaskItem item, string cacheDir)
         {
             BuildInfo info = CreateBuildInfo(item, cacheDir);
 
@@ -186,7 +186,11 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                 .GetMetadata("DisabledPackages")
                 .Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 
-            return new BuildDependencyInfo(info, updateStaticDependencies, disabledPackages);
+            return new TaskItemBuildDependencyInfo(
+                info,
+                updateStaticDependencies,
+                disabledPackages,
+                item);
         }
 
         private static BuildInfo CreateBuildInfo(ITaskItem item, string cacheDir)
