@@ -76,7 +76,7 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                 CreateUpdaters().ToArray(),
                 CreateDependencyInfos(true, versionsCommitHash).ToArray());
 
-            // Update CurrentRef and CurrentBranch for each applicable build info used.
+            // Update CurrentRef for each applicable build info used.
             if (!string.IsNullOrEmpty(CurrentRefXmlPath))
             {
                 foreach (BuildInfo info in updateResults.UsedInfos
