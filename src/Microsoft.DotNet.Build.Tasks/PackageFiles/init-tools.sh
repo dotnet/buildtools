@@ -27,7 +27,6 @@ __PORTABLETARGETS_PROJECT_CONTENT="
     <PackageReference Include=\"Microsoft.Portable.Targets\" Version=\"$__PORTABLETARGETS_VERSION\" />
   </ItemGroup>
 </Project>"
-__PROJECT_EXTENSION=csproj
 __PUBLISH_TFM=netcoreapp2.0
 
 __INIT_TOOLS_RESTORE_ARGS="--source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json ${__INIT_TOOLS_RESTORE_ARGS:-}"
