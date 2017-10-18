@@ -71,6 +71,7 @@
     <_XunitOptions Condition="'$(XunitOptions)' != ''">$(_XunitOptions) $(XunitOptions)</_XunitOptions>
     <_XunitOptions Condition="'$(XunitMethodName)' != ''">$(_XunitOptions) -method $(XunitMethodName)</_XunitOptions>
     <_XunitOptions Condition="'$(XunitClassName)' != ''">$(_XunitOptions) -class $(XunitClassName)</_XunitOptions>
+    <_XunitOptions Condition="'$(XunitShowProgress)' == 'true'">$(_XunitOptions) -showprogress</_XunitOptions>
     <XunitTestAssembly Condition="'$(XunitTestAssembly)' == ''">$(TargetFileName)</XunitTestAssembly>
     <XunitArguments>$(XunitTestAssembly) $(_XunitOptions)</XunitArguments>
 
