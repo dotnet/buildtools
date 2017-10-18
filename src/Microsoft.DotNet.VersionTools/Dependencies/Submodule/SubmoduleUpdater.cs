@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using NuGet.Packaging.Core;
 
 namespace Microsoft.DotNet.VersionTools.Dependencies.Submodule
 {
@@ -39,9 +40,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.Submodule
                 Trace.TraceInformation($"In '{Path}', moving from '{currentHash}' to '{desiredHash}'.");
 
                 FetchRemoteBranch();
-
-                Trace.TraceInformation($"In '{Path}', checking out '{desiredHash}'.");
-                GitInPath("checkout", desiredHash).Execute();
+                GitCommand.Checkout(Path, desiredHash);
             };
 
             string[] updateStrings =
@@ -63,12 +62,12 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.Submodule
         protected virtual void FetchRemoteBranch()
         {
             Trace.TraceInformation($"Fetching all configured remotes for '{Path}'.");
-            GitInPath("fetch", "--all").Execute();
+            GitCommand.Fetch(Path, all: true);
         }
 
         protected string GetCurrentCommitHash()
         {
-            return FetchGitInPathOutput("rev-parse", "HEAD").Trim();
+            return GitCommand.RevParse(Path, "HEAD").Trim();
         }
 
         protected string GetCurrentIndexedHash()
@@ -76,30 +75,8 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.Submodule
             // Get the current commit of the submodule as tracked by the containing repo. This
             // ensures local changes don't interfere.
             // https://git-scm.com/docs/git-submodule/1.8.2#git-submodule---cached
-            return FetchGitOutput("submodule", "status", "--cached", Path)
+            return GitCommand.SubmoduleStatusCached(Path)
                 .Substring(1, 40);
-        }
-
-        protected string FetchGitInPathOutput(params string[] args) => ExecuteOutput(GitInPath(args));
-
-        protected string FetchGitOutput(params string[] args) => ExecuteOutput(Command.Git(args));
-
-        internal Command GitInPath(params string[] args)
-        {
-            var dirArgs = new[]
-            {
-                "-C", Path
-            };
-            return Command.Git(dirArgs.Concat(args).ToArray());
-        }
-
-        internal static string ExecuteOutput(Command c)
-        {
-            var writer = new StringWriter();
-
-            c.ForwardStdOut(writer).Execute();
-
-            return writer.ToString();
         }
     }
 }

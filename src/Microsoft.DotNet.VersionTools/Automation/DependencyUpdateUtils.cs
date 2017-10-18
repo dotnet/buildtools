@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.DotNet.VersionTools.Dependencies;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,13 +16,11 @@ namespace Microsoft.DotNet.VersionTools.Automation
         /// </summary>
         public static DependencyUpdateResults Update(
             IEnumerable<IDependencyUpdater> updaters,
-            IEnumerable<IDependencyInfo> externalDependencyInfos,
-            Action<IDependencyInfo> modifyUpdaterDependencyInfo = null)
+            IEnumerable<IDependencyInfo> dependencyInfos)
         {
             IEnumerable<DependencyUpdateTask> updateTasks = GetUpdateTasks(
                 updaters,
-                externalDependencyInfos,
-                modifyUpdaterDependencyInfo);
+                dependencyInfos);
 
             IDependencyInfo[] distinctUsedDependencyInfos = updateTasks
                 .Select(task =>
@@ -43,22 +40,9 @@ namespace Microsoft.DotNet.VersionTools.Automation
         /// </summary>
         public static IEnumerable<DependencyUpdateTask> GetUpdateTasks(
             IEnumerable<IDependencyUpdater> updaters,
-            IEnumerable<IDependencyInfo> externalDependencyInfos,
-            Action<IDependencyInfo> modifyUpdaterDependencyInfo = null)
+            IEnumerable<IDependencyInfo> dependencyInfos)
         {
-            IDependencyInfo[] updaterDependencyInfos = updaters
-                .OfType<IDependencyInfoProvider>()
-                .SelectMany(updater => updater.CreateDependencyInfos())
-                .ToArray();
-
-            foreach (var info in updaterDependencyInfos)
-            {
-                modifyUpdaterDependencyInfo?.Invoke(info);
-            }
-
-            var allDependencyInfos = updaterDependencyInfos.Concat(externalDependencyInfos);
-
-            return updaters.SelectMany(updater => updater.GetUpdateTasks(allDependencyInfos));
+            return updaters.SelectMany(updater => updater.GetUpdateTasks(dependencyInfos));
         }
     }
 }

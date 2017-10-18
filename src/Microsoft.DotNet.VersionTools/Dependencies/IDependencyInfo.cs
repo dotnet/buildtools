@@ -4,6 +4,10 @@
 
 namespace Microsoft.DotNet.VersionTools.Dependencies
 {
+    /// <summary>
+    /// Information about the current state of a dependency. This information is at some point in
+    /// time, not necessarily the latest state available.
+    /// </summary>
     public interface IDependencyInfo
     {
         /// <summary>

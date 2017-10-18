@@ -16,17 +16,9 @@ namespace Microsoft.DotNet.VersionTools.Automation
     {
         public IEnumerable<IDependencyInfo> UsedInfos { get; }
 
-        public IEnumerable<BuildInfo> UsedBuildInfos { get; }
-
         public DependencyUpdateResults(IEnumerable<IDependencyInfo> usedInfos)
         {
             UsedInfos = usedInfos;
-
-            UsedBuildInfos = UsedInfos
-                .OfType<BuildDependencyInfo>()
-                .Select(i => i.BuildInfo)
-                .Distinct()
-                .ToArray();
         }
 
         public string GetSuggestedCommitMessage()
@@ -66,12 +58,7 @@ namespace Microsoft.DotNet.VersionTools.Automation
 
         private static bool GitHasChanges()
         {
-            CommandResult statusResult = Command.Git("status", "--porcelain")
-                .CaptureStdOut()
-                .Execute();
-            statusResult.EnsureSuccessful();
-
-            return !string.IsNullOrWhiteSpace(statusResult.StdOut);
+            return !string.IsNullOrWhiteSpace(GitCommand.PorcelainStatus());
         }
     }
 }

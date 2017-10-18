@@ -16,7 +16,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
     public class DependencyUpdateTask : Task<DependencyUpdateResults>
     {
         /// <summary>
-        /// The build infos that would be used during this update.
+        /// The dependency infos that were used to create this update task.
         /// </summary>
         public IEnumerable<IDependencyInfo> UsedInfos { get; }
 

@@ -33,7 +33,6 @@
     <Compile Include="Automation\GitHubProject.cs" />
     <Compile Include="Automation\PullRequestCreator.cs" />
     <Compile Include="Automation\GitHubApi\GitHubApiModel.cs" />
-    <Compile Include="Dependencies\IDependencyInfoProvider.cs" />
     <Compile Include="Dependencies\Submodule\SubmoduleDependencyInfo.cs" />
     <Compile Include="Dependencies\BuildOutput\ToolVersionsUpdater.cs" />
     <Compile Include="Dependencies\BuildOutput\FilePackageUpdater.cs" />
@@ -55,6 +54,7 @@
     <Compile Include="BuildInfo.cs" />
     <Compile Include="Dependencies\BuildOutput\ProjectJsonUpdater.cs" />
     <Compile Include="Automation\VersionsRepoUpdater.cs" />
+    <Compile Include="Util\GitCommand.cs" />
   </ItemGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
   <Target Name="AfterBuild">

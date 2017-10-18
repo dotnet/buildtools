@@ -14,8 +14,6 @@ namespace Microsoft.DotNet.VersionTools.Util
 {
     internal class Command
     {
-        public static Command Git(params string[] args) => Create("git", args);
-
         public static readonly string[] RunnableSuffixes = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? new string[] { ".exe", ".cmd", ".bat" }
             : new string[] { string.Empty };

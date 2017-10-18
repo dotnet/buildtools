@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.DotNet.VersionTools.Util;
 
 namespace Microsoft.DotNet.VersionTools.Dependencies.Submodule
 {
@@ -13,7 +14,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.Submodule
     /// Updates the submodule at the given path to the latest commit available from its target
     /// repository.
     /// </summary>
-    public class LatestCommitSubmoduleUpdater : SubmoduleUpdater, IDependencyInfoProvider
+    public class LatestCommitSubmoduleUpdater : SubmoduleUpdater
     {
         public string Repository { get; }
 
@@ -38,29 +39,10 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.Submodule
             Ref = @ref;
         }
 
-        /// <summary>
-        /// Return a BuildInfo for this submodule updater. Generating one allows the caller to
-        /// determine whether this updater should use the checked-in submodule or get the latest
-        /// commit hash from the remote.
-        /// </summary>
-        public IEnumerable<IDependencyInfo> CreateDependencyInfos()
-        {
-            return new[]
-            {
-                new SubmoduleDependencyInfo
-                {
-                    Repository = Repository,
-                    Ref = Ref,
-                    Commit = GetCurrentIndexedHash()
-                }
-            };
-        }
-
         protected override string GetDesiredCommitHash(
             IEnumerable<IDependencyInfo> dependencyInfos,
             out IEnumerable<IDependencyInfo> usedDependencyInfos)
         {
-            // Find the build info that was created earlier, which the user may have modified.
             SubmoduleDependencyInfo[] matchingInfos = dependencyInfos
                 .OfType<SubmoduleDependencyInfo>()
                 .Where(info => info.Repository == Repository)
@@ -69,54 +51,26 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.Submodule
             if (matchingInfos.Length != 1)
             {
                 string matchingInfoString = string.Join(", ", matchingInfos.AsEnumerable());
+                int allSubmoduleInfoCount = dependencyInfos.OfType<SubmoduleDependencyInfo>().Count();
 
                 throw new ArgumentException(
-                    $"Expected exactly 1 {nameof(SubmoduleDependencyInfo)} for '{Repository}', " +
-                    $"found {matchingInfos.Length}: '{matchingInfoString}'");
+                    $"For {Path}, expected exactly 1 {nameof(SubmoduleDependencyInfo)} " +
+                    $"matching '{Repository}', " +
+                    $"but found {matchingInfos.Length}/{allSubmoduleInfoCount}: " +
+                    $"'{matchingInfoString}'");
             }
 
             usedDependencyInfos = matchingInfos;
 
             SubmoduleDependencyInfo matchingInfo = matchingInfos[0];
-            Trace.TraceInformation($"For {Path}, Found: {matchingInfo}");
-
-            // If the info is unpinned, find the new commit.
-            if (string.IsNullOrEmpty(matchingInfo.Commit))
-            {
-                // Unpinned: fetch commit to use from remote.
-                string remoteRefOutput = FetchGitInPathOutput("ls-remote", "--heads", Repository, Ref);
-
-                string[] remoteRefLines = remoteRefOutput
-                    .Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
-                    .Where(line => !string.IsNullOrWhiteSpace(line))
-                    .ToArray();
-
-                if (remoteRefLines.Length != 1)
-                {
-                    string allRefs = "";
-                    if (remoteRefLines.Length > 1)
-                    {
-                        allRefs = $" ({string.Join(", ", remoteRefLines)})";
-                    }
-
-                    throw new NotSupportedException(
-                        $"The configured Ref '{Ref}' for '{Path}' " +
-                        $"must match exactly one ref on the remote, '{Repository}'. " +
-                        $"Matched {remoteRefLines.Length}{allRefs}. ");
-                }
-
-                matchingInfo.Commit = remoteRefLines.Single().Split('\t').First();
-            }
+            Trace.TraceInformation($"For {Path}, found: {matchingInfo}");
 
             return matchingInfo.Commit;
         }
 
         protected override void FetchRemoteBranch()
         {
-            Trace.TraceInformation($"Fetching remote '{Repository}' for '{Path}'.");
-            GitInPath("fetch", Repository)
-                .Execute()
-                .EnsureSuccessful();
+            GitCommand.Fetch(Path, Repository, Ref);
         }
     }
 }
