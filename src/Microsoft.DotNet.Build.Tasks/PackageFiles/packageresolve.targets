@@ -36,6 +36,11 @@
     </IsRestoreRequired>
 
     <PropertyGroup>
+      <_RepoApiAdditionalRestoreArgs Condition="'$(DotNetRestoreSourcePropsPath)' != ''">/p:DotNetRestoreSourcePropsPath=$(DotNetRestoreSourcePropsPath)</_RepoApiAdditionalRestoreArgs>
+      <_RepoApiAdditionalRestoreArgs Condition="'$(DotNetPackageVersionPropsPath)' != ''">$(_RepoApiAdditionalRestoreArgs) /p:DotNetPackageVersionPropsPath=$(DotNetPackageVersionPropsPath)</_RepoApiAdditionalRestoreArgs>
+      <_RepoApiAdditionalRestoreArgs Condition="'$(DotNetBuildOffline)' != ''">$(_RepoApiAdditionalRestoreArgs) /p:DotNetBuildOffline=$(DotNetBuildOffline)</_RepoApiAdditionalRestoreArgs>
+      <AdditionalRestoreArgs Condition="'$(_RepoApiAdditionalRestoreArgs)' != ''">$(AdditionalRestoreArgs) $(_RepoApiAdditionalRestoreArgs)</AdditionalRestoreArgs>
+
       <_DnuRestoreCommandRidPortion Condition="'$(RidSpecificAssets)' == 'true'">-r $(NuGetRuntimeIdentifier)</_DnuRestoreCommandRidPortion>
       <_DnuRestoreCommandFull>$(DnuRestoreCommand) $(ProjectJson) /p:TargetGroup=$(TargetGroup) /p:ConfigurationGroup=$(ConfigurationGroup) /p:ArchGroup=$(ArchGroup) /p:OSGroup=$(OSGroup) /p:TargetFramework=$(NuGetTargetMonikerShort) $(_DnuRestoreCommandRidPortion) $(AdditionalRestoreArgs)</_DnuRestoreCommandFull>
     </PropertyGroup>
