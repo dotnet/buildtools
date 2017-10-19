@@ -79,6 +79,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 int failureCount = 0;
                 using (HttpClient client = new HttpClient())
                 {
+                    client.Timeout = TimeSpan.FromMinutes(10);
                     foreach (string blob in blobNames)
                     {
                         Log.LogMessage(MessageImportance.Low, "Downloading BLOB - {0}", blob);
