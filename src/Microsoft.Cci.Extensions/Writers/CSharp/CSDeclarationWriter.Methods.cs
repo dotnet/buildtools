@@ -47,7 +47,7 @@ namespace Microsoft.Cci.Writers.CSharp
             WriteIdentifier(((INamedEntity)method.ContainingTypeDefinition).Name);
             WriteSymbol("(");
             WriteSymbol(")", false);
-            WriteEmptyBody();
+            WriteMethodBody(method);
         }
 
         private void WriteTypeName(ITypeReference type, ITypeReference containingType, bool isDynamic = false)
