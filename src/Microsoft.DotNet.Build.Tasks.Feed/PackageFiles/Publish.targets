@@ -1,6 +1,10 @@
 <Project ToolsVersion="12.0" DefaultTargets="PublishOutputLeg" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <UsingTask TaskName="PushToBlobFeed" AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
   
+    <ItemGroup Condition="'$(ItemsToPushGlobPattern)' != ''">
+      <ItemsToPush Include="$(ItemsToPushGlobPattern)" />
+    </ItemGroup>
+
     <!-- This is the standard publish target. It can be used to publish assets for the intermediate output of individual build legs and
          the finalized output of an official build. 
          ExpectedFeedUrl - The url of the nuget feed you would like to generate (should contain the storage account, container and relative path) and end with index.json
@@ -21,7 +25,7 @@
       <Error Text="The AccountKey property must be set on the command line."  
             Condition="'$(AccountKey)' == ''" />
       
-      <Message Importance="High" Text="Publish to $(ContainerName) started" />
+      <Message Importance="High" Text="Publish to container started" />
       <PushToBlobFeed ExpectedFeedUrl="$(ExpectedFeedUrl)"
                       AccountKey="$(AccountKey)"
                       ItemsToPush="@(ItemsToPush)"
