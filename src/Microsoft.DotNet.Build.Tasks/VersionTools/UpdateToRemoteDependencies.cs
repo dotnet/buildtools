@@ -95,13 +95,6 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
             return updateResults;
         }
 
-        private ITaskItem FindBuildDependencyInfoItem(string name)
-        {
-            return DependencyInfo.SingleOrDefault(item =>
-                item.ItemSpec == name &&
-                item.GetMetadata(DependencyTypeMetadataName) == "Build");
-        }
-
         private void UpdateProperty(string path, string elementName, string newValue)
         {
             const string valueGroup = "valueGroup";

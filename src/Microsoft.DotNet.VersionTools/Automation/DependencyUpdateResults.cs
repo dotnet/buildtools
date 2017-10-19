@@ -8,6 +8,7 @@ using Microsoft.DotNet.VersionTools.Util;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace Microsoft.DotNet.VersionTools.Automation
@@ -50,7 +51,7 @@ namespace Microsoft.DotNet.VersionTools.Automation
             }
             if (!hasModifiedFiles)
             {
-                Trace.TraceWarning("Dependencies are currently up to date");
+                Trace.TraceInformation("Dependencies are currently up to date");
                 return false;
             }
             return true;
@@ -58,7 +59,9 @@ namespace Microsoft.DotNet.VersionTools.Automation
 
         private static bool GitHasChanges()
         {
-            return !string.IsNullOrWhiteSpace(GitCommand.PorcelainStatus());
+            string status = GitCommand.PorcelainStatus();
+            Trace.TraceInformation($"git status --porcelain results:{Environment.NewLine}{status}");
+            return !string.IsNullOrWhiteSpace(status);
         }
     }
 }
