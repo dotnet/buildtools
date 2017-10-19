@@ -3,9 +3,9 @@
 
   <UsingTask TaskName="LocalUpdatePublishedVersions" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
   <UsingTask TaskName="UpdateDependencies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="UpdateDependenciesAndSubmitPullRequest" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
   <UsingTask TaskName="UpdatePublishedVersions" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
   <UsingTask TaskName="UpdateToRemoteDependencies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
-  <UsingTask TaskName="UpdateToRemoteDependenciesAndSubmitPullRequest" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
   <UsingTask TaskName="VerifyDependencies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
 
   <PropertyGroup>
@@ -101,29 +101,21 @@
   <!--
     Update to the latest dependencies available remotely, then submit a pull request.
   -->
-  <Target Name="UpdateToRemoteDependenciesAndSubmitPullRequest"
+  <Target Name="UpdateDependenciesAndSubmitPullRequest"
           DependsOnTargets="CreateDefaultDependencyInfos">
-    <UpdateToRemoteDependenciesAndSubmitPullRequest DependencyInfo="@(DependencyInfo)"
-                                                    ProjectJsonFiles="@(ProjectJsonFiles)"
-                                                    UpdateStep="@(UpdateStep)"
-                                                    ProjectRepoName="$(ProjectRepoName)"
-                                                    ProjectRepoOwner="$(ProjectRepoOwner)"
-                                                    ProjectRepoBranch="$(ProjectRepoBranch)"
-                                                    GitHubAuthToken="$(GitHubAuthToken)"
-                                                    GitHubUser="$(GitHubUser)"
-                                                    GitHubEmail="$(GitHubEmail)"
-                                                    GitHubAuthor="$(GitHubAuthor)"
-                                                    NotifyGitHubUsers="@(NotifyGitHubUsers)"
-                                                    CurrentRefXmlPath="$(CurrentRefXmlPath)"
-                                                    AlwaysCreateNewPullRequest="$(AlwaysCreateNewPullRequest)"
-                                                    CommitMessage="$(CommitMessage)" />
-  </Target>
-
-  <!--
-    Deprecated auto-upgrade PR target. Redirects to the target's new name.
-  -->
-  <Target Name="UpdateDependenciesAndSubmitPullRequest">
-    <Message Importance="High" Text="'UpdateDependenciesAndSubmitPullRequest' has been renamed to 'UpdateToRemoteDependenciesAndSubmitPullRequest'. The old name is deprecated. Running the new target instead." />
-    <CallTarget Targets="UpdateToRemoteDependenciesAndSubmitPullRequest" />
+    <UpdateDependenciesAndSubmitPullRequest DependencyInfo="@(DependencyInfo)"
+                                            ProjectJsonFiles="@(ProjectJsonFiles)"
+                                            UpdateStep="@(UpdateStep)"
+                                            ProjectRepoName="$(ProjectRepoName)"
+                                            ProjectRepoOwner="$(ProjectRepoOwner)"
+                                            ProjectRepoBranch="$(ProjectRepoBranch)"
+                                            GitHubAuthToken="$(GitHubAuthToken)"
+                                            GitHubUser="$(GitHubUser)"
+                                            GitHubEmail="$(GitHubEmail)"
+                                            GitHubAuthor="$(GitHubAuthor)"
+                                            NotifyGitHubUsers="@(NotifyGitHubUsers)"
+                                            CurrentRefXmlPath="$(CurrentRefXmlPath)"
+                                            AlwaysCreateNewPullRequest="$(AlwaysCreateNewPullRequest)"
+                                            CommitMessage="$(CommitMessage)" />
   </Target>
 </Project>

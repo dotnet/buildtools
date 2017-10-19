@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks.VersionTools
 {
-    public class UpdateToRemoteDependenciesAndSubmitPullRequest : UpdateToRemoteDependencies
+    public class UpdateDependenciesAndSubmitPullRequest : UpdateToRemoteDependencies
     {
         public string ProjectRepoOwner { get; set; }
 
