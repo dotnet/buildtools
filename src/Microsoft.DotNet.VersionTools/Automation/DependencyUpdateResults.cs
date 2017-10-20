@@ -2,32 +2,35 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.DotNet.VersionTools.Dependencies;
+using Microsoft.DotNet.VersionTools.Dependencies.BuildOutput;
 using Microsoft.DotNet.VersionTools.Util;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace Microsoft.DotNet.VersionTools.Automation
 {
     public class DependencyUpdateResults
     {
-        public IEnumerable<BuildInfo> UsedBuildInfos { get; }
+        public IEnumerable<IDependencyInfo> UsedInfos { get; }
 
-        public DependencyUpdateResults(IEnumerable<BuildInfo> usedBuildInfos)
+        public DependencyUpdateResults(IEnumerable<IDependencyInfo> usedInfos)
         {
-            UsedBuildInfos = usedBuildInfos;
+            UsedInfos = usedInfos;
         }
 
         public string GetSuggestedCommitMessage()
         {
-            var orderedInfos = UsedBuildInfos.OrderBy(info => info.Name).ToArray();
+            var orderedInfos = UsedInfos.OrderBy(info => info.SimpleName).ToArray();
 
-            string updatedDependencyNames = string.Join(", ", orderedInfos.Select(d => d.Name));
-            string updatedDependencyVersions = string.Join(", ", orderedInfos.Select(d => d.LatestReleaseVersion));
+            string updatedDependencyNames = string.Join(", ", orderedInfos.Select(d => d.SimpleName));
+            string updatedDependencyVersions = string.Join(", ", orderedInfos.Select(d => d.SimpleVersion));
 
             string commitMessage = $"Update {updatedDependencyNames} to {updatedDependencyVersions}";
-            if (UsedBuildInfos.Count() > 1)
+            if (UsedInfos.Count() > 1)
             {
                 commitMessage += ", respectively";
             }
@@ -38,7 +41,7 @@ namespace Microsoft.DotNet.VersionTools.Automation
         {
             // Ensure changes were performed as expected.
             bool hasModifiedFiles = GitHasChanges();
-            bool hasUsedBuildInfo = UsedBuildInfos.Any();
+            bool hasUsedBuildInfo = UsedInfos.Any();
             if (hasModifiedFiles != hasUsedBuildInfo)
             {
                 throw new Exception(
@@ -48,7 +51,7 @@ namespace Microsoft.DotNet.VersionTools.Automation
             }
             if (!hasModifiedFiles)
             {
-                Trace.TraceWarning("Dependencies are currently up to date");
+                Trace.TraceInformation("Dependencies are currently up to date");
                 return false;
             }
             return true;
@@ -56,12 +59,9 @@ namespace Microsoft.DotNet.VersionTools.Automation
 
         private static bool GitHasChanges()
         {
-            CommandResult statusResult = Command.Git("status", "--porcelain")
-                .CaptureStdOut()
-                .Execute();
-            statusResult.EnsureSuccessful();
-
-            return !string.IsNullOrWhiteSpace(statusResult.StdOut);
+            string status = GitCommand.PorcelainStatus();
+            Trace.TraceInformation($"git status --porcelain results:{Environment.NewLine}{status}");
+            return !string.IsNullOrWhiteSpace(status);
         }
     }
 }

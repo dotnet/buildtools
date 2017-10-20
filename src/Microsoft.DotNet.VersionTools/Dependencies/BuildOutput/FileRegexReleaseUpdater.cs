@@ -6,31 +6,31 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace Microsoft.DotNet.VersionTools.Dependencies
+namespace Microsoft.DotNet.VersionTools.Dependencies.BuildOutput
 {
     public class FileRegexReleaseUpdater : FileRegexUpdater
     {
         public string BuildInfoName { get; set; }
 
         protected override string TryGetDesiredValue(
-            IEnumerable<DependencyBuildInfo> dependencyBuildInfos,
-            out IEnumerable<BuildInfo> usedBuildInfos)
+            IEnumerable<IDependencyInfo> dependencyInfos,
+            out IEnumerable<IDependencyInfo> usedDependencyInfos)
         {
-            BuildInfo project = dependencyBuildInfos
-                .Select(d => d.BuildInfo)
-                .SingleOrDefault(d => d.Name == BuildInfoName);
+            BuildDependencyInfo project = dependencyInfos
+                .OfType<BuildDependencyInfo>()
+                .SingleOrDefault(d => d.BuildInfo.Name == BuildInfoName);
 
             if (project == null)
             {
-                usedBuildInfos = Enumerable.Empty<BuildInfo>();
+                usedDependencyInfos = Enumerable.Empty<IDependencyInfo>();
 
                 Trace.TraceError($"Could not find build info for project named {BuildInfoName}");
                 return $"PROJECT '{BuildInfoName}' NOT FOUND";
             }
 
-            usedBuildInfos = new[] { project };
+            usedDependencyInfos = new[] { project };
 
-            return project.LatestReleaseVersion;
+            return project.BuildInfo.LatestReleaseVersion;
         }
     }
 }

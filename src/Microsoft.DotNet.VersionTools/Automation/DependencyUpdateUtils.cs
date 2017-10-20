@@ -11,24 +11,28 @@ namespace Microsoft.DotNet.VersionTools.Automation
     public static class DependencyUpdateUtils
     {
         /// <summary>
-        /// Runs the updaters given using buildInfo sources, and returns information about the
-        /// updates performed, such as a recommended commit name based on the BuildInfos used.
+        /// Runs the updaters given using given dependency info sources. Returns information about
+        /// the updates performed, such as a recommended commit name.
         /// </summary>
         public static DependencyUpdateResults Update(
             IEnumerable<IDependencyUpdater> updaters,
-            IEnumerable<DependencyBuildInfo> buildInfoDependencies)
+            IEnumerable<IDependencyInfo> dependencyInfos)
         {
-            IEnumerable<BuildInfo> distinctUsedBuildInfos = GetUpdateTasks(updaters, buildInfoDependencies)
+            IEnumerable<DependencyUpdateTask> updateTasks = GetUpdateTasks(
+                updaters,
+                dependencyInfos);
+
+            IDependencyInfo[] distinctUsedDependencyInfos = updateTasks
                 .Select(task =>
                 {
                     task.Start();
                     return task.Result;
                 })
-                .SelectMany(results => results.UsedBuildInfos)
+                .SelectMany(results => results.UsedInfos)
                 .Distinct()
                 .ToArray();
 
-            return new DependencyUpdateResults(distinctUsedBuildInfos);
+            return new DependencyUpdateResults(distinctUsedDependencyInfos);
         }
 
         /// <summary>
@@ -36,9 +40,9 @@ namespace Microsoft.DotNet.VersionTools.Automation
         /// </summary>
         public static IEnumerable<DependencyUpdateTask> GetUpdateTasks(
             IEnumerable<IDependencyUpdater> updaters,
-            IEnumerable<DependencyBuildInfo> buildInfoDependencies)
+            IEnumerable<IDependencyInfo> dependencyInfos)
         {
-            return updaters.SelectMany(updater => updater.GetUpdateTasks(buildInfoDependencies));
+            return updaters.SelectMany(updater => updater.GetUpdateTasks(dependencyInfos));
         }
     }
 }

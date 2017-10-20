@@ -6,8 +6,9 @@ using Microsoft.DotNet.VersionTools.Util;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
-namespace Microsoft.DotNet.VersionTools.Dependencies
+namespace Microsoft.DotNet.VersionTools.Dependencies.BuildOutput
 {
     public class FilePackageUpdater : IDependencyUpdater
     {
@@ -16,9 +17,9 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
         public string PackageId { get; set; }
 
         public IEnumerable<DependencyUpdateTask> GetUpdateTasks(
-            IEnumerable<DependencyBuildInfo> dependencyBuildInfos)
+            IEnumerable<IDependencyInfo> dependencyInfos)
         {
-            foreach (var info in dependencyBuildInfos)
+            foreach (BuildDependencyInfo info in dependencyInfos.OfType<BuildDependencyInfo>())
             {
                 string version;
                 if (info.RawPackages.TryGetValue(PackageId, out version))
@@ -46,7 +47,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
                     {
                         yield return new DependencyUpdateTask(
                             updateTask,
-                            new[] { info.BuildInfo },
+                            new[] { info },
                             new[] { $"In '{Path}', '{originalValue}' must be '{version}'." });
                     }
                     yield break;
