@@ -48,7 +48,8 @@ namespace Microsoft.DotNet.VersionTools.Automation
             string commitMessage,
             string title,
             string description,
-            bool forceCreate = false)
+            bool forceCreate = false,
+            bool maintainersCanModify = true)
         {
             var upstream = UpstreamBranch.Project;
 
@@ -110,11 +111,21 @@ namespace Microsoft.DotNet.VersionTools.Automation
 
                 if (pullRequestToUpdate != null)
                 {
-                    await client.UpdateGitHubPullRequestAsync(upstream, pullRequestToUpdate.Number, title, description);
+                    await client.UpdateGitHubPullRequestAsync(
+                        upstream,
+                        pullRequestToUpdate.Number,
+                        title,
+                        description,
+                        maintainersCanModify: maintainersCanModify);
                 }
                 else
                 {
-                    await client.PostGitHubPullRequestAsync(title, description, originBranch, UpstreamBranch);
+                    await client.PostGitHubPullRequestAsync(
+                        title,
+                        description,
+                        originBranch,
+                        UpstreamBranch,
+                        maintainersCanModify);
                 }
             }
         }

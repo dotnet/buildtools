@@ -123,7 +123,8 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             string title,
             string description,
             GitHubBranch headBranch,
-            GitHubBranch baseBranch)
+            GitHubBranch baseBranch,
+            bool maintainersCanModify)
         {
             EnsureAuthenticated();
 
@@ -132,7 +133,8 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
                 title = title,
                 body = description,
                 head = $"{headBranch.Project.Owner}:{headBranch.Name}",
-                @base = baseBranch.Name
+                @base = baseBranch.Name,
+                maintainer_can_modify = maintainersCanModify
             }, Formatting.Indented);
 
             string pullUrl = $"https://api.github.com/repos/{baseBranch.Project.Segments}/pulls";
@@ -152,7 +154,8 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             int number,
             string title = null,
             string body = null,
-            string state = null)
+            string state = null,
+            bool? maintainersCanModify = null)
         {
             EnsureAuthenticated();
 
@@ -169,6 +172,10 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             if (state != null)
             {
                 updatePrBody.Add(new JProperty("state", state));
+            }
+            if (maintainersCanModify != null)
+            {
+                updatePrBody.Add(new JProperty("maintainer_can_modify", maintainersCanModify.Value));
             }
 
             string url = $"https://api.github.com/repos/{project.Segments}/pulls/{number}";
