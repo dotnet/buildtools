@@ -56,7 +56,6 @@
     <!-- Don't run performance tests in parallel, even in "functional" outerloop runs. -->
     <_XunitOptions Condition="'$(Performance)'!='true' and '$(Outerloop)' == 'true' and '$(IncludePerformanceTests)' == 'true'">$(_XunitOptions) -parallel none</_XunitOptions>
     <_XunitOptions Condition="'$(BuildingUAPAOTVertical)'=='true'">$(_XunitOptions) -redirectoutput</_XunitOptions>
-
     <_XunitOptions>$(_XunitOptions) -notrait category=non$(_bc_TargetGroup)tests</_XunitOptions>
 
     <TargetOS Condition="'$(TargetOS)' == ''">$(DefaultOSGroup)</TargetOS>
@@ -71,7 +70,7 @@
     <_XunitOptions Condition="'$(XunitOptions)' != ''">$(_XunitOptions) $(XunitOptions)</_XunitOptions>
     <_XunitOptions Condition="'$(XunitMethodName)' != ''">$(_XunitOptions) -method $(XunitMethodName)</_XunitOptions>
     <_XunitOptions Condition="'$(XunitClassName)' != ''">$(_XunitOptions) -class $(XunitClassName)</_XunitOptions>
-    <_XunitOptions Condition="'$(XunitShowProgress)' == 'true'">$(_XunitOptions) -showprogress</_XunitOptions>
+    <_XunitOptions Condition="'$(XunitShowProgress)' == 'true' and '$(BuildingNETFxVertical)' != 'true'">$(_XunitOptions) -showprogress</_XunitOptions>
     <XunitTestAssembly Condition="'$(XunitTestAssembly)' == ''">$(TargetFileName)</XunitTestAssembly>
     <XunitArguments>$(XunitTestAssembly) $(_XunitOptions)</XunitArguments>
 
