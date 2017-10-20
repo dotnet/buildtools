@@ -8,8 +8,8 @@
 
   <!-- Produce packages into the specified blob feed. -->
   <PropertyGroup Condition="'$(DotNetOutputBlobFeedDir)' != ''">
-    <PackageOutputPath>$(DotNetOutputBlobFeedDir)packages/</PackageOutputPath>
-    <SymbolPackageOutputPath>$(DotNetOutputBlobFeedDir)assets/</SymbolPackageOutputPath>
+    <PackageOutputPath Condition="'$(PackageOutputPath)' == ''">$(DotNetOutputBlobFeedDir)packages/</PackageOutputPath>
+    <SymbolPackageOutputPath Condition="'$(SymbolPackageOutputPath)' == ''">$(DotNetOutputBlobFeedDir)assets/</SymbolPackageOutputPath>
   </PropertyGroup>
 
   <!--
