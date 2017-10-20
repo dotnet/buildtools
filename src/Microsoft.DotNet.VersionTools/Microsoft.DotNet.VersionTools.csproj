@@ -24,7 +24,8 @@
     <Compile Include="Automation\GitHubApi\HttpFailureResponseException.cs" />
     <Compile Include="Automation\LocalVersionsRepoUpdater.cs" />
     <Compile Include="Automation\GitHubVersionsRepoUpdater.cs" />
-    <Compile Include="Dependencies\DependencyBuildInfo.cs" />
+    <Compile Include="Dependencies\BuildOutput\BuildDependencyInfo.cs" />
+    <Compile Include="Dependencies\IDependencyInfo.cs" />
     <Compile Include="Dependencies\DependencyUpdateTask.cs" />
     <Compile Include="Automation\GitHubApi\GitHubClient.cs" />
     <Compile Include="Automation\DependencyUpdateUtils.cs" />
@@ -32,10 +33,11 @@
     <Compile Include="Automation\GitHubProject.cs" />
     <Compile Include="Automation\PullRequestCreator.cs" />
     <Compile Include="Automation\GitHubApi\GitHubApiModel.cs" />
-    <Compile Include="Dependencies\ToolVersionsUpdater.cs" />
-    <Compile Include="Dependencies\FilePackageUpdater.cs" />
-    <Compile Include="Dependencies\FileRegexPackageUpdater.cs" />
-    <Compile Include="Dependencies\FileRegexReleaseUpdater.cs" />
+    <Compile Include="Dependencies\Submodule\SubmoduleDependencyInfo.cs" />
+    <Compile Include="Dependencies\BuildOutput\ToolVersionsUpdater.cs" />
+    <Compile Include="Dependencies\BuildOutput\FilePackageUpdater.cs" />
+    <Compile Include="Dependencies\BuildOutput\FileRegexPackageUpdater.cs" />
+    <Compile Include="Dependencies\BuildOutput\FileRegexReleaseUpdater.cs" />
     <Compile Include="Automation\IUpdateBranchNamingStrategy.cs" />
     <Compile Include="Automation\SingleBranchNamingStrategy.cs" />
     <Compile Include="Dependencies\Submodule\LatestCommitSubmoduleUpdater.cs" />
@@ -50,8 +52,9 @@
     <Compile Include="Dependencies\FileRegexUpdater.cs" />
     <Compile Include="Dependencies\IDependencyUpdater.cs" />
     <Compile Include="BuildInfo.cs" />
-    <Compile Include="Dependencies\ProjectJsonUpdater.cs" />
+    <Compile Include="Dependencies\BuildOutput\ProjectJsonUpdater.cs" />
     <Compile Include="Automation\VersionsRepoUpdater.cs" />
+    <Compile Include="Util\GitCommand.cs" />
   </ItemGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
   <Target Name="AfterBuild">

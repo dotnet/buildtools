@@ -16,23 +16,23 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
     public class DependencyUpdateTask : Task<DependencyUpdateResults>
     {
         /// <summary>
-        /// The build infos that would be used during this update.
+        /// The dependency infos that were used to create this update task.
         /// </summary>
-        public IEnumerable<BuildInfo> UsedBuildInfos { get; }
+        public IEnumerable<IDependencyInfo> UsedInfos { get; }
 
         public IEnumerable<string> ReadableDescriptionLines { get; }
 
         public DependencyUpdateTask(
             Action updateAction,
-            IEnumerable<BuildInfo> usedBuildInfos,
+            IEnumerable<IDependencyInfo> usedInfos,
             IEnumerable<string> readableDescriptionLines)
             : base(() =>
             {
                 updateAction();
-                return new DependencyUpdateResults(usedBuildInfos);
+                return new DependencyUpdateResults(usedInfos);
             })
         {
-            UsedBuildInfos = usedBuildInfos;
+            UsedInfos = usedInfos;
             ReadableDescriptionLines = readableDescriptionLines;
         }
     }

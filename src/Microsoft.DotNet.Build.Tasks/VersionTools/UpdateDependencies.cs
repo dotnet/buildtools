@@ -13,7 +13,7 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
         {
             DependencyUpdateUtils.Update(
                 CreateUpdaters().ToArray(),
-                CreateBuildInfoDependencies().ToArray());
+                CreateLocalDependencyInfos().ToArray());
         }
     }
 }

@@ -6,28 +6,29 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace Microsoft.DotNet.VersionTools.Dependencies
+namespace Microsoft.DotNet.VersionTools.Dependencies.BuildOutput
 {
     public class FileRegexPackageUpdater : FileRegexUpdater
     {
         public string PackageId { get; set; }
 
         protected override string TryGetDesiredValue(
-            IEnumerable<DependencyBuildInfo> dependencyBuildInfos,
-            out IEnumerable<BuildInfo> usedBuildInfos)
+            IEnumerable<IDependencyInfo> dependencyInfos,
+            out IEnumerable<IDependencyInfo> usedDependencyInfos)
         {
-            var matchingBuildInfo = dependencyBuildInfos
+            var matchingBuildInfo = dependencyInfos
+                .OfType<BuildDependencyInfo>()
                 .FirstOrDefault(d => d.RawPackages.ContainsKey(PackageId));
 
             if (matchingBuildInfo == null)
             {
-                usedBuildInfos = Enumerable.Empty<BuildInfo>();
+                usedDependencyInfos = Enumerable.Empty<IDependencyInfo>();
 
                 Trace.TraceError($"Could not find package version information for '{PackageId}'");
                 return $"DEPENDENCY '{PackageId}' NOT FOUND";
             }
 
-            usedBuildInfos = new[] { matchingBuildInfo.BuildInfo };
+            usedDependencyInfos = new[] { matchingBuildInfo };
 
             return matchingBuildInfo.RawPackages[PackageId];
         }

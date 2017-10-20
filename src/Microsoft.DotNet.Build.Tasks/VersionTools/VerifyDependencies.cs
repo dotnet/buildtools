@@ -16,7 +16,7 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
             IEnumerable<DependencyUpdateTask> updateTasks = DependencyUpdateUtils
                 .GetUpdateTasks(
                     CreateUpdaters().ToArray(),
-                    CreateBuildInfoDependencies().ToArray())
+                    CreateLocalDependencyInfos().ToArray())
                 .ToArray();
 
             if (updateTasks.Any())
