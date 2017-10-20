@@ -4,7 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using Microsoft.DotNet.VersionTools.Util;
 
 namespace Microsoft.DotNet.VersionTools.Dependencies.Submodule
 {
@@ -38,31 +40,37 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.Submodule
         }
 
         protected override string GetDesiredCommitHash(
-            IEnumerable<DependencyBuildInfo> dependencyBuildInfos,
-            out IEnumerable<DependencyBuildInfo> usedBuildInfos)
+            IEnumerable<IDependencyInfo> dependencyInfos,
+            out IEnumerable<IDependencyInfo> usedDependencyInfos)
         {
-            usedBuildInfos = Enumerable.Empty<DependencyBuildInfo>();
-
-            string remoteRefOutput = FetchGitOutput("ls-remote", "--heads", Repository, Ref);
-
-            string[] remoteRefLines = remoteRefOutput
-                .Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
-                .Where(line => !string.IsNullOrWhiteSpace(line))
+            SubmoduleDependencyInfo[] matchingInfos = dependencyInfos
+                .OfType<SubmoduleDependencyInfo>()
+                .Where(info => info.Repository == Repository)
                 .ToArray();
 
-            if (remoteRefLines.Length != 1)
+            if (matchingInfos.Length != 1)
             {
-                string allRefs = "";
-                if (remoteRefLines.Length > 1)
-                {
-                    allRefs = $" ({string.Join(", ", remoteRefLines)})";
-                }
-                throw new NotSupportedException(
-                    "The configured Ref must match exactly one ref on the remote. " +
-                    $"Matched {remoteRefLines.Length}{allRefs}.");
+                string matchingInfoString = string.Join(", ", matchingInfos.AsEnumerable());
+                int allSubmoduleInfoCount = dependencyInfos.OfType<SubmoduleDependencyInfo>().Count();
+
+                throw new ArgumentException(
+                    $"For {Path}, expected exactly 1 {nameof(SubmoduleDependencyInfo)} " +
+                    $"matching '{Repository}', " +
+                    $"but found {matchingInfos.Length}/{allSubmoduleInfoCount}: " +
+                    $"'{matchingInfoString}'");
             }
 
-            return remoteRefLines.Single().Split('\t').First();
+            usedDependencyInfos = matchingInfos;
+
+            SubmoduleDependencyInfo matchingInfo = matchingInfos[0];
+            Trace.TraceInformation($"For {Path}, found: {matchingInfo}");
+
+            return matchingInfo.Commit;
+        }
+
+        protected override void FetchRemoteBranch()
+        {
+            GitCommand.Fetch(Path, Repository, Ref);
         }
     }
 }

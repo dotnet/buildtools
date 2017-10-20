@@ -24,25 +24,17 @@ namespace Microsoft.DotNet.VersionTools.Automation
 
         public PullRequestCreator(
             GitHubAuth auth,
-            string projectName,
-            string upstreamOwner,
-            string upstreamBranch,
-            string gitAuthorName)
-            : this(
-                auth,
-                new GitHubProject(projectName, auth.User),
-                new GitHubBranch(upstreamBranch, new GitHubProject(projectName, upstreamOwner)),
-                gitAuthorName)
-        {
-        }
-
-        public PullRequestCreator(
-            GitHubAuth auth,
             GitHubProject origin,
             GitHubBranch upstreamBranch,
             string gitAuthorName = null,
             IUpdateBranchNamingStrategy namingStrategy = null)
         {
+            if (auth == null)
+            {
+                throw new ArgumentNullException(
+                    nameof(auth),
+                    "Authentication is required: pull requests cannot be created anonymously.");
+            }
             _auth = auth;
 
             Origin = origin;
@@ -171,36 +163,16 @@ namespace Microsoft.DotNet.VersionTools.Automation
 
         private void PushNewCommit(GitHubBranch branch, string commitMessage)
         {
-            Command.Git("commit", "-a", "-m", commitMessage, "--author", $"{GitAuthorName} <{_auth.Email}>")
-                .EnvironmentVariable("GIT_COMMITTER_NAME", GitAuthorName)
-                .EnvironmentVariable("GIT_COMMITTER_EMAIL", _auth.Email)
-                .Execute()
-                .EnsureSuccessful();
+            GitCommand.Commit(commitMessage, GitAuthorName, _auth.Email, all: true);
 
             string remoteUrl = $"github.com/{branch.Project.Segments}.git";
             string refSpec = $"HEAD:refs/heads/{branch.Name}";
 
-            string logMessage = $"git push https://{remoteUrl} {refSpec}";
-            Trace.TraceInformation($"EXEC {logMessage}");
-
-            CommandResult pushResult =
-                Command.Git("push", "--force", $"https://{_auth.User}:{_auth.AuthToken}@{remoteUrl}", refSpec)
-                    .QuietBuildReporter()  // we don't want secrets showing up in our logs
-                    .CaptureStdErr() // git push will write to StdErr upon success, disable that
-                    .CaptureStdOut()
-                    .Execute();
-
-            var message = logMessage + $" exited with {pushResult.ExitCode}";
-            if (pushResult.ExitCode == 0)
-            {
-                Trace.TraceInformation($"EXEC success: {message}");
-            }
-            else
-            {
-                Trace.TraceError($"EXEC failure: {message}");
-            }
-
-            pushResult.EnsureSuccessful(suppressOutput: true);
+            GitCommand.Push(
+                $"https://{_auth.User}:{_auth.AuthToken}@{remoteUrl}",
+                $"https://{remoteUrl}",
+                refSpec,
+                force: true);
         }
     }
 }

@@ -18,6 +18,12 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
 {
     public class GitHubClient : IDisposable
     {
+        /// <summary>
+        /// A default user agent to use if none is provided to the constructor. GitHub always
+        /// requires a user agent even if no auth token is set.
+        /// </summary>
+        private const string DefaultUserAgent = "Microsoft.DotNet.VersionTools";
+
         private static JsonSerializerSettings s_jsonSettings = new JsonSerializerSettings
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver()
@@ -30,18 +36,21 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             "X-RateLimit-Reset"
         };
 
-        private GitHubAuth _auth;
-
         private HttpClient _httpClient;
+
+        public GitHubAuth Auth { get; }
 
         public GitHubClient(GitHubAuth auth)
         {
-            _auth = auth;
+            Auth = auth;
 
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Add("Accept", "application/vnd.github.v3+json");
-            _httpClient.DefaultRequestHeaders.Add("Authorization", $"token {auth.AuthToken}");
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", auth.User);
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", auth?.User ?? DefaultUserAgent);
+            if (auth?.AuthToken != null)
+            {
+                _httpClient.DefaultRequestHeaders.Add("Authorization", $"token {auth.AuthToken}");
+            }
         }
 
         public async Task<GitHubContents> GetGitHubFileAsync(
@@ -78,6 +87,8 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             string commitMessage,
             string newFileContents)
         {
+            EnsureAuthenticated();
+
             Trace.TraceInformation($"Getting the 'sha' of the current contents of file '{fileUrl}'");
 
             string currentFile = await _httpClient.GetStringAsync(fileUrl);
@@ -93,8 +104,8 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
                 message = commitMessage,
                 committer = new
                 {
-                    name = _auth.User,
-                    email = _auth.Email
+                    name = Auth.User,
+                    email = Auth.Email
                 },
                 content = ToBase64(newFileContents),
                 sha = currentSha
@@ -115,6 +126,8 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             GitHubBranch baseBranch,
             bool maintainersCanModify)
         {
+            EnsureAuthenticated();
+
             string createPrBody = JsonConvert.SerializeObject(new
             {
                 title = title,
@@ -144,6 +157,8 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             string state = null,
             bool? maintainersCanModify = null)
         {
+            EnsureAuthenticated();
+
             var updatePrBody = new JObject();
 
             if (title != null)
@@ -221,6 +236,8 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
 
         public async Task PostCommentAsync(GitHubProject project, int issueNumber, string message)
         {
+            EnsureAuthenticated();
+
             string commentBody = JsonConvert.SerializeObject(new
             {
                 body = message
@@ -259,6 +276,8 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
 
         public async Task<GitTree> PostTreeAsync(GitHubProject project, string baseTree, GitObject[] tree)
         {
+            EnsureAuthenticated();
+
             string body = JsonConvert.SerializeObject(new
             {
                 base_tree = baseTree,
@@ -281,6 +300,8 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             string tree,
             string[] parents)
         {
+            EnsureAuthenticated();
+
             string body = JsonConvert.SerializeObject(new
             {
                 message,
@@ -300,6 +321,8 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
 
         public async Task<GitReference> PatchReferenceAsync(GitHubProject project, string @ref, string sha, bool force)
         {
+            EnsureAuthenticated();
+
             string body = JsonConvert.SerializeObject(new
             {
                 sha,
@@ -317,6 +340,14 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             {
                 Trace.TraceInformation($"Patching reference '{@ref}' to '{sha}' with force={force} in {project.Segments}");
                 return await DeserializeSuccessfulAsync<GitReference>(response);
+            }
+        }
+
+        private void EnsureAuthenticated()
+        {
+            if (Auth == null)
+            {
+                throw new NotSupportedException($"Authentication is required, but {nameof(Auth)} is null, indicating anonymous mode.");
             }
         }
 

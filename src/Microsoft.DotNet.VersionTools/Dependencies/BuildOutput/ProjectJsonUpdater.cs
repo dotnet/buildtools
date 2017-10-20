@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace Microsoft.DotNet.VersionTools.Dependencies
+namespace Microsoft.DotNet.VersionTools.Dependencies.BuildOutput
 {
     public class ProjectJsonUpdater : IDependencyUpdater
     {
@@ -23,8 +23,12 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
             ProjectJsonPaths = projectJsonPaths;
         }
 
-        public IEnumerable<DependencyUpdateTask> GetUpdateTasks(IEnumerable<DependencyBuildInfo> dependencyBuildInfos)
+        public IEnumerable<DependencyUpdateTask> GetUpdateTasks(IEnumerable<IDependencyInfo> dependencyInfos)
         {
+            BuildDependencyInfo[] buildDependencyInfos = dependencyInfos
+                .OfType<BuildDependencyInfo>()
+                .ToArray();
+
             var tasks = new List<DependencyUpdateTask>();
             foreach (string projectJsonFile in ProjectJsonPaths)
             {
@@ -37,7 +41,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
                         contents => ReplaceAllDependencyVersions(
                             contents,
                             projectJsonFile,
-                            dependencyBuildInfos,
+                            buildDependencyInfos,
                             out dependencyChanges));
 
                     // The output json may be different even if there weren't any changes made.
@@ -45,7 +49,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
                     {
                         tasks.Add(new DependencyUpdateTask(
                             update,
-                            dependencyChanges.Select(change => change.BuildInfo),
+                            dependencyChanges.Select(change => change.Info),
                             dependencyChanges.Select(change => $"In '{projectJsonFile}', {change.ToString()}")));
                     }
                 }
@@ -60,7 +64,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
         private string ReplaceAllDependencyVersions(
             string input,
             string projectJsonFile,
-            IEnumerable<DependencyBuildInfo> buildInfos,
+            IEnumerable<BuildDependencyInfo> buildInfos,
             out IEnumerable<DependencyChange> dependencyChanges)
         {
             JObject projectRoot = JObject.Parse(input);
@@ -81,10 +85,10 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
         private DependencyChange ReplaceDependencyVersion(
             string projectJsonFile,
             JProperty dependencyProperty,
-            IEnumerable<DependencyBuildInfo> parsedBuildInfos)
+            IEnumerable<BuildDependencyInfo> parsedBuildInfos)
         {
             string id = dependencyProperty.Name;
-            foreach (DependencyBuildInfo info in parsedBuildInfos)
+            foreach (BuildDependencyInfo info in parsedBuildInfos)
             {
                 foreach (PackageIdentity packageInfo in info.Packages)
                 {
@@ -130,7 +134,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
 
                         return new DependencyChange
                         {
-                            BuildInfo = info.BuildInfo,
+                            Info = info,
                             PackageId = id,
                             Before = oldNuGetVersion,
                             After = packageInfo.Version
@@ -153,7 +157,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
 
         private class DependencyChange
         {
-            public BuildInfo BuildInfo { get; set; }
+            public BuildDependencyInfo Info { get; set; }
             public string PackageId { get; set; }
             public NuGetVersion Before { get; set; }
             public NuGetVersion After { get; set; }
@@ -161,7 +165,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
             public override string ToString()
             {
                 return $"'{PackageId} {Before.ToNormalizedString()}' must be " +
-                    $"'{After.ToNormalizedString()}' ({BuildInfo.Name})";
+                    $"'{After.ToNormalizedString()}' ({Info.BuildInfo.Name})";
             }
         }
     }

@@ -7,13 +7,13 @@ using System.Collections.Generic;
 namespace Microsoft.DotNet.VersionTools.Dependencies
 {
     /// <summary>
-    /// A tool that uses buildInfos to perform an update.
+    /// A tool that uses dependency infos to perform an update.
     /// </summary>
     public interface IDependencyUpdater
     {
         /// <summary>
-        /// Updates based on the given build infos and returns build infos used during update.
+        /// Returns update tasks based on the dependency infos passed.
         /// </summary>
-        IEnumerable<DependencyUpdateTask> GetUpdateTasks(IEnumerable<DependencyBuildInfo> dependencyBuildInfos);
+        IEnumerable<DependencyUpdateTask> GetUpdateTasks(IEnumerable<IDependencyInfo> dependencyInfos);
     }
 }
