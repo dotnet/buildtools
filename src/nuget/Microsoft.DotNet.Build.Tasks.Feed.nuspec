@@ -20,11 +20,9 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="Microsoft.DotNet.Build.Tasks.Feed\Microsoft.DotNet.Build.Tasks.Feed.dll" target="lib\netstandard1.5" />
-    <file src="Microsoft.DotNet.Build.Tasks.Feed.net45\*.dll" target="lib\netstandard1.5" Exclude="Microsoft.DotNet.Build.Tasks.Feed\Microsoft.DotNet.Build.Tasks.Feed.dll"/>
-    <file src="Microsoft.DotNet.Build.Tasks.Feed.net45\*.dll" target="lib\net46" />
-    <file src="Microsoft.DotNet.Build.Tasks.Feed\PackageFiles\**\*.*" target="lib\netstandard1.5" />
-    <file src="Microsoft.DotNet.Build.Tasks.Feed\PackageFiles\**\*.*" target="lib\net46" />
+    <file src="Microsoft.DotNet.Build.Tasks.Feed\*.dll" target="build\netstandard1.5" />
+    <file src="Microsoft.DotNet.Build.Tasks.Feed.net45\*.dll" target="build\net46" />
+    <file src="Microsoft.DotNet.Build.Tasks.Feed\PackageFiles\*.*" target="build" />
     <file src="..\obj\version.txt" target="" />
   </files>
 </package>

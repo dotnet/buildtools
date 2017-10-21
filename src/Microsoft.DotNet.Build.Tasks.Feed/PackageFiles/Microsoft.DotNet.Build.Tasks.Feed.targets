@@ -1,5 +1,10 @@
 <Project ToolsVersion="12.0" DefaultTargets="PublishOutputLeg" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <UsingTask TaskName="PushToBlobFeed" AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
+  <PropertyGroup>
+    <_TaskDir>$(MSBuildThisFileDirectory)net46/</_TaskDir>
+    <_TaskDir Condition="'$(MSBuildRuntimeType)' == 'Core'">$(MSBuildThisFileDirectory)netstandard1.5/</_TaskDir>
+  </PropertyGroup>
+  <UsingTask TaskName="PushToBlobFeed" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
+  <UsingTask TaskName="ConfigureInputFeeds" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
   
     <ItemGroup Condition="'$(ItemsToPushGlobPattern)' != ''">
       <ItemsToPush Include="$(ItemsToPushGlobPattern)" />
@@ -33,4 +38,18 @@
                       PublishFlatContainer="$(PublishFlatContainer)"
                       Overwrite="$(Overwrite)" />
     </Target>
+
+  <!-- This is the target used to configure feeds for restore. It can be used to specify the sources from which you would restore your packages from.
+       Parameters to specify:
+       EnableFeeds - ItemGroup which contains sources which are allowed
+      ConfigureInputDependsOn can be customized at build time on the commandline to determine the pre steps required
+  -->
+
+  <Target Name="ConfigureInputFeeds" DependsOnTargets="@(ConfigureInputDependsOn)" >
+    <Error Text="The EnableFeeds ItemGroup must be set on the command line."  
+           Condition="'@(EnableFeeds)' == ''" />
+
+    <Message Importance="High" Text="Configuring input feeds started" />
+    <ConfigureInputFeed EnableFeeds="@(EnableFeeds)" />
+  </Target>
 </Project>
