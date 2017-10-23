@@ -154,6 +154,7 @@
           Condition="'$(MadeChanges)' == 'true'">
     <PropertyGroup>
       <MaintainersCanModifyPullRequest Condition="'$(MaintainersCanModifyPullRequest)' == ''">true</MaintainersCanModifyPullRequest>
+      <TrackDiscardedCommits Condition="'$(TrackDiscardedCommits)' == ''">true</TrackDiscardedCommits>
     </PropertyGroup>
     <SubmitPullRequest ProjectRepoName="$(ProjectRepoName)"
                        ProjectRepoOwner="$(ProjectRepoOwner)"
@@ -167,7 +168,8 @@
                        Body="$(PullRequestBody)"
                        NotifyGitHubUsers="@(NotifyGitHubUsers)"
                        AlwaysCreateNewPullRequest="$(AlwaysCreateNewPullRequest)"
-                       MaintainersCanModifyPullRequest="$(MaintainersCanModifyPullRequest)" />
+                       MaintainersCanModifyPullRequest="$(MaintainersCanModifyPullRequest)"
+                       TrackDiscardedCommits="$(TrackDiscardedCommits)" />
   </Target>
 
   <!-- Create a git-like alias for UpdateToRemoteDependencies. -->
