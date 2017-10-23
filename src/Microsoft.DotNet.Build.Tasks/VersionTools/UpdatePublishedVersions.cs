@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
 using Microsoft.DotNet.VersionTools.Automation;
 using System.Diagnostics;
 using System.Linq;
@@ -28,19 +27,17 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 
         public override bool Execute()
         {
-            MsBuildTraceListener[] listeners = Trace.Listeners.AddMsBuildTraceListeners(Log);
+            Trace.Listeners.MsBuildListenedInvoke(Log, () =>
+            {
+                var gitHubAuth = new GitHubAuth(GitHubAuthToken, GitHubUser, GitHubEmail);
 
-            var gitHubAuth = new GitHubAuth(GitHubAuthToken, GitHubUser, GitHubEmail);
+                var updater = new GitHubVersionsRepoUpdater(gitHubAuth, VersionsRepoOwner, VersionsRepo);
 
-            var updater = new GitHubVersionsRepoUpdater(gitHubAuth, VersionsRepoOwner, VersionsRepo);
-
-            updater.UpdateBuildInfoAsync(
-                ShippedNuGetPackage.Select(item => item.ItemSpec),
-                VersionsRepoPath)
-                .Wait();
-
-            Trace.Listeners.RemoveMsBuildTraceListeners(listeners);
-
+                updater.UpdateBuildInfoAsync(
+                    ShippedNuGetPackage.Select(item => item.ItemSpec),
+                    VersionsRepoPath)
+                    .Wait();
+            });
             return true;
         }
     }
