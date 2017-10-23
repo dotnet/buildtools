@@ -35,6 +35,8 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 
         /// <summary>
         /// Body of the pull request. Optional.
+        /// 
+        /// Only used when submitting a new pull request or if TrackDiscardedCommits is false.
         /// </summary>
         public string Body { get; set; }
 
@@ -48,6 +50,8 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
         public bool AlwaysCreateNewPullRequest { get; set; }
 
         public bool MaintainersCanModifyPullRequest { get; set; }
+
+        public bool TrackDiscardedCommits { get; set; }
 
         public override bool Execute()
         {
@@ -74,13 +78,19 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                     body += PullRequestCreator.NotificationString(NotifyGitHubUsers.Select(item => item.ItemSpec));
                 }
 
-                var prCreator = new PullRequestCreator(client.Auth, origin, upstreamBranch, GitHubAuthor);
+                var prCreator = new PullRequestCreator(client.Auth, GitHubAuthor);
                 prCreator.CreateOrUpdateAsync(
                     CommitMessage,
                     CommitMessage + $" ({ProjectRepoBranch})",
                     body,
-                    forceCreate: AlwaysCreateNewPullRequest,
-                    maintainersCanModify: MaintainersCanModifyPullRequest).Wait();
+                    upstreamBranch,
+                    origin,
+                    new PullRequestOptions
+                    {
+                        ForceCreate = AlwaysCreateNewPullRequest,
+                        MaintainersCanModify = MaintainersCanModifyPullRequest,
+                        TrackDiscardedCommits = TrackDiscardedCommits
+                    }).Wait();
             }
         }
     }

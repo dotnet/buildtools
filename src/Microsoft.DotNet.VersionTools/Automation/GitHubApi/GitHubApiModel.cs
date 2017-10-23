@@ -13,6 +13,7 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
     {
         public int Number { get; set; }
         public string Title { get; set; }
+        public string Body { get; set; }
         public GitHubHead Head { get; set; }
         public GitHubUser User { get; set; }
     }
@@ -49,11 +50,23 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
         public string Content { get; set; }
     }
 
+    public class GitHubStatus
+    {
+        public string State { get; set; }
+        [JsonProperty("target_url")]
+        public string TargetUrl { get; set; }
+        public string Description { get; set; }
+        public string Context { get; set; }
+    }
+
     public class GitCommit
     {
         public string Sha { get; set; }
         public GitCommitUser Author { get; set; }
         public GitCommitUser Committer { get; set; }
+        public string Message { get; set; }
+        [JsonProperty("html_url")]
+        public string HtmlUrl { get; set; }
     }
 
     public class GitCommitUser

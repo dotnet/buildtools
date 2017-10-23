@@ -7,27 +7,22 @@ using Microsoft.DotNet.VersionTools.Util;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Microsoft.DotNet.VersionTools.Automation
 {
     public class PullRequestCreator
     {
-        private GitHubAuth _auth;
+        private const string DiscardedCommitElementName = "auto-pr-discard-list";
 
-        public GitHubBranch UpstreamBranch { get; }
-        public GitHubProject Origin { get; }
+        private GitHubAuth _auth;
 
         public string GitAuthorName { get; }
 
-        private IUpdateBranchNamingStrategy _namingStrategy;
-
         public PullRequestCreator(
             GitHubAuth auth,
-            GitHubProject origin,
-            GitHubBranch upstreamBranch,
-            string gitAuthorName = null,
-            IUpdateBranchNamingStrategy namingStrategy = null)
+            string gitAuthorName = null)
         {
             if (auth == null)
             {
@@ -36,31 +31,32 @@ namespace Microsoft.DotNet.VersionTools.Automation
                     "Authentication is required: pull requests cannot be created anonymously.");
             }
             _auth = auth;
-
-            Origin = origin;
-            UpstreamBranch = upstreamBranch;
-
             GitAuthorName = gitAuthorName ?? auth.User;
-            _namingStrategy = namingStrategy ?? new SingleBranchNamingStrategy("UpdateDependencies");
         }
 
         public async Task CreateOrUpdateAsync(
             string commitMessage,
             string title,
             string description,
-            bool forceCreate = false,
-            bool maintainersCanModify = true)
+            GitHubBranch baseBranch,
+            GitHubProject origin,
+            PullRequestOptions options)
         {
-            var upstream = UpstreamBranch.Project;
+            options = options ?? new PullRequestOptions();
+
+            var upstream = baseBranch.Project;
 
             using (var client = new GitHubClient(_auth))
             {
                 GitHubBranch originBranch = null;
                 GitHubPullRequest pullRequestToUpdate = null;
 
-                string upgradeBranchPrefix = _namingStrategy.Prefix(UpstreamBranch.Name);
+                IUpdateBranchNamingStrategy namingStrategy = options.BranchNamingStrategy
+                    ?? new SingleBranchNamingStrategy("UpdateDependencies");
 
-                if (!forceCreate)
+                string upgradeBranchPrefix = namingStrategy.Prefix(baseBranch.Name);
+
+                if (!options.ForceCreate)
                 {
                     pullRequestToUpdate = await client.SearchPullRequestsAsync(
                         upstream,
@@ -77,13 +73,30 @@ namespace Microsoft.DotNet.VersionTools.Automation
                             $"Pull request already exists for {upgradeBranchPrefix} in {upstream.Segments}. " +
                             $"#{pullRequestToUpdate.Number}, '{pullRequestToUpdate.Title}'");
 
-                        string blockedReason = GetUpdateBlockedReason(client, pullRequestToUpdate, upgradeBranchPrefix);
+                        GitCommit headCommit = await client.GetCommitAsync(
+                            origin,
+                            pullRequestToUpdate.Head.Sha);
+
+                        if (options.TrackDiscardedCommits)
+                        {
+                            description = await CreateDiscardedCommitListBodyAsync(
+                                baseBranch.Project,
+                                pullRequestToUpdate,
+                                headCommit,
+                                client);
+                        }
+
+                        string blockedReason = GetUpdateBlockedReason(
+                            pullRequestToUpdate.Head,
+                            headCommit,
+                            upgradeBranchPrefix,
+                            origin);
 
                         if (blockedReason == null)
                         {
                             originBranch = new GitHubBranch(
                                 pullRequestToUpdate.Head.Ref,
-                                Origin);
+                                origin);
                         }
                         else
                         {
@@ -101,10 +114,10 @@ namespace Microsoft.DotNet.VersionTools.Automation
                 if (originBranch == null)
                 {
                     string newBranchName =
-                        _namingStrategy.Prefix(UpstreamBranch.Name) +
-                        _namingStrategy.CreateFreshBranchNameSuffix(UpstreamBranch.Name);
+                        namingStrategy.Prefix(baseBranch.Name) +
+                        namingStrategy.CreateFreshBranchNameSuffix(baseBranch.Name);
 
-                    originBranch = new GitHubBranch(newBranchName, Origin);
+                    originBranch = new GitHubBranch(newBranchName, origin);
                 }
 
                 PushNewCommit(originBranch, commitMessage);
@@ -116,7 +129,7 @@ namespace Microsoft.DotNet.VersionTools.Automation
                         pullRequestToUpdate.Number,
                         title,
                         description,
-                        maintainersCanModify: maintainersCanModify);
+                        maintainersCanModify: options.MaintainersCanModify);
                 }
                 else
                 {
@@ -124,10 +137,51 @@ namespace Microsoft.DotNet.VersionTools.Automation
                         title,
                         description,
                         originBranch,
-                        UpstreamBranch,
-                        maintainersCanModify);
+                        baseBranch,
+                        options.MaintainersCanModify);
                 }
             }
+        }
+
+        private async Task<string> CreateDiscardedCommitListBodyAsync(
+            GitHubProject baseProject,
+            GitHubPullRequest pullRequestToUpdate,
+            GitCommit oldCommit,
+            GitHubClient client)
+        {
+            // GitHub returns the HTML "commit" url, but we want "commits" so that CI results show.
+            string oldCommitsUrl = oldCommit.HtmlUrl.Replace("commit", "commits");
+
+            GitHubStatus[] statuses = await client.GetStatusesAsync(baseProject, oldCommit.Sha);
+
+            string statusLines = statuses
+                    .OrderBy(s => s.State)
+                    .ThenBy(s => s.Context)
+                    .Select(GetStatusLine)
+                    .Aggregate(string.Empty, (acc, line) => acc + line + "\r\n");
+
+            string oldCommitEntry =
+                $" * [`{oldCommit.Sha.Substring(0, 7)}`]({oldCommitsUrl}) {oldCommit.Message}\r\n" +
+                $"{statusLines}";
+
+            // Find insertion point. GitHub always returns \r\n.
+            string insertionMarker = $"<{DiscardedCommitElementName}>\r\n\r\n";
+            string endInsertionMarker = $"\r\n</{DiscardedCommitElementName}>";
+
+            int elementBegin = pullRequestToUpdate.Body.IndexOf(
+                insertionMarker,
+                StringComparison.Ordinal);
+
+            if (elementBegin != -1)
+            {
+                return pullRequestToUpdate.Body.Insert(
+                    elementBegin + insertionMarker.Length,
+                    oldCommitEntry);
+            }
+            return pullRequestToUpdate.Body +
+                "<details><summary>Discarded auto-update commits (click to expand)</summary>" +
+                $"{insertionMarker}{oldCommitEntry}{endInsertionMarker}" +
+                "</details>";
         }
 
         public static string NotificationString(IEnumerable<string> usernames)
@@ -136,27 +190,26 @@ namespace Microsoft.DotNet.VersionTools.Automation
         }
 
         private string GetUpdateBlockedReason(
-            GitHubClient client,
-            GitHubPullRequest pullRequest,
-            string upgradeBranchPrefix)
+            GitHubHead head,
+            GitCommit headCommit,
+            string upgradeBranchPrefix,
+            GitHubProject origin)
         {
-            if (pullRequest.Head.User.Login != Origin.Owner)
+            if (head.User.Login != origin.Owner)
             {
-                return $"Owner of head repo '{pullRequest.Head.User.Login}' is not '{Origin.Owner}'";
+                return $"Owner of head repo '{head.User.Login}' is not '{origin.Owner}'";
             }
-            if (!pullRequest.Head.Ref.StartsWith(upgradeBranchPrefix))
+            if (!head.Ref.StartsWith(upgradeBranchPrefix))
             {
-                return $"Ref name '{pullRequest.Head.Ref}' does not start with '{upgradeBranchPrefix}'";
+                return $"Ref name '{head.Ref}' does not start with '{upgradeBranchPrefix}'";
             }
-
-            GitCommit commit = client.GetCommitAsync(Origin, pullRequest.Head.Sha).Result;
-            if (commit.Author.Name != GitAuthorName)
+            if (headCommit.Author.Name != GitAuthorName)
             {
-                return $"Head commit author '{commit.Author.Name}' is not '{GitAuthorName}'";
+                return $"Head commit author '{headCommit.Author.Name}' is not '{GitAuthorName}'";
             }
-            if (commit.Committer.Name != GitAuthorName)
+            if (headCommit.Committer.Name != GitAuthorName)
             {
-                return $"Head commit committer '{commit.Committer.Name}' is not '{GitAuthorName}'";
+                return $"Head commit committer '{headCommit.Committer.Name}' is not '{GitAuthorName}'";
             }
             return null;
         }
@@ -173,6 +226,28 @@ namespace Microsoft.DotNet.VersionTools.Automation
                 $"https://{remoteUrl}",
                 refSpec,
                 force: true);
+        }
+
+        private static string GetStatusLine(GitHubStatus status)
+        {
+            string emoticon = ":grey_question:";
+            if (string.Equals(status.State, "success", StringComparison.OrdinalIgnoreCase))
+            {
+                emoticon = ":heavy_check_mark:";
+            }
+            else if (string.Equals(status.State, "pending", StringComparison.OrdinalIgnoreCase))
+            {
+                emoticon = ":hourglass:";
+            }
+            else if (string.Equals(status.State, "error", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(status.State, "failure", StringComparison.OrdinalIgnoreCase))
+            {
+                emoticon = ":x:";
+            }
+
+            return
+                $"   * {emoticon} **{status.Context}** {status.Description} " +
+                $"[Details]({status.TargetUrl})";
         }
     }
 }
