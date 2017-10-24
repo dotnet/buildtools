@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--
+    Provides a default API implementation where possible by setting BuildTools properties/items.
+
+    API documentation: https://github.com/dotnet/source-build/tree/dev/release/2.0/Documentation/auto-dependency-flow
+  -->
+
+  <!-- Produce packages into the specified blob feed. -->
+  <PropertyGroup Condition="'$(DotNetOutputBlobFeedDir)' != ''">
+    <PackageOutputPath Condition="'$(PackageOutputPath)' == ''">$(DotNetOutputBlobFeedDir)packages/</PackageOutputPath>
+    <SymbolPackageOutputPath Condition="'$(SymbolPackageOutputPath)' == ''">$(DotNetOutputBlobFeedDir)assets/</SymbolPackageOutputPath>
+  </PropertyGroup>
+
+  <!--
+    Import the restore source props file if passed to get "DotNetRestoreSources".
+
+    Note the "!= ''" check rather than Exists. If this API argument is passed but the file doesn't
+    exist, something is wrong and an error should be bubbled up as soon as we know about it.
+  -->
+  <Import Project="$(DotNetRestoreSourcePropsPath)"
+          Condition="'$(DotNetRestoreSourcePropsPath)' != ''"/>
+
+  <!-- Use passed NuGet restore sources, if any. -->
+  <PropertyGroup>
+    <RestoreSources>$(RestoreSources);$(DotNetRestoreSources)</RestoreSources>
+  </PropertyGroup>
+
+  <!--
+    Populate DotnetSourceList items based on NuGet restore sources from the Repo API plus any
+    additions the repo makes to the RestoreSources property.
+
+    This is used by the "dotnet restore" Exec that uses "source" args. When a repo uses msbuild
+    restore tooling, this ItemGroup is unnecessary.
+  -->
+  <ItemGroup>
+    <DotnetSourceList Include="$(RestoreSources)" />
+  </ItemGroup>
+</Project>
