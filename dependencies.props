@@ -41,7 +41,7 @@
       <CurrentRef>$(CoreClrCurrentRef)</CurrentRef>
     </RemoteDependencyBuildInfo>
     <RemoteDependencyBuildInfo Include="ProjectKTfs">
-      <BuildInfoPath>$(BaseDotNetBuildInfo)projectk-tfs/$(DependencyBranch)</BuildInfoPath>
+      <BuildInfoPath>$(BaseDotNetBuildInfo)projectk-tfs/release/1.0.0</BuildInfoPath>
       <CurrentRef>$(ProjectKTfsCurrentRef)</CurrentRef>
     </RemoteDependencyBuildInfo>
 
