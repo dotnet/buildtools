@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "Microsoft.Cci": "4.0.0-rc4-24217-00",
+    "Microsoft.Cci": "4.0.0-rc3-24214-00",
     "System.Diagnostics.TextWriterTraceListener": "4.0.0",
     "System.Diagnostics.FileVersionInfo": "4.0.0",
     "System.Reflection.TypeExtensions": "4.1.0",
