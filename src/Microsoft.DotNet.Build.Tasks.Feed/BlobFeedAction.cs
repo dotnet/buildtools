@@ -101,7 +101,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     try
                     {
                         
-                        bool result = await PushCommand.RunAsync(settings, fileSystem, items.ToList(), true, true, new SleetLogger(Log));
+                        bool result = await PushCommand.RunAsync(settings, fileSystem, items.ToList(), allowOverwrite, !allowOverwrite, new SleetLogger(Log));
                         return result;
                     }
                     catch (InvalidOperationException ex) when (ex.Message.Contains("init"))
