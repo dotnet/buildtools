@@ -55,8 +55,9 @@
          portable PDBs.  Thus we generate windows PDBs from portable PDBs here.   Can be removed
          when OpenCover directly supports Portable PDBs (probably by early 2018) -->
 
-  <Target Name="GenerateWindowsPdbsForAssemblyBeingTested" BeforeTargets="GenerateTestExecutionScripts"
-    Condition="$(CodeCoverageEnabled) == 'true' and '$(TargetOS)'=='Windows_NT'">
+  <Target Name="GenerateWindowsPdbsForAssemblyBeingTested" 
+    BeforeTargets="GenerateTestExecutionScripts"
+    Condition="'$(CodeCoverageEnabled)' == 'true' and '$(TargetOS)'=='Windows_NT'">
 
     <!-- We look for the DLL being tested for coverage and its PDB create a WindowsPDB\*.pdb which has
          the windows PDB.  -->
