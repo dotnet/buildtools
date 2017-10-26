@@ -50,10 +50,14 @@
     </PropertyGroup>
   </Target>
 
-  <Target Name="GenerateWindowsPdbsForAssemblyBeingTested" BeforeTargets="GenerateTestExecutionScripts">
+  <!-- *********************************************************************************************** -->
     <!-- As of 10/2017 OpenCover does not support portable PDBs, but we want the builds to generate
          portable PDBs.  Thus we generate windows PDBs from portable PDBs here.   Can be removed
          when OpenCover directly supports Portable PDBs (probably by early 2018) -->
+
+  <Target Name="GenerateWindowsPdbsForAssemblyBeingTested" 
+    BeforeTargets="GenerateTestExecutionScripts"
+    Condition="'$(CodeCoverageEnabled)' == 'true' and '$(TargetOS)'=='Windows_NT'">
 
     <!-- We look for the DLL being tested for coverage and its PDB create a WindowsPDB\*.pdb which has
          the windows PDB.  -->
@@ -80,8 +84,8 @@
          portable PDBs directly  -->
     <Message Importance="high" Text="Replacing Portable PDB with Windows Pdb in place!" />
     <Copy SourceFiles="%(ExistingPortableDllsToConvert.TargetPath)" DestinationFolder="$(NETCoreAppTestSharedFrameworkPath)" Condition="Exists('%(ExistingPortableDllsToConvert.TargetPath)')"/>
-
   </Target>
+  <!-- *********************************************************************************************** -->
 
   <!-- xUnit command line with coverage enabled -->
   <PropertyGroup Condition="'$(CoverageEnabledForProject)'=='true'">
