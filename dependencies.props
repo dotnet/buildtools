@@ -14,7 +14,7 @@
 
   <!-- Package versions to validate, but not in a build-info file. -->
   <PropertyGroup>
-    <MicrosoftDiaSymReaderConverterPackageVersion>1.0.0-beta1-61722-03</MicrosoftDiaSymReaderConverterPackageVersion>
+    <MicrosoftDiaSymReaderConverterPackageVersion>1.1.0-beta1-62225-01</MicrosoftDiaSymReaderConverterPackageVersion>
   </PropertyGroup>
 
   <!-- Package dependency verification/auto-upgrade configuration. -->
