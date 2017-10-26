@@ -11,7 +11,7 @@
       "exclude": "all"
     },
     "NETStandard.Library": "1.6.0",
-    "Newtonsoft.Json": "9.0.1",
+    "Newtonsoft.Json": "10.0.3",
     "NuGet.Commands": "4.3.0",
     "NuGet.Packaging": "4.3.0",
     "NuGet.ProjectModel": "4.3.0",
