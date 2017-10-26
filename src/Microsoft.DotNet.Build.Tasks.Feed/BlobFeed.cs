@@ -3,18 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.Build.Framework;
-using MSBuild = Microsoft.Build.Utilities;
-using Newtonsoft.Json;
-using NuGet.Versioning;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
 using System.IO;
-using System;
-using NuGet.Packaging;
-using System.Text.RegularExpressions;
+using System.Linq;
 using System.Threading;
+using MSBuild = Microsoft.Build.Utilities;
 
 namespace Microsoft.DotNet.Build.Tasks.Feed
 {
@@ -28,16 +21,19 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public string ContainerName { get; set; }
 
+        public string RelativePath { get; set; }
+
 
         private static readonly CancellationTokenSource TokenSource = new CancellationTokenSource();
         private static readonly CancellationToken CancellationToken = TokenSource.Token;
 
-        public BlobFeed(string accountName, string accountKey, string containerName, MSBuild.TaskLoggingHelper loggingHelper)
+        public BlobFeed(string accountName, string accountKey, string containerName, string relativePath, MSBuild.TaskLoggingHelper loggingHelper)
         {
             AccountName = accountName;
             AccountKey = accountKey;
             ContainerName = containerName;
             Log = loggingHelper;
+            RelativePath = relativePath;
         }
 
         public bool IsSanityChecked(IEnumerable<string> items)

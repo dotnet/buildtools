@@ -8,7 +8,7 @@
     "Newtonsoft.Json": "10.0.3",
     "NuGet.Versioning": "4.3.0",
     "NuGet.Packaging": "4.3.0",
-    "sleetlib": "2.2.3"
+    "SleetLib": "2.2.7"
   },
   "frameworks": {
     "netstandard1.5": {

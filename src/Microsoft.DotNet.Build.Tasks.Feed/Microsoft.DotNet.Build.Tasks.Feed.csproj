@@ -26,9 +26,9 @@
     <Compile Include="PushToBlobFeed.cs" />
     <Compile Include="SleetLogger.cs" />
     <Compile Include="SleetSettings.cs" />
+    <Compile Include="SleetSource.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="config\sleet.json" />
     <None Include="PackageFiles\Publish.targets">
       <SubType>Designer</SubType>
     </None>

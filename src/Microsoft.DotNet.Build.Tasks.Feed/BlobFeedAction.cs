@@ -25,7 +25,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         public BlobFeed feed;
         public string feedUrl;
 
-        const string feedRegex = @"(?<feedurl>https:\/\/(?<accountname>[^\.-]+)(?<domain>[^\/]*)\/((?<token>[a-zA-Z0-9+\/]*?\/\d{4}-\d{2}-\d{2})\/)?(?<containername>[^\/]+)\/\/)index\.json";
+        const string feedRegex = @"(?<feedurl>https:\/\/(?<accountname>[^\.-]+)(?<domain>[^\/]*)\/((?<token>[a-zA-Z0-9+\/]*?\/\d{4}-\d{2}-\d{2})\/)?(?<containername>[^\/]+)\/(?<relativepath>.*\/))index\.json";
 
         public BlobFeedAction(string expectedFeedUrl, string accountKey, ITaskItem[] itemstoPush, MSBuild.TaskLoggingHelper Log)
         {
@@ -35,8 +35,9 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             {
                 string accountName = m.Groups["accountname"].Value;
                 string containerName = m.Groups["containername"].Value;
-                bool isPublic = string.IsNullOrWhiteSpace(m.Groups["token"].Value);
-                feed = new BlobFeed(accountName, accountKey, containerName, Log);
+                string relativePath = m.Groups["relativepath"].Value;
+
+                feed = new BlobFeed(accountName, accountKey, containerName, relativePath, Log);
                 feedUrl = expectedFeedUrl;
             }
             else
@@ -64,21 +65,22 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         public async Task<bool> PushItemsToFeedAsync(IEnumerable<string> items, bool allowOverwrite)
         {
             Log.LogMessage(MessageImportance.Low, $"START pushing items to feed");
-
+            
             try
             {
-                Source source = new Source
+                SleetSource source = new SleetSource
                 {
                     Name = feed.ContainerName,
                     Type = "azure",
-                    Path = feedUrl,
+                    Path = feedUrl.Replace("index.json", string.Empty),
                     Container = feed.ContainerName,
+                    FeedSubPath = feed.RelativePath,
                     ConnectionString = $"DefaultEndpointsProtocol=https;AccountName={feed.AccountName};AccountKey={feed.AccountKey};EndpointSuffix=core.windows.net"
                 };
 
                 SleetSettings sleetSettings = new SleetSettings()
                 {
-                    Sources = new List<Source>
+                    Sources = new List<SleetSource>
                     {
                        source 
                     }
@@ -90,10 +92,36 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 };
 
                 CloudStorageAccount storageAccount = CloudStorageAccount.Parse(source.ConnectionString);
-                AzureFileSystem fileSystem = new AzureFileSystem(new LocalCache(), new Uri(source.Path), storageAccount, source.Name);
-                bool result = await PushCommand.RunAsync(settings, fileSystem, items.ToList(), true, true, new SleetLogger(Log));
+                AzureFileSystem fileSystem = new AzureFileSystem(new LocalCache(), new Uri(source.Path), new Uri(source.Path), storageAccount, source.Name, source.FeedSubPath);
 
-                return result;
+                // In case the first Push attempt fails with an InvalidOperationException we Init the feed and retry the Push command once.
+                // Sleet internally retries 5 times on each package when the push operation fails so we don't need to retry ourselves.
+                for (int i = 0; i <= 1; i++)
+                {
+                    try
+                    {
+                        
+                        bool result = await PushCommand.RunAsync(settings, fileSystem, items.ToList(), true, true, new SleetLogger(Log));
+                        return result;
+                    }
+                    catch (InvalidOperationException ex) when (ex.Message.Contains("init"))
+                    {
+                        Log.LogWarning($"Sub-feed {source.FeedSubPath} has not been initialized. Initializing now...");
+                        bool result = await InitCommand.RunAsync(settings, fileSystem, new SleetLogger(Log));
+
+                        if (result)
+                        {
+                            Log.LogMessage($"Initializing sub-feed {source.FeedSubPath} succeeded!");
+                        }
+                        else
+                        {
+                            Log.LogError($"Initializing sub-feed {source.FeedSubPath} failed!");
+                            break;
+                        }
+                    }
+                }
+
+                return false;
             }
             catch (Exception e)
             {
