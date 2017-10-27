@@ -25,7 +25,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         public BlobFeed feed;
         public string feedUrl;
 
-        const string feedRegex = @"(?<feedurl>https:\/\/(?<accountname>[^\.-]+)(?<domain>[^\/]*)\/((?<token>[a-zA-Z0-9+\/]*?\/\d{4}-\d{2}-\d{2})\/)?(?<containername>[^\/]+)\/(?<relativepath>.*\/))index\.json";
+        const string feedRegex = @"(?<feedurl>https:\/\/(?<accountname>[^\.-]+)(?<domain>[^\/]*)\/((?<token>[a-zA-Z0-9+\/]*?\/\d{4}-\d{2}-\d{2})\/)?(?<containername>[^\/]+)\/(?<relativepath>.*\/)?)index\.json";
 
         public BlobFeedAction(string expectedFeedUrl, string accountKey, ITaskItem[] itemstoPush, MSBuild.TaskLoggingHelper Log)
         {
