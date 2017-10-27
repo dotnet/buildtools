@@ -38,7 +38,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 string relativePath = m.Groups["relativepath"].Value;
 
                 feed = new BlobFeed(accountName, accountKey, containerName, relativePath, Log);
-                feedUrl = expectedFeedUrl;
+                feedUrl = expectedFeedUrl.Replace("index.json", string.Empty);
             }
             else
             {
@@ -72,7 +72,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 {
                     Name = feed.ContainerName,
                     Type = "azure",
-                    Path = feedUrl.Replace("index.json", string.Empty),
+                    Path = feedUrl,
                     Container = feed.ContainerName,
                     FeedSubPath = feed.RelativePath,
                     ConnectionString = $"DefaultEndpointsProtocol=https;AccountName={feed.AccountName};AccountKey={feed.AccountKey};EndpointSuffix=core.windows.net"
