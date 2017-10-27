@@ -39,14 +39,12 @@
       <_RepoApiAdditionalRestoreArgs Condition="'$(DotNetRestoreSourcePropsPath)' != ''">/p:DotNetRestoreSourcePropsPath=$(DotNetRestoreSourcePropsPath)</_RepoApiAdditionalRestoreArgs>
       <_RepoApiAdditionalRestoreArgs Condition="'$(DotNetPackageVersionPropsPath)' != ''">$(_RepoApiAdditionalRestoreArgs) /p:DotNetPackageVersionPropsPath=$(DotNetPackageVersionPropsPath)</_RepoApiAdditionalRestoreArgs>
       <_RepoApiAdditionalRestoreArgs Condition="'$(DotNetBuildOffline)' != ''">$(_RepoApiAdditionalRestoreArgs) /p:DotNetBuildOffline=$(DotNetBuildOffline)</_RepoApiAdditionalRestoreArgs>
-      <_RepoApiAdditionalRestoreArgs Condition="'$(EnablePackageRestoreLogger)' == 'true'">$(_RepoApiAdditionalRestoreArgs) /l:PackageRestoreLogger,$(MSBuildThisFileDirectory)Microsoft.DotNet.Build.Tasks.dll</_RepoApiAdditionalRestoreArgs>
       <AdditionalRestoreArgs Condition="'$(_RepoApiAdditionalRestoreArgs)' != ''">$(AdditionalRestoreArgs) $(_RepoApiAdditionalRestoreArgs)</AdditionalRestoreArgs>
 
       <_DnuRestoreCommandRidPortion Condition="'$(RidSpecificAssets)' == 'true'">-r $(NuGetRuntimeIdentifier)</_DnuRestoreCommandRidPortion>
       <_DnuRestoreCommandFull>$(DnuRestoreCommand) $(ProjectJson) /p:TargetGroup=$(TargetGroup) /p:ConfigurationGroup=$(ConfigurationGroup) /p:ArchGroup=$(ArchGroup) /p:OSGroup=$(OSGroup) /p:TargetFramework=$(NuGetTargetMonikerShort) $(_DnuRestoreCommandRidPortion) $(AdditionalRestoreArgs)</_DnuRestoreCommandFull>
     </PropertyGroup>
-    <Exec Condition="Exists('$(ProjectJson)') AND '$(RestoreRequired)' == 'true' AND '$(EnablePackageRestoreLogger)' != 'true'" Command="$(_DnuRestoreCommandFull)" StandardOutputImportance="Low" CustomErrorRegularExpression="^Unable to locate .*" />
-    <Exec Condition="Exists('$(ProjectJson)') AND '$(RestoreRequired)' == 'true' AND '$(EnablePackageRestoreLogger)' == 'true'" Command="$(_DnuRestoreCommandFull)" CustomErrorRegularExpression="^Unable to locate .*" />
+    <Exec Condition="Exists('$(ProjectJson)') AND '$(RestoreRequired)' == 'true'" Command="$(_DnuRestoreCommandFull)" StandardOutputImportance="Low" CustomErrorRegularExpression="^Unable to locate .*" />
     
     <!-- if lock file exists be sure to update timestamp otherwise we could get in a state of aways calling restore but the lock file not being updated -->
     <Touch Condition="Exists('$(ProjectAssetsFile)') AND '$(RestoreRequired)' == 'true'" Files="$(ProjectAssetsFile)" />
