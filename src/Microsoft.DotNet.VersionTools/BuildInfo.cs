@@ -198,7 +198,7 @@ namespace Microsoft.DotNet.VersionTools
             if (!response.IsSuccessStatusCode)
             {
                 Trace.TraceError(
-                    $"Failure response code while fetching BuildInfo: name '{buildInfoName}', " +
+                    $"Failure response code while fetching BuildInfo with name: '{buildInfoName}', " +
                     $"url: '{url}'. Ensure the repository is correct and the file exists at " +
                     "the commit specified.");
             }
