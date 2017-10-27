@@ -36,7 +36,6 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 string accountName = m.Groups["accountname"].Value;
                 string containerName = m.Groups["containername"].Value;
                 string relativePath = m.Groups["relativepath"].Value;
-
                 feed = new BlobFeed(accountName, accountKey, containerName, relativePath, Log);
                 feedUrl = expectedFeedUrl.Replace("index.json", string.Empty);
             }
@@ -100,7 +99,6 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 {
                     try
                     {
-                        
                         bool result = await PushCommand.RunAsync(settings, fileSystem, items.ToList(), allowOverwrite, !allowOverwrite, new SleetLogger(Log));
                         return result;
                     }
