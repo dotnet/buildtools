@@ -149,6 +149,7 @@ api-ms-win-appmodel-runtime-l1-1-2.dll!VerifyPackageFamilyName
 api-ms-win-appmodel-runtime-l1-1-2.dll!VerifyPackageFullName
 api-ms-win-appmodel-runtime-l1-1-2.dll!VerifyPackageId
 api-ms-win-appmodel-runtime-l1-1-2.dll!VerifyPackageRelativeApplicationId
+api-ms-win-core-comm-l1-1-1.dll!OpenCommPort
 api-ms-win-core-enclave-l1-1-0.dll!CreateEnclave
 api-ms-win-core-enclave-l1-1-0.dll!InitializeEnclave
 api-ms-win-core-enclave-l1-1-0.dll!IsEnclaveTypeSupported
@@ -3320,7 +3321,6 @@ kernel32.dll!WriteFile
 kernel32.dll!WriteFileEx
 kernel32legacy.dll!GetSystemPowerStatus
 kernelbase.dll!GetIntegratedDisplaySize
-kernelbase.dll!OpenCommPort
 kernelbase.dll!PathAllocCanonicalize
 kernelbase.dll!PathAllocCombine
 kernelbase.dll!PathCchAddBackslash
