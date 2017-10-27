@@ -51,9 +51,9 @@
   </Target>
 
   <!-- *********************************************************************************************** -->
-    <!-- As of 10/2017 OpenCover does not support portable PDBs, but we want the builds to generate
-         portable PDBs.  Thus we generate windows PDBs from portable PDBs here.   Can be removed
-         when OpenCover directly supports Portable PDBs (probably by early 2018) -->
+  <!-- As of 10/2017 OpenCover does not support portable PDBs, but we want the builds to generate
+       portable PDBs.  Thus we generate windows PDBs from portable PDBs here.   Can be removed
+       when OpenCover directly supports Portable PDBs (probably by early 2018) -->
 
   <Target Name="GenerateWindowsPdbsForAssemblyBeingTested" 
     BeforeTargets="GenerateTestExecutionScripts"
