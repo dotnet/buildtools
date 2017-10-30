@@ -165,24 +165,41 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         public string GeneratePackageServiceIndex(string redirectUrl, IEnumerable<string> values)
         {
             string pathToTempFolder = Path.Combine(IndexDirectory, redirectUrl);
-            if (Directory.Exists(pathToTempFolder))
-            {
-                Directory.Delete(pathToTempFolder, true);
-            }
-            Directory.CreateDirectory(pathToTempFolder);
             string packageIndexJsonLocation = Path.Combine(pathToTempFolder, "index.json");
-            using (var streamWriter = new StreamWriter(File.OpenWrite(packageIndexJsonLocation)))
-            using (JsonTextWriter writer = new JsonTextWriter(streamWriter))
+            int retry = 5;
+            bool isFileCreated = false;
+            while (!isFileCreated && --retry > 0)
             {
-                writer.WriteStartObject();
-                writer.WritePropertyName("versions");
-                writer.WriteStartArray();
-                foreach (string version in values)
+                try
                 {
-                    writer.WriteRawValue($"\"{version}\"");
+                    if (Directory.Exists(pathToTempFolder))
+                    {
+                        Directory.Delete(pathToTempFolder, true);
+                    }
+                    Directory.CreateDirectory(pathToTempFolder);
+
+                    using (var streamWriter = new StreamWriter(File.OpenWrite(packageIndexJsonLocation)))
+                    using (JsonTextWriter writer = new JsonTextWriter(streamWriter))
+                    {
+                        writer.WriteStartObject();
+                        writer.WritePropertyName("versions");
+                        writer.WriteStartArray();
+                        foreach (string version in values)
+                        {
+                            writer.WriteRawValue($"\"{version}\"");
+                        }
+                        writer.WriteEndArray();
+                        writer.WriteEndObject();
+                    }
+                    isFileCreated = true;
                 }
-                writer.WriteEndArray();
-                writer.WriteEndObject();
+                catch (Exception)
+                {
+                    Log.LogMessage($"Failed to write file {packageIndexJsonLocation}. Retrying");
+                    Thread.Sleep(3000);
+                    if (retry == 1)
+                        throw;
+                }
             }
             return packageIndexJsonLocation;
         }
@@ -190,38 +207,53 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         private string GenerateRootServiceIndex(string redirectUrl)
         {
             string pathToTempFolder = Path.Combine(IndexDirectory, redirectUrl);
-            if (Directory.Exists(pathToTempFolder))
-            {
-                Directory.Delete(pathToTempFolder, true);
-            }
-            Directory.CreateDirectory(pathToTempFolder);
             string rootIndexJsonLocation = Path.Combine(pathToTempFolder, "index.json");
-            using (FileStream fs = File.OpenWrite(rootIndexJsonLocation))
-            using (var streamWriter = new StreamWriter(fs))
-            using (JsonTextWriter writer = new JsonTextWriter(streamWriter))
-            {
-                writer.WriteStartObject();
-                writer.WritePropertyName("version");
-                writer.WriteRawValue("\"3.0.0\"");
-                writer.WritePropertyName("resources");
-                writer.WriteStartArray();
-                writer.WriteStartObject();
-                writer.WritePropertyName("@id");
-                writer.WriteRawValue($"\"{FeedUrl}\"");
-                writer.WritePropertyName("@type");
-                writer.WriteRawValue("\"PackageBaseAddress/3.0.0\"");
-                writer.WritePropertyName("comment");
-                writer.WriteRawValue("\"Base URL of Azure storage where NuGet package registration info for intermediaries is stored.\"");
-                writer.WriteEndObject();
-                writer.WriteEndArray();
-                writer.WritePropertyName("@context");
-                writer.WriteStartObject();
-                writer.WritePropertyName("@vocab");
-                writer.WriteRawValue("\"http://schema.nuget.org/schema#\"");
-                writer.WritePropertyName("comment");
-                writer.WriteRawValue("\"http://www.w3.org/2000/01/rdf-schema#comment\"");
-                writer.WriteEndObject();
-                writer.WriteEndObject();
+            int retry = 5;
+            bool isFileCreated = false;
+            while (!isFileCreated && --retry > 0) { 
+                try
+                {
+                    if (Directory.Exists(pathToTempFolder))
+                    {
+                        Directory.Delete(pathToTempFolder, true);
+                    }
+                    Directory.CreateDirectory(pathToTempFolder);
+                    using (FileStream fs = File.OpenWrite(rootIndexJsonLocation))
+                    using (var streamWriter = new StreamWriter(fs))
+                    using (JsonTextWriter writer = new JsonTextWriter(streamWriter))
+                    {
+                        writer.WriteStartObject();
+                        writer.WritePropertyName("version");
+                        writer.WriteRawValue("\"3.0.0\"");
+                        writer.WritePropertyName("resources");
+                        writer.WriteStartArray();
+                        writer.WriteStartObject();
+                        writer.WritePropertyName("@id");
+                        writer.WriteRawValue($"\"{FeedUrl}\"");
+                        writer.WritePropertyName("@type");
+                        writer.WriteRawValue("\"PackageBaseAddress/3.0.0\"");
+                        writer.WritePropertyName("comment");
+                        writer.WriteRawValue("\"Base URL of Azure storage where NuGet package registration info for intermediaries is stored.\"");
+                        writer.WriteEndObject();
+                        writer.WriteEndArray();
+                        writer.WritePropertyName("@context");
+                        writer.WriteStartObject();
+                        writer.WritePropertyName("@vocab");
+                        writer.WriteRawValue("\"http://schema.nuget.org/schema#\"");
+                        writer.WritePropertyName("comment");
+                        writer.WriteRawValue("\"http://www.w3.org/2000/01/rdf-schema#comment\"");
+                        writer.WriteEndObject();
+                        writer.WriteEndObject();
+                    }
+                    isFileCreated = true;
+                }
+                catch (Exception)
+                {
+                    Log.LogMessage($"Failed to write file {rootIndexJsonLocation}. Retrying");
+                    Thread.Sleep(3000);
+                    if (retry == 1)
+                        throw;
+                }
             }
             return rootIndexJsonLocation;
         }

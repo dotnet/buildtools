@@ -134,7 +134,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             await clientThrottle.WaitAsync();
             string leaseId = string.Empty;
             //this defines the lease for 15 seconds (max is 60) and 3000 milliseconds between requests
-            AzureBlobLease blobLease = new AzureBlobLease(feed.AccountName, feed.AccountKey, string.Empty, feed.ContainerName, uploadPath, Log, "15", "3000");
+            AzureBlobLease blobLease = new AzureBlobLease(feed.AccountName, feed.AccountKey, string.Empty, feed.ContainerName, uploadPath, Log, "15", "5000");
 
             bool isLeaseRequired = allowOverwrite && await feed.CheckIfBlobExists(uploadPath);
 
@@ -143,6 +143,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 try
                 {
                     leaseId = blobLease.Acquire();
+                    Log.LogMessage($"Obtained lease ID {leaseId} for {uploadPath}.");
                 }
                 catch (Exception)
                 {
@@ -175,6 +176,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             catch (Exception)
             {
                 Log.LogError($"Unable to upload to {uploadPath}");
+                throw;
             }
             finally
             {
