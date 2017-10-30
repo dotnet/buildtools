@@ -2,8 +2,9 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <UsingTask TaskName="LocalUpdatePublishedVersions" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="ReadGitConfigFile" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
+  <UsingTask TaskName="SubmitPullRequest" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
   <UsingTask TaskName="UpdateDependencies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
-  <UsingTask TaskName="UpdateDependenciesAndSubmitPullRequest" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
   <UsingTask TaskName="UpdatePublishedVersions" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
   <UsingTask TaskName="UpdateToRemoteDependencies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
   <UsingTask TaskName="VerifyDependencies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" />
@@ -21,7 +22,8 @@
     <NotifyGitHubUsers Include="$(NotifyGitHubUsers)" />
   </ItemGroup>
 
-  <Target Name="CreateDefaultDependencyInfos">
+  <Target Name="CreateDefaultDependencyInfos"
+          DependsOnTargets="CreateDefaultSubmoduleUpdateSteps">
     <ItemGroup>
       <!-- For backward compatibility, Include XmlUpdateSteps as Xml-type updaters. -->
       <UpdateStep Include="@(XmlUpdateStep)">
@@ -41,6 +43,51 @@
                       Condition="'%(UpdateStep.UpdaterType)' == 'Submodule from latest'">
         <DependencyType>Submodule</DependencyType>
       </DependencyInfo>
+    </ItemGroup>
+  </Target>
+
+  <!--
+    Read a .gitmodules file and generate updaters based on the contents, if GitModulesPath provided.
+    
+    If a submodule has 'branch = ...' configured with a target remote branch to update to and
+    'versionToolsAutoUpdate = true', this target creates an updater for it.
+    
+    To restrict this target to only create updaters for a specific submodule, set the
+    'TargetSubmodule' property to the name/path of the submodule.
+  -->
+  <Target Name="CreateDefaultSubmoduleUpdateSteps"
+          Condition="'$(GitModulesPath)' != ''">
+    <ReadGitConfigFile File="$(GitModulesPath)">
+      <Output TaskParameter="SubmoduleConfiguration" ItemName="SubmoduleConfiguration" />
+    </ReadGitConfigFile>
+
+    <ItemGroup>
+      <_UpgradableSubmodule Include="@(SubmoduleConfiguration)"
+                            Condition="'%(SubmoduleConfiguration.Branch)' != '' AND
+                                       '%(SubmoduleConfiguration.VersionToolsAutoUpdate)' != 'false'" />
+
+      <_NotTargetSubmodule Include="@(_UpgradableSubmodule)"
+                           Exclude="$(TargetSubmodule)"
+                           Condition="'$(TargetSubmodule)' != ''"/>
+
+      <SubmoduleToUpdate Include="@(_UpgradableSubmodule)"
+                         Exclude="@(_NotTargetSubmodule)" />
+    </ItemGroup>
+
+    <!--
+      Notify the user if TargetSubmodule is invalid, but allow the build to continue if there are no
+      upgradable submodules at all.
+    -->
+    <Error Text="No upgradable submodule '$(TargetSubmodule)' found. Options: @(_UpgradableSubmodule)"
+           Condition="'@(SubmoduleToUpdate)' == '' AND '$(TargetSubmodule)' != ''" />
+
+    <ItemGroup>
+      <UpdateStep Include="@(SubmoduleToUpdate)">
+        <UpdaterType>Submodule from latest</UpdaterType>
+        <Path>$(ProjectDir)%(Path)</Path>
+        <Ref>refs/heads/%(Branch)</Ref>
+        <Repository>%(Url)</Repository>
+      </UpdateStep>
     </ItemGroup>
   </Target>
 
@@ -95,32 +142,50 @@
     <UpdateToRemoteDependencies DependencyInfo="@(DependencyInfo)"
                                 ProjectJsonFiles="@(ProjectJsonFiles)"
                                 UpdateStep="@(UpdateStep)"
-                                CurrentRefXmlPath="$(CurrentRefXmlPath)" />
+                                CurrentRefXmlPath="$(CurrentRefXmlPath)"
+                                GitHubAuthToken="$(GitHubAuthToken)"
+                                GitHubUser="$(GitHubUser)">
+      <Output TaskParameter="MadeChanges" PropertyName="MadeChanges"/>
+      <Output TaskParameter="SuggestedCommitMessage" PropertyName="CommitMessage"/>
+    </UpdateToRemoteDependencies>
   </Target>
 
-  <!--
-    Update to the latest dependencies available remotely, then submit a pull request.
-  -->
-  <Target Name="UpdateDependenciesAndSubmitPullRequest"
-          DependsOnTargets="CreateDefaultDependencyInfos">
+  <Target Name="SubmitPullRequestIfChanged"
+          Condition="'$(MadeChanges)' == 'true'">
     <PropertyGroup>
       <MaintainersCanModifyPullRequest Condition="'$(MaintainersCanModifyPullRequest)' == ''">true</MaintainersCanModifyPullRequest>
+      <TrackDiscardedCommits Condition="'$(TrackDiscardedCommits)' == ''">true</TrackDiscardedCommits>
     </PropertyGroup>
+    <SubmitPullRequest ProjectRepoName="$(ProjectRepoName)"
+                       ProjectRepoOwner="$(ProjectRepoOwner)"
+                       ProjectRepoBranch="$(ProjectRepoBranch)"
+                       GitHubAuthToken="$(GitHubAuthToken)"
+                       GitHubUser="$(GitHubUser)"
+                       GitHubEmail="$(GitHubEmail)"
+                       GitHubAuthor="$(GitHubAuthor)"
+                       CommitMessage="$(CommitMessage)"
+                       Title="$(PullRequestTitle)"
+                       Body="$(PullRequestBody)"
+                       NotifyGitHubUsers="@(NotifyGitHubUsers)"
+                       AlwaysCreateNewPullRequest="$(AlwaysCreateNewPullRequest)"
+                       MaintainersCanModifyPullRequest="$(MaintainersCanModifyPullRequest)"
+                       TrackDiscardedCommits="$(TrackDiscardedCommits)" />
+  </Target>
 
-    <UpdateDependenciesAndSubmitPullRequest DependencyInfo="@(DependencyInfo)"
-                                            ProjectJsonFiles="@(ProjectJsonFiles)"
-                                            UpdateStep="@(UpdateStep)"
-                                            ProjectRepoName="$(ProjectRepoName)"
-                                            ProjectRepoOwner="$(ProjectRepoOwner)"
-                                            ProjectRepoBranch="$(ProjectRepoBranch)"
-                                            GitHubAuthToken="$(GitHubAuthToken)"
-                                            GitHubUser="$(GitHubUser)"
-                                            GitHubEmail="$(GitHubEmail)"
-                                            GitHubAuthor="$(GitHubAuthor)"
-                                            NotifyGitHubUsers="@(NotifyGitHubUsers)"
-                                            CurrentRefXmlPath="$(CurrentRefXmlPath)"
-                                            AlwaysCreateNewPullRequest="$(AlwaysCreateNewPullRequest)"
-                                            MaintainersCanModifyPullRequest="$(MaintainersCanModifyPullRequest)"
-                                            CommitMessage="$(CommitMessage)" />
+  <!-- Create a git-like alias for UpdateToRemoteDependencies. -->
+  <Target Name="PullSubmodules" DependsOnTargets="UpdateToRemoteDependencies" />
+
+  <!--
+    Calls both targets needed to produce an auto-upgrade pull request (to the remote state).
+
+    The name would more accurately be 'UpdateToRemoteDependenciesAndSubmitPullRequest'. The
+    incorrect current name is preserved for backward compatibility, and predates
+    'UpdateToRemoteDependencies'. It's recommended to call msbuild with targets
+    'UpdateToRemoteDependencies;SubmitPullRequestIfChanged' when adding a new auto-PR usage so the
+    target names are clearer.
+  -->
+  <Target Name="UpdateDependenciesAndSubmitPullRequest">
+    <Message Importance="High" Text="Calling targets 'UpdateToRemoteDependencies;SubmitPullRequestIfChanged'" />
+    <CallTarget Targets="UpdateToRemoteDependencies;SubmitPullRequestIfChanged" />
   </Target>
 </Project>

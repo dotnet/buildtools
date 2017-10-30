@@ -37,15 +37,7 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 
         public override bool Execute()
         {
-            MsBuildTraceListener[] listeners = Trace.Listeners.AddMsBuildTraceListeners(Log);
-            try
-            {
-                TraceListenedExecute();
-            }
-            finally
-            {
-                Trace.Listeners.RemoveMsBuildTraceListeners(listeners);
-            }
+            Trace.Listeners.MsBuildListenedInvoke(Log, TraceListenedExecute);
             return !Log.HasLoggedErrors;
         }
 

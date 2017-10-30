@@ -52,8 +52,11 @@ namespace Microsoft.DotNet.VersionTools
             string rawLatestUrl = $"{rawBuildInfoBaseUrl}/{LatestTxtFilename}";
             string rawLatestPackagesUrl = $"{rawBuildInfoBaseUrl}/{LatestPackagesTxtFilename}";
 
-            using (Stream versionsStream = await client.GetStreamAsync(rawLatestPackagesUrl))
-            using (StreamReader reader = new StreamReader(versionsStream))
+            using (HttpResponseMessage response = await GetBuildInfoFileAsync(
+                client,
+                name,
+                rawLatestPackagesUrl))
+            using (var reader = new StreamReader(await response.Content.ReadAsStreamAsync()))
             {
                 packages = await ReadPackageListAsync(reader);
             }
@@ -62,7 +65,13 @@ namespace Microsoft.DotNet.VersionTools
 
             if (fetchLatestReleaseFile)
             {
-                releaseVersion = (await client.GetStringAsync(rawLatestUrl)).Trim();
+                using (HttpResponseMessage response = await GetBuildInfoFileAsync(
+                    client,
+                    name,
+                    rawLatestUrl))
+                {
+                    releaseVersion = (await response.Content.ReadAsStringAsync()).Trim();
+                }
             }
             else
             {
@@ -178,6 +187,23 @@ namespace Microsoft.DotNet.VersionTools
                 packages[id] = version;
             }
             return packages;
+        }
+
+        private static async Task<HttpResponseMessage> GetBuildInfoFileAsync(
+            HttpClient client,
+            string buildInfoName,
+            string url)
+        {
+            HttpResponseMessage response = await client.GetAsync(url);
+            if (!response.IsSuccessStatusCode)
+            {
+                Trace.TraceError(
+                    $"Failure response code while fetching BuildInfo with name: '{buildInfoName}', " +
+                    $"url: '{url}'. Ensure the repository is correct and the file exists at " +
+                    "the commit specified.");
+            }
+            response.EnsureSuccessStatusCode();
+            return response;
         }
 
         private static string FindLatestReleaseFromPackages(IDictionary<string, string> packages)
