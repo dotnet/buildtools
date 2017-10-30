@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
 using Microsoft.DotNet.VersionTools.Automation;
 using System.Diagnostics;
 using System.Linq;
@@ -23,17 +22,15 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 
         public override bool Execute()
         {
-            MsBuildTraceListener[] listeners = Trace.Listeners.AddMsBuildTraceListeners(Log);
+            Trace.Listeners.MsBuildListenedInvoke(Log, () =>
+            {
+                var updater = new LocalVersionsRepoUpdater();
 
-            var updater = new LocalVersionsRepoUpdater();
-
-            updater.UpdateBuildInfoLatestPackages(
-                ShippedNuGetPackage.Select(item => item.ItemSpec),
-                VersionsRepoLocalBaseDir,
-                VersionsRepoPath);
-
-            Trace.Listeners.RemoveMsBuildTraceListeners(listeners);
-
+                updater.UpdateBuildInfoLatestPackages(
+                    ShippedNuGetPackage.Select(item => item.ItemSpec),
+                    VersionsRepoLocalBaseDir,
+                    VersionsRepoPath);
+            });
             return true;
         }
     }

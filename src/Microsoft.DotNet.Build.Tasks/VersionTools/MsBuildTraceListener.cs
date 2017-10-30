@@ -9,6 +9,13 @@ using System.Text;
 
 namespace Microsoft.DotNet.Build.Tasks.VersionTools
 {
+    /// <summary>
+    /// Listens to one TraceEventType, printing messages to an MSBuild log.
+    /// 
+    /// Only one TraceEventType is handled per MsBuildTraceListener because Write/WriteLine is only
+    /// given a string, not the TraceEventType. The listener needs to filter down to the specific
+    /// event type to log to MSBuild at the appropriate level.
+    /// </summary>
     public class MsBuildTraceListener : TraceListener
     {
         private TaskLoggingHelper _log;

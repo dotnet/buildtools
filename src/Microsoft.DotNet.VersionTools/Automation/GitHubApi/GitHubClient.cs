@@ -234,6 +234,17 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             }
         }
 
+        public async Task<GitHubStatus[]> GetStatusesAsync(GitHubProject project, string @ref)
+        {
+            string url = $"https://api.github.com/repos/{project.Segments}/commits/{@ref}/statuses";
+
+            using (HttpResponseMessage response = await _httpClient.GetAsync(url))
+            {
+                Trace.TraceInformation($"Getting info about ref {@ref} in {project.Segments}");
+                return await DeserializeSuccessfulAsync<GitHubStatus[]>(response);
+            }
+        }
+
         public async Task PostCommentAsync(GitHubProject project, int issueNumber, string message)
         {
             EnsureAuthenticated();

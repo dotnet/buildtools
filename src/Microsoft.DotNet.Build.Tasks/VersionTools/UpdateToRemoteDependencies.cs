@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.Build.Framework;
-using Microsoft.DotNet.VersionTools;
 using Microsoft.DotNet.VersionTools.Automation;
 using Microsoft.DotNet.VersionTools.Automation.GitHubApi;
-using Microsoft.DotNet.VersionTools.Dependencies.BuildOutput;
 using Microsoft.DotNet.VersionTools.Util;
 using System;
 using System.Linq;
@@ -25,44 +23,47 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
         /// </summary>
         public string GitHubAuthToken { get; set; }
         public string GitHubUser { get; set; }
-        public string GitHubEmail { get; set; }
+
+        [Output]
+        public bool MadeChanges { get; set; }
+
+        [Output]
+        public string SuggestedCommitMessage { get; set; }
 
         protected override void TraceListenedExecute()
         {
-            using (GitHubClient client = CreateClient(allowAnonymous: true))
-            {
-                DependencyUpdateResults updateResults = UpdateToRemote(client);
+            GitHubAuth auth = null;
 
-                Log.LogMessage(
-                    MessageImportance.Low,
-                    $"Suggested commit message: '{updateResults.GetSuggestedCommitMessage()}'");
-            }
-        }
-
-        protected GitHubClient CreateClient(bool allowAnonymous)
-        {
-            GitHubAuth gitHubAuth = null;
             if (string.IsNullOrEmpty(GitHubAuthToken))
             {
-                if (allowAnonymous)
-                {
-                    Log.LogMessage(
-                        MessageImportance.Low,
-                        $"No value for '{nameof(GitHubAuthToken)}'. " +
-                        "Accessing GitHub API anonymously.");
-                }
-                else
-                {
-                    throw new ArgumentException(
-                        $"Required argument '{nameof(GitHubAuthToken)}' is null or empty.");
-                }
+                Log.LogMessage(
+                    MessageImportance.Low,
+                    $"No value for '{nameof(GitHubAuthToken)}'. " +
+                    "Accessing GitHub API anonymously.");
             }
             else
             {
-                gitHubAuth = new GitHubAuth(GitHubAuthToken, GitHubUser, GitHubEmail);
+                auth = new GitHubAuth(GitHubAuthToken, GitHubUser);
             }
 
-            return new GitHubClient(gitHubAuth);
+            using (var client = new GitHubClient(auth))
+            {
+                DependencyUpdateResults updateResults = UpdateToRemote(client);
+
+                MadeChanges = updateResults.ChangesDetected();
+                SuggestedCommitMessage = updateResults.GetSuggestedCommitMessage();
+
+                if (MadeChanges)
+                {
+                    Log.LogMessage(
+                        MessageImportance.Normal,
+                        $"Suggested commit message: '{SuggestedCommitMessage}'");
+                }
+                else
+                {
+                    Log.LogMessage(MessageImportance.Normal, "No changes performed.");
+                }
+            }
         }
 
         protected DependencyUpdateResults UpdateToRemote(GitHubClient client)
