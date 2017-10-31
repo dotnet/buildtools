@@ -290,7 +290,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 response.Dispose();
             }
 
-            throw new HttpRequestException(string.Format("Request failed with status {0} response {1}", statusCode, contentStr));
+            throw new HttpRequestException($"Request {createRequest().RequestUri} failed with status {statusCode}. Response : {contentStr}");
         }
 
         private static string ConstructServiceStringToSign(
