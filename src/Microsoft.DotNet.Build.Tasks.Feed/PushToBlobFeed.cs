@@ -40,7 +40,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 }
                 else
                 {
-                    BlobFeedAction blobFeedAction = new BlobFeedAction(ExpectedFeedUrl, AccountKey, ItemsToPush, Log);
+                    BlobFeedAction blobFeedAction = new BlobFeedAction(ExpectedFeedUrl, AccountKey, Log);
                     await blobFeedAction.PushToFeed(ConvertToStringLists(ItemsToPush), Overwrite);
                 }
             }

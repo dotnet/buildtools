@@ -35,28 +35,5 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             Log = loggingHelper;
             RelativePath = relativePath;
         }
-
-        public bool IsSanityChecked(IEnumerable<string> items)
-        {
-            Log.LogMessage(MessageImportance.Low, $"START checking sanitized items for feed");
-            foreach (var item in items)
-            {
-                if (items.Any(s => Path.GetExtension(item) != ".nupkg"))
-                {
-                    Log.LogError($"{item} is not a nupkg");
-                    return false;
-                }
-            }
-            List<string> duplicates = items.GroupBy(x => x)
-                    .Where(group => group.Count() > 1)
-                    .Select(group => group.Key).ToList();
-            if (duplicates.Count > 0)
-            {
-                Log.LogError($"Duplicates found: {duplicates}");
-                return false;
-            }
-            Log.LogMessage(MessageImportance.Low, $"DONE checking for sanitized items for feed");
-            return true;
-       }
     }
 }

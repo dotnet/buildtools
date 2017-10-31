@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using Sleet;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -27,7 +28,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public BlobFeed feed;
 
-        public BlobFeedAction(string expectedFeedUrl, string accountKey, ITaskItem[] itemstoPush, MSBuild.TaskLoggingHelper Log)
+        public BlobFeedAction(string expectedFeedUrl, string accountKey, MSBuild.TaskLoggingHelper Log)
         {
             this.Log = Log;
             Match m = Regex.Match(expectedFeedUrl, feedRegex);
@@ -37,7 +38,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 string containerName = m.Groups["containername"].Value;
                 string relativePath = m.Groups["relativepath"].Value;
                 feed = new BlobFeed(accountName, accountKey, containerName, relativePath, Log);
-                feedUrl = expectedFeedUrl.Replace("index.json", string.Empty);
+                feedUrl = m.Groups["feedurl"].Value;
                 source = new SleetSource
                 {
                     Name = feed.ContainerName,
@@ -56,7 +57,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public async Task<bool> PushToFeed(IEnumerable<string> items, bool allowOverwrite = false)
         {
-            if (feed.IsSanityChecked(items))
+            if (IsSanityChecked(items))
             {
                 if (CancellationToken.IsCancellationRequested)
                 {
@@ -76,32 +77,28 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
             try
             {
-                
-
-                CloudStorageAccount storageAccount = CloudStorageAccount.Parse(source.ConnectionString);
-                AzureFileSystem fileSystem = new AzureFileSystem(new LocalCache(), new Uri(source.Path), new Uri(source.Path), storageAccount, source.Name, source.FeedSubPath);
-
                 // In case the first Push attempt fails with an InvalidOperationException we Init the feed and retry the Push command once.
                 // Sleet internally retries 5 times on each package when the push operation fails so we don't need to retry ourselves.
-                try
+                for (int i = 0; i <= 1; i++)
                 {
-                    bool result = await PushAsync(items.ToList(), allowOverwrite);
-                    return result;
-                }
-                catch (InvalidOperationException ex) when (ex.Message.Contains("init"))
-                {
-                    Log.LogWarning($"Sub-feed {source.FeedSubPath} has not been initialized. Initializing now...");
-                    bool result = await InitAsync();
-
-                    if (result)
+                    try
                     {
-                        Log.LogMessage($"Initializing sub-feed {source.FeedSubPath} succeeded!");
-                        result = await PushAsync(items.ToList(), allowOverwrite);
+                        bool result = await PushAsync(items.ToList(), allowOverwrite);
                         return result;
                     }
-                    else
+                    catch (InvalidOperationException ex) when (ex.Message.Contains("init"))
                     {
-                        Log.LogError($"Initializing sub-feed {source.FeedSubPath} failed!");
+                        Log.LogWarning($"Sub-feed {source.FeedSubPath} has not been initialized. Initializing now...");
+                        bool result = await InitAsync();
+
+                        if (result)
+                        {
+                            Log.LogMessage($"Initializing sub-feed {source.FeedSubPath} succeeded!");
+                        }
+                        else
+                        {
+                            Log.LogError($"Initializing sub-feed {source.FeedSubPath} failed!");
+                        }
                     }
                 }
 
@@ -113,6 +110,29 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             }
 
             return !Log.HasLoggedErrors;
+        }
+
+        private bool IsSanityChecked(IEnumerable<string> items)
+        {
+            Log.LogMessage(MessageImportance.Low, $"START checking sanitized items for feed");
+            foreach (var item in items)
+            {
+                if (items.Any(s => Path.GetExtension(item) != ".nupkg"))
+                {
+                    Log.LogError($"{item} is not a nupkg");
+                    return false;
+                }
+            }
+            List<string> duplicates = items.GroupBy(x => x)
+                    .Where(group => group.Count() > 1)
+                    .Select(group => group.Key).ToList();
+            if (duplicates.Count > 0)
+            {
+                Log.LogError($"Duplicates found: {duplicates}");
+                return false;
+            }
+            Log.LogMessage(MessageImportance.Low, $"DONE checking for sanitized items for feed");
+            return true;
         }
 
         private LocalSettings GetSettings()
