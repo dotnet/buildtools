@@ -21,11 +21,10 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         private MSBuild.TaskLoggingHelper Log;
         private static readonly CancellationTokenSource TokenSource = new CancellationTokenSource();
         private static readonly CancellationToken CancellationToken = TokenSource.Token;
+        private const string feedRegex = @"(?<feedurl>https:\/\/(?<accountname>[^\.-]+)(?<domain>[^\/]*)\/((?<token>[a-zA-Z0-9+\/]*?\/\d{4}-\d{2}-\d{2})\/)?(?<containername>[^\/]+)\/(?<relativepath>.*\/)?)index\.json";
+        private string feedUrl;
 
         public BlobFeed feed;
-        public string feedUrl;
-
-        const string feedRegex = @"(?<feedurl>https:\/\/(?<accountname>[^\.-]+)(?<domain>[^\/]*)\/((?<token>[a-zA-Z0-9+\/]*?\/\d{4}-\d{2}-\d{2})\/)?(?<containername>[^\/]+)\/(?<relativepath>.*\/)?)index\.json";
 
         public BlobFeedAction(string expectedFeedUrl, string accountKey, ITaskItem[] itemstoPush, MSBuild.TaskLoggingHelper Log)
         {
@@ -41,7 +40,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             }
             else
             {
-               throw new Exception("Unable to parse expected feed. Please check ExpectedFeedUrl.");
+                throw new Exception("Unable to parse expected feed. Please check ExpectedFeedUrl.");
             }
         }
 
@@ -64,7 +63,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         public async Task<bool> PushItemsToFeedAsync(IEnumerable<string> items, bool allowOverwrite)
         {
             Log.LogMessage(MessageImportance.Low, $"START pushing items to feed");
-            
+
             try
             {
                 SleetSource source = new SleetSource
@@ -81,7 +80,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 {
                     Sources = new List<SleetSource>
                     {
-                       source 
+                       source
                     }
                 };
 
@@ -95,27 +94,25 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
                 // In case the first Push attempt fails with an InvalidOperationException we Init the feed and retry the Push command once.
                 // Sleet internally retries 5 times on each package when the push operation fails so we don't need to retry ourselves.
-                for (int i = 0; i <= 1; i++)
+                try
                 {
-                    try
+                    bool result = await PushCommand.RunAsync(settings, fileSystem, items.ToList(), allowOverwrite, !allowOverwrite, new SleetLogger(Log));
+                    return result;
+                }
+                catch (InvalidOperationException ex) when (ex.Message.Contains("init"))
+                {
+                    Log.LogWarning($"Sub-feed {source.FeedSubPath} has not been initialized. Initializing now...");
+                    bool result = await InitCommand.RunAsync(settings, fileSystem, true, true, new SleetLogger(Log), CancellationToken);
+
+                    if (result)
                     {
-                        bool result = await PushCommand.RunAsync(settings, fileSystem, items.ToList(), allowOverwrite, !allowOverwrite, new SleetLogger(Log));
+                        Log.LogMessage($"Initializing sub-feed {source.FeedSubPath} succeeded!");
+                        result = await PushCommand.RunAsync(settings, fileSystem, items.ToList(), allowOverwrite, !allowOverwrite, new SleetLogger(Log));
                         return result;
                     }
-                    catch (InvalidOperationException ex) when (ex.Message.Contains("init"))
+                    else
                     {
-                        Log.LogWarning($"Sub-feed {source.FeedSubPath} has not been initialized. Initializing now...");
-                        bool result = await InitCommand.RunAsync(settings, fileSystem, true, true, new SleetLogger(Log), CancellationToken);
-
-                        if (result)
-                        {
-                            Log.LogMessage($"Initializing sub-feed {source.FeedSubPath} succeeded!");
-                        }
-                        else
-                        {
-                            Log.LogError($"Initializing sub-feed {source.FeedSubPath} failed!");
-                            break;
-                        }
+                        Log.LogError($"Initializing sub-feed {source.FeedSubPath} failed!");
                     }
                 }
 
