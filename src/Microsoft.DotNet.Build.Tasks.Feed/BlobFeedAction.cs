@@ -23,6 +23,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         private static readonly CancellationToken CancellationToken = TokenSource.Token;
         private const string feedRegex = @"(?<feedurl>https:\/\/(?<accountname>[^\.-]+)(?<domain>[^\/]*)\/((?<token>[a-zA-Z0-9+\/]*?\/\d{4}-\d{2}-\d{2})\/)?(?<containername>[^\/]+)\/(?<relativepath>.*\/)?)index\.json";
         private string feedUrl;
+        private SleetSource source;
 
         public BlobFeed feed;
 
@@ -37,6 +38,15 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 string relativePath = m.Groups["relativepath"].Value;
                 feed = new BlobFeed(accountName, accountKey, containerName, relativePath, Log);
                 feedUrl = expectedFeedUrl.Replace("index.json", string.Empty);
+                source = new SleetSource
+                {
+                    Name = feed.ContainerName,
+                    Type = "azure",
+                    Path = feedUrl,
+                    Container = feed.ContainerName,
+                    FeedSubPath = feed.RelativePath,
+                    ConnectionString = $"DefaultEndpointsProtocol=https;AccountName={feed.AccountName};AccountKey={feed.AccountKey};EndpointSuffix=core.windows.net"
+                };
             }
             else
             {
@@ -66,28 +76,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
             try
             {
-                SleetSource source = new SleetSource
-                {
-                    Name = feed.ContainerName,
-                    Type = "azure",
-                    Path = feedUrl,
-                    Container = feed.ContainerName,
-                    FeedSubPath = feed.RelativePath,
-                    ConnectionString = $"DefaultEndpointsProtocol=https;AccountName={feed.AccountName};AccountKey={feed.AccountKey};EndpointSuffix=core.windows.net"
-                };
-
-                SleetSettings sleetSettings = new SleetSettings()
-                {
-                    Sources = new List<SleetSource>
-                    {
-                       source
-                    }
-                };
-
-                LocalSettings settings = new LocalSettings
-                {
-                    Json = JObject.FromObject(sleetSettings)
-                };
+                
 
                 CloudStorageAccount storageAccount = CloudStorageAccount.Parse(source.ConnectionString);
                 AzureFileSystem fileSystem = new AzureFileSystem(new LocalCache(), new Uri(source.Path), new Uri(source.Path), storageAccount, source.Name, source.FeedSubPath);
@@ -96,18 +85,18 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 // Sleet internally retries 5 times on each package when the push operation fails so we don't need to retry ourselves.
                 try
                 {
-                    bool result = await PushCommand.RunAsync(settings, fileSystem, items.ToList(), allowOverwrite, !allowOverwrite, new SleetLogger(Log));
+                    bool result = await PushAsync(items.ToList(), allowOverwrite);
                     return result;
                 }
                 catch (InvalidOperationException ex) when (ex.Message.Contains("init"))
                 {
                     Log.LogWarning($"Sub-feed {source.FeedSubPath} has not been initialized. Initializing now...");
-                    bool result = await InitCommand.RunAsync(settings, fileSystem, true, true, new SleetLogger(Log), CancellationToken);
+                    bool result = await InitAsync();
 
                     if (result)
                     {
                         Log.LogMessage($"Initializing sub-feed {source.FeedSubPath} succeeded!");
-                        result = await PushCommand.RunAsync(settings, fileSystem, items.ToList(), allowOverwrite, !allowOverwrite, new SleetLogger(Log));
+                        result = await PushAsync(items.ToList(), allowOverwrite);
                         return result;
                     }
                     else
@@ -124,6 +113,49 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             }
 
             return !Log.HasLoggedErrors;
+        }
+
+        private LocalSettings GetSettings()
+        {
+            
+
+            SleetSettings sleetSettings = new SleetSettings()
+            {
+                Sources = new List<SleetSource>
+                    {
+                       source
+                    }
+            };
+
+            LocalSettings settings = new LocalSettings
+            {
+                Json = JObject.FromObject(sleetSettings)
+            };
+
+            return settings;
+        }
+
+        private AzureFileSystem GetAzureFileSystem()
+        {
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(source.ConnectionString);
+            AzureFileSystem fileSystem = new AzureFileSystem(new LocalCache(), new Uri(source.Path), new Uri(source.Path), storageAccount, source.Name, source.FeedSubPath);
+            return fileSystem;
+        }
+
+        private async Task<bool> PushAsync(IEnumerable<string> items, bool allowOverwrite)
+        {
+            LocalSettings settings = GetSettings();
+            AzureFileSystem fileSystem = GetAzureFileSystem();
+            bool result = await PushCommand.RunAsync(settings, fileSystem, items.ToList(), allowOverwrite, !allowOverwrite, new SleetLogger(Log));
+            return result;
+        }
+
+        private async Task<bool> InitAsync()
+        {
+            LocalSettings settings = GetSettings();
+            AzureFileSystem fileSystem = GetAzureFileSystem();
+            bool result = await InitCommand.RunAsync(settings, fileSystem, true, true, new SleetLogger(Log), CancellationToken);
+            return result;
         }
     }
 }
