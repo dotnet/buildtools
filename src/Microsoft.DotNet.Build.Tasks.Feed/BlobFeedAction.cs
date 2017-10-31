@@ -105,7 +105,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     catch (InvalidOperationException ex) when (ex.Message.Contains("init"))
                     {
                         Log.LogWarning($"Sub-feed {source.FeedSubPath} has not been initialized. Initializing now...");
-                        bool result = await InitCommand.RunAsync(settings, fileSystem, new SleetLogger(Log));
+                        bool result = await InitCommand.RunAsync(settings, fileSystem, true, true, new SleetLogger(Log), CancellationToken);
 
                         if (result)
                         {

@@ -29,11 +29,10 @@
     <Compile Include="SleetSource.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="PackageFiles\Publish.targets">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="PackageFiles\Restore.targets" />
     <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="PackageFiles\" />
   </ItemGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
   <Target Name="AfterBuild">
