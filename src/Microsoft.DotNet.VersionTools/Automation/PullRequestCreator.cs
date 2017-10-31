@@ -245,9 +245,14 @@ namespace Microsoft.DotNet.VersionTools.Automation
                 emoticon = ":x:";
             }
 
-            return
-                $"   * {emoticon} **{status.Context}** {status.Description} " +
-                $"[Details]({status.TargetUrl})";
+            string line = $"   * {emoticon} **{status.Context}** {status.Description}";
+
+            if (!string.IsNullOrEmpty(status.TargetUrl))
+            {
+                line += $" [Details]({status.TargetUrl})";
+            }
+
+            return line;
         }
     }
 }
