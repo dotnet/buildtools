@@ -17,6 +17,11 @@ namespace Microsoft.DotNet.Build.Tasks
         private const string PdbPathMetadata = "PdbPath";
         private const string TargetPathMetadata = "TargetPath";
 
+        private const string NoDebugDirectoryEntriesMessage =
+            "has no Debug directory entries. If this DLL is created by GenFacades " +
+            "(Microsoft.Win32.Registry.AccessControl, System.Security.Permissions), this is a " +
+            "known issue tracked by 'https://github.com/dotnet/buildtools/issues/1739'.";
+
         [Required]
         public ITaskItem[] Files { get; set; }
 
@@ -70,18 +75,27 @@ namespace Microsoft.DotNet.Build.Tasks
 
                         using (var peStream = new FileStream(file.ItemSpec, FileMode.Open, FileAccess.Read))
                         using (var peReader = new PEReader(peStream, PEStreamOptions.LeaveOpen))
-                        using (var outPdbStream = new FileStream(targetPath, FileMode.Create, FileAccess.Write))
                         {
-                            converter.ConvertPortableToWindows(
-                                peReader,
-                                sourcePdbStream,
-                                outPdbStream,
-                                parsedConversionOptions);
-                        }
+                            if (peReader.ReadDebugDirectory().Length > 0)
+                            {
+                                using (var outPdbStream = new FileStream(targetPath, FileMode.Create, FileAccess.Write))
+                                {
+                                    converter.ConvertPortableToWindows(
+                                        peReader,
+                                        sourcePdbStream,
+                                        outPdbStream,
+                                        parsedConversionOptions);
+                                }
 
-                        Log.LogMessage(
-                            MessageImportance.Normal,
-                            $"Portable PDB '{file.ItemSpec}' -> '{targetPath}'");
+                                Log.LogMessage(
+                                    MessageImportance.Normal,
+                                    $"Portable PDB '{file.ItemSpec}' -> '{targetPath}'");
+                            }
+                            else
+                            {
+                                Log.LogWarning($"'{file.ItemSpec}' {NoDebugDirectoryEntriesMessage}");
+                            }
+                        }
                     }
                     else
                     {

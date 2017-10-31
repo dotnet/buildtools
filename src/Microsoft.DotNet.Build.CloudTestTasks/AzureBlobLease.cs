@@ -55,7 +55,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                     string leaseId = AcquireLeaseOnBlobAsync().GetAwaiter().GetResult();
                     _cancellationTokenSource = new CancellationTokenSource();
                     _leaseRenewalTask = Task.Run(() =>
-                    { AutoRenewLeaseOnBlob(this, _accountName, _accountKey, _containerName, _blobName, leaseId, _leaseUrl, _log); },
+                    { AutoRenewLeaseOnBlob(this, _log); },
                       _cancellationTokenSource.Token);
                     _leaseId = leaseId;
                     return _leaseId;
@@ -117,7 +117,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
             return leaseId;
         }
-        private static void AutoRenewLeaseOnBlob(AzureBlobLease instance, string accountName, string accountKey, string containerName, string blob, string leaseId, string leaseUrl, Microsoft.Build.Utilities.TaskLoggingHelper log)
+        private static void AutoRenewLeaseOnBlob(AzureBlobLease instance, Microsoft.Build.Utilities.TaskLoggingHelper log)
         {
             TimeSpan maxWait = TimeSpan.FromSeconds(s_MaxWaitDefault);
             TimeSpan delay = TimeSpan.FromMilliseconds(s_DelayDefault);
@@ -130,13 +130,13 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
                 try
                 {
-                    log.LogMessage(MessageImportance.Low, $"Requesting lease for container/blob '{containerName}/{blob}'.");
+                    log.LogMessage(MessageImportance.Low, $"Requesting lease for container/blob '{instance._containerName}/{instance._blobName}'.");
                     using (HttpClient client = new HttpClient())
                     {
                         Tuple<string, string> leaseAction = new Tuple<string, string>("x-ms-lease-action", "renew");
-                        Tuple<string, string> headerLeaseId = new Tuple<string, string>("x-ms-lease-id", leaseId);
+                        Tuple<string, string> headerLeaseId = new Tuple<string, string>("x-ms-lease-id", instance._leaseId);
                         List<Tuple<string, string>> additionalHeaders = new List<Tuple<string, string>>() { leaseAction, headerLeaseId };
-                        var request = AzureHelper.RequestMessage("PUT", leaseUrl, accountName, accountKey, additionalHeaders);
+                        var request = AzureHelper.RequestMessage("PUT", instance._leaseUrl, instance._accountName, instance._accountKey, additionalHeaders);
                         using (HttpResponseMessage response = AzureHelper.RequestWithRetry(log, client, request).GetAwaiter().GetResult())
                         {
                             if (!response.IsSuccessStatusCode)
@@ -149,7 +149,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"Rerying lease renewal on {containerName}, {e.Message}");
+                    Console.WriteLine($"Rerying lease renewal on {instance._containerName}, {e.Message}");
                     waitFor = delay;
                 }
                 token.ThrowIfCancellationRequested();
