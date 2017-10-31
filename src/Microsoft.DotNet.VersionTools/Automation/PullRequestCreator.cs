@@ -152,13 +152,16 @@ namespace Microsoft.DotNet.VersionTools.Automation
             // GitHub returns the HTML "commit" url, but we want "commits" so that CI results show.
             string oldCommitsUrl = oldCommit.HtmlUrl.Replace("commit", "commits");
 
-            GitHubStatus[] statuses = await client.GetStatusesAsync(baseProject, oldCommit.Sha);
+            GitHubCombinedStatus combinedStatus = await client.GetStatusAsync(
+                baseProject,
+                oldCommit.Sha);
 
-            string statusLines = statuses
-                    .OrderBy(s => s.State)
-                    .ThenBy(s => s.Context)
-                    .Select(GetStatusLine)
-                    .Aggregate(string.Empty, (acc, line) => acc + line + "\r\n");
+            string statusLines = combinedStatus
+                .Statuses
+                .OrderBy(s => s.State)
+                .ThenBy(s => s.Context)
+                .Select(GetStatusLine)
+                .Aggregate(string.Empty, (acc, line) => acc + line + "\r\n");
 
             string oldCommitEntry =
                 $" * [`{oldCommit.Sha.Substring(0, 7)}`]({oldCommitsUrl}) {oldCommit.Message}\r\n" +
