@@ -50,6 +50,12 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
         public string Content { get; set; }
     }
 
+    public class GitHubCombinedStatus
+    {
+        public string State { get; set; }
+        public GitHubStatus[] Statuses { get; set; }
+    }
+
     public class GitHubStatus
     {
         public string State { get; set; }

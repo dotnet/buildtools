@@ -94,6 +94,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                             req.Headers.Add(AzureHelper.VersionHeaderString, AzureHelper.StorageApiVersion);
                             if (!string.IsNullOrWhiteSpace(leaseId))
                             {
+                                log.LogMessage($"Sending request: {leaseId} {blockUploadUrl}");
                                 req.Headers.Add("x-ms-lease-id", leaseId);
                             }
                             req.Headers.Add(
@@ -165,6 +166,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                     byte[] bodyData = Encoding.UTF8.GetBytes(body.ToString());
                     if (!string.IsNullOrWhiteSpace(leaseId))
                     {
+                        log.LogMessage($"Sending list request: {leaseId} {blockListUploadUrl}");
                         req.Headers.Add("x-ms-lease-id", leaseId);
                     }
                     req.Headers.Add(

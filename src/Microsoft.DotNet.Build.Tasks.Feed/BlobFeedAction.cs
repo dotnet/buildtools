@@ -105,7 +105,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     }
                 }
 
-                return false;
+              return false;
             }
             catch (Exception e)
             {
