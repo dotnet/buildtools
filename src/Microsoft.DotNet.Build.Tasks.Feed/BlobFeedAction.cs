@@ -2,16 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.Build.Framework;
+using Microsoft.WindowsAzure.Storage;
+using Newtonsoft.Json.Linq;
+using Sleet;
 using System;
 using System.Collections.Generic;
-using MSBuild = Microsoft.Build.Utilities;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Threading;
 using System.IO;
-using Microsoft.DotNet.Build.CloudTestTasks;
-using NuGet.Versioning;
+using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using MSBuild = Microsoft.Build.Utilities;
 
 namespace Microsoft.DotNet.Build.Tasks.Feed
 {
@@ -20,36 +22,42 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         private MSBuild.TaskLoggingHelper Log;
         private static readonly CancellationTokenSource TokenSource = new CancellationTokenSource();
         private static readonly CancellationToken CancellationToken = TokenSource.Token;
+        private const string feedRegex = @"(?<feedurl>https:\/\/(?<accountname>[^\.-]+)(?<domain>[^\/]*)\/((?<token>[a-zA-Z0-9+\/]*?\/\d{4}-\d{2}-\d{2})\/)?(?<containername>[^\/]+)\/(?<relativepath>.*\/)?)index\.json";
+        private string feedUrl;
+        private SleetSource source;
 
         public BlobFeed feed;
-        public int MaxClients { get; set; } = 8;
-        
-        const string feedRegex = @"(?<feedurl>https:\/\/(?<accountname>[^\.-]+)(?<domain>[^\/]*)\/((?<token>[a-zA-Z0-9+\/]*?\/\d{4}-\d{2}-\d{2})\/)?(?<containername>[^\/]+)\/(?<relativepath>.*)\/)index\.json";
 
-        public BlobFeedAction(string expectedFeedUrl, string accountKey, string indexDirectory, MSBuild.TaskLoggingHelper Log)
+        public BlobFeedAction(string expectedFeedUrl, string accountKey, MSBuild.TaskLoggingHelper Log)
         {
             this.Log = Log;
             Match m = Regex.Match(expectedFeedUrl, feedRegex);
-
             if (m.Success)
             {
                 string accountName = m.Groups["accountname"].Value;
                 string containerName = m.Groups["containername"].Value;
                 string relativePath = m.Groups["relativepath"].Value;
-                string feedUrl = m.Groups["feedurl"].Value;
-
-                bool isPublic = string.IsNullOrWhiteSpace(m.Groups["token"].Value);
-                this.feed = new BlobFeed(accountName, accountKey, containerName, relativePath, feedUrl, string.IsNullOrWhiteSpace(indexDirectory) ? Path.GetTempPath() : indexDirectory, Log, isPublic);
+                feed = new BlobFeed(accountName, accountKey, containerName, relativePath, Log);
+                feedUrl = m.Groups["feedurl"].Value;
+                source = new SleetSource
+                {
+                    Name = feed.ContainerName,
+                    Type = "azure",
+                    Path = feedUrl,
+                    Container = feed.ContainerName,
+                    FeedSubPath = feed.RelativePath,
+                    ConnectionString = $"DefaultEndpointsProtocol=https;AccountName={feed.AccountName};AccountKey={feed.AccountKey};EndpointSuffix=core.windows.net"
+                };
             }
             else
-            { 
+            {
                 throw new Exception("Unable to parse expected feed. Please check ExpectedFeedUrl.");
             }
         }
 
         public async Task<bool> PushToFeed(IEnumerable<string> items, bool allowOverwrite = false)
         {
-            if (feed.IsSanityChecked(items))
+            if (IsSanityChecked(items))
             {
                 if (CancellationToken.IsCancellationRequested)
                 {
@@ -57,49 +65,44 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     CancellationToken.ThrowIfCancellationRequested();
                 }
 
-                using (var clientThrottle = new SemaphoreSlim(this.MaxClients, this.MaxClients))
-                {
-                    await Task.WhenAll(items.Select(item => PushItemToFeed(item, feed.RelativePath, clientThrottle, allowOverwrite, false)));
-                }
+                await PushItemsToFeedAsync(items, allowOverwrite);
             }
 
             return !Log.HasLoggedErrors;
         }
 
-        public async Task<bool> PushToFeedFlat(IEnumerable<string> items, bool allowOverwrite = false)
+        public async Task<bool> PushItemsToFeedAsync(IEnumerable<string> items, bool allowOverwrite)
         {
-            if (CancellationToken.IsCancellationRequested)
-            {
-                Log.LogError("Task PushToFeedFlat cancelled");
-                CancellationToken.ThrowIfCancellationRequested();
-            }
+            Log.LogMessage(MessageImportance.Low, $"START pushing items to feed");
 
-            using (var clientThrottle = new SemaphoreSlim(this.MaxClients, this.MaxClients))
-            {
-                await Task.WhenAll(items.Select(item => PushItemToFeed(item, feed.RelativePath, clientThrottle, allowOverwrite, true)));
-            }
-            return !Log.HasLoggedErrors;
-        }
-
-        public async Task<bool> PushItemToFeed(string item, string relativePath, SemaphoreSlim clientThrottle, bool allowOverwrite, bool isFlat)
-        {
             try
             {
-                string uploadPath = feed.CalculateBlobPath(item, relativePath);
-                string packageDirectory = feed.CalculateRelativeUploadPath(item, relativePath);
-
-                await UploadAsync(CancellationToken, item, uploadPath, clientThrottle, allowOverwrite);
-
-                if (!isFlat)
+                // In case the first Push attempt fails with an InvalidOperationException we Init the feed and retry the Push command once.
+                // Sleet internally retries 5 times on each package when the push operation fails so we don't need to retry ourselves.
+                for (int i = 0; i <= 1; i++)
                 {
-                    List<string> listAzureBlobs = await ListAzureBlobs.ListBlobs(Log, feed.AccountName, feed.AccountKey, feed.ContainerName, packageDirectory);
-                    if (!listAzureBlobs.Any(x => x.Contains(uploadPath)))
+                    try
                     {
-                        throw new Exception($"Uploaded package {uploadPath} is not present on feed. Cannot update index.json.");
+                        bool result = await PushAsync(items.ToList(), allowOverwrite);
+                        return result;
                     }
+                    catch (InvalidOperationException ex) when (ex.Message.Contains("init"))
+                    {
+                        Log.LogWarning($"Sub-feed {source.FeedSubPath} has not been initialized. Initializing now...");
+                        bool result = await InitAsync();
 
-                    await UploadIndexJson(clientThrottle, true, packageDirectory, listAzureBlobs);
+                        if (result)
+                        {
+                            Log.LogMessage($"Initializing sub-feed {source.FeedSubPath} succeeded!");
+                        }
+                        else
+                        {
+                            Log.LogError($"Initializing sub-feed {source.FeedSubPath} failed!");
+                        }
+                    }
                 }
+
+              return false;
             }
             catch (Exception e)
             {
@@ -109,83 +112,70 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             return !Log.HasLoggedErrors;
         }
 
-        private async Task UploadIndexJson(SemaphoreSlim clientThrottle, bool allowOverwrite, string packageDirectory, List<string> listAzureBlobs)
+        private bool IsSanityChecked(IEnumerable<string> items)
         {
-            listAzureBlobs.Remove(listAzureBlobs.Find(x => x.Contains("index.json")));
-            List<string> updatedVersions = new List<string>();
-            foreach (var version in listAzureBlobs)
+            Log.LogMessage(MessageImportance.Low, $"START checking sanitized items for feed");
+            foreach (var item in items)
             {
-                string versionToCheck = version.Substring(packageDirectory.Length + 1).Split('/')[0];
-                NuGetVersion nugetVersion = null;
-                if (NuGetVersion.TryParse(versionToCheck, out nugetVersion))
+                if (items.Any(s => Path.GetExtension(item) != ".nupkg"))
                 {
-                    updatedVersions.Add(versionToCheck);
+                    Log.LogError($"{item} is not a nupkg");
+                    return false;
                 }
             }
-            string packageIndexJsonLocation = feed.GeneratePackageServiceIndex(packageDirectory, updatedVersions);
-            await UploadAsync(CancellationToken, packageIndexJsonLocation, packageDirectory + "/index.json", clientThrottle, true);
+            List<string> duplicates = items.GroupBy(x => x)
+                    .Where(group => group.Count() > 1)
+                    .Select(group => group.Key).ToList();
+            if (duplicates.Count > 0)
+            {
+                Log.LogError($"Duplicates found: {duplicates}");
+                return false;
+            }
+            Log.LogMessage(MessageImportance.Low, $"DONE checking for sanitized items for feed");
+            return true;
         }
 
-        private async Task UploadAsync(CancellationToken ct, string item, string uploadPath, SemaphoreSlim clientThrottle, bool allowOverwrite)
+        private LocalSettings GetSettings()
         {
-            if (!File.Exists(item))
-                throw new Exception(string.Format("The file '{0}' does not exist.", item));
+            
 
-            await clientThrottle.WaitAsync();
-            string leaseId = string.Empty;
-            //this defines the lease for 15 seconds (max is 60) and 3000 milliseconds between requests
-            AzureBlobLease blobLease = new AzureBlobLease(feed.AccountName, feed.AccountKey, string.Empty, feed.ContainerName, uploadPath, Log, "15", "5000");
+            SleetSettings sleetSettings = new SleetSettings()
+            {
+                Sources = new List<SleetSource>
+                    {
+                       source
+                    }
+            };
 
-            bool isLeaseRequired = allowOverwrite && await feed.CheckIfBlobExists(uploadPath);
+            LocalSettings settings = new LocalSettings
+            {
+                Json = JObject.FromObject(sleetSettings)
+            };
 
-            if (isLeaseRequired)
-            {
-                try
-                {
-                    leaseId = blobLease.Acquire();
-                    Log.LogMessage($"Obtained lease ID {leaseId} for {uploadPath}.");
-                }
-                catch (Exception)
-                {
-                    Log.LogError($"Unable to obtain lease on {uploadPath}");
-                }
-            }
-            try
-            {
-                bool isExists = await feed.CheckIfBlobExists(uploadPath);
-                if (!isExists || allowOverwrite)
-                {
-                    Log.LogMessage($"Uploading {item} to {uploadPath}.");
-                    UploadClient uploadClient = new UploadClient(Log);
-                    await
-                        uploadClient.UploadBlockBlobAsync(
-                            ct,
-                            feed.AccountName,
-                            feed.AccountKey,
-                            feed.ContainerName,
-                            item,
-                            uploadPath,
-                            leaseId);
+            return settings;
+        }
 
-                }
-                else
-                {
-                    Log.LogMessage($"Skipping uploading of {item} to {uploadPath}. Already exists.");
-                }
-            }
-            catch (Exception)
-            {
-                Log.LogError($"Unable to upload to {uploadPath}");
-                throw;
-            }
-            finally
-            {
-                if (isLeaseRequired)
-                {
-                    blobLease.Release();
-                }
-                clientThrottle.Release();
-            }
+        private AzureFileSystem GetAzureFileSystem()
+        {
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(source.ConnectionString);
+            AzureFileSystem fileSystem = new AzureFileSystem(new LocalCache(), new Uri(source.Path), new Uri(source.Path), storageAccount, source.Name, source.FeedSubPath);
+            return fileSystem;
+        }
+
+        private async Task<bool> PushAsync(IEnumerable<string> items, bool allowOverwrite)
+        {
+            LocalSettings settings = GetSettings();
+            AzureFileSystem fileSystem = GetAzureFileSystem();
+            bool result = await PushCommand.RunAsync(settings, fileSystem, items.ToList(), allowOverwrite, !allowOverwrite, new SleetLogger(Log));
+            return result;
+        }
+
+        private async Task<bool> InitAsync()
+        {
+            LocalSettings settings = GetSettings();
+            AzureFileSystem fileSystem = GetAzureFileSystem();
+            bool result = await InitCommand.RunAsync(settings, fileSystem, true, true, new SleetLogger(Log), CancellationToken);
+            return result;
         }
     }
 }

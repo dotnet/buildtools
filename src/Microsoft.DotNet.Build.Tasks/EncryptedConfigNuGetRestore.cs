@@ -35,7 +35,6 @@ namespace Microsoft.DotNet.Build.Tasks
                 GlobalPackagesFolder = PackagesDir,
 
                 Sources = new List<string>(),
-                FallbackSources = new List<string>(),
                 CacheContext = new SourceCacheContext(),
                 RequestProviders = new List<IRestoreRequestProvider>
                 {

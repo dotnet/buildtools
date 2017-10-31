@@ -22,10 +22,6 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         [Required]
         public ITaskItem[] ItemsToPush { get; set; }
 
-        public string IndexDirectory { get; set; }
-
-        public bool PublishFlatContainer { get; set; }
-
         public bool Overwrite { get; set; }
 
         public override bool Execute()
@@ -42,26 +38,10 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 {
                     Log.LogError($"No items to push. Please check ItemGroup ItemsToPush.");
                 }
-                BlobFeedAction blobFeedAction = new BlobFeedAction(ExpectedFeedUrl, AccountKey, IndexDirectory, Log);
-                bool containerExists = await blobFeedAction.feed.CheckIfFeedExists();
-                if (!containerExists)
-                {
-                    await blobFeedAction.feed.CreateFeedContainer();
-                }
-                if (!PublishFlatContainer)
-                {
-                    if (!containerExists)
-                    {
-                        await blobFeedAction.PushToFeed(ConvertToStringLists(ItemsToPush));
-                    }
-                    else
-                    {
-                        await blobFeedAction.PushToFeed(ConvertToStringLists(ItemsToPush), Overwrite);
-                    }
-                }
                 else
                 {
-                    await blobFeedAction.PushToFeedFlat(ConvertToStringLists(ItemsToPush), Overwrite);
+                    BlobFeedAction blobFeedAction = new BlobFeedAction(ExpectedFeedUrl, AccountKey, Log);
+                    await blobFeedAction.PushToFeed(ConvertToStringLists(ItemsToPush), Overwrite);
                 }
             }
             catch (Exception e)

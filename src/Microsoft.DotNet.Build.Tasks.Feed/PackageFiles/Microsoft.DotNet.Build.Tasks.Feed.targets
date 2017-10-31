@@ -34,8 +34,6 @@
       <PushToBlobFeed ExpectedFeedUrl="$(ExpectedFeedUrl)"
                       AccountKey="$(AccountKey)"
                       ItemsToPush="@(ItemsToPush)"
-                      IndexDirectory="$(IndexDirectory)"
-                      PublishFlatContainer="$(PublishFlatContainer)"
                       Overwrite="$(Overwrite)" />
     </Target>
 
