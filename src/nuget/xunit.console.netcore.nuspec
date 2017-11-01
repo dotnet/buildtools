@@ -49,6 +49,7 @@
     <file src="xunit.console.netcore\_._" target="lib\dnxcore50" />
     <file src="xunit.console.netcore\_._" target="lib\dotnet" />
     <file src="xunit.console.netcore\xunit.console.netcore.exe" target="runtimes\any\native" />
+    <file src="xunit.console.netcore\xunit.console.netcore.pdb" target="runtimes\any\native" />
 
     <file src="..\obj\version.txt" target="" />
   </files>
