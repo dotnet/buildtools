@@ -8,7 +8,7 @@
 
   <PropertyGroup>
     <BuildToolsTaskDir Condition="'$(BuildToolsTaskDir)' == ''">$(ToolsDir)</BuildToolsTaskDir>
-    
+
     <!-- For UAP, we need to bin place the resources as resw files to create the runner's pri file. -->
     <ResourcesFolderPath Condition="'$(ResourcesFolderPath)' == ''">$(RuntimePath)resw</ResourcesFolderPath>
 
@@ -295,7 +295,7 @@
     import the MicroBuild boot-strapper project (only relevant for shipping binaries)
     NOTE: we import this at the end as it will override some dummy targets (e.g. SignFiles)
   -->
-  <Import Project="$(MSBuildThisFileDirectory)MicroBuild.Core.targets" Condition="'$(IsTestProject)'!='true' and '$(SignType)' != 'oss'" />
+  <Import Project="$(MSBuildThisFileDirectory)MicroBuild.Core.targets" Condition="Exists('$(MSBuildThisFileDirectory)MicroBuild.Core.targets') and $(IsTestProject)' != 'true'" />
 
   <!--
     Providing a definition for __BlockReflectionAttribute in an assembly is a signal to the .NET Native toolchain
