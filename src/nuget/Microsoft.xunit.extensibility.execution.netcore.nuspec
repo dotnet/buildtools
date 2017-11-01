@@ -2,7 +2,7 @@
 <package>
   <metadata minClientVersion="2.8.5">
     <id>Microsoft.xunit.extensibility.execution.netcore</id>
-    <version>1.0.1-prerelease</version>
+    <version>$PackageVersion$</version>
     <title>Redist of xunit.execution.execution to target netstandard1.0</title>
     <authors>Microsoft</authors>
     <owners>Microsoft</owners>

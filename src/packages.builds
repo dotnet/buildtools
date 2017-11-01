@@ -10,7 +10,15 @@
          https://github.com/dotnet/buildtools/issues/780 -->
     <PackagingTaskDir Condition="'$(BuildToolsTargets45)' != 'true'">$(BinDir)AnyOS.AnyCPU.$(ConfigurationGroup)/Microsoft.DotNet.Build.Tasks.Packaging/</PackagingTaskDir>
     <PackagingTaskDir Condition="'$(BuildToolsTargets45)' == 'true'">$(BinDir)AnyOS.AnyCPU.$(ConfigurationGroup)/Microsoft.DotNet.Build.Tasks.Packaging.Desktop/</PackagingTaskDir>
+
+    <!-- Use the same package version for all output packages. -->
+    <DoNotGeneratePackageVersion>true</DoNotGeneratePackageVersion>
+    <PackageVersion>2.1.0-prerelease-$(BuildNumberMajor)-$(BuildNumberMinor)</PackageVersion>
   </PropertyGroup>
+
+  <ItemGroup>
+    <NuspecProperties Include="PackageVersion=$(PackageVersion)" />
+  </ItemGroup>
 
   <Import Project="Microsoft.DotNet.Build.Tasks\PackageFiles\packages.targets" Condition="'$(ImportGetNuGetPackageVersions)' != 'false'" />
   

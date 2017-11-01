@@ -2,7 +2,7 @@
 <package>
   <metadata minClientVersion="2.8.1">
     <id>Microsoft.xunit.netcore.extensions</id>
-    <version>1.0.1-prerelease</version>
+    <version>$PackageVersion$</version>
     <title>xUnit extensions of .NET Core test projects</title>
     <authors>Microsoft</authors>
     <owners>Microsoft</owners>

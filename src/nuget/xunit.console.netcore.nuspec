@@ -2,7 +2,7 @@
 <package>
   <metadata minClientVersion="2.8.1">
     <id>xunit.console.netcore</id>
-    <version>1.0.4-prerelease</version>
+    <version>$PackageVersion$</version>
     <title>xUnit.net [Runners - .NET Core]</title>
     <authors>James Newkirk, Brad Wilson (.NET Core package by Matt Cohn)</authors>
     <owners>Microsoft</owners>

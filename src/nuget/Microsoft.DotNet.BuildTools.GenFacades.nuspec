@@ -2,7 +2,7 @@
 <package>
   <metadata minClientVersion="2.8.1">
     <id>Microsoft.DotNet.BuildTools.GenFacades</id>
-    <version>1.0.0-beta3</version>
+    <version>$PackageVersion$</version>
     <title>Facade Generator (GenFacade)</title>
     <authors>Microsoft</authors>
     <owners>Microsoft</owners>

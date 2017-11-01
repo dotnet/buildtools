@@ -2,7 +2,7 @@
 <package>
   <metadata minClientVersion="2.8.1">
     <id>Microsoft.DotNet.Build.CloudTest</id>
-    <version>1.0.0-prerelease</version>
+    <version>$PackageVersion$</version>
     <title>Microsoft DotNet Build cloud test tools </title>
     <authors>Microsoft</authors>
     <owners>Microsoft</owners>
