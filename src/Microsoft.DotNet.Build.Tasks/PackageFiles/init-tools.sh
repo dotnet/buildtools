@@ -81,6 +81,13 @@ cp -R "${__PACKAGES_DIR}"/[Mm]icro[Bb]uild.[Cc]ore/"${__MICROBUILD_VERSION}/buil
 # Copy some roslyn files over
 cp $__TOOLRUNTIME_DIR/runtimes/any/native/* $__TOOLRUNTIME_DIR/
 
+#Copy RID specific assets to the tools dir since we don't have a deps.json for .NETCore msbuild
+cp ${__TOOLRUNTIME_DIR}/runtimes/unix/lib/netstandard1.3/*.dll $__TOOLRUNTIME_DIR/
+
+#Temporarily rename roslyn compilers to have exe extension
+cp ${__TOOLRUNTIME_DIR}/csc.dll ${__TOOLRUNTIME_DIR}/csc.exe
+cp ${__TOOLRUNTIME_DIR}/vbc.dll ${__TOOLRUNTIME_DIR}/vbc.exe
+
 # Override versions in runtimeconfig.json files with highest available runtime version.
 __MNCA_FOLDER=$(dirname $__DOTNET_CMD)/shared/Microsoft.NETCore.App
 __HIGHEST_RUNTIME_VERSION=`ls $__MNCA_FOLDER | sed 'r/\([0-9]\+\).*/\1/g' | sort -n | tail -1`
