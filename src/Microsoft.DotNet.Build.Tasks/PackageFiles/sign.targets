@@ -45,13 +45,16 @@
 
     <DefineConstants>$(DefineConstants);SIGNED</DefineConstants>
 
-    <!-- applicable values for SignType are oss, test or real -->
-    <SignType Condition="'$(SignType)' == ''">oss</SignType>
+    <!-- applicable values for SignType are public, test or real -->
+    <SignType Condition="'$(SignType)' == ''">public</SignType>
 
     <ShouldWriteSigningRequired Condition="'$(IsTestProject)' == 'true'">false</ShouldWriteSigningRequired>
     <ShouldWriteSigningRequired Condition="'$(SkipSigning)' == 'true'">false</ShouldWriteSigningRequired>
-    <ShouldWriteSigningRequired Condition="'$(SignType)' == 'oss'">false</ShouldWriteSigningRequired>
+    <ShouldWriteSigningRequired Condition="$(SignType)' == 'public' or '$(SignType)' == 'oss'">false</ShouldWriteSigningRequired>
     <ShouldWriteSigningRequired Condition="'$(ShouldWriteSigningRequired)'==''">true</ShouldWriteSigningRequired>
+
+    <ShouldOpenSourceSign Condition="$(SignType)' == 'public' or '$(SignType)' == 'oss'">$(DelaySign)</ShouldOpenSourceSign>
+    <ShouldOpenSourceSign Condition="'$(SkipSigning)' == 'true'">false</ShouldOpenSourceSign>
   </PropertyGroup>
 
   <!-- stub for signing.  for official builds this is replaced with the real one -->
@@ -103,7 +106,7 @@
   </PropertyGroup>
 
   <Target Name="OpenSourceSign"
-          Condition="'$(DelaySign)' == 'true' and '@(IntermediateAssembly)' != '' and '$(SkipSigning)' != 'true' and '$(SignType)' == 'oss'"
+          Condition="'$(ShouldOpenSourceSign)' == 'true' and '@(IntermediateAssembly)' != ''"
           Inputs="@(IntermediateAssembly)"
           Outputs="%(IntermediateAssembly.Identity).oss_signed"
           >
