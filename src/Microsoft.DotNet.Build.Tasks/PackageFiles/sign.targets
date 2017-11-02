@@ -50,10 +50,10 @@
 
     <ShouldWriteSigningRequired Condition="'$(IsTestProject)' == 'true'">false</ShouldWriteSigningRequired>
     <ShouldWriteSigningRequired Condition="'$(SkipSigning)' == 'true'">false</ShouldWriteSigningRequired>
-    <ShouldWriteSigningRequired Condition="$(SignType)' == 'public' or '$(SignType)' == 'oss'">false</ShouldWriteSigningRequired>
+    <ShouldWriteSigningRequired Condition="'$(SignType)' == 'public' or '$(SignType)' == 'oss'">false</ShouldWriteSigningRequired>
     <ShouldWriteSigningRequired Condition="'$(ShouldWriteSigningRequired)'==''">true</ShouldWriteSigningRequired>
 
-    <ShouldOpenSourceSign Condition="$(SignType)' == 'public' or '$(SignType)' == 'oss'">$(DelaySign)</ShouldOpenSourceSign>
+    <ShouldOpenSourceSign Condition="'$(SignType)' == 'public' or '$(SignType)' == 'oss'">$(DelaySign)</ShouldOpenSourceSign>
     <ShouldOpenSourceSign Condition="'$(SkipSigning)' == 'true'">false</ShouldOpenSourceSign>
   </PropertyGroup>
 
