@@ -8,10 +8,6 @@
     "NETStandard.Library": "1.6.0",
     "Microsoft.NETCore.Targets": "1.0.2",
     "xunit": "2.1.0",
-    "test-runtime": {
-      "target": "project",
-      "exclude": "compile"
-    },
     "runtime.aot.System.Runtime": {
       "version": "4.0.20",
       "__comment": "required for test"

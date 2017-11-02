@@ -43,7 +43,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 string requestedId = dependencyParts[0];
                 if (dependencyParts.Length < 3)
                 {
-                    // Some dependencies have no versions, e.g. 'test-runtime' and 'net46-test-runtime'.
+                    // Some dependencies have no versions, e.g. 'net46-test-runtime'.
                     continue;
                 }
 
