@@ -294,8 +294,10 @@
 
     <!-- Generate the SourceLink file that will be passed to the C# compiler (using ProjectDir and GitHubRepositoryUrl as data) -->
     <MakeDir Directories="$(BaseIntermediateOutputPath)" />
-    <WriteLinesToFile Condition="'$(UseSourceLink)' == 'true' AND '$(GitHubRepositoryUrl)' != '' AND '$(LatestCommit)' != 'N/A'"
-      File="$(BaseIntermediateOutputPath)source_link.json" 
+    <WriteLinesToFile 
+      Condition="'$(UseSourceLink)' == 'true' AND '$(GitHubRepositoryUrl)' != '' AND '$(LatestCommit)' != 'N/A' AND !Exists('$(SourceLinkFilePath)')"
+      ContinueOnError="WarnAndContinue"
+      File="$(SourceLinkFilePath)" 
       Overwrite="true" 
       Lines='{"documents": { "$(ProjectDir.Replace("\", "\\"))*" : "$(GitHubRepositoryUrl.Replace("github.com", "raw.githubusercontent.com"))/$(LatestCommit)/*" }}' />
 
