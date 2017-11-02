@@ -295,7 +295,7 @@
     import the MicroBuild boot-strapper project (only relevant for shipping binaries)
     NOTE: we import this at the end as it will override some dummy targets (e.g. SignFiles)
   -->
-  <Import Project="$(MSBuildThisFileDirectory)MicroBuild.Core.targets" Condition="Exists('$(MSBuildThisFileDirectory)MicroBuild.Core.targets') and $(IsTestProject)' != 'true'" />
+  <Import Project="$(MSBuildThisFileDirectory)MicroBuild.Core.targets" Condition="Exists('$(MSBuildThisFileDirectory)MicroBuild.Core.targets') and '$(IsTestProject)' != 'true'" />
 
   <!--
     Providing a definition for __BlockReflectionAttribute in an assembly is a signal to the .NET Native toolchain
