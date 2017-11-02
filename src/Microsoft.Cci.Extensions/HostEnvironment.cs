@@ -367,8 +367,11 @@ namespace Microsoft.Cci.Extensions
             }
 
             var unresolved = new UnresolvedReference<IUnit, AssemblyIdentity>(referringUnit, referencedAssembly);
-
-            OnUnableToResolve(unresolved);
+            
+            if (!referencedAssembly.Name.Value.Equals("System.Private.CoreLib", StringComparison.OrdinalIgnoreCase))
+            {
+                OnUnableToResolve(unresolved);
+            }
 
             // Give up
             return new AssemblyIdentity(referencedAssembly, "unknown://location");
