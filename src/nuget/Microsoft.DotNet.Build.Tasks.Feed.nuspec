@@ -16,9 +16,7 @@
     <copyright>Copyright © Microsoft Corporation</copyright>
     <tags></tags>
     <dependencies>
-     <group targetFramework=".NETStandard1.5">
-        <dependency id="SleetLib" version="2.2.9" exclude="Build,Analyzers" />
-      </group>
+       <!-- Do not add any dependencies to this package as we want to install it versionless (i.e. -ExcludeVersion) and we don't want the dependencies to be installed that way -->
     </dependencies>
   </metadata>
   <files>
