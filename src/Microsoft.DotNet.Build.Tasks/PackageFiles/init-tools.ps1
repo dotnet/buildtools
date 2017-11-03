@@ -19,3 +19,57 @@ foreach ($file in Get-ChildItem $ToolRuntimePath *.runtimeconfig.json)
 # the init-tools.cmd (that is checked into each repository that uses buildtools) can write the semaphore
 # marker into this file once tool initialization is complete.
 New-Item -Force -Type Directory (Join-Path $ToolRuntimePath (Split-Path -Leaf (Split-Path $BuildToolsPackageDir)))
+
+# Download the package version props file, if  was passed in the environment.
+$packageVersionPropsUrl = $env:PB_PACKAGEVERSIONPROPSURL
+$packageVersionPropsPath = $env:PackageVersionPropsDownloadPath
+
+if ($packageVersionPropsUrl)
+{
+    if (-not $packageVersionPropsPath)
+    {
+        throw "Url '$packageVersionPropsUrl' (PB_PACKAGEVERSIONPROPSURL) specified, but no download path (PackageVersionPropsDownloadPath)."
+    }
+
+    $dir = Split-Path -Parent $packageVersionPropsPath
+    if (-not (Test-Path $dir))
+    {
+        mkdir $dir
+    }
+
+    Write-Host "Downloading package version props from '$packageVersionPropsUrl' to '$packageVersionPropsPath'..."
+
+    # Copied from init-tools.cmd in CoreFX
+    $retryCount = 0
+    $success = $false
+    $proxyCredentialsRequired = $false
+    do
+    {
+        try
+        {
+            $wc = New-Object Net.WebClient
+            if ($proxyCredentialsRequired)
+            {
+                [Net.WebRequest]::DefaultWebProxy.Credentials = [Net.CredentialCache]::DefaultNetworkCredentials
+            }
+            $wc.DownloadFile($packageVersionPropsUrl, $packageVersionPropsPath)
+            $success = $true
+        }
+        catch
+        {
+            if ($retryCount -ge 6)
+            {
+                throw
+            }
+            else
+            {
+                $we = $_.Exception.InnerException -as [Net.WebException]
+                $proxyCredentialsRequired = ($we -ne $null -and ([Net.HttpWebResponse]$we.Response).StatusCode -eq [Net.HttpStatusCode]::ProxyAuthenticationRequired)
+                Start-Sleep -Seconds (5 * $retryCount)
+                $retryCount++
+            } 
+        }
+    } while ($success -eq $false);
+
+    Write-Host "Downloaded package version props."
+}
