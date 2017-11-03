@@ -21,22 +21,11 @@ foreach ($file in Get-ChildItem $ToolRuntimePath *.runtimeconfig.json)
 New-Item -Force -Type Directory (Join-Path $ToolRuntimePath (Split-Path -Leaf (Split-Path $BuildToolsPackageDir)))
 
 # Download the package version props file, if  was passed in the environment.
-$packageVersionPropsUrl = $env:PB_PACKAGEVERSIONPROPSURL
-$packageVersionPropsPath = $env:PackageVersionPropsDownloadPath
+$packageVersionPropsUrl = $env:PACKAGEVERSIONPROPSURL
+$packageVersionPropsPath = Join-Path $ToolRuntimePath "DownloadedPackageVersions.props"
 
 if ($packageVersionPropsUrl)
 {
-    if (-not $packageVersionPropsPath)
-    {
-        throw "Url '$packageVersionPropsUrl' (PB_PACKAGEVERSIONPROPSURL) specified, but no download path (PackageVersionPropsDownloadPath)."
-    }
-
-    $dir = Split-Path -Parent $packageVersionPropsPath
-    if (-not (Test-Path $dir))
-    {
-        mkdir $dir
-    }
-
     Write-Host "Downloading package version props from '$packageVersionPropsUrl' to '$packageVersionPropsPath'..."
 
     # Copied from init-tools.cmd in CoreFX
@@ -71,5 +60,6 @@ if ($packageVersionPropsUrl)
         }
     } while ($success -eq $false);
 
-    Write-Host "Downloaded package version props."
+    Write-Host "Downloaded package version props:"
+    Get-Content $packageVersionPropsPath
 }

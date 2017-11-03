@@ -94,17 +94,10 @@ __HIGHEST_RUNTIME_VERSION=`ls $__MNCA_FOLDER | sed 'r/\([0-9]\+\).*/\1/g' | sort
 sed -i -e "s/1.1.0/$__HIGHEST_RUNTIME_VERSION/g" $__TOOLRUNTIME_DIR/*.runtimeconfig.json
 
 # Download the package version props file, if passed in the environment.
-__PACKAGE_VERSION_PROPS_URL="${PB_PACKAGEVERSIONPROPSURL:-}"
-__PACKAGE_VERSION_PROPS_PATH="${PackageVersionPropsDownloadPath:-}"
+__PACKAGE_VERSION_PROPS_URL="${PACKAGEVERSIONPROPSURL:-}"
+__PACKAGE_VERSION_PROPS_PATH="$__TOOLRUNTIME_DIR/DownloadedPackageVersions.props"
 
 if [ "$__PACKAGE_VERSION_PROPS_URL" ]; then
-    if [ -z "$__PACKAGE_VERSION_PROPS_PATH" ]; then
-        echo "Url '$__PACKAGE_VERSION_PROPS_URL' (PB_PACKAGEVERSIONPROPSURL) specified, but no download path (PackageVersionPropsDownloadPath)."
-        exit 1
-    fi
-
-    mkdir -p "$(dirname "$__PACKAGE_VERSION_PROPS_PATH")"
-
     echo "Downloading package version props from '$__PACKAGE_VERSION_PROPS_URL' to '$__PACKAGE_VERSION_PROPS_PATH'..."
 
     # Copied from CoreFX init-tools.sh
@@ -114,7 +107,8 @@ if [ "$__PACKAGE_VERSION_PROPS_URL" ]; then
         wget -q -O "$__PACKAGE_VERSION_PROPS_PATH" "$__PACKAGE_VERSION_PROPS_URL"
     fi
 
-    echo "Downloaded package version props."
+    echo "Downloaded package version props:"
+    cat "$__PACKAGE_VERSION_PROPS_PATH"
 fi
 
 exit 0
