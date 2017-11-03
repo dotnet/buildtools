@@ -11,6 +11,7 @@
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <ProjectGuid>{6623492E-9EAD-40F0-B8F4-AF0AFBF98890}</ProjectGuid>
     <NuGetTargetMoniker>.NETStandard,Version=v1.5</NuGetTargetMoniker>
+    <CopyNuGetImplementations>true</CopyNuGetImplementations>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>
