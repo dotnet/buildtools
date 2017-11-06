@@ -30,11 +30,10 @@
     <Compile Include="SleetSource.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="PackageFiles\Microsoft.DotNet.Build.Tasks.Feed.targets" />
     <None Include="project.json" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="PackageFiles\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
   <Target Name="AfterBuild">
     <ItemGroup>

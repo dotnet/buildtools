@@ -45,8 +45,15 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     List<string> packageItems = ConvertToStringLists(ItemsToPush, true);
                     List<string> assetItems = ConvertToStringLists(ItemsToPush, false);
 
-                    await blobFeedAction.PushToFeed(packageItems, Overwrite);
-                    await blobFeedAction.UploadAssets(assetItems, Overwrite);
+                    if (packageItems.Count > 0)
+                    {
+                        await blobFeedAction.PushToFeed(packageItems, Overwrite);
+                    }
+
+                    if (assetItems.Count > 0)
+                    {
+                        await blobFeedAction.UploadAssets(assetItems, Overwrite);
+                    }
                 }
             }
             catch (Exception e)
