@@ -118,7 +118,15 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         {
             using (var clientThrottle = new SemaphoreSlim(this.MaxClients, this.MaxClients))
             {
-                await Task.WhenAll(items.Select(item => UploadAsync(item, $"{feed.RelativePath}assets/", clientThrottle, allowOverwrite, CancellationToken)));
+                try
+                {
+                    await Task.WhenAll(items.Select(item => UploadAsync(item, $"{feed.RelativePath}assets/", clientThrottle, allowOverwrite, CancellationToken)));
+                }
+                catch (Exception exc)
+                {
+                    Log.LogErrorFromException(exc);
+                    throw;
+                }
             }
         }
 
