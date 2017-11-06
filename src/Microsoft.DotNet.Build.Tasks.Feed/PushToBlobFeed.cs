@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.Build.Framework;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using MSBuild = Microsoft.Build.Utilities;
-using Microsoft.Build.Framework;
-using System.Collections.Generic;
 
 namespace Microsoft.DotNet.Build.Tasks.Feed
 {
@@ -41,7 +42,11 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 else
                 {
                     BlobFeedAction blobFeedAction = new BlobFeedAction(ExpectedFeedUrl, AccountKey, Log);
-                    await blobFeedAction.PushToFeed(ConvertToStringLists(ItemsToPush), Overwrite);
+                    List<string> packageItems = ConvertToStringLists(ItemsToPush, true);
+                    List<string> assetItems = ConvertToStringLists(ItemsToPush, false);
+
+                    await blobFeedAction.PushToFeed(packageItems, Overwrite);
+                    await blobFeedAction.UploadAssets(assetItems, Overwrite);
                 }
             }
             catch (Exception e)
@@ -51,13 +56,22 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             return !Log.HasLoggedErrors;
         }
 
-        private List<string> ConvertToStringLists(ITaskItem[] taskItems)
+        private List<string> ConvertToStringLists(ITaskItem[] taskItems, bool isNugetPackage)
         {
             List<string> stringList = new List<string>();
             foreach (var item in taskItems)
             {
-                stringList.Add(item.ItemSpec);
+                string fileSpec = item.ItemSpec;
+                string extension = Path.GetExtension(fileSpec);
+
+                // If packages is set to true it will only add files with ".nupkg" extension to the list (true == true)
+                // else this will add non-nupkg files to the list (false == false)
+                if ((extension == ".nupkg") == isNugetPackage)
+                {
+                    stringList.Add(item.ItemSpec);
+                }
             }
+
             return stringList;
         }
     }

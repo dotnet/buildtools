@@ -4,6 +4,7 @@
 
 using Microsoft.Build.Framework;
 using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
 using Sleet;
 using System;
@@ -27,6 +28,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         private SleetSource source;
 
         public BlobFeed feed;
+        public int MaxClients { get; set; } = 8;
 
         public BlobFeedAction(string expectedFeedUrl, string accountKey, MSBuild.TaskLoggingHelper Log)
         {
@@ -112,6 +114,14 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             return !Log.HasLoggedErrors;
         }
 
+        public async Task UploadAssets(IEnumerable<string> items, bool allowOverwrite)
+        {
+            using (var clientThrottle = new SemaphoreSlim(this.MaxClients, this.MaxClients))
+            {
+                await Task.WhenAll(items.Select(item => UploadAsync(item, $"{feed.RelativePath}assets/", clientThrottle, allowOverwrite, CancellationToken)));
+            }
+        }
+
         private bool IsSanityChecked(IEnumerable<string> items)
         {
             Log.LogMessage(MessageImportance.Low, $"START checking sanitized items for feed");
@@ -137,8 +147,6 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         private LocalSettings GetSettings()
         {
-            
-
             SleetSettings sleetSettings = new SleetSettings()
             {
                 Sources = new List<SleetSource>
@@ -176,6 +184,76 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             AzureFileSystem fileSystem = GetAzureFileSystem();
             bool result = await InitCommand.RunAsync(settings, fileSystem, true, true, new SleetLogger(Log), CancellationToken);
             return result;
+        }
+
+        private async Task UploadAsync(string item, string uploadPath, SemaphoreSlim clientThrottle, bool allowOverwrite, CancellationToken cancellationToken)
+        {
+            if (!File.Exists(item))
+                throw new Exception(string.Format("The file '{0}' does not exist.", item));
+
+            string fileName = Path.GetFileName(item);
+            uploadPath += fileName;
+            await clientThrottle.WaitAsync();
+            string leaseId = string.Empty;
+
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(source.ConnectionString);
+            CloudBlobClient client = storageAccount.CreateCloudBlobClient();
+            CloudBlobContainer container = client.GetContainerReference(feed.ContainerName);
+            CloudBlockBlob blob = container.GetBlockBlobReference(uploadPath);
+            AzureBlobLease blobLease = new AzureBlobLease(blob);
+            bool blobExists = await blob.ExistsAsync();
+            bool isLeaseRequired = allowOverwrite && blobExists;
+
+            if (isLeaseRequired)
+            {
+                try
+                {
+                    leaseId = blobLease.LeaseId;
+                    Log.LogMessage($"Obtained lease ID {leaseId} for {uploadPath}.");
+                }
+                catch (Exception)
+                {
+                    Log.LogError($"Unable to obtain lease on {uploadPath}");
+                }
+            }
+
+            try
+            {
+                if (!blobExists || allowOverwrite)
+                {
+                    Log.LogMessage($"Uploading {item} to {uploadPath}.");
+                    AccessCondition accessCondition = new AccessCondition
+                    {
+                        LeaseId = leaseId
+                    };
+
+                    OperationContext opContext = new OperationContext
+                    {
+                        LogLevel = LogLevel.Informational
+                    };
+
+
+                    await blob.UploadFromFileAsync(item, accessCondition, new BlobRequestOptions(), opContext, cancellationToken);
+                }
+                else
+                {
+                    Log.LogMessage($"Skipping uploading of {item} to {uploadPath}. Already exists.");
+                }
+            }
+            catch (Exception)
+            {
+                Log.LogError($"Unable to upload to {uploadPath}");
+                throw;
+            }
+            finally
+            {
+                if (isLeaseRequired)
+                {
+                    blobLease.Release();
+                }
+
+                clientThrottle.Release();
+            }
         }
     }
 }
