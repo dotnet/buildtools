@@ -166,8 +166,22 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         {
             LocalSettings settings = GetSettings();
             AzureFileSystem fileSystem = GetAzureFileSystem();
-            bool result = await PushCommand.RunAsync(settings, fileSystem, items.ToList(), allowOverwrite, !allowOverwrite, new SleetLogger(Log));
-            return result;
+
+            //retry
+            for (int i = 0; i < 10; i++)
+            {
+                try
+                {
+                    bool result = await PushCommand.RunAsync(settings, fileSystem, items.ToList(), allowOverwrite, !allowOverwrite, new SleetLogger(Log));
+                    return result;
+                }
+                catch (Exception)
+                {
+                    Log.LogWarning($"Error while grabbing lease. Retrying ...");
+                    await Task.Delay(TimeSpan.FromMinutes(i+1));
+                }
+            }
+            return false;
         }
 
         private async Task<bool> InitAsync()
