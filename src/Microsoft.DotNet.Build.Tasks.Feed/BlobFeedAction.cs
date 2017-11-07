@@ -174,7 +174,12 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 }
                 else
                 {
-                    Log.LogError($"Item '{item}' already exists in {relativeBlobPath}.");
+                    bool blobExists = await feed.CheckIfBlobExists(relativeBlobPath);
+
+                    if (blobExists)
+                    {
+                        Log.LogError($"Item '{item}' already exists in {relativeBlobPath}.");
+                    }
                 }
             }
             catch (Exception exc)
