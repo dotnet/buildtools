@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.Build.Framework;
+using Microsoft.DotNet.Build.CloudTestTasks;
 using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
 using Sleet;
 using System;
@@ -15,6 +15,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using MSBuild = Microsoft.Build.Utilities;
+using CloudTestTasks = Microsoft.DotNet.Build.CloudTestTasks;
 
 namespace Microsoft.DotNet.Build.Tasks.Feed
 {
@@ -26,11 +27,12 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         private const string feedRegex = @"(?<feedurl>https:\/\/(?<accountname>[^\.-]+)(?<domain>[^\/]*)\/((?<token>[a-zA-Z0-9+\/]*?\/\d{4}-\d{2}-\d{2})\/)?(?<containername>[^\/]+)\/(?<relativepath>.*\/)?)index\.json";
         private string feedUrl;
         private SleetSource source;
+        private int retries;
+        private TimeSpan delay;
 
         public BlobFeed feed;
-        public int MaxClients { get; set; } = 8;
 
-        public BlobFeedAction(string expectedFeedUrl, string accountKey, MSBuild.TaskLoggingHelper Log)
+        public BlobFeedAction(string expectedFeedUrl, string accountKey, MSBuild.TaskLoggingHelper Log, int retryAttempts, int retryDelay)
         {
             this.Log = Log;
             Match m = Regex.Match(expectedFeedUrl, feedRegex);
@@ -41,6 +43,9 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 string relativePath = m.Groups["relativepath"].Value;
                 feed = new BlobFeed(accountName, accountKey, containerName, relativePath, Log);
                 feedUrl = m.Groups["feedurl"].Value;
+                retries = retryAttempts;
+                delay = TimeSpan.FromSeconds(retryDelay);
+
                 source = new SleetSource
                 {
                     Name = feed.ContainerName,
@@ -76,12 +81,13 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         public async Task<bool> PushItemsToFeedAsync(IEnumerable<string> items, bool allowOverwrite)
         {
             Log.LogMessage(MessageImportance.Low, $"START pushing items to feed");
+            bool requiresInit = false;
 
             try
             {
                 // In case the first Push attempt fails with an InvalidOperationException we Init the feed and retry the Push command once.
-                // Sleet internally retries 5 times on each package when the push operation fails so we don't need to retry ourselves.
-                for (int i = 0; i <= 1; i++)
+                // We also retry in case Sleet is not able to get a lock on the feed since it does not retry in this case.
+                for (int i = 0; i < retries; i++)
                 {
                     try
                     {
@@ -91,6 +97,17 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     catch (InvalidOperationException ex) when (ex.Message.Contains("init"))
                     {
                         Log.LogWarning($"Sub-feed {source.FeedSubPath} has not been initialized. Initializing now...");
+                        requiresInit = true;
+                    }
+                    catch (InvalidOperationException ex) when (ex.Message.Contains("Unable to obtain a lock on the feed."))
+                    {
+                        Log.LogWarning($"Sleet was not able to get a lock on the feed. Sleeping {delay} seconds and retrying.");
+                        await Task.Delay(delay);
+                    }
+
+                    if (requiresInit)
+                    {
+                        requiresInit = false;
                         bool result = await InitAsync();
 
                         if (result)
@@ -104,7 +121,9 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     }
                 }
 
-              return false;
+                Log.LogError($"Pushing packages to sub-feed {source.FeedSubPath} failed!");
+
+                return false;
             }
             catch (Exception e)
             {
@@ -114,19 +133,67 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             return !Log.HasLoggedErrors;
         }
 
-        public async Task UploadAssets(IEnumerable<string> items, bool allowOverwrite)
+        public async Task UploadAssets(ITaskItem item, SemaphoreSlim clientThrottle, bool allowOverwrite = false)
         {
-            using (var clientThrottle = new SemaphoreSlim(this.MaxClients, this.MaxClients))
+            string relativeBlobPath = $"{feed.RelativePath}{item.GetMetadata("RelativeBlobPath").Replace("\\", "/")}"; 
+            if (string.IsNullOrEmpty(relativeBlobPath))
+                throw new Exception(string.Format("Metadata 'RelativeBlobPath' is missing for item '{0}'.", item.ItemSpec));
+
+            Log.LogMessage($"Uploading {relativeBlobPath}");
+
+            await clientThrottle.WaitAsync();
+
+            CloudTestTasks.AzureBlobLease blobLease = new CloudTestTasks.AzureBlobLease(feed.AccountName, feed.AccountKey, string.Empty, feed.ContainerName, relativeBlobPath, Log, "15", "5000");
+            bool blobExists = await feed.CheckIfBlobExists(relativeBlobPath);
+            bool isLeaseRequired = allowOverwrite && blobExists;
+            string leaseId = null;
+
+            if (isLeaseRequired)
             {
                 try
                 {
-                    await Task.WhenAll(items.Select(item => UploadAsync(item, $"{feed.RelativePath}assets/", clientThrottle, allowOverwrite, CancellationToken)));
+                    leaseId = blobLease.Acquire();
+                    Log.LogMessage($"Obtained lease ID {leaseId} for {relativeBlobPath}.");
                 }
-                catch (Exception exc)
+                catch (Exception)
                 {
-                    Log.LogErrorFromException(exc);
-                    throw;
+                    Log.LogError($"Unable to obtain lease on {relativeBlobPath}");
                 }
+            }
+            try
+            {
+                if (!blobExists || allowOverwrite)
+                {
+                    Log.LogMessage($"Uploading {item} to {relativeBlobPath}.");
+                    UploadClient uploadClient = new UploadClient(Log);
+                    await uploadClient.UploadBlockBlobAsync(
+                        CancellationToken,
+                        feed.AccountName,
+                        feed.AccountKey,
+                        feed.ContainerName,
+                        item.ItemSpec,
+                        relativeBlobPath,
+                        leaseId);
+
+                }
+                else
+                {
+                    Log.LogMessage($"Skipping uploading of {item} to {relativeBlobPath}. Already exists.");
+                }
+            }
+            catch (Exception)
+            {
+                Log.LogError($"Unable to upload to {relativeBlobPath}");
+                throw;
+            }
+            finally
+            {
+                if (isLeaseRequired)
+                {
+                    blobLease.Release();
+                }
+
+                clientThrottle.Release();
             }
         }
 
@@ -192,76 +259,6 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             AzureFileSystem fileSystem = GetAzureFileSystem();
             bool result = await InitCommand.RunAsync(settings, fileSystem, true, true, new SleetLogger(Log), CancellationToken);
             return result;
-        }
-
-        private async Task UploadAsync(string item, string uploadPath, SemaphoreSlim clientThrottle, bool allowOverwrite, CancellationToken cancellationToken)
-        {
-            if (!File.Exists(item))
-                throw new Exception(string.Format("The file '{0}' does not exist.", item));
-
-            string fileName = Path.GetFileName(item);
-            uploadPath += fileName;
-            await clientThrottle.WaitAsync();
-            string leaseId = string.Empty;
-
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(source.ConnectionString);
-            CloudBlobClient client = storageAccount.CreateCloudBlobClient();
-            CloudBlobContainer container = client.GetContainerReference(feed.ContainerName);
-            CloudBlockBlob blob = container.GetBlockBlobReference(uploadPath);
-            AzureBlobLease blobLease = new AzureBlobLease(blob);
-            bool blobExists = await blob.ExistsAsync();
-            bool isLeaseRequired = allowOverwrite && blobExists;
-
-            if (isLeaseRequired)
-            {
-                try
-                {
-                    leaseId = blobLease.LeaseId;
-                    Log.LogMessage($"Obtained lease ID {leaseId} for {uploadPath}.");
-                }
-                catch (Exception)
-                {
-                    Log.LogError($"Unable to obtain lease on {uploadPath}");
-                }
-            }
-
-            try
-            {
-                if (!blobExists || allowOverwrite)
-                {
-                    Log.LogMessage($"Uploading {item} to {uploadPath}.");
-                    AccessCondition accessCondition = new AccessCondition
-                    {
-                        LeaseId = leaseId
-                    };
-
-                    OperationContext opContext = new OperationContext
-                    {
-                        LogLevel = LogLevel.Informational
-                    };
-
-
-                    await blob.UploadFromFileAsync(item, accessCondition, new BlobRequestOptions(), opContext, cancellationToken);
-                }
-                else
-                {
-                    Log.LogMessage($"Skipping uploading of {item} to {uploadPath}. Already exists.");
-                }
-            }
-            catch (Exception)
-            {
-                Log.LogError($"Unable to upload to {uploadPath}");
-                throw;
-            }
-            finally
-            {
-                if (isLeaseRequired)
-                {
-                    blobLease.Release();
-                }
-
-                clientThrottle.Release();
-            }
         }
     }
 }

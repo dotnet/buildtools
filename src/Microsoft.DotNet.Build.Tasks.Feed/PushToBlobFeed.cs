@@ -5,13 +5,13 @@
 using Microsoft.Build.Framework;
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using MSBuild = Microsoft.Build.Utilities;
 
 namespace Microsoft.DotNet.Build.Tasks.Feed
 {
-
     public class PushToBlobFeed : MSBuild.Task
     {
         [Required]
@@ -24,6 +24,14 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         public ITaskItem[] ItemsToPush { get; set; }
 
         public bool Overwrite { get; set; }
+
+        public bool PublishFlatContainer { get; set; }
+
+        public int RetryAttempts { get; set; } = 5;
+
+        public int RetryDelayInSeconds { get; set; } = 5;
+
+        public int MaxClients { get; set; } = 8;
 
         public override bool Execute()
         {
@@ -41,18 +49,20 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 }
                 else
                 {
-                    BlobFeedAction blobFeedAction = new BlobFeedAction(ExpectedFeedUrl, AccountKey, Log);
-                    List<string> packageItems = ConvertToStringLists(ItemsToPush, true);
-                    List<string> assetItems = ConvertToStringLists(ItemsToPush, false);
+                    BlobFeedAction blobFeedAction = new BlobFeedAction(ExpectedFeedUrl, AccountKey, Log, RetryAttempts, RetryDelayInSeconds);
+                    List<string> items = ConvertToStringLists(ItemsToPush);
 
-                    if (packageItems.Count > 0)
+                    if (!PublishFlatContainer)
                     {
-                        await blobFeedAction.PushToFeed(packageItems, Overwrite);
+                        await blobFeedAction.PushToFeed(items, Overwrite);
                     }
-
-                    if (assetItems.Count > 0)
+                    else
                     {
-                        await blobFeedAction.UploadAssets(assetItems, Overwrite);
+                        using (var clientThrottle = new SemaphoreSlim(this.MaxClients, this.MaxClients))
+                        {
+                            Log.LogMessage($"Uploading {ItemsToPush.Length} items...");
+                            await Task.WhenAll(ItemsToPush.Select(item => blobFeedAction.UploadAssets(item, clientThrottle, Overwrite)));
+                        }
                     }
                 }
             }
@@ -63,20 +73,12 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             return !Log.HasLoggedErrors;
         }
 
-        private List<string> ConvertToStringLists(ITaskItem[] taskItems, bool isNugetPackage)
+        private List<string> ConvertToStringLists(ITaskItem[] taskItems)
         {
             List<string> stringList = new List<string>();
             foreach (var item in taskItems)
             {
-                string fileSpec = item.ItemSpec;
-                string extension = Path.GetExtension(fileSpec);
-
-                // If packages is set to true it will only add files with ".nupkg" extension to the list (true == true)
-                // else this will add non-nupkg files to the list (false == false)
-                if ((extension == ".nupkg") == isNugetPackage)
-                {
-                    stringList.Add(item.ItemSpec);
-                }
+                     stringList.Add(item.ItemSpec);
             }
 
             return stringList;
