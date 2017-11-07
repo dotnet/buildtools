@@ -105,8 +105,8 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     {
                         Log.LogWarning($"Sleet was not able to get a lock on the feed. Sleeping {delay} seconds and retrying.");
 
-                        // Pushing packages might take more than just 60 seconds, so on each iteration we add the defined value to itself so wait for
-                        // a bit more the next iterations
+                        // Pushing packages might take more than just 60 seconds, so on each iteration we multiply the defined delay to a random factor
+                        // Using the defaults this could range from 30 seconds to 12.5 minutes.
                         await Task.Delay(TimeSpan.FromSeconds(rnd.Next(1, 5) * delay));
                     }
 
