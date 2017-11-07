@@ -45,7 +45,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         {
             // There are cases where Sleet fails and we retry on our side causing things to actually work but if Sleet logs an error the whole build leg
             // is marked as failed even though it actually succeeded, hence we log a warning here but we will log an error if the retry did not help
-            _log.LogWarning(data);
+            _log.LogWarning($"This error is being logged as a warning: {data}");
         }
 
         public void LogInformation(string data)

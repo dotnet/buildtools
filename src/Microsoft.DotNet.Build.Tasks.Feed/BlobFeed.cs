@@ -38,5 +38,33 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             Log = loggingHelper;
             RelativePath = relativePath;
         }
+
+        public string FeedContainerUrl => AzureHelper.GetContainerRestUrl(AccountName, ContainerName);
+
+        public async Task<bool> CheckIfBlobExists(string blobPath)
+        {
+            string url = $"{FeedContainerUrl}/{blobPath}?comp=metadata";
+            using (HttpClient client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Clear();
+                var request = AzureHelper.RequestMessage("GET", url, AccountName, AccountKey).Invoke();
+                using (HttpResponseMessage response = await client.SendAsync(request))
+                {
+                    if (response.IsSuccessStatusCode)
+                    {
+                        Log.LogMessage(
+                            MessageImportance.Low,
+                            $"Blob {blobPath} exists for {AccountName}: Status Code:{response.StatusCode} Status Desc: {await response.Content.ReadAsStringAsync()}");
+                    }
+                    else
+                    {
+                        Log.LogMessage(
+                            MessageImportance.Low,
+                            $"Blob {blobPath} does not exist for {AccountName}: Status Code:{response.StatusCode} Status Desc: {await response.Content.ReadAsStringAsync()}");
+                    }
+                    return response.IsSuccessStatusCode;
+                }
+            }
+        }
     }
 }
