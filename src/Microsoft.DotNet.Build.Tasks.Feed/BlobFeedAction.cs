@@ -160,7 +160,14 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
             try
             {
-                if (allowOverwrite)
+                bool blobExists = false;
+
+                if (!allowOverwrite)
+                {
+                    blobExists = await feed.CheckIfBlobExists(relativeBlobPath);
+                }
+
+                if (allowOverwrite || !blobExists)
                 {
                     Log.LogMessage($"Uploading {item} to {relativeBlobPath}.");
                     UploadClient uploadClient = new UploadClient(Log);
@@ -174,12 +181,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 }
                 else
                 {
-                    bool blobExists = await feed.CheckIfBlobExists(relativeBlobPath);
-
-                    if (blobExists)
-                    {
-                        Log.LogError($"Item '{item}' already exists in {relativeBlobPath}.");
-                    }
+                    Log.LogError($"Item '{item}' already exists in {relativeBlobPath}.");
                 }
             }
             catch (Exception exc)
