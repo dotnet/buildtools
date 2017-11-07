@@ -113,6 +113,8 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     // If the feed has not been Init'ed this will be caught in the first iteration
                     if (requiresInit && i == 0)
                     {
+                        // We are piggybacking on this retry so we don't have another one but in case a Init is required we do i-- so we retry the full amount
+                        // of retries defined not one less
                         i--;
                         bool result = await InitAsync();
 
@@ -156,11 +158,9 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
             await clientThrottle.WaitAsync();
 
-            bool blobExists = await feed.CheckIfBlobExists(relativeBlobPath);
-
             try
             {
-                if (!blobExists || allowOverwrite)
+                if (allowOverwrite)
                 {
                     Log.LogMessage($"Uploading {item} to {relativeBlobPath}.");
                     UploadClient uploadClient = new UploadClient(Log);
@@ -177,9 +177,9 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     Log.LogError($"Item '{item}' already exists in {relativeBlobPath}.");
                 }
             }
-            catch (Exception)
+            catch (Exception exc)
             {
-                Log.LogError($"Unable to upload to {relativeBlobPath}");
+                Log.LogError($"Unable to upload to {relativeBlobPath} due to {exc}.");
                 throw;
             }
             finally
@@ -190,19 +190,16 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public async Task CreateContainerAsync(IBuildEngine buildEngine)
         {
-            bool containerExists = await feed.CheckIfContainerExists();
-            if (!containerExists)
+            CreateAzureContainer createContainer = new CreateAzureContainer
             {
-                CreateAzureContainer createContainer = new CreateAzureContainer
-                {
-                    AccountKey = feed.AccountKey,
-                    AccountName = feed.AccountName,
-                    ContainerName = feed.ContainerName,
-                    BuildEngine = buildEngine
-                };
+                AccountKey = feed.AccountKey,
+                AccountName = feed.AccountName,
+                ContainerName = feed.ContainerName,
+                FailIfExists = false,
+                BuildEngine = buildEngine
+            };
 
-                await createContainer.ExecuteAsync();
-            }
+            await createContainer.ExecuteAsync();
         }
 
         private bool IsSanityChecked(IEnumerable<string> items)
