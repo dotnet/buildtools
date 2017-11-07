@@ -167,6 +167,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             LocalSettings settings = GetSettings();
             AzureFileSystem fileSystem = GetAzureFileSystem();
 
+            var rng = new Random();
             //retry
             for (int i = 0; i < 10; i++)
             {
@@ -178,7 +179,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 catch (Exception)
                 {
                     Log.LogWarning($"Error while grabbing lease. Retrying ...");
-                    await Task.Delay(TimeSpan.FromMinutes(i+1));
+                    await Task.Delay(new TimeSpan(0, i+1, rng.Next(1, 10)));
                 }
             }
             return false;
