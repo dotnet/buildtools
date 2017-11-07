@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.Build.Framework;
+using Microsoft.DotNet.Build.CloudTestTasks;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json.Linq;
 using Sleet;
@@ -14,6 +15,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using MSBuild = Microsoft.Build.Utilities;
+using CloudTestTasks = Microsoft.DotNet.Build.CloudTestTasks;
 
 namespace Microsoft.DotNet.Build.Tasks.Feed
 {
@@ -25,10 +27,12 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         private const string feedRegex = @"(?<feedurl>https:\/\/(?<accountname>[^\.-]+)(?<domain>[^\/]*)\/((?<token>[a-zA-Z0-9+\/]*?\/\d{4}-\d{2}-\d{2})\/)?(?<containername>[^\/]+)\/(?<relativepath>.*\/)?)index\.json";
         private string feedUrl;
         private SleetSource source;
+        private int retries;
+        private int delay;
 
         public BlobFeed feed;
 
-        public BlobFeedAction(string expectedFeedUrl, string accountKey, MSBuild.TaskLoggingHelper Log)
+        public BlobFeedAction(string expectedFeedUrl, string accountKey, MSBuild.TaskLoggingHelper Log, int retryAttempts, int retryDelay)
         {
             this.Log = Log;
             Match m = Regex.Match(expectedFeedUrl, feedRegex);
@@ -39,6 +43,9 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 string relativePath = m.Groups["relativepath"].Value;
                 feed = new BlobFeed(accountName, accountKey, containerName, relativePath, Log);
                 feedUrl = m.Groups["feedurl"].Value;
+                retries = retryAttempts;
+                delay = retryDelay;
+
                 source = new SleetSource
                 {
                     Name = feed.ContainerName,
@@ -74,13 +81,16 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         public async Task<bool> PushItemsToFeedAsync(IEnumerable<string> items, bool allowOverwrite)
         {
             Log.LogMessage(MessageImportance.Low, $"START pushing items to feed");
+            Random rnd = new Random();
 
             try
             {
                 // In case the first Push attempt fails with an InvalidOperationException we Init the feed and retry the Push command once.
-                // Sleet internally retries 5 times on each package when the push operation fails so we don't need to retry ourselves.
-                for (int i = 0; i <= 1; i++)
+                // We also retry in case Sleet is not able to get a lock on the feed since it does not retry in this case.
+                for (int i = 0; i < retries; i++)
                 {
+                    bool requiresInit = false;
+
                     try
                     {
                         bool result = await PushAsync(items.ToList(), allowOverwrite);
@@ -89,6 +99,23 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     catch (InvalidOperationException ex) when (ex.Message.Contains("init"))
                     {
                         Log.LogWarning($"Sub-feed {source.FeedSubPath} has not been initialized. Initializing now...");
+                        requiresInit = true;
+                    }
+                    catch (InvalidOperationException ex) when (ex.Message.Contains("Unable to obtain a lock on the feed."))
+                    {
+                        Log.LogWarning($"Sleet was not able to get a lock on the feed. Sleeping {delay} seconds and retrying.");
+
+                        // Pushing packages might take more than just 60 seconds, so on each iteration we multiply the defined delay to a random factor
+                        // Using the defaults this could range from 30 seconds to 12.5 minutes.
+                        await Task.Delay(TimeSpan.FromSeconds(rnd.Next(1, 5) * delay));
+                    }
+
+                    // If the feed has not been Init'ed this will be caught in the first iteration
+                    if (requiresInit && i == 0)
+                    {
+                        // We are piggybacking on this retry so we don't have another one but in case a Init is required we do i-- so we retry the full amount
+                        // of retries defined not one less
+                        i--;
                         bool result = await InitAsync();
 
                         if (result)
@@ -98,11 +125,14 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                         else
                         {
                             Log.LogError($"Initializing sub-feed {source.FeedSubPath} failed!");
+                            return false;
                         }
                     }
                 }
 
-              return false;
+                Log.LogError($"Pushing packages to sub-feed {source.FeedSubPath} failed!");
+
+                return false;
             }
             catch (Exception e)
             {
@@ -110,6 +140,66 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             }
 
             return !Log.HasLoggedErrors;
+        }
+
+        public async Task UploadAssets(ITaskItem item, SemaphoreSlim clientThrottle, bool allowOverwrite = false)
+        {
+            string relativeBlobPath = item.GetMetadata("RelativeBlobPath");
+            if (string.IsNullOrEmpty(relativeBlobPath))
+            {
+                string fileName = Path.GetFileName(item.ItemSpec);
+                string recursiveDir = item.GetMetadata("RecursiveDir");
+                relativeBlobPath = $"{feed.RelativePath}{recursiveDir}{fileName}";
+            }
+
+            relativeBlobPath = relativeBlobPath.Replace("\\", "/");
+
+            Log.LogMessage($"Uploading {relativeBlobPath}");
+
+            await clientThrottle.WaitAsync();
+
+            try
+            {
+                if (allowOverwrite)
+                {
+                    Log.LogMessage($"Uploading {item} to {relativeBlobPath}.");
+                    UploadClient uploadClient = new UploadClient(Log);
+                    await uploadClient.UploadBlockBlobAsync(
+                        CancellationToken,
+                        feed.AccountName,
+                        feed.AccountKey,
+                        feed.ContainerName,
+                        item.ItemSpec,
+                        relativeBlobPath);
+                }
+                else
+                {
+                    Log.LogError($"Item '{item}' already exists in {relativeBlobPath}.");
+                }
+            }
+            catch (Exception exc)
+            {
+                Log.LogError($"Unable to upload to {relativeBlobPath} due to {exc}.");
+                throw;
+            }
+            finally
+            {
+                clientThrottle.Release();
+            }
+        }
+
+        public async Task CreateContainerAsync(IBuildEngine buildEngine)
+        {
+            CreateAzureContainer createContainer = new CreateAzureContainer
+            {
+                AccountKey = feed.AccountKey,
+                AccountName = feed.AccountName,
+                ContainerName = feed.ContainerName,
+                FailIfExists = false,
+                BuildEngine = buildEngine
+            };
+
+            await createContainer.ExecuteAsync();
         }
 
         private bool IsSanityChecked(IEnumerable<string> items)
@@ -137,8 +227,6 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         private LocalSettings GetSettings()
         {
-            
-
             SleetSettings sleetSettings = new SleetSettings()
             {
                 Sources = new List<SleetSource>
