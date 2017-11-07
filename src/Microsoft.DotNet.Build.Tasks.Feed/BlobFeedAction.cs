@@ -81,7 +81,6 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         public async Task<bool> PushItemsToFeedAsync(IEnumerable<string> items, bool allowOverwrite)
         {
             Log.LogMessage(MessageImportance.Low, $"START pushing items to feed");
-            bool requiresInit = false;
 
             try
             {
@@ -89,6 +88,8 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 // We also retry in case Sleet is not able to get a lock on the feed since it does not retry in this case.
                 for (int i = 0; i < retries; i++)
                 {
+                    bool requiresInit = false;
+
                     try
                     {
                         bool result = await PushAsync(items.ToList(), allowOverwrite);
@@ -103,11 +104,16 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     {
                         Log.LogWarning($"Sleet was not able to get a lock on the feed. Sleeping {delay} seconds and retrying.");
                         await Task.Delay(delay);
+
+                        // Pushing packages might take more than just 60 seconds, so on each iteration we add the defined value to itself so wait for
+                        // a bit more the next iterations
+                        delay += delay;
                     }
 
-                    if (requiresInit)
+                    // If the feed has not been Init'ed this will be caught in the first iteration
+                    if (requiresInit && i == 0)
                     {
-                        requiresInit = false;
+                        i--;
                         bool result = await InitAsync();
 
                         if (result)
@@ -135,15 +141,26 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public async Task UploadAssets(ITaskItem item, SemaphoreSlim clientThrottle, bool allowOverwrite = false)
         {
-            string relativeBlobPath = $"{feed.RelativePath}{item.GetMetadata("RelativeBlobPath").Replace("\\", "/")}"; 
+            string relativeBlobPath = item.GetMetadata("RelativeBlobPath");
             if (string.IsNullOrEmpty(relativeBlobPath))
-                throw new Exception(string.Format("Metadata 'RelativeBlobPath' is missing for item '{0}'.", item.ItemSpec));
-
+                throw new Exception($"Metadata 'RelativeBlobPath' is missing for item '{item.ItemSpec}'.") ;
+            relativeBlobPath = $"{feed.RelativePath}{relativeBlobPath.Replace("\\", "/")}"; 
+            
             Log.LogMessage($"Uploading {relativeBlobPath}");
 
             await clientThrottle.WaitAsync();
 
-            CloudTestTasks.AzureBlobLease blobLease = new CloudTestTasks.AzureBlobLease(feed.AccountName, feed.AccountKey, string.Empty, feed.ContainerName, relativeBlobPath, Log, "15", "5000");
+            // this defines the lease for 15 seconds (max is 60) and 3000 milliseconds between requests
+            CloudTestTasks.AzureBlobLease blobLease = new CloudTestTasks.AzureBlobLease(
+                feed.AccountName, 
+                feed.AccountKey, 
+                string.Empty, 
+                feed.ContainerName, 
+                relativeBlobPath, 
+                Log, 
+                "15", 
+                "5000");
+
             bool blobExists = await feed.CheckIfBlobExists(relativeBlobPath);
             bool isLeaseRequired = allowOverwrite && blobExists;
             string leaseId = null;
@@ -155,11 +172,13 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     leaseId = blobLease.Acquire();
                     Log.LogMessage($"Obtained lease ID {leaseId} for {relativeBlobPath}.");
                 }
-                catch (Exception)
+                catch (Exception exc)
                 {
-                    Log.LogError($"Unable to obtain lease on {relativeBlobPath}");
+                    Log.LogError($"Unable to obtain lease on {relativeBlobPath} due to exception: {exc}");
+                    throw;
                 }
             }
+
             try
             {
                 if (!blobExists || allowOverwrite)

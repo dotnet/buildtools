@@ -29,7 +29,8 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public int RetryAttempts { get; set; } = 5;
 
-        public int RetryDelayInSeconds { get; set; } = 5;
+        // Sleet's default delay
+        public int RetryDelayInSeconds { get; set; } = 60;
 
         public int MaxClients { get; set; } = 8;
 
@@ -78,7 +79,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             List<string> stringList = new List<string>();
             foreach (var item in taskItems)
             {
-                     stringList.Add(item.ItemSpec);
+                stringList.Add(item.ItemSpec);
             }
 
             return stringList;

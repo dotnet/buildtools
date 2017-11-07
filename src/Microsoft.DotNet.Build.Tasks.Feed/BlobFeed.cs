@@ -39,13 +39,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             RelativePath = relativePath;
         }
 
-        public string FeedContainerUrl
-        {
-            get
-            {
-                return AzureHelper.GetContainerRestUrl(AccountName, ContainerName);
-            }
-        }
+        public string FeedContainerUrl => AzureHelper.GetContainerRestUrl(AccountName, ContainerName);
 
         public async Task<bool> CheckIfBlobExists(string blobPath)
         {
