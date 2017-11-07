@@ -30,6 +30,9 @@
     <Compile Include="..\Microsoft.DotNet.Build.CloudTestTasks\AzureHelper.cs">
       <Link>AzureHelper.cs</Link>
     </Compile>
+    <Compile Include="..\Microsoft.DotNet.Build.CloudTestTasks\CreateAzureContainer.cs">
+      <Link>CreateAzureContainer.cs</Link>
+    </Compile>
     <Compile Include="..\Microsoft.DotNet.Build.CloudTestTasks\UploadClient.cs">
       <Link>UploadClient.cs</Link>
     </Compile>

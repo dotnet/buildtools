@@ -28,7 +28,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         private string feedUrl;
         private SleetSource source;
         private int retries;
-        private TimeSpan delay;
+        private int delay;
 
         public BlobFeed feed;
 
@@ -44,7 +44,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 feed = new BlobFeed(accountName, accountKey, containerName, relativePath, Log);
                 feedUrl = m.Groups["feedurl"].Value;
                 retries = retryAttempts;
-                delay = TimeSpan.FromSeconds(retryDelay);
+                delay = retryDelay;
 
                 source = new SleetSource
                 {
@@ -81,6 +81,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         public async Task<bool> PushItemsToFeedAsync(IEnumerable<string> items, bool allowOverwrite)
         {
             Log.LogMessage(MessageImportance.Low, $"START pushing items to feed");
+            Random rnd = new Random();
 
             try
             {
@@ -103,11 +104,10 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     catch (InvalidOperationException ex) when (ex.Message.Contains("Unable to obtain a lock on the feed."))
                     {
                         Log.LogWarning($"Sleet was not able to get a lock on the feed. Sleeping {delay} seconds and retrying.");
-                        await Task.Delay(delay);
 
                         // Pushing packages might take more than just 60 seconds, so on each iteration we add the defined value to itself so wait for
                         // a bit more the next iterations
-                        delay += delay;
+                        await Task.Delay(TimeSpan.FromSeconds(rnd.Next(1, 5) * delay));
                     }
 
                     // If the feed has not been Init'ed this will be caught in the first iteration
@@ -123,6 +123,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                         else
                         {
                             Log.LogError($"Initializing sub-feed {source.FeedSubPath} failed!");
+                            return false;
                         }
                     }
                 }
@@ -143,41 +144,19 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         {
             string relativeBlobPath = item.GetMetadata("RelativeBlobPath");
             if (string.IsNullOrEmpty(relativeBlobPath))
-                throw new Exception($"Metadata 'RelativeBlobPath' is missing for item '{item.ItemSpec}'.") ;
-            relativeBlobPath = $"{feed.RelativePath}{relativeBlobPath.Replace("\\", "/")}"; 
-            
+            {
+                string fileName = Path.GetFileName(item.ItemSpec);
+                string recursiveDir = item.GetMetadata("RecursiveDir");
+                relativeBlobPath = $"{feed.RelativePath}{recursiveDir}{fileName}";
+            }
+
+            relativeBlobPath = relativeBlobPath.Replace("\\", "/");
+
             Log.LogMessage($"Uploading {relativeBlobPath}");
 
             await clientThrottle.WaitAsync();
 
-            // this defines the lease for 15 seconds (max is 60) and 3000 milliseconds between requests
-            CloudTestTasks.AzureBlobLease blobLease = new CloudTestTasks.AzureBlobLease(
-                feed.AccountName, 
-                feed.AccountKey, 
-                string.Empty, 
-                feed.ContainerName, 
-                relativeBlobPath, 
-                Log, 
-                "15", 
-                "5000");
-
             bool blobExists = await feed.CheckIfBlobExists(relativeBlobPath);
-            bool isLeaseRequired = allowOverwrite && blobExists;
-            string leaseId = null;
-
-            if (isLeaseRequired)
-            {
-                try
-                {
-                    leaseId = blobLease.Acquire();
-                    Log.LogMessage($"Obtained lease ID {leaseId} for {relativeBlobPath}.");
-                }
-                catch (Exception exc)
-                {
-                    Log.LogError($"Unable to obtain lease on {relativeBlobPath} due to exception: {exc}");
-                    throw;
-                }
-            }
 
             try
             {
@@ -191,13 +170,11 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                         feed.AccountKey,
                         feed.ContainerName,
                         item.ItemSpec,
-                        relativeBlobPath,
-                        leaseId);
-
+                        relativeBlobPath);
                 }
                 else
                 {
-                    Log.LogMessage($"Skipping uploading of {item} to {relativeBlobPath}. Already exists.");
+                    Log.LogError($"Item '{item}' already exists in {relativeBlobPath}.");
                 }
             }
             catch (Exception)
@@ -207,12 +184,24 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             }
             finally
             {
-                if (isLeaseRequired)
-                {
-                    blobLease.Release();
-                }
-
                 clientThrottle.Release();
+            }
+        }
+
+        public async Task CreateContainerAsync(IBuildEngine buildEngine)
+        {
+            bool containerExists = await feed.CheckIfContainerExists();
+            if (!containerExists)
+            {
+                CreateAzureContainer createContainer = new CreateAzureContainer
+                {
+                    AccountKey = feed.AccountKey,
+                    AccountName = feed.AccountName,
+                    ContainerName = feed.ContainerName,
+                    BuildEngine = buildEngine
+                };
+
+                await createContainer.ExecuteAsync();
             }
         }
 

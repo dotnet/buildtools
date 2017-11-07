@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.Build.Framework;
+using Microsoft.DotNet.Build.CloudTestTasks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,10 +30,11 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public int RetryAttempts { get; set; } = 5;
 
-        // Sleet's default delay
-        public int RetryDelayInSeconds { get; set; } = 60;
+        public int RetryDelayInSeconds { get; set; } = 30;
 
         public int MaxClients { get; set; } = 8;
+
+        public bool SkipCreateContainer { get; set; } = false;
 
         public override bool Execute()
         {
@@ -44,6 +46,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             try
             {
                 Log.LogMessage(MessageImportance.High, "Performing feed push...");
+
                 if (ItemsToPush == null)
                 {
                     Log.LogError($"No items to push. Please check ItemGroup ItemsToPush.");
@@ -51,6 +54,12 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 else
                 {
                     BlobFeedAction blobFeedAction = new BlobFeedAction(ExpectedFeedUrl, AccountKey, Log, RetryAttempts, RetryDelayInSeconds);
+
+                    if (!SkipCreateContainer)
+                    {
+                        await blobFeedAction.CreateContainerAsync(this.BuildEngine);
+                    }
+
                     List<string> items = ConvertToStringLists(ItemsToPush);
 
                     if (!PublishFlatContainer)
@@ -71,6 +80,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             {
                 Log.LogErrorFromException(e, true);
             }
+
             return !Log.HasLoggedErrors;
         }
 

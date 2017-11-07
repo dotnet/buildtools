@@ -43,7 +43,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public void LogError(string data)
         {
-            _log.LogError(data);
+            _log.LogWarning(data);
         }
 
         public void LogInformation(string data)

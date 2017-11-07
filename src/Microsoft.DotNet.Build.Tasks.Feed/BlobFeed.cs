@@ -41,6 +41,32 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public string FeedContainerUrl => AzureHelper.GetContainerRestUrl(AccountName, ContainerName);
 
+        public async Task<bool> CheckIfContainerExists()
+        {
+            string url = $"{FeedContainerUrl}?restype=container";
+            using (HttpClient client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Clear();
+                var request = AzureHelper.RequestMessage("GET", url, AccountName, AccountKey).Invoke();
+                using (HttpResponseMessage response = await client.SendAsync(request))
+                {
+                    if (response.IsSuccessStatusCode)
+                    {
+                        Log.LogMessage(
+                            MessageImportance.Low,
+                            $"Container {ContainerName} exists for {AccountName}: Status Code:{response.StatusCode} Status Desc: {await response.Content.ReadAsStringAsync()}");
+                    }
+                    else
+                    {
+                        Log.LogMessage(
+                            MessageImportance.Low,
+                            $"Container {ContainerName} does not exist for {AccountName}: Status Code:{response.StatusCode} Status Desc: {await response.Content.ReadAsStringAsync()}");
+                    }
+                    return response.IsSuccessStatusCode;
+                }
+            }
+        }
+
         public async Task<bool> CheckIfBlobExists(string blobPath)
         {
             string url = $"{FeedContainerUrl}/{blobPath}?comp=metadata";
