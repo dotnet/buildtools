@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Globalization;
-using System.IO;
-using System.Net;
-using System.Threading.Tasks;
-using System.Net.Http;
 using Microsoft.Build.Framework;
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace Microsoft.DotNet.Build.CloudTestTasks
 {
@@ -56,6 +55,11 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         /// </summary>
         public int WriteOnlyTokenDaysValid { get; set; }
 
+        /// <summary>
+        /// Whether the Container to be created is public or private
+        /// </summary>
+        public bool IsPublic { get; set; } = false;
+
         public override bool Execute()
         {
             return ExecuteAsync().GetAwaiter().GetResult();
@@ -87,7 +91,15 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             Log.LogMessage(MessageImportance.Low, "Sending request to create Container");
             using (HttpClient client = new HttpClient())
             {
-                var createRequest = AzureHelper.RequestMessage("PUT", url, AccountName, AccountKey);
+                List<Tuple<string, string>> additionalHeaders = null;
+
+                if (IsPublic)
+                {
+                    Tuple<string, string> headerBlobType = new Tuple<string, string>("x-ms-blob-public-access", "blob");
+                    additionalHeaders = new List<Tuple<string, string>>() { headerBlobType };
+                }
+
+                var createRequest = AzureHelper.RequestMessage("PUT", url, AccountName, AccountKey, additionalHeaders);
 
                 Func<HttpResponseMessage, bool> validate = (HttpResponseMessage response) =>
                 {
