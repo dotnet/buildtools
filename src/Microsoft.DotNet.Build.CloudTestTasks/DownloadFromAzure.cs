@@ -5,12 +5,11 @@
 using Microsoft.Build.Framework;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 
 namespace Microsoft.DotNet.Build.CloudTestTasks
 {
@@ -31,14 +30,28 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
         public string BlobNamePrefix { get; set; }
 
+        public string BlobNameExtension { get; set; }
+
         public ITaskItem[] BlobNames { get; set; }
-        
-        public override bool Execute()
+
+        public bool DownloadFlatFiles { get; set; }
+
+        public int MaxClients { get; set; } = 8;
+
+        private static readonly CancellationTokenSource TokenSource = new CancellationTokenSource();
+        private static readonly CancellationToken CancellationToken = TokenSource.Token;
+
+        public void Cancel()
         {
-            return ExecuteAsync().GetAwaiter().GetResult();
+            TokenSource.Cancel();
         }
 
-        public async Task<bool> ExecuteAsync()
+        public override bool Execute()
+        {
+            return ExecuteAsync(CancellationToken).GetAwaiter().GetResult();
+        }
+
+        public async Task<bool> ExecuteAsync(CancellationToken ct)
         {
             ParseConnectionString();
             // If the connection string AND AccountKey & AccountName are provided, error out.
@@ -63,7 +76,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                         FilterBlobNames = BlobNamePrefix,
                         BuildEngine = this.BuildEngine,
                         HostObject = this.HostObject
-                    };                    
+                    };
                     listAzureBlobs.Execute();
                     blobNames = listAzureBlobs.BlobNames.ToList();
                 }
@@ -75,16 +88,41 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                         blobNames = blobNames.Where(b => b.StartsWith(BlobNamePrefix)).ToList<string>();
                     }
                 }
-                // track the number of blobs that fail to download
-                int failureCount = 0;
+                
+                if (BlobNameExtension != null)
+                {
+                    blobNames = blobNames.Where(b => Path.GetExtension(b) == BlobNameExtension).ToList<string>();
+                }
+                
+                if (!Directory.Exists(DownloadDirectory))
+                {
+                    Directory.CreateDirectory(DownloadDirectory);
+                }
+                using (var clientThrottle = new SemaphoreSlim(this.MaxClients, this.MaxClients))
+                {
+                    await Task.WhenAll(blobNames.Select(item => DownloadItem(ct, item, clientThrottle)));
+                }
+            }
+            catch (Exception e)
+            {
+                Log.LogErrorFromException(e, true);
+            }
+            return !Log.HasLoggedErrors;
+        }
+
+        private async Task DownloadItem(CancellationToken ct, string blob, SemaphoreSlim clientThrottle)
+        {
+            await clientThrottle.WaitAsync();
+            try {
                 using (HttpClient client = new HttpClient())
                 {
                     client.Timeout = TimeSpan.FromMinutes(10);
-                    foreach (string blob in blobNames)
-                    {
-                        Log.LogMessage(MessageImportance.Low, "Downloading BLOB - {0}", blob);
-                        string urlGetBlob = AzureHelper.GetBlobRestUrl(AccountName, ContainerName, blob);
+                    Log.LogMessage(MessageImportance.Low, "Downloading BLOB - {0}", blob);
+                    string urlGetBlob = AzureHelper.GetBlobRestUrl(AccountName, ContainerName, blob);
+                    string filename = Path.Combine(DownloadDirectory, Path.GetFileName(blob));
 
+                    if (!DownloadFlatFiles)
+                    {
                         int dirIndex = blob.LastIndexOf("/");
                         string blobDirectory = string.Empty;
                         string blobFilename = string.Empty;
@@ -99,9 +137,9 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                             blobFilename = blob.Substring(dirIndex + 1);
 
                             // Trim blob name prefix (directory part) from download to blob directory
-                            if(BlobNamePrefix != null)
+                            if (BlobNamePrefix != null)
                             {
-                                if(BlobNamePrefix.Length > dirIndex)
+                                if (BlobNamePrefix.Length > dirIndex)
                                 {
                                     BlobNamePrefix = BlobNamePrefix.Substring(0, dirIndex);
                                 }
@@ -113,44 +151,45 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                         {
                             Directory.CreateDirectory(downloadBlobDirectory);
                         }
-                        string filename = Path.Combine(downloadBlobDirectory, blobFilename);
+                        filename = Path.Combine(downloadBlobDirectory, blobFilename);
+                    }
 
-                        var createRequest = AzureHelper.RequestMessage("GET", urlGetBlob, AccountName, AccountKey);
+                    var createRequest = AzureHelper.RequestMessage("GET", urlGetBlob, AccountName, AccountKey);
 
-                        using (HttpResponseMessage response = await AzureHelper.RequestWithRetry(Log, client, createRequest))
+                    using (HttpResponseMessage response = await AzureHelper.RequestWithRetry(Log, client, createRequest))
+                    {
+                        if (response.IsSuccessStatusCode)
                         {
-                            if (response.IsSuccessStatusCode)
+                            // Blobs can be files but have the name of a directory.  We'll skip those and log something weird happened.
+                            if (!string.IsNullOrEmpty(Path.GetFileName(filename)))
                             {
-                                // Blobs can be files but have the name of a directory.  We'll skip those and log something weird happened.
-                                if (!string.IsNullOrEmpty(Path.GetFileName(filename)))
-                                {
-                                    Stream responseStream = await response.Content.ReadAsStreamAsync();
+                                Stream responseStream = await response.Content.ReadAsStreamAsync();
 
-                                    using (FileStream sourceStream = File.Open(filename, FileMode.Create))
-                                    {
-                                        responseStream.CopyTo(sourceStream);
-                                    }
-                                }
-                                else
+                                using (FileStream sourceStream = File.Open(filename, FileMode.Create))
                                 {
-                                    Log.LogWarning($"Unable to download blob '{blob}' as it has a directory-like name.  This may cause problems if it was needed.");
+                                    responseStream.CopyTo(sourceStream);
                                 }
                             }
                             else
                             {
-                                Log.LogError("Failed to retrieve blob {0}, the status code was {1}", blob, response.StatusCode);
-                                ++failureCount;
+                                Log.LogWarning($"Unable to download blob '{blob}' as it has a directory-like name.  This may cause problems if it was needed.");
                             }
+                        }
+                        else
+                        {
+                            Log.LogError("Failed to retrieve blob {0}, the status code was {1}", blob, response.StatusCode);
                         }
                     }
                 }
-                Log.LogMessage($"{failureCount} errors seen downloading blobs.");
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Log.LogErrorFromException(e, true);
+                Log.LogErrorFromException(ex, true);
             }
-            return !Log.HasLoggedErrors;
+            finally
+            {
+                clientThrottle.Release();
+            }
         }
     }
 }
