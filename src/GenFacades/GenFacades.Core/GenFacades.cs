@@ -260,7 +260,7 @@ namespace GenFacades
         /// <summary>
         /// Convert the windows PDB winPdbInputPath to portablePdbOutputPath. 
         /// 'dllInputPath' is the DLL that goes along with 'winPdbInputPath'.  
-        /// </summary
+        /// </summary>
         private static void ConvertFromWindowsPdb(string dllInputPath, string winPdbInputPath, string portablePdbOutputPath)
         {
             PdbConverter converter = new PdbConverter(d => Trace.TraceError(d.ToString(CultureInfo.InvariantCulture)));

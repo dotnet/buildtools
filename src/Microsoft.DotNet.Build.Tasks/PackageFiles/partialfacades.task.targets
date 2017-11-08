@@ -45,7 +45,7 @@
     />
 
     <PropertyGroup>
-	  <ProducePdb>true</ProducePdb>
+      <ProducePdb>true</ProducePdb>
       <ProducePdb Condition="'$(DebugSymbols)' == 'false'">false</ProducePdb>
       <GenFacadesIgnoreMissingTypes Condition="'$(GenFacadesIgnoreMissingTypes)' == ''">false</GenFacadesIgnoreMissingTypes>
       <GenFacadesIgnoreBuildAndRevisionMismatch Condition="'$(GenFacadesIgnoreBuildAndRevisionMismatch)' == ''">false</GenFacadesIgnoreBuildAndRevisionMismatch>
@@ -67,7 +67,7 @@
       Seeds="@(GenFacadesSeeds, ',')"
       FacadePath="$(GenFacadesOutputPath.TrimEnd('/'))"
       SeedTypePreferencesUnsplit="@(SeedTypePreference)"
-	  ProducePdb="$(ProducePdb)"
+      ProducePdb="$(ProducePdb)"
       IgnoreMissingTypes="$(GenFacadesIgnoreMissingTypes)"
       IgnoreBuildAndRevisionMismatch="$(GenFacadesIgnoreBuildAndRevisionMismatch)"
       BuildPartialReferenceFacade="$(GenFacadesBuildPartialReferenceFacade)"
