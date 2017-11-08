@@ -65,6 +65,13 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
         public string Context { get; set; }
     }
 
+    public class GitHubComment
+    {
+        public int Id { get; set; }
+        public string Body { get; set; }
+        public GitHubUser User { get; set; }
+    }
+
     public class GitCommit
     {
         public string Sha { get; set; }

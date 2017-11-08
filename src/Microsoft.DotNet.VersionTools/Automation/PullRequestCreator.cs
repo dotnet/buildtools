@@ -77,15 +77,6 @@ namespace Microsoft.DotNet.VersionTools.Automation
                             origin,
                             pullRequestToUpdate.Head.Sha);
 
-                        if (options.TrackDiscardedCommits)
-                        {
-                            description = await CreateDiscardedCommitListBodyAsync(
-                                baseBranch.Project,
-                                pullRequestToUpdate,
-                                headCommit,
-                                client);
-                        }
-
                         string blockedReason = GetUpdateBlockedReason(
                             pullRequestToUpdate.Head,
                             headCommit,
@@ -94,6 +85,15 @@ namespace Microsoft.DotNet.VersionTools.Automation
 
                         if (blockedReason == null)
                         {
+                            if (options.TrackDiscardedCommits)
+                            {
+                                await UpdateDiscardedCommitListAsync(
+                                    baseBranch.Project,
+                                    pullRequestToUpdate,
+                                    headCommit,
+                                    client);
+                            }
+
                             originBranch = new GitHubBranch(
                                 pullRequestToUpdate.Head.Ref,
                                 origin);
@@ -143,7 +143,7 @@ namespace Microsoft.DotNet.VersionTools.Automation
             }
         }
 
-        private async Task<string> CreateDiscardedCommitListBodyAsync(
+        private async Task UpdateDiscardedCommitListAsync(
             GitHubProject baseProject,
             GitHubPullRequest pullRequestToUpdate,
             GitCommit oldCommit,
@@ -167,24 +167,54 @@ namespace Microsoft.DotNet.VersionTools.Automation
                 $" * [`{oldCommit.Sha.Substring(0, 7)}`]({oldCommitsUrl}) {oldCommit.Message}\r\n" +
                 $"{statusLines}";
 
+            // Find comment to update, if one exists.
+            GitHubComment[] prIssueComments = await client.GetAllIssueCommentsAsync(
+                baseProject,
+                pullRequestToUpdate.Number);
+
+            GitHubComment commentToUpdate = prIssueComments
+                .FirstOrDefault(c => c.User.Login == _auth.User);
+
+            string commentBodyToUpdate = commentToUpdate?.Body ?? string.Empty;
+
             // Find insertion point. GitHub always returns \r\n.
             string insertionMarker = $"<{DiscardedCommitElementName}>\r\n\r\n";
             string endInsertionMarker = $"\r\n</{DiscardedCommitElementName}>";
 
-            int elementBegin = pullRequestToUpdate.Body.IndexOf(
+            int elementBegin = commentBodyToUpdate.IndexOf(
                 insertionMarker,
                 StringComparison.Ordinal);
 
+            string newCommentBody;
+
             if (elementBegin != -1)
             {
-                return pullRequestToUpdate.Body.Insert(
+                newCommentBody = commentBodyToUpdate.Insert(
                     elementBegin + insertionMarker.Length,
                     oldCommitEntry);
             }
-            return pullRequestToUpdate.Body +
-                "<details><summary>Discarded auto-update commits (click to expand)</summary>" +
-                $"{insertionMarker}{oldCommitEntry}{endInsertionMarker}" +
-                "</details>";
+            else
+            {
+                newCommentBody = commentBodyToUpdate +
+                    "<details><summary>Discarded auto-update commits (click to expand)</summary>" +
+                    $"{insertionMarker}{oldCommitEntry}{endInsertionMarker}" +
+                    "</details>";
+            }
+
+            if (commentToUpdate == null)
+            {
+                await client.PostCommentAsync(
+                    baseProject,
+                    pullRequestToUpdate.Number,
+                    newCommentBody);
+            }
+            else
+            {
+                await client.PatchCommentAsync(
+                    baseProject,
+                    commentToUpdate.Id,
+                    newCommentBody);
+            }
         }
 
         public static string NotificationString(IEnumerable<string> usernames)
