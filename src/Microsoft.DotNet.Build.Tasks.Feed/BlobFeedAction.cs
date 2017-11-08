@@ -29,6 +29,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         private SleetSource source;
         private int retries;
         private int delay;
+        private bool hasToken = false;
 
         public BlobFeed feed;
 
@@ -45,6 +46,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 feedUrl = m.Groups["feedurl"].Value;
                 retries = retryAttempts;
                 delay = retryDelay;
+                hasToken = !string.IsNullOrEmpty(m.Groups["token"].Value);
 
                 source = new SleetSource
                 {
@@ -205,6 +207,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 AccountName = feed.AccountName,
                 ContainerName = feed.ContainerName,
                 FailIfExists = false,
+                IsPublic = !hasToken,
                 BuildEngine = buildEngine
             };
 
