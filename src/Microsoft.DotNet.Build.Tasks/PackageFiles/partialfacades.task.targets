@@ -41,12 +41,12 @@
     <!-- Move the PDB into a subdirectory for GenFacades if we are producing PDBs -->
     <Move SourceFiles="$(PartialFacadeSymbols)"
           DestinationFolder="$(GenFacadesInputPath)"
-          Condition="'$(DebugSymbols)' != 'false' AND '$(DebugType)' != 'Portable'"
+          Condition="'$(DebugSymbols)' != 'false'"
     />
 
     <PropertyGroup>
       <ProducePdb>true</ProducePdb>
-      <ProducePdb Condition="'$(DebugSymbols)' == 'false' OR '$(DebugType)'=='Portable'">false</ProducePdb>
+      <ProducePdb Condition="'$(DebugSymbols)' == 'false'">false</ProducePdb>
       <GenFacadesIgnoreMissingTypes Condition="'$(GenFacadesIgnoreMissingTypes)' == ''">false</GenFacadesIgnoreMissingTypes>
       <GenFacadesIgnoreBuildAndRevisionMismatch Condition="'$(GenFacadesIgnoreBuildAndRevisionMismatch)' == ''">false</GenFacadesIgnoreBuildAndRevisionMismatch>
     </PropertyGroup>

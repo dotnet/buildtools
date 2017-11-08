@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "Microsoft.Cci": "4.0.0-rc3-24214-00",
+    "Microsoft.DiaSymReader.Converter": "1.1.0-beta1-62225-01",
     "System.Diagnostics.TextWriterTraceListener": "4.0.0",
     "System.Diagnostics.FileVersionInfo": "4.0.0",
     "System.Reflection.TypeExtensions": "4.1.0",
