@@ -13,6 +13,7 @@ using Microsoft.Cci.Extensions;
 using Microsoft.Cci.MutableCodeModel;
 using System.Globalization;
 using Microsoft.DiaSymReader.Tools;
+using System.Runtime.InteropServices;
 
 namespace GenFacades
 {
@@ -189,7 +190,8 @@ namespace GenFacades
                         // Convert from portable to windows PDBs if necessary.  If we convert
                         // set the pdbOutput path to a *.windows.pdb file so we can convert it back 
                         // to 'finalPdbOutputPath'.
-                        needsConversion = ConvertFromPortableIfNecessary(facade.Location, ref pdbLocation);
+                        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                            needsConversion = ConvertFromPortableIfNecessary(facade.Location, ref pdbLocation);
                         if (needsConversion)
                         {                
                             // We want to keep the same file name for the PDB because it is used as a key when looking it up on a symbol server 
