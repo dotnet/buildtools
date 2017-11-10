@@ -27,13 +27,11 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         private const string feedRegex = @"(?<feedurl>https:\/\/(?<accountname>[^\.-]+)(?<domain>[^\/]*)\/((?<token>[a-zA-Z0-9+\/]*?\/\d{4}-\d{2}-\d{2})\/)?(?<containername>[^\/]+)\/(?<relativepath>.*\/)?)index\.json";
         private string feedUrl;
         private SleetSource source;
-        private int retries;
-        private int delay;
         private bool hasToken = false;
 
         public BlobFeed feed;
 
-        public BlobFeedAction(string expectedFeedUrl, string accountKey, MSBuild.TaskLoggingHelper Log, int retryAttempts, int retryDelay)
+        public BlobFeedAction(string expectedFeedUrl, string accountKey, MSBuild.TaskLoggingHelper Log)
         {
             this.Log = Log;
             Match m = Regex.Match(expectedFeedUrl, feedRegex);
@@ -44,8 +42,6 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 string relativePath = m.Groups["relativepath"].Value;
                 feed = new BlobFeed(accountName, accountKey, containerName, relativePath, Log);
                 feedUrl = m.Groups["feedurl"].Value;
-                retries = retryAttempts;
-                delay = retryDelay;
                 hasToken = !string.IsNullOrEmpty(m.Groups["token"].Value);
 
                 source = new SleetSource
