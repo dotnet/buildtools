@@ -28,10 +28,6 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public bool PublishFlatContainer { get; set; }
 
-        public int RetryAttempts { get; set; } = 5;
-
-        public int RetryDelayInSeconds { get; set; } = 30;
-
         public int MaxClients { get; set; } = 8;
 
         public bool SkipCreateContainer { get; set; } = false;
@@ -53,7 +49,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 }
                 else
                 {
-                    BlobFeedAction blobFeedAction = new BlobFeedAction(ExpectedFeedUrl, AccountKey, Log, RetryAttempts, RetryDelayInSeconds);
+                    BlobFeedAction blobFeedAction = new BlobFeedAction(ExpectedFeedUrl, AccountKey, Log);
 
                     if (!SkipCreateContainer)
                     {

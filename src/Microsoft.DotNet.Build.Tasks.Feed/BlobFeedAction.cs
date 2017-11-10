@@ -27,13 +27,11 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         private const string feedRegex = @"(?<feedurl>https:\/\/(?<accountname>[^\.-]+)(?<domain>[^\/]*)\/((?<token>[a-zA-Z0-9+\/]*?\/\d{4}-\d{2}-\d{2})\/)?(?<containername>[^\/]+)\/(?<relativepath>.*\/)?)index\.json";
         private string feedUrl;
         private SleetSource source;
-        private int retries;
-        private int delay;
         private bool hasToken = false;
 
         public BlobFeed feed;
 
-        public BlobFeedAction(string expectedFeedUrl, string accountKey, MSBuild.TaskLoggingHelper Log, int retryAttempts, int retryDelay)
+        public BlobFeedAction(string expectedFeedUrl, string accountKey, MSBuild.TaskLoggingHelper Log)
         {
             this.Log = Log;
             Match m = Regex.Match(expectedFeedUrl, feedRegex);
@@ -44,8 +42,6 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 string relativePath = m.Groups["relativepath"].Value;
                 feed = new BlobFeed(accountName, accountKey, containerName, relativePath, Log);
                 feedUrl = m.Groups["feedurl"].Value;
-                retries = retryAttempts;
-                delay = retryDelay;
                 hasToken = !string.IsNullOrEmpty(m.Groups["token"].Value);
 
                 source = new SleetSource
@@ -87,56 +83,9 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
             try
             {
-                // In case the first Push attempt fails with an InvalidOperationException we Init the feed and retry the Push command once.
-                // We also retry in case Sleet is not able to get a lock on the feed since it does not retry in this case.
-                for (int i = 0; i < retries; i++)
-                {
-                    bool requiresInit = false;
 
-                    try
-                    {
-                        bool result = await PushAsync(items.ToList(), allowOverwrite);
-                        return result;
-                    }
-                    catch (InvalidOperationException ex) when (ex.Message.Contains("init"))
-                    {
-                        Log.LogWarning($"Sub-feed {source.FeedSubPath} has not been initialized. Initializing now...");
-                        requiresInit = true;
-                    }
-                    catch (InvalidOperationException ex) when (ex.Message.Contains("Unable to obtain a lock on the feed."))
-                    {
-                        int delayInSeconds = rnd.Next(1, 5) * delay;
-
-                        Log.LogWarning($"Sleet was not able to get a lock on the feed. Sleeping {delayInSeconds} seconds and retrying.");
-
-                        // Pushing packages might take more than just 60 seconds, so on each iteration we multiply the defined delay to a random factor
-                        // Using the defaults this could range from 30 seconds to 12.5 minutes for all 5 (default) retries
-                        await Task.Delay(TimeSpan.FromSeconds(delayInSeconds));
-                    }
-
-                    // If the feed has not been Init'ed this will be caught in the first iteration
-                    if (requiresInit && i == 0)
-                    {
-                        // We are piggybacking on this retry so we don't have another one but in case a Init is required we do i-- so we retry the full amount
-                        // of retries defined not one less
-                        i--;
-                        bool result = await InitAsync();
-
-                        if (result)
-                        {
-                            Log.LogMessage($"Initializing sub-feed {source.FeedSubPath} succeeded!");
-                        }
-                        else
-                        {
-                            Log.LogError($"Initializing sub-feed {source.FeedSubPath} failed!");
-                            return false;
-                        }
-                    }
-                }
-
-                Log.LogError($"Pushing packages to sub-feed {source.FeedSubPath} failed!");
-
-                return false;
+                bool result = await PushAsync(items.ToList(), allowOverwrite);
+                return result;
             }
             catch (Exception e)
             {
@@ -201,6 +150,8 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public async Task CreateContainerAsync(IBuildEngine buildEngine)
         {
+            Log.LogMessage($"Creating container {feed.ContainerName}...");
+
             CreateAzureContainer createContainer = new CreateAzureContainer
             {
                 AccountKey = feed.AccountKey,
@@ -212,6 +163,27 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             };
 
             await createContainer.ExecuteAsync();
+
+            Log.LogMessage($"Creating container {feed.ContainerName} succeeded!");
+
+            try
+            {
+
+                bool result = await InitAsync();
+
+                if (result)
+                {
+                    Log.LogMessage($"Initializing sub-feed {source.FeedSubPath} succeeded!");
+                }
+                else
+                {
+                    throw new Exception($"Initializing sub-feed {source.FeedSubPath} failed!");
+                }
+            }
+            catch (Exception e)
+            {
+                Log.LogErrorFromException(e);
+            }
         }
 
         private bool IsSanityChecked(IEnumerable<string> items)
@@ -266,7 +238,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         {
             LocalSettings settings = GetSettings();
             AzureFileSystem fileSystem = GetAzureFileSystem();
-            bool result = await PushCommand.RunAsync(settings, fileSystem, items.ToList(), allowOverwrite, !allowOverwrite, new SleetLogger(Log));
+            bool result = await PushCommand.RunAsync(settings, fileSystem, items.ToList(), allowOverwrite, false, new SleetLogger(Log));
             return result;
         }
 

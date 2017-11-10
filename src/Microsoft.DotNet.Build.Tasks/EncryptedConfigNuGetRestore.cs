@@ -107,7 +107,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
                 // Get settings relative to the input file
                 var settings = restoreContext.GetSettings(file.DirectoryName);
-
+                
                 // BUGFIX
                 // The null here causes an exception downstream. Instead, inline the important code.
                 //var sources = restoreContext.GetEffectiveSources(settings, null);
