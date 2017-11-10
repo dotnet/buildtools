@@ -8,8 +8,6 @@
     Optional properties:
 
     PushToBlobFeed_Overwrite - Set to true if you want to allow overrriting of existing files or packages. Defaults to 'false'.
-    PushToBlobFeed_RetryAttempts - Number of retries on failure to push.
-    PushToBlobFeed_RetryDelayInSeconds - Number of seconds to wait between retries.
     PushToBlobFeed_MaxClients - Number of clients to push in parallel.
 
     FileRelativePathBase - The base relative path from the blob feed root for any files uploaded. Defaults to 'assets'.
@@ -36,8 +34,6 @@
 
   <PropertyGroup>
     <PushToBlobFeed_Overwrite Condition="'$(PushToBlobFeed_Overwrite)' == ''">false</PushToBlobFeed_Overwrite>
-    <PushToBlobFeed_RetryAttempts Condition="'$(PushToBlobFeed_RetryAttempts)' == ''">5</PushToBlobFeed_RetryAttempts>
-    <PushToBlobFeed_RetryDelayInSeconds Condition="'$(PushToBlobFeed_RetryDelayInSeconds)' == ''">30</PushToBlobFeed_RetryDelayInSeconds>
     <PushToBlobFeed_MaxClients Condition="'$(PushToBlobFeed_MaxClients)' == ''">8</PushToBlobFeed_MaxClients>
     <FileRelativePathBase Condition="'$(FileRelativePathBase)' == ''">assets</FileRelativePathBase>
     <FileRelativePathBase Condition="!HasTrailingSlash('$(FileRelativePathBase)')">$(FileRelativePathBase)/</FileRelativePathBase>
@@ -62,8 +58,6 @@
                     AccountKey="$(AccountKey)"
                     ItemsToPush="@(_ItemsToPush)"
                     Overwrite="$(PushToBlobFeed_Overwrite)"
-                    RetryAttempts="$(PushToBlobFeed_RetryAttempts)"
-                    RetryDelayInSeconds="$(PushToBlobFeed_RetryDelayInSeconds)"
                     MaxClients="$(PushToBlobFeed_MaxClients)" />
   </Target>
 
@@ -89,8 +83,6 @@
                     ItemsToPush="@(_ItemsToPush)"
                     PublishFlatContainer="true"
                     Overwrite="$(PushToBlobFeed_Overwrite)"
-                    RetryAttempts="$(PushToBlobFeed_RetryAttempts)"
-                    RetryDelayInSeconds="$(PushToBlobFeed_RetryDelayInSeconds)"
                     MaxClients="$(PushToBlobFeed_MaxClients)" />
 
   </Target>

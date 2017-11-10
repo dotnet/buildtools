@@ -83,44 +83,9 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
             try
             {
-                for (int i = 0; i <= 2; i++)
-                {
-                    bool requiresInit = false;
 
-                    try
-                    {
-                        bool result = await PushAsync(items.ToList(), allowOverwrite);
-                        return result;
-                    }
-                    catch (InvalidOperationException ex) when (ex.Message.Contains("init"))
-                    {
-                        Log.LogWarning($"Sub-feed {source.FeedSubPath} has not been initialized. Initializing now...");
-                        requiresInit = true;
-                    }
-
-                    // If the feed has not been Init'ed this will be caught in the first iteration
-                    if (requiresInit && i == 0)
-                    {
-                        // We are piggybacking on this retry so we don't have another one but in case a Init is required we do i-- so we retry the full amount
-                        // of retries defined not one less
-                        i--;
-                        bool result = await InitAsync();
-
-                        if (result)
-                        {
-                            Log.LogMessage($"Initializing sub-feed {source.FeedSubPath} succeeded!");
-                        }
-                        else
-                        {
-                            Log.LogError($"Initializing sub-feed {source.FeedSubPath} failed!");
-                            return false;
-                        }
-                    }
-                }
-
-                Log.LogError($"Pushing packages to sub-feed {source.FeedSubPath} failed!");
-
-                return false;
+                bool result = await PushAsync(items.ToList(), allowOverwrite);
+                return result;
             }
             catch (Exception e)
             {
@@ -185,6 +150,8 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public async Task CreateContainerAsync(IBuildEngine buildEngine)
         {
+            Log.LogMessage($"Creating container {feed.ContainerName}...");
+
             CreateAzureContainer createContainer = new CreateAzureContainer
             {
                 AccountKey = feed.AccountKey,
@@ -196,6 +163,27 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             };
 
             await createContainer.ExecuteAsync();
+
+            Log.LogMessage($"Creating container {feed.ContainerName} succeeded!");
+
+            try
+            {
+
+                bool result = await InitAsync();
+
+                if (result)
+                {
+                    Log.LogMessage($"Initializing sub-feed {source.FeedSubPath} succeeded!");
+                }
+                else
+                {
+                    throw new Exception($"Initializing sub-feed {source.FeedSubPath} failed!");
+                }
+            }
+            catch (Exception e)
+            {
+                Log.LogErrorFromException(e);
+            }
         }
 
         private bool IsSanityChecked(IEnumerable<string> items)
