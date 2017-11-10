@@ -266,7 +266,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         {
             LocalSettings settings = GetSettings();
             AzureFileSystem fileSystem = GetAzureFileSystem();
-            bool result = await PushCommand.RunAsync(settings, fileSystem, items.ToList(), allowOverwrite, !allowOverwrite, new SleetLogger(Log));
+            bool result = await PushCommand.RunAsync(settings, fileSystem, items.ToList(), allowOverwrite, false, new SleetLogger(Log));
             return result;
         }
 
