@@ -1,53 +1,98 @@
 <Project ToolsVersion="12.0" DefaultTargets="PublishOutputLeg" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--
+    Required properties:
+
+    ExpectedFeedUrl - This is the full URL to the index.json file for the blob feed.
+    AccountKey - This is the access token used to gain write access to the blob feed.
+
+    Optional properties:
+
+    PushToBlobFeed_Overwrite - Set to true if you want to allow overrriting of existing files or packages. Defaults to 'false'.
+    PushToBlobFeed_RetryAttempts - Number of retries on failure to push.
+    PushToBlobFeed_RetryDelayInSeconds - Number of seconds to wait between retries.
+    PushToBlobFeed_MaxClients - Number of clients to push in parallel.
+
+    FileRelativePathBase - The base relative path from the blob feed root for any files uploaded. Defaults to 'assets'.
+
+    Selecting packages for publish:
+
+    PackagesToPublishPattern - Property to declare a file glob for selecting the packages to be pushed. (eg. $(PackageOutput)*.nupkg)
+    PackagesToPublish - Item group that contains a list of packages to be pushed, if glob isn't enough.
+
+    Selecting files for publish:
+
+    FilesToPublishPattern - Property to declare a file glob for selecting the files to be pushed. (eg. $(OutputPath)*.zip)
+    FilesToPublish - Item group that contains a list of files to be pushed, if glob isn't enough.
+    %(RelativeBlobPath) - Metadata that can be put on file items to control the relative path where the file
+    goes underneath the blob feed. If not specfied it is default based on the FileRelativePathBase
+  -->
+
   <PropertyGroup>
     <_TaskDir>$(MSBuildThisFileDirectory)net46/</_TaskDir>
     <_TaskDir Condition="'$(MSBuildRuntimeType)' == 'Core'">$(MSBuildThisFileDirectory)netstandard1.5/</_TaskDir>
   </PropertyGroup>
   <UsingTask TaskName="PushToBlobFeed" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
   <UsingTask TaskName="ConfigureInputFeeds" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
-  
-    <ItemGroup Condition="'$(ItemsToPushGlobPattern)' != ''">
-      <ItemsToPush Include="$(ItemsToPushGlobPattern)" />
+
+  <PropertyGroup>
+    <PushToBlobFeed_Overwrite Condition="'$(PushToBlobFeed_Overwrite)' == ''">false</PushToBlobFeed_Overwrite>
+    <PushToBlobFeed_RetryAttempts Condition="'$(PushToBlobFeed_RetryAttempts)' == ''">5</PushToBlobFeed_RetryAttempts>
+    <PushToBlobFeed_RetryDelayInSeconds Condition="'$(PushToBlobFeed_RetryDelayInSeconds)' == ''">30</PushToBlobFeed_RetryDelayInSeconds>
+    <PushToBlobFeed_MaxClients Condition="'$(PushToBlobFeed_MaxClients)' == ''">8</PushToBlobFeed_MaxClients>
+    <FileRelativePathBase Condition="'$(FileRelativePathBase)' == ''">assets</FileRelativePathBase>
+    <FileRelativePathBase Condition="!HasTrailingSlash('$(FileRelativePathBase)')">$(FileRelativePathBase)/</FileRelativePathBase>
+  </PropertyGroup>
+
+
+  <Target Name="PublishPackagesToBlobFeed" DependsOnTargets="@(PublishPackagesToBlobFeedDependsOn)" >
+    <Error Text="The ExpectedFeedUrl  property must be set on the command line."
+          Condition="'$(ExpectedFeedUrl)' == ''" />
+    <Error Text="The AccountKey property must be set on the command line."
+          Condition="'$(AccountKey)' == ''" />
+
+    <ItemGroup>
+      <_ItemsToPush Remove="@(_ItemsToPush)" />
+      <_ItemsToPush Condition="'$(PackagesToPublishPattern)' != ''" Include="$(PackagesToPublishPattern)" />
+      <_ItemsToPush Include="@(PackagesToPublish)" />
     </ItemGroup>
 
-    <!-- This is the standard publish target. It can be used to publish assets for the intermediate output of individual build legs and
-         the finalized output of an official build. 
-         ExpectedFeedUrl - The url of the nuget feed you would like to generate (should contain the storage account, container and relative path) and end with index.json
-         AccountKey - The access key from your Azure storage account 
-         ItemsToPush - items to publish to feed
-         
-         Optional parameters:
-         IndexDirectory - the directory in which the temporary index.json files live
-         PublishFlatContainer - push without generating the feed useful for flat assets like installers
-         Overwrite - Allow overwrite, will skip if file already exists when false
+    <Error Condition="'@(_ItemsToPush)' == ''" Text="No packages to push." />
 
-        PublishDependsOn can be customized at build time on the commandline to determine the pre steps required to publish 
-    -->
-
-    <Target Name="PublishOutputLeg" DependsOnTargets="@(PublishDependsOn)" >
-      <Error Text="The ExpectedFeedUrl  property must be set on the command line."  
-            Condition="'$(ExpectedFeedUrl)' == ''" />  
-      <Error Text="The AccountKey property must be set on the command line."  
-            Condition="'$(AccountKey)' == ''" />
-      
-      <Message Importance="High" Text="Publish to container started" />
-      <PushToBlobFeed ExpectedFeedUrl="$(ExpectedFeedUrl)"
-                      AccountKey="$(AccountKey)"
-                      ItemsToPush="@(ItemsToPush)"
-                      Overwrite="$(Overwrite)" />
-    </Target>
-
-  <!-- This is the target used to configure feeds for restore. It can be used to specify the sources from which you would restore your packages from.
-       Parameters to specify:
-       EnableFeeds - ItemGroup which contains sources which are allowed
-      ConfigureInputDependsOn can be customized at build time on the commandline to determine the pre steps required
-  -->
-
-  <Target Name="ConfigureInputFeeds" DependsOnTargets="@(ConfigureInputDependsOn)" >
-    <Error Text="The EnableFeeds ItemGroup must be set on the command line."  
-           Condition="'@(EnableFeeds)' == ''" />
-
-    <Message Importance="High" Text="Configuring input feeds started" />
-    <ConfigureInputFeed EnableFeeds="@(EnableFeeds)" />
+    <PushToBlobFeed ExpectedFeedUrl="$(ExpectedFeedUrl)"
+                    AccountKey="$(AccountKey)"
+                    ItemsToPush="@(_ItemsToPush)"
+                    Overwrite="$(PushToBlobFeed_Overwrite)"
+                    RetryAttempts="$(PushToBlobFeed_RetryAttempts)"
+                    RetryDelayInSeconds="$(PushToBlobFeed_RetryDelayInSeconds)"
+                    MaxClients="$(PushToBlobFeed_MaxClients)" />
   </Target>
+
+  <Target Name="PublishFilesToBlobFeed">
+    <Error Text="The ExpectedFeedUrl  property must be set on the command line."
+          Condition="'$(ExpectedFeedUrl)' == ''" />
+    <Error Text="The AccountKey property must be set on the command line."
+          Condition="'$(AccountKey)' == ''" />
+
+    <ItemGroup>
+      <_ItemsToPush Remove="@(_ItemsToPush)" />
+      <_ItemsToPush Condition="'$(FilesToPublishPattern)' != ''" Include="$(FilesToPublishPattern)" />
+      <_ItemsToPush Include="@(FilesToPublish)" />
+      <_ItemsToPush>
+        <RelativeBlobPath Condition="'%(_ItemsToPush.RelativeBlobPath)' == ''">$(FileRelativePathBase)$([System.String]::Copy('%(RecursiveDir)%(Filename)%(Extension)').Replace('\' ,'/'))</RelativeBlobPath>
+      </_ItemsToPush>
+    </ItemGroup>
+
+    <Error Condition="'@(_ItemsToPush)' == ''" Text="No files to push." />
+
+    <PushToBlobFeed ExpectedFeedUrl="$(ExpectedFeedUrl)"
+                    AccountKey="$(AccountKey)"
+                    ItemsToPush="@(_ItemsToPush)"
+                    PublishFlatContainer="true"
+                    Overwrite="$(PushToBlobFeed_Overwrite)"
+                    RetryAttempts="$(PushToBlobFeed_RetryAttempts)"
+                    RetryDelayInSeconds="$(PushToBlobFeed_RetryDelayInSeconds)"
+                    MaxClients="$(PushToBlobFeed_MaxClients)" />
+
+  </Target>
+
 </Project>
