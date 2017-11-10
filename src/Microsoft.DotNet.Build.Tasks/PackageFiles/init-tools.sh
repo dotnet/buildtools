@@ -93,4 +93,22 @@ __MNCA_FOLDER=$(dirname $__DOTNET_CMD)/shared/Microsoft.NETCore.App
 __HIGHEST_RUNTIME_VERSION=`ls $__MNCA_FOLDER | sed 'r/\([0-9]\+\).*/\1/g' | sort -n | tail -1`
 sed -i -e "s/1.1.0/$__HIGHEST_RUNTIME_VERSION/g" $__TOOLRUNTIME_DIR/*.runtimeconfig.json
 
+# Download the package version props file, if passed in the environment.
+__PACKAGE_VERSION_PROPS_URL="${PACKAGEVERSIONPROPSURL:-}"
+__PACKAGE_VERSION_PROPS_PATH="$__TOOLRUNTIME_DIR/DownloadedPackageVersions.props"
+
+if [ "$__PACKAGE_VERSION_PROPS_URL" ]; then
+    echo "Downloading package version props from '$__PACKAGE_VERSION_PROPS_URL' to '$__PACKAGE_VERSION_PROPS_PATH'..."
+
+    # Copied from CoreFX init-tools.sh
+    if command -v curl > /dev/null; then
+        curl --retry 10 -sSL --create-dirs -o "$__PACKAGE_VERSION_PROPS_PATH" "$__PACKAGE_VERSION_PROPS_URL"
+    else
+        wget -q -O "$__PACKAGE_VERSION_PROPS_PATH" "$__PACKAGE_VERSION_PROPS_URL"
+    fi
+
+    echo "Downloaded package version props:"
+    cat "$__PACKAGE_VERSION_PROPS_PATH"
+fi
+
 exit 0

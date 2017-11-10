@@ -12,6 +12,14 @@
     <SymbolPackageOutputPath Condition="'$(SymbolPackageOutputPath)' == ''">$(DotNetOutputBlobFeedDir)assets/</SymbolPackageOutputPath>
   </PropertyGroup>
 
+  <!-- If init-tools downloaded a package version props file, use it. -->
+  <PropertyGroup>
+    <DownloadedPackageVersionPropsPath>$(ToolsDir)DownloadedPackageVersions.props</DownloadedPackageVersionPropsPath>
+
+    <DotNetPackageVersionPropsPath Condition="'$(DotNetPackageVersionPropsPath)' == '' and 
+                                               Exists('$(DownloadedPackageVersionPropsPath)')">$(DownloadedPackageVersionPropsPath)</DotNetPackageVersionPropsPath>
+  </PropertyGroup>
+
   <!--
     Import the restore source props file if passed to get "DotNetRestoreSources".
 
