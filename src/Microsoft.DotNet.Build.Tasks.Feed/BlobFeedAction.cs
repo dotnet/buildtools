@@ -87,9 +87,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
             try
             {
-                // In case the first Push attempt fails with an InvalidOperationException we Init the feed and retry the Push command once.
-                // We also retry in case Sleet is not able to get a lock on the feed since it does not retry in this case.
-                for (int i = 0; i < retries; i++)
+                for (int i = 0; i <= 2; i++)
                 {
                     bool requiresInit = false;
 
@@ -102,16 +100,6 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     {
                         Log.LogWarning($"Sub-feed {source.FeedSubPath} has not been initialized. Initializing now...");
                         requiresInit = true;
-                    }
-                    catch (InvalidOperationException ex) when (ex.Message.Contains("Unable to obtain a lock on the feed."))
-                    {
-                        int delayInSeconds = rnd.Next(1, 5) * delay;
-
-                        Log.LogWarning($"Sleet was not able to get a lock on the feed. Sleeping {delayInSeconds} seconds and retrying.");
-
-                        // Pushing packages might take more than just 60 seconds, so on each iteration we multiply the defined delay to a random factor
-                        // Using the defaults this could range from 30 seconds to 12.5 minutes for all 5 (default) retries
-                        await Task.Delay(TimeSpan.FromSeconds(delayInSeconds));
                     }
 
                     // If the feed has not been Init'ed this will be caught in the first iteration
