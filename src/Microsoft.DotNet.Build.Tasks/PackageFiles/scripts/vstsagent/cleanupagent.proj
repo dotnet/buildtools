@@ -9,7 +9,7 @@
   <PropertyGroup>
     <RetentionDays Condition="'$(RetentionDays)' == ''">1</RetentionDays>
     <DoClean Condition="'$(DoClean)' == ''">false</DoClean>
-    <DoReport Condition="'$(DoReport)' == ''">true</DoReport>
+    <DoReport Condition="'$(DoReport)' == ''">false</DoReport>
   </PropertyGroup>
 
   <ItemGroup>
