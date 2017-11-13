@@ -1,3 +1,3 @@
-Microsoft.DotNet.BuildTools=1.0.27-prerelease-01205-03
-Microsoft.DotNet.BuildTools.Run=1.0.1-prerelease-01205-03
+Microsoft.DotNet.BuildTools=2.0.0-servicing-02213-03
+Microsoft.DotNet.BuildTools.Run=1.0.1-servicing-02213-03
 NuGet.CommandLine=3.4.3
