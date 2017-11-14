@@ -8,7 +8,7 @@
       as we know it is safe to resolve its assets as net461.
     -->
     <NoWarn>$(NoWarn);NU1701</NoWarn>
-        <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp2.0' ">$(PackageTargetFallback);portable-net45+win8</PackageTargetFallback>
+    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp2.0' ">$(PackageTargetFallback);portable-net45+win8</PackageTargetFallback>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
 
