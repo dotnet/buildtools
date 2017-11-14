@@ -245,107 +245,6 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             }
         }
 
-        public async Task<GitHubComment[]> GetAllIssueCommentsAsync(
-            GitHubProject project,
-            int issueNumber)
-        {
-            using (HttpResponseMessage firstPage = await GetIssueCommentsPageResponseAsync(
-                project,
-                issueNumber,
-                1))
-            {
-                var comments = new List<GitHubComment>();
-                comments.AddRange(await DeserializeSuccessfulAsync<GitHubComment[]>(firstPage));
-
-                IEnumerable<string> linkHeaderValues;
-                if (firstPage.Headers.TryGetValues("Link", out linkHeaderValues))
-                {
-                    string linkHeader = linkHeaderValues.Single();
-
-                    string last = null;
-
-                    foreach (string link in linkHeader.Split(','))
-                    {
-                        string[] linkParts = link.Split(';');
-                        string linkUrl = linkParts[0].Trim().TrimStart('<').TrimEnd('>');
-
-                        if (linkParts[1].Trim() == "rel=\"last\"")
-                        {
-                            last = linkUrl;
-                        }
-                    }
-
-                    if (string.IsNullOrEmpty(last))
-                    {
-                        throw new Exception($"No 'last' link found in Link header '{linkHeader}'");
-                    }
-
-                    Trace.TraceInformation($"Received 'last' Link url '{last}'");
-
-                    int lastPageNumber = int.Parse(
-                        last.Substring(
-                            last.LastIndexOf("=", StringComparison.Ordinal) + 1));
-
-                    // Page 1 is already fetched. (firstPage)
-                    int pagesRemaining = lastPageNumber - 1;
-
-                    Trace.TraceInformation(
-                        "Received Link header in response. " +
-                        $"Fetching {pagesRemaining} additional pages.");
-
-                    // Pages are 1-indexed. Get any remaining pages, starting at 2.
-                    IEnumerable<Task<GitHubComment[]>> pageTasks =
-                        Enumerable.Range(2, pagesRemaining)
-                        .Select(pageNumber => GetIssueCommentsPageAsync(
-                            project,
-                            issueNumber,
-                            pageNumber));
-
-                    GitHubComment[][] pages = await Task.WhenAll(pageTasks);
-
-                    comments.AddRange(pages.SelectMany(page => page));
-                }
-
-                return comments.ToArray();
-            }
-        }
-
-        public async Task<GitHubComment[]> GetIssueCommentsPageAsync(
-            GitHubProject project,
-            int issueNumber,
-            int pageNumber)
-        {
-            using (var response = await GetIssueCommentsPageResponseAsync(
-                project,
-                issueNumber,
-                pageNumber))
-            {
-                return await DeserializeSuccessfulAsync<GitHubComment[]>(response);
-            }
-        }
-
-        public async Task PatchCommentAsync(GitHubProject project, int id, string message)
-        {
-            EnsureAuthenticated();
-
-            string commentBody = JsonConvert.SerializeObject(new
-            {
-                body = message
-            });
-
-            string url = $"https://api.github.com/repos/{project.Segments}/issues/comments/{id}";
-
-            var bodyContent = new StringContent(commentBody);
-            HttpRequestMessage request = new HttpRequestMessage(new HttpMethod("PATCH"), url)
-            {
-                Content = bodyContent
-            };
-            using (HttpResponseMessage response = await _httpClient.SendAsync(request))
-            {
-                await EnsureSuccessfulAsync(response);
-            }
-        }
-
         public async Task PostCommentAsync(GitHubProject project, int issueNumber, string message)
         {
             EnsureAuthenticated();
@@ -453,20 +352,6 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
                 Trace.TraceInformation($"Patching reference '{@ref}' to '{sha}' with force={force} in {project.Segments}");
                 return await DeserializeSuccessfulAsync<GitReference>(response);
             }
-        }
-
-        private async Task<HttpResponseMessage> GetIssueCommentsPageResponseAsync(
-            GitHubProject project,
-            int issueNumber,
-            int pageNumber)
-        {
-            string url = $"https://api.github.com/repos/{project.Segments}/issues/{issueNumber}/comments?page={pageNumber}";
-
-            Trace.TraceInformation(
-                $"Getting page {pageNumber} of comments " +
-                $"for issue {issueNumber} in {project.Segments}");
-
-            return await _httpClient.GetAsync(url);
         }
 
         private void EnsureAuthenticated()
