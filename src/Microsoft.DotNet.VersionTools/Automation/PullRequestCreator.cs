@@ -77,15 +77,6 @@ namespace Microsoft.DotNet.VersionTools.Automation
                             origin,
                             pullRequestToUpdate.Head.Sha);
 
-                        if (options.TrackDiscardedCommits)
-                        {
-                            description = await CreateDiscardedCommitListBodyAsync(
-                                baseBranch.Project,
-                                pullRequestToUpdate,
-                                headCommit,
-                                client);
-                        }
-
                         string blockedReason = GetUpdateBlockedReason(
                             pullRequestToUpdate.Head,
                             headCommit,
@@ -94,6 +85,15 @@ namespace Microsoft.DotNet.VersionTools.Automation
 
                         if (blockedReason == null)
                         {
+                            if (options.TrackDiscardedCommits)
+                            {
+                                await PostDiscardedCommitCommentAsync(
+                                    baseBranch.Project,
+                                    pullRequestToUpdate,
+                                    headCommit,
+                                    client);
+                            }
+
                             originBranch = new GitHubBranch(
                                 pullRequestToUpdate.Head.Ref,
                                 origin);
@@ -143,48 +143,46 @@ namespace Microsoft.DotNet.VersionTools.Automation
             }
         }
 
-        private async Task<string> CreateDiscardedCommitListBodyAsync(
+        private async Task PostDiscardedCommitCommentAsync(
             GitHubProject baseProject,
             GitHubPullRequest pullRequestToUpdate,
             GitCommit oldCommit,
             GitHubClient client)
         {
-            // GitHub returns the HTML "commit" url, but we want "commits" so that CI results show.
-            string oldCommitsUrl = oldCommit.HtmlUrl.Replace("commit", "commits");
-
             GitHubCombinedStatus combinedStatus = await client.GetStatusAsync(
                 baseProject,
                 oldCommit.Sha);
 
-            string statusLines = combinedStatus
+            CiStatusLine[] statuses = combinedStatus
                 .Statuses
                 .OrderBy(s => s.State)
                 .ThenBy(s => s.Context)
-                .Select(GetStatusLine)
-                .Aggregate(string.Empty, (acc, line) => acc + line + "\r\n");
+                .Select(CiStatusLine.Create)
+                .ToArray();
 
-            string oldCommitEntry =
-                $" * [`{oldCommit.Sha.Substring(0, 7)}`]({oldCommitsUrl}) {oldCommit.Message}\r\n" +
-                $"{statusLines}";
+            string statusLines = statuses
+                .Aggregate(string.Empty, (acc, line) => acc + line.MarkdownLine + "\r\n");
 
-            // Find insertion point. GitHub always returns \r\n.
-            string insertionMarker = $"<{DiscardedCommitElementName}>\r\n\r\n";
-            string endInsertionMarker = $"\r\n</{DiscardedCommitElementName}>";
+            string ciSummary = string.Join(
+                " ",
+                statuses
+                    .GroupBy(s => s.Emoticon)
+                    .Select(g => $"{g.Count()}{g.Key}")
+                    .ToArray());
 
-            int elementBegin = pullRequestToUpdate.Body.IndexOf(
-                insertionMarker,
-                StringComparison.Ordinal);
-
-            if (elementBegin != -1)
-            {
-                return pullRequestToUpdate.Body.Insert(
-                    elementBegin + insertionMarker.Length,
-                    oldCommitEntry);
-            }
-            return pullRequestToUpdate.Body +
-                "<details><summary>Discarded auto-update commits (click to expand)</summary>" +
-                $"{insertionMarker}{oldCommitEntry}{endInsertionMarker}" +
+            string commentBody =
+                "<details>" +
+                "<summary>" +
+                $"\r\n\r\nDiscarded [`{oldCommit.Sha.Substring(0, 7)}`]({oldCommit.HtmlUrl}) " +
+                $"({ciSummary}) {oldCommit.Message}\r\n" +
+                "</summary>" +
+                $"\r\n\r\n{statusLines}\r\n" +
                 "</details>";
+
+            await client.PostCommentAsync(
+                baseProject,
+                pullRequestToUpdate.Number,
+                commentBody);
         }
 
         public static string NotificationString(IEnumerable<string> usernames)
@@ -231,31 +229,40 @@ namespace Microsoft.DotNet.VersionTools.Automation
                 force: true);
         }
 
-        private static string GetStatusLine(GitHubStatus status)
+        private class CiStatusLine
         {
-            string emoticon = ":grey_question:";
-            if (string.Equals(status.State, "success", StringComparison.OrdinalIgnoreCase))
+            public static CiStatusLine Create(GitHubStatus status)
             {
-                emoticon = ":heavy_check_mark:";
-            }
-            else if (string.Equals(status.State, "pending", StringComparison.OrdinalIgnoreCase))
-            {
-                emoticon = ":hourglass:";
-            }
-            else if (string.Equals(status.State, "error", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(status.State, "failure", StringComparison.OrdinalIgnoreCase))
-            {
-                emoticon = ":x:";
+                string emoticon = ":grey_question:";
+                if (string.Equals(status.State, "success", StringComparison.OrdinalIgnoreCase))
+                {
+                    emoticon = ":heavy_check_mark:";
+                }
+                else if (string.Equals(status.State, "pending", StringComparison.OrdinalIgnoreCase))
+                {
+                    emoticon = ":hourglass:";
+                }
+                else if (string.Equals(status.State, "error", StringComparison.OrdinalIgnoreCase) ||
+                         string.Equals(status.State, "failure", StringComparison.OrdinalIgnoreCase))
+                {
+                    emoticon = ":x:";
+                }
+
+                string line = $" * {emoticon} **{status.Context}** {status.Description}";
+                if (!string.IsNullOrEmpty(status.TargetUrl))
+                {
+                    line += $" [Details]({status.TargetUrl})";
+                }
+
+                return new CiStatusLine
+                {
+                    Emoticon = emoticon,
+                    MarkdownLine = line
+                };
             }
 
-            string line = $"   * {emoticon} **{status.Context}** {status.Description}";
-
-            if (!string.IsNullOrEmpty(status.TargetUrl))
-            {
-                line += $" [Details]({status.TargetUrl})";
-            }
-
-            return line;
+            public string Emoticon { get; private set; }
+            public string MarkdownLine { get; private set; }
         }
     }
 }
