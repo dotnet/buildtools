@@ -12,7 +12,7 @@ using System.Reflection.PortableExecutable;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
-    public class ConvertPortablePdbsToWindowsPdbs : BuildTask
+    public class ConvertPortablePdbsToWindowsPdbs : BuildTask, ICancelableTask
     {
         private const string PdbPathMetadata = "PdbPath";
         private const string TargetPathMetadata = "TargetPath";
@@ -26,6 +26,8 @@ namespace Microsoft.DotNet.Build.Tasks
         public ITaskItem[] Files { get; set; }
 
         public string[] ConversionOptions { get; set; }
+
+        private bool _cancel;
 
         public override bool Execute()
         {
@@ -47,66 +49,91 @@ namespace Microsoft.DotNet.Build.Tasks
 
             foreach (ITaskItem file in Files)
             {
-                string pdbPath = file.GetMetadata(PdbPathMetadata);
-
-                if (string.IsNullOrEmpty(pdbPath))
+                if (_cancel)
                 {
-                    Log.LogError($"No '{PdbPathMetadata}' metadata found for '{file}'.");
-                    continue;
+                    break;
                 }
 
-                string targetPath = file.GetMetadata(TargetPathMetadata);
-
-                if (string.IsNullOrEmpty(targetPath))
+                try
                 {
-                    Log.LogError($"No '{TargetPathMetadata}' metadata found for '{file}'.");
-                    continue;
+                    ConvertPortableToWindows(file, converter, parsedConversionOptions);
                 }
-
-                using (var sourcePdbStream = new FileStream(pdbPath, FileMode.Open, FileAccess.Read))
+                catch (Exception e)
                 {
-                    if (PdbConverter.IsPortable(sourcePdbStream))
-                    {
-                        Log.LogMessage(
-                            MessageImportance.Low,
-                            $"Converting portable PDB '{file.ItemSpec}'...");
-
-                        Directory.CreateDirectory(Path.GetDirectoryName(targetPath));
-
-                        using (var peStream = new FileStream(file.ItemSpec, FileMode.Open, FileAccess.Read))
-                        using (var peReader = new PEReader(peStream, PEStreamOptions.LeaveOpen))
-                        {
-                            if (peReader.ReadDebugDirectory().Length > 0)
-                            {
-                                using (var outPdbStream = new FileStream(targetPath, FileMode.Create, FileAccess.Write))
-                                {
-                                    converter.ConvertPortableToWindows(
-                                        peReader,
-                                        sourcePdbStream,
-                                        outPdbStream,
-                                        parsedConversionOptions);
-                                }
-
-                                Log.LogMessage(
-                                    MessageImportance.Normal,
-                                    $"Portable PDB '{file.ItemSpec}' -> '{targetPath}'");
-                            }
-                            else
-                            {
-                                Log.LogWarning($"'{file.ItemSpec}' {NoDebugDirectoryEntriesMessage}");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        Log.LogMessage(
-                            MessageImportance.Normal,
-                            $"PDB is not portable, skipping: '{file.ItemSpec}'");
-                    }
+                    Log.LogErrorFromException(e, true, true, file.ItemSpec);
                 }
             }
 
             return !Log.HasLoggedErrors;
+        }
+
+        public void Cancel()
+        {
+            _cancel = true;
+        }
+
+        private void ConvertPortableToWindows(
+            ITaskItem file,
+            PdbConverter converter,
+            PdbConversionOptions parsedConversionOptions)
+        {
+            string pdbPath = file.GetMetadata(PdbPathMetadata);
+
+            if (string.IsNullOrEmpty(pdbPath))
+            {
+                Log.LogError($"No '{PdbPathMetadata}' metadata found for '{file}'.");
+                return;
+            }
+
+            string targetPath = file.GetMetadata(TargetPathMetadata);
+
+            if (string.IsNullOrEmpty(targetPath))
+            {
+                Log.LogError($"No '{TargetPathMetadata}' metadata found for '{file}'.");
+                return;
+            }
+
+            using (var sourcePdbStream = new FileStream(pdbPath, FileMode.Open, FileAccess.Read))
+            {
+                if (PdbConverter.IsPortable(sourcePdbStream))
+                {
+                    Log.LogMessage(
+                        MessageImportance.Low,
+                        $"Converting portable PDB '{file.ItemSpec}'...");
+
+                    Directory.CreateDirectory(Path.GetDirectoryName(targetPath));
+
+                    using (var peStream = new FileStream(file.ItemSpec, FileMode.Open, FileAccess.Read))
+                    using (var peReader = new PEReader(peStream, PEStreamOptions.LeaveOpen))
+                    {
+                        if (peReader.ReadDebugDirectory().Length > 0)
+                        {
+                            using (var outPdbStream = new FileStream(targetPath, FileMode.Create, FileAccess.Write))
+                            {
+                                converter.ConvertPortableToWindows(
+                                    peReader,
+                                    sourcePdbStream,
+                                    outPdbStream,
+                                    parsedConversionOptions);
+                            }
+
+                            Log.LogMessage(
+                                MessageImportance.Normal,
+                                $"Portable PDB '{file.ItemSpec}' -> '{targetPath}'");
+                        }
+                        else
+                        {
+                            Log.LogWarning($"'{file.ItemSpec}' {NoDebugDirectoryEntriesMessage}");
+                        }
+                    }
+                }
+                else
+                {
+                    Log.LogMessage(
+                        MessageImportance.Normal,
+                        $"PDB is not portable, skipping: '{file.ItemSpec}'");
+                }
+            }
         }
     }
 }
