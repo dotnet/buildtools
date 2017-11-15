@@ -44,23 +44,12 @@
       Manually binplace DiaSymReader runtimes for win7-x86, which the official builds use.
       This workaround should be removed, see https://github.com/dotnet/buildtools/issues/1608
     -->
-    <PrereleaseResolveNuGetPackageAssets AllowFallbackOnTargetSelection="true"
-                                         IncludeFrameworkReferences="false"
-                                         NuGetPackagesDirectory="$(PackagesDir)"
-                                         RuntimeIdentifier="win7-x86"
-                                         ProjectLanguage="$(Language)"
-                                         ProjectLockFile="project.lock.json"
-                                         TargetMonikers="$(NuGetTargetMoniker)">
-      <Output TaskParameter="ResolvedCopyLocalItems"
-              ItemName="_ReferenceCopyLocalPathsFromDependencies" />
+    <PrereleaseResolveNuGetPackageAssets AllowFallbackOnTargetSelection="true" IncludeFrameworkReferences="false" NuGetPackagesDirectory="$(PackagesDir)" RuntimeIdentifier="win7-x86" ProjectLanguage="$(Language)" ProjectLockFile="project.lock.json" TargetMonikers="$(NuGetTargetMoniker)">
+      <Output TaskParameter="ResolvedCopyLocalItems" ItemName="_ReferenceCopyLocalPathsFromDependencies" />
     </PrereleaseResolveNuGetPackageAssets>
-
     <ItemGroup>
-      <_DiaSymReaderNativeCopyLocalItems Include='@(_ReferenceCopyLocalPathsFromDependencies)'
-                                         Condition="'%(NuGetPackageId)' == 'Microsoft.DiaSymReader.Native'" />
+      <_DiaSymReaderNativeCopyLocalItems Include="@(_ReferenceCopyLocalPathsFromDependencies)" Condition="'%(NuGetPackageId)' == 'Microsoft.DiaSymReader.Native'" />
     </ItemGroup>
-
-    <Copy SourceFiles="@(_DiaSymReaderNativeCopyLocalItems)"
-          DestinationFolder="$(OutputPath)" />
+    <Copy SourceFiles="@(_DiaSymReaderNativeCopyLocalItems)" DestinationFolder="$(OutputPath)" />
   </Target>
 </Project>

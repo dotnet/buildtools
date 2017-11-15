@@ -185,6 +185,15 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             catch (Exception ex)
             {
                 Log.LogErrorFromException(ex, true);
+
+                Exception innerException = ex.InnerException;
+
+                while (innerException != null)
+                {
+                    Log.LogMessage("Inner exception found. Logging it...");
+                    Log.LogErrorFromException(innerException, true);
+                    innerException = innerException.InnerException;
+                }
             }
             finally
             {
