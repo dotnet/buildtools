@@ -61,8 +61,9 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     }
                     else
                     {
-                        List<string> packageItems = GetPackageStringLists(ItemsToPush);
                         ITaskItem[] symbolItems = ItemsToPush.Where(i => i.ItemSpec.Contains("symbols.nupkg")).ToArray();
+                        ITaskItem[] packages = ItemsToPush.Where(i => !symbolItems.Contains(i)).ToArray();
+                        List<string> packageItems = GetPackageStringLists(packages);
 
                         await blobFeedAction.PushToFeed(packageItems, Overwrite);
                         await PublishToFlatContainerAsync(symbolItems, blobFeedAction, true);
@@ -80,7 +81,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         private List<string> GetPackageStringLists(ITaskItem[] taskItems)
         {
             List<string> stringList = new List<string>();
-            foreach (var item in taskItems.Where(i => !i.ItemSpec.Contains("symbols.nupkg")))
+            foreach (var item in taskItems)
             {
                 stringList.Add(item.ItemSpec);
             }
