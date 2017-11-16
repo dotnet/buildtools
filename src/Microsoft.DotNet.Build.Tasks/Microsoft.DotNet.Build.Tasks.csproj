@@ -57,6 +57,7 @@
     <Compile Include="ExecWithRetries.cs" />
     <Compile Include="ExecWithRetriesForNuGetPush.cs" />
     <Compile Include="OpenSourceSign.cs" />
+    <Compile Include="Orchestration\WriteBuildOutputProps.cs" />
     <Compile Include="PackageRestoreLogger.cs" />
     <Compile Include="ParseTestCoverageInfo.cs" />
     <Compile Include="PreprocessFile.cs" />
