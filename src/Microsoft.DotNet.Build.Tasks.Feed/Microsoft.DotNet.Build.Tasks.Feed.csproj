@@ -42,6 +42,7 @@
     <Compile Include="BlobFeed.cs" />
     <Compile Include="BlobFeedAction.cs" />
     <Compile Include="ConfigureInputFeed.cs" />
+    <Compile Include="GetBlobFeedPackageList.cs" />
     <Compile Include="PushToBlobFeed.cs" />
     <Compile Include="SleetLogger.cs" />
     <Compile Include="SleetSettings.cs" />

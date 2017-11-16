@@ -14,6 +14,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Packaging.Core;
 using MSBuild = Microsoft.Build.Utilities;
 using CloudTestTasks = Microsoft.DotNet.Build.CloudTestTasks;
 
@@ -184,6 +185,25 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             {
                 Log.LogErrorFromException(e);
             }
+        }
+
+        public async Task<ISet<PackageIdentity>> GetPackageIdentitiesAsync()
+        {
+            var context = new SleetContext
+            {
+                LocalSettings = GetSettings(),
+                Log = new SleetLogger(Log),
+                Source = GetAzureFileSystem(),
+                Token = CancellationToken
+            };
+            context.SourceSettings = await FeedSettingsUtility.GetSettingsOrDefault(
+                context.Source,
+                context.Log,
+                context.Token);
+
+            var packageIndex = new PackageIndex(context);
+
+            return await packageIndex.GetPackagesAsync();
         }
 
         private bool IsSanityChecked(IEnumerable<string> items)
