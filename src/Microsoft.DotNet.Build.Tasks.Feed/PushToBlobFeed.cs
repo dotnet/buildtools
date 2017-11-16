@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.Build.Framework;
-using Microsoft.DotNet.Build.CloudTestTasks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,22 +52,20 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
                     if (!SkipCreateContainer)
                     {
-                        await blobFeedAction.CreateContainerAsync(this.BuildEngine);
+                        await blobFeedAction.CreateContainerAsync(BuildEngine, PublishFlatContainer);
                     }
 
-                    List<string> items = ConvertToStringLists(ItemsToPush);
-
-                    if (!PublishFlatContainer)
+                    if (PublishFlatContainer)
                     {
-                        await blobFeedAction.PushToFeed(items, Overwrite);
+                        await PublishToFlatContainerAsync(ItemsToPush, blobFeedAction);
                     }
                     else
                     {
-                        using (var clientThrottle = new SemaphoreSlim(this.MaxClients, this.MaxClients))
-                        {
-                            Log.LogMessage($"Uploading {ItemsToPush.Length} items...");
-                            await Task.WhenAll(ItemsToPush.Select(item => blobFeedAction.UploadAssets(item, clientThrottle, Overwrite)));
-                        }
+                        List<string> packageItems = GetPackageStringLists(ItemsToPush);
+                        ITaskItem[] symbolItems = ItemsToPush.Where(i => i.ItemSpec.Contains("symbols.nupkg")).ToArray();
+
+                        await blobFeedAction.PushToFeed(packageItems, Overwrite);
+                        await PublishToFlatContainerAsync(symbolItems, blobFeedAction, true);
                     }
                 }
             }
@@ -80,15 +77,27 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             return !Log.HasLoggedErrors;
         }
 
-        private List<string> ConvertToStringLists(ITaskItem[] taskItems)
+        private List<string> GetPackageStringLists(ITaskItem[] taskItems)
         {
             List<string> stringList = new List<string>();
-            foreach (var item in taskItems)
+            foreach (var item in taskItems.Where(i => !i.ItemSpec.Contains("symbols.nupkg")))
             {
                 stringList.Add(item.ItemSpec);
             }
 
             return stringList;
+        }
+
+        private async Task PublishToFlatContainerAsync(ITaskItem[] taskItems, BlobFeedAction blobFeedAction, bool symbolItems = false)
+        {
+            if (taskItems.Length > 0)
+            {
+                using (var clientThrottle = new SemaphoreSlim(this.MaxClients, this.MaxClients))
+                {
+                    Log.LogMessage($"Uploading {taskItems.Length} items...");
+                    await Task.WhenAll(taskItems.Select(item => blobFeedAction.UploadAssets(item, clientThrottle, Overwrite, symbolItems)));
+                }
+            }
         }
     }
 }

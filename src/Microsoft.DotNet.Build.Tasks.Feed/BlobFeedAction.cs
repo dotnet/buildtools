@@ -79,11 +79,9 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         public async Task<bool> PushItemsToFeedAsync(IEnumerable<string> items, bool allowOverwrite)
         {
             Log.LogMessage(MessageImportance.Low, $"START pushing items to feed");
-            Random rnd = new Random();
 
             try
             {
-
                 bool result = await PushAsync(items.ToList(), allowOverwrite);
                 return result;
             }
@@ -95,14 +93,16 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             return !Log.HasLoggedErrors;
         }
 
-        public async Task UploadAssets(ITaskItem item, SemaphoreSlim clientThrottle, bool allowOverwrite = false)
+        public async Task UploadAssets(ITaskItem item, SemaphoreSlim clientThrottle, bool allowOverwrite = false, bool symbols = false)
         {
             string relativeBlobPath = item.GetMetadata("RelativeBlobPath");
-            if (string.IsNullOrEmpty(relativeBlobPath))
+
+            if (string.IsNullOrEmpty(relativeBlobPath) || symbols)
             {
+                string symbolsFolder = symbols ? "symbols/" : string.Empty;
                 string fileName = Path.GetFileName(item.ItemSpec);
                 string recursiveDir = item.GetMetadata("RecursiveDir");
-                relativeBlobPath = $"{feed.RelativePath}{recursiveDir}{fileName}";
+                relativeBlobPath = $"{feed.RelativePath}{symbolsFolder}{recursiveDir}{fileName}";
             }
 
             relativeBlobPath = relativeBlobPath.Replace("\\", "/");
@@ -148,7 +148,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             }
         }
 
-        public async Task CreateContainerAsync(IBuildEngine buildEngine)
+        public async Task CreateContainerAsync(IBuildEngine buildEngine, bool publishFlatContainer)
         {
             Log.LogMessage($"Creating container {feed.ContainerName}...");
 
@@ -166,23 +166,26 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
             Log.LogMessage($"Creating container {feed.ContainerName} succeeded!");
 
-            try
+            if (!publishFlatContainer)
             {
-
-                bool result = await InitAsync();
-
-                if (result)
+                try
                 {
-                    Log.LogMessage($"Initializing sub-feed {source.FeedSubPath} succeeded!");
+
+                    bool result = await InitAsync();
+
+                    if (result)
+                    {
+                        Log.LogMessage($"Initializing sub-feed {source.FeedSubPath} succeeded!");
+                    }
+                    else
+                    {
+                        throw new Exception($"Initializing sub-feed {source.FeedSubPath} failed!");
+                    }
                 }
-                else
+                catch (Exception e)
                 {
-                    throw new Exception($"Initializing sub-feed {source.FeedSubPath} failed!");
+                    Log.LogErrorFromException(e);
                 }
-            }
-            catch (Exception e)
-            {
-                Log.LogErrorFromException(e);
             }
         }
 
@@ -246,7 +249,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         {
             LocalSettings settings = GetSettings();
             AzureFileSystem fileSystem = GetAzureFileSystem();
-            bool result = await InitCommand.RunAsync(settings, fileSystem, true, true, new SleetLogger(Log), CancellationToken);
+            bool result = await InitCommand.RunAsync(settings, fileSystem, false, false, new SleetLogger(Log), CancellationToken);
             return result;
         }
     }
