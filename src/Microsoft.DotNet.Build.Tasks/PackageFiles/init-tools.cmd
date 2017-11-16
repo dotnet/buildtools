@@ -95,6 +95,19 @@ Robocopy "%PACKAGES_DIR%\MicroBuild.Core\%MICROBUILD_VERSION%\build\." "%TOOLRUN
 Robocopy "%PACKAGES_DIR%\Microsoft.Net.Compilers\%ROSLYNCOMPILERS_VERSION%\." "%TOOLRUNTIME_DIR%\net46\roslyn\." /E
 
 @echo on
+call "%DOTNET_CMD%" build "%TOOLRUNTIME_DIR%\ilasm\ilasm.depproj" -r win-x64 --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --packages "%PACKAGES_DIR%\."
+set RESTORE_ILASM_ERROR_LEVEL=%ERRORLEVEL%
+@echo off
+if not [%RESTORE_ILASM_ERROR_LEVEL%]==[0] (
+  echo ERROR: An error ocurred when running: '"%DOTNET_CMD%" build "%TOOLRUNTIME_DIR%\ilasm\ilasm.depproj"'. Please check above for more details.
+  exit /b %RESTORE_ILASM_ERROR_LEVEL%
+)
+if not exist "%TOOLRUNTIME_DIR%\ilasm\ilasm.exe" (
+  echo ERROR: Failed to restore ilasm.exe
+  exit /b 1
+)
+
+@echo on
 powershell -NoProfile -ExecutionPolicy unrestricted %BUILDTOOLS_PACKAGE_DIR%\init-tools.ps1 -ToolRuntimePath %TOOLRUNTIME_DIR% -DotnetCmd %DOTNET_CMD% -BuildToolsPackageDir %BUILDTOOLS_PACKAGE_DIR%
 set POWERSHELL_INIT_TOOLS_ERROR_LEVEL=%ERRORLEVEL%
 @echo off
