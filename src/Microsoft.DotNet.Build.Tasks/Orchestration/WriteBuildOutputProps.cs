@@ -17,6 +17,16 @@ namespace Microsoft.DotNet.Build.Tasks.Orchestration
         private const string NuGetPackageInfoId = "PackageId";
         private const string NuGetPackageInfoVersion = "PackageVersion";
 
+        /// <summary>
+        /// Group 1: matches the beginning of the package id or any non-alphanumeric character.
+        /// Group 2 (FirstPartChar): matches one character after group 1.
+        /// 
+        /// By replacing every match with FirstPartChar.ToUpper, non-alphanumeric separators such as
+        /// '.' and '_' are discarded and the package name is converted to PascalCase.
+        /// </summary>
+        private static Regex s_packageNamePascalCasingRegex =
+            new Regex(@"(^|[^A-Za-z0-9])(?<FirstPartChar>.)");
+
         [Required]
         public ITaskItem[] NuGetPackageInfos { get; set; }
 
@@ -52,8 +62,6 @@ namespace Microsoft.DotNet.Build.Tasks.Orchestration
 
             Directory.CreateDirectory(Path.GetDirectoryName(OutputPath));
 
-            var invalidElementNameCharRegex = new Regex(@"(^|[^A-Za-z0-9])(?<FirstPartChar>.)");
-
             using (var outStream = File.Open(OutputPath, FileMode.Create))
             using (var sw = new StreamWriter(outStream, new UTF8Encoding(false)))
             {
@@ -62,7 +70,7 @@ namespace Microsoft.DotNet.Build.Tasks.Orchestration
                 sw.WriteLine(@"  <PropertyGroup>");
                 foreach (PackageIdentity packageIdentity in latestPackages)
                 {
-                    string formattedId = invalidElementNameCharRegex.Replace(
+                    string formattedId = s_packageNamePascalCasingRegex.Replace(
                         packageIdentity.Id,
                         match => match.Groups?["FirstPartChar"].Value.ToUpperInvariant()
                             ?? string.Empty);
