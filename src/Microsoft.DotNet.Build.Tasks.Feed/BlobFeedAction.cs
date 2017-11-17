@@ -80,6 +80,12 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         {
             Log.LogMessage(MessageImportance.Low, $"START pushing items to feed");
 
+            if (items.Count() == 0)
+            {
+                Log.LogError("No items to push found in the items list.");
+                return false;
+            }
+
             try
             {
                 bool result = await PushAsync(items.ToList(), allowOverwrite);
@@ -93,7 +99,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             return !Log.HasLoggedErrors;
         }
 
-        public async Task UploadAssets(ITaskItem item, SemaphoreSlim clientThrottle, bool allowOverwrite = false, bool symbols = false)
+        public async Task UploadAssets(ITaskItem item, SemaphoreSlim clientThrottle, bool allowOverwrite = false)
         {
             string relativeBlobPath = item.GetMetadata("RelativeBlobPath");
 
@@ -239,15 +245,16 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         {
             LocalSettings settings = GetSettings();
             AzureFileSystem fileSystem = GetAzureFileSystem();
-            bool result = await PushCommand.RunAsync(settings, fileSystem, items.ToList(), allowOverwrite, false, new SleetLogger(Log));
+            bool result = await PushCommand.RunAsync(settings, fileSystem, items.ToList(), allowOverwrite, skipExisting: false, log: new SleetLogger(Log));
             return result;
         }
 
         private async Task<bool> InitAsync()
         {
+
             LocalSettings settings = GetSettings();
             AzureFileSystem fileSystem = GetAzureFileSystem();
-            bool result = await InitCommand.RunAsync(settings, fileSystem, false, false, new SleetLogger(Log), CancellationToken);
+            bool result = await InitCommand.RunAsync(settings, fileSystem, enableCatalog: false, enableSymbols: false, log: new SleetLogger(Log), token: CancellationToken);
             return result;
         }
     }

@@ -72,7 +72,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                         List<string> packageItems = GetPackageStringLists(packages);
 
                         await blobFeedAction.PushToFeed(packageItems, Overwrite);
-                        await PublishToFlatContainerAsync(symbolItems, blobFeedAction, true);
+                        await PublishToFlatContainerAsync(symbolItems, blobFeedAction);
                     }
                 }
             }
@@ -95,14 +95,14 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             return stringList;
         }
 
-        private async Task PublishToFlatContainerAsync(ITaskItem[] taskItems, BlobFeedAction blobFeedAction, bool symbolItems = false)
+        private async Task PublishToFlatContainerAsync(ITaskItem[] taskItems, BlobFeedAction blobFeedAction)
         {
             if (taskItems.Length > 0)
             {
                 using (var clientThrottle = new SemaphoreSlim(this.MaxClients, this.MaxClients))
                 {
                     Log.LogMessage($"Uploading {taskItems.Length} items...");
-                    await Task.WhenAll(taskItems.Select(item => blobFeedAction.UploadAssets(item, clientThrottle, Overwrite, symbolItems)));
+                    await Task.WhenAll(taskItems.Select(item => blobFeedAction.UploadAssets(item, clientThrottle, Overwrite)));
                 }
             }
         }
