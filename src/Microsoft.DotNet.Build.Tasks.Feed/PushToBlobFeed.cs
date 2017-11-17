@@ -5,6 +5,7 @@
 using Microsoft.Build.Framework;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -61,7 +62,12 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     }
                     else
                     {
-                        ITaskItem[] symbolItems = ItemsToPush.Where(i => i.ItemSpec.Contains("symbols.nupkg")).ToArray();
+                        ITaskItem[] symbolItems = ItemsToPush.Where(i => i.ItemSpec.Contains("symbols.nupkg")).Select(i => 
+                        {
+                            string fileName = Path.GetFileName(i.ItemSpec);
+                            i.SetMetadata("RelativeBlobPath", $"symbols/{fileName}");
+                            return i;
+                        }).ToArray();
                         ITaskItem[] packages = ItemsToPush.Where(i => !symbolItems.Contains(i)).ToArray();
                         List<string> packageItems = GetPackageStringLists(packages);
 

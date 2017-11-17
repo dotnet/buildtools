@@ -97,15 +97,14 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         {
             string relativeBlobPath = item.GetMetadata("RelativeBlobPath");
 
-            if (string.IsNullOrEmpty(relativeBlobPath) || symbols)
+            if (string.IsNullOrEmpty(relativeBlobPath))
             {
-                string symbolsFolder = symbols ? "symbols/" : string.Empty;
                 string fileName = Path.GetFileName(item.ItemSpec);
                 string recursiveDir = item.GetMetadata("RecursiveDir");
-                relativeBlobPath = $"{feed.RelativePath}{symbolsFolder}{recursiveDir}{fileName}";
+                relativeBlobPath = $"{recursiveDir}{fileName}";
             }
 
-            relativeBlobPath = relativeBlobPath.Replace("\\", "/");
+            relativeBlobPath = $"{feed.RelativePath}{relativeBlobPath}".Replace("\\", "/");
 
             Log.LogMessage($"Uploading {relativeBlobPath}");
 
@@ -170,7 +169,6 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             {
                 try
                 {
-
                     bool result = await InitAsync();
 
                     if (result)
