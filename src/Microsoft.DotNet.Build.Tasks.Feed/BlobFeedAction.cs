@@ -80,7 +80,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         {
             Log.LogMessage(MessageImportance.Low, $"START pushing items to feed");
 
-            if (items.Count() == 0)
+            if (!items.Any())
             {
                 Log.LogError("No items to push found in the items list.");
                 return false;
