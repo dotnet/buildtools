@@ -82,8 +82,8 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
             if (!items.Any())
             {
-                Log.LogError("No items to push found in the items list.");
-                return false;
+                Log.LogMessage("No items to push found in the items list.");
+                return true;
             }
 
             try

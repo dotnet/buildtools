@@ -62,13 +62,13 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     }
                     else
                     {
-                        ITaskItem[] symbolItems = ItemsToPush.Where(i => i.ItemSpec.Contains("symbols.nupkg")).Select(i => 
+                        var symbolItems = ItemsToPush.Where(i => i.ItemSpec.Contains("symbols.nupkg")).Select(i => 
                         {
                             string fileName = Path.GetFileName(i.ItemSpec);
                             i.SetMetadata("RelativeBlobPath", $"symbols/{fileName}");
                             return i;
-                        }).ToArray();
-                        ITaskItem[] packages = ItemsToPush.Where(i => !symbolItems.Contains(i)).ToArray();
+                        });
+                        var packages = ItemsToPush.Where(i => !symbolItems.Contains(i));
                         List<string> packageItems = GetPackageStringLists(packages);
 
                         await blobFeedAction.PushToFeed(packageItems, Overwrite);
@@ -84,7 +84,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             return !Log.HasLoggedErrors;
         }
 
-        private List<string> GetPackageStringLists(ITaskItem[] taskItems)
+        private List<string> GetPackageStringLists(IEnumerable<ITaskItem> taskItems)
         {
             List<string> stringList = new List<string>();
             foreach (var item in taskItems)
@@ -95,13 +95,13 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             return stringList;
         }
 
-        private async Task PublishToFlatContainerAsync(ITaskItem[] taskItems, BlobFeedAction blobFeedAction)
+        private async Task PublishToFlatContainerAsync(IEnumerable<ITaskItem> taskItems, BlobFeedAction blobFeedAction)
         {
-            if (taskItems.Length > 0)
+            if (taskItems.Any())
             {
                 using (var clientThrottle = new SemaphoreSlim(this.MaxClients, this.MaxClients))
                 {
-                    Log.LogMessage($"Uploading {taskItems.Length} items...");
+                    Log.LogMessage($"Uploading {taskItems.Count()} items...");
                     await Task.WhenAll(taskItems.Select(item => blobFeedAction.UploadAssets(item, clientThrottle, Overwrite)));
                 }
             }
