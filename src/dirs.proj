@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <Project Include="*\**\*.csproj" Exclude="@(ProjectsToExclude)" />
-    <Project Include="*\**\*.depproj" />
+    <Project Include="*\**\*.depproj" Exclude="@(ProjectsToExclude)" />
   </ItemGroup>
 
   <Import Project="..\dir.targets" />
