@@ -68,8 +68,11 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                             i.SetMetadata("RelativeBlobPath", $"symbols/{fileName}");
                             return i;
                         });
-                        var packages = ItemsToPush.Where(i => !symbolItems.Contains(i));
-                        List<string> packageItems = GetPackageStringLists(packages);
+
+                        var packageItems = ItemsToPush.Where(i => !symbolItems.Contains(i)).Select(i => 
+                        {
+                            return i.ItemSpec;
+                        });
 
                         await blobFeedAction.PushToFeed(packageItems, Overwrite);
                         await PublishToFlatContainerAsync(symbolItems, blobFeedAction);
@@ -82,17 +85,6 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             }
 
             return !Log.HasLoggedErrors;
-        }
-
-        private List<string> GetPackageStringLists(IEnumerable<ITaskItem> taskItems)
-        {
-            List<string> stringList = new List<string>();
-            foreach (var item in taskItems)
-            {
-                stringList.Add(item.ItemSpec);
-            }
-
-            return stringList;
         }
 
         private async Task PublishToFlatContainerAsync(IEnumerable<ITaskItem> taskItems, BlobFeedAction blobFeedAction)

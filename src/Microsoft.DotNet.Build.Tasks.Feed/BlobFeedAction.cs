@@ -88,7 +88,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
             try
             {
-                bool result = await PushAsync(items.ToList(), allowOverwrite);
+                bool result = await PushAsync(items, allowOverwrite);
                 return result;
             }
             catch (Exception e)
