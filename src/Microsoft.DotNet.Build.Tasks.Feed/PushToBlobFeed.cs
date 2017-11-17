@@ -69,10 +69,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                             return i;
                         });
 
-                        var packageItems = ItemsToPush.Where(i => !symbolItems.Contains(i)).Select(i => 
-                        {
-                            return i.ItemSpec;
-                        });
+                        var packageItems = ItemsToPush.Where(i => !symbolItems.Contains(i)).Select(i => i.ItemSpec);
 
                         await blobFeedAction.PushToFeed(packageItems, Overwrite);
                         await PublishToFlatContainerAsync(symbolItems, blobFeedAction);
