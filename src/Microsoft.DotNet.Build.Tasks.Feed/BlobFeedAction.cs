@@ -80,12 +80,16 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         public async Task<bool> PushItemsToFeedAsync(IEnumerable<string> items, bool allowOverwrite)
         {
             Log.LogMessage(MessageImportance.Low, $"START pushing items to feed");
-            Random rnd = new Random();
+
+            if (!items.Any())
+            {
+                Log.LogMessage("No items to push found in the items list.");
+                return true;
+            }
 
             try
             {
-
-                bool result = await PushAsync(items.ToList(), allowOverwrite);
+                bool result = await PushAsync(items, allowOverwrite);
                 return result;
             }
             catch (Exception e)
@@ -99,14 +103,15 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         public async Task UploadAssets(ITaskItem item, SemaphoreSlim clientThrottle, bool allowOverwrite = false)
         {
             string relativeBlobPath = item.GetMetadata("RelativeBlobPath");
+
             if (string.IsNullOrEmpty(relativeBlobPath))
             {
                 string fileName = Path.GetFileName(item.ItemSpec);
                 string recursiveDir = item.GetMetadata("RecursiveDir");
-                relativeBlobPath = $"{feed.RelativePath}{recursiveDir}{fileName}";
+                relativeBlobPath = $"{recursiveDir}{fileName}";
             }
 
-            relativeBlobPath = relativeBlobPath.Replace("\\", "/");
+            relativeBlobPath = $"{feed.RelativePath}{relativeBlobPath}".Replace("\\", "/");
 
             Log.LogMessage($"Uploading {relativeBlobPath}");
 
@@ -149,7 +154,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             }
         }
 
-        public async Task CreateContainerAsync(IBuildEngine buildEngine)
+        public async Task CreateContainerAsync(IBuildEngine buildEngine, bool publishFlatContainer)
         {
             Log.LogMessage($"Creating container {feed.ContainerName}...");
 
@@ -167,23 +172,25 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
             Log.LogMessage($"Creating container {feed.ContainerName} succeeded!");
 
-            try
+            if (!publishFlatContainer)
             {
-
-                bool result = await InitAsync();
-
-                if (result)
+                try
                 {
-                    Log.LogMessage($"Initializing sub-feed {source.FeedSubPath} succeeded!");
+                    bool result = await InitAsync();
+
+                    if (result)
+                    {
+                        Log.LogMessage($"Initializing sub-feed {source.FeedSubPath} succeeded!");
+                    }
+                    else
+                    {
+                        throw new Exception($"Initializing sub-feed {source.FeedSubPath} failed!");
+                    }
                 }
-                else
+                catch (Exception e)
                 {
-                    throw new Exception($"Initializing sub-feed {source.FeedSubPath} failed!");
+                    Log.LogErrorFromException(e);
                 }
-            }
-            catch (Exception e)
-            {
-                Log.LogErrorFromException(e);
             }
         }
 
@@ -258,15 +265,16 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         {
             LocalSettings settings = GetSettings();
             AzureFileSystem fileSystem = GetAzureFileSystem();
-            bool result = await PushCommand.RunAsync(settings, fileSystem, items.ToList(), allowOverwrite, false, new SleetLogger(Log));
+            bool result = await PushCommand.RunAsync(settings, fileSystem, items.ToList(), allowOverwrite, skipExisting: false, log: new SleetLogger(Log));
             return result;
         }
 
         private async Task<bool> InitAsync()
         {
+
             LocalSettings settings = GetSettings();
             AzureFileSystem fileSystem = GetAzureFileSystem();
-            bool result = await InitCommand.RunAsync(settings, fileSystem, true, true, new SleetLogger(Log), CancellationToken);
+            bool result = await InitCommand.RunAsync(settings, fileSystem, enableCatalog: false, enableSymbols: false, log: new SleetLogger(Log), token: CancellationToken);
             return result;
         }
     }

@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.Build.Framework;
-using Microsoft.DotNet.Build.CloudTestTasks;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -53,22 +53,26 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
                     if (!SkipCreateContainer)
                     {
-                        await blobFeedAction.CreateContainerAsync(this.BuildEngine);
+                        await blobFeedAction.CreateContainerAsync(BuildEngine, PublishFlatContainer);
                     }
 
-                    List<string> items = ConvertToStringLists(ItemsToPush);
-
-                    if (!PublishFlatContainer)
+                    if (PublishFlatContainer)
                     {
-                        await blobFeedAction.PushToFeed(items, Overwrite);
+                        await PublishToFlatContainerAsync(ItemsToPush, blobFeedAction);
                     }
                     else
                     {
-                        using (var clientThrottle = new SemaphoreSlim(this.MaxClients, this.MaxClients))
+                        var symbolItems = ItemsToPush.Where(i => i.ItemSpec.Contains("symbols.nupkg")).Select(i => 
                         {
-                            Log.LogMessage($"Uploading {ItemsToPush.Length} items...");
-                            await Task.WhenAll(ItemsToPush.Select(item => blobFeedAction.UploadAssets(item, clientThrottle, Overwrite)));
-                        }
+                            string fileName = Path.GetFileName(i.ItemSpec);
+                            i.SetMetadata("RelativeBlobPath", $"symbols/{fileName}");
+                            return i;
+                        });
+
+                        var packageItems = ItemsToPush.Where(i => !symbolItems.Contains(i)).Select(i => i.ItemSpec);
+
+                        await blobFeedAction.PushToFeed(packageItems, Overwrite);
+                        await PublishToFlatContainerAsync(symbolItems, blobFeedAction);
                     }
                 }
             }
@@ -80,15 +84,16 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             return !Log.HasLoggedErrors;
         }
 
-        private List<string> ConvertToStringLists(ITaskItem[] taskItems)
+        private async Task PublishToFlatContainerAsync(IEnumerable<ITaskItem> taskItems, BlobFeedAction blobFeedAction)
         {
-            List<string> stringList = new List<string>();
-            foreach (var item in taskItems)
+            if (taskItems.Any())
             {
-                stringList.Add(item.ItemSpec);
+                using (var clientThrottle = new SemaphoreSlim(this.MaxClients, this.MaxClients))
+                {
+                    Log.LogMessage($"Uploading {taskItems.Count()} items...");
+                    await Task.WhenAll(taskItems.Select(item => blobFeedAction.UploadAssets(item, clientThrottle, Overwrite)));
+                }
             }
-
-            return stringList;
         }
     }
 }
