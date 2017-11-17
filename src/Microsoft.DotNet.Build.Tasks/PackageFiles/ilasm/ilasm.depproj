@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <!-- suppress the attempt to copy build output. -->
@@ -19,7 +19,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NETCore.Runtime.CoreCLR" Version="2.1.0-preview1-25916-01" />
-    <PackageReference Include="Microsoft.NETCore.ILAsm" Version="2.1.0-preview1-25916-01" />
+    <PackageReference Include="Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
+
+    <!-- ILAsm has a very unfortunate runtime dependency on CoreCLR, so we need to grab that too -->
+    <!-- https://github.com/dotnet/coreclr/issues/15059 -->
+    <PackageReference Include="Microsoft.NETCore.Runtime.CoreCLR" Version="$(ILAsmPackageVersion)" />
   </ItemGroup>
 </Project> 

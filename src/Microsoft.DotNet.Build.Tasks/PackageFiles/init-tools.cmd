@@ -94,8 +94,15 @@ Robocopy "%PACKAGES_DIR%\MicroBuild.Core\%MICROBUILD_VERSION%\build\." "%TOOLRUN
 :: Copy Roslyn Compilers Over to ToolRuntime
 Robocopy "%PACKAGES_DIR%\Microsoft.Net.Compilers\%ROSLYNCOMPILERS_VERSION%\." "%TOOLRUNTIME_DIR%\net46\roslyn\." /E
 
+:: Restore ILAsm if the caller asked for it by setting the environment variable
+if [%ILASMCOMPILER_VERSION%]==[] goto :afterILAsmRestore
+if [%NATIVE_TOOLS_RID%]==[] (
+  echo ERROR: Asked to restore ILAsm but didn't specify the RID
+  exit /b 1
+)
+
 @echo on
-call "%DOTNET_CMD%" build "%TOOLRUNTIME_DIR%\ilasm\ilasm.depproj" -r win-x64 --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --packages "%PACKAGES_DIR%\."
+call "%DOTNET_CMD%" build "%TOOLRUNTIME_DIR%\ilasm\ilasm.depproj" -r %NATIVE_TOOLS_RID% --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --packages "%PACKAGES_DIR%\." /p:ILAsmPackageVersion=%ILASMCOMPILER_VERSION%
 set RESTORE_ILASM_ERROR_LEVEL=%ERRORLEVEL%
 @echo off
 if not [%RESTORE_ILASM_ERROR_LEVEL%]==[0] (
@@ -106,6 +113,7 @@ if not exist "%TOOLRUNTIME_DIR%\ilasm\ilasm.exe" (
   echo ERROR: Failed to restore ilasm.exe
   exit /b 1
 )
+:afterILAsmRestore
 
 @echo on
 powershell -NoProfile -ExecutionPolicy unrestricted %BUILDTOOLS_PACKAGE_DIR%\init-tools.ps1 -ToolRuntimePath %TOOLRUNTIME_DIR% -DotnetCmd %DOTNET_CMD% -BuildToolsPackageDir %BUILDTOOLS_PACKAGE_DIR%
