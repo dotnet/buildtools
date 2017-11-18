@@ -13,6 +13,11 @@ set MICROBUILD_VERSION=0.2.0
 set PORTABLETARGETS_VERSION=0.1.1-dev
 set ROSLYNCOMPILERS_VERSION=2.6.0-beta1-62126-01
 
+:: Default to x64 native tools if nothing was specified.
+if [%NATIVE_TOOLS_RID%]==[] (
+  set NATIVE_TOOLS_RID=win-x64
+)
+
 set MSBUILD_PROJECT_CONTENT= ^
  ^^^<Project Sdk=^"Microsoft.NET.Sdk^"^^^> ^
   ^^^<PropertyGroup^^^> ^
@@ -96,10 +101,6 @@ Robocopy "%PACKAGES_DIR%\Microsoft.Net.Compilers\%ROSLYNCOMPILERS_VERSION%\." "%
 
 :: Restore ILAsm if the caller asked for it by setting the environment variable
 if [%ILASMCOMPILER_VERSION%]==[] goto :afterILAsmRestore
-if [%NATIVE_TOOLS_RID%]==[] (
-  echo ERROR: Asked to restore ILAsm but didn't specify the RID
-  exit /b 1
-)
 
 @echo on
 call "%DOTNET_CMD%" build "%TOOLRUNTIME_DIR%\ilasm\ilasm.depproj" -r %NATIVE_TOOLS_RID% --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --packages "%PACKAGES_DIR%\." /p:ILAsmPackageVersion=%ILASMCOMPILER_VERSION%
