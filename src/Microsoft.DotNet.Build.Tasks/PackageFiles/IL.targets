@@ -4,6 +4,14 @@
   <!-- Required by Microsoft.Common.targets -->
   <Target Name="CreateManifestResourceNames" Condition="'@(EmbeddedResource)' != ''" />
 
+  <!-- Default to ILAsm shipped with buildtools -->
+  <PropertyGroup Condition="'$(IlasmToolPath)' == ''">
+    <IlasmPath>$(MSBuildThisFileDirectory)\ilasm\</IlasmPath>
+    <IlasmToolPath Condition="'$(RunningOnUnix)'!='true' And Exists('$(IlasmPath)ilasm.exe')">$(IlasmPath)ilasm.exe</IlasmToolPath>
+    <IlasmToolPath Condition="'$(RunningOnUnix)'=='true' And Exists('$(IlasmPath)ilasm')">$(IlasmPath)ilasm</IlasmToolPath>
+  </PropertyGroup>
+
+  <!-- If buildtools wasn't restored with ILAsm, on Windows we can fallback to ILAsm from the framework -->
   <Target Name="GetIlasmPath"
           Condition="'$(RunningOnUnix)'!='true' And '$(IlasmToolPath)' == ''">
     <GetFrameworkPath>

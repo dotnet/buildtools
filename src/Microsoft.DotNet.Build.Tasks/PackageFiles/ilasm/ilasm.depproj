@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- suppress the attempt to copy build output. -->
+    <CopyBuildOutputToOutputDirectory>false</CopyBuildOutputToOutputDirectory>
+  </PropertyGroup>
+
+  <Target Name="CoreCompile">
+    <Copy SourceFiles="@(NativeCopyLocalItems)" DestinationFolder="$(MSBuildThisFileDirectory)" />
+  </Target>
+
+  <!-- Required by Common.Targets -->
+  <Target Name="CreateManifestResourceNames" />
+
+  <PropertyGroup>
+    <NuGetTargetMoniker>.NETCoreApp,Version=v2.0</NuGetTargetMoniker>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <RidSpecificAssets>true</RidSpecificAssets>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
+
+    <!-- ILAsm has a very unfortunate runtime dependency on CoreCLR, so we need to grab that too -->
+    <!-- https://github.com/dotnet/coreclr/issues/15059 -->
+    <PackageReference Include="Microsoft.NETCore.Runtime.CoreCLR" Version="$(ILAsmPackageVersion)" />
+  </ItemGroup>
+</Project> 

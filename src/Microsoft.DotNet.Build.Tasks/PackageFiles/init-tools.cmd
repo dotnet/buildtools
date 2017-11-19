@@ -13,6 +13,11 @@ set MICROBUILD_VERSION=0.2.0
 set PORTABLETARGETS_VERSION=0.1.1-dev
 set ROSLYNCOMPILERS_VERSION=2.6.0-beta3-62316-02
 
+:: Default to x64 native tools if nothing was specified.
+if [%NATIVE_TOOLS_RID%]==[] (
+  set NATIVE_TOOLS_RID=win-x64
+)
+
 set MSBUILD_PROJECT_CONTENT= ^
  ^^^<Project Sdk=^"Microsoft.NET.Sdk^"^^^> ^
   ^^^<PropertyGroup^^^> ^
@@ -93,6 +98,23 @@ Robocopy "%PACKAGES_DIR%\MicroBuild.Core\%MICROBUILD_VERSION%\build\." "%TOOLRUN
 
 :: Copy Roslyn Compilers Over to ToolRuntime
 Robocopy "%PACKAGES_DIR%\Microsoft.Net.Compilers\%ROSLYNCOMPILERS_VERSION%\." "%TOOLRUNTIME_DIR%\net46\roslyn\." /E
+
+:: Restore ILAsm if the caller asked for it by setting the environment variable
+if [%ILASMCOMPILER_VERSION%]==[] goto :afterILAsmRestore
+
+@echo on
+call "%DOTNET_CMD%" build "%TOOLRUNTIME_DIR%\ilasm\ilasm.depproj" -r %NATIVE_TOOLS_RID% --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --packages "%PACKAGES_DIR%\." /p:ILAsmPackageVersion=%ILASMCOMPILER_VERSION%
+set RESTORE_ILASM_ERROR_LEVEL=%ERRORLEVEL%
+@echo off
+if not [%RESTORE_ILASM_ERROR_LEVEL%]==[0] (
+  echo ERROR: An error ocurred when running: '"%DOTNET_CMD%" build "%TOOLRUNTIME_DIR%\ilasm\ilasm.depproj"'. Please check above for more details.
+  exit /b %RESTORE_ILASM_ERROR_LEVEL%
+)
+if not exist "%TOOLRUNTIME_DIR%\ilasm\ilasm.exe" (
+  echo ERROR: Failed to restore ilasm.exe
+  exit /b 1
+)
+:afterILAsmRestore
 
 @echo on
 powershell -NoProfile -ExecutionPolicy unrestricted %BUILDTOOLS_PACKAGE_DIR%\init-tools.ps1 -ToolRuntimePath %TOOLRUNTIME_DIR% -DotnetCmd %DOTNET_CMD% -BuildToolsPackageDir %BUILDTOOLS_PACKAGE_DIR%

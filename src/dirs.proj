@@ -7,13 +7,15 @@
     <ProjectsToExclude Include="xunit.runner.uap\RunnerRemoteExecutionServiceUAP\RunnerRemoteExecutionServiceUAP.csproj" />
     <!-- tool-runtime\project.csproj is not a real project to build, it's part of the buildtools package for initialization. -->
     <ProjectsToExclude Include="Microsoft.DotNet.Build.Tasks\PackageFiles\tool-runtime\project.csproj" />
+    <!-- ilasm\ilasm.depproj is not a real project to build, it's part of the buildtools package for initialization. -->
+    <ProjectsToExclude Include="Microsoft.DotNet.Build.Tasks\PackageFiles\ilasm\ilasm.depproj" />
     <!-- Exclude the UWP console from the build on non windows because it requires nuget.exe to restore a packages.config -->
     <ProjectsToExclude Include="xunit.console.uwp\xunit.console.uwp.csproj" Condition="'$(OSEnvironment)' != 'Windows_NT'" />
   </ItemGroup>
 
   <ItemGroup>
     <Project Include="*\**\*.csproj" Exclude="@(ProjectsToExclude)" />
-    <Project Include="*\**\*.depproj" />
+    <Project Include="*\**\*.depproj" Exclude="@(ProjectsToExclude)" />
   </ItemGroup>
 
   <Import Project="..\dir.targets" />
