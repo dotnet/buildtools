@@ -2,7 +2,7 @@
 <package>
   <metadata minClientVersion="2.8.1">
     <id>Microsoft.DotNet.BuildTools.VstsBuildsApi</id>
-    <version>1.0.27-prerelease</version>
+    <version>$PackageVersion$</version>
     <title>Microsoft DotNet VSTS Builds REST APIs</title>
     <authors>Microsoft</authors>
     <owners>Microsoft</owners>

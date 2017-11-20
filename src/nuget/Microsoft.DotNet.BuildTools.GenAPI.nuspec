@@ -2,7 +2,7 @@
 <package>
   <metadata minClientVersion="2.8.1">
     <id>Microsoft.DotNet.BuildTools.GenAPI</id>
-    <version>1.0.0-beta3</version>
+    <version>$PackageVersion$</version>
     <title>Reference Assembly Source Generator (GenAPI)</title>
     <authors>Microsoft</authors>
     <owners>Microsoft</owners>
