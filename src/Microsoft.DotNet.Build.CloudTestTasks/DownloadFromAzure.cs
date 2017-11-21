@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -39,15 +38,8 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
         public int MaxClients { get; set; } = 8;
 
-        [Output]
-        public ITaskItem[] PathTooLongBlobs { get; set; }
-
         private static readonly CancellationTokenSource TokenSource = new CancellationTokenSource();
         private static readonly CancellationToken CancellationToken = TokenSource.Token;
-        private static readonly string PathLengthTaskItemMetadataKey = "DestinationPathLength";
-        private static readonly string DestinationPathTaskItemMetadataKey = "DestinationPath";
-
-        private IList<ITaskItem> _pathTooLongEntries = new List<ITaskItem>();
 
         public void Cancel()
         {
@@ -115,13 +107,6 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             {
                 Log.LogErrorFromException(e, true);
             }
-
-            if (_pathTooLongEntries.Count > 0)
-            {
-                LogPathTooLongEntries();
-            }
-
-            PathTooLongBlobs = _pathTooLongEntries.ToArray();
             return !Log.HasLoggedErrors;
         }
 
@@ -200,7 +185,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             }
             catch (PathTooLongException)
             {
-                AddPathTooLongEntry(blob, filename);
+                Log.LogError($"Unable to download blob as it exceeds the maximum allowed path length. Path: {filename}. Length:{filename.Length}");
             }
             catch (Exception ex)
             {
@@ -210,25 +195,6 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             {
                 clientThrottle.Release();
             }
-        }
-
-        private void AddPathTooLongEntry(string blob, string filename)
-        {
-            var pathTooLongItem = new Microsoft.Build.Utilities.TaskItem(blob);
-            pathTooLongItem.SetMetadata(DestinationPathTaskItemMetadataKey, filename);
-            string pathLength = filename.Length.ToString();
-            pathTooLongItem.SetMetadata(PathLengthTaskItemMetadataKey, pathLength);
-            _pathTooLongEntries.Add(pathTooLongItem);
-        }
-        private void LogPathTooLongEntries()
-        {
-            StringBuilder pathErrorLogBuilder = new StringBuilder();
-            pathErrorLogBuilder.Append("Failed to download blob(s) due to exceeding the maximum allowed path length:\n");
-            foreach (ITaskItem item in _pathTooLongEntries)
-            {
-                pathErrorLogBuilder.Append($"Blob: {item.ToString()}, PathLength: {item.GetMetadata(PathLengthTaskItemMetadataKey)}.\n");
-            }
-            Log.LogError(pathErrorLogBuilder.ToString());
         }
     }
 }
