@@ -47,6 +47,8 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         /// </summary>
         public int MaxClients { get; set; } = 8;
 
+        public int UploadTimeoutInMinutes { get; set; } = 5;
+
         public void Cancel()
         {
             TokenSource.Cancel();
@@ -151,7 +153,8 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                         AccountKey,
                         ContainerName,
                         item.ItemSpec,
-                        relativeBlobPath);
+                        relativeBlobPath,
+                        UploadTimeoutInMinutes);
             }
             finally
             {

@@ -100,7 +100,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             return !Log.HasLoggedErrors;
         }
 
-        public async Task UploadAssets(ITaskItem item, SemaphoreSlim clientThrottle, bool allowOverwrite = false)
+        public async Task UploadAssets(ITaskItem item, SemaphoreSlim clientThrottle, int uploadTimeout, bool allowOverwrite = false)
         {
             string relativeBlobPath = item.GetMetadata("RelativeBlobPath");
 
@@ -136,7 +136,8 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                         feed.AccountKey,
                         feed.ContainerName,
                         item.ItemSpec,
-                        relativeBlobPath);
+                        relativeBlobPath,
+                        uploadTimeout);
                 }
                 else
                 {

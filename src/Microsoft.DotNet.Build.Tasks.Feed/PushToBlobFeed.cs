@@ -32,6 +32,8 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public bool SkipCreateContainer { get; set; } = false;
 
+        public int UploadTimeoutInMinutes { get; set; } = 5;
+
         public override bool Execute()
         {
             return ExecuteAsync().GetAwaiter().GetResult();
@@ -91,7 +93,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 using (var clientThrottle = new SemaphoreSlim(this.MaxClients, this.MaxClients))
                 {
                     Log.LogMessage($"Uploading {taskItems.Count()} items...");
-                    await Task.WhenAll(taskItems.Select(item => blobFeedAction.UploadAssets(item, clientThrottle, Overwrite)));
+                    await Task.WhenAll(taskItems.Select(item => blobFeedAction.UploadAssets(item, clientThrottle, UploadTimeoutInMinutes, Overwrite)));
                 }
             }
         }
