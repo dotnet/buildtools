@@ -46,6 +46,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             string ContainerName,
             string filePath,
             string destinationBlob,
+            int uploadTimeout,
             string leaseId = "")
         {
             string resourceUrl = AzureHelper.GetContainerRestUrl(AccountName, ContainerName);
@@ -86,7 +87,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                         client.DefaultRequestHeaders.Clear();
 
                         // In random occassions the request fails if the network is slow and it takes more than 100 seconds to upload 4MB. 
-                        client.Timeout = TimeSpan.FromMinutes(5);
+                        client.Timeout = TimeSpan.FromMinutes(uploadTimeout);
                         Func<HttpRequestMessage> createRequest = () =>
                         {
                             DateTime dt = DateTime.UtcNow;
