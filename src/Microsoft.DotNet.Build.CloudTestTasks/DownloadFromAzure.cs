@@ -45,7 +45,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         private static readonly CancellationTokenSource TokenSource = new CancellationTokenSource();
         private static readonly CancellationToken CancellationToken = TokenSource.Token;
         private static readonly string PathLengthTaskItemMetadataKey = "DestinationPathLength";
-        private static readonly string DestinationPathTaskItemMetadataKey = "DestinationPathLength";
+        private static readonly string DestinationPathTaskItemMetadataKey = "DestinationPath";
 
         private IList<ITaskItem> _pathTooLongEntries = new List<ITaskItem>();
 
