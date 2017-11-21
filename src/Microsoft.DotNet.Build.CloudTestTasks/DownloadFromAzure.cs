@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -39,18 +40,14 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         public int MaxClients { get; set; } = 8;
 
         [Output]
-        public ITaskItem[] PathTooLongBlobs
-        {
-            get
-            {
-                return pathTooLongEntries.ToArray();
-            }
-        }
+        public ITaskItem[] PathTooLongBlobs { get; set; }
 
         private static readonly CancellationTokenSource TokenSource = new CancellationTokenSource();
         private static readonly CancellationToken CancellationToken = TokenSource.Token;
+        private static readonly string PathLengthTaskItemMetadataKey = "DestinationPathLength";
+        private static readonly string DestinationPathTaskItemMetadataKey = "DestinationPathLength";
 
-        private IList<ITaskItem> pathTooLongEntries = new List<ITaskItem>();
+        private IList<ITaskItem> _pathTooLongEntries = new List<ITaskItem>();
 
         public void Cancel()
         {
@@ -99,12 +96,12 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                         blobNames = blobNames.Where(b => b.StartsWith(BlobNamePrefix)).ToList<string>();
                     }
                 }
-                
+
                 if (BlobNameExtension != null)
                 {
                     blobNames = blobNames.Where(b => Path.GetExtension(b) == BlobNameExtension).ToList<string>();
                 }
-                
+
                 if (!Directory.Exists(DownloadDirectory))
                 {
                     Directory.CreateDirectory(DownloadDirectory);
@@ -118,6 +115,13 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             {
                 Log.LogErrorFromException(e, true);
             }
+
+            if (_pathTooLongEntries.Count > 0)
+            {
+                LogPathTooLongEntries();
+            }
+
+            PathTooLongBlobs = _pathTooLongEntries.ToArray();
             return !Log.HasLoggedErrors;
         }
 
@@ -172,20 +176,20 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                     {
                         if (response.IsSuccessStatusCode)
                         {
-                                // Blobs can be files but have the name of a directory.  We'll skip those and log something weird happened.
-                                if (!string.IsNullOrEmpty(Path.GetFileName(filename)))
-                                {
-                                    Stream responseStream = await response.Content.ReadAsStreamAsync();
+                            // Blobs can be files but have the name of a directory.  We'll skip those and log something weird happened.
+                            if (!string.IsNullOrEmpty(Path.GetFileName(filename)))
+                            {
+                                Stream responseStream = await response.Content.ReadAsStreamAsync();
 
-                                    using (FileStream sourceStream = File.Open(filename, FileMode.Create))
-                                    {
-                                        responseStream.CopyTo(sourceStream);
-                                    }
-                                }
-                                else
+                                using (FileStream sourceStream = File.Open(filename, FileMode.Create))
                                 {
-                                    Log.LogWarning($"Unable to download blob '{blob}' as it has a directory-like name. This may cause problems if it was needed.");
+                                    responseStream.CopyTo(sourceStream);
                                 }
+                            }
+                            else
+                            {
+                                Log.LogWarning($"Unable to download blob '{blob}' as it has a directory-like name. This may cause problems if it was needed.");
+                            }
                         }
                         else
                         {
@@ -211,10 +215,20 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         private void AddPathTooLongEntry(string blob, string filename)
         {
             var pathTooLongItem = new Microsoft.Build.Utilities.TaskItem(blob);
-            pathTooLongItem.SetMetadata("DestinationPath", filename);
-            pathTooLongItem.SetMetadata("DestinationPathLength", filename.Length.ToString());
-            pathTooLongEntries.Add(pathTooLongItem);
-            Log.LogWarning($"Unable to download blob '{blob}' as its final path exceeded the allowed length. This may cause problems if it was needed.");
+            pathTooLongItem.SetMetadata(DestinationPathTaskItemMetadataKey, filename);
+            string pathLength = filename.Length.ToString();
+            pathTooLongItem.SetMetadata(PathLengthTaskItemMetadataKey, pathLength);
+            _pathTooLongEntries.Add(pathTooLongItem);
+        }
+        private void LogPathTooLongEntries()
+        {
+            StringBuilder pathErrorLogBuilder = new StringBuilder();
+            pathErrorLogBuilder.Append("Failed to download blob(s) due to exceeding the maximum allowed path length:\n");
+            foreach (ITaskItem item in _pathTooLongEntries)
+            {
+                pathErrorLogBuilder.Append($"Blob: {item.ToString()}, PathLength: {item.GetMetadata(PathLengthTaskItemMetadataKey)}.\n");
+            }
+            Log.LogError(pathErrorLogBuilder.ToString());
         }
     }
 }
