@@ -93,6 +93,21 @@ __MNCA_FOLDER=$(dirname $__DOTNET_CMD)/shared/Microsoft.NETCore.App
 __HIGHEST_RUNTIME_VERSION=`ls $__MNCA_FOLDER | sed 'r/\([0-9]\+\).*/\1/g' | sort -n | tail -1`
 sed -i -e "s/1.1.0/$__HIGHEST_RUNTIME_VERSION/g" $__TOOLRUNTIME_DIR/*.runtimeconfig.json
 
+# Restore ILAsm, if requested in the environment.
+__ILASM_PACKAGE_VERSION="${ILASMCOMPILER_VERSION:-}"
+if [ "$__ILASM_PACKAGE_VERSION" ]; then
+    echo "Restoring ILAsm version '$__ILASM_PACKAGE_VERSION'..."
+	
+    __ILASM_PACKAGE_RID="${NATIVE_TOOLS_RID:-}"
+    if [ "$__ILASM_PACKAGE_RID" == "" ]; then
+        echo "ERROR: Please specify native package RID."
+        exit 1
+    fi
+
+    echo "Running: \"$__DOTNET_CMD\" build \"${__TOOLRUNTIME_DIR}/ilasm/ilasm.depproj\""
+    $__DOTNET_CMD build "${__TOOLRUNTIME_DIR}/ilasm/ilasm.depproj" --packages "${__PACKAGES_DIR}/." --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json -r $__ILASM_PACKAGE_RID -p:ILAsmPackageVersion=$__ILASM_PACKAGE_VERSION
+fi
+
 # Download the package version props file, if passed in the environment.
 __PACKAGE_VERSION_PROPS_URL="${PACKAGEVERSIONPROPSURL:-}"
 __PACKAGE_VERSION_PROPS_PATH="$__TOOLRUNTIME_DIR/DownloadedPackageVersions.props"
