@@ -84,6 +84,9 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                     using (HttpClient client = new HttpClient())
                     {
                         client.DefaultRequestHeaders.Clear();
+
+                        // In random occassions the request fails if the network is slow and it takes more than 100 seconds to upload 4MB. 
+                        client.Timeout = TimeSpan.FromMinutes(5);
                         Func<HttpRequestMessage> createRequest = () =>
                         {
                             DateTime dt = DateTime.UtcNow;
