@@ -46,6 +46,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             string ContainerName,
             string filePath,
             string destinationBlob,
+            string contentType,
             int uploadTimeout,
             string leaseId = "")
         {
@@ -151,7 +152,10 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                     var req = new HttpRequestMessage(HttpMethod.Put, blockListUploadUrl);
                     req.Headers.Add(AzureHelper.DateHeaderString, dt1.ToString("R", CultureInfo.InvariantCulture));
                     req.Headers.Add(AzureHelper.VersionHeaderString, AzureHelper.StorageApiVersion);
-                    string contentType = DetermineContentTypeBasedOnFileExtension(filePath);
+                    if (string.IsNullOrEmpty(contentType))
+                    {
+                        contentType = DetermineContentTypeBasedOnFileExtension(filePath);
+                    }
                     if (!string.IsNullOrEmpty(contentType))
                     {
                         req.Headers.Add(AzureHelper.ContentTypeString, contentType);

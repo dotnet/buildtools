@@ -140,6 +140,8 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             if (!Overwrite && blobsPresent.Contains(relativeBlobPath))
                 throw new Exception(string.Format("The blob '{0}' already exists.", relativeBlobPath));
 
+            string contentType = item.GetMetadata("ContentType");
+
             await clientThrottle.WaitAsync();
 
             try
@@ -154,6 +156,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                         ContainerName,
                         item.ItemSpec,
                         relativeBlobPath,
+                        contentType,
                         UploadTimeoutInMinutes);
             }
             finally
