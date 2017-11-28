@@ -105,7 +105,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             }
             catch (Exception e)
             {
-                Log.LogErrorFromException(e, true);
+                Log.LogError(e.ToString());
             }
             return !Log.HasLoggedErrors;
         }
@@ -173,7 +173,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                             }
                             else
                             {
-                                Log.LogWarning($"Unable to download blob '{blob}' as it has a directory-like name. This may cause problems if it was needed.");
+                                Log.LogWarning($"Unable to download blob '{blob}' as it has a directory-like name.  This may cause problems if it was needed.");
                             }
                         }
                         else
@@ -189,7 +189,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             }
             catch (Exception ex)
             {
-                Log.LogErrorFromException(ex, true);
+                Log.LogError(ex.ToString());
             }
             finally
             {
