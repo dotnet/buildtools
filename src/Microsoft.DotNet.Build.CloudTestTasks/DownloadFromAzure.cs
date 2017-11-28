@@ -88,12 +88,12 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                         blobNames = blobNames.Where(b => b.StartsWith(BlobNamePrefix)).ToList<string>();
                     }
                 }
-                
+
                 if (BlobNameExtension != null)
                 {
                     blobNames = blobNames.Where(b => Path.GetExtension(b) == BlobNameExtension).ToList<string>();
                 }
-                
+
                 if (!Directory.Exists(DownloadDirectory))
                 {
                     Directory.CreateDirectory(DownloadDirectory);
@@ -105,7 +105,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             }
             catch (Exception e)
             {
-                Log.LogErrorFromException(e, true);
+                Log.LogError(e.ToString());
             }
             return !Log.HasLoggedErrors;
         }
@@ -113,13 +113,14 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         private async Task DownloadItem(CancellationToken ct, string blob, SemaphoreSlim clientThrottle)
         {
             await clientThrottle.WaitAsync();
+            string filename = string.Empty;
             try {
                 using (HttpClient client = new HttpClient())
                 {
                     client.Timeout = TimeSpan.FromMinutes(10);
                     Log.LogMessage(MessageImportance.Low, "Downloading BLOB - {0}", blob);
                     string urlGetBlob = AzureHelper.GetBlobRestUrl(AccountName, ContainerName, blob);
-                    string filename = Path.Combine(DownloadDirectory, Path.GetFileName(blob));
+                    filename = Path.Combine(DownloadDirectory, Path.GetFileName(blob));
 
                     if (!DownloadFlatFiles)
                     {
@@ -182,9 +183,13 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                     }
                 }
             }
+            catch (PathTooLongException)
+            {
+                Log.LogError($"Unable to download blob as it exceeds the maximum allowed path length. Path: {filename}. Length:{filename.Length}");
+            }
             catch (Exception ex)
             {
-                Log.LogErrorFromException(ex, true);
+                Log.LogError(ex.ToString());
             }
             finally
             {
