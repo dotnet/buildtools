@@ -26,6 +26,8 @@
       <NuGetPushArgsBase>$(NuGetPushArgsBase) -Timeout $(NuGetTimeout)</NuGetPushArgsBase>
       <NuGetPushArgsBase>$(NuGetPushArgsBase) -Verbosity $(NuGetVerbosity)</NuGetPushArgsBase>
       <NuGetPushArgsBase Condition="'$(NuGetApiKey)'!=''">$(NuGetPushArgsBase) -ApiKey $(NuGetApiKey)</NuGetPushArgsBase>
+
+      <IgnorableErrorMessagesExistingPackageMessage>Overwriting existing packages is forbidden according to the package retention settings for this feed.</IgnorableErrorMessagesExistingPackageMessage>
     </PropertyGroup>
 
     <ItemGroup>
@@ -36,13 +38,13 @@
            and then gets a "Forbidden" response on the next attempt because the package "already exists".  
            This indicates that the failure was reported, but the push was actually successful.
       -->
-      <IgnorableErrorMessages Include="Overwriting existing packages is forbidden according to the package retention settings for this feed.">
+      <IgnorableErrorMessages Include="$(IgnorableErrorMessagesExistingPackageMessage)">
         <ConditionalErrorMessage>Pushing took too long</ConditionalErrorMessage>
       </IgnorableErrorMessages>
-      <IgnorableErrorMessages Include="Overwriting existing packages is forbidden according to the package retention settings for this feed.">
+      <IgnorableErrorMessages Include="$(IgnorableErrorMessagesExistingPackageMessage)">
         <ConditionalErrorMessage>The connection with the server was terminated abnormally</ConditionalErrorMessage>
       </IgnorableErrorMessages>
-      <IgnorableErrorMessages Include="Overwriting existing packages is forbidden according to the package retention settings for this feed.">
+      <IgnorableErrorMessages Include="$(IgnorableErrorMessagesExistingPackageMessage)">
         <ConditionalErrorMessage>An existing connection was forcibly closed by the remote host</ConditionalErrorMessage>
       </IgnorableErrorMessages>
     </ItemGroup>
