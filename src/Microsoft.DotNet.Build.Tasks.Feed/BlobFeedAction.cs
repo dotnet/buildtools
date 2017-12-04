@@ -111,6 +111,8 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 relativeBlobPath = $"{recursiveDir}{fileName}";
             }
 
+            string contentType = item.GetMetadata("ContentType");
+
             relativeBlobPath = $"{feed.RelativePath}{relativeBlobPath}".Replace("\\", "/");
 
             Log.LogMessage($"Uploading {relativeBlobPath}");
@@ -137,6 +139,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                         feed.ContainerName,
                         item.ItemSpec,
                         relativeBlobPath,
+                        contentType,
                         uploadTimeout);
                 }
                 else
