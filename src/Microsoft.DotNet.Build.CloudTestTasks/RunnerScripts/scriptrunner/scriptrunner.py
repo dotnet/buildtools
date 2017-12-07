@@ -16,8 +16,6 @@ from helix.cmdline import command_main
 from helix.io import fix_path
 from helix_test_execution import HelixTestExecution
 
-import subprocess
-
 log = helix.logs.get_logger()
 
 
@@ -29,7 +27,6 @@ def main(args=None):
                 [--config config.json]
                 [--setting name=value]
                 --script=path
-                [--standalone]
                 [args]
         """
         log.info("BuildTools Helix Script Runner v0.1 starting")
@@ -40,18 +37,11 @@ def main(args=None):
         unpack_dir = fix_path(settings.workitem_payload_dir)
         execution_args = [os.path.join(unpack_dir, script_to_execute)] + args
 
-        # If the user has specified to run the command in standalone mode then
-	    # we don't wrap the command execution in the Helix context.
-        if '--standalone' in optdict:
-            log.info("Going to execute the command+args: {}".format(execution_args))
-            subprocess.call(execution_args)
-            return None
-
         test_executor = HelixTestExecution(settings)
 
         return_code = helix.proc.run_and_log_output(
        	    execution_args,
-            cwd=unpack_dir,
+       	    cwd=unpack_dir,
        	    env=None
         )
         event_client = helix.event.create_from_uri(settings.event_uri)
@@ -77,25 +67,30 @@ def main(args=None):
                             test_count = int(match.groups()[0])
                         break
 
-            result_url = test_executor.upload_file_to_storage(results_location, settings)
+            if settings.output_uri is not None:
+                result_url = test_executor.upload_file_to_storage(results_location, settings)
+            else:
+                result_url = None;
+
             log.info("Sending completion event")
             event_client.send(
        	        {
                	    'Type': 'XUnitTestResult',
-                    'WorkItemId': settings.workitem_id,
-       	            'WorkItemFriendlyName': settings.workitem_friendly_name,
+               	    'WorkItemId': settings.workitem_id,
+               	    'WorkItemFriendlyName': settings.workitem_friendly_name,
                	    'CorrelationId': settings.correlation_id,
-                    'ResultsXmlUri': result_url,
-       	            'TestCount': test_count,
-                }
+               	    'ResultsXmlUri': result_url,
+               	    'TestCount': test_count,
+       	        }
        	    )
         else:
             log.error("Error: No exception thrown, but XUnit results not created")
-            test_executor.report_error(settings, failure_type="XUnitTestFailure")
+            if settings.output_uri is not None:
+                test_executor.report_error(settings, failure_type="XUnitTestFailure")
 
         return return_code
 
-    return command_main(_main, ['standalone', 'script=', 'args='], args)
+    return command_main(_main, ['script=', 'args='], args)
 
 if __name__ == '__main__':
     import sys
