@@ -46,7 +46,7 @@ def main(args=None):
             cwd=unpack_dir,
             env=None
         )
-        event_client = helix.event.create_from_uri(settings.event_uri)
+
         results_location = os.path.join(unpack_dir, 'testResults.xml')
 
         # In case testResults.xml was put somewhere else, try to find it anywhere in this directory before failing
@@ -75,6 +75,7 @@ def main(args=None):
                 result_url = None;
 
             if (settings.event_uri is not None):
+                event_client = helix.event.create_from_uri(settings.event_uri);
                 log.info("Sending completion event")
                 event_client.send(
                     {
@@ -85,7 +86,7 @@ def main(args=None):
                         'ResultsXmlUri': result_url,
                         'TestCount': test_count,
                     }
-            )
+                )
         else:
             log.error("Error: No exception thrown, but XUnit results not created")
             if settings.output_uri is not None:
