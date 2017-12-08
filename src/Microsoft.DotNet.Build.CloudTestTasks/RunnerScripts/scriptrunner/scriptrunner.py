@@ -74,16 +74,17 @@ def main(args=None):
             else:
                 result_url = None;
 
-            log.info("Sending completion event")
-            event_client.send(
-                {
-                    'Type': 'XUnitTestResult',
-                    'WorkItemId': settings.workitem_id,
-                    'WorkItemFriendlyName': settings.workitem_friendly_name,
-                    'CorrelationId': settings.correlation_id,
-                    'ResultsXmlUri': result_url,
-                    'TestCount': test_count,
-                }
+            if (settings.event_uri is not None):
+                log.info("Sending completion event")
+                event_client.send(
+                    {
+                        'Type': 'XUnitTestResult',
+                        'WorkItemId': settings.workitem_id,
+                        'WorkItemFriendlyName': settings.workitem_friendly_name,
+                        'CorrelationId': settings.correlation_id,
+                        'ResultsXmlUri': result_url,
+                        'TestCount': test_count,
+                    }
             )
         else:
             log.error("Error: No exception thrown, but XUnit results not created")
