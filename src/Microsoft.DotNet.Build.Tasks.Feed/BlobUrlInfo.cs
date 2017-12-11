@@ -10,9 +10,11 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 {
     class BlobUrlInfo
     {
-        private const string accountNameRegex = @"(?<accountname>[a-z0-9]+)\.blob\.core\.windows\.net.*";
+        private const string accountNameandEndpointRegex = @"(?<accountname>[a-z0-9]+)\.(?<endpoint>.+?)";
         private const string containerAndBlobRegex = @"/(?<containername>[^\/]+)/(?<blobpath>.*)";
         public string AccountName { get; set; }
+
+        public string Endpoint { get; set; }
 
         public string ContainerName { get; set; }
 
@@ -24,7 +26,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         {
             get
             {
-                return new Uri($"https://{AccountName}.blob.core.windows.net/{ContainerName}/{BlobPath}");
+                return new Uri($"https://{AccountName}.{Endpoint}/{ContainerName}/{BlobPath}");
             }
         }
 
@@ -36,15 +38,16 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         {
             // Account name is the first element of the hostname.
             string hostName = uri.Host;
-            Match hostNameMatch = Regex.Match(hostName, accountNameRegex);
+            Match hostNameMatch = Regex.Match(hostName, accountNameandEndpointRegex);
 
             if (hostNameMatch.Success)
             {
                 AccountName = hostNameMatch.Groups["accountname"].Value;
+                Endpoint = hostNameMatch.Groups["endpoint"].Value;
             }
             else
             {
-                throw new ArgumentException("Blob URL host name should be of the form <account name>.blob.core.windows.net");
+                throw new ArgumentException(string.Format("Blob URL host name {0} should be of the form <account name>.<endpoint>", hostName));
             }
 
             String path = uri.AbsolutePath;
@@ -57,7 +60,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             }
             else
             {
-                throw new ArgumentException("Blob URL path should have a container and blob path");
+                throw new ArgumentException(string.Format("Blob URL path {0} should have a container and blob path", path));
             }
 
             // TODO, for authenticated nuget feeds using traditional query strings, we should change this

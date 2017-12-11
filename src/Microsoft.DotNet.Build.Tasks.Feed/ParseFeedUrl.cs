@@ -47,6 +47,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     BlobElements = new TaskItem(FeedUrl);
                     BlobElements.SetMetadata("AccountName", info.AccountName);
                     BlobElements.SetMetadata("ContainerName", info.ContainerName);
+                    BlobElements.SetMetadata("Endpoint", info.Endpoint);
                     BlobElements.SetMetadata("BaseBlobPath", info.BlobPath.Replace("/index.json", ""));
                     return true;
                 }
