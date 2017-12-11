@@ -28,7 +28,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public bool SkipCreateContainer { get; set; } = false;
 
-        public bool SkipIfMissing { get; set; } = true;
+        public bool SkipIfMissing { get; set; } = false;
 
         public override bool Execute()
         {
