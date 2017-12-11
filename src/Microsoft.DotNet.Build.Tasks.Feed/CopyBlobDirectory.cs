@@ -36,7 +36,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             
         }
 
-        private string GetCanonicalStorageUri(string uri, string subPath)
+        private static string GetCanonicalStorageUri(string uri, string subPath = null)
         {
             string newUri = uri.TrimEnd('/');
             if (!string.IsNullOrEmpty(subPath))
@@ -50,16 +50,16 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         {
             try
             {
-                Log.LogMessage(MessageImportance.High, "Performing blob merge...");
+                Log.LogMessage("Performing blob merge...");
 
-                if (SourceBlobDirectory == null || TargetBlobDirectory == null)
+                if (string.IsNullOrEmpty(SourceBlobDirectory) || string.IsNullOrEmpty(TargetBlobDirectory))
                 {
                     Log.LogError($"Please specify a source blob directory and a target blob directory");
                 }
                 else
                 {
                     // Canonicalize the target uri
-                    string targetUri = GetCanonicalStorageUri(TargetBlobDirectory, null);
+                    string targetUri = GetCanonicalStorageUri(TargetBlobDirectory);
                     // Invoke the blob URI parser on the target URI and deal with any container creation that needs to happen
                     BlobUrlInfo targetUrlInfo = new BlobUrlInfo(targetUri);
                     CloudStorageAccount storageAccount = new CloudStorageAccount(new WindowsAzure.Storage.Auth.StorageCredentials(targetUrlInfo.AccountName, AccountKey), true);
@@ -72,7 +72,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                         await targetContainer.CreateIfNotExistsAsync();
                     }
 
-                    string sourceUri = GetCanonicalStorageUri(SourceBlobDirectory, null);
+                    string sourceUri = GetCanonicalStorageUri(SourceBlobDirectory);
                     // Grab the source blob path from the source info and combine with the target blob path.
                     BlobUrlInfo sourceBlobInfo = new BlobUrlInfo(sourceUri);
 
@@ -85,7 +85,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     {
                         CloudBlobContainer sourceContainer = client.GetContainerReference(sourceBlobInfo.ContainerName);
 
-                        Log.LogMessage(MessageImportance.Normal, $"Listing blobs in {sourceUri}");
+                        Log.LogMessage($"Listing blobs in {sourceUri}");
 
                         // Get all source URI's with the blob prefix
                         BlobContinuationToken token = null;
@@ -114,14 +114,13 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                             BlobUrlInfo specificTargetBlobUrlInfo = new BlobUrlInfo(specificTargetUri);
                             CloudBlob targetBlob = targetContainer.GetBlobReference(specificTargetBlobUrlInfo.BlobPath);
 
-                            Log.LogMessage(MessageImportance.Normal, $"Merging {blob.Uri.ToString()} into {targetBlob.Uri.ToString()}");
+                            Log.LogMessage($"Merging {blob.Uri.ToString()} into {targetBlob.Uri.ToString()}");
 
                             if (!Overwrite && await targetBlob.ExistsAsync())
                             {
                                 Log.LogError($"Target blob {targetBlob.Uri.ToString()} already exists.");
                             }
-
-                            await targetBlob.DeleteIfExistsAsync();
+                            
                             await targetBlob.StartCopyAsync(blob.Uri);
                         }));
                     }
