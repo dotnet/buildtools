@@ -76,7 +76,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     // Grab the source blob path from the source info and combine with the target blob path.
                     BlobUrlInfo sourceBlobInfo = new BlobUrlInfo(sourceUri);
 
-                    // For now the source and target storage accounts should be the same, so the same accont key is used for each.
+                    // For now the source and target storage accounts should be the same, so the same account key is used for each.
                     if (sourceBlobInfo.AccountName != targetUrlInfo.AccountName)
                     {
                         Log.LogError($"Source and target storage accounts should be identical");

@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,13 +26,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public bool HasToken { get; set; }
 
-        public Uri Uri
-        {
-            get
-            {
-                return new Uri($"https://{AccountName}.{Endpoint}/{ContainerName}/{BlobPath}");
-            }
-        }
+        public Uri Uri { get; private set; }
 
         public BlobUrlInfo(string url)
             : this(new Uri(url))
@@ -36,6 +34,8 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public BlobUrlInfo(Uri uri)
         {
+            this.Uri = uri;
+
             // Account name is the first element of the hostname.
             string hostName = uri.Host;
             Match hostNameMatch = Regex.Match(hostName, accountNameandEndpointRegex);
@@ -72,16 +72,14 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             }
         }
 
-        public BlobUrlInfo(string accountName, string containerName, string blobPath)
+        public BlobUrlInfo(string accountName, string containerName, string blobPath, string endpoint = "blob.core.windows.net")
         {
             AccountName = accountName;
             ContainerName = containerName;
             BlobPath = blobPath;
-        }
-
-        public string GetConnectionString(string accountKey)
-        {
-            return $"DefaultEndpointsProtocol=https;AccountName={AccountName};AccountKey={accountKey};EndpointSuffix=core.windows.net";
+            Endpoint = endpoint;
+            // Set Uri
+            Uri = new Uri($"https://{accountName}.{endpoint}/{containerName}/{blobPath}");
         }
     }
 }
