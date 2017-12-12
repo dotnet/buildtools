@@ -14,8 +14,8 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 {
     public class BlobUrlInfo
     {
-        private const string AccountNameAndEndpointRegex = @"(?<accountname>[a-z0-9]+)\.(?<endpoint>.+?)";
-        private const string ContainerAndBlobRegex = @"/(?<containername>[^\/]+)/(?<blobpath>.*)";
+        private const string AccountNameAndEndpointRegex = @"^(?<accountname>[a-z0-9]+)\.(?<endpoint>.+?)";
+        private const string ContainerAndBlobRegex = @"/^(?<containername>[^\/]+)/(?<blobpath>.*)";
 
         public string AccountName { get; set; }
 
