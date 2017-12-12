@@ -12,10 +12,11 @@ using System.Text.RegularExpressions;
 
 namespace Microsoft.DotNet.Build.Tasks.Feed
 {
-    class BlobUrlInfo
+    public class BlobUrlInfo
     {
-        private const string accountNameandEndpointRegex = @"(?<accountname>[a-z0-9]+)\.(?<endpoint>.+?)";
-        private const string containerAndBlobRegex = @"/(?<containername>[^\/]+)/(?<blobpath>.*)";
+        private const string AccountNameAndEndpointRegex = @"(?<accountname>[a-z0-9]+)\.(?<endpoint>.+?)";
+        private const string ContainerAndBlobRegex = @"/(?<containername>[^\/]+)/(?<blobpath>.*)";
+
         public string AccountName { get; set; }
 
         public string Endpoint { get; set; }
@@ -38,7 +39,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
             // Account name is the first element of the hostname.
             string hostName = uri.Host;
-            Match hostNameMatch = Regex.Match(hostName, accountNameandEndpointRegex);
+            Match hostNameMatch = Regex.Match(hostName, AccountNameAndEndpointRegex);
 
             if (hostNameMatch.Success)
             {
@@ -51,7 +52,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             }
 
             String path = uri.AbsolutePath;
-            Match containerAndBlobMatch = Regex.Match(path, containerAndBlobRegex);
+            Match containerAndBlobMatch = Regex.Match(path, ContainerAndBlobRegex);
 
             if (containerAndBlobMatch.Success)
             {
