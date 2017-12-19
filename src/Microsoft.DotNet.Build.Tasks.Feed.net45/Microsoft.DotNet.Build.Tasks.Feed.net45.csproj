@@ -7,6 +7,7 @@
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
     <ImportedProjectRelativePath>..\Microsoft.DotNet.Build.Tasks.Feed\</ImportedProjectRelativePath>
     <ProjectGuid>{17C66BCE-EB35-44CA-893C-8AAFB67708E9}</ProjectGuid>
+    <TargetFrameworkProjectSuffix>.net45</TargetFrameworkProjectSuffix>
   </PropertyGroup>
   <Import Project="$(ImportedProjectRelativePath)Microsoft.DotNet.Build.Tasks.Feed.csproj" />
   <PropertyGroup>
@@ -18,6 +19,7 @@
     <TargetingPackReference Include="Microsoft.Build.Utilities.v4.0" />
     <TargetingPackReference Include="System" />
     <TargetingPackReference Include="System.Net.Http" />
+    <TargetingPackReference Include="System.Collections" />
     <TargetingPackReference Include="System.Core" />
     <TargetingPackReference Include="System.IO" />
     <TargetingPackReference Include="System.IO.Compression" />
