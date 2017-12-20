@@ -119,6 +119,14 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
             relativeBlobPath = $"{feed.RelativePath}{relativeBlobPath}".Replace("\\", "/");
 
+            if (relativeBlobPath.Contains("//"))
+            {
+                Log.LogError(
+                    $"Item '{item.ItemSpec}' RelativeBlobPath contains virtual directory " +
+                    $"without name (double forward slash): '{relativeBlobPath}'");
+                return;
+            }
+
             Log.LogMessage($"Uploading {relativeBlobPath}");
 
             await clientThrottle.WaitAsync();
