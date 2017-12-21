@@ -25,6 +25,14 @@
     <Compile Include="Automation\LocalVersionsRepoUpdater.cs" />
     <Compile Include="Automation\GitHubVersionsRepoUpdater.cs" />
     <Compile Include="Automation\PullRequestOptions.cs" />
+    <Compile Include="BuildManifest\Model\ArtifactSet.cs" />
+    <Compile Include="BuildManifest\Model\BlobArtifactModel.cs" />
+    <Compile Include="BuildManifest\Model\BuildIdentity.cs" />
+    <Compile Include="BuildManifest\Model\BuildModel.cs" />
+    <Compile Include="BuildManifest\Model\EndpointModel.cs" />
+    <Compile Include="BuildManifest\Model\PackageArtifactModel.cs" />
+    <Compile Include="BuildManifest\Model\OrchestratedBuildModel.cs" />
+    <Compile Include="BuildManifest\Model\XElementParsingExtensions.cs" />
     <Compile Include="Dependencies\BuildOutput\BuildDependencyInfo.cs" />
     <Compile Include="Dependencies\IDependencyInfo.cs" />
     <Compile Include="Dependencies\DependencyUpdateTask.cs" />

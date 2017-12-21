@@ -11,6 +11,8 @@
     <ProjectsToExclude Include="Microsoft.DotNet.Build.Tasks\PackageFiles\ilasm\ilasm.depproj" />
     <!-- Exclude the UWP console from the build on non windows because it requires nuget.exe to restore a packages.config -->
     <ProjectsToExclude Include="xunit.console.uwp\xunit.console.uwp.csproj" Condition="'$(OSEnvironment)' != 'Windows_NT'" />
+    <!-- Exclude the VersionTools test project because it only runs in Visual Studio: the BuildTools CLI is too old. -->
+    <ProjectsToExclude Include="Microsoft.DotNet.VersionTools.Tests\Microsoft.DotNet.VersionTools.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>

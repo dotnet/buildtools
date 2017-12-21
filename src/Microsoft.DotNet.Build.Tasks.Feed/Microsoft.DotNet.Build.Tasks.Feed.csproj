@@ -55,6 +55,12 @@
     <None Include="PackageFiles\Microsoft.DotNet.Build.Tasks.Feed.targets" />
     <None Include="project.json" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.DotNet.VersionTools$(TargetFrameworkProjectSuffix)\Microsoft.DotNet.VersionTools$(TargetFrameworkProjectSuffix).csproj">
+      <Project>{8d524fa5-a8c5-4ebd-ba8b-2a4fed03ee58}</Project>
+      <Name>Microsoft.DotNet.VersionTools$(TargetFrameworkProjectSuffix)</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
   <Target Name="AfterBuild">
     <ItemGroup>

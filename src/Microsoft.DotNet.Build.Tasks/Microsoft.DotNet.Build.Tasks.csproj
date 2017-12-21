@@ -48,6 +48,7 @@
     <Compile Include="GetTargetMachineInfo.cs" />
     <Compile Include="GetNetCoreAppVersionsFromFile.cs" />
     <Compile Include="InstallPackageFromFile.cs" />
+    <Compile Include="LaunchDebugger.cs" />
     <Compile Include="LocatePreviousContract.cs" />
     <Compile Include="NormalizePaths.cs" />
     <Compile Include="NormalizeAssemblyName.cs" />
