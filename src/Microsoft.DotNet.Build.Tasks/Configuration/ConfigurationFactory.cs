@@ -13,6 +13,7 @@ namespace Microsoft.DotNet.Build.Tasks
     public class ConfigurationFactory
     {
         internal const char PropertySeparator = '-';
+        internal const string NopConfigurationPrefix = "_";
 
         private Dictionary<string, PropertyInfo> Properties { get; }
 
@@ -170,6 +171,11 @@ namespace Microsoft.DotNet.Build.Tasks
         /// <returns></returns>
         internal Configuration ParseConfiguration(string configurationString, bool permitUnknownValues = false)
         {
+            if (configurationString.StartsWith(NopConfigurationPrefix))
+            {
+                configurationString = configurationString.Substring(1);
+            }
+
             var values = configurationString.Split(PropertySeparator);
 
             var valueSet = new PropertyValue[PropertiesByOrder.Length];

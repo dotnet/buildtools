@@ -7,6 +7,7 @@ using Microsoft.Build.Utilities;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 namespace Microsoft.DotNet.Build.Tasks
 {
@@ -31,6 +32,8 @@ namespace Microsoft.DotNet.Build.Tasks
                 SupportedConfigurations.Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => ConfigurationFactory.ParseConfiguration(c)),
                 Configuration.CompatibleComparer);
 
+            var ignoredBuildConfigurations = new HashSet<string>(SupportedConfigurations.Where(c => c.StartsWith(ConfigurationFactory.NopConfigurationPrefix)));
+
             var bestConfigurations = new List<ITaskItem>();
 
             foreach (var configurationItem in Configurations)
@@ -48,6 +51,12 @@ namespace Microsoft.DotNet.Build.Tasks
                 }
                 else
                 {
+                    if (ignoredBuildConfigurations.Contains($"{ConfigurationFactory.NopConfigurationPrefix}{bestConfiguration}"))
+                    {
+                        BestConfigurations = Array.Empty<ITaskItem>();
+                        return !Log.HasLoggedErrors;
+                    }
+
                     Log.LogMessage(MessageImportance.Low, $"Chose configuration {bestConfiguration}");
                     var bestConfigurationItem = new TaskItem(bestConfiguration.ToString(), (IDictionary)bestConfiguration.GetProperties());
 
