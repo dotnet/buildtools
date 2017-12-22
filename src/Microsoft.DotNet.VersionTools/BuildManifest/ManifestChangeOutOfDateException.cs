@@ -12,7 +12,7 @@ namespace Microsoft.DotNet.VersionTools.BuildManifest
             string changeBuildId,
             string remoteBuildId)
             : base(
-                $"Build manifest change is out of date. Edited version '{changeBuildId}', but" +
+                $"Build manifest change is out of date. Edited version '{changeBuildId}', but " +
                 $"remote version is '{remoteBuildId}'.")
         {
             ChangeBuildId = changeBuildId;

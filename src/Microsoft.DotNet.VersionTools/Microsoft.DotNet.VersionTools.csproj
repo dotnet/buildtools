@@ -20,6 +20,9 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\common\ExponentialRetry.cs">
+      <Link>Util\ExponentialRetry.cs</Link>
+    </Compile>
     <Compile Include="Automation\DependencyUpdateResults.cs" />
     <Compile Include="Automation\GitHubApi\HttpFailureResponseException.cs" />
     <Compile Include="Automation\GitHubApi\IGitHubClient.cs" />
@@ -62,7 +65,6 @@
     <Compile Include="Util\Command.cs" />
     <Compile Include="Util\CommandResult.cs" />
     <Compile Include="Util\EnumerableExtensions.cs" />
-    <Compile Include="Util\ExponentialRetry.cs" />
     <Compile Include="Util\FileUtils.cs" />
     <Compile Include="Automation\GitHubAuth.cs" />
     <Compile Include="Automation\NupkgInfo.cs" />
