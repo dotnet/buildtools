@@ -22,9 +22,13 @@
   <ItemGroup>
     <Compile Include="Automation\DependencyUpdateResults.cs" />
     <Compile Include="Automation\GitHubApi\HttpFailureResponseException.cs" />
+    <Compile Include="Automation\GitHubApi\IGitHubClient.cs" />
+    <Compile Include="Automation\GitHubApi\NotFastForwardUpdateException.cs" />
     <Compile Include="Automation\LocalVersionsRepoUpdater.cs" />
     <Compile Include="Automation\GitHubVersionsRepoUpdater.cs" />
     <Compile Include="Automation\PullRequestOptions.cs" />
+    <Compile Include="BuildManifest\BuildManifestClient.cs" />
+    <Compile Include="BuildManifest\ManifestChangeOutOfDateException.cs" />
     <Compile Include="BuildManifest\Model\ArtifactSet.cs" />
     <Compile Include="BuildManifest\Model\BlobArtifactModel.cs" />
     <Compile Include="BuildManifest\Model\BuildIdentity.cs" />
@@ -32,7 +36,9 @@
     <Compile Include="BuildManifest\Model\EndpointModel.cs" />
     <Compile Include="BuildManifest\Model\PackageArtifactModel.cs" />
     <Compile Include="BuildManifest\Model\OrchestratedBuildModel.cs" />
+    <Compile Include="BuildManifest\Model\SemaphoreModel.cs" />
     <Compile Include="BuildManifest\Model\XElementParsingExtensions.cs" />
+    <Compile Include="BuildManifest\SupplementaryUploadRequest.cs" />
     <Compile Include="Dependencies\BuildOutput\BuildDependencyInfo.cs" />
     <Compile Include="Dependencies\IDependencyInfo.cs" />
     <Compile Include="Dependencies\DependencyUpdateTask.cs" />
@@ -55,6 +61,8 @@
     <Compile Include="Util\ArgumentEscaper.cs" />
     <Compile Include="Util\Command.cs" />
     <Compile Include="Util\CommandResult.cs" />
+    <Compile Include="Util\EnumerableExtensions.cs" />
+    <Compile Include="Util\ExponentialRetry.cs" />
     <Compile Include="Util\FileUtils.cs" />
     <Compile Include="Automation\GitHubAuth.cs" />
     <Compile Include="Automation\NupkgInfo.cs" />

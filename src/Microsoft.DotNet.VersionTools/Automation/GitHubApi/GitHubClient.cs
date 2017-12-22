@@ -16,13 +16,17 @@ using System.Threading.Tasks;
 
 namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
 {
-    public class GitHubClient : IDisposable
+    public class GitHubClient : IGitHubClient, IDisposable
     {
         /// <summary>
         /// A default user agent to use if none is provided to the constructor. GitHub always
         /// requires a user agent even if no auth token is set.
         /// </summary>
         private const string DefaultUserAgent = "Microsoft.DotNet.VersionTools";
+
+        private const HttpStatusCode UnprocessableEntityStatusCode = (HttpStatusCode)422;
+
+        private const string NotFastForwardMessage = "Update is not a fast forward";
 
         private static JsonSerializerSettings s_jsonSettings = new JsonSerializerSettings
         {
@@ -55,9 +59,10 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
 
         public async Task<GitHubContents> GetGitHubFileAsync(
             string path,
-            GitHubBranch branch)
+            GitHubProject project,
+            string @ref)
         {
-            string url = $"https://api.github.com/repos/{branch.Project.Segments}/contents/{path}?ref=heads/{branch.Name}";
+            string url = $"https://api.github.com/repos/{project.Segments}/contents/{path}?ref={@ref}";
 
             Trace.TraceInformation($"Getting contents of '{path}' using '{url}'");
 
@@ -73,7 +78,23 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
         {
             try
             {
-                GitHubContents file = await GetGitHubFileAsync(path, branch);
+                GitHubContents file = await GetGitHubFileAsync(path, branch.Project, $"heads/{branch.Name}");
+                return FromBase64(file.Content);
+            }
+            catch (HttpFailureResponseException ex) when (ex.HttpStatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+        }
+
+        public async Task<string> GetGitHubFileContentsAsync(
+            string path,
+            GitHubProject project,
+            string @ref)
+        {
+            try
+            {
+                GitHubContents file = await GetGitHubFileAsync(path, project, @ref);
                 return FromBase64(file.Content);
             }
             catch (HttpFailureResponseException ex) when (ex.HttpStatusCode == HttpStatusCode.NotFound)
@@ -350,7 +371,18 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             using (HttpResponseMessage response = await _httpClient.SendAsync(request))
             {
                 Trace.TraceInformation($"Patching reference '{@ref}' to '{sha}' with force={force} in {project.Segments}");
-                return await DeserializeSuccessfulAsync<GitReference>(response);
+                try
+                {
+                    return await DeserializeSuccessfulAsync<GitReference>(response);
+                }
+                catch (HttpFailureResponseException e) when (
+                    e.HttpStatusCode == UnprocessableEntityStatusCode &&
+                    JObject.Parse(e.Content)["message"]?.Value<string>() == NotFastForwardMessage)
+                {
+                    throw new NotFastForwardUpdateException(
+                        $"Could not update {project.Segments} '{@ref}' to '{sha}': " +
+                        NotFastForwardMessage);
+                }
             }
         }
 
@@ -395,7 +427,7 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
                 {
                     message += $" with content: {failureContent}";
                 }
-                throw new HttpFailureResponseException(response.StatusCode, message);
+                throw new HttpFailureResponseException(response.StatusCode, message, failureContent);
             }
         }
 

@@ -11,12 +11,16 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
     {
         public HttpStatusCode HttpStatusCode { get; }
 
+        public string Content { get; }
+
         public HttpFailureResponseException(
             HttpStatusCode httpStatusCode,
-            string message)
+            string message,
+            string content)
             : base(message)
         {
             HttpStatusCode = httpStatusCode;
+            Content = content;
         }
     }
 }

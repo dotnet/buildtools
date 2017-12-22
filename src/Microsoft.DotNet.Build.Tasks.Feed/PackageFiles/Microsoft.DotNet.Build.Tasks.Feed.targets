@@ -30,10 +30,12 @@
     <_TaskDir Condition="'$(MSBuildRuntimeType)' == 'Core'">$(MSBuildThisFileDirectory)netstandard1.5/</_TaskDir>
   </PropertyGroup>
   <UsingTask TaskName="ConfigureInputFeeds" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
-  <UsingTask TaskName="GetBlobFeedPackageList" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
-  <UsingTask TaskName="PushToBlobFeed" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
   <UsingTask TaskName="CopyBlobDirectory" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
+  <UsingTask TaskName="GetBlobFeedPackageList" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
   <UsingTask TaskName="ParseFeedUrl" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
+  <UsingTask TaskName="PushOrchestratedBuildManifest" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
+  <UsingTask TaskName="PushToBlobFeed" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
+  <UsingTask TaskName="WriteOrchestratedBuildManifestToFile" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
 
   <PropertyGroup>
     <PushToBlobFeed_Overwrite Condition="'$(PushToBlobFeed_Overwrite)' == ''">false</PushToBlobFeed_Overwrite>
@@ -87,6 +89,70 @@
                     PublishFlatContainer="true"
                     Overwrite="$(PushToBlobFeed_Overwrite)"
                     MaxClients="$(PushToBlobFeed_MaxClients)" />
+
+  </Target>
+
+  <Target Name="CreateFeedOrchestratedBuildManifest">
+    <Error Text="The ExpectedFeedUrl property must be set." Condition="'$(ExpectedFeedUrl)' == ''" />
+    <Error Text="The AccountKey property must be set." Condition="'$(AccountKey)' == ''" />
+    <Error Text="The ManifestName property must be set." Condition="'$(ManifestName)' == ''" />
+    <Error Text="The ManifestBuildId property must be set." Condition="'$(ManifestBuildId)' == ''" />
+
+    <PropertyGroup>
+      <ManifestTempDir Condition="'$(ManifestTempDir)' == ''">$(BaseIntermediateOutputPath)manifest-temp/</ManifestTempDir>
+      <ManifestDownloadDir Condition="'$(ManifestDownloadDir)' == ''">$(ManifestTempDir)downloads/</ManifestDownloadDir>
+      <ManifestFile Condition="'$(ManifestFile)' == ''">$(ManifestTempDir)build.xml</ManifestFile>
+    </PropertyGroup>
+
+    <ParseFeedUrl FeedUrl="$(ExpectedFeedUrl)">
+      <Output TaskParameter="BlobElements" ItemName="ParsedFeedUrl" />
+    </ParseFeedUrl>
+
+    <DownloadFromAzure AccountName="%(ParsedFeedUrl.AccountName)"
+                       AccountKey="$(AccountKey)"
+                       ContainerName="%(ParsedFeedUrl.ContainerName)"
+                       BlobNameExtension=".xml"
+                       BlobNamePrefix="%(ParsedFeedUrl.BaseBlobPath)/assets/orchestration-metadata/manifests/"
+                       DownloadDirectory="$(ManifestDownloadDir)"
+                       DownloadFlatFiles="true" />
+
+    <ItemGroup>
+      <BuildManifests Include="$(ManifestDownloadDir)*.xml" />
+    </ItemGroup>
+
+    <WriteOrchestratedBuildManifestToFile File="$(ManifestFile)"
+                                          BlobFeedUrl="$(ExpectedFeedUrl)"
+                                          BuildManifestFiles="@(BuildManifests)"
+                                          ManifestName="$(ManifestName)"
+                                          ManifestBuildId="$(ManifestBuildId)" />
+  </Target>
+
+  <!--
+    Create an orchestrated build manifest based on the build output manifests uploaded to a feed,
+    then push that manifest to the dotnet/versions repo by default.
+  -->
+  <Target Name="PushFeedOrchestratedBuildManifest"
+          DependsOnTargets="CreateFeedOrchestratedBuildManifest">
+    <Error Text="The VersionsRepoPath property must be set." Condition="'$(VersionsRepoPath)' == ''" />
+    <Error Text="The GitHubAuthToken property must be set." Condition="'$(GitHubAuthToken)' == ''" />
+    <Error Text="The GitHubUser property must be set." Condition="'$(GitHubUser)' == ''" />
+    <Error Text="The GitHubEmail property must be set." Condition="'$(GitHubEmail)' == ''" />
+
+    <PropertyGroup>
+      <VersionsRepo Condition="'$(VersionsRepo)' == ''">versions</VersionsRepo>
+      <VersionsRepoOwner Condition="'$(VersionsRepoOwner)' == ''">dotnet</VersionsRepoOwner>
+      <VersionsRepoBranch Condition="'$(VersionsRepoBranch)' == ''">master</VersionsRepoBranch>
+    </PropertyGroup>
+
+    <PushOrchestratedBuildManifest ManifestFile="$(ManifestFile)"
+                                   VersionsRepoPath="$(VersionsRepoPath)"
+                                   GitHubAuthToken="$(GitHubAuthToken)"
+                                   GitHubUser="$(GitHubUser)"
+                                   GitHubEmail="$(GitHubEmail)"
+                                   VersionsRepo="$(VersionsRepo)"
+                                   VersionsRepoOwner="$(VersionsRepoOwner)"
+                                   VersionsRepoBranch="$(VersionsRepoBranch)"
+                                   CommitMessage="$(CommitMessage)" />
 
   </Target>
 
