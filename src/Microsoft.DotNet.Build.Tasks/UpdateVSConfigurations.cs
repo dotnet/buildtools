@@ -77,10 +77,11 @@ namespace Microsoft.DotNet.Build.Tasks
 
             ProjectCollection.GlobalProjectCollection.UnloadProject(configurationProject);
 
+            // if starts with _ it is a placeholder configuration and we should ignore it.
             var configurations = buildConfigurations.Trim()
                                       .Split(';')
                                       .Select(c => c.Trim())
-                                      .Where(c => !String.IsNullOrEmpty(c));
+                                      .Where(c => !String.IsNullOrEmpty(c) && !c.StartsWith("_"));
 
             if (addSuffixes)
             {
