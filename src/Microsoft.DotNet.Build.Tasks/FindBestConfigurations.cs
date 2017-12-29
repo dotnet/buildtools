@@ -32,7 +32,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 SupportedConfigurations.Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => ConfigurationFactory.ParseConfiguration(c)),
                 Configuration.CompatibleComparer);
 
-            var ignoredBuildConfigurations = new HashSet<string>(SupportedConfigurations.Where(c => c.StartsWith(ConfigurationFactory.NopConfigurationPrefix)));
+            var placeHolderBuildConfigurations = new HashSet<string>(SupportedConfigurations.Where(c => c.StartsWith(ConfigurationFactory.NopConfigurationPrefix)));
 
             var bestConfigurations = new List<ITaskItem>();
 
@@ -51,7 +51,12 @@ namespace Microsoft.DotNet.Build.Tasks
                 }
                 else
                 {
-                    if (ignoredBuildConfigurations.Contains($"{ConfigurationFactory.NopConfigurationPrefix}{bestConfiguration}"))
+                    string targetGroup = bestConfiguration.Values[0].Value; // TargetGroup is in property value index 0
+                    string osGroup = bestConfiguration.Values[1].Value; // OSGroup is in property value index 1
+                    string buildConfigurationNoConfigurationGroup = osGroup != "AnyOS" ? $"{targetGroup}-{osGroup}" : targetGroup; // BuildConfigurations in configurations.props don't include ConfigurationGroup, so we need to try to find placeholder configurations without it.
+
+                    // placeholder configurations will be in the form of TargetGroup-OSGroup or TargetGroup so we need to fallback to _TargetGroup to ignore it because that means it needs to be ignored in all OSGroups.
+                    if (placeHolderBuildConfigurations.Contains($"{ConfigurationFactory.NopConfigurationPrefix}{buildConfigurationNoConfigurationGroup}") || placeHolderBuildConfigurations.Contains($"{ConfigurationFactory.NopConfigurationPrefix}{targetGroup}"))
                     {
                         BestConfigurations = Array.Empty<ITaskItem>();
                         return !Log.HasLoggedErrors;
