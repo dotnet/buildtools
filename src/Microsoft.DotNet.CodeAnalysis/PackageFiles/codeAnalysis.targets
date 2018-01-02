@@ -19,7 +19,7 @@
     <ValidPInvokeMappings Condition="'$(UWPCompatible)'=='true' and '$(EnablePinvokeUWPAnalyzer)' == 'true'">$(MSBuildThisFileDirectory)PinvokeAnalyzer_Win32UWPApis.txt</ValidPInvokeMappings>
   </PropertyGroup>
 
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(EnableFxCopAnalyzers)' == ''">
     <!-- %24 = $ -->
     <EnableFxCopAnalyzers Condition="$([System.Text.RegularExpressions.Regex]::IsMatch($(MSBuildProjectDirectory), 'src%24'))">true</EnableFxCopAnalyzers>
     <EnableFxCopAnalyzers Condition="'$(EnableFxCopAnalyzers)' != 'true'">false</EnableFxCopAnalyzers>
