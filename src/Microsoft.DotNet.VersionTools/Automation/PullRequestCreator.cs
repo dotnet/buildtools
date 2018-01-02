@@ -171,13 +171,19 @@ namespace Microsoft.DotNet.VersionTools.Automation
                     .ToArray());
 
             string commentBody =
-                "<details>" +
-                "<summary>" +
-                $"\r\n\r\nDiscarded [`{oldCommit.Sha.Substring(0, 7)}`]({oldCommit.HtmlUrl}) " +
-                $"({ciSummary}) {oldCommit.Message}\r\n" +
-                "</summary>" +
-                $"\r\n\r\n{statusLines}\r\n" +
-                "</details>";
+                $"Discarded [`{oldCommit.Sha.Substring(0, 7)}`]({oldCommit.HtmlUrl}): " +
+                $"`{oldCommit.Message}`";
+
+            if (statuses.Any())
+            {
+                commentBody += "\r\n\r\n" +
+                    "<details>" +
+                    "<summary>" +
+                    $"CI Status: {ciSummary} (click to expand)\r\n" +
+                    "</summary>" +
+                    $"\r\n\r\n{statusLines}\r\n" +
+                    "</details>";
+            }
 
             await client.PostCommentAsync(
                 baseProject,
