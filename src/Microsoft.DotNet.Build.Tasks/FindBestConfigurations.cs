@@ -28,8 +28,8 @@ namespace Microsoft.DotNet.Build.Tasks
         {
             LoadConfiguration();
 
-            var supportedProjectConfigurations = new HashSet<Configuration>(
-                SupportedConfigurations.Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => ConfigurationFactory.ParseConfiguration(c)),
+            var supportedProjectConfigurations = new Dictionary<Configuration, Configuration>(
+                SupportedConfigurations.Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => ConfigurationFactory.ParseConfiguration(c)).ToDictionary(c => c, Configuration.CompatibleComparer),
                 Configuration.CompatibleComparer);
 
             var bestConfigurations = new List<ITaskItem>();
@@ -40,18 +40,9 @@ namespace Microsoft.DotNet.Build.Tasks
 
                 var compatibleConfigurations = ConfigurationFactory.GetCompatibleConfigurations(buildConfiguration, DoNotAllowCompatibleValues);
 
-                bool isPlaceHolderConfiguration = false;
-                var bestConfiguration = compatibleConfigurations.FirstOrDefault(c =>
-                {
-                    var supportedConfiguration = supportedProjectConfigurations.FirstOrDefault(sc => Configuration.CompatibleComparer.Equals(sc, c));
-                    if (supportedConfiguration != null)
-                    {
-                        isPlaceHolderConfiguration = supportedConfiguration.IsPlaceHolderConfiguration;
-                        return true;
-                    }
+                Configuration supportedProjectConfiguration = null;
 
-                    return false;
-                });
+                var bestConfiguration = compatibleConfigurations.FirstOrDefault(c => supportedProjectConfigurations.TryGetValue(c, out supportedProjectConfiguration));
 
                 if (bestConfiguration == null)
                 {
@@ -60,7 +51,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 }
                 else
                 {
-                    if (isPlaceHolderConfiguration)
+                    if (supportedProjectConfiguration.IsPlaceHolderConfiguration)
                     {
                         BestConfigurations = Array.Empty<ITaskItem>();
                         return !Log.HasLoggedErrors;
