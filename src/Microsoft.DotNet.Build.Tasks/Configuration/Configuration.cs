@@ -28,6 +28,8 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public static IEqualityComparer<Configuration> CompatibleComparer { get; } = new CompatibleConfigurationComparer();
 
+        public bool IsPlaceHolderConfiguration { get; set; }
+
         /// <summary>
         /// Constructs a configuration string from this configuration
         /// </summary>
