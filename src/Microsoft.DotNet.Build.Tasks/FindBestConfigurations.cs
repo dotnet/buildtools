@@ -28,11 +28,9 @@ namespace Microsoft.DotNet.Build.Tasks
         {
             LoadConfiguration();
 
-            var supportedProjectConfigurations = new HashSet<Configuration>(
-                SupportedConfigurations.Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => ConfigurationFactory.ParseConfiguration(c)),
+            var supportedProjectConfigurations = new Dictionary<Configuration, Configuration>(
+                SupportedConfigurations.Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => ConfigurationFactory.ParseConfiguration(c)).ToDictionary(c => c, Configuration.CompatibleComparer),
                 Configuration.CompatibleComparer);
-
-            var ignoredBuildConfigurations = new HashSet<string>(SupportedConfigurations.Where(c => c.StartsWith(ConfigurationFactory.NopConfigurationPrefix)));
 
             var bestConfigurations = new List<ITaskItem>();
 
@@ -42,7 +40,9 @@ namespace Microsoft.DotNet.Build.Tasks
 
                 var compatibleConfigurations = ConfigurationFactory.GetCompatibleConfigurations(buildConfiguration, DoNotAllowCompatibleValues);
 
-                var bestConfiguration = compatibleConfigurations.FirstOrDefault(c => supportedProjectConfigurations.Contains(c));
+                Configuration supportedProjectConfiguration = null;
+
+                var bestConfiguration = compatibleConfigurations.FirstOrDefault(c => supportedProjectConfigurations.TryGetValue(c, out supportedProjectConfiguration));
 
                 if (bestConfiguration == null)
                 {
@@ -51,7 +51,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 }
                 else
                 {
-                    if (ignoredBuildConfigurations.Contains($"{ConfigurationFactory.NopConfigurationPrefix}{bestConfiguration}"))
+                    if (supportedProjectConfiguration.IsPlaceHolderConfiguration)
                     {
                         BestConfigurations = Array.Empty<ITaskItem>();
                         return !Log.HasLoggedErrors;

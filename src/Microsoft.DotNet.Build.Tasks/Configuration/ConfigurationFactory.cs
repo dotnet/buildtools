@@ -171,9 +171,12 @@ namespace Microsoft.DotNet.Build.Tasks
         /// <returns></returns>
         internal Configuration ParseConfiguration(string configurationString, bool permitUnknownValues = false)
         {
+            bool isPlaceHolderConfiguration = false;
+
             if (configurationString.StartsWith(NopConfigurationPrefix))
             {
                 configurationString = configurationString.Substring(1);
+                isPlaceHolderConfiguration = true;
             }
 
             var values = configurationString.Split(PropertySeparator);
@@ -243,7 +246,10 @@ namespace Microsoft.DotNet.Build.Tasks
                 valueSet[propertyIndex] = propertyValue;
             }
 
-            return new Configuration(valueSet);
+            return new Configuration(valueSet)
+            {
+                IsPlaceHolderConfiguration = isPlaceHolderConfiguration
+            };
         }
     }
 }
