@@ -28,9 +28,10 @@ namespace Microsoft.DotNet.Build.Tasks
         {
             LoadConfiguration();
 
-            var supportedProjectConfigurations = new Dictionary<Configuration, Configuration>(
-                SupportedConfigurations.Where(c => !string.IsNullOrWhiteSpace(c)).Distinct(StringComparer.OrdinalIgnoreCase).Select(c => ConfigurationFactory.ParseConfiguration(c)).ToDictionary(c => c, Configuration.CompatibleComparer),
-                Configuration.CompatibleComparer);
+            Dictionary<Configuration, Configuration> supportedProjectConfigurations = SupportedConfigurations.Where(c => !string.IsNullOrWhiteSpace(c))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Select(c => ConfigurationFactory.ParseConfiguration(c))
+                .ToDictionary(c => c, Configuration.CompatibleComparer);
 
             var bestConfigurations = new List<ITaskItem>();
 
