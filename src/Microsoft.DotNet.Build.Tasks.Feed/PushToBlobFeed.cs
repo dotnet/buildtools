@@ -91,12 +91,15 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     }
                     else
                     {
-                        var symbolItems = ItemsToPush.Where(i => i.ItemSpec.Contains("symbols.nupkg")).Select(i => 
-                        {
-                            string fileName = Path.GetFileName(i.ItemSpec);
-                            i.SetMetadata("RelativeBlobPath", $"symbols/{fileName}");
-                            return i;
-                        }).ToArray();
+                        ITaskItem[] symbolItems = ItemsToPush
+                            .Where(i => i.ItemSpec.Contains("symbols.nupkg"))
+                            .Select(i =>
+                            {
+                                string fileName = Path.GetFileName(i.ItemSpec);
+                                i.SetMetadata("RelativeBlobPath", $"{AssetsVirtualDir}symbols/{fileName}");
+                                return i;
+                            })
+                            .ToArray();
 
                         ITaskItem[] packageItems = ItemsToPush
                             .Where(i => !symbolItems.Contains(i))
