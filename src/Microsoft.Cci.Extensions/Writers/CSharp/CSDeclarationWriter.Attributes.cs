@@ -228,7 +228,7 @@ namespace Microsoft.Cci.Writers.CSharp
             {
                 WriteKeyword("typeof", noSpace: true);
                 WriteSymbol("(");
-                WriteTypeName(type.TypeToGet, noSpace: true);
+                WriteTypeName(type.TypeToGet, noSpace: true, omitGenericTypeList: true);
                 WriteSymbol(")");
                 return;
             }
@@ -387,6 +387,22 @@ namespace Microsoft.Cci.Writers.CSharp
                 case "System.Reflection.AssemblyDelaySignAttribute": return true;
                 case "System.Runtime.CompilerServices.ExtensionAttribute": return true;
                 case "System.Runtime.CompilerServices.DynamicAttribute": return true;
+                case "System.Runtime.CompilerServices.IsByRefLikeAttribute": return true;
+                case "System.Runtime.CompilerServices.IsReadOnlyAttribute": return true;
+                case "System.ObsoleteAttribute":
+                    {
+                        var arg = c.Arguments.OfType<IMetadataConstant>().FirstOrDefault();
+
+                        if (arg?.Value is string)
+                        {
+                            string argValue = (string)arg.Value;
+                            if (argValue == "Types with embedded references are not supported in this version of your compiler.")
+                            {
+                                return true;
+                            }
+                        }
+                        break;
+                    }
             }
             return false;
         }

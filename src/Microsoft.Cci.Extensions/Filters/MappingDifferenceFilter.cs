@@ -50,7 +50,7 @@ namespace Microsoft.Cci.Filters
                 return true;
 
             if (type.ShouldDiffMembers)
-                return type.Members.Any(Include);
+                return type.Members.Any(Include) || type.NestedTypes.Any(Include);
 
             return false;
         }

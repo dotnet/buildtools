@@ -66,7 +66,12 @@ namespace Microsoft.Cci.Writers.CSharp
                 WriteAttributes(method.ReturnValueAttributes, true);
 
                 if (method.ReturnValueIsByRef)
+                {
                     WriteKeyword("ref");
+
+                    if (method.ReturnValueAttributes.HasIsReadOnlyAttribute())
+                        WriteKeyword("readonly");
+                }
 
                 // We are ignoring custom modifiers right now, we might need to add them later.
                 WriteTypeName(method.Type, method.ContainingType, isDynamic: IsDynamic(method.ReturnValueAttributes));
@@ -135,7 +140,16 @@ namespace Microsoft.Cci.Writers.CSharp
                 //if (parameter.IsOut)
                 //    WriteFakeAttribute("System.Runtime.InteropServices.Out", writeInline: true);
                 if (parameter.IsByReference)
-                    WriteKeyword("ref");
+                {
+                    if (parameter.Attributes.HasIsReadOnlyAttribute())
+                    {
+                        WriteKeyword("in");
+                    }
+                    else
+                    {
+                        WriteKeyword("ref");
+                    }
+                }
             }
 
             WriteTypeName(parameter.Type, containingType, isDynamic: IsDynamic(parameter.Attributes));
@@ -199,8 +213,6 @@ namespace Microsoft.Cci.Writers.CSharp
             WriteSpace();
             WriteSymbol("{", true);
 
-            WriteOutParameterInitializations(method);
-
             if (_platformNotSupportedExceptionMessage != null)
             {
                 Write("throw new ");
@@ -213,17 +225,29 @@ namespace Microsoft.Cci.Writers.CSharp
                 else
                     Write($"System.PlatformNotSupportedException(\"{_platformNotSupportedExceptionMessage}\"); ");
             }
-            else if (method.ContainingTypeDefinition.IsValueType && method.IsConstructor)
+            else if (NeedsMethodBodyForCompilation(method))
             {
-                // Structs cannot have empty constructors so we need to output this dummy body
-                Write("throw null;");
-            }
-            else if (!TypeHelper.TypesAreEquivalent(method.Type, method.ContainingTypeDefinition.PlatformType.SystemVoid))
-            {
-                WriteKeyword("throw null;");
+                Write("throw null; ");
             }
 
             WriteSymbol("}");
+        }
+
+        private bool NeedsMethodBodyForCompilation(IMethodDefinition method)
+        {
+            // Structs cannot have empty constructors so we need a body
+            if (method.ContainingTypeDefinition.IsValueType && method.IsConstructor)
+                return true;
+
+            // Compiler requires out parameters to be initialized 
+            if (method.Parameters.Any(p => p.IsOut))
+                return true;
+
+            // For non-void returning methods we need a body. 
+            if (!TypeHelper.TypesAreEquivalent(method.Type, method.ContainingTypeDefinition.PlatformType.SystemVoid))
+                return true;
+
+            return false;
         }
 
         private void WritePrivateConstructor(ITypeDefinition type)
@@ -242,23 +266,6 @@ namespace Microsoft.Cci.Writers.CSharp
             WriteSymbol(")");
             WriteBaseConstructorCall(type);
             WriteEmptyBody();
-        }
-
-        private void WriteOutParameterInitializations(IMethodDefinition method)
-        {
-            if (!_forCompilation)
-                return;
-
-            var outParams = method.Parameters.Where(p => p.IsOut);
-
-            foreach (var param in outParams)
-            {
-                WriteIdentifier(param.Name);
-                WriteSpace();
-                WriteSymbol("=", true);
-                WriteDefaultOf(param.Type);
-                WriteSymbol(";", true);
-            }
         }
 
         private void WriteBaseConstructorCall(ITypeDefinition type)

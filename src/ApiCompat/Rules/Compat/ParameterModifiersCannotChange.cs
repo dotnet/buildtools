@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
-using System.Text;
 using Microsoft.Cci.Extensions;
-using System.Collections.Generic;
+using Microsoft.Cci.Extensions.CSharp;
 
 namespace Microsoft.Cci.Differs.Rules
 {
@@ -27,13 +27,13 @@ namespace Microsoft.Cci.Differs.Rules
             if (method1 == null || method2 == null)
                 return DifferenceType.Unknown;
 
-            if (!ParamModifiersMatch(differences, method1, method2))
+            if (!CheckModifiersOnParametersAndReturnValue(differences, method1, method2))
                 return DifferenceType.Changed;
 
             return DifferenceType.Unknown;
         }
 
-        private bool ParamModifiersMatch(IDifferences differences, IMethodDefinition implMethod, IMethodDefinition contractMethod)
+        private bool CheckModifiersOnParametersAndReturnValue(IDifferences differences, IMethodDefinition implMethod, IMethodDefinition contractMethod)
         {
             int paramCount = implMethod.ParameterCount;
 
@@ -74,17 +74,38 @@ namespace Microsoft.Cci.Differs.Rules
                     }
                 }
             }
+
+            string implReturnModifier = GetReturnValueModifier(implMethod);
+            string contractReturnModifier = GetReturnValueModifier(contractMethod);
+
+            if (implReturnModifier != contractReturnModifier)
+            {
+                differences.AddIncompatibleDifference(this,
+                    "Modifiers on return type of method '{0}' are '{1}' in the implementation but '{2}' in the contract.",
+                    implMethod.FullName(), implReturnModifier, contractReturnModifier);
+                match = false;
+            }
+
             return match;
         }
 
         private string GetModifier(IParameterDefinition parameter)
         {
             if (parameter.IsOut && !parameter.IsIn && parameter.IsByReference)
+            {
                 return "out";
+            }
             else if (parameter.IsByReference)
-                return "ref";
+            {
+                if (parameter.Attributes.HasIsReadOnlyAttribute())
+                {
+                    return "in";
+                }
 
-            return "in";
+                return "ref";
+            }
+
+            return "<none>";
         }
 
         private String PrintCustomModifiers(IEnumerable<ICustomModifier> modifiers)
@@ -93,6 +114,19 @@ namespace Microsoft.Cci.Differs.Rules
             if (String.IsNullOrEmpty(s))
                 return "<no custom modifiers>";
             return s;
+        }
+
+        private string GetReturnValueModifier(IMethodDefinition method)
+        {
+            string modifier = "<none>";
+            if (method.ReturnValueIsByRef)
+            {
+                modifier = "ref";
+
+                if (method.ReturnValueAttributes.HasIsReadOnlyAttribute())
+                    modifier += " readonly";
+            }
+            return modifier;
         }
     }
 }

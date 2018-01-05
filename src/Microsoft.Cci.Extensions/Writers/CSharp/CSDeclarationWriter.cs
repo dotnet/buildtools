@@ -215,7 +215,7 @@ namespace Microsoft.Cci.Writers.CSharp
             _writer.Write(literal);
         }
 
-        private void WriteTypeName(ITypeReference type, bool noSpace = false, bool isDynamic = false, bool useTypeKeywords = true)
+        private void WriteTypeName(ITypeReference type, bool noSpace = false, bool isDynamic = false, bool useTypeKeywords = true, bool omitGenericTypeList = false)
         {
             if (isDynamic)
             {
@@ -233,6 +233,9 @@ namespace Microsoft.Cci.Writers.CSharp
 
             if (!_forCompilation)
                 namingOptions |= NameFormattingOptions.OmitContainingNamespace;
+
+            if (omitGenericTypeList)
+                namingOptions |= NameFormattingOptions.EmptyTypeParameterList;
 
             string name = TypeHelper.GetTypeName(type, namingOptions);
 
