@@ -23,6 +23,14 @@
     FilesToPublish - Item group that contains a list of files to be pushed, if glob isn't enough.
     %(RelativeBlobPath) - Metadata that can be put on file items to control the relative path where the file
     goes underneath the blob feed. If not specfied it is default based on the FileRelativePathBase
+
+    Specifying build output manifest values:
+
+    GitHubRepositoryName - The repository name, listed inside the manifest and used to name the file. Default: "anonymous"
+    ManifestBuildId - Build ID listed in the manifest. Default: "no build id provided"
+    ManifestBranch - Branch listed in the manifest. Default: none
+    ManifestCommit - Commit listed in the manifest. Default: none
+    SkipCreateManifest - If 'true', no manifest is written even if the blob feed allows them. Default: false
   -->
 
   <PropertyGroup>
@@ -67,7 +75,8 @@
                     ManifestName="$(GitHubRepositoryName)"
                     ManifestBuildId="$(ManifestBuildId)"
                     ManifestBranch="$(ManifestBranch)"
-                    ManifestCommit="$(ManifestCommit)" />
+                    ManifestCommit="$(ManifestCommit)"
+                    SkipCreateManifest="$(SkipCreateManifest)" />
   </Target>
 
   <Target Name="PublishFilesToBlobFeed">
@@ -96,7 +105,8 @@
                     ManifestName="$(GitHubRepositoryName)"
                     ManifestBuildId="$(ManifestBuildId)"
                     ManifestBranch="$(ManifestBranch)"
-                    ManifestCommit="$(ManifestCommit)" />
+                    ManifestCommit="$(ManifestCommit)"
+                    SkipCreateManifest="$(SkipCreateManifest)" />
 
   </Target>
 
