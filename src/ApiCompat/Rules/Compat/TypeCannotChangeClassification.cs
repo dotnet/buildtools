@@ -27,10 +27,10 @@ namespace Microsoft.Cci.Differs.Rules
                 return DifferenceType.Changed;
             }
 
-            if (impl.Attributes.HasIsReadOnlyAttribute() && !contract.Attributes.HasIsReadOnlyAttribute())
+            if (contract.Attributes.HasIsReadOnlyAttribute() && !impl.Attributes.HasIsReadOnlyAttribute())
             {
                 differences.AddIncompatibleDifference(this,
-                    "Type '{0}' is marked as readonly in the implementation so it must also be marked readonly in the contract.",
+                    "Type '{0}' is marked as readonly in the contract so it must also be marked readonly in the implementation.",
                     impl.FullName());
 
                 return DifferenceType.Changed;

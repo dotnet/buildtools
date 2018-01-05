@@ -393,10 +393,9 @@ namespace Microsoft.Cci.Writers.CSharp
                     {
                         var arg = c.Arguments.OfType<IMetadataConstant>().FirstOrDefault();
 
-                        if (arg != null && arg.Value is string)
+                        if (arg?.Value is string)
                         {
                             string argValue = (string)arg.Value;
-
                             if (argValue == "Types with embedded references are not supported in this version of your compiler.")
                             {
                                 return true;
@@ -404,7 +403,7 @@ namespace Microsoft.Cci.Writers.CSharp
                         }
                         break;
                     }
-    }
+            }
             return false;
         }
 
