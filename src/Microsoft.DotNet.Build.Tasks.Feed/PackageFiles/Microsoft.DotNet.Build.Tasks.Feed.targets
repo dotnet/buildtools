@@ -63,7 +63,11 @@
                     AccountKey="$(AccountKey)"
                     ItemsToPush="@(_ItemsToPush)"
                     Overwrite="$(PushToBlobFeed_Overwrite)"
-                    MaxClients="$(PushToBlobFeed_MaxClients)" />
+                    MaxClients="$(PushToBlobFeed_MaxClients)"
+                    ManifestName="$(GitHubRepositoryName)"
+                    ManifestBuildId="$(ManifestBuildId)"
+                    ManifestBranch="$(ManifestBranch)"
+                    ManifestCommit="$(ManifestCommit)" />
   </Target>
 
   <Target Name="PublishFilesToBlobFeed">
@@ -88,7 +92,11 @@
                     ItemsToPush="@(_ItemsToPush)"
                     PublishFlatContainer="true"
                     Overwrite="$(PushToBlobFeed_Overwrite)"
-                    MaxClients="$(PushToBlobFeed_MaxClients)" />
+                    MaxClients="$(PushToBlobFeed_MaxClients)"
+                    ManifestName="$(GitHubRepositoryName)"
+                    ManifestBuildId="$(ManifestBuildId)"
+                    ManifestBranch="$(ManifestBranch)"
+                    ManifestCommit="$(ManifestCommit)" />
 
   </Target>
 
