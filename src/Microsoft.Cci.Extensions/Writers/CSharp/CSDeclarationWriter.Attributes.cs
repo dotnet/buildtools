@@ -228,7 +228,7 @@ namespace Microsoft.Cci.Writers.CSharp
             {
                 WriteKeyword("typeof", noSpace: true);
                 WriteSymbol("(");
-                WriteTypeName(type.TypeToGet, noSpace: true);
+                WriteTypeName(type.TypeToGet, noSpace: true, omitGenericTypeList: true);
                 WriteSymbol(")");
                 return;
             }
