@@ -26,11 +26,13 @@
 
     Specifying build output manifest values:
 
-    GitHubRepositoryName - The repository name, listed inside the manifest and used to name the file. Default: "anonymous"
+    ManifestName - The repository name, listed inside the manifest and used to name the file.
+      If $(GitHubRepositoryName) is defined, its value is used. Default: "anonymous"
     ManifestBuildId - Build ID listed in the manifest. Default: "no build id provided"
     ManifestBranch - Branch listed in the manifest. Default: none
     ManifestCommit - Commit listed in the manifest. Default: none
-    SkipCreateManifest - If 'true', no manifest is written even if the blob feed allows them. Default: false
+    SkipCreateManifest - If 'true', no manifest is written even if the blob feed allows them.
+      Default: false
   -->
 
   <PropertyGroup>
@@ -50,6 +52,7 @@
     <PushToBlobFeed_MaxClients Condition="'$(PushToBlobFeed_MaxClients)' == ''">8</PushToBlobFeed_MaxClients>
     <FileRelativePathBase Condition="'$(FileRelativePathBase)' == ''">assets</FileRelativePathBase>
     <FileRelativePathBase Condition="!HasTrailingSlash('$(FileRelativePathBase)')">$(FileRelativePathBase)/</FileRelativePathBase>
+    <ManifestName Condition="'$(ManifestName)' == ''">$(GitHubRepositoryName)</ManifestName>
   </PropertyGroup>
 
 
@@ -72,7 +75,7 @@
                     ItemsToPush="@(_ItemsToPush)"
                     Overwrite="$(PushToBlobFeed_Overwrite)"
                     MaxClients="$(PushToBlobFeed_MaxClients)"
-                    ManifestName="$(GitHubRepositoryName)"
+                    ManifestName="$(ManifestName)"
                     ManifestBuildId="$(ManifestBuildId)"
                     ManifestBranch="$(ManifestBranch)"
                     ManifestCommit="$(ManifestCommit)"
@@ -102,7 +105,7 @@
                     PublishFlatContainer="true"
                     Overwrite="$(PushToBlobFeed_Overwrite)"
                     MaxClients="$(PushToBlobFeed_MaxClients)"
-                    ManifestName="$(GitHubRepositoryName)"
+                    ManifestName="$(ManifestName)"
                     ManifestBuildId="$(ManifestBuildId)"
                     ManifestBranch="$(ManifestBranch)"
                     ManifestCommit="$(ManifestCommit)"
