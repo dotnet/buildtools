@@ -152,6 +152,12 @@ namespace Microsoft.Cci.Writers.CSharp
                 WriteKeyword("enum");
             else if (type.IsValueType)
             {
+                if (type.Attributes.HasIsReadOnlyAttribute())
+                    WriteKeyword("readonly");
+
+                if (type.Attributes.HasIsByRefLikeAttribute())
+                    WriteKeyword("ref");
+
                 WritePartialKeyword();
                 WriteKeyword("struct");
             }

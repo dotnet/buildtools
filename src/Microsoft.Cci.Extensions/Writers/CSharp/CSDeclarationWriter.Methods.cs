@@ -66,7 +66,12 @@ namespace Microsoft.Cci.Writers.CSharp
                 WriteAttributes(method.ReturnValueAttributes, true);
 
                 if (method.ReturnValueIsByRef)
+                {
                     WriteKeyword("ref");
+
+                    if (method.ReturnValueAttributes.HasIsReadOnlyAttribute())
+                        WriteKeyword("readonly");
+                }
 
                 // We are ignoring custom modifiers right now, we might need to add them later.
                 WriteTypeName(method.Type, method.ContainingType, isDynamic: IsDynamic(method.ReturnValueAttributes));
@@ -135,7 +140,16 @@ namespace Microsoft.Cci.Writers.CSharp
                 //if (parameter.IsOut)
                 //    WriteFakeAttribute("System.Runtime.InteropServices.Out", writeInline: true);
                 if (parameter.IsByReference)
-                    WriteKeyword("ref");
+                {
+                    if (parameter.Attributes.HasIsReadOnlyAttribute())
+                    {
+                        WriteKeyword("in");
+                    }
+                    else
+                    {
+                        WriteKeyword("ref");
+                    }
+                }
             }
 
             WriteTypeName(parameter.Type, containingType, isDynamic: IsDynamic(parameter.Attributes));

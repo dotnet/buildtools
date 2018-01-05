@@ -511,7 +511,7 @@ namespace Microsoft.Cci.Extensions.CSharp
             if (!method.IsStatic)
                 return false;
 
-            return method.Attributes.Any(a => a.Type.AreEquivalent("System.Runtime.CompilerServices.ExtensionAttribute"));
+            return method.Attributes.HasAttributeOfType("System.Runtime.CompilerServices.ExtensionAttribute");
         }
 
         public static bool IsEffectivelySealed(this ITypeDefinition type)
@@ -551,6 +551,21 @@ namespace Microsoft.Cci.Extensions.CSharp
                     return true;
             }
             return false;
+        }
+
+        public static bool HasAttributeOfType(this IEnumerable<ICustomAttribute> attributes, string attributeName)
+        {
+            return attributes.Any(a => a.Type.AreEquivalent(attributeName));
+        }
+
+        public static bool HasIsByRefLikeAttribute(this IEnumerable<ICustomAttribute> attributes)
+        {
+            return attributes.HasAttributeOfType("System.Runtime.CompilerServices.IsByRefLikeAttribute");
+        }
+
+        public static bool HasIsReadOnlyAttribute(this IEnumerable<ICustomAttribute> attributes)
+        {
+            return attributes.HasAttributeOfType("System.Runtime.CompilerServices.IsReadOnlyAttribute");
         }
 
         private static IEnumerable<ITypeReference> GetBaseTypes(this ITypeReference typeRef)

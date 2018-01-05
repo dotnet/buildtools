@@ -64,7 +64,12 @@ namespace Microsoft.Cci.Writers.CSharp
                 WriteKeyword("new");
 
             if (property.ReturnValueIsByRef)
+            { 
                 WriteKeyword("ref");
+
+                if (property.Attributes.HasIsReadOnlyAttribute())
+                    WriteKeyword("readonly");
+            }
 
             WriteTypeName(property.Type, isDynamic: IsDynamic(property.Attributes));
 
