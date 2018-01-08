@@ -6,7 +6,6 @@
        Beta -> RC - RTM. We should set $(IncludeBuildNumberInPackageVersion)
        to false for the Beta/RC builds that get uploaded to NuGet.
   -->
-
   <PropertyGroup>
     <PackageVersion Condition="'$(StableVersion)' != ''">$(StableVersion)</PackageVersion>
     <PackageVersion Condition="'$(PackageVersion)' == '' AND '$(Version)' != ''">$(Version)</PackageVersion>
@@ -35,6 +34,15 @@
     <IdPrefix>runtime.</IdPrefix>
     <IdPrefix Condition="'$(PackageTargetRuntime)' != ''">$(IdPrefix)$(PackageTargetRuntime).</IdPrefix>
     <IdPrefix Condition="'$(PackageTargetFramework)' != ''">$(IdPrefix)$(PackageTargetFramework).</IdPrefix>
+  </PropertyGroup>
+   
+  <!-- If Signing is enabled, we'll always want to write *.nupkg_requires_signing files --> 
+  <UsingTask AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll" TaskName="WriteSigningRequired" />
+  <PropertyGroup>
+    <ShouldWritePkgSigningRequired Condition="'$(SkipSigning)' == 'true'">false</ShouldWritePkgSigningRequired>
+    <ShouldWritePkgSigningRequired Condition="'$(SignType)' == 'public' or '$(SignType)' == 'oss'">false</ShouldWritePkgSigningRequired>
+    <ShouldWritePkgSigningRequired Condition="'$(ShouldWritePkgSigningRequired)'==''">true</ShouldWritePkgSigningRequired>
+    <NuPkgAuthenticodeSig          Condition="'$(ShouldWritePkgSigningRequired)'=='true'">Microsoft</NuPkgAuthenticodeSig>    
   </PropertyGroup>
 
   <!--
@@ -1229,12 +1237,24 @@
                AdditionalSymbolPackageExcludes="@(AdditionalSymbolPackageExcludes)"
                PackedPackageNamePrefix="$(PackedPackageNamePrefix)"
                Condition="'$(_SkipCreatePackage)' != 'true'"/>
-        
+
     <!-- Create a marker that records the path to the generated package -->
     <WriteLinesToFile Lines="$(PackageOutputPath)$(Id).$(PackageVersion).nupkg;$(SymbolPackageOutputPath)$(Id).$(PackageVersion).nupkg"
                       File="$(NuSpecPath).pkgpath"
                       Overwrite="true"
                       Condition="'$(_SkipCreatePackage)' != 'true'"/>
+                      
+    <WriteSigningRequired Condition="'$(ShouldWritePkgSigningRequired)'=='true'"
+                          AuthenticodeSig="$(NuPkgAuthenticodeSig)"
+                          MarkerFile="$(PackageOutputPath)$(Id).$(PackageVersion).nupkg.requires_nupkg_signing" />
+    <WriteSigningRequired Condition="'$(ShouldWritePkgSigningRequired)'=='true'"
+                          AuthenticodeSig="$(NuPkgAuthenticodeSig)"
+                          MarkerFile="$(SymbolPackageOutputPath)$(Id).$(PackageVersion).nupkg.requires_nupkg_signing" />                          
+    <ItemGroup Condition="'$(ShouldWritePkgSigningRequired)'=='true'">
+      <FileWrites Include="$(SymbolPackageOutputPath)$(Id).$(PackageVersion).nupkg.requires_nupkg_signing"/>
+      <FileWrites Include="$(PackageOutputPath)$(Id).$(PackageVersion).nupkg.requires_nupkg_signing"/>
+    </ItemGroup>                      
+
   </Target>
 
   <!-- Updates the packageIndex with information from the built package for this project -->
