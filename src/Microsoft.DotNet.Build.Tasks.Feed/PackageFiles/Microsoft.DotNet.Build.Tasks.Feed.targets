@@ -42,7 +42,7 @@
   <UsingTask TaskName="ConfigureInputFeeds" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
   <UsingTask TaskName="CopyBlobDirectory" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
   <UsingTask TaskName="GetBlobFeedPackageList" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
-  <UsingTask TaskName="ParseFeedUrl" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
+  <UsingTask TaskName="ParseBlobUrl" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
   <UsingTask TaskName="PushOrchestratedBuildManifest" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
   <UsingTask TaskName="PushToBlobFeed" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
   <UsingTask TaskName="WriteOrchestratedBuildManifestToFile" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
@@ -125,15 +125,15 @@
       <ManifestFile Condition="'$(ManifestFile)' == ''">$(ManifestTempDir)build.xml</ManifestFile>
     </PropertyGroup>
 
-    <ParseFeedUrl FeedUrl="$(ExpectedFeedUrl)">
+    <ParseBlobUrl BlobUrl="$(ExpectedFeedUrl.Replace('/index.json', '')">
       <Output TaskParameter="BlobElements" ItemName="ParsedFeedUrl" />
-    </ParseFeedUrl>
+    </ParseBlobUrl>
 
     <DownloadFromAzure AccountName="%(ParsedFeedUrl.AccountName)"
                        AccountKey="$(AccountKey)"
                        ContainerName="%(ParsedFeedUrl.ContainerName)"
                        BlobNameExtension=".xml"
-                       BlobNamePrefix="%(ParsedFeedUrl.BaseBlobPath)/assets/orchestration-metadata/manifests/"
+                       BlobNamePrefix="%(ParsedFeedUrl.BlobPath)/assets/orchestration-metadata/manifests/"
                        DownloadDirectory="$(ManifestDownloadDir)"
                        DownloadFlatFiles="true" />
 

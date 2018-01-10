@@ -15,10 +15,10 @@ using System.Collections;
 
 namespace Microsoft.DotNet.Build.Tasks.Feed
 {
-    public sealed class ParseFeedUrl : MSBuild.Task
+    public sealed class ParseBlobUrl : MSBuild.Task
     {
         [Required]
-        public string FeedUrl { get; set; }
+        public string BlobUrl { get; set; }
 
         [Output]
         public ITaskItem BlobElements { get; set; }
@@ -27,28 +27,21 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         {
             try
             {
-                if (FeedUrl == null)
+                if (BlobUrl == null)
                 {
-                    Log.LogError($"No input feed url specified.");
+                    Log.LogError($"No input blob url specified.");
                 }
                 else
                 {
-                    Log.LogMessage(MessageImportance.Low, "Parsing {0}", FeedUrl);
+                    Log.LogMessage(MessageImportance.Low, "Parsing {0}", BlobUrl);
 
-                    BlobUrlInfo info = new BlobUrlInfo(FeedUrl);
+                    BlobUrlInfo info = new BlobUrlInfo(BlobUrl);
 
-                    // If the url doesn't end in "index.json", reject
-
-                    if (!info.BlobPath.EndsWith("index.json"))
-                    {
-                        Log.LogError("Input feed url should end in index.json");
-                    }
-
-                    BlobElements = new TaskItem(FeedUrl);
+                    BlobElements = new TaskItem(BlobUrl);
                     BlobElements.SetMetadata("AccountName", info.AccountName);
                     BlobElements.SetMetadata("ContainerName", info.ContainerName);
                     BlobElements.SetMetadata("Endpoint", info.Endpoint);
-                    BlobElements.SetMetadata("BaseBlobPath", info.BlobPath.Replace("/index.json", ""));
+                    BlobElements.SetMetadata("BlobPath", info.BlobPath);
                     return true;
                 }
             }
