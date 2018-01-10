@@ -42,6 +42,8 @@
     <Compile Include="BlobFeed.cs" />
     <Compile Include="BlobFeedAction.cs" />
     <Compile Include="BlobUrlInfo.cs" />
+    <Compile Include="BuildManifest\FetchOrchestratedBuildManifestInfo.cs" />
+    <Compile Include="BuildManifest\UpdateOrchestratedBuildManifest.cs" />
     <Compile Include="BuildManifest\PushOrchestratedBuildManifest.cs" />
     <Compile Include="BuildManifest\WriteOrchestratedBuildManifestToFile.cs" />
     <Compile Include="ConfigureInputFeed.cs" />
@@ -54,6 +56,7 @@
     <Compile Include="SleetSource.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="PackageFiles\Final.PackagePublish.targets" />
     <None Include="PackageFiles\Microsoft.DotNet.Build.Tasks.Feed.targets" />
     <None Include="project.json" />
   </ItemGroup>

@@ -1,5 +1,9 @@
 <Project ToolsVersion="12.0" DefaultTargets="PublishOutputLeg" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!--
+    Publish targets:
+      PublishPackagesToBlobFeed
+      PublishFilesToBlobFeed
+
     Required properties:
 
     ExpectedFeedUrl - This is the full URL to the index.json file for the blob feed.
@@ -41,10 +45,12 @@
   </PropertyGroup>
   <UsingTask TaskName="ConfigureInputFeeds" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
   <UsingTask TaskName="CopyBlobDirectory" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
+  <UsingTask TaskName="FetchOrchestratedBuildManifestInfo" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
   <UsingTask TaskName="GetBlobFeedPackageList" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
   <UsingTask TaskName="ParseBlobUrl" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
   <UsingTask TaskName="PushOrchestratedBuildManifest" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
   <UsingTask TaskName="PushToBlobFeed" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
+  <UsingTask TaskName="UpdateOrchestratedBuildManifest" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
   <UsingTask TaskName="WriteOrchestratedBuildManifestToFile" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
 
   <PropertyGroup>
@@ -113,6 +119,9 @@
 
   </Target>
 
+  <!--
+    Create an orchestrated build manifest based on the build output manifests uploaded to a feed.
+  -->
   <Target Name="CreateFeedOrchestratedBuildManifest">
     <Error Text="The ExpectedFeedUrl property must be set." Condition="'$(ExpectedFeedUrl)' == ''" />
     <Error Text="The AccountKey property must be set." Condition="'$(AccountKey)' == ''" />
@@ -149,21 +158,15 @@
   </Target>
 
   <!--
-    Create an orchestrated build manifest based on the build output manifests uploaded to a feed,
-    then push that manifest to the dotnet/versions repo by default.
+    Push the orchestrated build manifest for a certain feed to a versions repo.
   -->
   <Target Name="PushFeedOrchestratedBuildManifest"
-          DependsOnTargets="CreateFeedOrchestratedBuildManifest">
+          DependsOnTargets="CreateVersionsRepoDefaults;
+                            CreateFeedOrchestratedBuildManifest">
     <Error Text="The VersionsRepoPath property must be set." Condition="'$(VersionsRepoPath)' == ''" />
     <Error Text="The GitHubAuthToken property must be set." Condition="'$(GitHubAuthToken)' == ''" />
     <Error Text="The GitHubUser property must be set." Condition="'$(GitHubUser)' == ''" />
     <Error Text="The GitHubEmail property must be set." Condition="'$(GitHubEmail)' == ''" />
-
-    <PropertyGroup>
-      <VersionsRepo Condition="'$(VersionsRepo)' == ''">versions</VersionsRepo>
-      <VersionsRepoOwner Condition="'$(VersionsRepoOwner)' == ''">dotnet</VersionsRepoOwner>
-      <VersionsRepoBranch Condition="'$(VersionsRepoBranch)' == ''">master</VersionsRepoBranch>
-    </PropertyGroup>
 
     <PushOrchestratedBuildManifest ManifestFile="$(ManifestFile)"
                                    VersionsRepoPath="$(VersionsRepoPath)"
@@ -177,4 +180,178 @@
 
   </Target>
 
+  <Target Name="CreateVersionsRepoDefaults">
+    <PropertyGroup>
+      <VersionsRepo Condition="'$(VersionsRepo)' == ''">versions</VersionsRepo>
+      <VersionsRepoOwner Condition="'$(VersionsRepoOwner)' == ''">dotnet</VersionsRepoOwner>
+      <VersionsRepoBranch Condition="'$(VersionsRepoBranch)' == ''">master</VersionsRepoBranch>
+    </PropertyGroup>
+  </Target>
+
+  <!--
+    Fetch an orchestrated build manifest from the versions repo and extract its information into
+    items and properties.
+
+    [In]
+    $(VersionsRepoPath): The root folder inside the target versions repo where the manifest is
+      located. Doesn't include a trailing '/'.
+    Optional:
+      $(GitHubAuthToken): Auth token used when calling GitHub APIs. If this isn't provided,
+        anonymous access is used. Provide an auth token to avoid rate limit errors.
+      $(GitHubUser): The GitHub user associated with GitHubAuthToken.
+      $(GitHubEmail): The email associated with GitHubAuthToken.
+      $(VersionsRepo): The GitHub repo name. Default: 'versions'
+      $(VersionsRepoOwner): The GitHub repo owner. Default: 'dotnet'
+      $(VersionsRepoRef): The git ref to fetch from. If not specified, uses VersionsRepoBranch.
+      $(VersionsRepoBranch): The branch to fetch from. Default: 'master'
+    
+    [Out]
+    $(OrchestratedBuildId): The orchestrated build manifest's build id attribute value.
+    $(OrchestratedIdentity): The human-readable full identity of the orchestrated build manifest.
+    @(OrchestratedBlobFeed): A single item for the orchestrated blob feed Endpoint.
+      %(...): Metadata is created for each attribute on the element.
+    @(ParsedOrchestratedBlobFeed): The result of parsing the OrchestratedBlobFeed url.
+      %(BlobPath): The root of the blob feed, without '/index.json'. Use this to construct artifact
+        download urls.
+      %(AccountName) %(ContainerName) %(Endpoint)
+    @(OrchestratedBlobFeedArtifacts): An item for each artifact in the orchestrated blob feed.
+      %(Identity): 'Package' or 'Blob', matching manifest element name.
+      %(Xml): The raw XML string representing the artifact in the manifest.
+      %(...): Metadata is created for each attribute on the element.
+  -->
+  <Target Name="FetchOrchestratedBuildManifestInfo"
+          DependsOnTargets="CreateVersionsRepoDefaults">
+    <Error Text="The VersionsRepoPath property must be set." Condition="'$(VersionsRepoPath)' == ''" />
+
+    <PropertyGroup>
+      <VersionsRepoRef Condition="'$(VersionsRepoRef)' == ''">heads/$(VersionsRepoBranch)</VersionsRepoRef>
+    </PropertyGroup>
+    <Error Text="The VersionsRepoRef property must be set." Condition="'$(VersionsRepoRef)' == ''" />
+
+    <FetchOrchestratedBuildManifestInfo VersionsRepoPath="$(VersionsRepoPath)"
+                                        GitHubAuthToken="$(GitHubAuthToken)"
+                                        GitHubUser="$(GitHubUser)"
+                                        GitHubEmail="$(GitHubEmail)"
+                                        VersionsRepo="$(VersionsRepo)"
+                                        VersionsRepoOwner="$(VersionsRepoOwner)"
+                                        VersionsRepoRef="$(VersionsRepoRef)">
+      <Output TaskParameter="OrchestratedBuildId" PropertyName="OrchestratedBuildId" />
+      <Output TaskParameter="OrchestratedIdentity" PropertyName="OrchestratedIdentity" />
+      <Output TaskParameter="OrchestratedBlobFeed" ItemName="OrchestratedBlobFeed" />
+      <Output TaskParameter="OrchestratedBlobFeedArtifacts" ItemName="OrchestratedBlobFeedArtifacts" />
+    </FetchOrchestratedBuildManifestInfo>
+
+    <PropertyGroup>
+      <OrchestratedBlobFeedUrl>%(OrchestratedBlobFeed.Url)</OrchestratedBlobFeedUrl>
+    </PropertyGroup>
+
+    <ParseBlobUrl BlobUrl="$(OrchestratedBlobFeedUrl.Replace('/index.json', ''))">
+      <Output TaskParameter="BlobElements" ItemName="ParsedOrchestratedBlobFeed" />
+    </ParseBlobUrl>
+  </Target>
+
+  <!--
+    Download packages from an orchestrated feed given their identities and versions.
+
+    [In]
+    $(AccountKey): A key to use when accessing the blob feed's blob storage.
+    @(OrchestratedBlobFeedArtifacts): The artifacts to download. All items with identity 'Package'
+      are downloaded. Expected to have this from FetchOrchestratedBuildManifestInfo.
+      %(Id): NuGet package identity.
+      %(Version): NuGet package version.
+    @(ParsedOrchestratedBlobFeed): The parsed feed to access. Output from
+      FetchOrchestratedBuildManifestInfo is expected.
+    Optional:
+      $(FinalDownloadDirectory): Custom directory to place downloaded nupkg files. This directory will
+        be removed and recreated to ensure no stale bits are included.
+
+    [Out]
+    @(DownloadedOrchestratedFeedPackages): Each nupkg file downloaded.
+    @(FinalPackages): The downloaded subset of OrchestratedBlobFeedArtifacts. Metadata is preserved.
+  -->
+  <Target Name="DownloadOrchestratedFeedPackages">
+    <Error Text="The AccountKey property must be set." Condition="'$(AccountKey)' == ''" />
+    <Error Text="A ParsedOrchestratedBlobFeed item must be set." Condition="'@(ParsedOrchestratedBlobFeed)' == ''" />
+
+    <PropertyGroup>
+      <FinalDownloadDirectory Condition="'$(FinalDownloadDirectory)' == ''">$(BaseIntermediateOutputPath)final-package-download\</FinalDownloadDirectory>
+      <BlobNamePrefix>%(ParsedOrchestratedBlobFeed.BlobPath)/flatcontainer/</BlobNamePrefix>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <FinalPackages Include="@(OrchestratedBlobFeedArtifacts)"
+                     Condition="'%(Identity)' == 'Package'">
+        <LowercaseId>$([System.String]::Copy('%(OrchestratedBlobFeedArtifacts.Id)').ToLowerInvariant())</LowercaseId>
+        <LowercaseVersion>$([System.String]::Copy('%(OrchestratedBlobFeedArtifacts.Version)').ToLowerInvariant())</LowercaseVersion>
+      </FinalPackages>
+
+      <PackageBlobNames Include="$(BlobNamePrefix)%(FinalPackages.LowercaseId)/%(FinalPackages.LowercaseVersion)/%(FinalPackages.LowercaseId).%(FinalPackages.LowercaseVersion).nupkg" />
+    </ItemGroup>
+
+    <!-- Ensure no stale packages are on disk. -->
+    <RemoveDir Directories="$(FinalDownloadDirectory)" />
+
+    <DownloadFromAzure AccountName="%(ParsedOrchestratedBlobFeed.AccountName)"
+                       AccountKey="$(AccountKey)"
+                       ContainerName="%(ParsedOrchestratedBlobFeed.ContainerName)"
+                       BlobNames="@(PackageBlobNames)"
+                       DownloadDirectory="$(FinalDownloadDirectory)"
+                       DownloadFlatFiles="true" />
+
+    <ItemGroup>
+      <DownloadedOrchestratedFeedPackages Include="$(FinalDownloadDirectory)*.nupkg" />
+    </ItemGroup>
+  </Target>
+
+  <!--
+    Create/update a semaphore in the versions repo. This indicates some action is complete.
+
+    [In]
+    $(VersionsRepoPath): The root folder inside the target versions repo where the manifest is
+      located. Doesn't include a trailing '/'.
+    $(GitHubAuthToken): Auth token used when calling GitHub APIs.
+    $(GitHubUser): The GitHub user associated with GitHubAuthToken.
+    $(GitHubEmail): The email associated with GitHubAuthToken.
+    $(OrchestratedBuildId): The orchestrated build id. Passing this along ensures that we aren't
+      trying to pass stale data to the versions repo. This value is expected to come from the
+      FetchOrchestratedBuildManifestInfo target. It prevents stale data from being uploaded to a
+      newer manifest, instead emitting a warning.
+    @(SemaphoreNames): Semaphores to update. Usually a single item, like 'packages.semaphore'.
+    Optional:
+      @(ManifestUpdates): Updates to perform on the manifest. These help convey information to
+        downstream steps, but aren't required. For item requirements and behavior, see
+        'UpdateOrchestratedBuildManifest.cs' in dotnet/buildtools.
+      $(VersionsRepo): The GitHub repo name. Default: 'versions'
+      $(VersionsRepoOwner): The GitHub repo owner. Default: 'dotnet'
+      $(VersionsRepoBranch): The branch to fetch from. Default: 'master'
+      $(OrchestratedIdentity): Human-readable identity of the orchestrated build, used to generate
+        a concise commit message. This is expected to come from FetchOrchestratedBuildManifestInfo.
+        Default: the full VersionsRepoPath is used in the commit message.
+      $(CommitMessage): Overrides the generated commit message.
+  -->
+  <Target Name="UpdateOrchestratedBuildManifest"
+          DependsOnTargets="CreateVersionsRepoDefaults">
+    <Error Text="The VersionsRepoPath property must be set." Condition="'$(VersionsRepoPath)' == ''" />
+    <Error Text="The GitHubAuthToken property must be set." Condition="'$(GitHubAuthToken)' == ''" />
+    <Error Text="The GitHubUser property must be set." Condition="'$(GitHubUser)' == ''" />
+    <Error Text="The GitHubEmail property must be set." Condition="'$(GitHubEmail)' == ''" />
+
+    <Error Text="A SemaphoreNames item must be set." Condition="'@(SemaphoreNames)' == ''" />
+
+    <UpdateOrchestratedBuildManifest ManifestUpdates="@(ManifestUpdates)"
+                                     VersionsRepoPath="$(VersionsRepoPath)"
+                                     SemaphoreNames="@(SemaphoreNames)"
+                                     OrchestratedBuildId="$(OrchestratedBuildId)"
+                                     GitHubAuthToken="$(GitHubAuthToken)"
+                                     GitHubUser="$(GitHubUser)"
+                                     GitHubEmail="$(GitHubEmail)"
+                                     VersionsRepo="$(VersionsRepo)"
+                                     VersionsRepoOwner="$(VersionsRepoOwner)"
+                                     VersionsRepoBranch="$(VersionsRepoBranch)"
+                                     CommitMessage="$(CommitMessage)"
+                                     OrchestratedIdentity="$(OrchestratedIdentity)" />
+  </Target>
+
+  <!-- Import final publish step implementations. -->
+  <Import Project="$(MSBuildThisFileDirectory)Final.PackagePublish.targets" />
 </Project>
