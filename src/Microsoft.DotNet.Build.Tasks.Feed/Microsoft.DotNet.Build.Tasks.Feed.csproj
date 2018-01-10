@@ -56,7 +56,6 @@
     <Compile Include="SleetSource.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="PackageFiles\Final.PackagePublish.targets" />
     <None Include="PackageFiles\Microsoft.DotNet.Build.Tasks.Feed.targets" />
     <None Include="project.json" />
   </ItemGroup>
