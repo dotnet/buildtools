@@ -125,7 +125,7 @@
       <ManifestFile Condition="'$(ManifestFile)' == ''">$(ManifestTempDir)build.xml</ManifestFile>
     </PropertyGroup>
 
-    <ParseBlobUrl BlobUrl="$(ExpectedFeedUrl.Replace('/index.json', '')">
+    <ParseBlobUrl BlobUrl="$(ExpectedFeedUrl.Replace('/index.json', ''))">
       <Output TaskParameter="BlobElements" ItemName="ParsedFeedUrl" />
     </ParseBlobUrl>
 
