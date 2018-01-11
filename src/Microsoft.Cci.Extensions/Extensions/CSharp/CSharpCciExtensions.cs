@@ -123,16 +123,16 @@ namespace Microsoft.Cci.Extensions.CSharp
                 var typeToCheck = typesToCheck.Dequeue();
                 visited.Add(typeToCheck);
 
-                if (!typeToCheck.IsValueType)
-                    return true;
-
                 var resolvedType = typeToCheck.ResolvedType;
 
                 // If it is dummy we cannot really check so assume it does because that is will be the most conservative 
                 if (resolvedType is Dummy)
                     return true;
 
-                foreach (var field in resolvedType.Fields)
+                if (resolvedType.IsReferenceType)
+                    return true;
+
+                foreach (var field in resolvedType.Fields.Where(f => !f.IsStatic))
                 {
                     if (!visited.Contains(field.Type))
                     {
