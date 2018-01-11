@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using Microsoft.Cci.Extensions.CSharp;
 
 namespace Microsoft.Cci.Writers.CSharp
@@ -14,7 +15,7 @@ namespace Microsoft.Cci.Writers.CSharp
                 return;
 
             WriteAttributes(field.Attributes);
-            if (!field.IsStatic && field.ContainingTypeDefinition.Layout == LayoutKind.Explicit)
+            if (!field.IsStatic && field.ContainingTypeDefinition.Layout == LayoutKind.Explicit && !(field is DummyPrivateField))
             {
                 WriteFakeAttribute("System.Runtime.InteropServices.FieldOffsetAttribute", field.Offset.ToString());
             }
@@ -100,6 +101,90 @@ namespace Microsoft.Cci.Writers.CSharp
             WriteTypeName(field.Type, noSpace: true);
             WriteSymbol(")");
             WriteMetadataConstant(field.Constant);
+        }
+    }
+
+    public class DummyPrivateField : IFieldDefinition
+    {
+        private ITypeDefinition _parentType;
+        private ITypeReference _type;
+        private IName _name;
+
+        public DummyPrivateField(ITypeDefinition parentType, ITypeReference type)
+        {
+            _parentType = parentType;
+            _type = type;
+            _name = new NameTable().GetNameFor("_dummy");
+        }
+
+        public uint BitLength => 0;
+
+        public IMetadataConstant CompileTimeValue => null;
+
+        public ISectionBlock FieldMapping => null;
+
+        public bool IsBitField => false;
+
+        public bool IsCompileTimeConstant => false;
+
+        public bool IsMapped => throw new System.NotImplementedException();
+
+        public bool IsMarshalledExplicitly => throw new System.NotImplementedException();
+
+        public bool IsNotSerialized => false;
+
+        public bool IsReadOnly => _parentType.Attributes.HasIsReadOnlyAttribute();
+
+        public bool IsRuntimeSpecial => false;
+
+        public bool IsSpecialName => false;
+
+        public IMarshallingInformation MarshallingInformation => throw new System.NotImplementedException();
+
+        public uint Offset => 0;
+
+        public int SequenceNumber => throw new System.NotImplementedException();
+
+        public ITypeDefinition ContainingTypeDefinition => _parentType;
+
+        public TypeMemberVisibility Visibility => TypeMemberVisibility.Private;
+
+        public ITypeDefinition Container => throw new System.NotImplementedException();
+
+        public IName Name => _name;
+
+        public IScope<ITypeDefinitionMember> ContainingScope => throw new System.NotImplementedException();
+
+        public IEnumerable<ICustomModifier> CustomModifiers => System.Linq.Enumerable.Empty<ICustomModifier>();
+
+        public uint InternedKey => throw new System.NotImplementedException();
+
+        public bool IsModified => throw new System.NotImplementedException();
+
+        public bool IsStatic => false;
+
+        public ITypeReference Type => _type;
+
+        public IFieldDefinition ResolvedField => throw new System.NotImplementedException();
+
+        public ITypeReference ContainingType => _parentType;
+
+        public ITypeDefinitionMember ResolvedTypeDefinitionMember => throw new System.NotImplementedException();
+
+        public IEnumerable<ICustomAttribute> Attributes => System.Linq.Enumerable.Empty<ICustomAttribute>();
+
+        public IEnumerable<ILocation> Locations => throw new System.NotImplementedException();
+
+        public IMetadataConstant Constant => null;
+
+        public void Dispatch(IMetadataVisitor visitor)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void DispatchAsReference(IMetadataVisitor visitor)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }
