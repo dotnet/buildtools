@@ -102,6 +102,10 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 while (!string.IsNullOrEmpty(nextMarker))
                 {
                     urlListBlobs = string.Format($"https://{AccountName}.blob.core.windows.net/{ContainerName}?restype=container&comp=list&marker={nextMarker}");
+                    if (!string.IsNullOrWhiteSpace(FilterBlobNames))
+                    {
+                        urlListBlobs += $"&prefix={FilterBlobNames}";
+                    }
                     var nextRequest = AzureHelper.RequestMessage("GET", urlListBlobs, AccountName, AccountKey);
                     using (HttpResponseMessage nextResponse = AzureHelper.RequestWithRetry(Log, client, nextRequest).GetAwaiter().GetResult())
                     {
