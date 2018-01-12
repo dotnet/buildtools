@@ -69,7 +69,7 @@ namespace Microsoft.Cci.Traversers
 
         public virtual void Visit(ITypeDefinition type)
         {
-            Visit(type.Fields);
+            Visit(type, type.Fields);
             Visit(type.Methods.Where(m => m.IsConstructor));
             Visit(type.Properties);
             Visit(type.Events);
@@ -84,6 +84,11 @@ namespace Microsoft.Cci.Traversers
 
             foreach (var member in members)
                 Visit(member);
+        }
+
+        public virtual void Visit(ITypeDefinition parentType, IEnumerable<IFieldDefinition> fields)
+        {
+            this.Visit((IEnumerable<ITypeDefinitionMember>)fields);
         }
 
         public virtual string GetMemberKey(ITypeDefinitionMember member)

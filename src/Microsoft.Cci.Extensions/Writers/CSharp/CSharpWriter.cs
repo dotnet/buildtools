@@ -20,6 +20,9 @@ namespace Microsoft.Cci.Writers
         private readonly IStyleSyntaxWriter _styleWriter;
         private readonly CSDeclarationWriter _declarationWriter;
         private readonly bool _writeAssemblyAttributes;
+        private readonly bool _apiOnly;
+        private readonly ICciFilter _cciFilter;
+
         private bool _firstMemberGroup;
 
         public CSharpWriter(ISyntaxWriter writer, ICciFilter filter, bool apiOnly, bool writeAssemblyAttributes = false)
@@ -27,6 +30,8 @@ namespace Microsoft.Cci.Writers
         {
             _syntaxWriter = writer;
             _styleWriter = writer as IStyleSyntaxWriter;
+            _apiOnly = apiOnly;
+            _cciFilter = filter;
             _declarationWriter = new CSDeclarationWriter(_syntaxWriter, filter, !apiOnly);
             _writeAssemblyAttributes = writeAssemblyAttributes;
         }
@@ -59,8 +64,8 @@ namespace Microsoft.Cci.Writers
 
         public void WriteAssemblies(IEnumerable<IAssembly> assemblies)
         {
-            foreach (var assembly in assemblies)
-                Visit(assembly);
+                foreach (var assembly in assemblies)
+                    Visit(assembly);
         }
 
         public override void Visit(IAssembly assembly)
@@ -115,6 +120,7 @@ namespace Microsoft.Cci.Writers
                         _declarationWriter.WriteDeclaration(CSDeclarationWriter.GetDummyConstructor(type));
                         _syntaxWriter.WriteLine();
                     }
+
                     _firstMemberGroup = true;
                     base.Visit(type);
                 }
@@ -126,6 +132,74 @@ namespace Microsoft.Cci.Writers
         {
             WriteMemberGroupHeader(members.FirstOrDefault(Filter.Include));
             base.Visit(members);
+        }
+
+        public override void Visit(ITypeDefinition parentType, IEnumerable<IFieldDefinition> fields)
+        {
+            if (parentType.IsStruct && !_apiOnly)
+            {
+                // For compile-time compat, the following rules should work for producing a reference assembly. We drop all private fields, but add back certain synthesized private fields for a value type (struct) as follows:
+                // - If there are any private fields that are or contain any value type members, add a single private field of type int
+                // - If there are any private fields that are or contain any reference type members, add a single private field of type object.
+                // - If the type is generic, then for every type parameter of the type, if there are any private fields that are or contain any members whose type is that type parameter, we add a direct private field of that type.
+
+                // For more details see issue https://github.com/dotnet/corefx/issues/6185 
+                // this blog is helpful as well http://blog.paranoidcoding.com/2016/02/15/are-private-members-api-surface.html
+
+                List<IFieldDefinition> newFields = new List<IFieldDefinition>();
+                var includedVisibleFields = fields.Where(f => f.IsVisibleOutsideAssembly()).Where(_cciFilter.Include);
+                includedVisibleFields = includedVisibleFields.OrderBy(GetMemberKey, StringComparer.OrdinalIgnoreCase);
+
+                var excludedFields = fields.Except(includedVisibleFields).Where(f => !f.IsStatic);
+
+                if (excludedFields.Any())
+                {
+                    var genericTypedFields = excludedFields.Where(f => f.Type.UnWrap().IsGenericParameter());
+
+                    // Compiler needs to see any fields, even private, that have generic arugments to be able
+                    // to validate there aren't any struct layout cycles
+                    foreach (var genericField in genericTypedFields)
+                        newFields.Add(genericField);
+
+                    if (!genericTypedFields.Any())
+                    {
+                        // For definiteassignment checks the compiler needs to know there is a private field
+                        // that has not be initialized so if there are any we need to add a dummy private
+                        // field to help the compiler do its job and error about uninitialized structs
+                        bool hasRefPrivateField = excludedFields.Any(f => f.Type.IsOrContainsReferenceType());
+                        ITypeReference fieldType = parentType.PlatformType.SystemInt32;
+
+                        // If at least one of the private fields contains a reference type then we need to
+                        // set this field type to object or reference field to inform the compiler to block
+                        // taking pointers to this struct because the GC will not track updating those references
+                        if (hasRefPrivateField)
+                            fieldType = parentType.PlatformType.SystemObject;
+
+                        // For primitive types that have a field of their type set the dummy field to that type
+                        if (excludedFields.Count() == 1)
+                        {
+                            var onlyField = excludedFields.First();
+
+                            if (TypeHelper.TypesAreEquivalent(onlyField.Type, parentType))
+                            {
+                                fieldType = parentType;
+                            }
+                         }                     
+
+                        newFields.Add(new DummyPrivateField(parentType, fieldType));
+                    }
+                }
+
+                foreach (var visibleField in includedVisibleFields)
+                    newFields.Add(visibleField);
+
+                foreach (var field in newFields)
+                    Visit(field);
+            }
+            else
+            {
+                base.Visit(parentType, fields);
+            }
         }
 
         public override void Visit(ITypeDefinitionMember member)
