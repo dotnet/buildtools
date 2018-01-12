@@ -132,6 +132,10 @@ namespace Microsoft.Cci.Extensions.CSharp
                 if (resolvedType.IsReferenceType)
                     return true;
 
+                // ByReference<T> is a special type understood by runtime to hold a ref T.
+                if (resolvedType.AreEquivalent("System.ByReference<T>"))
+                    return true;
+
                 foreach (var field in resolvedType.Fields.Where(f => !f.IsStatic))
                 {
                     if (!visited.Contains(field.Type))
