@@ -169,13 +169,13 @@ namespace Microsoft.Cci.Writers
                         bool hasRefPrivateField = excludedFields.Any(f => f.Type.IsOrContainsReferenceType());
                         ITypeReference fieldType = parentType.PlatformType.SystemInt32;
 
-                        // If at least one the private fields contains a reference type then we need to
+                        // If at least one of the private fields contains a reference type then we need to
                         // set this field type to object or reference field to inform the compiler to block
                         // taking pointers to this struct because the GC will not track updating those references
                         if (hasRefPrivateField)
                             fieldType = parentType.PlatformType.SystemObject;
 
-                        // For primiative types that have a field of their type set the dummy field to that type
+                        // For primitive types that have a field of their type set the dummy field to that type
                         if (excludedFields.Count() == 1)
                         {
                             var onlyField = excludedFields.First();
