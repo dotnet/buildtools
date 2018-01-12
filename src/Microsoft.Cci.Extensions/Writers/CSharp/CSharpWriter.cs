@@ -175,6 +175,17 @@ namespace Microsoft.Cci.Writers
                         if (hasRefPrivateField)
                             fieldType = parentType.PlatformType.SystemObject;
 
+                        // For primiative types that have a field of their type set the dummy field to that type
+                        if (excludedFields.Count() == 1)
+                        {
+                            var onlyField = excludedFields.First();
+
+                            if (TypeHelper.TypesAreEquivalent(onlyField.Type, parentType))
+                            {
+                                fieldType = parentType;
+                            }
+                         }                     
+
                         newFields.Add(new DummyPrivateField(parentType, fieldType));
                     }
                 }
