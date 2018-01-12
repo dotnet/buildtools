@@ -52,7 +52,13 @@ namespace Microsoft.Cci.Writers.CSharp
                     WriteKeyword("new");
 
                 WriteTypeName(field.Type);
-                WriteIdentifier(field.Name);
+
+                string name = field.Name.Value;
+                if (name.Contains("<") || name.Contains(">"))
+                {
+                    name = name.Replace("<", "_").Replace(">", "_");
+                }
+                WriteIdentifier(name, true);
 
                 if (field.Constant != null && field.IsCompileTimeConstant)
                 {
