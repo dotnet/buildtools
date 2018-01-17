@@ -103,9 +103,14 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                 path,
                 contents =>
                 {
-                    Group g = CreateXmlUpdateRegex(elementName, valueGroup)
-                        .Match(contents)
-                        .Groups[valueGroup];
+                    Match match = CreateXmlUpdateRegex(elementName, valueGroup).Match(contents);
+
+                    if (!match.Success)
+                    {
+                        throw new Exception($"Could not find element '{elementName}' in '{path}'.");
+                    }
+
+                    Group g = match.Groups[valueGroup];
 
                     return contents
                         .Remove(g.Index, g.Length)
