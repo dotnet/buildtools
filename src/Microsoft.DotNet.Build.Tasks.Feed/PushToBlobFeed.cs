@@ -5,6 +5,7 @@
 using Microsoft.Build.Framework;
 using Microsoft.DotNet.VersionTools.Automation;
 using Microsoft.DotNet.VersionTools.BuildManifest.Model;
+using Sleet;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -146,54 +147,69 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
             string blobPath = $"{AssetsVirtualDir}{ManifestAssetOutputDir}{ManifestName}.xml";
 
-            string existingStr = await blobFeedAction.feed.DownloadBlobAsString(
-                $"{blobFeedAction.feed.RelativePath}{blobPath}");
+            // Evaluate artifact models now: avoid doing the work inside the lock critical section.
+            // E.g. package artifact model creation requires reading (extracting) the nuspec.
+            BlobArtifactModel[] concreteBlobArtifacts = blobArtifacts.ToArray();
+            PackageArtifactModel[] concretePackageArtifacts = packageArtifacts.ToArray();
 
-            BuildModel buildModel;
-
-            if (existingStr != null)
+            // Multiple legs of the same build are allowed to publish manifest info. If the legs
+            // try to update the manifest at the same time, they will synchronize on this lock.
+            using (ISleetFileSystemLock feedLock = blobFeedAction.CreateLock())
             {
-                buildModel = BuildModel.Parse(XElement.Parse(existingStr));
-            }
-            else
-            {
-                buildModel = new BuildModel(
-                    new BuildIdentity(
-                        ManifestName,
-                        ManifestBuildId,
-                        ManifestBranch,
-                        ManifestCommit));
-            }
-
-            buildModel.Artifacts.Blobs.AddRange(blobArtifacts);
-            buildModel.Artifacts.Packages.AddRange(packageArtifacts);
-
-            string tempFile = null;
-            try
-            {
-                tempFile = Path.GetTempFileName();
-
-                File.WriteAllText(tempFile, buildModel.ToXml().ToString());
-
-                var item = new MSBuild.TaskItem(tempFile, new Dictionary<string, string>
+                if (!await feedLock.GetLock(TimeSpan.FromMinutes(5), CancellationToken.None))
                 {
-                    ["RelativeBlobPath"] = blobPath
-                });
-
-                using (var clientThrottle = new SemaphoreSlim(MaxClients, MaxClients))
-                {
-                    await blobFeedAction.UploadAssets(
-                        item,
-                        clientThrottle,
-                        UploadTimeoutInMinutes,
-                        allowOverwrite: true);
+                    throw new Exception("Unable to acquire feed lock.");
                 }
-            }
-            finally
-            {
-                if (tempFile != null)
+
+                string tempFile = null;
+                try
                 {
-                    File.Delete(tempFile);
+                    string existingStr = await blobFeedAction.feed.DownloadBlobAsString(
+                        $"{blobFeedAction.feed.RelativePath}{blobPath}");
+
+                    BuildModel buildModel;
+
+                    if (existingStr != null)
+                    {
+                        buildModel = BuildModel.Parse(XElement.Parse(existingStr));
+                    }
+                    else
+                    {
+                        buildModel = new BuildModel(
+                            new BuildIdentity(
+                                ManifestName,
+                                ManifestBuildId,
+                                ManifestBranch,
+                                ManifestCommit));
+                    }
+
+                    buildModel.Artifacts.Blobs.AddRange(concreteBlobArtifacts);
+                    buildModel.Artifacts.Packages.AddRange(concretePackageArtifacts);
+
+                    tempFile = Path.GetTempFileName();
+
+                    File.WriteAllText(tempFile, buildModel.ToXml().ToString());
+
+                    var item = new MSBuild.TaskItem(tempFile, new Dictionary<string, string>
+                    {
+                        ["RelativeBlobPath"] = blobPath
+                    });
+
+                    using (var clientThrottle = new SemaphoreSlim(MaxClients, MaxClients))
+                    {
+                        await blobFeedAction.UploadAssets(
+                            item,
+                            clientThrottle,
+                            UploadTimeoutInMinutes,
+                            allowOverwrite: true);
+                    }
+                }
+                finally
+                {
+                    if (tempFile != null)
+                    {
+                        File.Delete(tempFile);
+                    }
                 }
             }
         }
