@@ -133,9 +133,9 @@ namespace Microsoft.Cci.Writers.CSharp
 
         public bool IsCompileTimeConstant => false;
 
-        public bool IsMapped => throw new System.NotImplementedException();
+        public bool IsMapped { get { throw new System.NotImplementedException(); } }
 
-        public bool IsMarshalledExplicitly => throw new System.NotImplementedException();
+        public bool IsMarshalledExplicitly { get { throw new System.NotImplementedException(); } }
 
         public bool IsNotSerialized => false;
 
@@ -145,41 +145,41 @@ namespace Microsoft.Cci.Writers.CSharp
 
         public bool IsSpecialName => false;
 
-        public IMarshallingInformation MarshallingInformation => throw new System.NotImplementedException();
+        public IMarshallingInformation MarshallingInformation { get { throw new System.NotImplementedException(); } }
 
         public uint Offset => 0;
 
-        public int SequenceNumber => throw new System.NotImplementedException();
+        public int SequenceNumber { get { throw new System.NotImplementedException(); } }
 
         public ITypeDefinition ContainingTypeDefinition => _parentType;
 
         public TypeMemberVisibility Visibility => TypeMemberVisibility.Private;
 
-        public ITypeDefinition Container => throw new System.NotImplementedException();
+        public ITypeDefinition Container { get { throw new System.NotImplementedException(); } }
 
         public IName Name => _name;
 
-        public IScope<ITypeDefinitionMember> ContainingScope => throw new System.NotImplementedException();
+        public IScope<ITypeDefinitionMember> ContainingScope { get { throw new System.NotImplementedException(); } }
 
         public IEnumerable<ICustomModifier> CustomModifiers => System.Linq.Enumerable.Empty<ICustomModifier>();
 
-        public uint InternedKey => throw new System.NotImplementedException();
+        public uint InternedKey { get { throw new System.NotImplementedException(); } }
 
-        public bool IsModified => throw new System.NotImplementedException();
+        public bool IsModified { get { throw new System.NotImplementedException(); } }
 
         public bool IsStatic => false;
 
         public ITypeReference Type => _type;
 
-        public IFieldDefinition ResolvedField => throw new System.NotImplementedException();
+        public IFieldDefinition ResolvedField { get { throw new System.NotImplementedException(); } }
 
         public ITypeReference ContainingType => _parentType;
 
-        public ITypeDefinitionMember ResolvedTypeDefinitionMember => throw new System.NotImplementedException();
+        public ITypeDefinitionMember ResolvedTypeDefinitionMember { get { throw new System.NotImplementedException(); } }
 
         public IEnumerable<ICustomAttribute> Attributes => System.Linq.Enumerable.Empty<ICustomAttribute>();
 
-        public IEnumerable<ILocation> Locations => throw new System.NotImplementedException();
+        public IEnumerable<ILocation> Locations { get { throw new System.NotImplementedException(); } }
 
         public IMetadataConstant Constant => null;
 
