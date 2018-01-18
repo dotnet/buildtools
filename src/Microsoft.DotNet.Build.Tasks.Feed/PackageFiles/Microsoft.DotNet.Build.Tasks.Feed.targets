@@ -38,21 +38,6 @@
     SkipCreateManifest - If 'true', no manifest is written even if the blob feed allows them.
       Default: false
   -->
-
-  <PropertyGroup>
-    <_TaskDir>$(MSBuildThisFileDirectory)net46/</_TaskDir>
-    <_TaskDir Condition="'$(MSBuildRuntimeType)' == 'Core'">$(MSBuildThisFileDirectory)netstandard1.5/</_TaskDir>
-  </PropertyGroup>
-  <UsingTask TaskName="ConfigureInputFeeds" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
-  <UsingTask TaskName="CopyBlobDirectory" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
-  <UsingTask TaskName="FetchOrchestratedBuildManifestInfo" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
-  <UsingTask TaskName="GetBlobFeedPackageList" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
-  <UsingTask TaskName="ParseBlobUrl" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
-  <UsingTask TaskName="PushOrchestratedBuildManifest" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
-  <UsingTask TaskName="PushToBlobFeed" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
-  <UsingTask TaskName="UpdateOrchestratedBuildManifest" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
-  <UsingTask TaskName="WriteOrchestratedBuildManifestToFile" AssemblyFile="$(_TaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
-
   <PropertyGroup>
     <PushToBlobFeed_Overwrite Condition="'$(PushToBlobFeed_Overwrite)' == ''">false</PushToBlobFeed_Overwrite>
     <PushToBlobFeed_MaxClients Condition="'$(PushToBlobFeed_MaxClients)' == ''">8</PushToBlobFeed_MaxClients>
