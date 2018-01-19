@@ -39,13 +39,8 @@
       Default: false
   -->
   <PropertyGroup>
-    <PushToBlobFeed_Overwrite Condition="'$(PushToBlobFeed_Overwrite)' == ''">false</PushToBlobFeed_Overwrite>
-    <PushToBlobFeed_MaxClients Condition="'$(PushToBlobFeed_MaxClients)' == ''">8</PushToBlobFeed_MaxClients>
-    <FileRelativePathBase Condition="'$(FileRelativePathBase)' == ''">assets</FileRelativePathBase>
     <FileRelativePathBase Condition="!HasTrailingSlash('$(FileRelativePathBase)')">$(FileRelativePathBase)/</FileRelativePathBase>
-    <ManifestName Condition="'$(ManifestName)' == ''">$(GitHubRepositoryName)</ManifestName>
   </PropertyGroup>
-
 
   <Target Name="PublishPackagesToBlobFeed" DependsOnTargets="@(PublishPackagesToBlobFeedDependsOn)" >
     <Error Text="The ExpectedFeedUrl  property must be set on the command line."

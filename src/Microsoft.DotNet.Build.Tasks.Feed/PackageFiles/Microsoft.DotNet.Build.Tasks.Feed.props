@@ -3,7 +3,6 @@
     <_MicrosoftDotNetBuildTasksFeedTaskDir>$(MSBuildThisFileDirectory)net46/</_MicrosoftDotNetBuildTasksFeedTaskDir>
     <_MicrosoftDotNetBuildTasksFeedTaskDir Condition="'$(MSBuildRuntimeType)' == 'Core'">$(MSBuildThisFileDirectory)netstandard1.5/</_MicrosoftDotNetBuildTasksFeedTaskDir>
   </PropertyGroup>
-
   <UsingTask TaskName="ConfigureInputFeeds" AssemblyFile="$(_MicrosoftDotNetBuildTasksFeedTaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
   <UsingTask TaskName="CopyBlobDirectory" AssemblyFile="$(_MicrosoftDotNetBuildTasksFeedTaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
   <UsingTask TaskName="FetchOrchestratedBuildManifestInfo" AssemblyFile="$(_MicrosoftDotNetBuildTasksFeedTaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
@@ -13,4 +12,12 @@
   <UsingTask TaskName="PushToBlobFeed" AssemblyFile="$(_MicrosoftDotNetBuildTasksFeedTaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
   <UsingTask TaskName="UpdateOrchestratedBuildManifest" AssemblyFile="$(_MicrosoftDotNetBuildTasksFeedTaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
   <UsingTask TaskName="WriteOrchestratedBuildManifestToFile" AssemblyFile="$(_MicrosoftDotNetBuildTasksFeedTaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
+  
+  <!-- Set default property values -->
+  <PropertyGroup>
+    <PushToBlobFeed_Overwrite>false</PushToBlobFeed_Overwrite>
+    <PushToBlobFeed_MaxClients>8</PushToBlobFeed_MaxClients>
+    <FileRelativePathBase>assets/</FileRelativePathBase>
+    <ManifestName>$(GitHubRepositoryName)</ManifestName>
+  </PropertyGroup>
 </Project>
