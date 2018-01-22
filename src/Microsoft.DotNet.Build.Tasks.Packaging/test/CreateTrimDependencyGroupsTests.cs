@@ -187,6 +187,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
                 CreateDependencyItem(@"_._", null, "xamarintvos10"),
                 CreateDependencyItem(@"_._", null, "xamarinwatchos10"),
                 CreateDependencyItem(@"System.Runtime", "4.0.0", "netstandard1.0"),
+                CreateDependencyItem(@"System.Runtime", "4.0.10", "netstandard1.2"),
                 CreateDependencyItem(@"System.Runtime", "4.0.20", "netstandard1.3"),
                 // Make up some dependencies which are not inbox on net45, net451, net46
                 CreateDependencyItem(@"System.Collections.Immutable", "4.0.0", "netstandard1.0"),
@@ -210,7 +211,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
 
             // System.Collections.Immutable is not inbox and we've specified different versions for netstandard1.0 and netstandard1.3, so
             // we're expecting those dependencies to both be present for the net45 and net46 target frameworks.
-            Assert.Equal(3, task.TrimmedDependencies.Length);
+            Assert.Equal(2, task.TrimmedDependencies.Length);
             Assert.Equal(1, task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Equals("portable45-net45+win8+wp8+wpa81") && f.ItemSpec.Equals("System.Collections.Immutable", StringComparison.OrdinalIgnoreCase)).Count());
             Assert.Equal(1, task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Equals("portable46-net451+win81+wpa81") && f.ItemSpec.Equals("System.Collections.Immutable", StringComparison.OrdinalIgnoreCase)).Count());
         }
@@ -311,7 +312,39 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
             // The only added dependency in portable45-net45+win8+wpa81 is System.Collections.Immutable
             Assert.Equal("System.Collections.Immutable", task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Equals("portable45-net45+win8+wpa81")).Single().ItemSpec);
         }
+        
+        [Fact]
+        public void AddInboxEmptyFrameworkGroups()
+        {
+            ITaskItem[] files = new[]
+            {
+                CreateFileItem(@"E:\foo\bar.dll", "lib/netstandard1.1", "netstandard1.1")
+            };
+            ITaskItem[] dependencies = new[]
+            {
+                CreateDependencyItem(@"System.Runtime", "4.0.0", "netstandard1.1"),
+                CreateDependencyItem(@"System.Resources.ResourceManager", "4.0.0", "netstandard1.1"),
+                CreateDependencyItem(@"System.IO", "4.0.0", "netstandard1.1"),
+                CreateDependencyItem(@"System.Collections", "4.0.0", "netstandard1.1")
+            };
 
+            CreateTrimDependencyGroups task = new CreateTrimDependencyGroups()
+            {
+                BuildEngine = _engine,
+                Files = files,
+                Dependencies = dependencies,
+                PackageIndexes = packageIndexes
+            };
+
+            _log.Reset();
+            task.Execute();
+            Assert.Equal(0, _log.ErrorsLogged);
+            Assert.Equal(0, _log.WarningsLogged);
+            Assert.Equal(1, task.TrimmedDependencies.Length);
+            var dependency = task.TrimmedDependencies.Single();
+            Assert.Equal("_._", dependency.ItemSpec);
+            Assert.Equal("portable45-net45+win8+wpa81", dependency.GetMetadata("TargetFramework"));
+        }
         public static ITaskItem CreateFileItem(string sourcePath, string targetPath, string targetFramework)
         {
             TaskItem item = new TaskItem(sourcePath);
