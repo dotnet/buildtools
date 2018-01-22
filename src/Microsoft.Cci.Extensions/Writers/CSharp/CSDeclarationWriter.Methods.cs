@@ -156,7 +156,7 @@ namespace Microsoft.Cci.Writers.CSharp
             WriteIdentifier(parameter.Name);
             if (parameter.IsOptional && parameter.HasDefaultValue)
             {
-                WriteSymbol("=");
+                WriteSymbol(" = ");
                 WriteMetadataConstant(parameter.DefaultValue, parameter.Type);
             }
         }
