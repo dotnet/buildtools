@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.DotNet.Build.CloudTestTasks
 {
-    public class FinalizeBuild : AzureConnectionStringBuildTask
+    public class CopyBlobsToLatest : AzureConnectionStringBuildTask
     {
         [Required]
         public string SemaphoreBlob { get; set; }
