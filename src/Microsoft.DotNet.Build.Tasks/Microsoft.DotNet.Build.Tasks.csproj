@@ -69,6 +69,7 @@
     <Compile Include="SignTypeItem.cs" />
     <Compile Include="UpdatePackageDependencyVersion.cs" />
     <Compile Include="IsRestoreRequired.cs" />
+    <Compile Include="ValidateBinInspectResults.cs" />
     <Compile Include="ValidateExactRestore.cs" />
     <Compile Include="VersionTools\BaseDependenciesTask.cs" />
     <Compile Include="VersionTools\MsBuildTraceListener.cs" />
