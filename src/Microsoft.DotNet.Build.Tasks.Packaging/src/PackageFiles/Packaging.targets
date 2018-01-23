@@ -1004,6 +1004,9 @@
     <DefaultValidateFramework Include="uap10.0">
       <RuntimeIDs>win10-x86;win10-x86-aot;win10-x64;win10-x64-aot;win10-arm;win10-arm-aot</RuntimeIDs>
     </DefaultValidateFramework>
+    <DefaultValidateFramework Include="uap10.0.15138">
+      <RuntimeIDs>win10-x86;win10-x86-aot;win10-x64;win10-x64-aot;win10-arm;win10-arm-aot</RuntimeIDs>
+    </DefaultValidateFramework>
     <DefaultValidateFramework Include="$(UAPvNextTFM)">
       <RuntimeIDs>win10-x86;win10-x86-aot;win10-x64;win10-x64-aot;win10-arm;win10-arm-aot</RuntimeIDs>
     </DefaultValidateFramework>
