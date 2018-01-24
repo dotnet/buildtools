@@ -114,8 +114,13 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 // of the remaining groups, find the most compatible one
                 var nearestGroup = newDependencyGroups.Concat(dependencyGroups).GetNearest(group.TargetFramework);
 
-                // we found a compatible group, if its dependency set is different, keep it in the set of additions
-                if (nearestGroup == null || !group.Packages.SetEquals(nearestGroup.Packages))
+                // either we found no compatible group, 
+                // or the closest compatible group has different dependencies, 
+                // or the closest compatible group is portable and this is not (Portable profiles have different framework precedence, https://github.com/NuGet/Home/issues/6483),
+                // keep it in the set of additions
+                if (nearestGroup == null || 
+                    !group.Packages.SetEquals(nearestGroup.Packages) || 
+                    FrameworkUtilities.IsPortableMoniker(group.TargetFramework) != FrameworkUtilities.IsPortableMoniker(nearestGroup.TargetFramework))
                 {
                     // not redundant, keep it in the queue
                     newDependencyGroups.Enqueue(group);
