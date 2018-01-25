@@ -5,6 +5,9 @@
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using NuGet.Frameworks;
+using NuGet.Packaging;
+using NuGet.Packaging.Core;
+using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,6 +17,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 {
     public class CreateTrimDependencyGroups : PackagingTask
     {
+        private const string PlaceHolderDependency = "_._";
+
         [Required]
         public ITaskItem[] Dependencies
         {
@@ -46,8 +51,6 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             set;
         }
 
-        public bool UseNetPlatform { get; set; }
-
         /* Given a set of available frameworks ("InboxOnTargetFrameworks"), and a list of desired frameworks,
         reduce the set of frameworks to the minimum set of frameworks which is compatible (preferring inbox frameworks. */
         public override bool Execute()
@@ -65,127 +68,89 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
 
             var index = PackageIndex.Load(PackageIndexes.Select(pi => pi.GetMetadata("FullPath")));
 
-            // Retrieve the list of generation dependency group TFM's
-            var dependencyGroups = Dependencies.GroupBy(d => d.GetMetadata("TargetFramework")).Select(dg => new
-                {
-                    Framework = NuGetFramework.Parse(dg.Key),
-                    Dependencies = dg.ToArray()
-                });
-
-            List<ITaskItem> addedDependencies = new List<ITaskItem>();
-
-            // Exclude any non-portable frameworks that already have specific dependency groups.
-            var frameworksToExclude = dependencyGroups.Select(dg => dg.Framework).Where(fx => !FrameworkUtilities.IsGenerationMoniker(fx));
+            // Retrieve the list of dependency group TFM's
+            var dependencyGroups = Dependencies
+                .Select(dependencyItem => new TaskItemPackageDependency(dependencyItem))
+                .GroupBy(dependency => dependency.TargetFramework)
+                .Select(dependencyGrouping => new TaskItemPackageDependencyGroup(dependencyGrouping.Key, dependencyGrouping))
+                .ToArray();
 
             // Prepare a resolver for evaluating if candidate frameworks are actually supported by the package
             PackageItem[] packageItems = Files.Select(f => new PackageItem(f)).ToArray();
             var packagePaths = packageItems.Select(pi => pi.TargetPath);
-            var targetFrameworksWithPlaceHolders = packageItems.Where(pi => NuGetAssetResolver.IsPlaceholder(pi.TargetPath)).Select(pi => pi.TargetFramework);
-
             NuGetAssetResolver resolver = new NuGetAssetResolver(null, packagePaths);
 
-            foreach (var portableDependencyGroup in dependencyGroups.Where(dg => FrameworkUtilities.IsGenerationMoniker(dg.Framework)))
-            {
-                // Determine inbox frameworks for this generation that don't already have explicit groups
-                HashSet<NuGetFramework> inboxFrameworksList = new HashSet<NuGetFramework>(
-                    index.GetAlllInboxFrameworks()
-                    .Where(fx => Generations.DetermineGenerationForFramework(fx, UseNetPlatform) >= portableDependencyGroup.Framework.Version &&
-                        !frameworksToExclude.Any(exFx => exFx.Framework == fx.Framework && exFx.Profile == fx.Profile && exFx.Version <= fx.Version)));
-                
-                // Check for assets which have a ref, but not a lib asset. If we have any of these, then they are actually not supported frameworks 
-                // and we should not include them.
-                inboxFrameworksList.RemoveWhere(inboxFx => !IsSupported(inboxFx, resolver));
+            // Determine all inbox frameworks which are supported by this package
+            var supportedInboxFrameworks = index.GetAlllInboxFrameworks().Where(fx => IsSupported(fx, resolver));
 
-                // Only add the lowest version for a particular inbox framework.  EG if both net45 and net46 are supported by this generation,
-                //        only add net45
-                inboxFrameworksList.RemoveWhere(fx => inboxFrameworksList.Any(otherFx => (otherFx.Framework.Equals(fx.Framework)) && (otherFx.Version < fx.Version)));
-                
-                // Create dependency items for each inbox framework.
-                foreach (var framework in inboxFrameworksList)
+            var newDependencyGroups = new Queue<TaskItemPackageDependencyGroup>();
+            // For each inbox framework determine its best compatible dependency group
+            foreach(var supportedInboxFramework in supportedInboxFrameworks)
+            {
+                var nearestDependencyGroup = dependencyGroups.GetNearest(supportedInboxFramework);
+
+                // We found a compatible dependency group that is not the same as this framework
+                if (nearestDependencyGroup != null  && nearestDependencyGroup.TargetFramework != supportedInboxFramework)
                 {
-                    bool addedDependencyToFramework = false;
-                    foreach (ITaskItem dependency in portableDependencyGroup.Dependencies)
+                    // remove all dependencies which are inbox on supportedInboxFramework
+                    var filteredDependencies = nearestDependencyGroup.Packages.Where(d => !index.IsInbox(d.Id, supportedInboxFramework, d.AssemblyVersion)).ToArray();
+
+                    // only create the new group if we removed some inbox dependencies
+                    if (filteredDependencies.Length != nearestDependencyGroup.Packages.Count)
                     {
-                        string version = GetVersion(dependency);
-                        
-                        if (!index.IsInbox(dependency.ItemSpec, framework, version))
-                        {
-                            addedDependencyToFramework = true;
-                            AddDependency(addedDependencies, new TaskItem(dependency), framework, portableDependencyGroup.Framework);
-                        }
-                    }
-                    if (!addedDependencyToFramework)
-                    {
-                        AddDependency(addedDependencies, new TaskItem("_._"), framework, portableDependencyGroup.Framework);
+                        // copy remaining dependencies
+                        newDependencyGroups.Enqueue(new TaskItemPackageDependencyGroup(supportedInboxFramework, filteredDependencies));
                     }
                 }
             }
 
-            // Collapse frameworks
-            // For any dependency with a targetframework, if there is another target framework which is compatible and older, remove this dependency.
-
-            // Get all Dependencies which are not in a portable dependency group so that we can collapse the frameworks.  If we include
-            // the portable frameworks, then we'll end up collapsing to those.
-            List<NuGetFramework> allDependencyGroups = new List<NuGetFramework>();
-            allDependencyGroups.AddRange(Dependencies.Select(d => NuGetFramework.Parse(d.GetMetadata("TargetFramework"))).Where(a => !allDependencyGroups.Contains(a) &&
-                                                                  !FrameworkUtilities.IsGenerationMoniker(a) &&
-                                                                  !FrameworkUtilities.IsPortableMoniker(a)));
-            allDependencyGroups.AddRange(addedDependencies.Select(d => NuGetFramework.Parse(d.GetMetadata("TargetFramework"))).Where(a => !allDependencyGroups.Contains(a) &&
-                                                                  !FrameworkUtilities.IsGenerationMoniker(a) &&
-                                                                  !FrameworkUtilities.IsPortableMoniker(a)));
-
-            List<NuGetFramework> collapsedDependencyGroups = FrameworkUtilities.ReduceDownwards(allDependencyGroups).ToList<NuGetFramework>();
-
-            // Get the list of dependency groups that we collapsed down so that we can add them back if they contained different dependencies than what is present in the collapsed group.
-            /* TODO: Look into NuGet's sorting algorithm, they may have a bug (fixed in this line). They were not including version in the sort.  
-                     See ReduceCore in https://github.com/NuGet/NuGet.Client/blob/23ea68b91a439fcfd7f94bcd01bcdee2e8adae92/src/NuGet.Core/NuGet.Frameworks/FrameworkReducer.cs */
-            IEnumerable<NuGetFramework> removedDependencyGroups = allDependencyGroups.Where(d => !collapsedDependencyGroups.Contains(d))?.OrderBy(f => f.Framework, StringComparer.OrdinalIgnoreCase).ThenBy(f => f.Version);
-            foreach (NuGetFramework removedDependencyGroup in removedDependencyGroups)
+            // Remove any redundant groups from the added set (EG: net45 and net46 with the same set of dependencies)
+            int groupsToCheck = newDependencyGroups.Count;
+            for(int i = 0; i < groupsToCheck; i++)
             {
-                // always recalculate collapsedDependencyGroups in case we added an item in a previous iteration.  Dependency groups are sorted, so this should be additive and we shouldn't need to restart the collapse / add back cycle
-                var nearest = FrameworkUtilities.GetNearest(removedDependencyGroup, collapsedDependencyGroups.ToArray());
+                // to determine if this is a redundant group, we dequeue so that it won't be considered in the following check for nearest group.
+                var group = newDependencyGroups.Dequeue();
 
-                // gather the dependencies for this dependency group and the calculated "nearest" dependency group
-                var nearestDependencies = addedDependencies.Where(d => nearest.Equals(NuGetFramework.Parse(d.GetMetadata("TargetFramework")))).OrderBy(f => f.ToString());
-                var currentDependencies = addedDependencies.Where(d => removedDependencyGroup.Equals(NuGetFramework.Parse(d.GetMetadata("TargetFramework")))).OrderBy(f => f.ToString());
+                // of the remaining groups, find the most compatible one
+                var nearestGroup = newDependencyGroups.Concat(dependencyGroups).GetNearest(group.TargetFramework);
 
-                // The nearest dependency group's dependencies are different than this dependency group's dependencies
-                if (nearestDependencies.Count() != currentDependencies.Count())
+                // either we found no compatible group, 
+                // or the closest compatible group has different dependencies, 
+                // or the closest compatible group is portable and this is not (Portable profiles have different framework precedence, https://github.com/NuGet/Home/issues/6483),
+                // keep it in the set of additions
+                if (nearestGroup == null || 
+                    !group.Packages.SetEquals(nearestGroup.Packages) || 
+                    FrameworkUtilities.IsPortableMoniker(group.TargetFramework) != FrameworkUtilities.IsPortableMoniker(nearestGroup.TargetFramework))
                 {
-                    // ignore if dependency is a placeholder
-                    if (currentDependencies.Count() > 0)
-                    {
-                        if (!NuGetAssetResolver.IsPlaceholder(currentDependencies.First().ToString()))
-                        {
-                            collapsedDependencyGroups.Add(removedDependencyGroup);
-                        }
-                    }
-                    else
-                    {
-                        collapsedDependencyGroups.Add(removedDependencyGroup);
-                    }
-                }
-                // identical dependency count between current and nearest, and the count is > 0
-                else if (nearestDependencies.Count() > 0)
-                {
-                    if (!currentDependencies.SequenceEqual(nearestDependencies, new DependencyITaskItemComparer()))
-                    {
-                        collapsedDependencyGroups.Add(removedDependencyGroup);
-                    }
+                    // not redundant, keep it in the queue
+                    newDependencyGroups.Enqueue(group);
                 }
             }
 
-
-            List<ITaskItem> collapsedDependencies = new List<ITaskItem>();
-            foreach (ITaskItem dependency in addedDependencies)
+            // Build the items representing added dependency groups.
+            List<ITaskItem> trimmedDependencies = new List<ITaskItem>();
+            foreach (var newDependencyGroup in newDependencyGroups)
             {
-                if (collapsedDependencyGroups.Contains(NuGetFramework.Parse(dependency.GetMetadata("TargetFramework"))))
+                if (newDependencyGroup.Packages.Count == 0)
                 {
-                    collapsedDependencies.Add(dependency);
+                    // no dependencies (all inbox), use a placeholder dependency.
+                    var item = new TaskItem(PlaceHolderDependency);
+                    item.SetMetadata("TargetFramework", newDependencyGroup.TargetFramework.GetShortFolderName());
+                    trimmedDependencies.Add(item);
+                }
+                else
+                {
+                    foreach(var dependency in newDependencyGroup.Packages)
+                    {
+                        var item = new TaskItem(dependency.Item);
+                        // emit CopiedFromTargetFramework to aide in debugging.
+                        item.SetMetadata("CopiedFromTargetFramework", item.GetMetadata("TargetFramework"));
+                        item.SetMetadata("TargetFramework", newDependencyGroup.TargetFramework.GetShortFolderName());
+                        trimmedDependencies.Add(item);
+                    }
                 }
             }
-            TrimmedDependencies = collapsedDependencies.ToArray();
-
+            TrimmedDependencies = trimmedDependencies.ToArray();
             return !Log.HasLoggedErrors;
         }
 
@@ -215,54 +180,70 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             return runtimeAssets.Any();
         }
 
-        private static string GetVersion(ITaskItem dependency)
+        /// <summary>
+        /// Similar to NuGet.Packaging.Core.PackageDependency but also allows for flowing the original ITaskItem.
+        /// </summary>
+        class TaskItemPackageDependency : PackageDependency
         {
-            // If we don't have the AssemblyVersion metadata (4 part version string), fall back and use Version (3 part version string)
-            string version = dependency.GetMetadata("AssemblyVersion");
-            if (string.IsNullOrEmpty(version))
+            public TaskItemPackageDependency(ITaskItem item) : base(item.ItemSpec, TryParseVersionRange(item.GetMetadata("Version")))
             {
-                version = dependency.GetMetadata("Version");
+                Item = item;
+                TargetFramework = NuGetFramework.Parse(item.GetMetadata(nameof(TargetFramework)));
+                AssemblyVersion = GetAssemblyVersion(item);
+            }
 
-                int prereleaseIndex = version.IndexOf('-');
-                if (prereleaseIndex != -1)
+            private static VersionRange TryParseVersionRange(string versionString)
+            {
+                VersionRange value;
+
+                return VersionRange.TryParse(versionString, out value) ? value : null;
+            }
+
+            private static Version GetAssemblyVersion(ITaskItem dependency)
+            {
+                // If we don't have the AssemblyVersion metadata (4 part version string), fall back and use Version (3 part version string)
+                string versionString = dependency.GetMetadata("AssemblyVersion");
+                if (string.IsNullOrEmpty(versionString))
                 {
-                    version = version.Substring(0, prereleaseIndex);
+                    versionString = dependency.GetMetadata("Version");
+
+                    int prereleaseIndex = versionString.IndexOf('-');
+                    if (prereleaseIndex != -1)
+                    {
+                        versionString = versionString.Substring(0, prereleaseIndex);
+                    }
                 }
+                
+                Version assemblyVersion = FrameworkUtilities.Ensure4PartVersion(
+                    String.IsNullOrEmpty(versionString) ? 
+                        new Version(0, 0, 0, 0) : 
+                        new Version(versionString));
+
+                return assemblyVersion;
             }
-            return version;
+
+            public ITaskItem Item { get; }
+            public NuGetFramework TargetFramework { get; }
+            public Version AssemblyVersion { get; }
         }
 
-        private static void AddDependency(List<ITaskItem> dependencies, ITaskItem item, NuGetFramework targetFramework, NuGetFramework generation)
+        /// <summary>
+        /// An IFrameworkSpecific type that can be used with FrameworkUtilties.GetNearest.
+        /// This differs from NuGet.Packaging.PackageDependencyGroup in that it exposes the package dependencies as an ISet which can
+        /// undergo an unordered comparison with another ISet.
+        /// </summary>
+        class TaskItemPackageDependencyGroup : IFrameworkSpecific
         {
-            item.SetMetadata("TargetFramework", targetFramework.GetShortFolderName());
-            // "Generation" is not required metadata, we just include it because it can be useful for debugging.
-            item.SetMetadata("Generation", generation.GetShortFolderName());
-            dependencies.Add(item);
-        }
-    }
-    public class DependencyITaskItemComparer : IEqualityComparer<ITaskItem>
-    {
-        public bool Equals(ITaskItem x, ITaskItem y)
-        {
-            if (x.ToString().Equals(y.ToString()) &&
-                x.GetMetadata("Version") == y.GetMetadata("Version"))
+            public TaskItemPackageDependencyGroup(NuGetFramework targetFramework, IEnumerable<TaskItemPackageDependency> packages)
             {
-                return true;
+                TargetFramework = targetFramework;
+                Packages = new HashSet<TaskItemPackageDependency>(packages.Where(d => d.Id != PlaceHolderDependency));
             }
-            return false;
-        }
 
-        public int GetHashCode(ITaskItem dependency)
-        {
-            //Check whether the object is null
-            if (Object.ReferenceEquals(dependency, null)) return 0;
+            public NuGetFramework TargetFramework { get; }
 
-            int hashDependencyName = dependency.GetHashCode();
+            public ISet<TaskItemPackageDependency> Packages { get; }
 
-            int hashDependencyVersion = dependency.GetMetadata("Version").GetHashCode();
-
-            //Calculate the hash code for the NuGetFramework.
-            return hashDependencyName ^ hashDependencyVersion;
         }
     }
 }

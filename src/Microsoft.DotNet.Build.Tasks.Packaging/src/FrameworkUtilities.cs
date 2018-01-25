@@ -36,7 +36,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
         }
         public static bool IsPortableMoniker(NuGetFramework nuGetFramework)
         {
-            return nuGetFramework == null ? false : nuGetFramework.GetShortFolderName().StartsWith("portable-");
+            return nuGetFramework == null ? false : nuGetFramework.Framework == FrameworkConstants.FrameworkIdentifiers.Portable ||
+                nuGetFramework.GetShortFolderName().StartsWith("portable-");
         }
         public static Version Ensure4PartVersion(Version version)
         {
