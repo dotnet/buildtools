@@ -14,7 +14,8 @@
     On Unix we always use a version of Roslyn we restore from NuGet and we have to work around some known issues.
   -->
   <PropertyGroup Condition="'$(RoslynPropsFile)' == '' and '$(RunningOnCore)' == 'true'">
-    <RoslynPackageDir>$(PackagesDir)/$(RoslynPackageName).$(RoslynVersion)/</RoslynPackageDir>
+    <RoslynPackageName>Microsoft.NETCore.Compilers</RoslynPackageName>
+    <RoslynPackageDir>$(PackagesDir)/$(RoslynPackageName.ToLower())/$(RoslynVersion)/</RoslynPackageDir>
     <RoslynPropsFile>$(RoslynPackageDir)build/$(RoslynPackageName).props</RoslynPropsFile>
 
     <!--
