@@ -21,7 +21,9 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
 
         public string SdkTableTemplateFile { get; set; }
 
-        public string RuntimeTableTemplateFile { get; set; }
+        public string DotNetRuntimeTableTemplateFile { get; set; }
+
+        public string AspNetCoreRuntimeTableTemplateFile { get; set; }
 
         public override bool Execute()
         {
@@ -34,8 +36,17 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
             string sdkProductVersion = model.Builds
                 .FirstOrDefault(b => b.Name == "cli")
                 ?.BuildId;
+
             string runtimeProductVersion = blobFeed.Artifacts.Blobs
-                .FirstOrDefault(b => b.Id.StartsWith("Runtime/"))
+                .FirstOrDefault(b =>
+                    b.Id.StartsWith("Runtime/") &&
+                    b.Id.EndsWith("/Microsoft.NET.CoreRuntime.2.1.appx"))
+                ?.Id.Split('/')[1];
+
+            string aspnetProductVersion = blobFeed.Artifacts.Blobs
+                .FirstOrDefault(b =>
+                    b.Id.StartsWith("Runtime/") &&
+                    b.Id.EndsWith("/aspnetcore_base_runtime.version"))
                 ?.Id.Split('/')[1];
 
             var builder = new StringBuilder();
@@ -52,13 +63,22 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
                     sdkProductVersion));
             }
 
-            if (!string.IsNullOrEmpty(RuntimeTableTemplateFile) && runtimeProductVersion != null)
+            if (!string.IsNullOrEmpty(DotNetRuntimeTableTemplateFile) && runtimeProductVersion != null)
             {
                 builder.AppendLine();
                 builder.AppendLine(FillTemplate(
-                    RuntimeTableTemplateFile,
+                    DotNetRuntimeTableTemplateFile,
                     feedAssetsRoot,
                     runtimeProductVersion));
+            }
+
+            if (!string.IsNullOrEmpty(AspNetCoreRuntimeTableTemplateFile) && aspnetProductVersion != null)
+            {
+                builder.AppendLine();
+                builder.AppendLine(FillTemplate(
+                    AspNetCoreRuntimeTableTemplateFile,
+                    feedAssetsRoot,
+                    aspnetProductVersion));
             }
 
             builder.AppendLine();
