@@ -160,7 +160,8 @@
     <WriteOrchestratedBuildManifestSummaryToFile File="$(ManifestSummaryFile)"
                                                  ManifestFile="$(ManifestFile)"
                                                  SdkTableTemplateFile="$(SdkTableTemplateFile)"
-                                                 RuntimeTableTemplateFile="$(RuntimeTableTemplateFile)" />
+                                                 DotNetRuntimeTableTemplateFile="$(DotNetRuntimeTableTemplateFile)"
+                                                 AspNetCoreRuntimeTableTemplateFile="$(AspNetCoreRuntimeTableTemplateFile)" />
 
     <ItemGroup>
       <SupplementaryFiles Include="$(ManifestSummaryFile)" />
