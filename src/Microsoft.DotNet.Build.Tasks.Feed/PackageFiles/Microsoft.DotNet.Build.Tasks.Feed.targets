@@ -158,7 +158,9 @@
                                           ManifestBuildId="$(ManifestBuildId)" />
 
     <WriteOrchestratedBuildManifestSummaryToFile File="$(ManifestSummaryFile)"
-                                                 ManifestFile="$(ManifestFile)" />
+                                                 ManifestFile="$(ManifestFile)"
+                                                 SdkTableTemplateFile="$(SdkTableTemplateFile)"
+                                                 RuntimeTableTemplateFile="$(RuntimeTableTemplateFile)" />
 
     <ItemGroup>
       <SupplementaryFiles Include="$(ManifestSummaryFile)" />
