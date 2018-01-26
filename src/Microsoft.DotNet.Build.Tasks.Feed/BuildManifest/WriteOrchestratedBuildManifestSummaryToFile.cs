@@ -31,17 +31,19 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
 
             string feedAssetsRoot = blobFeed.Url.Replace("/index.json", "/assets");
 
-            string sdkProductVersion = model.Builds.First(b => b.Name == "cli").BuildId;
+            string sdkProductVersion = model.Builds
+                .FirstOrDefault(b => b.Name == "cli")
+                ?.BuildId;
             string runtimeProductVersion = blobFeed.Artifacts.Blobs
-                .First(b => b.Id.StartsWith("Runtime/"))
-                .Id.Split('/')[1];
+                .FirstOrDefault(b => b.Id.StartsWith("Runtime/"))
+                ?.Id.Split('/')[1];
 
             var builder = new StringBuilder();
 
             builder.Append("## Product build: ");
             builder.AppendLine(model.Identity.ToString());
 
-            if (!string.IsNullOrEmpty(SdkTableTemplateFile))
+            if (!string.IsNullOrEmpty(SdkTableTemplateFile) && sdkProductVersion != null)
             {
                 builder.AppendLine();
                 builder.AppendLine(FillTemplate(
@@ -50,7 +52,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
                     sdkProductVersion));
             }
 
-            if (!string.IsNullOrEmpty(RuntimeTableTemplateFile))
+            if (!string.IsNullOrEmpty(RuntimeTableTemplateFile) && runtimeProductVersion != null)
             {
                 builder.AppendLine();
                 builder.AppendLine(FillTemplate(
