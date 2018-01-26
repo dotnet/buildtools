@@ -7,6 +7,9 @@
   <Target Name="Test" />
 
   <PropertyGroup>
+    <!-- Due to a bug in the Roslyn Microsoft.NETCore.Compilers.props file, VisualBasicCoreTargetsPath is not set, and instead they set BasicCoreTargetsPath so the wrong targets get imported -->
+    <VisualBasicCoreTargetsPath Condition="'$(VisualBasicCoreTargetsPath)' == '' And '$(BasicCoreTargetsPath)' != ''">$(BasicCoreTargetsPath)</VisualBasicCoreTargetsPath>    
+
     <BuildToolsTaskDir Condition="'$(BuildToolsTaskDir)' == ''">$(ToolsDir)</BuildToolsTaskDir>
 
     <!-- For UAP, we need to bin place the resources as resw files to create the runner's pri file. -->
