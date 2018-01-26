@@ -45,6 +45,7 @@
     <Compile Include="BuildManifest\FetchOrchestratedBuildManifestInfo.cs" />
     <Compile Include="BuildManifest\UpdateOrchestratedBuildManifest.cs" />
     <Compile Include="BuildManifest\PushOrchestratedBuildManifest.cs" />
+    <Compile Include="BuildManifest\WriteOrchestratedBuildManifestSummaryToFile.cs" />
     <Compile Include="BuildManifest\WriteOrchestratedBuildManifestToFile.cs" />
     <Compile Include="ConfigureInputFeed.cs" />
     <Compile Include="GetBlobFeedPackageList.cs" />
