@@ -38,9 +38,16 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         public string[] FullVersions { get; set; }
 
         /// <summary>
-        /// Forces publish even if the Commit was already published.
+        /// If this task is called by multiple build legs that make up one build, enable this option
+        /// to prevent race conditions by dropping a version hint of what version this is. If we see
+        /// this file and it is the same as our version then we know that a race happened where two+
+        /// builds finished at the same time and someone already took care of publishing and we have
+        /// no work to do.
+        /// 
+        /// This is not necessary if the build uses some other mechanism to ensure each build only
+        /// has one finalization attempt, e.g. PipeBuild.
         /// </summary>
-        public bool ForcePublish { get; set; }
+        public bool EnableVersionHint { get; set; }
 
         private Regex _versionRegex = new Regex(@"(?<version>\d+\.\d+\.\d+)(-(?<prerelease>[^-]+-)?(?<major>\d+)-(?<minor>\d+))?");
 
@@ -72,31 +79,31 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
             try
             {
-                string targetVersionFile = $"{channelDir}{ProductVersion}";
-
-                // Prevent race conditions by dropping a version hint of what version this is. If
-                // we see this file and it is the same as our version then we know that a race
-                // happened where two+ builds finished at the same time and someone already took
-                // care of publishing and we have no work to do.
-                if (IsLatestSpecifiedVersion(targetVersionFile) && !ForcePublish)
+                if (EnableVersionHint)
                 {
-                    Log.LogMessage(
-                        MessageImportance.High,
-                        $"Version '{ProductVersion}' is already published, skipping finalization. " +
-                            $"Hint file: '{targetVersionFile}'");
+                    string targetVersionFile = $"{channelDir}/{ProductVersion}";
 
-                    return true;
+                    // Check if this build is already finalized.
+                    if (IsLatestSpecifiedVersion(targetVersionFile))
+                    {
+                        Log.LogMessage(
+                            MessageImportance.High,
+                            $"Version '{ProductVersion}' is already published. " +
+                                $"Skipping finalization. Hint file: '{targetVersionFile}'");
+
+                        return true;
+                    }
+
+                    // Delete old version files.
+                    GetBlobList(channelDir)
+                        .Select(s => s.Replace($"/{ContainerName}/", ""))
+                        .Where(w => _versionRegex.Replace(Path.GetFileName(w), "") == "")
+                        .ToList()
+                        .ForEach(f => TryDeleteBlob(f));
+
+                    // Drop the version file signaling such for any race-condition builds.
+                    CreateBlobIfNotExists(targetVersionFile);
                 }
-
-                // Delete old version files
-                GetBlobList(channelDir)
-                    .Select(s => s.Replace($"/{ContainerName}/", ""))
-                    .Where(w => _versionRegex.Replace(Path.GetFileName(w), "") == "")
-                    .ToList()
-                    .ForEach(f => TryDeleteBlob(f));
-
-                // Drop the version file signaling such for any race-condition builds (see above comment).
-                CreateBlobIfNotExists(targetVersionFile);
 
                 CopyBlobs(sourceDir, channelDir);
 
