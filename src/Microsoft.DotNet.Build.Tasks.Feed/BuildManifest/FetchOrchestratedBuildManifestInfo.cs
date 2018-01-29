@@ -40,6 +40,9 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
 
         [Output]
         public ITaskItem[] OrchestratedBlobFeedArtifacts { get; set; }
+        
+        [Output]
+        public ITaskItem[] OrchestratedBuilds { get; set; }
 
         public override bool Execute()
         {
@@ -58,6 +61,9 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
                     VersionsRepoPath)
                     .Result;
 
+                OrchestratedBuildId = manifest.Identity.BuildId;
+                OrchestratedIdentity = manifest.Identity.ToString();
+
                 EndpointModel[] orchestratedFeeds = manifest.Endpoints
                     .Where(e => e.IsOrchestratedBlobFeed)
                     .ToArray();
@@ -74,10 +80,12 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
                 IEnumerable<ITaskItem> packageItems = feed.Artifacts.Packages.Select(CreateItem);
                 IEnumerable<ITaskItem> blobItems = feed.Artifacts.Blobs.Select(CreateItem);
 
-                OrchestratedBuildId = manifest.Identity.BuildId;
-                OrchestratedIdentity = manifest.Identity.ToString();
                 OrchestratedBlobFeed = new[] { new TaskItem("Endpoint", feed.Attributes) };
                 OrchestratedBlobFeedArtifacts = packageItems.Concat(blobItems).ToArray();
+
+                IEnumerable<ITaskItem> buildItems = manifest.Builds.Select(CreateItem);
+
+                OrchestratedBuilds = buildItems.ToArray();
             }
 
             return !Log.HasLoggedErrors;
@@ -91,6 +99,13 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
         private ITaskItem CreateItem(PackageArtifactModel model)
         {
             return new TaskItem("Package", ArtifactMetadata(model.ToXml(), model.Attributes));
+        }
+
+        private ITaskItem CreateItem(BuildIdentity model)
+        {
+            return new TaskItem(
+                model.Name,
+                ArtifactMetadata(model.ToXmlBuildElement(), model.Attributes));
         }
 
         private Dictionary<string, string> ArtifactMetadata(

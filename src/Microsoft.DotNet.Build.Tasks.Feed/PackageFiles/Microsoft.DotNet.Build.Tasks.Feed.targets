@@ -229,6 +229,10 @@
       %(Identity): 'Package' or 'Blob', matching manifest element name.
       %(Xml): The raw XML string representing the artifact in the manifest.
       %(...): Metadata is created for each attribute on the element.
+    @(OrchestratedBuilds): An item for each Build in the orchestrated build manifest.
+      %(Identity): The name of the build.
+      %(Xml): The raw XML string representing the artifact in the manifest.
+      %(...): Metadata is created for each attribute on the element.
   -->
   <Target Name="FetchOrchestratedBuildManifestInfo"
           DependsOnTargets="CreateVersionsRepoDefaults">
@@ -250,6 +254,7 @@
       <Output TaskParameter="OrchestratedIdentity" PropertyName="OrchestratedIdentity" />
       <Output TaskParameter="OrchestratedBlobFeed" ItemName="OrchestratedBlobFeed" />
       <Output TaskParameter="OrchestratedBlobFeedArtifacts" ItemName="OrchestratedBlobFeedArtifacts" />
+      <Output TaskParameter="OrchestratedBuilds" ItemName="OrchestratedBuilds" />
     </FetchOrchestratedBuildManifestInfo>
 
     <PropertyGroup>
