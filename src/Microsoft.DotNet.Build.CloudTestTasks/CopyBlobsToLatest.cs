@@ -15,27 +15,31 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
     public class CopyBlobsToLatest : AzureConnectionStringBuildTask
     {
         [Required]
-        public string SemaphoreBlob { get; set; }
-        [Required]
-        public string FinalizeContainer { get; set; }
-        public string MaxWait { get; set; }
-        public string Delay { get; set; }
-        [Required]
         public string ContainerName { get; set; }
+
         [Required]
-        public string Channel { get; set; }
-        [Required]
-        public string SharedFrameworkNugetVersion { get; set; }
-        [Required]
-        public string SharedHostNugetVersion { get; set; }
-        [Required]
-        public string UWPCoreRuntimeSdkFullVersion { get; set; }
+        public string Product { get; set; }
+
         [Required]
         public string ProductVersion { get; set; }
+
         [Required]
-        public string Version { get; set; }
+        public string Channel { get; set; }
+
         [Required]
-        public string CommitHash { get; set; }
+        public string Commit { get; set; }
+
+        public bool Coherent { get; set; }
+
+        /// <summary>
+        /// A list of full version strings that should be converted to "latest" for each blob id,
+        /// in addition to ProductVersion.
+        /// </summary>
+        public string[] FullVersions { get; set; }
+
+        /// <summary>
+        /// Forces publish even if the Commit was already published.
+        /// </summary>
         public bool ForcePublish { get; set; }
 
         private Regex _versionRegex = new Regex(@"(?<version>\d+\.\d+\.\d+)(-(?<prerelease>[^-]+-)?(?<major>\d+)-(?<minor>\d+))?");
@@ -49,77 +53,100 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 return false;
             }
 
-            if (!FinalizeContainer.EndsWith("/"))
-            {
-                FinalizeContainer = $"{FinalizeContainer}/";
-            }
-            string targetVersionFile = $"{FinalizeContainer}{Version}";
+            string sourceDir = $"{Product}/{ProductVersion}/";
+            string channelDir = $"{Product}/{Channel}/";
+            string semaphoreBlob = $"{channelDir}publishSemaphore";
 
-            CreateBlobIfNotExists(SemaphoreBlob);
+            CreateBlobIfNotExists(semaphoreBlob);
 
-            AzureBlobLease blobLease = new AzureBlobLease(AccountName, AccountKey, ConnectionString, ContainerName, SemaphoreBlob, Log);
-            Log.LogMessage($"Acquiring lease on semaphore blob '{SemaphoreBlob}'");
+            AzureBlobLease blobLease = new AzureBlobLease(
+                AccountName,
+                AccountKey,
+                ConnectionString,
+                ContainerName,
+                semaphoreBlob,
+                Log);
+
+            Log.LogMessage($"Acquiring lease on semaphore blob '{semaphoreBlob}'");
             blobLease.Acquire();
 
-            // Prevent race conditions by dropping a version hint of what version this is. If we see this file
-            // and it is the same as our version then we know that a race happened where two+ builds finished 
-            // at the same time and someone already took care of publishing and we have no work to do.
-            if (IsLatestSpecifiedVersion(targetVersionFile) && !ForcePublish)
+            try
             {
-                Log.LogMessage(MessageImportance.Low, $"version hint file for publishing finalization is {targetVersionFile}");
-                Log.LogMessage(MessageImportance.High, $"Version '{Version}' is already published, skipping finalization.");
-                Log.LogMessage($"Releasing lease on semaphore blob '{SemaphoreBlob}'");
-                blobLease.Release();
-                return true;
-            }
-            else
-            {
+                string targetVersionFile = $"{channelDir}{Commit}";
+
+                // Prevent race conditions by dropping a version hint of what version this is. If
+                // we see this file and it is the same as our version then we know that a race
+                // happened where two+ builds finished at the same time and someone already took
+                // care of publishing and we have no work to do.
+                if (IsLatestSpecifiedVersion(targetVersionFile) && !ForcePublish)
+                {
+                    Log.LogMessage(
+                        MessageImportance.High,
+                        $"Version '{Commit}' is already published, skipping finalization. " +
+                            $"Hint file: '{targetVersionFile}'");
+
+                    return true;
+                }
 
                 // Delete old version files
-                GetBlobList(FinalizeContainer)
-                    .Select(s => s.Replace("/dotnet/", ""))
+                GetBlobList(channelDir)
+                    .Select(s => s.Replace($"/{ContainerName}/", ""))
                     .Where(w => _versionRegex.Replace(Path.GetFileName(w), "") == "")
                     .ToList()
                     .ForEach(f => TryDeleteBlob(f));
 
-
                 // Drop the version file signaling such for any race-condition builds (see above comment).
                 CreateBlobIfNotExists(targetVersionFile);
 
-                try
-                {
-                    CopyBlobs($"Runtime/{ProductVersion}/", $"Runtime/{Channel}/");
+                CopyBlobs(sourceDir, channelDir);
 
-                    // Generate the latest version text file
-                    string sfxVersion = GetSharedFrameworkVersionFileContent();
-                    PublishStringToBlob(ContainerName, $"Runtime/{Channel}/latest.version", sfxVersion, "text/plain");
-                }
-                finally
+                // Generate the latest version text file
+                string versionText =
+                    $"{Commit}{Environment.NewLine}" +
+                    $"{ProductVersion}{Environment.NewLine}";
+
+                PublishStringToBlob(
+                    ContainerName,
+                    $"{channelDir}latest.version",
+                    versionText,
+                    "text/plain");
+
+                if (Coherent)
                 {
-                    blobLease.Release();
+                    PublishStringToBlob(
+                        ContainerName,
+                        $"{channelDir}latest.coherent.version",
+                        versionText,
+                        "text/plain");
                 }
             }
-            return !Log.HasLoggedErrors;
-        }
+            finally
+            {
+                Log.LogMessage($"Releasing lease on semaphore blob '{semaphoreBlob}'");
+                blobLease.Release();
+            }
 
-        private string GetSharedFrameworkVersionFileContent()
-        {
-            string returnString = $"{CommitHash}{Environment.NewLine}";
-            returnString += $"{SharedFrameworkNugetVersion}{Environment.NewLine}";
-            return returnString;
+            return !Log.HasLoggedErrors;
         }
 
         public bool CopyBlobs(string sourceFolder, string destinationFolder)
         {
+            // List of versions that need to be replaced with "latest" when copying blobs.
+            var versions = new List<string> { ProductVersion };
+            if (FullVersions != null)
+            {
+                versions.AddRange(FullVersions);
+            }
+
             bool returnStatus = true;
             List<Task<bool>> copyTasks = new List<Task<bool>>();
             string[] blobs = GetBlobList(sourceFolder);
             foreach (string blob in blobs)
             {
-                string targetName = Path.GetFileName(blob)
-                                        .Replace(SharedFrameworkNugetVersion, "latest")
-                                        .Replace(SharedHostNugetVersion, "latest")
-                                        .Replace(UWPCoreRuntimeSdkFullVersion, "latest");
+                string targetName = versions.Aggregate(
+                    Path.GetFileName(blob),
+                    (agg, version) => agg.Replace(version, "latest"));
+
                 string sourceBlob = blob.Replace($"/{ContainerName}/", "");
                 string destinationBlob = $"{destinationFolder}{targetName}";
                 Log.LogMessage($"Copying blob '{sourceBlob}' to '{destinationBlob}'");
@@ -152,49 +179,53 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
         public bool DeleteBlob(string container, string blob)
         {
-            return DeleteAzureBlob.Execute(AccountName,
-                                           AccountKey,
-                                            ConnectionString,
-                                            container,
-                                            blob,
-                                            BuildEngine,
-                                            HostObject);
+            return DeleteAzureBlob.Execute(
+                AccountName,
+                AccountKey,
+                ConnectionString,
+                container,
+                blob,
+                BuildEngine,
+                HostObject);
         }
 
         public Task<bool> CopyBlobAsync(string sourceBlobName, string destinationBlobName)
         {
-            return CopyAzureBlobToBlob.ExecuteAsync(AccountName,
-                                               AccountKey,
-                                               ConnectionString,
-                                               ContainerName,
-                                               sourceBlobName,
-                                               destinationBlobName,
-                                               BuildEngine,
-                                               HostObject);
+            return CopyAzureBlobToBlob.ExecuteAsync(
+                AccountName,
+                AccountKey,
+                ConnectionString,
+                ContainerName,
+                sourceBlobName,
+                destinationBlobName,
+                BuildEngine,
+                HostObject);
         }
 
         public string[] GetBlobList(string path)
         {
-            return ListAzureBlobs.Execute(AccountName,
-                                            AccountKey,
-                                            ConnectionString,
-                                            ContainerName,
-                                            path,
-                                            BuildEngine,
-                                            HostObject);
+            return ListAzureBlobs.Execute(
+                AccountName,
+                AccountKey,
+                ConnectionString,
+                ContainerName,
+                path,
+                BuildEngine,
+                HostObject);
         }
 
         public bool PublishStringToBlob(string container, string blob, string contents, string contentType = null)
         {
-            return PublishStringToAzureBlob.Execute(AccountName,
-                                                    AccountKey,
-                                                    ConnectionString,
-                                                    container,
-                                                    blob,
-                                                    contents,
-                                                    contentType,
-                                                    BuildEngine,
-                                                    HostObject);
+            return PublishStringToAzureBlob.Execute(
+                AccountName,
+                AccountKey,
+                ConnectionString,
+                container,
+                blob,
+                contents,
+                contentType,
+                BuildEngine,
+                HostObject);
         }
     }
 }
