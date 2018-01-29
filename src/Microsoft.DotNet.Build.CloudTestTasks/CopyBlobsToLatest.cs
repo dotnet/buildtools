@@ -86,7 +86,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             {
                 if (EnableVersionHint)
                 {
-                    string targetVersionFile = $"{channelDir}/{ProductVersion}";
+                    string targetVersionFile = $"{channelDir}{ProductVersion}";
 
                     // Check if this build is already finalized.
                     if (IsLatestSpecifiedVersion(targetVersionFile))
