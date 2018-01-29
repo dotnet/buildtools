@@ -72,7 +72,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
             try
             {
-                string targetVersionFile = $"{channelDir}{Commit}";
+                string targetVersionFile = $"{channelDir}{ProductVersion}";
 
                 // Prevent race conditions by dropping a version hint of what version this is. If
                 // we see this file and it is the same as our version then we know that a race
@@ -82,7 +82,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 {
                     Log.LogMessage(
                         MessageImportance.High,
-                        $"Version '{Commit}' is already published, skipping finalization. " +
+                        $"Version '{ProductVersion}' is already published, skipping finalization. " +
                             $"Hint file: '{targetVersionFile}'");
 
                     return true;
