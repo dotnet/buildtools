@@ -14,6 +14,11 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 {
     public class CopyBlobsToLatest : AzureConnectionStringBuildTask
     {
+        private static readonly string[] DefaultLatestVersionFilenames =
+        {
+            "latest.version"
+        };
+
         [Required]
         public string ContainerName { get; set; }
 
@@ -29,7 +34,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         [Required]
         public string Commit { get; set; }
 
-        public bool Coherent { get; set; }
+        public string[] LatestVersionFilenames { get; set; }
 
         /// <summary>
         /// A list of full version strings that should be converted to "latest" for each blob id,
@@ -112,17 +117,16 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                     $"{Commit}{Environment.NewLine}" +
                     $"{ProductVersion}{Environment.NewLine}";
 
-                PublishStringToBlob(
-                    ContainerName,
-                    $"{channelDir}latest.version",
-                    versionText,
-                    "text/plain");
+                if (LatestVersionFilenames?.Any() != true)
+                {
+                    LatestVersionFilenames = DefaultLatestVersionFilenames;
+                }
 
-                if (Coherent)
+                foreach (string latestFilename in LatestVersionFilenames)
                 {
                     PublishStringToBlob(
                         ContainerName,
-                        $"{channelDir}latest.coherent.version",
+                        $"{channelDir}{latestFilename}",
                         versionText,
                         "text/plain");
                 }
