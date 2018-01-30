@@ -85,6 +85,7 @@
                     ManifestBuildId="$(ManifestBuildId)"
                     ManifestBranch="$(ManifestBranch)"
                     ManifestCommit="$(ManifestCommit)"
+                    ManifestBuildData="$(ManifestBuildData)"
                     SkipCreateManifest="$(SkipCreateManifest)" />
   </Target>
 
@@ -115,6 +116,7 @@
                     ManifestBuildId="$(ManifestBuildId)"
                     ManifestBranch="$(ManifestBranch)"
                     ManifestCommit="$(ManifestCommit)"
+                    ManifestBuildData="$(ManifestBuildData)"
                     SkipCreateManifest="$(SkipCreateManifest)" />
 
   </Target>
