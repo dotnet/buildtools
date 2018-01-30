@@ -42,9 +42,9 @@ namespace Microsoft.DotNet.VersionTools.BuildManifest.Model
 
         public XElement ToXml() => new XElement(
             "OrchestratedBuild",
-            Identity.ToXml(),
+            Identity.ToXmlAttributes(),
             Endpoints.Select(x => x.ToXml()),
-            Builds.Select(x => new XElement("Build", x.ToXml())));
+            Builds.Select(x => x.ToXmlBuildElement()));
 
         public static OrchestratedBuildModel Parse(XElement xml) => new OrchestratedBuildModel(BuildIdentity.Parse(xml))
         {

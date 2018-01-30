@@ -26,7 +26,7 @@ namespace Microsoft.DotNet.VersionTools.BuildManifest.Model
 
         public XElement ToXml() => new XElement(
             "Build",
-            Identity.ToXml(),
+            Identity.ToXmlAttributes(),
             Artifacts.ToXml());
 
         public static BuildModel Parse(XElement xml) => new BuildModel(BuildIdentity.Parse(xml))

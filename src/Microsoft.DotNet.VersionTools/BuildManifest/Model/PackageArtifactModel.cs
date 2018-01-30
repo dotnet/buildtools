@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.DotNet.VersionTools.Util;
 using System.Collections.Generic;
 using System.Xml.Linq;
 
@@ -15,17 +16,17 @@ namespace Microsoft.DotNet.VersionTools.BuildManifest.Model
             nameof(Version)
         };
 
-        public Dictionary<string, string> Attributes { get; set; } = new Dictionary<string, string>();
+        public IDictionary<string, string> Attributes { get; set; } = new Dictionary<string, string>();
 
         public string Id
         {
-            get { return Attributes[nameof(Id)]; }
+            get { return Attributes.GetOrDefault(nameof(Id)); }
             set { Attributes[nameof(Id)] = value; }
         }
 
         public string Version
         {
-            get { return Attributes[nameof(Version)]; }
+            get { return Attributes.GetOrDefault(nameof(Version)); }
             set { Attributes[nameof(Version)] = value; }
         }
 
@@ -33,13 +34,15 @@ namespace Microsoft.DotNet.VersionTools.BuildManifest.Model
 
         public XElement ToXml() => new XElement(
             "Package",
-            Attributes.CreateXmlAttributes(AttributeOrder));
+            Attributes
+                .ThrowIfMissingAttributes(AttributeOrder)
+                .CreateXmlAttributes(AttributeOrder));
 
         public static PackageArtifactModel Parse(XElement xml) => new PackageArtifactModel
         {
-            Id = xml.GetRequiredAttribute(nameof(Id)),
-            Version = xml.GetRequiredAttribute(nameof(Version)),
-            Attributes = xml.CreateAttributeDictionary()
+            Attributes = xml
+                .CreateAttributeDictionary()
+                .ThrowIfMissingAttributes(AttributeOrder)
         };
     }
 }

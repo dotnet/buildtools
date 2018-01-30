@@ -44,6 +44,19 @@ namespace Microsoft.DotNet.VersionTools.Tests.BuildManifest
         }
 
         [Fact]
+        public void TestExampleCustomBuildIdentityRoundtrip()
+        {
+            XElement xml = XElement.Parse(
+                @"<Build Name=""Example"" BuildId=""123"" ProductVersion=""1.0.0-preview"" Branch=""master"" Commit=""abcdef"" BlankExtra="""" Extra=""extra-foo"" />");
+            var model = BuildModel.Parse(xml);
+            XElement modelXml = model.ToXml();
+
+            Assert.True(
+                XNode.DeepEquals(xml, modelXml),
+                "Model failed to output the parsed XML.");
+        }
+
+        [Fact]
         public void TestPackageOnlyBuildManifest()
         {
             var model = CreatePackageOnlyBuildManifestModel();
@@ -56,7 +69,7 @@ namespace Microsoft.DotNet.VersionTools.Tests.BuildManifest
         [Fact]
         public void TestMergeBuildManifests()
         {
-            var orchestratedModel = new OrchestratedBuildModel(new BuildIdentity("Orchestrated", "123"))
+            var orchestratedModel = new OrchestratedBuildModel(new BuildIdentity { Name = "Orchestrated", BuildId = "123" })
             {
                 Endpoints = new List<EndpointModel>
                 {
@@ -87,7 +100,7 @@ namespace Microsoft.DotNet.VersionTools.Tests.BuildManifest
 
         private BuildModel CreatePackageOnlyBuildManifestModel()
         {
-            return new BuildModel(new BuildIdentity("SimpleBuildManifest", "123"))
+            return new BuildModel(new BuildIdentity { Name = "SimpleBuildManifest", BuildId = "123" })
             {
                 Artifacts = new ArtifactSet
                 {
