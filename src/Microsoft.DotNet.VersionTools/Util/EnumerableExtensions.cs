@@ -13,5 +13,14 @@ namespace Microsoft.DotNet.VersionTools.Util
         {
             return source ?? Enumerable.Empty<T>();
         }
+
+        public static TValue GetOrDefault<TKey, TValue>(
+            this IDictionary<TKey, TValue> attributes,
+            TKey key)
+        {
+            TValue value;
+            attributes.TryGetValue(key, out value);
+            return value;
+        }
     }
 }
