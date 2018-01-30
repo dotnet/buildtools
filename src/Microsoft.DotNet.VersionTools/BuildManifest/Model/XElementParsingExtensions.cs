@@ -28,14 +28,29 @@ namespace Microsoft.DotNet.VersionTools.BuildManifest.Model
         }
 
         public static XAttribute[] CreateXmlAttributes(
-            this Dictionary<string, string> attributes,
+            this IDictionary<string, string> attributes,
             string[] keySortOrder)
         {
             return attributes
+                .Where(pair => pair.Value != null)
                 .OrderBy(pair => keySortOrder.TakeWhile(o => pair.Key != o).Count())
                 .ThenBy(pair => pair.Key, StringComparer.OrdinalIgnoreCase)
                 .Select(pair => new XAttribute(pair.Key, pair.Value))
                 .ToArray();
+        }
+
+        public static IDictionary<string, string> ThrowIfMissingAttributes(
+            this IDictionary<string, string> attributes,
+            IEnumerable<string> requiredAttributes)
+        {
+            var missing = requiredAttributes?.Where(r => !attributes.ContainsKey(r)).ToArray();
+            if (missing?.Any() == true)
+            {
+                throw new ArgumentException(
+                    $"Required attribute(s) missing: {string.Join(", ", missing)}");
+            }
+
+            return attributes;
         }
     }
 }

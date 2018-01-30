@@ -40,7 +40,7 @@ namespace Microsoft.DotNet.VersionTools.Tests.BuildManifest
             var mockGitHub = new Mock<IGitHubClient>(MockBehavior.Strict);
 
             var client = new BuildManifestClient(mockGitHub.Object);
-            var build = new OrchestratedBuildModel(new BuildIdentity("orch", "123"));
+            var build = new OrchestratedBuildModel(new BuildIdentity { Name = "orch", BuildId = "123"});
             var proj = new GitHubProject("versions", "dotnet");
             string @ref = "heads/master";
             string basePath = "build-info/dotnet/product/cli/master";
@@ -105,7 +105,7 @@ namespace Microsoft.DotNet.VersionTools.Tests.BuildManifest
             string message = "Test change manifest commit";
             string addSemaphorePath = "add-identity.semaphore";
 
-            var fakeExistingBuild = new OrchestratedBuildModel(new BuildIdentity("orch", "123"));
+            var fakeExistingBuild = new OrchestratedBuildModel(new BuildIdentity { Name = "orch", BuildId = "123"});
             string fakeExistingBuildString = fakeExistingBuild.ToXml().ToString();
             string fakeCommitHash = "fakeCommitHash";
             string fakeTreeHash = "fakeTreeHash";
@@ -173,8 +173,8 @@ namespace Microsoft.DotNet.VersionTools.Tests.BuildManifest
             string message = "Test change manifest commit";
             string addSemaphorePath = "add-identity.semaphore";
 
-            var fakeExistingBuild = new OrchestratedBuildModel(new BuildIdentity("orch", "123"));
-            var fakeNewExistingBuild = new OrchestratedBuildModel(new BuildIdentity("orch", "456"));
+            var fakeExistingBuild = new OrchestratedBuildModel(new BuildIdentity { Name = "orch", BuildId = "123" });
+            var fakeNewExistingBuild = new OrchestratedBuildModel(new BuildIdentity { Name = "orch", BuildId = "456" });
             string fakeCommitHash = "fakeCommitHash";
 
             mockGitHub
@@ -208,7 +208,7 @@ namespace Microsoft.DotNet.VersionTools.Tests.BuildManifest
             var mockGitHub = new Mock<IGitHubClient>(MockBehavior.Strict);
 
             var client = new BuildManifestClient(mockGitHub.Object);
-            var build = new OrchestratedBuildModel(new BuildIdentity("orch", "123"));
+            var build = new OrchestratedBuildModel(new BuildIdentity { Name = "orch", BuildId = "123" });
             var proj = new GitHubProject("versions", "dotnet");
             string @ref = "heads/master";
             string basePath = "build-info/dotnet/product/cli/master";

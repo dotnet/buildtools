@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.DotNet.VersionTools.Util;
 using System.Collections.Generic;
 using System.Xml.Linq;
 
@@ -24,19 +25,19 @@ namespace Microsoft.DotNet.VersionTools.BuildManifest.Model
 
         public string Id
         {
-            get { return Attributes[nameof(Id)]; }
+            get { return Attributes.GetOrDefault(nameof(Id)); }
             set { Attributes[nameof(Id)] = value; }
         }
 
         public string Type
         {
-            get { return Attributes[nameof(Type)]; }
+            get { return Attributes.GetOrDefault(nameof(Type)); }
             set { Attributes[nameof(Type)] = value; }
         }
 
         public string Url
         {
-            get { return Attributes[nameof(Url)]; }
+            get { return Attributes.GetOrDefault(nameof(Url)); }
             set { Attributes[nameof(Url)] = value; }
         }
 

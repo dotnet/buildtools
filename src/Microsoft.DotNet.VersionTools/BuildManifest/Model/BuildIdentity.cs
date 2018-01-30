@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+using Microsoft.DotNet.VersionTools.Util;
 using System.Collections.Generic;
 using System.Xml.Linq;
 
@@ -10,34 +10,59 @@ namespace Microsoft.DotNet.VersionTools.BuildManifest.Model
 {
     public class BuildIdentity
     {
-        public BuildIdentity(
-            string name,
-            string buildId,
-            string branch = null,
-            string commit = null)
+        private static readonly string[] AttributeOrder =
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentException("Expected a non-empty string.", nameof(name));
-            }
-            Name = name;
-            if (string.IsNullOrEmpty(buildId))
-            {
-                throw new ArgumentException("Expected a non-empty string.", nameof(buildId));
-            }
-            BuildId = buildId;
-            Branch = branch;
-            Commit = commit;
+            nameof(Name),
+            nameof(BuildId),
+            nameof(ProductVersion),
+            nameof(Branch),
+            nameof(Commit)
+        };
+
+        private static readonly string[] RequiredAttributes =
+        {
+            nameof(Name)
+        };
+
+        public IDictionary<string, string> Attributes { get; set; } = new Dictionary<string, string>();
+
+        public string Name
+        {
+            get { return Attributes.GetOrDefault(nameof(Name)); }
+            set { Attributes[nameof(Name)] = value; }
         }
 
-        public string Name { get; }
-        public string BuildId { get; }
-        public string Branch { get; }
-        public string Commit { get; }
+        public string BuildId
+        {
+            get { return Attributes.GetOrDefault(nameof(BuildId)); }
+            set { Attributes[nameof(BuildId)] = value; }
+        }
+
+        public string ProductVersion
+        {
+            get { return Attributes.GetOrDefault(nameof(ProductVersion)); }
+            set { Attributes[nameof(ProductVersion)] = value; }
+        }
+
+        public string Branch
+        {
+            get { return Attributes.GetOrDefault(nameof(Branch)); }
+            set { Attributes[nameof(Branch)] = value; }
+        }
+
+        public string Commit
+        {
+            get { return Attributes.GetOrDefault(nameof(Commit)); }
+            set { Attributes[nameof(Commit)] = value; }
+        }
 
         public override string ToString()
         {
-            string s = $"{Name} '{BuildId}'";
+            string s = Name;
+            if (!string.IsNullOrEmpty(ProductVersion))
+            {
+                s += $" {ProductVersion}";
+            }
             if (!string.IsNullOrEmpty(Branch))
             {
                 s += $" on '{Branch}'";
@@ -46,30 +71,24 @@ namespace Microsoft.DotNet.VersionTools.BuildManifest.Model
             {
                 s += $" ({Commit})";
             }
+            if (!string.IsNullOrEmpty(BuildId))
+            {
+                s += $" build {BuildId}";
+            }
             return s;
         }
 
-        public IEnumerable<XAttribute> ToXml()
-        {
-            yield return new XAttribute(nameof(Name), Name);
-            yield return new XAttribute(nameof(BuildId), BuildId);
-            if (!string.IsNullOrEmpty(Branch))
-            {
-                yield return new XAttribute(nameof(Branch), Branch);
-            }
-            if (!string.IsNullOrEmpty(Commit))
-            {
-                yield return new XAttribute(nameof(Commit), Commit);
-            }
-        }
+        public IEnumerable<XAttribute> ToXmlAttributes() => Attributes
+            .ThrowIfMissingAttributes(RequiredAttributes)
+            .CreateXmlAttributes(AttributeOrder);
 
-        public static BuildIdentity Parse(XElement xml)
+        public XElement ToXmlBuildElement() => new XElement("Build", ToXmlAttributes());
+
+        public static BuildIdentity Parse(XElement xml) => new BuildIdentity
         {
-            return new BuildIdentity(
-                xml.GetRequiredAttribute(nameof(Name)),
-                xml.GetRequiredAttribute(nameof(BuildId)),
-                xml.Attribute(nameof(Branch))?.Value,
-                xml.Attribute(nameof(Commit))?.Value);
-        }
+            Attributes = xml
+                .CreateAttributeDictionary()
+                .ThrowIfMissingAttributes(RequiredAttributes)
+        };
     }
 }

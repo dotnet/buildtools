@@ -47,6 +47,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         public string ManifestBuildId { get; set; } = "no build id provided";
         public string ManifestBranch { get; set; }
         public string ManifestCommit { get; set; }
+        public string ManifestBuildData { get; set; }
 
         /// <summary>
         /// When publishing build outputs to an orchestrated blob feed, do not change this property.
@@ -158,11 +159,14 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             else
             {
                 buildModel = new BuildModel(
-                    new BuildIdentity(
-                        ManifestName,
-                        ManifestBuildId,
-                        ManifestBranch,
-                        ManifestCommit));
+                    new BuildIdentity
+                    {
+                        Attributes = ParseManifestMetadataString(ManifestBuildData),
+                        Name = ManifestName,
+                        BuildId = ManifestBuildId,
+                        Branch = ManifestBranch,
+                        Commit = ManifestCommit
+                    });
             }
 
             buildModel.Artifacts.Blobs.AddRange(blobArtifacts);
@@ -257,9 +261,17 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         private static Dictionary<string, string> ParseCustomAttributes(ITaskItem item)
         {
-            Dictionary<string, string> customAttributes = item
-                .GetMetadata("ManifestArtifactData")
-                ?.Split(ManifestDataPairSeparators, StringSplitOptions.RemoveEmptyEntries)
+            return ParseManifestMetadataString(item.GetMetadata("ManifestArtifactData"));
+        }
+
+        private static Dictionary<string, string> ParseManifestMetadataString(string data)
+        {
+            if (string.IsNullOrEmpty(data))
+            {
+                return new Dictionary<string, string>();
+            }
+
+            return data.Split(ManifestDataPairSeparators, StringSplitOptions.RemoveEmptyEntries)
                 .Select(pair =>
                 {
                     int keyValueSeparatorIndex = pair.IndexOf('=');
@@ -275,8 +287,6 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 })
                 .Where(pair => pair != null)
                 .ToDictionary(pair => pair.Key, pair => pair.Value);
-
-            return customAttributes ?? new Dictionary<string, string>();
         }
     }
 }
