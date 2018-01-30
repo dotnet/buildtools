@@ -229,6 +229,11 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             return await packageIndex.GetPackagesAsync();
         }
 
+        public ISleetFileSystemLock CreateLock()
+        {
+            return GetAzureFileSystem().CreateLock(new SleetLogger(Log));
+        }
+
         private bool IsSanityChecked(IEnumerable<string> items)
         {
             Log.LogMessage(MessageImportance.Low, $"START checking sanitized items for feed");
