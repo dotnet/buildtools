@@ -50,6 +50,7 @@
        HelixJobProperties- Must be JSON.  String describing Helix MC-specific metadata.       Default: <Blank>
        HelixArchLabel    - If HelixJobProperties is not set, we'll use this to fill it out    Default: <Blank>
        HelixConfigLabel  - If HelixJobProperties is not set, we'll use this to fill it out    Default: <Blank>
+       MaxRetryCount     - Max automatic retry of workitems which do not return 0             Default: 1
 
        **********************************************************************************************************************************
        Re-queuing Properties:
@@ -83,6 +84,7 @@
     <SupplementalPayloadFile>$(ArchivesRoot)$(SupplementalPayloadFilename)</SupplementalPayloadFile>
     <IsOfficial Condition="'$(IsOfficial)'!=''">false</IsOfficial>
     <HelixApiEndpoint Condition="'$(HelixApiEndpoint)'==''">https://helix.dot.net/api/2016-06-28/jobs</HelixApiEndpoint>
+    <MaxRetryCount Condition="'$(MaxRetryCount)' == ''">1</MaxRetryCount>
   </PropertyGroup>
 
   <!-- Set Helix environment vars based on target platform -->
@@ -335,12 +337,14 @@
         <Build>$(BuildMoniker)</Build>
         <Type>$(HelixJobType)</Type>
         <Source>$(HelixSource)</Source>
+        <MaxRetryCount>$(MaxRetryCount)</MaxRetryCount>
       </BuildCompleteTemplateV2>
       <BuildComplete Include="@(BuildCompleteTemplateV2)"/>
     </ItemGroup>
 
     <WriteItemsToJson JsonFileName="%(HelixWorkItemList.BuildCompleteJson)" Items="@(BuildComplete)" />
     <Message Text="Wrote job-start (build complete) JSON for @(BuildComplete->Count()) Queues." />
+    <Message Condition="$(MaxRetryCount) &gt; 1" Text="Work Items will automatically retry on non-zero exit code up to $(MaxRetryCount) times." />
     
     <CreateItem Include="%(HelixWorkItemList.BuildCompleteJson)" AdditionalMetadata="RelativeBlobPath=JobStartJsonMessages.json">
       <Output TaskParameter="Include" ItemName="JobStartJsons" />
