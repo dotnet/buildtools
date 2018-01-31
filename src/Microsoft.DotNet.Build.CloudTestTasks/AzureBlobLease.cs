@@ -154,7 +154,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 }
                 token.ThrowIfCancellationRequested();
 
-                Thread.Sleep(waitFor);
+                Task.Delay(waitFor, token).Wait();
             }
         }
 
