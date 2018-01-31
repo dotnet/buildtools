@@ -13,7 +13,7 @@
 
     <!-- Use the same package version for all output packages. -->
     <DoNotGeneratePackageVersion>true</DoNotGeneratePackageVersion>
-    <PackageVersion>2.2.0-prerelease-$(BuildNumberMajor)-$(BuildNumberMinor)</PackageVersion>
+    <PackageVersion>2.1.0-preview2-$(BuildNumberMajor)-$(BuildNumberMinor)</PackageVersion>
   </PropertyGroup>
 
   <ItemGroup>
