@@ -19,6 +19,9 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             "latest.version"
         };
 
+        private static readonly Regex VersionRegex = new Regex(
+            @"(?<version>\d+\.\d+\.\d+)(-(?<prerelease>[^-]+-)?(?<major>\d+)-(?<minor>\d+))?");
+
         [Required]
         public string ContainerName { get; set; }
 
@@ -53,8 +56,6 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         /// has one finalization attempt, e.g. PipeBuild.
         /// </summary>
         public bool EnableVersionHint { get; set; }
-
-        private Regex _versionRegex = new Regex(@"(?<version>\d+\.\d+\.\d+)(-(?<prerelease>[^-]+-)?(?<major>\d+)-(?<minor>\d+))?");
 
         public override bool Execute()
         {
@@ -102,7 +103,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                     // Delete old version files.
                     GetBlobList(channelDir)
                         .Select(s => s.Replace($"/{ContainerName}/", ""))
-                        .Where(w => _versionRegex.Replace(Path.GetFileName(w), "") == "")
+                        .Where(w => VersionRegex.Replace(Path.GetFileName(w), "") == "")
                         .ToList()
                         .ForEach(f => TryDeleteBlob(f));
 
@@ -140,7 +141,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             return !Log.HasLoggedErrors;
         }
 
-        public bool CopyBlobs(string sourceFolder, string destinationFolder)
+        private bool CopyBlobs(string sourceFolder, string destinationFolder)
         {
             // List of versions that need to be replaced with "latest" when copying blobs.
             var versions = new List<string> { ProductVersion };
@@ -168,12 +169,12 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             return returnStatus;
         }
 
-        public bool TryDeleteBlob(string path)
+        private bool TryDeleteBlob(string path)
         {
             return DeleteBlob(ContainerName, path);
         }
 
-        public void CreateBlobIfNotExists(string path)
+        private void CreateBlobIfNotExists(string path)
         {
             var blobList = GetBlobList(path);
             if (blobList.Count() == 0)
@@ -182,13 +183,13 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             }
         }
 
-        public bool IsLatestSpecifiedVersion(string versionFile)
+        private bool IsLatestSpecifiedVersion(string versionFile)
         {
             var blobList = GetBlobList(versionFile);
             return blobList.Count() != 0;
         }
 
-        public bool DeleteBlob(string container, string blob)
+        private bool DeleteBlob(string container, string blob)
         {
             return DeleteAzureBlob.Execute(
                 AccountName,
@@ -200,7 +201,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 HostObject);
         }
 
-        public Task<bool> CopyBlobAsync(string sourceBlobName, string destinationBlobName)
+        private Task<bool> CopyBlobAsync(string sourceBlobName, string destinationBlobName)
         {
             return CopyAzureBlobToBlob.ExecuteAsync(
                 AccountName,
@@ -213,7 +214,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 HostObject);
         }
 
-        public string[] GetBlobList(string path)
+        private string[] GetBlobList(string path)
         {
             return ListAzureBlobs.Execute(
                 AccountName,
@@ -225,7 +226,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 HostObject);
         }
 
-        public bool PublishStringToBlob(string container, string blob, string contents, string contentType = null)
+        private bool PublishStringToBlob(string container, string blob, string contents, string contentType = null)
         {
             return PublishStringToAzureBlob.Execute(
                 AccountName,
