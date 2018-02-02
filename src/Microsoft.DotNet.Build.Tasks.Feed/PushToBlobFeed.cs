@@ -33,6 +33,16 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public bool Overwrite { get; set; }
 
+        /// <summary>
+        /// Enables idempotency when Overwrite is false.
+        /// 
+        /// false: (default) Attempting to upload an item that already exists fails.
+        /// 
+        /// true: When an item already exists, download the existing blob to check if it's
+        /// byte-for-byte identical to the one being uploaded. If so, pass. If not, fail.
+        /// </summary>
+        public bool PassIfExistingItemIdentical { get; set; }
+
         public bool PublishFlatContainer { get; set; }
 
         public int MaxClients { get; set; } = 8;
@@ -108,7 +118,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
                         var packagePaths = packageItems.Select(i => i.ItemSpec);
 
-                        await blobFeedAction.PushToFeed(packagePaths, Overwrite);
+                        await blobFeedAction.PushToFeed(packagePaths, Overwrite, PassIfExistingItemIdentical);
                         await PublishToFlatContainerAsync(symbolItems, blobFeedAction);
 
                         packageArtifacts = ConcatPackageArtifacts(packageArtifacts, packageItems);
@@ -209,7 +219,13 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 using (var clientThrottle = new SemaphoreSlim(this.MaxClients, this.MaxClients))
                 {
                     Log.LogMessage($"Uploading {taskItems.Count()} items...");
-                    await Task.WhenAll(taskItems.Select(item => blobFeedAction.UploadAssets(item, clientThrottle, UploadTimeoutInMinutes, Overwrite)));
+                    await Task.WhenAll(taskItems.Select(
+                        item => blobFeedAction.UploadAssets(
+                            item,
+                            clientThrottle,
+                            UploadTimeoutInMinutes,
+                            Overwrite,
+                            PassIfExistingItemIdentical)));
                 }
             }
         }

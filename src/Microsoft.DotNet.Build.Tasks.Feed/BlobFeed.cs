@@ -69,19 +69,36 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public async Task<string> DownloadBlobAsString(string blobPath)
         {
+            using (HttpResponseMessage response = await DownloadBlob(blobPath))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadAsStringAsync();
+                }
+                return null;
+            }
+        }
+
+        public async Task<byte[]> DownloadBlobAsBytes(string blobPath)
+        {
+            using (HttpResponseMessage response = await DownloadBlob(blobPath))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadAsByteArrayAsync();
+                }
+                return null;
+            }
+        }
+
+        private async Task<HttpResponseMessage> DownloadBlob(string blobPath)
+        {
             string url = $"{FeedContainerUrl}/{blobPath}";
             using (HttpClient client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Clear();
                 var request = AzureHelper.RequestMessage("GET", url, AccountName, AccountKey)();
-                using (HttpResponseMessage response = await client.SendAsync(request))
-                {
-                    if (response.IsSuccessStatusCode)
-                    {
-                        return await response.Content.ReadAsStringAsync();
-                    }
-                    return null;
-                }
+                return await client.SendAsync(request);
             }
         }
     }
