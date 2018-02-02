@@ -338,6 +338,8 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             AzureFileSystem fileSystem = GetAzureFileSystem();
             SleetLogger log = new SleetLogger(Log);
 
+            var packagesToPush = items.ToList();
+
             if (!allowOverwrite && passIfExistingItemIdentical)
             {
                 var context = new SleetContext
@@ -356,17 +358,24 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
                 var packageIndex = new PackageIndex(context);
 
-                var packagesToPush = new List<string>();
-
                 // Check packages sequentially: Task.WhenAll caused IO exceptions in Sleet.
-                foreach (var item in items)
+                for (int i = packagesToPush.Count - 1; i >= 0; i--)
                 {
+                    string item = packagesToPush[i];
+
                     bool? identical = await IsPackageIdenticalOnFeedAsync(
                         item,
                         packageIndex,
                         context.Source,
                         flatContainer,
                         log);
+
+                    if (identical == null)
+                    {
+                        continue;
+                    }
+
+                    packagesToPush.RemoveAt(i);
 
                     if (identical == true)
                     {
@@ -381,15 +390,9 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                             "Package exists on the feed, but contents are different. " +
                             $"Upload failed: '{item}'");
                     }
-                    else
-                    {
-                        packagesToPush.Add(item);
-                    }
                 }
 
-                items = packagesToPush;
-
-                if (!items.Any())
+                if (!packagesToPush.Any())
                 {
                     Log.LogMessage("After skipping idempotent uploads, no items need pushing.");
                     return true;
@@ -399,7 +402,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             return await PushCommand.RunAsync(
                 settings,
                 fileSystem,
-                items.ToList(),
+                packagesToPush,
                 allowOverwrite,
                 skipExisting: false,
                 log: log);
