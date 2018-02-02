@@ -262,8 +262,13 @@
   <Target Name="CreateOrUpdateCurrentVersionFile"
       BeforeTargets="ResolveProjectReferences"
       Condition="'$(SkipVersionGeneration)' != 'true' AND '$(VersionPropsImported)' != 'true'">
-    <!-- ############################### -->
 
+    <!-- ############################### -->
+    <Exec Command="git rev-parse --abbrev-ref HEAD 2>&amp;1" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true" Condition="'$(GitBranchName)' == ''">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitBranchName" />
+    </Exec>
+
+    <!-- ############################### -->
     <PropertyGroup Condition="'$(LatestCommit)' != ''">
       <LatestCommitExitCode>0</LatestCommitExitCode>
     </PropertyGroup>
@@ -365,6 +370,8 @@
     <PropertyGroup Condition="'$(BuiltByString)' == ''">
       <!-- Set the @BuiltBy key-value pair -->
       <BuiltByString Condition="'$(VersionUserName)' != '' AND '$(VersionHostName)' != ''">$(BuiltByString) %40BuiltBy: $(VersionUserName)-$(VersionHostName)</BuiltByString>
+      <!-- Set the @Branch key-value pair -->
+      <BuiltByString Condition="'$(GitBranchName)' != ''">$(BuiltByString) %40Branch: $(GitBranchName)</BuiltByString>
       <!-- Set the @SrcCode key-value pair -->
       <BuiltByString Condition="'$(GitHubRepositoryUrl)' != '' AND '$(LatestCommit)' != 'N/A'">$(BuiltByString) %40SrcCode: $(GitHubRepositoryUrl)/tree/$(LatestCommit)</BuiltByString>
       <!-- If that does not work, try setting the @Commit key-value pair -->
