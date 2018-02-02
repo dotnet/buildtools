@@ -41,7 +41,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public string FeedContainerUrl => AzureHelper.GetContainerRestUrl(AccountName, ContainerName);
 
-        public async Task<bool> CheckIfBlobExists(string blobPath)
+        public async Task<bool> CheckIfBlobExistsAsync(string blobPath)
         {
             string url = $"{FeedContainerUrl}/{blobPath}?comp=metadata";
             using (HttpClient client = new HttpClient())
@@ -67,9 +67,9 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             }
         }
 
-        public async Task<string> DownloadBlobAsString(string blobPath)
+        public async Task<string> DownloadBlobAsStringAsync(string blobPath)
         {
-            using (HttpResponseMessage response = await DownloadBlob(blobPath))
+            using (HttpResponseMessage response = await DownloadBlobAsync(blobPath))
             {
                 if (response.IsSuccessStatusCode)
                 {
@@ -79,9 +79,9 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             }
         }
 
-        public async Task<byte[]> DownloadBlobAsBytes(string blobPath)
+        public async Task<byte[]> DownloadBlobAsBytesAsync(string blobPath)
         {
-            using (HttpResponseMessage response = await DownloadBlob(blobPath))
+            using (HttpResponseMessage response = await DownloadBlobAsync(blobPath))
             {
                 if (response.IsSuccessStatusCode)
                 {
@@ -91,7 +91,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             }
         }
 
-        private async Task<HttpResponseMessage> DownloadBlob(string blobPath)
+        private async Task<HttpResponseMessage> DownloadBlobAsync(string blobPath)
         {
             string url = $"{FeedContainerUrl}/{blobPath}";
             using (HttpClient client = new HttpClient())

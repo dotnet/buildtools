@@ -118,7 +118,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
                         var packagePaths = packageItems.Select(i => i.ItemSpec);
 
-                        await blobFeedAction.PushToFeed(packagePaths, Overwrite, PassIfExistingItemIdentical);
+                        await blobFeedAction.PushToFeedAsync(packagePaths, Overwrite, PassIfExistingItemIdentical);
                         await PublishToFlatContainerAsync(symbolItems, blobFeedAction);
 
                         packageArtifacts = ConcatPackageArtifacts(packageArtifacts, packageItems);
@@ -144,7 +144,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             IEnumerable<BlobArtifactModel> blobArtifacts,
             IEnumerable<PackageArtifactModel> packageArtifacts)
         {
-            bool disabledByBlob = await blobFeedAction.feed.CheckIfBlobExists(
+            bool disabledByBlob = await blobFeedAction.feed.CheckIfBlobExistsAsync(
                 $"{blobFeedAction.feed.RelativePath}{DisableManifestPushConfigurationBlob}");
 
             if (disabledByBlob)
@@ -157,7 +157,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
             string blobPath = $"{AssetsVirtualDir}{ManifestAssetOutputDir}{ManifestName}.xml";
 
-            string existingStr = await blobFeedAction.feed.DownloadBlobAsString(
+            string existingStr = await blobFeedAction.feed.DownloadBlobAsStringAsync(
                 $"{blobFeedAction.feed.RelativePath}{blobPath}");
 
             BuildModel buildModel;
@@ -196,7 +196,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
                 using (var clientThrottle = new SemaphoreSlim(MaxClients, MaxClients))
                 {
-                    await blobFeedAction.UploadAssets(
+                    await blobFeedAction.UploadAssetsAsync(
                         item,
                         clientThrottle,
                         UploadTimeoutInMinutes,
@@ -220,7 +220,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 {
                     Log.LogMessage($"Uploading {taskItems.Count()} items...");
                     await Task.WhenAll(taskItems.Select(
-                        item => blobFeedAction.UploadAssets(
+                        item => blobFeedAction.UploadAssetsAsync(
                             item,
                             clientThrottle,
                             UploadTimeoutInMinutes,

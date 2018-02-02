@@ -65,7 +65,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             }
         }
 
-        public async Task<bool> PushToFeed(
+        public async Task<bool> PushToFeedAsync(
             IEnumerable<string> items,
             bool allowOverwrite = false,
             bool passIfExistingItemIdentical = false)
@@ -110,7 +110,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             return !Log.HasLoggedErrors;
         }
 
-        public async Task UploadAssets(
+        public async Task UploadAssetsAsync(
             ITaskItem item,
             SemaphoreSlim clientThrottle,
             int uploadTimeout,
@@ -146,7 +146,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             {
                 UploadClient uploadClient = new UploadClient(Log);
 
-                if (!allowOverwrite && await feed.CheckIfBlobExists(relativeBlobPath))
+                if (!allowOverwrite && await feed.CheckIfBlobExistsAsync(relativeBlobPath))
                 {
                     if (passIfExistingItemIdentical)
                     {

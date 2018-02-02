@@ -152,7 +152,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             if (!Overwrite && blobsPresent.Contains(relativeBlobPath))
             {
                 if (PassIfExistingItemIdentical &&
-                    await ItemEqualsExistingBlob(item, relativeBlobPath, uploadClient, clientThrottle))
+                    await ItemEqualsExistingBlobAsync(item, relativeBlobPath, uploadClient, clientThrottle))
                 {
                     return;
                 }
@@ -184,7 +184,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             }
         }
 
-        private async Task<bool> ItemEqualsExistingBlob(
+        private async Task<bool> ItemEqualsExistingBlobAsync(
             ITaskItem item,
             string relativeBlobPath,
             UploadClient client,
