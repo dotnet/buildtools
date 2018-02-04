@@ -228,8 +228,8 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                     MessageImportance.Low,
                     $"Downloading blob {destinationBlob} to check if identical.");
 
-                string urlGetBlob = AzureHelper.GetBlobRestUrl(accountName, containerName, destinationBlob);
-                var createRequest = AzureHelper.RequestMessage("GET", urlGetBlob, accountName, accountKey);
+                string blobUrl = AzureHelper.GetBlobRestUrl(accountName, containerName, destinationBlob);
+                var createRequest = AzureHelper.RequestMessage("GET", blobUrl, accountName, accountKey);
 
                 using (HttpResponseMessage response = await AzureHelper.RequestWithRetry(
                     log,
