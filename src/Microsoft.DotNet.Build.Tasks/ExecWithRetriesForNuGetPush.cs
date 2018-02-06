@@ -20,17 +20,8 @@ namespace Microsoft.DotNet.Build.Tasks
     /// </summary>
     public class ExecWithRetriesForNuGetPush : BuildTask
     {
-        private const int DownloadComparisonBufferBytes = 1024 * 1024;
-
         [Required]
         public string Command { get; set; }
-
-        /// <summary>
-        /// Package file that is pushed by the given command. Only used if an
-        /// IgnoredErrorMessagesWithConditional item is specified with ConditionalIfV2FeedIdentical
-        /// set and the conditionally ignored error is found.
-        /// </summary>
-        public string PackageFile { get; set; }
 
         public int MaxAttempts { get; set; } = 5;
 
@@ -48,15 +39,10 @@ namespace Microsoft.DotNet.Build.Tasks
 
         /// <summary>
         /// The "IgnoredErrorMessagesWithConditional" item collection
-        /// allows you to specify error messages which you want to ignore.
-        /// 
-        /// %(Identity): The error message text to ignore.
-        /// %(ConditionalErrorMessage) (optional): If you specify this metadata on the Item, then
-        ///   the error message is only ignored if the "conditional" error message was detected in
-        ///   a previous (or current) Exec attempt.
-        /// %(ConditionalIdenticalOnFeed) (optional): If this specifies a v2 feed endpoint, for
-        ///   example "https://dotnet.myget.org/F/dotnet-core/api/v2", the error message is only
-        ///   ignored if the feed contains the package and it's identical to the one being pushed.
+        /// allows you to specify error messages which you want to ignore.  If you
+        /// specify the "ConditionalErrorMessage" metadata on the Item, then the error message is
+        /// only ignored if the "conditional" error message was detected in a previous (or current)
+        /// Exec attempt.
         /// 
         /// Example: <IgnoredErrorMessagesWithConditional Include="publish failed" />
         ///            Specifying this item would tell the task to report success, even if "publish failed" is detected
@@ -70,11 +56,22 @@ namespace Microsoft.DotNet.Build.Tasks
         /// </summary>
         public ITaskItem[] IgnoredErrorMessagesWithConditional { get; set; }
 
+        /// <summary>
+        /// Package file that is pushed by the given command. Required if PassIfIdenticalV2Feed
+        /// is set: it is read to compare against the copy of the package on the feed.
+        /// </summary>
+        public string PackageFile { get; set; }
+
+        /// <summary>
+        /// If this property specifies a v2 feed endpoint, for example
+        /// "https://dotnet.myget.org/F/dotnet-core/api/v2", all errors are ignored if the feed
+        /// contains the package and it's byte-for-byte identical to the one being pushed.
+        /// </summary>
+        public string PassIfIdenticalV2Feed { get; set; }
+
         private CancellationTokenSource _cancelTokenSource = new CancellationTokenSource();
 
         private Exec _runningExec;
-
-        private bool? _packageFileIdentical;
 
         public void Cancel()
         {
@@ -84,7 +81,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
         public override bool Execute()
         {
-            var activeIgnorableErrorMessages = new HashSet<ITaskItem>();
+            HashSet<string> activeIgnorableErrorMessages = new HashSet<string>();
             // Add any "Ignore" messages that don't have conditionals to our active list.
             if (IgnoredErrorMessagesWithConditional != null)
             {
@@ -93,7 +90,7 @@ namespace Microsoft.DotNet.Build.Tasks
                     string conditional = message.GetMetadata("ConditionalErrorMessage");
                     if (string.IsNullOrEmpty(conditional))
                     {
-                        activeIgnorableErrorMessages.Add(message);
+                        activeIgnorableErrorMessages.Add(message.ItemSpec);
                     }
                 }
             }
@@ -115,7 +112,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 }
 
                 int exitCode = _runningExec.ExitCode;
-                if (exitCode == 0)
+                if (exitCode == 0 || FeedContainsIdenticalPackage())
                 {
                     return true;
                 }
@@ -126,20 +123,19 @@ namespace Microsoft.DotNet.Build.Tasks
                 {
                     var consoleOutput = _runningExec.ConsoleOutput.Select(c => c.ItemSpec);
                     // If the console output contains a "conditional" message, add the item to the active list.
-                    var conditionMessages = IgnoredErrorMessagesWithConditional.Where(m =>
-                                               consoleOutput.Any(n =>
+                    var conditionMessages = IgnoredErrorMessagesWithConditional.Where(m => 
+                                               consoleOutput.Any(n => 
                                                   n.Contains(m.GetMetadata("ConditionalErrorMessage"))));
                     foreach (var condition in conditionMessages)
                     {
-                        activeIgnorableErrorMessages.Add(condition);
+                        activeIgnorableErrorMessages.Add(condition.ItemSpec);
                     }
                     // If an active "ignore" message is present in the console output, then return true instead of retrying.
                     foreach (var ignoreMessage in activeIgnorableErrorMessages)
                     {
-                        if (consoleOutput.Any(c => c.Contains(ignoreMessage.ItemSpec)) &&
-                            CheckNuGetV2FeedIdenticalCondition(ignoreMessage))
+                        if (consoleOutput.Any(c => c.Contains(ignoreMessage)))
                         {
-                            Log.LogMessage(MessageImportance.High, $"Error detected, but error condition is valid, ignoring error \"{ignoreMessage.ItemSpec}\"");
+                            Log.LogMessage(MessageImportance.High, $"Error detected, but error condition is valid, ignoring error \"{ignoreMessage}\"");
                             return true;
                         }
                     }
@@ -171,41 +167,59 @@ namespace Microsoft.DotNet.Build.Tasks
             return false;
         }
 
-        private bool CheckNuGetV2FeedIdenticalCondition(ITaskItem ignore)
+        private bool FeedContainsIdenticalPackage()
         {
-            string v2Feed = ignore.GetMetadata("ConditionalIdenticalOnFeed");
-            if (string.IsNullOrEmpty(v2Feed))
+            if (string.IsNullOrEmpty(PassIfIdenticalV2Feed) ||
+                string.IsNullOrEmpty(PackageFile))
             {
-                return true;
+                return false;
             }
 
-            if (!_packageFileIdentical.HasValue)
-            {
-                var packageInfo = new NupkgInfo(PackageFile);
-                string packageUrl = $"{v2Feed}/package/{packageInfo.Id}/{packageInfo.Version}";
+            var packageInfo = new NupkgInfo(PackageFile);
+            string packageUrl =
+                $"{PassIfIdenticalV2Feed}/package/{packageInfo.Id}/{packageInfo.Version}";
 
+            byte[] localBytes = File.ReadAllBytes(PackageFile);
+
+            bool identical = false;
+
+            try
+            {
                 Log.LogMessage(
                     MessageImportance.High,
                     $"Downloading package from '{packageUrl}' " +
                     $"to check if identical to '{PackageFile}'");
 
-                byte[] localBytes = File.ReadAllBytes(PackageFile);
-                byte[] remoteBytes;
-
-                using (var client = new HttpClient())
+                using (var client = new HttpClient
+                {
+                    Timeout = TimeSpan.FromMinutes(10)
+                })
                 using (var response = client.GetAsync(packageUrl).Result)
                 {
-                    remoteBytes = response.Content.ReadAsByteArrayAsync().Result;
-                }
+                    byte[] remoteBytes = response.Content.ReadAsByteArrayAsync().Result;
 
-                _packageFileIdentical = localBytes.SequenceEqual(remoteBytes);
+                    identical = localBytes.SequenceEqual(remoteBytes);
+                }
+            }
+            catch (Exception e)
+            {
+                Log.LogWarningFromException(e, true);
             }
 
-            Log.LogMessage(
-                MessageImportance.High,
-                $"Package '{PackageFile}' identical: {_packageFileIdentical}");
+            if (identical)
+            {
+                Log.LogMessage(
+                    MessageImportance.High,
+                    $"Package '{PackageFile}' is identical to feed download: ignoring push error.");
+            }
+            else
+            {
+                Log.LogMessage(
+                    MessageImportance.High,
+                    $"Package '{PackageFile}' is different from feed download.");
+            }
 
-            return _packageFileIdentical.Value;
+            return identical;
         }
     }
 }
