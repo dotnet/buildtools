@@ -110,7 +110,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             return !Log.HasLoggedErrors;
         }
 
-        public async Task UploadAssetsAsync(
+        public async Task UploadAssetAsync(
             ITaskItem item,
             SemaphoreSlim clientThrottle,
             int uploadTimeout,
@@ -384,7 +384,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                             "Package exists on the feed, and is verified to be identical. " +
                             $"Skipping upload: '{item}'");
                     }
-                    else if (identical == false)
+                    else
                     {
                         Log.LogError(
                             "Package exists on the feed, but contents are different. " +

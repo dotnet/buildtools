@@ -196,7 +196,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
                 using (var clientThrottle = new SemaphoreSlim(MaxClients, MaxClients))
                 {
-                    await blobFeedAction.UploadAssetsAsync(
+                    await blobFeedAction.UploadAssetAsync(
                         item,
                         clientThrottle,
                         UploadTimeoutInMinutes,
@@ -220,7 +220,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 {
                     Log.LogMessage($"Uploading {taskItems.Count()} items...");
                     await Task.WhenAll(taskItems.Select(
-                        item => blobFeedAction.UploadAssetsAsync(
+                        item => blobFeedAction.UploadAssetAsync(
                             item,
                             clientThrottle,
                             UploadTimeoutInMinutes,
