@@ -67,8 +67,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public async Task<bool> PushToFeedAsync(
             IEnumerable<string> items,
-            bool allowOverwrite = false,
-            bool passIfExistingItemIdentical = false)
+            PushOptions options)
         {
             if (IsSanityChecked(items))
             {
@@ -78,7 +77,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     CancellationToken.ThrowIfCancellationRequested();
                 }
 
-                await PushItemsToFeedAsync(items, allowOverwrite, passIfExistingItemIdentical);
+                await PushItemsToFeedAsync(items, options);
             }
 
             return !Log.HasLoggedErrors;
@@ -86,8 +85,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public async Task<bool> PushItemsToFeedAsync(
             IEnumerable<string> items,
-            bool allowOverwrite,
-            bool passIfExistingItemIdentical)
+            PushOptions options)
         {
             Log.LogMessage(MessageImportance.Low, $"START pushing items to feed");
 
@@ -99,7 +97,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
             try
             {
-                bool result = await PushAsync(items, allowOverwrite, passIfExistingItemIdentical);
+                bool result = await PushAsync(items, options);
                 return result;
             }
             catch (Exception e)
@@ -114,8 +112,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             ITaskItem item,
             SemaphoreSlim clientThrottle,
             int uploadTimeout,
-            bool allowOverwrite = false,
-            bool passIfExistingItemIdentical = false)
+            PushOptions options)
         {
             string relativeBlobPath = item.GetMetadata("RelativeBlobPath");
 
@@ -146,9 +143,9 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             {
                 UploadClient uploadClient = new UploadClient(Log);
 
-                if (!allowOverwrite && await feed.CheckIfBlobExistsAsync(relativeBlobPath))
+                if (!options.AllowOverwrite && await feed.CheckIfBlobExistsAsync(relativeBlobPath))
                 {
-                    if (passIfExistingItemIdentical)
+                    if (options.PassIfExistingItemIdentical)
                     {
                         if (!await uploadClient.FileEqualsExistingBlobAsync(
                             feed.AccountName,
@@ -331,8 +328,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         private async Task<bool> PushAsync(
             IEnumerable<string> items,
-            bool allowOverwrite,
-            bool passIfExistingItemIdentical)
+            PushOptions options)
         {
             LocalSettings settings = GetSettings();
             AzureFileSystem fileSystem = GetAzureFileSystem();
@@ -340,7 +336,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
             var packagesToPush = items.ToList();
 
-            if (!allowOverwrite && passIfExistingItemIdentical)
+            if (!options.AllowOverwrite && options.PassIfExistingItemIdentical)
             {
                 var context = new SleetContext
                 {
@@ -403,7 +399,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 settings,
                 fileSystem,
                 packagesToPush,
-                allowOverwrite,
+                options.AllowOverwrite,
                 skipExisting: false,
                 log: log);
         }

@@ -118,7 +118,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
                         var packagePaths = packageItems.Select(i => i.ItemSpec);
 
-                        await blobFeedAction.PushToFeedAsync(packagePaths, Overwrite, PassIfExistingItemIdentical);
+                        await blobFeedAction.PushToFeedAsync(packagePaths, CreatePushOptions());
                         await PublishToFlatContainerAsync(symbolItems, blobFeedAction);
 
                         packageArtifacts = ConcatPackageArtifacts(packageArtifacts, packageItems);
@@ -200,7 +200,10 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                         item,
                         clientThrottle,
                         UploadTimeoutInMinutes,
-                        allowOverwrite: true);
+                        new PushOptions
+                        {
+                            AllowOverwrite = true
+                        });
                 }
             }
             finally
@@ -224,8 +227,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                             item,
                             clientThrottle,
                             UploadTimeoutInMinutes,
-                            Overwrite,
-                            PassIfExistingItemIdentical)));
+                            CreatePushOptions())));
                 }
             }
         }
@@ -303,6 +305,15 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 })
                 .Where(pair => pair != null)
                 .ToDictionary(pair => pair.Key, pair => pair.Value);
+        }
+
+        private PushOptions CreatePushOptions()
+        {
+            return new PushOptions
+            {
+                AllowOverwrite = Overwrite,
+                PassIfExistingItemIdentical = PassIfExistingItemIdentical
+            };
         }
     }
 }
