@@ -8,10 +8,12 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.DotNet.Build.CloudTestTasks
@@ -208,6 +210,57 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 }
             }
         }
+
+        public async Task<bool> FileEqualsExistingBlobAsync(
+            string accountName,
+            string accountKey,
+            string containerName,
+            string filePath,
+            string destinationBlob,
+            int uploadTimeout)
+        {
+            using (var client = new HttpClient
+            {
+                Timeout = TimeSpan.FromMinutes(uploadTimeout)
+            })
+            {
+                log.LogMessage(
+                    MessageImportance.Low,
+                    $"Downloading blob {destinationBlob} to check if identical.");
+
+                string blobUrl = AzureHelper.GetBlobRestUrl(accountName, containerName, destinationBlob);
+                var createRequest = AzureHelper.RequestMessage("GET", blobUrl, accountName, accountKey);
+
+                using (HttpResponseMessage response = await AzureHelper.RequestWithRetry(
+                    log,
+                    client,
+                    createRequest))
+                {
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new HttpRequestException(
+                            $"Failed to retrieve existing blob {destinationBlob}, " +
+                            $"status code {response.StatusCode}.");
+                    }
+
+                    byte[] existingBytes = await response.Content.ReadAsByteArrayAsync();
+                    byte[] localBytes = File.ReadAllBytes(filePath);
+
+                    bool equal = localBytes.SequenceEqual(existingBytes);
+
+                    if (equal)
+                    {
+                        log.LogMessage(
+                            MessageImportance.Normal,
+                            "Item exists in blob storage, and is verified to be identical. " +
+                            $"File: '{filePath}' Blob: '{destinationBlob}'");
+                    }
+
+                    return equal;
+                }
+            }
+        }
+
         private string DetermineContentTypeBasedOnFileExtension(string filename)
         {
             if (Path.GetExtension(filename) == ".svg")
