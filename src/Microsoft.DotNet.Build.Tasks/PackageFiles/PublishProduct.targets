@@ -53,11 +53,12 @@
 
     <ExecWithRetriesForNuGetPush
       Command="%(NuGetPushCommand.Identity)"
-      PackageFile="%(NuGetPushCommand.PackageToPush)"
       MaxAttempts="$(MaxAttempts)"
       RetryDelayBase="$(RetryDelayBase)"
       RetryDelayConstant="$(RetryDelayConstant)"
-      IgnoredErrorMessagesWithConditional="@(IgnorableErrorMessages)" />
+      IgnoredErrorMessagesWithConditional="@(IgnorableErrorMessages)"
+      PackageFile="%(NuGetPushCommand.PackageToPush)"
+      PassIfIdenticalV2Feed="$(PassIfIdenticalV2Feed)" />
   </Target>
 
 </Project>
