@@ -63,7 +63,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             List<string> blockIds = new List<string>();
             int numberOfBlocks = (size / blockSize) + 1;
             int countForId = 0;
-            using (FileStream fileStreamTofilePath = new FileStream(filePath, FileMode.Open))
+            using (FileStream fileStreamTofilePath = new FileStream(filePath, FileMode.Open, FileAccess.Read))
             {
                 int offset = 0;
 
