@@ -1,6 +1,7 @@
 import os
 import platform
 import urllib
+import urllib2
 import glob
 import time
 import sys
@@ -16,10 +17,19 @@ def install_dumpling():
       url = "https://dumpling.azurewebsites.net/api/client/dumpling.py"
       scriptPath = os.path.dirname(os.path.realpath(__file__))
       downloadLocation = scriptPath + "/dumpling.py"
-      urllib.urlretrieve(url, downloadLocation)
-      subprocess.call([sys.executable, downloadLocation, "install", "--update"])
+      response = urllib2.urlopen(url)
+      if response.getcode() == 200:
+        with open(downloadLocation, 'w') as f:
+          f.write(response.read())
+        subprocess.call([sys.executable, downloadLocation, "install", "--update"])
+      else:
+        raise urllib2.URLError("HTTP Status Code" + str(result.getcode()))
 
     subprocess.call([sys.executable, dumplingPath, "install"])
+  except urllib2.HTTPError, e:
+    print("Dumpling cannot be installed due to " + e.reason + " and HTTP Status Code " + str(e.code))
+  except  urllib2.URLError, e:
+    print(e.reason)
   except:
     print("An unexpected error was encountered while installing dumpling.py: " + sys.exc_info()[0])
 
