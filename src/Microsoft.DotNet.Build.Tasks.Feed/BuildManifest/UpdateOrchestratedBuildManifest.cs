@@ -62,6 +62,14 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
 
         public string OrchestratedIdentity { get; set; }
 
+        /// <summary>
+        /// %(Identity): A file to upload to the versions repo.
+        /// %(RelativePath): Optional path to upload the file to, relative to VersionsRepoPath.
+        ///   If it begins with '/', it is treated as an absolute path within the versions repo.
+        ///   '\' is automatically converted to '/'.
+        /// </summary>
+        public ITaskItem[] SupplementaryFiles { get; set; }
+
         public override bool Execute()
         {
             if (string.IsNullOrEmpty(CommitMessage))
@@ -97,7 +105,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
                         }
                     },
                     SemaphoreNames,
-                    null,
+                    PushOrchestratedBuildManifest.CreateUploadRequests(SupplementaryFiles),
                     CommitMessage);
             }
             catch (ManifestChangeOutOfDateException e)

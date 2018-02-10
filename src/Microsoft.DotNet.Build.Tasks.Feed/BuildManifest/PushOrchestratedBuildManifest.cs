@@ -8,6 +8,7 @@ using Microsoft.DotNet.VersionTools.Automation;
 using Microsoft.DotNet.VersionTools.Automation.GitHubApi;
 using Microsoft.DotNet.VersionTools.BuildManifest;
 using Microsoft.DotNet.VersionTools.BuildManifest.Model;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -36,7 +37,9 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
 
         /// <summary>
         /// %(Identity): A file to upload to the versions repo.
-        /// %(RelativePath): Optional path to upload the file to, relative to VersionsRepoPath. 
+        /// %(RelativePath): Optional path to upload the file to, relative to VersionsRepoPath.
+        ///   If it begins with '/', it is treated as an absolute path within the versions repo.
+        ///   '\' is automatically converted to '/'.
         /// </summary>
         public ITaskItem[] SupplementaryFiles { get; set; }
 
@@ -55,33 +58,36 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
             {
                 var client = new BuildManifestClient(gitHubClient);
 
-                SupplementaryUploadRequest[] supplementaryUploads = SupplementaryFiles
-                    ?.Select(i =>
-                    {
-                        string path = i.GetMetadata("RelativePath");
-                        if (string.IsNullOrEmpty(path))
-                        {
-                            path = Path.GetFileName(i.ItemSpec);
-                        }
-                        return new SupplementaryUploadRequest
-                        {
-                            Contents = File.ReadAllText(i.ItemSpec),
-                            Path = path
-                        };
-                    })
-                    .ToArray();
-
                 var pushTask = client.PushNewBuildAsync(
                     new GitHubProject(VersionsRepo, VersionsRepoOwner),
                     $"heads/{VersionsRepoBranch}",
                     VersionsRepoPath,
                     model,
-                    supplementaryUploads,
+                    CreateUploadRequests(SupplementaryFiles),
                     CommitMessage);
 
                 pushTask.Wait();
             }
             return !Log.HasLoggedErrors;
+        }
+
+        public static SupplementaryUploadRequest[] CreateUploadRequests(IEnumerable<ITaskItem> items)
+        {
+            return items
+                ?.Select(i =>
+                {
+                    string path = i.GetMetadata("RelativePath")?.Replace('\\', '/');
+                    if (string.IsNullOrEmpty(path))
+                    {
+                        path = Path.GetFileName(i.ItemSpec);
+                    }
+                    return new SupplementaryUploadRequest
+                    {
+                        Contents = File.ReadAllText(i.ItemSpec),
+                        Path = path
+                    };
+                })
+                .ToArray();
         }
     }
 }

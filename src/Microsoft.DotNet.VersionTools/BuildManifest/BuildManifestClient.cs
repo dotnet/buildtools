@@ -181,10 +181,11 @@ namespace Microsoft.DotNet.VersionTools.BuildManifest
             GitObject[] objects = uploads
                 .Select(upload => new GitObject
                 {
-                    Path = $"{basePath}/{upload.Path}",
+                    Path = upload.GetAbsolutePath(basePath),
                     Mode = GitObject.ModeFile,
                     Type = GitObject.TypeBlob,
-                    Content = upload.Contents
+                    // Always upload files using LF to avoid bad dev scenarios with Git autocrlf.
+                    Content = upload.Contents.Replace("\r\n", "\n")
                 })
                 .ToArray();
 

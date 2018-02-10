@@ -222,6 +222,10 @@
     [Out]
     $(OrchestratedBuildId): The orchestrated build manifest's build id attribute value.
     $(OrchestratedIdentity): The human-readable full identity of the orchestrated build manifest.
+    @(OrchestratedBuild): A single item describing the root manifest element.
+      %(Identity): The name of the build.
+      %(Xml): The raw XML string representing the build in the manifest.
+      %(...): Metadata is created for each attribute on the element.
     @(OrchestratedBlobFeed): A single item for the orchestrated blob feed Endpoint.
       %(...): Metadata is created for each attribute on the element.
     @(ParsedOrchestratedBlobFeed): The result of parsing the OrchestratedBlobFeed url.
@@ -234,7 +238,7 @@
       %(...): Metadata is created for each attribute on the element.
     @(OrchestratedBuilds): An item for each Build in the orchestrated build manifest.
       %(Identity): The name of the build.
-      %(Xml): The raw XML string representing the artifact in the manifest.
+      %(Xml): The raw XML string representing the build in the manifest.
       %(...): Metadata is created for each attribute on the element.
   -->
   <Target Name="FetchOrchestratedBuildManifestInfo"
@@ -255,6 +259,7 @@
                                         VersionsRepoRef="$(VersionsRepoRef)">
       <Output TaskParameter="OrchestratedBuildId" PropertyName="OrchestratedBuildId" />
       <Output TaskParameter="OrchestratedIdentity" PropertyName="OrchestratedIdentity" />
+      <Output TaskParameter="OrchestratedBuild" ItemName="OrchestratedBuild" />
       <Output TaskParameter="OrchestratedBlobFeed" ItemName="OrchestratedBlobFeed" />
       <Output TaskParameter="OrchestratedBlobFeedArtifacts" ItemName="OrchestratedBlobFeedArtifacts" />
       <Output TaskParameter="OrchestratedBuilds" ItemName="OrchestratedBuilds" />
@@ -304,7 +309,15 @@
         <LowercaseVersion>$([System.String]::Copy('%(OrchestratedBlobFeedArtifacts.Version)').ToLowerInvariant())</LowercaseVersion>
       </FinalPackages>
 
-      <PackageBlobNames Include="$(BlobNamePrefix)%(FinalPackages.LowercaseId)/%(FinalPackages.LowercaseVersion)/%(FinalPackages.LowercaseId).%(FinalPackages.LowercaseVersion).nupkg" />
+      <FinalPackages>
+        <NupkgFile>%(LowercaseId).%(LowercaseVersion).nupkg</NupkgFile>
+      </FinalPackages>
+
+      <FinalPackages>
+        <DownloadFullPath>$(FinalDownloadDirectory)%(NupkgFile)</DownloadFullPath>
+      </FinalPackages>
+
+      <PackageBlobNames Include="$(BlobNamePrefix)%(FinalPackages.LowercaseId)/%(FinalPackages.LowercaseVersion)/%(FinalPackages.NupkgFile)" />
     </ItemGroup>
 
     <!-- Ensure no stale packages are on disk. -->
@@ -347,6 +360,9 @@
         a concise commit message. This is expected to come from FetchOrchestratedBuildManifestInfo.
         Default: the full VersionsRepoPath is used in the commit message.
       $(CommitMessage): Overrides the generated commit message.
+      @(SupplementaryFiles): Uploads supplementary files to the versions repo as part of the update.
+        For item requirements and behavior, see 'UpdateOrchestratedBuildManifest.cs' in
+        dotnet/buildtools.
   -->
   <Target Name="UpdateOrchestratedBuildManifest"
           DependsOnTargets="CreateVersionsRepoDefaults">
@@ -368,6 +384,7 @@
                                      VersionsRepoOwner="$(VersionsRepoOwner)"
                                      VersionsRepoBranch="$(VersionsRepoBranch)"
                                      CommitMessage="$(CommitMessage)"
-                                     OrchestratedIdentity="$(OrchestratedIdentity)" />
+                                     OrchestratedIdentity="$(OrchestratedIdentity)"
+                                     SupplementaryFiles="@(SupplementaryFiles)" />
   </Target>
 </Project>

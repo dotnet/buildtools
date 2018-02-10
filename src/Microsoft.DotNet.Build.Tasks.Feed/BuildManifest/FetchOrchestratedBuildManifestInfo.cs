@@ -36,6 +36,9 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
         public string OrchestratedIdentity { get; set; }
 
         [Output]
+        public ITaskItem OrchestratedBuild { get; set; }
+
+        [Output]
         public ITaskItem[] OrchestratedBlobFeed { get; set; }
 
         [Output]
@@ -63,6 +66,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
 
                 OrchestratedBuildId = manifest.Identity.BuildId;
                 OrchestratedIdentity = manifest.Identity.ToString();
+                OrchestratedBuild = CreateItem(manifest.Identity);
 
                 EndpointModel[] orchestratedFeeds = manifest.Endpoints
                     .Where(e => e.IsOrchestratedBlobFeed)

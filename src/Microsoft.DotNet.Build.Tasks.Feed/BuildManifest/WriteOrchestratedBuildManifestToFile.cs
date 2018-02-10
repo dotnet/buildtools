@@ -63,6 +63,12 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
                 string contents = System.IO.File.ReadAllText(buildManifestFile.ItemSpec);
 
                 BuildModel build = BuildModel.Parse(XElement.Parse(contents));
+
+                foreach (PackageArtifactModel package in build.Artifacts.Packages)
+                {
+                    package.OriginBuildName = build.Identity.Name;
+                }
+
                 orchestratedBuild.AddParticipantBuild(build);
             }
 
