@@ -27,7 +27,7 @@ def install_dumpling():
 
     subprocess.call([sys.executable, dumplingPath, "install"])
   except urllib2.HTTPError, e:
-    print("Dumpling cannot be installed due to: " + str(e))
+    print("Dumpling cannot be installed due to: " + str(e).replace(':', '')) # Remove : to avoid looking like error format
   except  urllib2.URLError, e:
     print(e.reason)
   except:
