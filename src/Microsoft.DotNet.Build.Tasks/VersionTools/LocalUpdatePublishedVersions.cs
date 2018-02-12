@@ -5,13 +5,14 @@
 using Microsoft.Build.Framework;
 using Microsoft.DotNet.VersionTools.Automation;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks.VersionTools
 {
     public class LocalUpdatePublishedVersions : BuildTask
     {
         [Required]
-        public string[] ShippedNuGetPackage { get; set; }
+        public ITaskItem[] ShippedNuGetPackage { get; set; }
 
         [Required]
         public string VersionsRepoLocalBaseDir { get; set; }
@@ -55,7 +56,7 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 
                 updater
                     .UpdateBuildInfoFilesAsync(
-                        ShippedNuGetPackage,
+                        ShippedNuGetPackage.Select(i => i.ItemSpec),
                         VersionsRepoLocalBaseDir,
                         VersionsRepoPath,
                         branch)
