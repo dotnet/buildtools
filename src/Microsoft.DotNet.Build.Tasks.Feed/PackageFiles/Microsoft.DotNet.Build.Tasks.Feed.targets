@@ -221,7 +221,7 @@
     
     [Out]
     $(OrchestratedBuildId): The orchestrated build manifest's build id attribute value.
-    $(OrchestratedIdentity): The human-readable full identity of the orchestrated build manifest.
+    $(OrchestratedIdentitySummary): Human-readable full identity of the orchestrated build manifest.
     @(OrchestratedBuild): A single item describing the root manifest element.
       %(Identity): The name of the build.
       %(Xml): The raw XML string representing the build in the manifest.
@@ -236,7 +236,7 @@
       %(Identity): 'Package' or 'Blob', matching manifest element name.
       %(Xml): The raw XML string representing the artifact in the manifest.
       %(...): Metadata is created for each attribute on the element.
-    @(OrchestratedBuilds): An item for each Build in the orchestrated build manifest.
+    @(OrchestratedBuildConstituents): An item for each Build in the orchestrated build manifest.
       %(Identity): The name of the build.
       %(Xml): The raw XML string representing the build in the manifest.
       %(...): Metadata is created for each attribute on the element.
@@ -257,15 +257,15 @@
                                         VersionsRepo="$(VersionsRepo)"
                                         VersionsRepoOwner="$(VersionsRepoOwner)"
                                         VersionsRepoRef="$(VersionsRepoRef)">
-      <Output TaskParameter="OrchestratedBuildId" PropertyName="OrchestratedBuildId" />
-      <Output TaskParameter="OrchestratedIdentity" PropertyName="OrchestratedIdentity" />
       <Output TaskParameter="OrchestratedBuild" ItemName="OrchestratedBuild" />
       <Output TaskParameter="OrchestratedBlobFeed" ItemName="OrchestratedBlobFeed" />
       <Output TaskParameter="OrchestratedBlobFeedArtifacts" ItemName="OrchestratedBlobFeedArtifacts" />
-      <Output TaskParameter="OrchestratedBuilds" ItemName="OrchestratedBuilds" />
+      <Output TaskParameter="OrchestratedBuildConstituents" ItemName="OrchestratedBuildConstituents" />
     </FetchOrchestratedBuildManifestInfo>
 
     <PropertyGroup>
+      <OrchestratedBuildId>%(OrchestratedBuild.BuildId)</OrchestratedBuildId>
+      <OrchestratedIdentitySummary>%(OrchestratedBuild.IdentitySummary)</OrchestratedIdentitySummary>
       <OrchestratedBlobFeedUrl>%(OrchestratedBlobFeed.Url)</OrchestratedBlobFeedUrl>
     </PropertyGroup>
 
@@ -356,8 +356,9 @@
       $(VersionsRepo): The GitHub repo name. Default: 'versions'
       $(VersionsRepoOwner): The GitHub repo owner. Default: 'dotnet'
       $(VersionsRepoBranch): The branch to fetch from. Default: 'master'
-      $(OrchestratedIdentity): Human-readable identity of the orchestrated build, used to generate
-        a concise commit message. This is expected to come from FetchOrchestratedBuildManifestInfo.
+      $(OrchestratedIdentitySummary): Human-readable identity of the orchestrated build, used to
+        generate a concise commit message. This is expected to come from
+        FetchOrchestratedBuildManifestInfo.
         Default: the full VersionsRepoPath is used in the commit message.
       $(CommitMessage): Overrides the generated commit message.
       @(SupplementaryFiles): Uploads supplementary files to the versions repo as part of the update.
@@ -384,7 +385,7 @@
                                      VersionsRepoOwner="$(VersionsRepoOwner)"
                                      VersionsRepoBranch="$(VersionsRepoBranch)"
                                      CommitMessage="$(CommitMessage)"
-                                     OrchestratedIdentity="$(OrchestratedIdentity)"
+                                     OrchestratedIdentitySummary="$(OrchestratedIdentitySummary)"
                                      SupplementaryFiles="@(SupplementaryFiles)" />
   </Target>
 </Project>

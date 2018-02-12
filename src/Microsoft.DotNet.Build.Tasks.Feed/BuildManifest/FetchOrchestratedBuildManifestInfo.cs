@@ -17,6 +17,8 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
 {
     public class FetchOrchestratedBuildManifestInfo : Task
     {
+        private const string IdentitySummaryMetadataName = "IdentitySummary";
+
         [Required]
         public string VersionsRepoPath { get; set; }
 
@@ -30,12 +32,6 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
         public string VersionsRepoRef { get; set; }
 
         [Output]
-        public string OrchestratedBuildId { get; set; }
-
-        [Output]
-        public string OrchestratedIdentity { get; set; }
-
-        [Output]
         public ITaskItem OrchestratedBuild { get; set; }
 
         [Output]
@@ -43,9 +39,9 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
 
         [Output]
         public ITaskItem[] OrchestratedBlobFeedArtifacts { get; set; }
-        
+
         [Output]
-        public ITaskItem[] OrchestratedBuilds { get; set; }
+        public ITaskItem[] OrchestratedBuildConstituents { get; set; }
 
         public override bool Execute()
         {
@@ -64,8 +60,6 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
                     VersionsRepoPath)
                     .Result;
 
-                OrchestratedBuildId = manifest.Identity.BuildId;
-                OrchestratedIdentity = manifest.Identity.ToString();
                 OrchestratedBuild = CreateItem(manifest.Identity);
 
                 EndpointModel[] orchestratedFeeds = manifest.Endpoints
@@ -89,7 +83,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
 
                 IEnumerable<ITaskItem> buildItems = manifest.Builds.Select(CreateItem);
 
-                OrchestratedBuilds = buildItems.ToArray();
+                OrchestratedBuildConstituents = buildItems.ToArray();
             }
 
             return !Log.HasLoggedErrors;
@@ -107,9 +101,13 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
 
         private ITaskItem CreateItem(BuildIdentity model)
         {
-            return new TaskItem(
+            var item = new TaskItem(
                 model.Name,
                 ArtifactMetadata(model.ToXmlBuildElement(), model.Attributes));
+
+            item.SetMetadata(IdentitySummaryMetadataName, model.ToString());
+
+            return item;
         }
 
         private Dictionary<string, string> ArtifactMetadata(

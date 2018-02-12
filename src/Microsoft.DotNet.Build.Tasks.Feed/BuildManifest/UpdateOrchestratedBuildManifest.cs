@@ -60,7 +60,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
 
         public string CommitMessage { get; set; }
 
-        public string OrchestratedIdentity { get; set; }
+        public string OrchestratedIdentitySummary { get; set; }
 
         /// <summary>
         /// %(Identity): A file to upload to the versions repo.
@@ -75,7 +75,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
             if (string.IsNullOrEmpty(CommitMessage))
             {
                 string semaphores = string.Join(", ", SemaphoreNames);
-                string identity = OrchestratedIdentity ?? VersionsRepoPath;
+                string identity = OrchestratedIdentitySummary ?? VersionsRepoPath;
 
                 CommitMessage = $"Update {identity}: {semaphores}";
             }
