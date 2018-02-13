@@ -29,6 +29,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
         }
 
         public const string XmlMetadataName = "Xml";
+        private const string JoinSemaphorePathMetadataName = "JoinSemaphorePath";
 
         /// <summary>
         /// Updates to perform on the manifest. The metadata 'UpdateType' selects a type of update,
@@ -70,6 +71,15 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
         /// </summary>
         public ITaskItem[] SupplementaryFiles { get; set; }
 
+        /// <summary>
+        /// "Join semaphore" groups. A join semaphore is created when all semaphores in the group
+        /// are complete for a certain build.
+        /// 
+        /// %(Identity): A semaphore name that is part of a join semaphore group.
+        /// %(JoinSemaphorePath): The name of the join semaphore, created when the parallel work joins.
+        /// </summary>
+        public ITaskItem[] JoinSemaphoreGroups { get; set; }
+
         public override bool Execute()
         {
             if (string.IsNullOrEmpty(CommitMessage))
@@ -92,21 +102,45 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
         {
             try
             {
-                await client.PushChangeAsync(
+                var location = new BuildManifestLocation(
                     new GitHubProject(VersionsRepo, VersionsRepoOwner),
                     $"heads/{VersionsRepoBranch}",
-                    VersionsRepoPath,
+                    VersionsRepoPath);
+
+                IEnumerable<JoinSemaphoreGroup> joinGroups = JoinSemaphoreGroups
+                    .Select(item => new
+                    {
+                        ParallelPartPath = item.ItemSpec,
+                        JoinSemaphorePath = item.GetMetadata(JoinSemaphorePathMetadataName)
+                    })
+                    .GroupBy(j => j.JoinSemaphorePath, j => j.ParallelPartPath)
+                    .Select(g => new JoinSemaphoreGroup
+                    {
+                        JoinSemaphorePath = g.Key,
+                        ParallelSemaphorePaths = g
+                    });
+
+                SupplementaryUploadRequest[] supplementaryUploads =
+                    PushOrchestratedBuildManifest.CreateUploadRequests(SupplementaryFiles);
+
+                var change = new BuildManifestChange(
+                    location,
+                    CommitMessage,
                     OrchestratedBuildId,
+                    SemaphoreNames,
                     manifest =>
                     {
                         foreach (var update in ManifestUpdates ?? Enumerable.Empty<ITaskItem>())
                         {
                             ApplyUpdate(manifest, update);
                         }
-                    },
-                    SemaphoreNames,
-                    PushOrchestratedBuildManifest.CreateUploadRequests(SupplementaryFiles),
-                    CommitMessage);
+                    })
+                {
+                    SupplementaryUploads = supplementaryUploads,
+                    JoinSemaphoreGroups = joinGroups,
+                };
+
+                await client.PushChangeAsync(change);
             }
             catch (ManifestChangeOutOfDateException e)
             {

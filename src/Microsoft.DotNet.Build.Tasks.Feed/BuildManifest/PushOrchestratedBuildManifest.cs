@@ -58,10 +58,13 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
             {
                 var client = new BuildManifestClient(gitHubClient);
 
-                var pushTask = client.PushNewBuildAsync(
+                var location = new BuildManifestLocation(
                     new GitHubProject(VersionsRepo, VersionsRepoOwner),
                     $"heads/{VersionsRepoBranch}",
-                    VersionsRepoPath,
+                    VersionsRepoPath);
+
+                var pushTask = client.PushNewBuildAsync(
+                    location,
                     model,
                     CreateUploadRequests(SupplementaryFiles),
                     CommitMessage);
