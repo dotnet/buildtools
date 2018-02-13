@@ -11,6 +11,7 @@
     <CLSCompliant>false</CLSCompliant>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <NuGetTargetMoniker>.NETStandard,Version=v1.5</NuGetTargetMoniker>
+    <LangVersion>6</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>
