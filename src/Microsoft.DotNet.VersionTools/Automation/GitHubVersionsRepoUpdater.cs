@@ -6,7 +6,6 @@ using Microsoft.DotNet.VersionTools.Automation.GitHubApi;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -67,10 +66,7 @@ namespace Microsoft.DotNet.VersionTools.Automation
 
             NupkgInfo[] packages = CreatePackageInfos(packagePaths).ToArray();
 
-            string prereleaseVersion = packages
-                .Select(t => t.Prerelease)
-                .FirstOrDefault(prerelease => !string.IsNullOrEmpty(prerelease))
-                ?? "stable";
+            string prereleaseVersion = GetPrereleaseVersion(packages);
 
             Dictionary<string, string> packageDictionary = CreatePackageInfoDictionary(packages);
 
@@ -91,7 +87,7 @@ namespace Microsoft.DotNet.VersionTools.Automation
                         {
                             objects.Add(new GitObject
                             {
-                                Path = $"{versionsRepoPath}/Last_Build_Packages.txt",
+                                Path = $"{versionsRepoPath}/{BuildInfo.LastBuildPackagesTxtFilename}",
                                 Type = GitObject.TypeBlob,
                                 Mode = GitObject.ModeFile,
                                 Content = CreatePackageListContent(packageDictionary)
@@ -100,36 +96,20 @@ namespace Microsoft.DotNet.VersionTools.Automation
 
                         if (updateLatestPackageList)
                         {
-                            string latestPackagesPath = $"{versionsRepoPath}/Latest_Packages.txt";
-
                             var allPackages = new Dictionary<string, string>(packageDictionary);
 
                             if (updateLastBuildPackageList)
                             {
-                                Dictionary<string, string> existingPackages = await GetPackagesAsync(client, latestPackagesPath);
-
-                                if (existingPackages == null)
-                                {
-                                    Trace.TraceInformation(
-                                        "No exising Latest_Packages file found; one will be " +
-                                        $"created in '{versionsRepoPath}'");
-                                }
-                                else
-                                {
-                                    // Add each existing package if there isn't a new package with the same id.
-                                    foreach (var package in existingPackages)
-                                    {
-                                        if (!allPackages.ContainsKey(package.Key))
-                                        {
-                                            allPackages[package.Key] = package.Value;
-                                        }
-                                    }
-                                }
+                                await AddExistingPackages(
+                                    client,
+                                    new GitHubBranch("master", _project),
+                                    versionsRepoPath,
+                                    allPackages);
                             }
 
                             objects.Add(new GitObject
                             {
-                                Path = latestPackagesPath,
+                                Path = $"{versionsRepoPath}/{BuildInfo.LatestPackagesTxtFilename}",
                                 Type = GitObject.TypeBlob,
                                 Mode = GitObject.ModeFile,
                                 Content = CreatePackageListContent(allPackages)
@@ -140,7 +120,7 @@ namespace Microsoft.DotNet.VersionTools.Automation
                         {
                             objects.Add(new GitObject
                             {
-                                Path = $"{versionsRepoPath}/Latest.txt",
+                                Path = $"{versionsRepoPath}/{BuildInfo.LatestTxtFilename}",
                                 Type = GitObject.TypeBlob,
                                 Mode = GitObject.ModeFile,
                                 Content = prereleaseVersion
@@ -182,23 +162,6 @@ namespace Microsoft.DotNet.VersionTools.Automation
                         }
                     }
                 }
-            }
-        }
-
-        private async Task<Dictionary<string, string>> GetPackagesAsync(GitHubClient client, string path)
-        {
-            string latestPackages = await client.GetGitHubFileContentsAsync(
-                path,
-                new GitHubBranch("master", _project));
-
-            if (latestPackages == null)
-            {
-                return null;
-            }
-
-            using (var reader = new StringReader(latestPackages))
-            {
-                return await BuildInfo.ReadPackageListAsync(reader);
             }
         }
     }
