@@ -45,7 +45,6 @@ then
 echo error: RUNTIME_PATH is not defined.  Usage: $0 RUNTIME_PATH
 exit -1
 fi
-echo Using $RUNTIME_PATH as the test runtime folder.
 
 # ========================= BEGIN Core File Setup ============================
 if [ "$(uname -s)" == "Darwin" ]; then
@@ -72,17 +71,16 @@ fi
 # ========================= END Core File Setup ==============================
 
 # ========================= BEGIN Test Execution =============================
-echo Running tests... Start time: $(date +"%T")
-echo ====== To repro directly: =================================================
+echo ----- start $(date +"%T") ===============  To repro directly: ===================================================== 
 echo pushd $EXECUTION_DIR
 [[TestRunCommandsEcho]]
 echo popd
-echo ===========================================================================
+echo ===========================================================================================================
 pushd $EXECUTION_DIR
 [[TestRunCommands]]
 test_exitcode=$?
 popd
-echo Finished running tests.  End time=$(date +"%T").  Return value was $test_exitcode
+echo ----- end $(date +"%T") ----- exit code $test_exitcode ----------------------------------------------------------
 # ========================= END Test Execution ===============================
 
 # ======================= BEGIN Core File Inspection =========================
