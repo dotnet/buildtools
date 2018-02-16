@@ -79,9 +79,9 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             }
 
             Log.LogMessage(
-                MessageImportance.Normal,
-                "Begin uploading blobs to Azure account {0} in container {1}.",
-                AccountName,
+                MessageImportance.Normal, 
+                "Begin uploading blobs to Azure account {0} in container {1}.", 
+                AccountName, 
                 ContainerName);
 
             if (Items.Length == 0)
@@ -91,7 +91,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             }
 
             // first check what blobs are present
-            string checkListUrl = $"{AzureHelper.GetContainerRestUrl(AccountName, ContainerName)}?restype=container&comp=list&maxresults=3000";
+            string checkListUrl = $"{AzureHelper.GetContainerRestUrl(AccountName, ContainerName)}?restype=container&comp=list"; 
 
             HashSet<string> blobsPresent = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -99,15 +99,14 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             {
                 using (HttpClient client = new HttpClient())
                 {
-                    string nextMarker = string.Empty;
                     var createRequest = AzureHelper.RequestMessage("GET", checkListUrl, AccountName, AccountKey);
 
-                    Log.LogMessage(MessageImportance.Low, "Sending request(s) to enumerate existing blobs");
+                    Log.LogMessage(MessageImportance.Low, "Sending request to check whether Container blobs exist");
                     using (HttpResponseMessage response = await AzureHelper.RequestWithRetry(Log, client, createRequest))
                     {
                         var doc = new XmlDocument();
-                        string rawXml = await response.Content.ReadAsStringAsync();
-                        doc.LoadXml(rawXml);
+                        doc.LoadXml(await response.Content.ReadAsStringAsync());
+
                         XmlNodeList nodes = doc.DocumentElement.GetElementsByTagName("Blob");
 
                         foreach (XmlNode node in nodes)
@@ -115,27 +114,8 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                             blobsPresent.Add(node["Name"].InnerText);
                         }
 
-                        nextMarker = doc.DocumentElement.GetElementsByTagName("NextMarker").Cast<XmlNode>().FirstOrDefault()?.InnerText;
+                        Log.LogMessage(MessageImportance.Low, "Received response to check whether Container blobs exist");
                     }
-                    // Quick implementation avoiding refactoring to make this work for too many blobs while awaiting
-                    // reimplementation via Azure SDK Client Libraries.
-                    while (!string.IsNullOrEmpty(nextMarker))
-                    {
-                        var continuationRequest = AzureHelper.RequestMessage("GET", $"{checkListUrl}&marker={nextMarker}", AccountName, AccountKey);
-                        using (HttpResponseMessage response = await AzureHelper.RequestWithRetry(Log, client, continuationRequest))
-                        {
-                            var doc = new XmlDocument();
-                            string rawXml = await response.Content.ReadAsStringAsync();
-                            doc.LoadXml(rawXml);
-                            XmlNodeList nodes = doc.DocumentElement.GetElementsByTagName("Blob");
-                            foreach (XmlNode node in nodes)
-                            {
-                                blobsPresent.Add(node["Name"].InnerText);
-                            }
-                            nextMarker = doc.DocumentElement.GetElementsByTagName("NextMarker").Cast<XmlNode>().FirstOrDefault()?.InnerText;
-                        }
-                    }
-                    Log.LogMessage(MessageImportance.Low, $"Found {blobsPresent.Count} blob(s) in {ContainerName}");
                 }
 
                 using (var clientThrottle = new SemaphoreSlim(this.MaxClients, this.MaxClients))
