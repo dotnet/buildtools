@@ -338,6 +338,7 @@
         <Type>$(HelixJobType)</Type>
         <Source>$(HelixSource)</Source>
         <MaxRetryCount>$(MaxRetryCount)</MaxRetryCount>
+        <Attempt>$(HelixAttempt)</Attempt>
       </BuildCompleteTemplateV2>
       <BuildComplete Include="@(BuildCompleteTemplateV2)"/>
     </ItemGroup>
