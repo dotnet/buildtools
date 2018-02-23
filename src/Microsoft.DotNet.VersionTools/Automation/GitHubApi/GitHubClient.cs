@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
 {
-    public class GitHubClient : IGitHubClient, IDisposable
+    public partial class GitHubClient : IGitHubClient, IDisposable
     {
         /// <summary>
         /// A default user agent to use if none is provided to the constructor. GitHub always
