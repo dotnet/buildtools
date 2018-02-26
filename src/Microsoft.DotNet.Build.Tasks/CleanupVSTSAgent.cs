@@ -595,7 +595,7 @@ namespace Microsoft.DotNet.Build.Tasks
             IntPtr hFile = FindFirstFile(directory + "\\*", out findData);
             int error = Marshal.GetLastWin32Error();
 
-            if (handle != IntPtr.Zero && handle != new IntPtr(-1))
+            if (hFile != IntPtr.Zero && hFile != new IntPtr(-1))
             {
                 do
                 {
