@@ -134,10 +134,9 @@
       <Project>{2179f9b5-1dba-4563-9402-a94de75ea9fa}</Project>
       <Name>Microsoft.Cci.Extensions</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Microsoft.DotNet.VersionTools\Microsoft.DotNet.VersionTools.csproj">
+    <ProjectReference Include="..\Microsoft.DotNet.VersionTools$(VersionToolsProjectReferenceSuffix)\Microsoft.DotNet.VersionTools$(VersionToolsProjectReferenceSuffix).csproj">
       <Project>{8d524fa5-a8c5-4ebd-ba8b-2a4fed03ee58}</Project>
       <Name>Microsoft.DotNet.VersionTools</Name>
-      <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.targets))\dir.targets" />
