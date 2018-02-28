@@ -210,16 +210,6 @@
     <PackagesBasePath Condition="'$(PackagesBasePath)'==''">$(BinDir)$(OSPlatformConfig)</PackagesBasePath>
   </PropertyGroup>
 
-  <!--
-    Set up the path where an earlier build placed its BuildTools task DLLs.
-
-    TODO: Remove this workaround once BuildTools uses a new BuildTools version: https://github.com/dotnet/buildtools/issues/1934
-  -->
-  <PropertyGroup>
-    <BuildToolsOutputProjectSuffix Condition="'$(BuildToolsTargets45)' == 'true'">.net45</BuildToolsOutputProjectSuffix>
-    <BuildToolsBuildTaskOutputFile>$(PackagesBasePath)\Microsoft.DotNet.Build.Tasks$(BuildToolsOutputProjectSuffix)\Microsoft.DotNet.Build.Tasks.dll</BuildToolsBuildTaskOutputFile>
-  </PropertyGroup>
-
   <!-- Set up common target properties that we use to conditionally include sources -->
   <PropertyGroup>
     <TargetsWindows Condition="'$(OSGroup)' == 'Windows_NT'">true</TargetsWindows>
