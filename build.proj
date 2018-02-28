@@ -12,6 +12,17 @@
     <RestoreDuringBuild Condition="'$(RestoreDuringBuild)'==''">true</RestoreDuringBuild>
   </PropertyGroup>
 
+  <!--
+    Load the UpdatePublishedVersions VersionTools task that was just built, if there is one. This
+    allows BuildTools builds to use the current task even when running on a very old BuildTools
+    toolset. Specifically, the TLS 1.2 fix is required.
+
+    TODO: Remove this workaround once BuildTools uses a new BuildTools version: https://github.com/dotnet/buildtools/issues/1934
+  -->
+  <UsingTask TaskName="UpdatePublishedVersions"
+             AssemblyFile="$(BuildToolsBuildTaskOutputFile)"
+             Condition="Exists('$(BuildToolsBuildTaskOutputFile)')" />
+
   <Import Project="$(ToolsDir)VersionTools.targets" Condition="Exists('$(ToolsDir)VersionTools.targets')" />
 
   <ItemGroup>
