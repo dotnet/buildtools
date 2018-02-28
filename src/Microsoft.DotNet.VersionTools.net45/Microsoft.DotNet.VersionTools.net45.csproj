@@ -10,6 +10,9 @@
     <ProjectGuid>{B4C96AEE-C686-485A-B809-DAD65B141DE2}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(ImportedProjectRelativePath)Microsoft.DotNet.VersionTools.csproj" />
+  <ItemGroup>  
+    <Compile Include="$(MSBuildThisFileDirectory)/Automation/GitHubApi/GitHubClient.Desktop.cs" />
+  </ItemGroup>
   <PropertyGroup>
     <NuGetTargetMoniker>.NETFramework,Version=v4.5</NuGetTargetMoniker>
   </PropertyGroup>
