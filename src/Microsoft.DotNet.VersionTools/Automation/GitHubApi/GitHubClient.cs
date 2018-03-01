@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
 {
-    public class GitHubClient : IDisposable
+    public partial class GitHubClient : IDisposable
     {
         private static JsonSerializerSettings s_jsonSettings = new JsonSerializerSettings
         {
