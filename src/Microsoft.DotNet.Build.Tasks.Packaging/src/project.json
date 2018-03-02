@@ -4,9 +4,9 @@
     "Microsoft.Build.Framework": "0.1.0-preview-00022",
     "Microsoft.Build.Utilities.Core": "0.1.0-preview-00022",
     "Newtonsoft.Json": "9.0.1",
-    "NuGet.Commands": "4.3.0",
-    "NuGet.Packaging": "4.3.0",
-    "NuGet.ProjectModel": "4.3.0",
+    "NuGet.Commands": "4.4.0",
+    "NuGet.Packaging": "4.4.0",
+    "NuGet.ProjectModel": "4.4.0",
     "NETStandard.Library": "1.6.0"
   },
   "frameworks": {
