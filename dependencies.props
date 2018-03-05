@@ -89,7 +89,7 @@
     <NuGetDependency Include="NuGet.RuntimeModel"/>
     <NuGetDependency Include="NuGet.Versioning"/>
     <StaticDependency Include="@(NuGetDependency)">
-      <Version>4.3.0</Version>
+      <Version>4.4.0</Version>
     </StaticDependency>
 
     <NETCoreDependency Include="Microsoft.NETCore.App"/>
