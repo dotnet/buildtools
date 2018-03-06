@@ -14,8 +14,8 @@
     <NuGetTargetMoniker>.NETFramework,Version=v4.5</NuGetTargetMoniker>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(CommonPath)\BuildTask.Desktop.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\common\AssemblyResolver.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)PushToBlobFeed.Desktop.cs" />
   </ItemGroup>
   <ItemGroup>
     <TargetingPackReference Include="Microsoft.Build.Tasks.v4.0" />

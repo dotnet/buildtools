@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
 using Microsoft.DotNet.VersionTools.BuildManifest.Model;
 using System.Linq;
 using System.Text;
@@ -11,7 +10,7 @@ using System.Xml.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
 {
-    public class WriteOrchestratedBuildManifestSummaryToFile : Task
+    public class WriteOrchestratedBuildManifestSummaryToFile : BuildTask
     {
         [Required]
         public string File { get; set; }

@@ -103,7 +103,9 @@
     </Compile>
     <Compile Include="SaveItems.cs" />
     <Compile Include="ConfigurationTask.cs" />
-    <Compile Include="BuildTask.cs" />
+    <Compile Include="$(CommonPath)\BuildTask.cs">
+      <Link>BuildTask.cs</Link>
+    </Compile>
     <Compile Include="Configuration\Configuration.cs" />
     <Compile Include="Configuration\ConfigurationFactory.cs" />
     <Compile Include="Configuration\PropertyValue.cs" />

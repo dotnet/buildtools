@@ -15,7 +15,7 @@ using System.Xml.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
 {
-    public class FetchOrchestratedBuildManifestInfo : Task
+    public class FetchOrchestratedBuildManifestInfo : BuildTask
     {
         private const string IdentitySummaryMetadataName = "IdentitySummary";
 

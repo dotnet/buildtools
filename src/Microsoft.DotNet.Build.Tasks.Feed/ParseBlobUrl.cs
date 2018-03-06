@@ -5,17 +5,10 @@
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using MSBuild = Microsoft.Build.Utilities;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using System.Collections;
 
 namespace Microsoft.DotNet.Build.Tasks.Feed
 {
-    public sealed class ParseBlobUrl : MSBuild.Task
+    public sealed class ParseBlobUrl : BuildTask
     {
         [Required]
         public string BlobUrl { get; set; }

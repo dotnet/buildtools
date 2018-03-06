@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
 using Microsoft.DotNet.VersionTools.Automation;
 using Microsoft.DotNet.VersionTools.Automation.GitHubApi;
 using Microsoft.DotNet.VersionTools.BuildManifest;
@@ -15,7 +14,7 @@ using System.Xml.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
 {
-    public class PushOrchestratedBuildManifest : Task
+    public class PushOrchestratedBuildManifest : BuildTask
     {
         [Required]
         public string ManifestFile { get; set; }

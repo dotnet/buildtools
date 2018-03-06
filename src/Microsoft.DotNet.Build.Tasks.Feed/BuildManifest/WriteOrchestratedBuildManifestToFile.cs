@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
 using Microsoft.DotNet.VersionTools.BuildManifest.Model;
+using System.Collections.Generic;
 using System.Xml.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
 {
-    public class WriteOrchestratedBuildManifestToFile : Task
+    public class WriteOrchestratedBuildManifestToFile : BuildTask
     {
         [Required]
         public string File { get; set; }
