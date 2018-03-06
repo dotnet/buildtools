@@ -16,7 +16,7 @@ using MSBuild = Microsoft.Build.Utilities;
 
 namespace Microsoft.DotNet.Build.Tasks.Feed
 {
-    public class PushToBlobFeed : MSBuild.Task
+    public partial class PushToBlobFeed : MSBuild.Task
     {
         private static readonly char[] ManifestDataPairSeparators = { ';' };
         private const string DisableManifestPushConfigurationBlob = "disable-manifest-push";
