@@ -21,6 +21,9 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(CommonPath)\BuildTask.cs">
+      <Link>BuildTask.cs</Link>
+    </Compile>
     <Compile Include="..\Microsoft.DotNet.Build.CloudTestTasks\AzureBlobLease.cs">
       <Link>AzureBlobLease.cs</Link>
     </Compile>
