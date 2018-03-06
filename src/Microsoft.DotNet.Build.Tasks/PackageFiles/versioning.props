@@ -5,7 +5,7 @@
     <Copyright Condition="'$(Copyright)' == ''">%A9 Microsoft Corporation.  All rights reserved.</Copyright>
     <Description Condition="'$(Description)' == ''">$(AssemblyName)</Description>
     <FileVersion Condition="'$(FileVersion)' == '' and '$(AssemblyFileVersion)' != ''">$(AssemblyFileVersion)</FileVersion>
-    <InformationalVersion Condition="'$(InformationalVersion)' == ''">$(AssemblyFileVersion)$(BuiltByString). $(SrcCodeRef)</InformationalVersion>
+    <InformationalVersion Condition="'$(InformationalVersion)' == ''">$(AssemblyFileVersion)$(BuiltByString)</InformationalVersion>
     <Product Condition="'$(Product)' == ''">Microsoft%AE .NET Framework</Product>
     <AssemblyTitle Condition="'$(AssemblyTitle)' == ''">$(AssemblyName)</AssemblyTitle>
   </PropertyGroup>
