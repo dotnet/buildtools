@@ -145,9 +145,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
                 restoreContext.ApplyStandardProperties(request);
 
-                IEnumerable<string> configFiles = SettingsUtility.GetConfigFilePaths(settings);
-
-                var summaryRequest = new RestoreSummaryRequest(request, inputPath, configFiles, sources);
+                var summaryRequest = new RestoreSummaryRequest(request, inputPath, settings, sources);
 
                 return summaryRequest;
             }
