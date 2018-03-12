@@ -5,7 +5,7 @@
     <HelixWorkItem Include="Demo Work item #1">
       <Command>call DoStuff.bat</Command>
       <!-- Needs to be a zip file that contains DoStuff.bat, adjust accordingly -->
-      <PayloadFile>Path to zip</PayloadFile>
+      <PayloadFile>Path to local zip file</PayloadFile>
       <WorkItemId>Demo Work item #1</WorkItemId>
       <TimeoutInSeconds>300</TimeoutInSeconds>
     </HelixWorkItem>
@@ -13,7 +13,7 @@
     <HelixWorkItem Include="Demo Work item #2">
       <Command>call DoStuff.bat</Command>
       <!-- Needs to be a zip file that contains DoStuff.bat, adjust accordingly -->
-      <PayloadFile>Path to zip</PayloadFile>
+      <PayloadFile>Path to some other local zip file</PayloadFile>
       <WorkItemId>Demo Work item #2</WorkItemId>
       <TimeoutInSeconds>200</TimeoutInSeconds>
     </HelixWorkItem>
@@ -27,12 +27,12 @@
  
   <!-- Required properties -->
   <PropertyGroup>
-    <HelixApiEndpoint>https://helix.int-dot.net/api/2016-06-28/jobs</HelixApiEndpoint>
+    <HelixApiEndpoint>https://helix.dot.net/api/2016-06-28/jobs</HelixApiEndpoint>
     <HelixApiAccessKey></HelixApiAccessKey>
     <HelixJobType>unspecified/</HelixJobType>
     <HelixSource>pr/unspecified/</HelixSource>
-    <TargetQueues>Windows.10.Amd64;Windows.7.Amd64;Windows.81.Amd64;Windows.10.Core.Amd64;</TargetQueues>
-    <BuildMoniker>20170301.0000</BuildMoniker>
+    <TargetQueues>Windows.10.Amd64;Windows.10.Core.Amd64;</TargetQueues>
+    <BuildMoniker>20180312.00</BuildMoniker>
     <!-- Use any valid Connection string here --> 
     <CloudDropConnectionString>...</CloudDropConnectionString>
     <CloudResultsConnectionString>...</CloudResultsConnectionString>
@@ -45,7 +45,7 @@
 
   <Target Name="Build">
     <Message Text="Beginning Cloud Build!" />
-    <HelixCloudBuild/>
+    <CallTarget Targets="HelixCloudBuild" />
   </Target>
 
 </Project>
