@@ -83,7 +83,7 @@ echo ----- end $(date +"%T") ----- exit code $test_exitcode --------------------
 # ========================= END Test Execution ===============================
 
 # ======================= BEGIN Core File Inspection =========================
-pushd $EXECUTION_DIR > nul
+pushd $EXECUTION_DIR >/dev/null
 if [ "$(uname -s)" == "Linux" ]; then
   echo Looking around for any Linux dump...
   # Depending on distro/configuration, the core files may either be named "core"
@@ -109,6 +109,6 @@ if [ "$(uname -s)" == "Linux" ]; then
     echo ... found no dump in $PWD
   fi
 fi
-popd > nul
+popd >/dev/null
 # ======================== END Core File Inspection ==========================
 exit $test_exitcode
