@@ -2,6 +2,7 @@
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.props))\dir.props" />
   <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{17C66BCE-EB35-44CA-893C-8AAFB67708E9}</ProjectGuid>
@@ -24,6 +25,7 @@
     <Compile Include="Delegates.cs" />
     <Compile Include="ExceptionFromResource.cs" />
     <Compile Include="ExecWithMutex.cs" />
+    <Compile Include="ExtractResWResourcesFromAssemblies.cs" />
     <Compile Include="GatherFoldersToRestore.cs" />
     <Compile Include="GenerateAssemblyList.cs" />
     <Compile Include="AddDependenciesToProjectJson.cs" />
@@ -35,6 +37,7 @@
     <Compile Include="GenerateCurrentVersion.cs" />
     <Compile Include="GenerateResourcesCode.cs" />
     <Compile Include="GenerateEncodingTable.cs" />
+    <Compile Include="Helper.cs" />
     <Compile Include="EncryptedConfigNuGetRestore.cs" />
     <Compile Include="GenerateUnencryptedNuGetConfig.cs" />
     <Compile Include="GenFacadesTask.cs" />
@@ -46,6 +49,7 @@
     <Compile Include="InstallPackageFromFile.cs" />
     <Compile Include="LocatePreviousContract.cs" />
     <Compile Include="NormalizePaths.cs" />
+    <Compile Include="NormalizeAssemblyName.cs" />
     <Compile Include="GetDoItemsIntersect.cs" />
     <Compile Include="NugetMsBuildLogger.cs" />
     <Compile Include="NuGetPackageObject.cs" />
