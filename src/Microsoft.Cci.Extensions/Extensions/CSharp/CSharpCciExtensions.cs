@@ -333,6 +333,30 @@ namespace Microsoft.Cci.Extensions.CSharp
             return false;
         }
 
+        public static bool IsDispose(this IMethodDefinition methodDefinition)
+        {
+            if (methodDefinition.Name.Value != "Dispose")
+            {
+                return false;
+            }
+
+            if (methodDefinition.ParameterCount == 0 && methodDefinition.Visibility == TypeMemberVisibility.Public &&
+                TypeHelper.TypesAreEquivalent(methodDefinition.Type, methodDefinition.ContainingTypeDefinition.PlatformType.SystemVoid))
+            {
+                // Dispose() should be public void.
+                return true;
+            }
+
+            if (methodDefinition.ParameterCount == 1 && methodDefinition.Visibility == TypeMemberVisibility.Family && methodDefinition.IsVirtual &&
+                TypeHelper.TypesAreEquivalent(methodDefinition.Parameters.First().Type, methodDefinition.ContainingTypeDefinition.PlatformType.SystemBoolean))
+            {
+                // Dispose(Boolean) should be protected virtual and its only parameter a boolean.
+                return true;
+            }
+
+            return false;
+        }
+
         public static bool IsAssembly(this ITypeDefinitionMember member)
         {
             return member.Visibility == TypeMemberVisibility.FamilyAndAssembly ||
