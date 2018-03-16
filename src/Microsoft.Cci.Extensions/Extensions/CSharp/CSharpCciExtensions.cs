@@ -335,26 +335,19 @@ namespace Microsoft.Cci.Extensions.CSharp
 
         public static bool IsDispose(this IMethodDefinition methodDefinition)
         {
-            if (methodDefinition.Name.Value != "Dispose")
+            if ((methodDefinition.Name.Value != "Dispose" && methodDefinition.Name.Value != "System.IDisposable.Dispose") || methodDefinition.ParameterCount > 1 ||
+                !TypeHelper.TypesAreEquivalent(methodDefinition.Type, methodDefinition.ContainingTypeDefinition.PlatformType.SystemVoid))
             {
                 return false;
             }
 
-            if (methodDefinition.ParameterCount == 0 && methodDefinition.Visibility == TypeMemberVisibility.Public &&
-                TypeHelper.TypesAreEquivalent(methodDefinition.Type, methodDefinition.ContainingTypeDefinition.PlatformType.SystemVoid))
+            if (methodDefinition.ParameterCount == 1 && !TypeHelper.TypesAreEquivalent(methodDefinition.Parameters.First().Type, methodDefinition.ContainingTypeDefinition.PlatformType.SystemBoolean))
             {
-                // Dispose() should be public void.
-                return true;
+                // Dispose(Boolean) its only parameter should be bool
+                return false;
             }
 
-            if (methodDefinition.ParameterCount == 1 && methodDefinition.Visibility == TypeMemberVisibility.Family && methodDefinition.IsVirtual &&
-                TypeHelper.TypesAreEquivalent(methodDefinition.Parameters.First().Type, methodDefinition.ContainingTypeDefinition.PlatformType.SystemBoolean))
-            {
-                // Dispose(Boolean) should be protected virtual and its only parameter a boolean.
-                return true;
-            }
-
-            return false;
+            return true;
         }
 
         public static bool IsAssembly(this ITypeDefinitionMember member)
