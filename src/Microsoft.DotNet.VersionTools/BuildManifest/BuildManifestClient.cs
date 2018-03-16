@@ -47,20 +47,27 @@ namespace Microsoft.DotNet.VersionTools.BuildManifest
                 project,
                 @ref);
 
+            if (contents == null)
+            {
+                return null;
+            }
+
             return SemaphoreModel.Parse(semaphorePath, contents);
         }
 
         public async Task PushNewBuildAsync(
-            GitHubProject project,
-            string @ref,
-            string basePath,
+            BuildManifestLocation location,
             OrchestratedBuildModel build,
             IEnumerable<SupplementaryUploadRequest> supplementaryUploads,
             string message)
         {
             await Retry.RunAsync(async attempt =>
             {
-                string remoteCommit = (await _github.GetReferenceAsync(project, @ref)).Object.Sha;
+                GitReference remoteRef = await _github.GetReferenceAsync(
+                    location.GitHubProject,
+                    location.GitHubRef);
+
+                string remoteCommit = remoteRef.Object.Sha;
 
                 Trace.TraceInformation($"Creating update on remote commit: {remoteCommit}");
 
@@ -83,63 +90,86 @@ namespace Microsoft.DotNet.VersionTools.BuildManifest
                     })
                     .ToArray();
 
-                return await PushUploadsAsync(project, @ref, basePath, message, remoteCommit, uploads);
+                return await PushUploadsAsync(location, message, remoteCommit, uploads);
             });
         }
 
-        public async Task PushChangeAsync(
-            GitHubProject project,
-            string @ref,
-            string basePath,
-            string orchestratedBuildId,
-            Action<OrchestratedBuildModel> changeModel,
-            IEnumerable<string> semaphorePaths,
-            IEnumerable<SupplementaryUploadRequest> supplementaryUploads,
-            string message)
+        public async Task PushChangeAsync(BuildManifestChange change)
         {
             await Retry.RunAsync(async attempt =>
             {
+                BuildManifestLocation location = change.Location;
+
                 // Get the current commit. Use this throughout to ensure a clean transaction.
-                string remoteCommit = (await _github.GetReferenceAsync(project, @ref)).Object.Sha;
+                GitReference remoteRef = await _github.GetReferenceAsync(
+                    location.GitHubProject,
+                    location.GitHubRef);
+
+                string remoteCommit = remoteRef.Object.Sha;
 
                 Trace.TraceInformation($"Creating update on remote commit: {remoteCommit}");
 
-                // This is a subsequent publish step: check to make sure the build id matches.
-                XElement remoteModelXml = await FetchModelXmlAsync(project, remoteCommit, basePath);
+                XElement remoteModelXml = await FetchModelXmlAsync(
+                    location.GitHubProject,
+                    remoteCommit,
+                    location.GitHubBasePath);
 
                 OrchestratedBuildModel remoteModel = OrchestratedBuildModel.Parse(remoteModelXml);
 
-                if (orchestratedBuildId != remoteModel.Identity.BuildId)
+                // This is a subsequent publish step: make sure a new build hasn't happened already.
+                if (change.OrchestratedBuildId != remoteModel.Identity.BuildId)
                 {
                     throw new ManifestChangeOutOfDateException(
-                        orchestratedBuildId,
+                        change.OrchestratedBuildId,
                         remoteModel.Identity.BuildId);
                 }
 
                 OrchestratedBuildModel modifiedModel = OrchestratedBuildModel.Parse(remoteModelXml);
-                changeModel(modifiedModel);
+                change.ApplyModelChanges(modifiedModel);
 
-                if (modifiedModel.Identity.BuildId != orchestratedBuildId)
+                if (modifiedModel.Identity.BuildId != change.OrchestratedBuildId)
                 {
                     throw new ArgumentException(
                         "Change action shouldn't modify BuildId. Changed from " +
-                        $"'{orchestratedBuildId}' to '{modifiedModel.Identity.BuildId}'.",
-                        nameof(changeModel));
+                        $"'{change.OrchestratedBuildId}' to '{modifiedModel.Identity.BuildId}'.",
+                        nameof(change));
                 }
 
                 XElement modifiedModelXml = modifiedModel.ToXml();
 
-                IEnumerable<SupplementaryUploadRequest> uploads = semaphorePaths.NullAsEmpty()
+                string[] changedSemaphorePaths = change.SemaphorePaths.ToArray();
+
+                // Check if any join groups are completed by this change.
+                var joinCompleteCheckTasks = change.JoinSemaphoreGroups.NullAsEmpty()
+                    .Select(async g => new
+                    {
+                        Group = g,
+                        Joinable = await IsGroupJoinableAsync(
+                            location,
+                            remoteCommit,
+                            change.OrchestratedBuildId,
+                            changedSemaphorePaths,
+                            g)
+                    });
+
+                var completeJoinedSemaphores = (await Task.WhenAll(joinCompleteCheckTasks))
+                    .Where(g => g.Joinable)
+                    .Select(g => g.Group.JoinSemaphorePath)
+                    .ToArray();
+
+                IEnumerable<SupplementaryUploadRequest> semaphoreUploads = completeJoinedSemaphores
+                    .Concat(changedSemaphorePaths)
                     .Select(p => new SupplementaryUploadRequest
                     {
                         Path = p,
                         Contents = new SemaphoreModel
                         {
-                            BuildId = orchestratedBuildId
+                            BuildId = change.OrchestratedBuildId
                         }.ToFileContent()
-                    })
-                    .Concat(supplementaryUploads.NullAsEmpty())
-                    .ToArray();
+                    });
+
+                IEnumerable<SupplementaryUploadRequest> uploads =
+                    semaphoreUploads.Concat(change.SupplementaryUploads.NullAsEmpty());
 
                 if (!XNode.DeepEquals(modifiedModelXml, remoteModelXml))
                 {
@@ -153,7 +183,11 @@ namespace Microsoft.DotNet.VersionTools.BuildManifest
                     });
                 }
 
-                return await PushUploadsAsync(project, @ref, basePath, message, remoteCommit, uploads);
+                return await PushUploadsAsync(
+                    location,
+                    change.CommitMessage,
+                    remoteCommit,
+                    uploads);
             });
         }
 
@@ -171,9 +205,7 @@ namespace Microsoft.DotNet.VersionTools.BuildManifest
         }
 
         private async Task<bool> PushUploadsAsync(
-            GitHubProject project,
-            string @ref,
-            string basePath,
+            BuildManifestLocation location,
             string message,
             string remoteCommit,
             IEnumerable<SupplementaryUploadRequest> uploads)
@@ -181,17 +213,21 @@ namespace Microsoft.DotNet.VersionTools.BuildManifest
             GitObject[] objects = uploads
                 .Select(upload => new GitObject
                 {
-                    Path = $"{basePath}/{upload.Path}",
+                    Path = upload.GetAbsolutePath(location.GitHubBasePath),
                     Mode = GitObject.ModeFile,
                     Type = GitObject.TypeBlob,
-                    Content = upload.Contents
+                    // Always upload files using LF to avoid bad dev scenarios with Git autocrlf.
+                    Content = upload.Contents.Replace("\r\n", "\n")
                 })
                 .ToArray();
 
-            GitTree tree = await _github.PostTreeAsync(project, remoteCommit, objects);
+            GitTree tree = await _github.PostTreeAsync(
+                location.GitHubProject,
+                remoteCommit,
+                objects);
 
             GitCommit commit = await _github.PostCommitAsync(
-                project,
+                location.GitHubProject,
                 message,
                 tree.Sha,
                 new[] { remoteCommit });
@@ -199,7 +235,11 @@ namespace Microsoft.DotNet.VersionTools.BuildManifest
             try
             {
                 // Only fast-forward. Don't overwrite other changes: throw exception instead.
-                await _github.PatchReferenceAsync(project, @ref, commit.Sha, force: false);
+                await _github.PatchReferenceAsync(
+                    location.GitHubProject,
+                    location.GitHubRef,
+                    commit.Sha,
+                    force: false);
             }
             catch (NotFastForwardUpdateException e)
             {
@@ -209,6 +249,41 @@ namespace Microsoft.DotNet.VersionTools.BuildManifest
             }
 
             return true;
+        }
+
+        private async Task<bool> IsGroupJoinableAsync(
+            BuildManifestLocation location,
+            string commit,
+            string buildId,
+            IEnumerable<string> changedSemaphorePaths,
+            JoinSemaphoreGroup joinGroup)
+        {
+            string[] remainingSemaphores = joinGroup
+                .ParallelSemaphorePaths
+                .Except(changedSemaphorePaths)
+                .ToArray();
+
+            if (remainingSemaphores.Length == joinGroup.ParallelSemaphorePaths.Count())
+            {
+                // No semaphores in this group are changing: it can't be joinable by this update.
+                return false;
+            }
+
+            // TODO: Avoid redundant fetches if multiple groups share a semaphore. https://github.com/dotnet/buildtools/issues/1910
+            bool[] remainingSemaphoreIsComplete = await Task.WhenAll(
+                remainingSemaphores.Select(
+                    async path =>
+                    {
+                        SemaphoreModel semaphore = await FetchSemaphoreAsync(
+                            location.GitHubProject,
+                            commit,
+                            location.GitHubBasePath,
+                            path);
+
+                        return semaphore?.BuildId == buildId;
+                    }));
+
+            return remainingSemaphoreIsComplete.All(x => x);
         }
     }
 }

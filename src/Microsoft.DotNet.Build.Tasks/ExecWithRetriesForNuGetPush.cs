@@ -4,9 +4,12 @@
 
 using Microsoft.Build.Framework;
 using Microsoft.Build.Tasks;
+using Microsoft.DotNet.VersionTools.Automation;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -53,6 +56,19 @@ namespace Microsoft.DotNet.Build.Tasks
         /// </summary>
         public ITaskItem[] IgnoredErrorMessagesWithConditional { get; set; }
 
+        /// <summary>
+        /// Package file that is pushed by the given command. Required if PassIfIdenticalV2Feed
+        /// is set: it is read to compare against the copy of the package on the feed.
+        /// </summary>
+        public string PackageFile { get; set; }
+
+        /// <summary>
+        /// If this property specifies a v2 feed endpoint, for example
+        /// "https://dotnet.myget.org/F/dotnet-core/api/v2", all errors are ignored if the feed
+        /// contains the package and it's byte-for-byte identical to the one being pushed.
+        /// </summary>
+        public string PassIfIdenticalV2Feed { get; set; }
+
         private CancellationTokenSource _cancelTokenSource = new CancellationTokenSource();
 
         private Exec _runningExec;
@@ -96,7 +112,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 }
 
                 int exitCode = _runningExec.ExitCode;
-                if (exitCode == 0)
+                if (exitCode == 0 || FeedContainsIdenticalPackage())
                 {
                     return true;
                 }
@@ -149,6 +165,61 @@ namespace Microsoft.DotNet.Build.Tasks
                 }
             }
             return false;
+        }
+
+        private bool FeedContainsIdenticalPackage()
+        {
+            if (string.IsNullOrEmpty(PassIfIdenticalV2Feed) ||
+                string.IsNullOrEmpty(PackageFile))
+            {
+                return false;
+            }
+
+            var packageInfo = new NupkgInfo(PackageFile);
+            string packageUrl =
+                $"{PassIfIdenticalV2Feed}/package/{packageInfo.Id}/{packageInfo.Version}";
+
+            byte[] localBytes = File.ReadAllBytes(PackageFile);
+
+            bool identical = false;
+
+            try
+            {
+                Log.LogMessage(
+                    MessageImportance.High,
+                    $"Downloading package from '{packageUrl}' " +
+                    $"to check if identical to '{PackageFile}'");
+
+                using (var client = new HttpClient
+                {
+                    Timeout = TimeSpan.FromMinutes(10)
+                })
+                using (var response = client.GetAsync(packageUrl).Result)
+                {
+                    byte[] remoteBytes = response.Content.ReadAsByteArrayAsync().Result;
+
+                    identical = localBytes.SequenceEqual(remoteBytes);
+                }
+            }
+            catch (Exception e)
+            {
+                Log.LogWarningFromException(e, true);
+            }
+
+            if (identical)
+            {
+                Log.LogMessage(
+                    MessageImportance.High,
+                    $"Package '{PackageFile}' is identical to feed download: ignoring push error.");
+            }
+            else
+            {
+                Log.LogMessage(
+                    MessageImportance.High,
+                    $"Package '{PackageFile}' is different from feed download.");
+            }
+
+            return identical;
         }
     }
 }

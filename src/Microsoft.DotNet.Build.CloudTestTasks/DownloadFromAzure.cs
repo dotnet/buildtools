@@ -119,7 +119,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 {
                     client.Timeout = TimeSpan.FromMinutes(10);
                     Log.LogMessage(MessageImportance.Low, "Downloading BLOB - {0}", blob);
-                    string urlGetBlob = AzureHelper.GetBlobRestUrl(AccountName, ContainerName, blob);
+                    string blobUrl = AzureHelper.GetBlobRestUrl(AccountName, ContainerName, blob);
                     filename = Path.Combine(DownloadDirectory, Path.GetFileName(blob));
 
                     if (!DownloadFlatFiles)
@@ -155,7 +155,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                         filename = Path.Combine(downloadBlobDirectory, blobFilename);
                     }
 
-                    var createRequest = AzureHelper.RequestMessage("GET", urlGetBlob, AccountName, AccountKey);
+                    var createRequest = AzureHelper.RequestMessage("GET", blobUrl, AccountName, AccountKey);
 
                     using (HttpResponseMessage response = await AzureHelper.RequestWithRetry(Log, client, createRequest))
                     {

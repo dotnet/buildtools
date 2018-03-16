@@ -15,6 +15,7 @@ __PACKAGES_DIR=${4:-$__TOOLRUNTIME_DIR}
 __TOOLS_DIR=$(cd "$(dirname "$0")"; pwd -P)
 __MICROBUILD_VERSION=0.2.0
 __PORTABLETARGETS_VERSION=0.1.1-dev
+__ROSLYNCOMPILER_VERSION=2.6.0-beta3-62316-02
 
 __PORTABLETARGETS_PROJECT_CONTENT="
 <Project Sdk=\"Microsoft.NET.Sdk\">
@@ -25,6 +26,7 @@ __PORTABLETARGETS_PROJECT_CONTENT="
   <ItemGroup>
     <PackageReference Include=\"MicroBuild.Core\" Version=\"$__MICROBUILD_VERSION\" />
     <PackageReference Include=\"Microsoft.Portable.Targets\" Version=\"$__PORTABLETARGETS_VERSION\" />
+    <PackageReference Include=\"Microsoft.NETCore.Compilers\" Version=\"$__ROSLYNCOMPILER_VERSION\" />
   </ItemGroup>
 </Project>"
 __PUBLISH_TFM=netcoreapp2.0

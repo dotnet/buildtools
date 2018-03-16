@@ -16,7 +16,7 @@
   <Import Project="$(MSBuildThisFileDirectory)RepoAPI.Mapping.props" />
 
   <PropertyGroup>
-    <CompilerResponseFile Condition="'$(CheckSumSHA256)'!='false'">$(MSBuildThisFileDirectory)checksum.rsp</CompilerResponseFile>
+    <ChecksumAlgorithm>SHA256</ChecksumAlgorithm>
   </PropertyGroup>
 
   <PropertyGroup>

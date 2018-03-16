@@ -334,7 +334,7 @@ namespace Microsoft.DotNet.Build.Tasks
             cleanupTasks.Clear();
             foreach (string additionalCleanupDirectory in _additionalCleanupDirectories)
             {
-                cleanupTasks.Add(CleanupDirectoryAsync(additionalCleanupDirectory, 0, true));
+                cleanupTasks.Add(CleanupDirectoryAsync(additionalCleanupDirectory, 0, true, true));
             }
             System.Threading.Tasks.Task.WaitAll(cleanupTasks.ToArray());
 
@@ -348,7 +348,7 @@ namespace Microsoft.DotNet.Build.Tasks
             return returnStatus;
         }
 
-        private async System.Threading.Tasks.Task<bool> CleanupDirectoryAsync(string directory, int attempts = 0, bool ignoreExceptions = false)
+        private async System.Threading.Tasks.Task<bool> CleanupDirectoryAsync(string directory, int attempts = 0, bool ignoreExceptions = false, bool isAdditionalDirectory = false)
         {
             try
             {
@@ -392,6 +392,13 @@ namespace Microsoft.DotNet.Build.Tasks
                     }
 #endif
                     Log.LogMessage("Success");
+
+                    // For additional directories we want only the contents deleted but not the root. The easiest is just to recreate the root folder
+                    // after the whole folder has been created. Since this just applies to additional ('known') folders we should not worry about long paths.
+                    if (isAdditionalDirectory && !Directory.Exists(directory))
+                    {
+                        Directory.CreateDirectory(directory);
+                    }
                 }
                 return true;
             }
@@ -595,7 +602,7 @@ namespace Microsoft.DotNet.Build.Tasks
             IntPtr hFile = FindFirstFile(directory + "\\*", out findData);
             int error = Marshal.GetLastWin32Error();
 
-            if (hFile.ToInt32() != -1)
+            if (hFile != IntPtr.Zero && hFile != new IntPtr(-1))
             {
                 do
                 {

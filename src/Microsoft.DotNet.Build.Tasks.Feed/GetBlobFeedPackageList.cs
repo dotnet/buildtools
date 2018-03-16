@@ -12,7 +12,7 @@ using MSBuild = Microsoft.Build.Utilities;
 
 namespace Microsoft.DotNet.Build.Tasks.Feed
 {
-    public class GetBlobFeedPackageList : MSBuild.Task
+    public class GetBlobFeedPackageList : BuildTask
     {
         private const string NuGetPackageInfoId = "PackageId";
         private const string NuGetPackageInfoVersion = "PackageVersion";

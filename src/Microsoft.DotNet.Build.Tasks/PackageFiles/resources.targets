@@ -44,8 +44,8 @@
 
   </Target>
 
-  <Target Name="CopyResxFilesToReswFiles" 
-          Condition="'$(BuildingUAPVertical)' == 'true'" 
+  <Target Name="CopyResxFilesToReswFiles"
+          Condition="'$(BuildingUAPVertical)' == 'true'"
           DependsOnTargets="CalculateResourcesFileNames"
           Inputs="@(_AllResxFiles)"
           Outputs="@(_ReswOutputFiles)" >
@@ -58,9 +58,9 @@
 
     <!-- We need to touch the copied files so that the target that uses them can track the inputs and outputs with the copied timestamp -->
     <Touch Files="@(FilesCreated)" />
-    
+
   </Target>
-  
+
   <PropertyGroup Condition="'$(StringResourcesPath)'!=''">
       <CompileDependsOn>
           NormalizeAssemblyName;
@@ -87,7 +87,7 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="GenerateResourcesSource"
+  <Target Name="GenerateResourcesSource" DependsOnTargets="NormalizeAssemblyName"
           Condition="'$(StringResourcesPath)'!='' AND '$(OmitResources)'!='true'"
           Inputs="$(StringResourcesPath)"
           Outputs="$(IntermediateResOutputFileFullPath)">
@@ -113,6 +113,8 @@
       <Visible>true</Visible>
       <LogicalName>FxResources.$(AssemblyName).SR.resources</LogicalName>
       <ReswName Condition="'$(BuildingUAPVertical)' == 'true'">FxResources.$(AssemblyName).SR</ReswName>
+      <!-- Set the Generator metadata so that VS triggers design-time build whenever the .resx file is saved -->
+      <Generator>MSBuild:GenerateResourcesSource</Generator>
     </EmbeddedResource>
   </ItemGroup>
 

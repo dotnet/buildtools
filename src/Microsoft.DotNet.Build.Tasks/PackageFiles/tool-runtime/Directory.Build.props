@@ -1,0 +1,6 @@
+<Project>
+  <!--
+  Empty Directory.Build.props to ensure that msbuild doesn't pick up the containing repo's
+  root Directory.Build.props.
+  -->
+</Project>

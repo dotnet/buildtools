@@ -238,38 +238,19 @@
 
   <!-- Generate any extra symbols (e.g. Windows PDBs) that also need to be archived. -->
   <Target Name="GenerateAdditionalSymbolsForArchive"
-          DependsOnTargets="ExecCreateWindowsPdbsFromPortablePdbs;
+          DependsOnTargets="SetupCreateWindowsPdbsFromPortablePdbs;
+                            CreateWindowsPdbsFromPortablePdbs;
                             AddConvertedWindowsPdbsToPublishList" />
 
   <!--
     Set up properties for CreateWindowsPdbsFromPortablePdbs that will generate Windows PDBs for
     files in the unzipped symbol packages.
   -->
-  <Target Name="ExecCreateWindowsPdbsFromPortablePdbs">
+  <Target Name="SetupCreateWindowsPdbsFromPortablePdbs">
     <PropertyGroup>
       <PortablePdbToConvertGlob>$(SymbolPackageExtractDir)**\*.pdb</PortablePdbToConvertGlob>
-
-      <!-- Note: uses / instead of \ to avoid escaping &quot; in the command. -->
-      <WindowsPdbConversionTargetPath>$(SymbolPackageExtractDir)WindowsPDB/</WindowsPdbConversionTargetPath>
-
-      <!--
-        Run symbol conversion in a new process so that we can safely retry when PDB conversion hits
-        an AccessViolation exception.
-      -->
-      <_ConvertPdbCommand>&quot;$(MSBuildBinPath)\msbuild.exe&quot;</_ConvertPdbCommand>
-      <_ConvertPdbCommand>$(_ConvertPdbCommand) /v:Detailed</_ConvertPdbCommand>
-      <_ConvertPdbCommand>$(_ConvertPdbCommand) &quot;$(MSBuildProjectFullPath)&quot;</_ConvertPdbCommand>
-      <_ConvertPdbCommand>$(_ConvertPdbCommand) /t:CreateWindowsPdbsFromPortablePdbs</_ConvertPdbCommand>
-      <_ConvertPdbCommand>$(_ConvertPdbCommand) &quot;/p:PortablePdbToConvertGlob=$(PortablePdbToConvertGlob)&quot;</_ConvertPdbCommand>
-      <_ConvertPdbCommand>$(_ConvertPdbCommand) &quot;/p:WindowsPdbConversionTargetPath=$(WindowsPdbConversionTargetPath)&quot;</_ConvertPdbCommand>
+      <WindowsPdbConversionTargetPath>$(SymbolPackageExtractDir)WindowsPDB\</WindowsPdbConversionTargetPath>
     </PropertyGroup>
-
-    <!-- Only retry once, and don't delay. Failure hasn't been observed twice in a row yet. -->
-    <ExecWithRetries Command="$(_ConvertPdbCommand)"
-                     IgnoreStandardErrorWarningFormat="true"
-                     MaxAttempts="2"
-                     RetryDelayBase="0"
-                     RetryDelayConstant="0"/>
   </Target>
 
   <!--

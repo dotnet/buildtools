@@ -29,6 +29,7 @@
     <Compile Include="AzureConnectionStringBuildTask.cs" />
     <Compile Include="AzureBlobLease.cs" />
     <Compile Include="AzureHelper.cs" />
+    <Compile Include="CopyBlobsToLatest.cs" />
     <Compile Include="CopyAzureBlobToBlob.cs" />
     <Compile Include="CreateAzureContainer.cs" />
     <Compile Include="DeleteAzureBlob.cs" />

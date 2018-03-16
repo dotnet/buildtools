@@ -6,6 +6,8 @@ using Microsoft.Build.Framework;
 using Microsoft.DotNet.Build.CloudTestTasks;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json.Linq;
+using NuGet.Packaging;
+using NuGet.Packaging.Core;
 using Sleet;
 using System;
 using System.Collections.Generic;
@@ -14,9 +16,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using NuGet.Packaging.Core;
 using MSBuild = Microsoft.Build.Utilities;
-using CloudTestTasks = Microsoft.DotNet.Build.CloudTestTasks;
 
 namespace Microsoft.DotNet.Build.Tasks.Feed
 {
@@ -65,7 +65,9 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             }
         }
 
-        public async Task<bool> PushToFeed(IEnumerable<string> items, bool allowOverwrite = false)
+        public async Task<bool> PushToFeedAsync(
+            IEnumerable<string> items,
+            PushOptions options)
         {
             if (IsSanityChecked(items))
             {
@@ -75,13 +77,15 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     CancellationToken.ThrowIfCancellationRequested();
                 }
 
-                await PushItemsToFeedAsync(items, allowOverwrite);
+                await PushItemsToFeedAsync(items, options);
             }
 
             return !Log.HasLoggedErrors;
         }
 
-        public async Task<bool> PushItemsToFeedAsync(IEnumerable<string> items, bool allowOverwrite)
+        public async Task<bool> PushItemsToFeedAsync(
+            IEnumerable<string> items,
+            PushOptions options)
         {
             Log.LogMessage(MessageImportance.Low, $"START pushing items to feed");
 
@@ -93,7 +97,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
             try
             {
-                bool result = await PushAsync(items, allowOverwrite);
+                bool result = await PushAsync(items, options);
                 return result;
             }
             catch (Exception e)
@@ -104,7 +108,11 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             return !Log.HasLoggedErrors;
         }
 
-        public async Task UploadAssets(ITaskItem item, SemaphoreSlim clientThrottle, int uploadTimeout, bool allowOverwrite = false)
+        public async Task UploadAssetAsync(
+            ITaskItem item,
+            SemaphoreSlim clientThrottle,
+            int uploadTimeout,
+            PushOptions options)
         {
             string relativeBlobPath = item.GetMetadata("RelativeBlobPath");
 
@@ -133,17 +141,33 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
             try
             {
-                bool blobExists = false;
+                UploadClient uploadClient = new UploadClient(Log);
 
-                if (!allowOverwrite)
+                if (!options.AllowOverwrite && await feed.CheckIfBlobExistsAsync(relativeBlobPath))
                 {
-                    blobExists = await feed.CheckIfBlobExists(relativeBlobPath);
+                    if (options.PassIfExistingItemIdentical)
+                    {
+                        if (!await uploadClient.FileEqualsExistingBlobAsync(
+                            feed.AccountName,
+                            feed.AccountKey,
+                            feed.ContainerName,
+                            item.ItemSpec,
+                            relativeBlobPath,
+                            uploadTimeout))
+                        {
+                            Log.LogError(
+                                $"Item '{item}' already exists with different contents " +
+                                $"at '{relativeBlobPath}'");
+                        }
+                    }
+                    else
+                    {
+                        Log.LogError($"Item '{item}' already exists at '{relativeBlobPath}'");
+                    }
                 }
-
-                if (allowOverwrite || !blobExists)
+                else
                 {
                     Log.LogMessage($"Uploading {item} to {relativeBlobPath}.");
-                    UploadClient uploadClient = new UploadClient(Log);
                     await uploadClient.UploadBlockBlobAsync(
                         CancellationToken,
                         feed.AccountName,
@@ -153,10 +177,6 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                         relativeBlobPath,
                         contentType,
                         uploadTimeout);
-                }
-                else
-                {
-                    Log.LogError($"Item '{item}' already exists in {relativeBlobPath}.");
                 }
             }
             catch (Exception exc)
@@ -252,6 +272,35 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             return true;
         }
 
+        private async Task<bool?> IsPackageIdenticalOnFeedAsync(
+            string item,
+            PackageIndex packageIndex,
+            ISleetFileSystem source,
+            FlatContainer flatContainer,
+            SleetLogger log)
+        {
+            using (var package = new PackageArchiveReader(item))
+            {
+                var id = await package.GetIdentityAsync(CancellationToken);
+                if (await packageIndex.Exists(id))
+                {
+                    using (Stream remoteStream = await source
+                        .Get(flatContainer.GetNupkgPath(id))
+                        .GetStream(log, CancellationToken))
+                    using (var remote = new MemoryStream())
+                    {
+                        await remoteStream.CopyToAsync(remote);
+
+                        byte[] existingBytes = remote.ToArray();
+                        byte[] localBytes = File.ReadAllBytes(item);
+
+                        return existingBytes.SequenceEqual(localBytes);
+                    }
+                }
+                return null;
+            }
+        }
+
         private LocalSettings GetSettings()
         {
             SleetSettings sleetSettings = new SleetSettings()
@@ -277,12 +326,82 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             return fileSystem;
         }
 
-        private async Task<bool> PushAsync(IEnumerable<string> items, bool allowOverwrite)
+        private async Task<bool> PushAsync(
+            IEnumerable<string> items,
+            PushOptions options)
         {
             LocalSettings settings = GetSettings();
             AzureFileSystem fileSystem = GetAzureFileSystem();
-            bool result = await PushCommand.RunAsync(settings, fileSystem, items.ToList(), allowOverwrite, skipExisting: false, log: new SleetLogger(Log));
-            return result;
+            SleetLogger log = new SleetLogger(Log);
+
+            var packagesToPush = items.ToList();
+
+            if (!options.AllowOverwrite && options.PassIfExistingItemIdentical)
+            {
+                var context = new SleetContext
+                {
+                    LocalSettings = settings,
+                    Log = log,
+                    Source = fileSystem,
+                    Token = CancellationToken
+                };
+                context.SourceSettings = await FeedSettingsUtility.GetSettingsOrDefault(
+                    context.Source,
+                    context.Log,
+                    context.Token);
+
+                var flatContainer = new FlatContainer(context);
+
+                var packageIndex = new PackageIndex(context);
+
+                // Check packages sequentially: Task.WhenAll caused IO exceptions in Sleet.
+                for (int i = packagesToPush.Count - 1; i >= 0; i--)
+                {
+                    string item = packagesToPush[i];
+
+                    bool? identical = await IsPackageIdenticalOnFeedAsync(
+                        item,
+                        packageIndex,
+                        context.Source,
+                        flatContainer,
+                        log);
+
+                    if (identical == null)
+                    {
+                        continue;
+                    }
+
+                    packagesToPush.RemoveAt(i);
+
+                    if (identical == true)
+                    {
+                        Log.LogMessage(
+                            MessageImportance.Normal,
+                            "Package exists on the feed, and is verified to be identical. " +
+                            $"Skipping upload: '{item}'");
+                    }
+                    else
+                    {
+                        Log.LogError(
+                            "Package exists on the feed, but contents are different. " +
+                            $"Upload failed: '{item}'");
+                    }
+                }
+
+                if (!packagesToPush.Any())
+                {
+                    Log.LogMessage("After skipping idempotent uploads, no items need pushing.");
+                    return true;
+                }
+            }
+
+            return await PushCommand.RunAsync(
+                settings,
+                fileSystem,
+                packagesToPush,
+                options.AllowOverwrite,
+                skipExisting: false,
+                log: log);
         }
 
         private async Task<bool> InitAsync()
