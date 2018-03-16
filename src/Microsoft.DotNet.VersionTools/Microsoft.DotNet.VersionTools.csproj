@@ -11,6 +11,7 @@
     <CLSCompliant>false</CLSCompliant>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <NuGetTargetMoniker>.NETStandard,Version=v1.5</NuGetTargetMoniker>
+    <LangVersion>6</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>
@@ -30,7 +31,9 @@
     <Compile Include="Automation\LocalVersionsRepoUpdater.cs" />
     <Compile Include="Automation\GitHubVersionsRepoUpdater.cs" />
     <Compile Include="Automation\PullRequestOptions.cs" />
+    <Compile Include="BuildManifest\BuildManifestChange.cs" />
     <Compile Include="BuildManifest\BuildManifestClient.cs" />
+    <Compile Include="BuildManifest\BuildManifestLocation.cs" />
     <Compile Include="BuildManifest\ManifestChangeOutOfDateException.cs" />
     <Compile Include="BuildManifest\Model\ArtifactSet.cs" />
     <Compile Include="BuildManifest\Model\BlobArtifactModel.cs" />
@@ -41,6 +44,7 @@
     <Compile Include="BuildManifest\Model\OrchestratedBuildModel.cs" />
     <Compile Include="BuildManifest\Model\SemaphoreModel.cs" />
     <Compile Include="BuildManifest\Model\XElementParsingExtensions.cs" />
+    <Compile Include="BuildManifest\JoinSemaphoreGroup.cs" />
     <Compile Include="BuildManifest\SupplementaryUploadRequest.cs" />
     <Compile Include="Dependencies\BuildOutput\BuildDependencyInfo.cs" />
     <Compile Include="Dependencies\IDependencyInfo.cs" />

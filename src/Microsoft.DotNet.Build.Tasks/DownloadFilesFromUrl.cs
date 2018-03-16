@@ -4,6 +4,7 @@ using System.IO;
 using System.Net.Http;
 using System.Net;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.Build.Utilities;
 
 namespace Microsoft.DotNet.Build.Tasks
@@ -37,6 +38,11 @@ namespace Microsoft.DotNet.Build.Tasks
         public ITaskItem[] FilesCreated { get; set; }
 
         public override bool Execute()
+        {
+            return ExecuteAsync().GetAwaiter().GetResult();
+        }
+
+        private async Task<bool> ExecuteAsync()
         {
             if (Items == null || Items.Length <= 0)
             {
@@ -102,11 +108,11 @@ namespace Microsoft.DotNet.Build.Tasks
 
                         Log.LogMessage(MessageImportance.Normal, $"Downloading {downloadSource} -> {destinationFullPath}");
 
-                        using (Stream responseStream = client.GetStreamAsync(downloadUri).GetAwaiter().GetResult())
+                        using (Stream responseStream = await client.GetStreamAsync(downloadUri))
                         {
                             using (Stream destinationStream = File.OpenWrite(destinationFullPath))
                             {
-                                responseStream.CopyToAsync(destinationStream).GetAwaiter().GetResult();
+                                await responseStream.CopyToAsync(destinationStream);
                                 TaskItem createdItem = new TaskItem(destinationFullPath);
                                 item.CopyMetadataTo(createdItem);
                                 filesCreated.Add(createdItem);

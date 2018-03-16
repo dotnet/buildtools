@@ -41,7 +41,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public string FeedContainerUrl => AzureHelper.GetContainerRestUrl(AccountName, ContainerName);
 
-        public async Task<bool> CheckIfBlobExists(string blobPath)
+        public async Task<bool> CheckIfBlobExistsAsync(string blobPath)
         {
             string url = $"{FeedContainerUrl}/{blobPath}?comp=metadata";
             using (HttpClient client = new HttpClient())
@@ -67,21 +67,38 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             }
         }
 
-        public async Task<string> DownloadBlobAsString(string blobPath)
+        public async Task<string> DownloadBlobAsStringAsync(string blobPath)
+        {
+            using (HttpResponseMessage response = await DownloadBlobAsync(blobPath))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadAsStringAsync();
+                }
+                return null;
+            }
+        }
+
+        public async Task<byte[]> DownloadBlobAsBytesAsync(string blobPath)
+        {
+            using (HttpResponseMessage response = await DownloadBlobAsync(blobPath))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadAsByteArrayAsync();
+                }
+                return null;
+            }
+        }
+
+        private async Task<HttpResponseMessage> DownloadBlobAsync(string blobPath)
         {
             string url = $"{FeedContainerUrl}/{blobPath}";
             using (HttpClient client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Clear();
                 var request = AzureHelper.RequestMessage("GET", url, AccountName, AccountKey)();
-                using (HttpResponseMessage response = await client.SendAsync(request))
-                {
-                    if (response.IsSuccessStatusCode)
-                    {
-                        return await response.Content.ReadAsStringAsync();
-                    }
-                    return null;
-                }
+                return await client.SendAsync(request);
             }
         }
     }

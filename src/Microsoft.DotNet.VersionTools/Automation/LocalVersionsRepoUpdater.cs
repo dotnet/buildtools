@@ -2,21 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.DotNet.VersionTools.Automation.GitHubApi;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Microsoft.DotNet.VersionTools.Automation
 {
     public class LocalVersionsRepoUpdater : VersionsRepoUpdater
     {
+        public GitHubAuth GitHubAuth { get; set; }
+
         /// <summary>
-        /// Updates only the Latest_Packages file in the specified on-disk versions repository dir.
+        /// Create Latest_Packages, and if versionsRepoBranch is passed, Last_Build_Packages.
         /// </summary>
-        public void UpdateBuildInfoLatestPackages(
+        public async Task UpdateBuildInfoFilesAsync(
             IEnumerable<string> packagePaths,
             string localBaseDir,
-            string versionsRepoPath)
+            string versionsRepoPath,
+            GitHubBranch versionsRepoBranch)
         {
             if (packagePaths == null)
             {
@@ -31,17 +37,39 @@ namespace Microsoft.DotNet.VersionTools.Automation
                 throw new ArgumentException(nameof(versionsRepoPath));
             }
 
-            Dictionary<string, string> packages = CreatePackageInfoDictionary(CreatePackageInfos(packagePaths));
-
             string latestPackagesDir = Path.Combine(
                 localBaseDir,
                 versionsRepoPath);
 
             Directory.CreateDirectory(latestPackagesDir);
 
+            NupkgInfo[] packages = CreatePackageInfos(packagePaths).ToArray();
+
+            Dictionary<string, string> packageDictionary = CreatePackageInfoDictionary(packages);
+
+            if (versionsRepoBranch != null)
+            {
+                File.WriteAllText(
+                    Path.Combine(latestPackagesDir, BuildInfo.LastBuildPackagesTxtFilename),
+                    CreatePackageListContent(packageDictionary));
+
+                using (var client = new GitHubClient(GitHubAuth))
+                {
+                    await AddExistingPackages(
+                        client,
+                        versionsRepoBranch,
+                        versionsRepoPath,
+                        packageDictionary);
+                }
+            }
+
+            File.WriteAllText(
+                Path.Combine(latestPackagesDir, BuildInfo.LatestTxtFilename),
+                GetPrereleaseVersion(packages));
+
             File.WriteAllText(
                 Path.Combine(latestPackagesDir, BuildInfo.LatestPackagesTxtFilename),
-                CreatePackageListContent(packages));
+                CreatePackageListContent(packageDictionary));
         }
     }
 }

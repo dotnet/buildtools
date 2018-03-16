@@ -106,9 +106,6 @@
   <Import Project="IL.targets"
            Condition="'$(MSBuildProjectExtension)' == '.ilproj' AND '$(SkipImportILTargets)'!='true'" />
 
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets"
-          Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' and '$(MSBuildProjectExtension)' == '.csproj'" />
-
   <!--
       workaround file casing issue where it has different casing in different places which fails on linux builds
       https://github.com/dotnet/buildtools/issues/1464
@@ -118,11 +115,22 @@
     <CSharpTargetsFile Condition="!Exists('$(CSharpTargetsFile)')">$(MSBuildToolsPath)\Microsoft.CSharp.Targets</CSharpTargetsFile>
   </PropertyGroup>
 
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft.CSharp.targets"
+           Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' and '$(MSBuildProjectExtension)' == '.csproj' and '$(RunningOnCore)' == 'true'" />
+
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets"
+           Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' and '$(MSBuildProjectExtension)' == '.csproj' and '$(RunningOnCore)' != 'true'" />
+ 
+
   <Import Project="$(CSharpTargetsFile)"
           Condition="'$(TargetFrameworkIdentifier)' != '.NETPortable' and '$(MSBuildProjectExtension)' == '.csproj'" />
 
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft.VisualBasic.targets"
+           Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' and '$(MSBuildProjectExtension)' == '.vbproj' and '$(RunningOnCore)' == 'true'" />
+ 
+
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.VisualBasic.targets"
-          Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' and '$(MSBuildProjectExtension)' == '.vbproj'" />
+          Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' and '$(MSBuildProjectExtension)' == '.vbproj' and '$(RunningOnCore)' != 'true'" />
 
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets"
           Condition="'$(TargetFrameworkIdentifier)' != '.NETPortable' and '$(MSBuildProjectExtension)' == '.vbproj'" />

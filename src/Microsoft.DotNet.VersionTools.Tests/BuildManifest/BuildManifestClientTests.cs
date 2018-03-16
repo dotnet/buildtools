@@ -83,9 +83,7 @@ namespace Microsoft.DotNet.VersionTools.Tests.BuildManifest
                 .ReturnsAsync(() => null);
 
             await client.PushNewBuildAsync(
-                proj,
-                @ref,
-                basePath,
+                new BuildManifestLocation(proj, @ref, basePath),
                 build,
                 null,
                 message);
@@ -149,14 +147,12 @@ namespace Microsoft.DotNet.VersionTools.Tests.BuildManifest
                 .ReturnsAsync(() => null);
 
             await client.PushChangeAsync(
-                proj,
-                @ref,
-                basePath,
-                fakeExistingBuild.Identity.BuildId,
-                _ => { },
-                new[] { addSemaphorePath },
-                null,
-                message);
+                new BuildManifestChange(
+                    new BuildManifestLocation(proj, @ref, basePath),
+                    message,
+                    fakeExistingBuild.Identity.BuildId,
+                    new[] { addSemaphorePath },
+                    _ => { }));
 
             mockGitHub.VerifyAll();
         }
@@ -190,14 +186,13 @@ namespace Microsoft.DotNet.VersionTools.Tests.BuildManifest
 
             await Assert.ThrowsAsync<ManifestChangeOutOfDateException>(
                 async () => await client.PushChangeAsync(
-                    proj,
-                    @ref,
-                    basePath,
-                    fakeExistingBuild.Identity.BuildId,
-                    _ => { },
-                    new[] { addSemaphorePath },
-                    null,
-                    message));
+                    new BuildManifestChange(
+                        new BuildManifestLocation(proj, @ref, basePath),
+                        message,
+                        fakeExistingBuild.Identity.BuildId,
+                        new[] { addSemaphorePath },
+                        _ => { }
+                        )));
 
             mockGitHub.VerifyAll();
         }
@@ -245,9 +240,7 @@ namespace Microsoft.DotNet.VersionTools.Tests.BuildManifest
                 .ThrowsAsync(new NotFastForwardUpdateException("Testing non-fast-forward update."));
 
             await client.PushNewBuildAsync(
-                proj,
-                @ref,
-                basePath,
+                new BuildManifestLocation(proj, @ref, basePath),
                 build,
                 null,
                 message);
