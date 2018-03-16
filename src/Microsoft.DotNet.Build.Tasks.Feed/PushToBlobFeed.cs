@@ -16,7 +16,7 @@ using MSBuild = Microsoft.Build.Utilities;
 
 namespace Microsoft.DotNet.Build.Tasks.Feed
 {
-    public class PushToBlobFeed : MSBuild.Task
+    public partial class PushToBlobFeed : BuildTask
     {
         private static readonly char[] ManifestDataPairSeparators = { ';' };
         private const string DisableManifestPushConfigurationBlob = "disable-manifest-push";
@@ -32,6 +32,16 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         public ITaskItem[] ItemsToPush { get; set; }
 
         public bool Overwrite { get; set; }
+
+        /// <summary>
+        /// Enables idempotency when Overwrite is false.
+        /// 
+        /// false: (default) Attempting to upload an item that already exists fails.
+        /// 
+        /// true: When an item already exists, download the existing blob to check if it's
+        /// byte-for-byte identical to the one being uploaded. If so, pass. If not, fail.
+        /// </summary>
+        public bool PassIfExistingItemIdentical { get; set; }
 
         public bool PublishFlatContainer { get; set; }
 
@@ -108,7 +118,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
                         var packagePaths = packageItems.Select(i => i.ItemSpec);
 
-                        await blobFeedAction.PushToFeed(packagePaths, Overwrite);
+                        await blobFeedAction.PushToFeedAsync(packagePaths, CreatePushOptions());
                         await PublishToFlatContainerAsync(symbolItems, blobFeedAction);
 
                         packageArtifacts = ConcatPackageArtifacts(packageArtifacts, packageItems);
@@ -134,7 +144,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             IEnumerable<BlobArtifactModel> blobArtifacts,
             IEnumerable<PackageArtifactModel> packageArtifacts)
         {
-            bool disabledByBlob = await blobFeedAction.feed.CheckIfBlobExists(
+            bool disabledByBlob = await blobFeedAction.feed.CheckIfBlobExistsAsync(
                 $"{blobFeedAction.feed.RelativePath}{DisableManifestPushConfigurationBlob}");
 
             if (disabledByBlob)
@@ -147,7 +157,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
             string blobPath = $"{AssetsVirtualDir}{ManifestAssetOutputDir}{ManifestName}.xml";
 
-            string existingStr = await blobFeedAction.feed.DownloadBlobAsString(
+            string existingStr = await blobFeedAction.feed.DownloadBlobAsStringAsync(
                 $"{blobFeedAction.feed.RelativePath}{blobPath}");
 
             BuildModel buildModel;
@@ -186,11 +196,14 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
                 using (var clientThrottle = new SemaphoreSlim(MaxClients, MaxClients))
                 {
-                    await blobFeedAction.UploadAssets(
+                    await blobFeedAction.UploadAssetAsync(
                         item,
                         clientThrottle,
                         UploadTimeoutInMinutes,
-                        allowOverwrite: true);
+                        new PushOptions
+                        {
+                            AllowOverwrite = true
+                        });
                 }
             }
             finally
@@ -209,7 +222,12 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 using (var clientThrottle = new SemaphoreSlim(this.MaxClients, this.MaxClients))
                 {
                     Log.LogMessage($"Uploading {taskItems.Count()} items...");
-                    await Task.WhenAll(taskItems.Select(item => blobFeedAction.UploadAssets(item, clientThrottle, UploadTimeoutInMinutes, Overwrite)));
+                    await Task.WhenAll(taskItems.Select(
+                        item => blobFeedAction.UploadAssetAsync(
+                            item,
+                            clientThrottle,
+                            UploadTimeoutInMinutes,
+                            CreatePushOptions())));
                 }
             }
         }
@@ -287,6 +305,15 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 })
                 .Where(pair => pair != null)
                 .ToDictionary(pair => pair.Key, pair => pair.Value);
+        }
+
+        private PushOptions CreatePushOptions()
+        {
+            return new PushOptions
+            {
+                AllowOverwrite = Overwrite,
+                PassIfExistingItemIdentical = PassIfExistingItemIdentical
+            };
         }
     }
 }

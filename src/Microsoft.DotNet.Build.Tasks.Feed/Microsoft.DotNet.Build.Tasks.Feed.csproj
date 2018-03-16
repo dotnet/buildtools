@@ -21,6 +21,9 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(CommonPath)\BuildTask.cs">
+      <Link>BuildTask.cs</Link>
+    </Compile>
     <Compile Include="..\Microsoft.DotNet.Build.CloudTestTasks\AzureBlobLease.cs">
       <Link>AzureBlobLease.cs</Link>
     </Compile>
@@ -51,6 +54,7 @@
     <Compile Include="GetBlobFeedPackageList.cs" />
     <Compile Include="CopyBlobDirectory.cs" />
     <Compile Include="ParseBlobUrl.cs" />
+    <Compile Include="PushOptions.cs" />
     <Compile Include="PushToBlobFeed.cs" />
     <Compile Include="SleetLogger.cs" />
     <Compile Include="SleetSettings.cs" />

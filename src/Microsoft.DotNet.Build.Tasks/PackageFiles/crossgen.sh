@@ -18,7 +18,7 @@ restore_crossgen()
 
     __pjDir=$__toolsDir/crossgen
     mkdir -p $__pjDir
-    echo "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework><DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences><RuntimeIdentifiers>$__packageRid</RuntimeIdentifiers></PropertyGroup><ItemGroup><PackageReference Include=\"Microsoft.NETCore.App\" Version=\"$__sharedFxVersion\" /></ItemGroup></Project>" > "$__pjDir/crossgen.csproj"
+    echo "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><DisableImplicitNuGetFallbackFolder>false</DisableImplicitNuGetFallbackFolder><TreatWarningsAsErrors>false</TreatWarningsAsErrors><NoWarn>$(NoWarn);NU1605;NU1103</NoWarn><TargetFramework>netcoreapp2.0</TargetFramework><DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences><RuntimeIdentifiers>$__packageRid</RuntimeIdentifiers></PropertyGroup><ItemGroup><PackageReference Include=\"Microsoft.NETCore.App\" Version=\"$__sharedFxVersion\" /></ItemGroup></Project>" > "$__pjDir/crossgen.csproj"
     $__dotnet restore $__pjDir/crossgen.csproj --packages $__packagesDir --source $__MyGetFeed
     __crossgen=$__packagesDir/runtime.$__packageRid.microsoft.netcore.app/$__sharedFxVersion/tools/crossgen
     if [ ! -e $__crossgen ]; then

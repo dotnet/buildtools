@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
 using Microsoft.DotNet.VersionTools.BuildManifest.Model;
 using System.Linq;
 using System.Text;
@@ -11,7 +10,7 @@ using System.Xml.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
 {
-    public class WriteOrchestratedBuildManifestSummaryToFile : Task
+    public class WriteOrchestratedBuildManifestSummaryToFile : BuildTask
     {
         [Required]
         public string File { get; set; }
@@ -35,19 +34,15 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
 
             string sdkProductVersion = model.Builds
                 .FirstOrDefault(b => b.Name == "cli")
-                ?.BuildId;
+                ?.ProductVersion;
 
-            string runtimeProductVersion = blobFeed.Artifacts.Blobs
-                .FirstOrDefault(b =>
-                    b.Id.StartsWith("Runtime/") &&
-                    b.Id.EndsWith("/Microsoft.NET.CoreRuntime.2.1.appx"))
-                ?.Id.Split('/')[1];
+            string runtimeProductVersion = model.Builds
+                .FirstOrDefault(b => b.Name == "core-setup")
+                ?.ProductVersion;
 
-            string aspnetProductVersion = blobFeed.Artifacts.Blobs
-                .FirstOrDefault(b =>
-                    b.Id.StartsWith("Runtime/") &&
-                    b.Id.EndsWith("/aspnetcore_base_runtime.version"))
-                ?.Id.Split('/')[1];
+            string aspnetProductVersion = model.Builds
+                .FirstOrDefault(b => b.Name == "aspnet")
+                ?.ProductVersion;
 
             var builder = new StringBuilder();
 
