@@ -36,6 +36,7 @@ namespace Microsoft.Cci.Traversers
 
         public virtual void Visit(IEnumerable<INamespaceDefinition> namespaces)
         {
+            namespaces = namespaces.Where(_filter.Include);
             namespaces = namespaces.Where(ns => ns.GetTypes(this.IncludeForwardedTypes).Any(_filter.Include));
             namespaces = namespaces.OrderBy(GetNamespaceKey, StringComparer.OrdinalIgnoreCase);
 
