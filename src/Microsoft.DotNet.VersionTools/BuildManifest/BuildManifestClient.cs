@@ -33,7 +33,14 @@ namespace Microsoft.DotNet.VersionTools.BuildManifest
             string @ref,
             string basePath)
         {
-            return OrchestratedBuildModel.Parse(await FetchModelXmlAsync(project, @ref, basePath));
+            XElement contents = await FetchModelXmlAsync(project, @ref, basePath);
+
+            if (contents == null)
+            {
+                return null;
+            }
+
+            return OrchestratedBuildModel.Parse(contents);
         }
 
         public async Task<SemaphoreModel> FetchSemaphoreAsync(
@@ -200,6 +207,11 @@ namespace Microsoft.DotNet.VersionTools.BuildManifest
                 $"{basePath}/{BuildManifestXmlName}",
                 project,
                 @ref);
+
+            if (contents == null)
+            {
+                return null;
+            }
 
             return XElement.Parse(contents);
         }
