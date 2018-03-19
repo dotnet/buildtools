@@ -333,6 +333,23 @@ namespace Microsoft.Cci.Extensions.CSharp
             return false;
         }
 
+        public static bool IsDispose(this IMethodDefinition methodDefinition)
+        {
+            if ((methodDefinition.Name.Value != "Dispose" && methodDefinition.Name.Value != "System.IDisposable.Dispose") || methodDefinition.ParameterCount > 1 ||
+                !TypeHelper.TypesAreEquivalent(methodDefinition.Type, methodDefinition.ContainingTypeDefinition.PlatformType.SystemVoid))
+            {
+                return false;
+            }
+
+            if (methodDefinition.ParameterCount == 1 && !TypeHelper.TypesAreEquivalent(methodDefinition.Parameters.First().Type, methodDefinition.ContainingTypeDefinition.PlatformType.SystemBoolean))
+            {
+                // Dispose(Boolean) its only parameter should be bool
+                return false;
+            }
+
+            return true;
+        }
+
         public static bool IsAssembly(this ITypeDefinitionMember member)
         {
             return member.Visibility == TypeMemberVisibility.FamilyAndAssembly ||

@@ -25,7 +25,10 @@ namespace Microsoft.Cci.Writers.CSharp
 
             if (method.IsDestructor())
             {
-                WriteDestructor(method);
+                // If platformNotSupportedExceptionMessage is != null we're generating a dummy assembly which means we don't need a destructor at all.
+                if(_platformNotSupportedExceptionMessage == null)
+                    WriteDestructor(method);
+
                 return;
             }
 
@@ -47,7 +50,7 @@ namespace Microsoft.Cci.Writers.CSharp
             WriteIdentifier(((INamedEntity)method.ContainingTypeDefinition).Name);
             WriteSymbol("(");
             WriteSymbol(")", false);
-            WriteMethodBody(method);
+            WriteEmptyBody();
         }
 
         private void WriteTypeName(ITypeReference type, ITypeReference containingType, bool isDynamic = false)
@@ -213,7 +216,7 @@ namespace Microsoft.Cci.Writers.CSharp
             WriteSpace();
             WriteSymbol("{", true);
 
-            if (_platformNotSupportedExceptionMessage != null)
+            if (_platformNotSupportedExceptionMessage != null && !method.IsDispose())
             {
                 Write("throw new ");
                 if (_forCompilationIncludeGlobalprefix)
