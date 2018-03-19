@@ -7,6 +7,7 @@ import time
 import sys
 import subprocess
 import string
+import traceback
 
 def get_timestamp():
   print(time.time())
@@ -31,7 +32,7 @@ def install_dumpling():
   except  urllib2.URLError, e:
     print(e.reason)
   except:
-    print("An unexpected error was encountered while installing dumpling.py: " + sys.exc_info()[0])
+    print("An unexpected error was encountered while installing dumpling.py: " + traceback.format_exc())
 
 def ensure_installed():
   if (not os.path.isfile(dumplingPath)):
