@@ -16,14 +16,6 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
     {
         public string CurrentRefXmlPath { get; set; }
 
-        /// <summary>
-        /// If provided, GitHub authentication info is used to fetch the remote dotnet/versions
-        /// commit. The anonymous user rate limit is small, and this can be used to use an account's
-        /// quota instead. The "...AndSubmitPullRequest" subclass also uses this to create the PR.
-        /// </summary>
-        public string GitHubAuthToken { get; set; }
-        public string GitHubUser { get; set; }
-
         [Output]
         public bool MadeChanges { get; set; }
 

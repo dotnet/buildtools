@@ -55,6 +55,8 @@
     <Compile Include="Automation\GitHubProject.cs" />
     <Compile Include="Automation\PullRequestCreator.cs" />
     <Compile Include="Automation\GitHubApi\GitHubApiModel.cs" />
+    <Compile Include="Dependencies\BuildManifest\OrchestratedBuildDependencyInfo.cs" />
+    <Compile Include="Dependencies\Submodule\OrchestratedBuildSubmoduleUpdater.cs" />
     <Compile Include="Dependencies\Submodule\SubmoduleDependencyInfo.cs" />
     <Compile Include="Dependencies\BuildOutput\ToolVersionsUpdater.cs" />
     <Compile Include="Dependencies\BuildOutput\FilePackageUpdater.cs" />
