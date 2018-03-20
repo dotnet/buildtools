@@ -116,7 +116,9 @@ namespace GenFacades
                                     partialFacadeAssembly.AssemblyIdentity));
                         }
 
-                        Assembly filledPartialFacade = facadeGenerator.GenerateFacade(contractAssembly, seedCoreAssemblyRef, ignoreMissingTypes, overrideContractAssembly: partialFacadeAssembly);
+                        Assembly filledPartialFacade = facadeGenerator.GenerateFacade(contractAssembly, seedCoreAssemblyRef, ignoreMissingTypes, 
+                            overrideContractAssembly: partialFacadeAssembly, 
+                            forceAssemblyReferenceVersionsToZero: forceZeroVersionSeeds);
 
                         if (filledPartialFacade == null)
                         {
@@ -402,7 +404,11 @@ namespace GenFacades
                 _assemblyFileVersion = assemblyFileVersion;
             }
 
-            public Assembly GenerateFacade(IAssembly contractAssembly, IAssemblyReference seedCoreAssemblyReference, bool ignoreMissingTypes, IAssembly overrideContractAssembly = null, bool buildPartialReferenceFacade = false)
+            public Assembly GenerateFacade(IAssembly contractAssembly, 
+                IAssemblyReference seedCoreAssemblyReference, 
+                bool ignoreMissingTypes, IAssembly overrideContractAssembly = null,
+                bool buildPartialReferenceFacade = false, 
+                bool forceAssemblyReferenceVersionsToZero = false)
             {
                 Assembly assembly;
                 if (overrideContractAssembly != null)
@@ -420,6 +426,14 @@ namespace GenFacades
                     {
                         ReferenceAssemblyToFacadeRewriter rewriter = new ReferenceAssemblyToFacadeRewriter(_seedHost, _contractHost, seedCoreAssemblyReference, _assemblyFileVersion != null);
                         rewriter.Rewrite(assembly);
+                    }
+                }
+
+                if (forceAssemblyReferenceVersionsToZero)
+                {
+                    foreach (AssemblyReference ar in assembly.AssemblyReferences)
+                    {
+                        ar.Version = new Version(0, 0, 0, 0);
                     }
                 }
 

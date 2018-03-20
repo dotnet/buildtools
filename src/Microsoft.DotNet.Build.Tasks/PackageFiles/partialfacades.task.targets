@@ -68,8 +68,14 @@
       FacadePath="$(GenFacadesOutputPath.TrimEnd('/'))"
       SeedTypePreferencesUnsplit="@(SeedTypePreference)"
       ProducePdb="$(ProducePdb)"
+      ClearBuildAndRevision="$(GenFacadesClearBuildAndRevision)"
       IgnoreMissingTypes="$(GenFacadesIgnoreMissingTypes)"
       IgnoreBuildAndRevisionMismatch="$(GenFacadesIgnoreBuildAndRevisionMismatch)"
+      BuildDesignTimeFacades="$(GenFacadesBuildDesignTimeFacades)"
+      InclusionContracts="$(GenFacadesInclusionContracts)"
+      SeedLoadErrorTreatment="$(GenFacadesSeedLoadErrorTreatment)"
+      ContractLoadErrorTreatment="$(GenFacadesContractLoadErrorTreatment)"
+      ForceZeroVersionSeeds="$(GenFacadesForceZeroVersionSeeds)"
       BuildPartialReferenceFacade="$(GenFacadesBuildPartialReferenceFacade)"
     />
 
