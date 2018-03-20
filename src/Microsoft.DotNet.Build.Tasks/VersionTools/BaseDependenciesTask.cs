@@ -4,7 +4,11 @@
 
 using Microsoft.Build.Framework;
 using Microsoft.DotNet.VersionTools;
+using Microsoft.DotNet.VersionTools.Automation;
+using Microsoft.DotNet.VersionTools.Automation.GitHubApi;
+using Microsoft.DotNet.VersionTools.BuildManifest;
 using Microsoft.DotNet.VersionTools.Dependencies;
+using Microsoft.DotNet.VersionTools.Dependencies.BuildManifest;
 using Microsoft.DotNet.VersionTools.Dependencies.BuildOutput;
 using Microsoft.DotNet.VersionTools.Dependencies.Submodule;
 using System;
@@ -35,9 +39,32 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 
         public string BuildInfoCacheDir { get; set; }
 
+        /// <summary>
+        /// GitHub personal authentication token (PAT). If no PAT is provided, API calls are
+        /// performed anonymously. This works for operations that don't need any permissions, like
+        /// fetching the latest dotnet/versions commit hash. It is always preferable to supply a PAT
+        /// because the anonymous user rate limit is small and per-IP.
+        /// </summary>
+        public string GitHubAuthToken { get; set; }
+        public string GitHubUser { get; set; }
+
+        /// <summary>
+        /// A potentially authenticated GitHub client. Only valid during TraceListenedExecute.
+        /// </summary>
+        protected GitHubClient GitHubClient { get; private set; }
+
         public override bool Execute()
         {
-            Trace.Listeners.MsBuildListenedInvoke(Log, TraceListenedExecute);
+            GitHubAuth auth = null;
+            if (!string.IsNullOrEmpty(GitHubAuthToken))
+            {
+                auth = new GitHubAuth(GitHubAuthToken, GitHubUser);
+            }
+
+            using (GitHubClient = new GitHubClient(auth))
+            {
+                Trace.Listeners.MsBuildListenedInvoke(Log, TraceListenedExecute);
+            }
             return !Log.HasLoggedErrors;
         }
 
@@ -95,6 +122,15 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                         };
                         break;
 
+                    case "Submodule from orchestrated build":
+                        yield return new OrchestratedBuildSubmoduleUpdater
+                        {
+                            Path = GetRequiredMetadata(step, "Path"),
+                            BuildName = GetRequiredMetadata(step, "BuildName"),
+                            GitUrl = GetRequiredMetadata(step, "GitUrl")
+                        };
+                        break;
+
                     default:
                         throw new NotSupportedException(
                             $"Unsupported updater '{step.ItemSpec}': UpdaterType '{type}'.");
@@ -117,10 +153,7 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                 switch (type)
                 {
                     case "Build":
-                        if (versionsCommit != null)
-                        {
-                            ReplaceExistingMetadata(info, CurrentRefMetadataName, versionsCommit);
-                        }
+                        SetVersionsCommitOverride(info, versionsCommit);
                         yield return CreateBuildInfoDependency(info, BuildInfoCacheDir);
                         break;
 
@@ -130,6 +163,18 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                             GetRequiredMetadata(info, "Ref"),
                             GetRequiredMetadata(info, "Path"),
                             remote);
+                        break;
+
+                    case "Orchestrated build":
+                        SetVersionsCommitOverride(info, versionsCommit);
+                        yield return OrchestratedBuildDependencyInfo.CreateAsync(
+                            info.ItemSpec,
+                            new GitHubProject(
+                                GetRequiredMetadata(info, "VersionsRepo"),
+                                GetRequiredMetadata(info, "VersionsRepoOwner")),
+                            GetRequiredMetadata(info, CurrentRefMetadataName),
+                            GetRequiredMetadata(info, "BasePath"),
+                            new BuildManifestClient(GitHubClient)).Result;
                         break;
 
                     default:
@@ -252,6 +297,14 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                     $"On '{item.ItemSpec}', did not find required '{name}' metadata.");
             }
             return metadata;
+        }
+
+        private static void SetVersionsCommitOverride(ITaskItem item, string versionsCommit)
+        {
+            if (versionsCommit != null)
+            {
+                ReplaceExistingMetadata(item, CurrentRefMetadataName, versionsCommit);
+            }
         }
 
         private static void ReplaceExistingMetadata(ITaskItem item, string name, string value)

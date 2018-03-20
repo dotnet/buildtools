@@ -56,7 +56,7 @@
     'TargetSubmodule' property to the name/path of the submodule.
   -->
   <Target Name="CreateDefaultSubmoduleUpdateSteps"
-          Condition="'$(GitModulesPath)' != ''">
+          Condition="'$(CreateDefaultSubmoduleUpdateSteps)' == 'true'">
     <ReadGitConfigFile File="$(GitModulesPath)">
       <Output TaskParameter="SubmoduleConfiguration" ItemName="SubmoduleConfiguration" />
     </ReadGitConfigFile>
@@ -112,7 +112,9 @@
     <UpdateDependencies DependencyInfo="@(DependencyInfo)"
                         ProjectJsonFiles="@(ProjectJsonFiles)"
                         UpdateStep="@(UpdateStep)"
-                        BuildInfoCacheDir="$(BuildInfoCacheDir)" />
+                        BuildInfoCacheDir="$(BuildInfoCacheDir)"
+                        GitHubAuthToken="$(GitHubAuthToken)"
+                        GitHubUser="$(GitHubUser)" />
   </Target>
 
   <Target Name="VerifyDependencies"
