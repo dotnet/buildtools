@@ -264,8 +264,8 @@
       Condition="'$(SkipVersionGeneration)' != 'true' AND '$(VersionPropsImported)' != 'true'">
 
     <!-- ############################### -->
-    <Exec Command="git rev-parse --abbrev-ref HEAD 2>&amp;1" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true" Condition="'$(GitBranchName)' == ''">
-      <Output TaskParameter="ConsoleOutput" PropertyName="GitBranchName" />
+    <Exec Command="git describe --all HEAD 2>&amp;1" StandardOutputImportance="Low" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ConsoleToMSBuild="true" Condition="'$(RawGitBranchName)' == ''">
+      <Output TaskParameter="ConsoleOutput" PropertyName="RawGitBranchName" />
     </Exec>
 
     <!-- ############################### -->
@@ -283,6 +283,16 @@
     <PropertyGroup Condition="'$(LatestCommitExitCode)'!='0'">
       <LatestCommit>N/A</LatestCommit>
     </PropertyGroup>
+
+    <!-- If things match expected patterns, create $(GitBranchName) from $(RawGitBranchName) -->
+    <Message Importance="high" Text="GIT Branch Name as seen by git describe: '$(RawGitBranchName)'" /> 
+    <PropertyGroup Condition="$(RawGitBranchName.StartsWith('heads/'))">
+      <GitBranchName>$(RawGitBranchName.SubString(6))</GitBranchName>
+    </PropertyGroup>
+    <PropertyGroup Condition="$(RawGitBranchName.StartsWith('remotes/origin/'))">
+      <GitBranchName>$(RawGitBranchName.SubString(15))</GitBranchName>
+    </PropertyGroup>
+    <Message Importance="high" Text="GIT Branch Name: '$(GitBranchName)'" /> 
 
     <!-- The GitHubOwnerName is the name of the entity that 'owns' a particular github repository (e.g the 'dotnet in https://github/dotnet/coreclr) -->
     <!-- we assume by default that these build tools are used by the 'dotnet' group.  This can be overridden. -->
