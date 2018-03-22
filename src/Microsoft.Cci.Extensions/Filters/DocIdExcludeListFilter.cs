@@ -28,7 +28,13 @@ namespace Microsoft.Cci.Filters
         public bool Include(INamespaceDefinition ns)
         {
             // Only include non-empty namespaces
-            return ns.GetTypes().Any(Include);
+            if (!ns.GetTypes().Any(Include))
+                return false;
+
+            string namespaceId = ns.DocId();
+
+            // include so long as it isn't in the exclude list.
+            return !_docIds.Contains(namespaceId);
         }
 
         public bool Include(ITypeDefinition type)
