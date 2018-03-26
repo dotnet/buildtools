@@ -1,11 +1,12 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
+    <!-- For the separate package scenario (not BuildTools) we need to pick up the right version of the assembly.  -->
+    <!-- This will only work on versions of MSBuild that supply MSBuildRuntimeType (defaults to core in this case. -->
     <BuildToolsTaskDir Condition="'$(BuildToolsTaskDir)'=='' And '$(MSBuildRuntimeType)' == 'Core'">$(MSBuildThisFileDirectory)</BuildToolsTaskDir>
     <BuildToolsTaskDir Condition="'$(BuildToolsTaskDir)'=='' And '$(MSBuildRuntimeType)' == 'Full'">$(MSBuildThisFileDirectory)\desktop\</BuildToolsTaskDir>
   </PropertyGroup>
-    
-  
+
   <UsingTask TaskName="CreateAzureContainer"             AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="RemoveItemMetadata"               AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="SendJobsToHelix"                  AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
