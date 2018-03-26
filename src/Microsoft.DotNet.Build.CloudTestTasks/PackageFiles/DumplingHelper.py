@@ -15,7 +15,7 @@ def get_timestamp():
 def install_dumpling():
   try:
     if (not os.path.isfile(dumplingPath)):
-      url = "https://dumpling.azurewebsites.net/api/client/dumpling.py"
+      url = "https://dumpling.int-dot.net/api/client/dumpling.py"
       scriptPath = os.path.dirname(os.path.realpath(__file__))
       downloadLocation = scriptPath + "/dumpling.py"
       response = urllib2.urlopen(url)
