@@ -1,5 +1,11 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <PropertyGroup>
+    <BuildToolsTaskDir Condition="'$(BuildToolsTaskDir)'=='' And '$(MSBuildRuntimeType)' == 'Core'">$(MSBuildThisFileDirectory)</BuildToolsTaskDir>
+    <BuildToolsTaskDir Condition="'$(BuildToolsTaskDir)'=='' And '$(MSBuildRuntimeType)' == 'Full'">$(MSBuildThisFileDirectory)\desktop\</BuildToolsTaskDir>
+  </PropertyGroup>
+    
+  
   <UsingTask TaskName="CreateAzureContainer"             AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="RemoveItemMetadata"               AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
   <UsingTask TaskName="SendJobsToHelix"                  AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.CloudTestTasks.dll"/>
