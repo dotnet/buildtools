@@ -27,10 +27,16 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         /// </summary>
         public String WorkItemArchiveRoot { get; set; }
 
-        private readonly string[] requiredMetadataFields = { "TimeoutInSeconds", "Command", "PayloadFile" };
+        private readonly string[] requiredMetadataFields = { "TimeoutInSeconds", "Command" };
 
         public override bool Execute()
         {
+            if (WorkItems == null || WorkItems.Length == 0)
+            {
+                Log.LogError("No work items supplied to verify. Please review msbuild logs; this is often the result of a pathing or build error earlier on.");
+                return false;
+            }
+
             bool success = true;
             foreach (ITaskItem workItem in WorkItems)
             {
