@@ -4,8 +4,8 @@ namespace Microsoft.DotNet.Build.Tasks
     {
         public override bool Execute()
         {
-            Log.LogMessage($"This BuildTask has been deprecated.");
-            return false;
+            Log.LogWarning($"This BuildTask has been deprecated in favor of maintenance jobs.");
+            return true;
         }
     }
 }
