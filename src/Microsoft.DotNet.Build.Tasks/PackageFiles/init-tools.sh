@@ -34,8 +34,6 @@ __PUBLISH_TFM=netcoreapp2.0
 __INIT_TOOLS_RESTORE_ARGS="--source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json ${__INIT_TOOLS_RESTORE_ARGS:-}"
 __TOOLRUNTIME_RESTORE_ARGS="--source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json ${__INIT_TOOLS_RESTORE_ARGS}"
 
-echo "Checking if the passed arguments are valid paths."
-
 if [ ! -d "$__PROJECT_DIR" ]; then
     echo "ERROR: Cannot find project root path at '$__PROJECT_DIR'. Please pass in the source directory as the 1st parameter."
     exit 1
@@ -50,8 +48,6 @@ if [ -z "$__TOOLRUNTIME_DIR" ]; then
     echo "ERROR: Please pass in the tools directory as the 3rd parameter."
     exit 1
 fi
-
-echo "The passed arguments are valid paths."
 
 if [ ! -d "$__TOOLRUNTIME_DIR" ]; then
     mkdir $__TOOLRUNTIME_DIR
@@ -138,7 +134,7 @@ if [ "$__PACKAGE_VERSION_PROPS_URL" ]; then
         echo "$download_Method returned exit code $exit_Code"
     fi
 
-    echo "Downloaded package version props:"
+    echo "Successfully downloaded package version props:"
     cat "$__PACKAGE_VERSION_PROPS_PATH"
 fi
 

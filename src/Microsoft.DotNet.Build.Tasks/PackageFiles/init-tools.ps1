@@ -24,7 +24,12 @@ New-Item -Force -Type Directory (Join-Path $ToolRuntimePath (Split-Path -Leaf (S
 $packageVersionPropsUrl = $env:PACKAGEVERSIONPROPSURL
 $packageVersionPropsPath = Join-Path $ToolRuntimePath "DownloadedPackageVersions.props"
 
-if ($packageVersionPropsUrl)
+if (!$packageVersionPropsUrl)
+{
+    Write-Host "Environment variable PACKAGEVERSIONPROPSURL is not defined"
+    return
+}
+else
 {
     Write-Host "Downloading package version props from '$packageVersionPropsUrl' to '$packageVersionPropsPath'..."
 
@@ -63,10 +68,6 @@ if ($packageVersionPropsUrl)
         }
     } while ($success -eq $false);
 
-    Write-Host "Downloaded package version props:"
+    Write-Host "Successfully downloaded package version props:"
     Get-Content $packageVersionPropsPath
-}
-else
-{
-    Write-Host "'$packageVersionPropsUrl' url does not exist."
 }
