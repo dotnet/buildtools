@@ -10,11 +10,32 @@ function print_info_from_core_file_using_lldb {
 
   # check for existence of lldb-3.9 on the path
   hash lldb-3.9 2>/dev/null || { echo >&2 "lldb-3.9 was not found. Unable to print core file."; return; }
+
+  # pe and clrstack are defined in libsosplugin.so
+  if [ ! -f $plugin_path_name ]; then
+    echo $plugin_path_name cannot be found.
+    return
+  fi
+
   echo ----- start ===============  lldb Output =====================================================
-  # clrstack can throw exception if there is no managed call stack. so we are doing it at kast
-  echo Printing native call stack followed by managed exceptions and managed call stack.
-  lldb-3.9 -O "settings set target.exec-search-paths $RUNTIME_PATH" -o "plugin load $plugin_path_name" -o "bt all" -o "pe -nested" -o "clrstack -all" -o "quit"  --core $core_file_name $executable_name
+  echo Printing managed exceptions and managed call stack.
+  lldb-3.9 -O "settings set target.exec-search-paths $RUNTIME_PATH" -o "plugin load $plugin_path_name" -o "pe -nested" -o "clrstack -a -f" -o "quit"  --core $core_file_name $executable_name
   echo ----- end ===============  lldb Output =======================================================
+}
+
+function print_info_from_core_file_using_gdb {
+  local core_file_name=$1
+  local executable_name=$2
+
+  # Check for the existence of GDB on the path
+  hash gdb 2>/dev/null || { echo >&2 "GDB was not found. Unable to print core file."; return; }
+
+  echo ----- start ===============  GDB Output =====================================================
+  # Open the dump in GDB and print the stack from each thread. We can add more
+  # commands here if desired.
+  echo printing native stack.
+  gdb --batch -ex "thread apply all bt full" -ex "quit" $executable_name $core_file_name
+  echo ----- end ===============  GDB Output =======================================================
 }
 
 function print_info_from_core_file {
@@ -28,19 +49,9 @@ function print_info_from_core_file {
     echo "Unable to find core file $core_file_name"
     return
   fi
-
-  print_info_from_core_file_using_lldb $core_file_name $executable_name
-
-  # Check for the existence of GDB on the path
-  hash gdb 2>/dev/null || { echo >&2 "GDB was not found. Unable to print core file."; return; }
-
-  echo ----- start ===============  GDB Output =====================================================
   echo "Printing info from core file $core_file_name"
-
-  # Open the dump in GDB and print the stack from each thread. We can add more
-  # commands here if desired.
-  gdb --batch -ex "thread apply all bt full" -ex "quit" $executable_name $core_file_name
-  echo ----- end ===============  Gdb Output =======================================================
+  print_info_from_core_file_using_lldb $core_file_name $executable_name
+  print_info_from_core_file_using_gdb $core_file_name $executable_name
 }
 
 function copy_core_file_to_temp_location {
