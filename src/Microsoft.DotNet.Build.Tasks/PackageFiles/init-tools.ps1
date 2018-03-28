@@ -39,6 +39,7 @@ if ($packageVersionPropsUrl)
             $wc = New-Object Net.WebClient
             if ($proxyCredentialsRequired)
             {
+                Write-Host "Proxy Authentication Required. Trying to download the package using proxy credentials."
                 [Net.WebRequest]::DefaultWebProxy.Credentials = [Net.CredentialCache]::DefaultNetworkCredentials
             }
             $wc.DownloadFile($packageVersionPropsUrl, $packageVersionPropsPath)
@@ -48,6 +49,7 @@ if ($packageVersionPropsUrl)
         {
             if ($retryCount -ge 6)
             {
+                Write-Host "Downloading package failed after retrying $retryCount times."
                 throw
             }
             else
@@ -56,10 +58,15 @@ if ($packageVersionPropsUrl)
                 $proxyCredentialsRequired = ($we -ne $null -and ([Net.HttpWebResponse]$we.Response).StatusCode -eq [Net.HttpStatusCode]::ProxyAuthenticationRequired)
                 Start-Sleep -Seconds (5 * $retryCount)
                 $retryCount++
-            } 
+            }
+            Write-Host "Failed to download '$packageVersionPropsPath'. Trying again..."
         }
     } while ($success -eq $false);
 
     Write-Host "Downloaded package version props:"
     Get-Content $packageVersionPropsPath
+}
+else
+{
+    Write-Host "'$packageVersionPropsUrl' url does not exist."
 }
