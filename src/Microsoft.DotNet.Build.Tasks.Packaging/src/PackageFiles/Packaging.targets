@@ -721,12 +721,8 @@
       <Output TaskParameter="TrimmedDependencies" ItemName="FilePackageDependency" />
     </CreateTrimDependencyGroups>
 
-    <ItemGroup>
-      <NonEmptyFilePackageDependency Include="@(FilePackageDependency)" Condition="'%(FilePackageDependency.Identity)' != '_._'" />
-    </ItemGroup>
-
     <!-- Promote dependencies from ref to lib and vice-versa -->
-    <PromoteDependencies Dependencies="@(NonEmptyFilePackageDependency)"
+    <PromoteDependencies Dependencies="@(FilePackageDependency)"
                          PackageIndexes="@(PackageIndex)"
                          Condition="'@(FilePackageDependency)' != ''">
       <Output TaskParameter="PromotedDependencies" ItemName="FilePackageDependency" />
