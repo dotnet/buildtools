@@ -47,9 +47,8 @@
                                                  '$(MSBuildToolsVersion)' == '4.0' OR
                                                  '$(MSBuildToolsVersion)' == '12.0' OR
                                                  '$(MSBuildToolsVersion)' == '14.0'">true</RoslynIncompatibleMsbuildVersion>
-    <UseRoslynCompilers Condition="'$(UseRoslynCompilers)'=='' and '$(RunningOnUnix)'=='true'">false</UseRoslynCompilers>
     <!-- UseSharedCompilation is not supported in MSBuild 14.0 with the new version of roslyn, so make sure we are not using that for building -->
-    <UseSharedCompilation Condition="'$(UseSharedCompilation)' == '' and '$(RunningOnUnix)' != 'true' and '$(UseRoslynCompilers)' != 'false' and '$(RoslynIncompatibleMsbuildVersion)' != 'true'">true</UseSharedCompilation>
+    <UseSharedCompilation Condition="'$(UseSharedCompilation)' == '' and '$(UseRoslynCompilers)' != 'false' and '$(RoslynIncompatibleMsbuildVersion)' != 'true'">true</UseSharedCompilation>
     <GenFacadesIgnoreBuildAndRevisionMismatch>true</GenFacadesIgnoreBuildAndRevisionMismatch>
   </PropertyGroup>
 

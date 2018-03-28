@@ -40,7 +40,8 @@
 
     <PropertyGroup>
       <ProducePdb>true</ProducePdb>
-      <ProducePdb Condition="'$(DebugSymbols)' == 'false' OR '$(OSGroup)' != 'Windows_NT'">false</ProducePdb>
+      <!-- Partial facade PDB generation only functions on Windows -->
+      <ProducePdb Condition="'$(DebugSymbols)' == 'false' OR '$(RunningOnUnix)' == 'true'">false</ProducePdb>
       <GenFacadesIgnoreMissingTypes Condition="'$(GenFacadesIgnoreMissingTypes)' == ''">false</GenFacadesIgnoreMissingTypes>
       <GenFacadesIgnoreBuildAndRevisionMismatch Condition="'$(GenFacadesIgnoreBuildAndRevisionMismatch)' == ''">false</GenFacadesIgnoreBuildAndRevisionMismatch>
     </PropertyGroup>
@@ -67,8 +68,14 @@
       FacadePath="$(GenFacadesOutputPath.TrimEnd('/'))"
       SeedTypePreferencesUnsplit="@(SeedTypePreference)"
       ProducePdb="$(ProducePdb)"
+      ClearBuildAndRevision="$(GenFacadesClearBuildAndRevision)"
       IgnoreMissingTypes="$(GenFacadesIgnoreMissingTypes)"
       IgnoreBuildAndRevisionMismatch="$(GenFacadesIgnoreBuildAndRevisionMismatch)"
+      BuildDesignTimeFacades="$(GenFacadesBuildDesignTimeFacades)"
+      InclusionContracts="$(GenFacadesInclusionContracts)"
+      SeedLoadErrorTreatment="$(GenFacadesSeedLoadErrorTreatment)"
+      ContractLoadErrorTreatment="$(GenFacadesContractLoadErrorTreatment)"
+      ForceZeroVersionSeeds="$(GenFacadesForceZeroVersionSeeds)"
       BuildPartialReferenceFacade="$(GenFacadesBuildPartialReferenceFacade)"
     />
 
