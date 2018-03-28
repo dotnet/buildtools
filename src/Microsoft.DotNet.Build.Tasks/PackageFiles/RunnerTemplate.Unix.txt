@@ -3,6 +3,20 @@
 export RUNTIME_PATH=$1
 export EXECUTION_DIR=$(dirname "$0")
 
+function print_info_from_core_file_using_lldb {
+  local core_file_name=$1
+  local executable_name=$2
+  local plugin_path_name="$RUNTIME_PATH/shared/Microsoft.NETCore.App/9.9.9/libsosplugin.so"
+
+  # check for existence of lldb-3.9 on the path
+  hash lldb-3.9 2>/dev/null || { echo >&2 "lldb-3.9 was not found. Unable to print core file."; return; }
+  echo ----- start ===============  lldb Output =====================================================
+  # clrstack can throw exception if there is no managed call stack. so we are doing it at kast
+  echo Printing native call stack followed by managed exceptions and managed call stack.
+  lldb-3.9 -O "settings set target.exec-search-paths $RUNTIME_PATH" -o "plugin load $plugin_path_name" -o "bt all" -o "pe -nested" -o "clrstack -all" -o "quit"  --core $core_file_name $executable_name
+  echo ----- end ===============  lldb Output =======================================================
+}
+
 function print_info_from_core_file {
   local core_file_name=$1
   local executable_name=$RUNTIME_PATH/$2
@@ -15,14 +29,18 @@ function print_info_from_core_file {
     return
   fi
 
+  print_info_from_core_file_using_lldb $core_file_name $executable_name
+
   # Check for the existence of GDB on the path
   hash gdb 2>/dev/null || { echo >&2 "GDB was not found. Unable to print core file."; return; }
 
+  echo ----- start ===============  GDB Output =====================================================
   echo "Printing info from core file $core_file_name"
 
   # Open the dump in GDB and print the stack from each thread. We can add more
   # commands here if desired.
   gdb --batch -ex "thread apply all bt full" -ex "quit" $executable_name $core_file_name
+  echo ----- end ===============  Gdb Output =======================================================
 }
 
 function copy_core_file_to_temp_location {
