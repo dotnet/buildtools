@@ -73,12 +73,6 @@ namespace Xunit.ConsoleClient
                     Errors = Errors
                 });
 
-            if (watcher != null)
-            {
-            //    watcher.Interrupt();
-                //watcher.Abort();
-            //    watcher = null;
-            }
             runningTests = null;
             clock.Stop();
             return result;
