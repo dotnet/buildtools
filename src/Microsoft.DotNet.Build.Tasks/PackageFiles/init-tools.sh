@@ -130,7 +130,7 @@ if [ "$__PACKAGE_VERSION_PROPS_URL" ]; then
         download_Method="wget"
     fi
 
-    if [ $ret -ne 0 ];then
+    if [ $exit_Code -ne 0 ]; then
         echo "$download_Method returned exit code $exit_Code"
     fi
 
