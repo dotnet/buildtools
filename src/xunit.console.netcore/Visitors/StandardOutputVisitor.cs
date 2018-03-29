@@ -267,7 +267,7 @@ namespace Xunit.ConsoleClient
                         {
                             lock (consoleLock)
                             {
-                                Console.WriteLine("WARNING: {0} is running for {1}ms.", pair.Key, now - pair.Value);
+                                Console.WriteLine("WARNING: {0} is running for {1}s.", pair.Key, (now - pair.Value) / 1000);
                             }
                         }
                     }
