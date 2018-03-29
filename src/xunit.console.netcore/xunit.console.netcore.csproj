@@ -52,6 +52,9 @@
     <Compile Include="Visitors\StandardOutputVisitor.cs" />
   </ItemGroup>
   <ItemGroup>
+      <Reference Include="System.Threading.Thread" />
+  </ItemGroup>
+  <ItemGroup>
     <Content Include="xUnit1.xslt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
