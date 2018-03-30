@@ -21,8 +21,8 @@ function print_info_from_core_file_using_lldb {
   local executable_name=$2
   local plugin_path_name="$RUNTIME_PATH/shared/Microsoft.NETCore.App/9.9.9/libsosplugin.so"
 
-  # check for existence of lldb-3.9 on the path
-  hash lldb-3.9 2>/dev/null || { echo >&2 "lldb-3.9 was not found. Unable to print core file."; return; }
+  # check for existence of lldb on the path
+  hash lldb 2>/dev/null || { echo >&2 "lldb was not found. Unable to print core file."; return; }
 
   # pe and clrstack are defined in libsosplugin.so
   if [ ! -f $plugin_path_name ]; then
@@ -32,7 +32,7 @@ function print_info_from_core_file_using_lldb {
 
   echo ----- start ===============  lldb Output =====================================================
   echo Printing managed exceptions and managed call stack.
-  lldb-3.9 -O "settings set target.exec-search-paths $RUNTIME_PATH" -o "plugin load $plugin_path_name" -o "pe -nested" -o "clrstack -all -a -f" -o "quit"  --core $core_file_name $executable_name
+  lldb -O "settings set target.exec-search-paths $RUNTIME_PATH" -o "plugin load $plugin_path_name" -o "pe -nested" -o "clrstack -all -a -f" -o "quit"  --core $core_file_name $executable_name
   echo ----- end ===============  lldb Output =======================================================
 }
 
@@ -126,7 +126,7 @@ popd
 echo ----- end $(date +"%T") ----- exit code $test_exitcode ----------------------------------------------------------
 
 if [[ ($test_exitcode -ge 129 && $test_exitcode -le 160) || $test_exitcode -eq 0 ]]; then
-  echo ----- exit code $test_exitcode means ${exitcode_list[$test_exitcode]}--------------------------------------------------
+  echo exit code $test_exitcode means ${exitcode_list[$test_exitcode]}
 fi
 # ========================= END Test Execution ===============================
 
