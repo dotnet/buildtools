@@ -3,6 +3,54 @@
 export RUNTIME_PATH=$1
 export EXECUTION_DIR=$(dirname "$0")
 
+exitcode_list[0]="Exited Successfully"
+exitcode_list[130]="SIGINT  Ctrl-C occurred. Likely tests timed out."
+exitcode_list[131]="SIGQUIT Ctrl-\ occurred. Core dumped."
+exitcode_list[132]="SIGILL  Illegal Instruction. Core dumped. Likely codegen issue."
+exitcode_list[133]="SIGTRAP Breakpoint hit. Core dumped."
+exitcode_list[134]="SIGABRT Abort. Managed or native assert, or runtime check such as heap corruption, caused call to abort(). Core dumped."
+exitcode_list[135]="IGBUS  Unaligned memory access. Core dumped."
+exitcode_list[136]="SIGFPE  Bad floating point arguments. Core dumped."
+exitcode_list[137]="SIGKILL Killed eg by kill"
+exitcode_list[139]="SIGSEGV Illegal memory access. Deref invalid pointer, overrunning buffer, stack overflow etc. Core dumped."
+exitcode_list[143]="SIGTERM Terminated. Usually before SIGKILL."
+exitcode_list[159]="SIGSYS  Bad System Call."
+
+function print_info_from_core_file_using_lldb {
+  local core_file_name=$1
+  local executable_name=$2
+  local plugin_path_name="$RUNTIME_PATH/shared/Microsoft.NETCore.App/9.9.9/libsosplugin.so"
+
+  # check for existence of lldb on the path
+  hash lldb 2>/dev/null || { echo >&2 "lldb was not found. Unable to print core file."; return; }
+
+  # pe and clrstack are defined in libsosplugin.so
+  if [ ! -f $plugin_path_name ]; then
+    echo $plugin_path_name cannot be found.
+    return
+  fi
+
+  echo ----- start ===============  lldb Output =====================================================
+  echo Printing managed exceptions and managed call stack.
+  lldb -O "settings set target.exec-search-paths $RUNTIME_PATH" -o "plugin load $plugin_path_name" -o "pe -nested" -o "clrstack -all -a -f" -o "quit"  --core $core_file_name $executable_name
+  echo ----- end ===============  lldb Output =======================================================
+}
+
+function print_info_from_core_file_using_gdb {
+  local core_file_name=$1
+  local executable_name=$2
+
+  # Check for the existence of GDB on the path
+  hash gdb 2>/dev/null || { echo >&2 "GDB was not found. Unable to print core file."; return; }
+
+  echo ----- start ===============  GDB Output =====================================================
+  # Open the dump in GDB and print the stack from each thread. We can add more
+  # commands here if desired.
+  echo printing native stack.
+  gdb --batch -ex "thread apply all bt full" -ex "quit" $executable_name $core_file_name
+  echo ----- end ===============  GDB Output =======================================================
+}
+
 function print_info_from_core_file {
   local core_file_name=$1
   local executable_name=$RUNTIME_PATH/$2
@@ -14,15 +62,9 @@ function print_info_from_core_file {
     echo "Unable to find core file $core_file_name"
     return
   fi
-
-  # Check for the existence of GDB on the path
-  hash gdb 2>/dev/null || { echo >&2 "GDB was not found. Unable to print core file."; return; }
-
   echo "Printing info from core file $core_file_name"
-
-  # Open the dump in GDB and print the stack from each thread. We can add more
-  # commands here if desired.
-  gdb --batch -ex "thread apply all bt full" -ex "quit" $executable_name $core_file_name
+  print_info_from_core_file_using_lldb $core_file_name $executable_name
+  print_info_from_core_file_using_gdb $core_file_name $executable_name
 }
 
 function copy_core_file_to_temp_location {
@@ -82,6 +124,10 @@ pushd $EXECUTION_DIR
 test_exitcode=$?
 popd
 echo ----- end $(date +"%T") ----- exit code $test_exitcode ----------------------------------------------------------
+
+if [ "${exitcode_list[$test_exitcode]}" != "" ]; then
+  echo exit code $test_exitcode means ${exitcode_list[$test_exitcode]}
+fi
 # ========================= END Test Execution ===============================
 
 # ======================= BEGIN Core File Inspection =========================
@@ -104,6 +150,7 @@ if [ "$(uname -s)" == "Linux" ]; then
       [[ $f =~ core.[0-9]+ ]] && print_info_from_core_file "$f" "dotnet" && copy_core_file_to_temp_location "$f" && rm "$f"
     done
   elif [ -f core ]; then
+    echo found a dump named core in $EXECUTION_DIR !
     print_info_from_core_file "core" "dotnet"
     copy_core_file_to_temp_location "core"
     rm "core"
