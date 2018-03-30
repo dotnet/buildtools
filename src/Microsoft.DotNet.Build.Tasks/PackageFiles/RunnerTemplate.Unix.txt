@@ -3,6 +3,7 @@
 export RUNTIME_PATH=$1
 export EXECUTION_DIR=$(dirname "$0")
 
+exitcode_list[0]="Exited Successfully"
 exitcode_list[130]="SIGINT  Ctrl-C occurred. Likely tests timed out."
 exitcode_list[131]="SIGQUIT Ctrl-\ occurred. Core dumped."
 exitcode_list[132]="SIGILL  Illegal Instruction. Core dumped. Likely codegen issue."
@@ -123,7 +124,10 @@ pushd $EXECUTION_DIR
 test_exitcode=$?
 popd
 echo ----- end $(date +"%T") ----- exit code $test_exitcode ----------------------------------------------------------
-echo ----- exit code $test_exitcode means ${exitcode_list[$test_exitcode]}--------------------------------------------------
+
+if [[ ($test_exitcode -ge 129 && $test_exitcode -le 160) || $test_exitcode -eq 0 ]]; then
+  echo ----- exit code $test_exitcode means ${exitcode_list[$test_exitcode]}--------------------------------------------------
+fi
 # ========================= END Test Execution ===============================
 
 # ======================= BEGIN Core File Inspection =========================
