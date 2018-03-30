@@ -285,14 +285,14 @@
     </PropertyGroup>
 
     <!-- If things match expected patterns, create $(GitBranchName) from $(RawGitBranchName) -->
-    <Message Importance="high" Text="GIT Branch Name as seen by git describe: '$(RawGitBranchName)'" /> 
+    <Message Text="GIT Branch Name as seen by git describe: '$(RawGitBranchName)'" /> 
     <PropertyGroup Condition="$(RawGitBranchName.StartsWith('heads/'))">
       <GitBranchName>$(RawGitBranchName.SubString(6))</GitBranchName>
     </PropertyGroup>
     <PropertyGroup Condition="$(RawGitBranchName.StartsWith('remotes/origin/'))">
       <GitBranchName>$(RawGitBranchName.SubString(15))</GitBranchName>
     </PropertyGroup>
-    <Message Importance="high" Text="GIT Branch Name: '$(GitBranchName)'" /> 
+    <Message Text="GIT Branch Name: '$(GitBranchName)'" /> 
 
     <!-- The GitHubOwnerName is the name of the entity that 'owns' a particular github repository (e.g the 'dotnet in https://github/dotnet/coreclr) -->
     <!-- we assume by default that these build tools are used by the 'dotnet' group.  This can be overridden. -->
