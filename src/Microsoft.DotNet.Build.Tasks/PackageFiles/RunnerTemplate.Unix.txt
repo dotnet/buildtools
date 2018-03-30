@@ -125,7 +125,7 @@ test_exitcode=$?
 popd
 echo ----- end $(date +"%T") ----- exit code $test_exitcode ----------------------------------------------------------
 
-if [[ ($test_exitcode -ge 129 && $test_exitcode -le 160) || $test_exitcode -eq 0 ]]; then
+if [ "${exitcode_list[$test_exitcode]}" != "" ]; then
   echo exit code $test_exitcode means ${exitcode_list[$test_exitcode]}
 fi
 # ========================= END Test Execution ===============================
