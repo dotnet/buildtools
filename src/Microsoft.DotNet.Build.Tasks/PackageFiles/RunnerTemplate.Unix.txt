@@ -3,6 +3,18 @@
 export RUNTIME_PATH=$1
 export EXECUTION_DIR=$(dirname "$0")
 
+exitcode_list[130]="SIGINT  Ctrl-C occurred. Likely tests timed out."
+exitcode_list[131]="SIGQUIT Ctrl-\ occurred. Core dumped."
+exitcode_list[132]="SIGILL  Illegal Instruction. Core dumped. Likely codegen issue."
+exitcode_list[133]="SIGTRAP Breakpoint hit. Core dumped."
+exitcode_list[134]="SIGABRT Abort. Managed or native assert, or runtime check such as heap corruption, caused call to abort(). Core dumped."
+exitcode_list[135]="IGBUS  Unaligned memory access. Core dumped."
+exitcode_list[136]="SIGFPE  Bad floating point arguments. Core dumped."
+exitcode_list[137]="SIGKILL Killed eg by kill"
+exitcode_list[139]="SIGSEGV Illegal memory access. Deref invalid pointer, overrunning buffer, stack overflow etc. Core dumped."
+exitcode_list[143]="SIGTERM Terminated. Usually before SIGKILL."
+exitcode_list[159]="SIGSYS  Bad System Call."
+
 function print_info_from_core_file_using_lldb {
   local core_file_name=$1
   local executable_name=$2
@@ -111,6 +123,7 @@ pushd $EXECUTION_DIR
 test_exitcode=$?
 popd
 echo ----- end $(date +"%T") ----- exit code $test_exitcode ----------------------------------------------------------
+echo ----- exit code $test_exitcode means ${exitcode_list[$test_exitcode]}--------------------------------------------------
 # ========================= END Test Execution ===============================
 
 # ======================= BEGIN Core File Inspection =========================
@@ -133,6 +146,7 @@ if [ "$(uname -s)" == "Linux" ]; then
       [[ $f =~ core.[0-9]+ ]] && print_info_from_core_file "$f" "dotnet" && copy_core_file_to_temp_location "$f" && rm "$f"
     done
   elif [ -f core ]; then
+    echo found a dump named core in $EXECUTION_DIR !
     print_info_from_core_file "core" "dotnet"
     copy_core_file_to_temp_location "core"
     rm "core"
