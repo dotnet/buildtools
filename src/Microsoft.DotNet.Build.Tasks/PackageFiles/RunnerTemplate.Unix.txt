@@ -63,8 +63,8 @@ function print_info_from_core_file {
     return
   fi
   echo "Printing info from core file $core_file_name"
-  print_info_from_core_file_using_lldb $core_file_name $executable_name
   print_info_from_core_file_using_gdb $core_file_name $executable_name
+  print_info_from_core_file_using_lldb $core_file_name $executable_name
 }
 
 function copy_core_file_to_temp_location {
