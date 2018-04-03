@@ -24,7 +24,7 @@
     <AssemblyFileVersion Condition="'$(AssemblyFileVersion)'==''">$(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)</AssemblyFileVersion>
   </PropertyGroup>
 
-  <Import Project="$(MSBuildThisFileDirectory)versioning.props" />
+  <Import Project="$(MSBuildThisFileDirectory)versioning.props" Condition="'$(BuildToolsVersioningPropsHasBeenImported)' != 'true'" />
 
   <PropertyGroup>
     <GenerateAssemblyInfo Condition="'$(GenerateAssemblyInfo)'==''">true</GenerateAssemblyInfo>
