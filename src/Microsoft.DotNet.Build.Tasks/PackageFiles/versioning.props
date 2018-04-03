@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
+    <BuildToolsVersioningPropsImported>true</BuildToolsVersioningPropsImported>
+
     <Company Condition="'$(Company)' == ''">Microsoft Corporation</Company>
     <Copyright Condition="'$(Copyright)' == ''">%A9 Microsoft Corporation.  All rights reserved.</Copyright>
     <Description Condition="'$(Description)' == ''">$(AssemblyName)</Description>
