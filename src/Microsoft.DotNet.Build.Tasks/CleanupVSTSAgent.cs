@@ -6,9 +6,11 @@ namespace Microsoft.DotNet.Build.Tasks
 	
         public bool Report { get; set; }
 
-        public string AgentDirectory { get; set; }	
-	
-        public double RetentionDays { get; set; }	
+        [Required]
+        public string AgentDirectory { get; set; }
+
+        [Required]
+        public double RetentionDays { get; set; }
 	
         public int? Retries { get; set; }	
 	
@@ -27,23 +29,5 @@ namespace Microsoft.DotNet.Build.Tasks
             Log.LogWarning($"This BuildTask has been deprecated in favor of maintenance jobs.");
             return true;
         }
-
-#if net45
-        public struct WIN32_FIND_DATA	
-        {	
-            public uint dwFileAttributes;	
-            public System.Runtime.InteropServices.ComTypes.FILETIME ftCreationTime;	
-            public System.Runtime.InteropServices.ComTypes.FILETIME ftLastAccessTime;	
-            public System.Runtime.InteropServices.ComTypes.FILETIME ftLastWriteTime;	
-            public uint nFileSizeHigh;	
-            public uint nFileSizeLow;	
-            public uint dwReserved0;	
-            public uint dwReserved1;	
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]	
-            public string cFileName;	
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 14)]	
-            public string cAlternateFileName;	
-        }
-#endif
     }
 }
