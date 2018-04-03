@@ -1,3 +1,5 @@
+using Microsoft.Build.Framework;
+
 namespace Microsoft.DotNet.Build.Tasks
 {
     public class CleanupVSTSAgent : BuildTask
