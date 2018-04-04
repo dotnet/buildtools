@@ -17,10 +17,10 @@ namespace Xunit.ConsoleClient
         readonly string defaultDirectory;
         readonly bool showProgress;
         readonly Stopwatch clock;
-        private ConcurrentDictionary<String, long> runningTests;
+        private ConcurrentDictionary<string, long> runningTests;
         private Thread watcher;
-        readonly int longTestMaxMiliseconds = 1_000 * 60 * 5;
-        readonly int longTestCheckMiliseconds = 1_000 * 60;
+        readonly int longTestMaxMilliseconds = 1_000 * 60 * 5;
+        readonly int longTestCheckMilliseconds = 1_000 * 60;
 
 
         public StandardOutputVisitor(object consoleLock,
@@ -37,7 +37,7 @@ namespace Xunit.ConsoleClient
             this.showProgress = showProgress;
 
             this.clock =  new Stopwatch();
-            this.runningTests = new ConcurrentDictionary<String , long>();
+            this.runningTests = new ConcurrentDictionary<string, long>();
         }
 
         protected override bool Visit(ITestAssemblyStarting assemblyStarting)
@@ -48,7 +48,7 @@ namespace Xunit.ConsoleClient
                 Console.WriteLine("Starting:    {0}", Path.GetFileNameWithoutExtension(assemblyFileName));
 
             clock.Start();
-            watcher = new Thread(new ThreadStart(testWatcher));
+            watcher = new Thread(new ThreadStart(TestWatcher));
             watcher.IsBackground = true;
             watcher.Start();
 
@@ -124,7 +124,6 @@ namespace Xunit.ConsoleClient
                 }
             }
 
-
             if (!runningTests.TryAdd(testStarting.Test.DisplayName, clock.ElapsedMilliseconds))
             {
                 lock (consoleLock)
@@ -152,7 +151,7 @@ namespace Xunit.ConsoleClient
                     Console.WriteLine("ERROR: Failed to find {0} in running test set.", testFinished.Test.DisplayName);
                 }
             }
-            if (elapsed > longTestMaxMiliseconds)
+            if (elapsed > longTestMaxMilliseconds)
             {
                 lock (consoleLock)
                 {
@@ -241,13 +240,13 @@ namespace Xunit.ConsoleClient
             }
         }
 
-        private void testWatcher()
+        private void TestWatcher()
         {
             try
             {
                 while (runningTests != null)
                 {
-                    Thread.Sleep(longTestCheckMiliseconds);
+                    Thread.Sleep(longTestCheckMilliseconds);
 
                     if (runningTests == null)
                     {
@@ -255,9 +254,9 @@ namespace Xunit.ConsoleClient
                     }
 
                     long  now = clock.ElapsedMilliseconds;
-                    foreach (KeyValuePair<String, long> pair in runningTests)
+                    foreach (KeyValuePair<string, long> pair in runningTests)
                     {
-                        if (( now - pair.Value) > longTestMaxMiliseconds)
+                        if (( now - pair.Value) > longTestMaxMilliseconds)
                         {
                             lock (consoleLock)
                             {
