@@ -29,6 +29,11 @@ namespace Microsoft.DotNet.Build.Tasks
         [Required]
         public string AssemblyName { get; set; }
 
+        /// <summary>
+        /// Emit constant strings instead of properties.
+        /// </summary>
+        public bool AsConstants { get; set; }
+
         public override bool Execute()
         {
             try
@@ -92,29 +97,39 @@ namespace Microsoft.DotNet.Build.Tasks
         {
             var resources = GetResources(ResxFilePath);
 
-            _targetStream.WriteLine(_targetLanguage == TargetLanguage.CSharp ?
-                "#if !DEBUGRESOURCES" :
-                "#If Not DEBUGRESOURCES Then");
-
-            foreach (var resourcePair in resources)
+            if (AsConstants)
             {
-                WriteResourceProperty(resourcePair.Key, _targetLanguage == TargetLanguage.CSharp ?
-                    "null" :
-                    "Nothing");
+                foreach (var resourcePair in resources)
+                {
+                    WriteResourceConstant((string)resourcePair.Key);
+                }
             }
-
-            _targetStream.WriteLine(_targetLanguage == TargetLanguage.CSharp ?
-                "#else" :
-                "#Else");
-
-            foreach (var resourcePair in resources)
+            else
             {
-                WriteResourceProperty(resourcePair.Key, CreateStringLiteral(resourcePair.Value));
-            }
+                _targetStream.WriteLine(_targetLanguage == TargetLanguage.CSharp ?
+                    "#if !DEBUGRESOURCES" :
+                    "#If Not DEBUGRESOURCES Then");
 
-            _targetStream.WriteLine(_targetLanguage == TargetLanguage.CSharp ?
-                "#endif" :
-                "#End If");
+                foreach (var resourcePair in resources)
+                {
+                    WriteResourceProperty(resourcePair.Key, _targetLanguage == TargetLanguage.CSharp ?
+                        "null" :
+                        "Nothing");
+                }
+
+                _targetStream.WriteLine(_targetLanguage == TargetLanguage.CSharp ?
+                    "#else" :
+                    "#Else");
+
+                foreach (var resourcePair in resources)
+                {
+                    WriteResourceProperty(resourcePair.Key, CreateStringLiteral(resourcePair.Value));
+                }
+
+                _targetStream.WriteLine(_targetLanguage == TargetLanguage.CSharp ?
+                    "#endif" :
+                    "#End If");
+            }
         }
 
         private string CreateStringLiteral(string original)
@@ -154,6 +169,17 @@ namespace Microsoft.DotNet.Build.Tasks
                 _targetStream.WriteLine($"               Return SR.GetResourceString(\"{resourceId}\", {resourceValueLiteral})");
                 _targetStream.WriteLine($"           End Get");
                 _targetStream.WriteLine($"        End Property");
+            }
+        }
+        private void WriteResourceConstant(string resourceId)
+        {
+            if (_targetLanguage == TargetLanguage.CSharp)
+            {
+                _targetStream.WriteLine($"        internal const string {resourceId} = \"{resourceId}\";");
+            }
+            else
+            {
+                _targetStream.WriteLine($"        Friend Const {resourceId} As String = \"{resourceId}\"");
             }
         }
 
