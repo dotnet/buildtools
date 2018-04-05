@@ -18,8 +18,6 @@ namespace Microsoft.DotNet.Build.Tasks
     {
         private TargetLanguage _targetLanguage = TargetLanguage.CSharp;
         private StreamWriter _targetStream;
-        private StringBuilder _debugCode = new StringBuilder();
-        private Dictionary<string, int> _keys;
         private String _resourcesName;
 
         [Required]
@@ -31,7 +29,10 @@ namespace Microsoft.DotNet.Build.Tasks
         [Required]
         public string AssemblyName { get; set; }
 
-        public bool DebugOnly { get; set; }
+        /// <summary>
+        /// Emit constant strings instead of properties.
+        /// </summary>
+        public bool AsConstants { get; set; }
 
         public override bool Execute()
         {
@@ -45,10 +46,8 @@ namespace Microsoft.DotNet.Build.Tasks
                     {
                         _targetLanguage = TargetLanguage.VB;
                     }
-                    _keys = new Dictionary<string, int>();
                     WriteClassHeader();
-					RunOnResFile();
-					WriteDebugCode();
+					WriteResources();
 					WriteGetTypeProperty();
 					WriteClassEnd();
 					WriteResourceTypeClass();
@@ -78,12 +77,9 @@ namespace Microsoft.DotNet.Build.Tasks
                 _targetStream.WriteLine("    {");
 
                 _targetStream.WriteLine("#pragma warning disable 0414");
-                _targetStream.WriteLine("        private const string s_resourcesName = \"{0}\";", _resourcesName + ".SR");
+                _targetStream.WriteLine($"        private const string s_resourcesName = \"{_resourcesName}.SR\";");
                 _targetStream.WriteLine("#pragma warning restore 0414");
                 _targetStream.WriteLine("");
-
-                if (!DebugOnly)
-                    _targetStream.WriteLine("#if !DEBUGRESOURCES");
             }
             else
             {
@@ -92,79 +88,98 @@ namespace Microsoft.DotNet.Build.Tasks
                 _targetStream.WriteLine("    Friend Partial Class SR");
                 _targetStream.WriteLine("    ");
 
-                _targetStream.WriteLine("        Private Const s_resourcesName As String = \"{0}\"", _resourcesName + ".SR");
+                _targetStream.WriteLine($"        Private Const s_resourcesName As String = \"{_resourcesName}.SR\"");
                 _targetStream.WriteLine("");
-                if (!DebugOnly)
-                    _targetStream.WriteLine("#If Not DEBUGRESOURCES Then");
             }
         }
 
-        private void RunOnResFile()
+        private void WriteResources()
         {
-            foreach(KeyValuePair<string, string> pair in GetResources(ResxFilePath))
+            var resources = GetResources(ResxFilePath);
+
+            if (AsConstants)
             {
-                StoreValues((string)pair.Key, (string)pair.Value);
+                foreach (var resourcePair in resources)
+                {
+                    WriteResourceConstant((string)resourcePair.Key);
+                }
+            }
+            else
+            {
+                _targetStream.WriteLine(_targetLanguage == TargetLanguage.CSharp ?
+                    "#if !DEBUGRESOURCES" :
+                    "#If Not DEBUGRESOURCES Then");
+
+                foreach (var resourcePair in resources)
+                {
+                    WriteResourceProperty(resourcePair.Key, _targetLanguage == TargetLanguage.CSharp ?
+                        "null" :
+                        "Nothing");
+                }
+
+                _targetStream.WriteLine(_targetLanguage == TargetLanguage.CSharp ?
+                    "#else" :
+                    "#Else");
+
+                foreach (var resourcePair in resources)
+                {
+                    WriteResourceProperty(resourcePair.Key, CreateStringLiteral(resourcePair.Value));
+                }
+
+                _targetStream.WriteLine(_targetLanguage == TargetLanguage.CSharp ?
+                    "#endif" :
+                    "#End If");
             }
         }
 
-        private void StoreValues(string leftPart, string rightPart)
+        private string CreateStringLiteral(string original)
         {
-            int value;
-            if (_keys.TryGetValue(leftPart, out value))
+            StringBuilder stringLiteral = new StringBuilder(original.Length + 3);
+            if (_targetLanguage == TargetLanguage.CSharp)
             {
-                return;
+                stringLiteral.Append('@');
             }
-            _keys[leftPart] = 0;
-            StringBuilder sb = new StringBuilder(rightPart.Length);
-            for (var i = 0; i < rightPart.Length; i++)
+            stringLiteral.Append('\"');
+            for (var i = 0; i < original.Length; i++)
             {
                 // duplicate '"' for VB and C#
-                if (rightPart[i] == '\"' && (_targetLanguage == TargetLanguage.VB || _targetLanguage == TargetLanguage.CSharp))
+                if (original[i] == '\"')
                 {
-                    sb.Append("\"");
+                    stringLiteral.Append("\"");
                 }
-                sb.Append(rightPart[i]);
+                stringLiteral.Append(original[i]);
             }
+            stringLiteral.Append('\"');
 
-            if (_targetLanguage == TargetLanguage.CSharp)
-            {
-                _debugCode.AppendFormat("        internal static string {0} {2}{4}              get {2} return SR.GetResourceString(\"{0}\", @\"{1}\"); {3}{4}        {3}{4}", leftPart, sb.ToString(), "{", "}", Environment.NewLine);
-            }
-            else
-            {
-                _debugCode.AppendFormat("        Friend Shared ReadOnly Property {0} As String{2}            Get{2}                Return SR.GetResourceString(\"{0}\", \"{1}\"){2}            End Get{2}        End Property{2}", leftPart, sb.ToString(), Environment.NewLine);
-            }
-
-            if (!DebugOnly)
-            {
-                if (_targetLanguage == TargetLanguage.CSharp)
-                {
-                    _targetStream.WriteLine("        internal static string {0} {2}{4}              get {2} return SR.GetResourceString(\"{0}\", {1}); {3}{4}        {3}", leftPart, "null", "{", "}", Environment.NewLine);
-                }
-                else
-                {
-                    _targetStream.WriteLine("        Friend Shared ReadOnly Property {0} As String{2}           Get{2}                 Return SR.GetResourceString(\"{0}\", {1}){2}            End Get{2}        End Property", leftPart, "Nothing", Environment.NewLine);
-                }
-            }
+            return stringLiteral.ToString();
         }
 
-        private void WriteDebugCode()
+        private void WriteResourceProperty(string resourceId, string resourceValueLiteral)
         {
             if (_targetLanguage == TargetLanguage.CSharp)
             {
-                if (!DebugOnly)
-                    _targetStream.WriteLine("#else");
-                _targetStream.WriteLine(_debugCode.ToString());
-                if (!DebugOnly)
-                    _targetStream.WriteLine("#endif");
+                _targetStream.WriteLine($"        internal static string {resourceId} {{");
+                _targetStream.WriteLine($"            get {{ return SR.GetResourceString(\"{resourceId}\", {resourceValueLiteral}); }}");
+                _targetStream.WriteLine($"        }}");
             }
             else
             {
-                if (!DebugOnly)
-                    _targetStream.WriteLine("#Else");
-                _targetStream.WriteLine(_debugCode.ToString());
-                if (!DebugOnly)
-                    _targetStream.WriteLine("#End If");
+                _targetStream.WriteLine($"        Friend Shared ReadOnly Property {resourceId} As String");
+                _targetStream.WriteLine($"           Get");
+                _targetStream.WriteLine($"               Return SR.GetResourceString(\"{resourceId}\", {resourceValueLiteral})");
+                _targetStream.WriteLine($"           End Get");
+                _targetStream.WriteLine($"        End Property");
+            }
+        }
+        private void WriteResourceConstant(string resourceId)
+        {
+            if (_targetLanguage == TargetLanguage.CSharp)
+            {
+                _targetStream.WriteLine($"        internal const string {resourceId} = \"{resourceId}\";");
+            }
+            else
+            {
+                _targetStream.WriteLine($"        Friend Const {resourceId} As String = \"{resourceId}\"");
             }
         }
 
@@ -172,11 +187,17 @@ namespace Microsoft.DotNet.Build.Tasks
         {
             if (_targetLanguage == TargetLanguage.CSharp)
             {
-                _targetStream.WriteLine("        internal static Type ResourceType {1}{3}              get {1} return typeof({0}); {2}{3}        {2}", _resourcesName + ".SR", "{", "}", Environment.NewLine);
+                _targetStream.WriteLine($"        internal static Type ResourceType {{");
+                _targetStream.WriteLine($"            get {{ return typeof({_resourcesName}.SR); }}");
+                _targetStream.WriteLine($"        }}");
             }
             else
             {
-                _targetStream.WriteLine("        Friend Shared ReadOnly Property ResourceType As Type{1}           Get{1}                 Return GetType({0}){1}            End Get{1}        End Property", _resourcesName + ".SR", Environment.NewLine);
+                _targetStream.WriteLine($"        Friend Shared ReadOnly Property ResourceType As Type");
+                _targetStream.WriteLine($"            Get");
+                _targetStream.WriteLine($"                Return GetType({_resourcesName}.SR)");
+                _targetStream.WriteLine($"            End Get");
+                _targetStream.WriteLine($"        End Property");
             }
         }
 
@@ -198,7 +219,7 @@ namespace Microsoft.DotNet.Build.Tasks
         {
             if (_targetLanguage == TargetLanguage.CSharp)
             {
-                _targetStream.WriteLine("namespace {0}", _resourcesName);
+                _targetStream.WriteLine($"namespace {_resourcesName}");
                 _targetStream.WriteLine("{");
                 _targetStream.WriteLine("    // The type of this class is used to create the ResourceManager instance as the type name matches the name of the embedded resources file");
                 _targetStream.WriteLine("    internal static class SR");
@@ -208,7 +229,7 @@ namespace Microsoft.DotNet.Build.Tasks
             }
             else
             {
-                _targetStream.WriteLine("Namespace {0}", _resourcesName);
+                _targetStream.WriteLine($"Namespace {_resourcesName}");
                 _targetStream.WriteLine("    ' The type of this class is used to create the ResourceManager instance as the type name matches the name of the embedded resources file");
                 _targetStream.WriteLine("    Friend Class SR");
                 _targetStream.WriteLine("    ");
@@ -222,15 +243,26 @@ namespace Microsoft.DotNet.Build.Tasks
             CSharp, VB
         }
 
-        internal static IEnumerable<KeyValuePair<string, string>> GetResources(string fileName)
+        internal Dictionary<string, string> GetResources(string fileName)
         {
+            Dictionary<string, string> resources = new Dictionary<string, string>();
+
             XDocument doc = XDocument.Load(fileName, LoadOptions.PreserveWhitespace);
             foreach (XElement dataElem in doc.Element("root").Elements("data"))
             {
                 string name = dataElem.Attribute("name").Value;
                 string value = dataElem.Element("value").Value;
-                yield return new KeyValuePair<string, string>(name, value);
+                if (resources.ContainsKey(name))
+                {
+                    Log.LogError($"Duplicate resource id \"{name}\"");
+                }
+                else
+                {
+                    resources[name] = value;
+                }
             }
+
+            return resources;
         }
     }
 }

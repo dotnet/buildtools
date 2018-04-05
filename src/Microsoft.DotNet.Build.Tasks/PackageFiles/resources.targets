@@ -95,7 +95,8 @@
     <GenerateResourcesCode
         ResxFilePath="$(StringResourcesPath)"
         OutputSourceFilePath="$(IntermediateResOutputFileFullPath)"
-        AssemblyName="$(_NormalizedAssemblyName)" >
+        AssemblyName="$(_NormalizedAssemblyName)"
+        AsConstants="$(GenerateResourcesCodeAsConstants)">
     </GenerateResourcesCode>
 
     <ItemGroup>
