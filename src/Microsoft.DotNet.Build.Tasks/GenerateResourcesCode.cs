@@ -143,7 +143,7 @@ namespace Microsoft.DotNet.Build.Tasks
             for (var i = 0; i < original.Length; i++)
             {
                 // duplicate '"' for VB and C#
-                if (original[i] == '\"' && (_targetLanguage == TargetLanguage.VB || _targetLanguage == TargetLanguage.CSharp))
+                if (original[i] == '\"')
                 {
                     stringLiteral.Append("\"");
                 }
