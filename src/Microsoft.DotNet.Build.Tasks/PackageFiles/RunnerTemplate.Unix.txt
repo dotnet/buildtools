@@ -32,7 +32,7 @@ function print_info_from_core_file_using_lldb {
 
   echo ----- start ===============  lldb Output =====================================================
   echo Printing managed exceptions and managed call stack.
-  lldb -O "settings set target.exec-search-paths $RUNTIME_PATH" -o "plugin load $plugin_path_name" -o "clrsthreads -managedexception" -o "pe -nested" -o "clrstack -all -a -f" -o "quit"  --core $core_file_name $executable_name
+  lldb -O "settings set target.exec-search-paths $RUNTIME_PATH" -o "plugin load $plugin_path_name" -o "clrthreads -managedexception" -o "pe -nested" -o "clrstack -all -a -f" -o "quit"  --core $core_file_name $executable_name
   echo ----- end ===============  lldb Output =======================================================
 }
 
