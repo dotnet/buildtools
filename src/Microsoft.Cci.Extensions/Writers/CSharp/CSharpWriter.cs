@@ -64,8 +64,8 @@ namespace Microsoft.Cci.Writers
 
         public void WriteAssemblies(IEnumerable<IAssembly> assemblies)
         {
-                foreach (var assembly in assemblies)
-                    Visit(assembly);
+            foreach (var assembly in assemblies)
+                Visit(assembly);
         }
 
         public override void Visit(IAssembly assembly)
@@ -139,9 +139,9 @@ namespace Microsoft.Cci.Writers
             if (parentType.IsStruct && !_apiOnly)
             {
                 // For compile-time compat, the following rules should work for producing a reference assembly. We drop all private fields, but add back certain synthesized private fields for a value type (struct) as follows:
-                // - If there are any private fields that are or contain any value type members, add a single private field of type int
-                // - If there are any private fields that are or contain any reference type members, add a single private field of type object.
-                // - If the type is generic, then for every type parameter of the type, if there are any private fields that are or contain any members whose type is that type parameter, we add a direct private field of that type.
+                // - If there are any private fields that are or contain any value type members, add a single private field of type int.
+                // - And, if there are any private fields that are or contain any reference type members, add a single private field of type object.
+                // - And, if the type is generic, then for every type parameter of the type, if there are any private fields that are or contain any members whose type is that type parameter, we add a direct private field of that type.
 
                 // For more details see issue https://github.com/dotnet/corefx/issues/6185 
                 // this blog is helpful as well http://blog.paranoidcoding.com/2016/02/15/are-private-members-api-surface.html
@@ -161,19 +161,17 @@ namespace Microsoft.Cci.Writers
                     foreach (var genericField in genericTypedFields)
                         newFields.Add(genericField);
 
-                    if (!genericTypedFields.Any())
-                    {
-                        // For definiteassignment checks the compiler needs to know there is a private field
-                        // that has not be initialized so if there are any we need to add a dummy private
-                        // field to help the compiler do its job and error about uninitialized structs
-                        bool hasRefPrivateField = excludedFields.Any(f => f.Type.IsOrContainsReferenceType());
-                        ITypeReference fieldType = parentType.PlatformType.SystemInt32;
+                    // For definiteassignment checks the compiler needs to know there is a private field
+                    // that has not be initialized so if there are any we need to add a dummy private
+                    // field to help the compiler do its job and error about uninitialized structs
+                    bool hasRefPrivateField = excludedFields.Any(f => f.Type.IsOrContainsReferenceType());
 
-                        // If at least one of the private fields contains a reference type then we need to
-                        // set this field type to object or reference field to inform the compiler to block
-                        // taking pointers to this struct because the GC will not track updating those references
-                        if (hasRefPrivateField)
-                            fieldType = parentType.PlatformType.SystemObject;
+                    // If at least one of the private fields contains a reference type then we need to
+                    // set this field type to object or reference field to inform the compiler to block
+                    // taking pointers to this struct because the GC will not track updating those references
+                    if (hasRefPrivateField)
+                    {
+                        ITypeReference fieldType = parentType.PlatformType.SystemObject;
 
                         // For primitive types that have a field of their type set the dummy field to that type
                         if (excludedFields.Count() == 1)
@@ -184,7 +182,27 @@ namespace Microsoft.Cci.Writers
                             {
                                 fieldType = parentType;
                             }
-                         }                     
+                        }
+
+                        newFields.Add(new DummyPrivateField(parentType, fieldType));
+                    }
+
+                    bool hasValueTypePrivateField = excludedFields.Any(f => f.Type.IsValueType);
+
+                    if (hasValueTypePrivateField)
+                    {
+                        ITypeReference fieldType = parentType.PlatformType.SystemInt32;
+
+                        // For primitive types that have a field of their type set the dummy field to that type
+                        if (excludedFields.Count() == 1)
+                        {
+                            var onlyField = excludedFields.First();
+
+                            if (TypeHelper.TypesAreEquivalent(onlyField.Type, parentType))
+                            {
+                                fieldType = parentType;
+                            }
+                        }
 
                         newFields.Add(new DummyPrivateField(parentType, fieldType));
                     }
