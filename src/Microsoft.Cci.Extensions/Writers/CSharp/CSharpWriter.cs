@@ -173,14 +173,14 @@ namespace Microsoft.Cci.Writers
                     // taking pointers to this struct because the GC will not track updating those references
                     if (hasRefPrivateField)
                     {
-                        DummyFieldWriterHelper(parentType, excludedFields, newFields);
+                        DummyFieldWriterHelper(parentType, excludedFields, newFields, parentType.PlatformType.SystemObject);
                     }
 
                     bool hasValueTypePrivateField = excludedFields.Any(f => f.Type.IsValueType);
 
                     if (hasValueTypePrivateField)
                     {
-                        DummyFieldWriterHelper(parentType, excludedFields, newFields, "_dummyInt");
+                        DummyFieldWriterHelper(parentType, excludedFields, newFields, parentType.PlatformType.SystemInt32, "_dummyInt");
                     }
                 }
 
@@ -196,10 +196,8 @@ namespace Microsoft.Cci.Writers
             }
         }
 
-        private void DummyFieldWriterHelper(ITypeDefinition parentType, IEnumerable<IFieldDefinition> excludedFields, List<IFieldDefinition> fields, string fieldName = "_dummy")
+        private void DummyFieldWriterHelper(ITypeDefinition parentType, IEnumerable<IFieldDefinition> excludedFields, List<IFieldDefinition> fields, ITypeReference fieldType, string fieldName = "_dummy")
         {
-            ITypeReference fieldType = parentType.PlatformType.SystemObject;
-
             // For primitive types that have a field of their type set the dummy field to that type
             if (excludedFields.Count() == 1)
             {
