@@ -143,6 +143,8 @@ namespace Microsoft.Cci.Writers
                 // - And, if there are any private fields that are or contain any reference type members, add a single private field of type object.
                 // - And, if the type is generic, then for every type parameter of the type, if there are any private fields that are or contain any members whose type is that type parameter, we add a direct private field of that type.
 
+                // Note: By "private", we mean not visible outside the assembly.
+
                 // For more details see issue https://github.com/dotnet/corefx/issues/6185 
                 // this blog is helpful as well http://blog.paranoidcoding.com/2016/02/15/are-private-members-api-surface.html
 
@@ -171,40 +173,14 @@ namespace Microsoft.Cci.Writers
                     // taking pointers to this struct because the GC will not track updating those references
                     if (hasRefPrivateField)
                     {
-                        ITypeReference fieldType = parentType.PlatformType.SystemObject;
-
-                        // For primitive types that have a field of their type set the dummy field to that type
-                        if (excludedFields.Count() == 1)
-                        {
-                            var onlyField = excludedFields.First();
-
-                            if (TypeHelper.TypesAreEquivalent(onlyField.Type, parentType))
-                            {
-                                fieldType = parentType;
-                            }
-                        }
-
-                        newFields.Add(new DummyPrivateField(parentType, fieldType));
+                        DummyFieldWriterHelper(parentType, excludedFields, newFields);
                     }
 
                     bool hasValueTypePrivateField = excludedFields.Any(f => f.Type.IsValueType);
 
                     if (hasValueTypePrivateField)
                     {
-                        ITypeReference fieldType = parentType.PlatformType.SystemInt32;
-
-                        // For primitive types that have a field of their type set the dummy field to that type
-                        if (excludedFields.Count() == 1)
-                        {
-                            var onlyField = excludedFields.First();
-
-                            if (TypeHelper.TypesAreEquivalent(onlyField.Type, parentType))
-                            {
-                                fieldType = parentType;
-                            }
-                        }
-
-                        newFields.Add(new DummyPrivateField(parentType, fieldType));
+                        DummyFieldWriterHelper(parentType, excludedFields, newFields, "_dummyInt");
                     }
                 }
 
@@ -218,6 +194,24 @@ namespace Microsoft.Cci.Writers
             {
                 base.Visit(parentType, fields);
             }
+        }
+
+        private void DummyFieldWriterHelper(ITypeDefinition parentType, IEnumerable<IFieldDefinition> excludedFields, List<IFieldDefinition> fields, string fieldName = "_dummy")
+        {
+            ITypeReference fieldType = parentType.PlatformType.SystemObject;
+
+            // For primitive types that have a field of their type set the dummy field to that type
+            if (excludedFields.Count() == 1)
+            {
+                var onlyField = excludedFields.First();
+
+                if (TypeHelper.TypesAreEquivalent(onlyField.Type, parentType))
+                {
+                    fieldType = parentType;
+                }
+            }
+
+            fields.Add(new DummyPrivateField(parentType, fieldType, fieldName));
         }
 
         public override void Visit(ITypeDefinitionMember member)

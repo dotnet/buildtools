@@ -122,16 +122,10 @@ namespace Microsoft.Cci.Writers.CSharp
         private ITypeReference _type;
         private IName _name;
 
-        public DummyPrivateField(ITypeDefinition parentType, ITypeReference type)
+        public DummyPrivateField(ITypeDefinition parentType, ITypeReference type, string name)
         {
             _parentType = parentType;
             _type = type;
-
-            string name = "_dummy";
-            if (type.TypeCode == PrimitiveTypeCode.Int32)
-            {
-                name += "Int";
-            }
             _name = new NameTable().GetNameFor(name);
         }
 
