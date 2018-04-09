@@ -64,9 +64,12 @@ namespace Microsoft.Cci.Writers.CSharp
                 {
                     WriteSpace();
                     WriteSymbol("=", true);
-                    if (field.Type.IsEnum) {
+                    if (field.Type.IsEnum)
+                    {
                         WriteFieldDefinitionValue(field);
-                    } else {
+                    }
+                    else
+                    {
                         WriteMetadataConstant(field.Constant);
                     }
                 }
@@ -86,11 +89,14 @@ namespace Microsoft.Cci.Writers.CSharp
             }
         }
 
-        private void WriteFieldDefinitionValue(IFieldDefinition field) {
+        private void WriteFieldDefinitionValue(IFieldDefinition field)
+        {
             var resolvedType = field.Type.ResolvedType;
 
-            if (resolvedType != null) {
-                foreach (var enumField in resolvedType.Fields) {
+            if (resolvedType != null)
+            {
+                foreach (var enumField in resolvedType.Fields)
+                {
                     var enumFieldValue = enumField?.Constant?.Value;
                     if (enumFieldValue != null && enumFieldValue.Equals(field.Constant.Value))
                     {
@@ -116,11 +122,11 @@ namespace Microsoft.Cci.Writers.CSharp
         private ITypeReference _type;
         private IName _name;
 
-        public DummyPrivateField(ITypeDefinition parentType, ITypeReference type)
+        public DummyPrivateField(ITypeDefinition parentType, ITypeReference type, string name)
         {
             _parentType = parentType;
             _type = type;
-            _name = new NameTable().GetNameFor("_dummy");
+            _name = new NameTable().GetNameFor(name);
         }
 
         public uint BitLength => 0;
