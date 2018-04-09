@@ -164,7 +164,7 @@ namespace Microsoft.Cci.Writers
                         newFields.Add(genericField);
 
                     // For definiteassignment checks the compiler needs to know there is a private field
-                    // that has not be initialized so if there are any we need to add a dummy private
+                    // that has not been initialized so if there are any we need to add a dummy private
                     // field to help the compiler do its job and error about uninitialized structs
                     bool hasRefPrivateField = excludedFields.Any(f => f.Type.IsOrContainsReferenceType());
 
@@ -173,14 +173,16 @@ namespace Microsoft.Cci.Writers
                     // taking pointers to this struct because the GC will not track updating those references
                     if (hasRefPrivateField)
                     {
-                        DummyFieldWriterHelper(parentType, excludedFields, newFields, parentType.PlatformType.SystemObject);
+                        IFieldDefinition fieldType = DummyFieldWriterHelper(parentType, excludedFields, parentType.PlatformType.SystemObject);
+                        newFields.Add(fieldType);
                     }
 
-                    bool hasValueTypePrivateField = excludedFields.Any(f => f.Type.IsValueType);
+                    bool hasValueTypePrivateField = excludedFields.Any(f => !f.Type.IsOrContainsReferenceType());
 
                     if (hasValueTypePrivateField)
                     {
-                        DummyFieldWriterHelper(parentType, excludedFields, newFields, parentType.PlatformType.SystemInt32, "_dummyInt");
+                        IFieldDefinition fieldType = DummyFieldWriterHelper(parentType, excludedFields, parentType.PlatformType.SystemInt32, "_dummyPrimitive");
+                        newFields.Add(fieldType);
                     }
                 }
 
@@ -196,7 +198,7 @@ namespace Microsoft.Cci.Writers
             }
         }
 
-        private void DummyFieldWriterHelper(ITypeDefinition parentType, IEnumerable<IFieldDefinition> excludedFields, List<IFieldDefinition> fields, ITypeReference fieldType, string fieldName = "_dummy")
+        private IFieldDefinition DummyFieldWriterHelper(ITypeDefinition parentType, IEnumerable<IFieldDefinition> excludedFields, ITypeReference fieldType, string fieldName = "_dummy")
         {
             // For primitive types that have a field of their type set the dummy field to that type
             if (excludedFields.Count() == 1)
@@ -209,7 +211,7 @@ namespace Microsoft.Cci.Writers
                 }
             }
 
-            fields.Add(new DummyPrivateField(parentType, fieldType, fieldName));
+            return new DummyPrivateField(parentType, fieldType, fieldName);
         }
 
         public override void Visit(ITypeDefinitionMember member)
