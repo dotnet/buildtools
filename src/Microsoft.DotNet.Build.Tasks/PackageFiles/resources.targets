@@ -96,6 +96,10 @@
         ResxFilePath="$(StringResourcesPath)"
         OutputSourceFilePath="$(IntermediateResOutputFileFullPath)"
         AssemblyName="$(_NormalizedAssemblyName)"
+        SRNamespace="$(GenerateResourcesSRNamespace)"
+        SRClassName="$(GenerateResourcesSRClassName)"
+        ResourcesNamespace="$(GenerateResourcesResourcesNamespace)"
+        ResourcesClassName="$(GenerateResourcesResourcesClassName)"
         AsConstants="$(GenerateResourcesCodeAsConstants)">
     </GenerateResourcesCode>
 
