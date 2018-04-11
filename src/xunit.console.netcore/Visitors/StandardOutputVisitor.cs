@@ -19,8 +19,8 @@ namespace Xunit.ConsoleClient
         readonly Stopwatch clock;
         private ConcurrentDictionary<string, long> runningTests;
         private Thread watcher;
-        readonly int longTestMaxMilliseconds = 1_000 * 60 * 5;
-        readonly int longTestCheckMilliseconds = 1_000 * 60;
+        readonly int longTestMaxMilliseconds = 1000 * 60 * 5;
+        readonly int longTestCheckMilliseconds = 1000 * 60;
 
 
         public StandardOutputVisitor(object consoleLock,
@@ -144,7 +144,8 @@ namespace Xunit.ConsoleClient
                     Console.WriteLine("   {0} [FINISHED] Time: {1}s", XmlEscape(testFinished.Test.DisplayName), testFinished.ExecutionTime);
                 }
             }
-            if (!runningTests.TryRemove(testFinished.Test.DisplayName, out long elapsed))
+            long elapsed;
+            if (!runningTests.TryRemove(testFinished.Test.DisplayName, out elapsed))
             {
                 lock (consoleLock)
                 {
