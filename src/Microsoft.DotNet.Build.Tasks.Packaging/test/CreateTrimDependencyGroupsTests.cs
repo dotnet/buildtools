@@ -316,16 +316,27 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging.Tests
             task.Execute();
             Assert.Equal(0, _log.ErrorsLogged);
             Assert.Equal(0, _log.WarningsLogged);
-            IEnumerable<string> tmp = task.TrimmedDependencies.Select(f => f.GetMetadata("TargetFramework"));
+            
+            var expectedTFMs = new HashSet<string>()
+            {
+                "net45",
+                "portable45-net45+win8+wpa81",
+                "monoandroid10",
+                "monotouch10",
+                "win8",
+                "wpa81",
+                "xamarinios10",
+                "xamarinmac20",
+                "xamarintvos10",
+                "xamarinwatchos10"
+            };
+            var actualTFMs = task.TrimmedDependencies.Select(d => d.GetMetadata("TargetFramework"));
 
             // Assert that we're creating new dependency groups
-            Assert.Equal(2, task.TrimmedDependencies.Length);
+            Assert.All(actualTFMs, actualTFM => Assert.True(expectedTFMs.Contains(actualTFM), $"Unexpected TFM {actualTFM} not in {string.Join(",", expectedTFMs)}"));          
 
-            Console.WriteLine(String.Join(";", task.TrimmedDependencies.Select(d => d.GetMetadata("TargetFramework"))));
-
-            // The only added dependency in portable45-net45+win8+wpa81 and wpa81 is System.Collections.Immutable
-            Assert.Equal("System.Collections.Immutable", task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Equals("portable45-net45+win8+wpa81")).Single().ItemSpec);
-            Assert.Equal("System.Collections.Immutable", task.TrimmedDependencies.Where(f => f.GetMetadata("TargetFramework").Equals("wpa81")).Single().ItemSpec);
+            // System.Collections.Immutable will be added to all concrete frameworks
+            Assert.All(task.TrimmedDependencies, d => Assert.Equal("System.Collections.Immutable", d.ItemSpec));
         }
         
         [Fact]
