@@ -84,7 +84,7 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
             var supportedInboxFrameworks = index.GetAlllInboxFrameworks().Where(fx => IsSupported(fx, resolver));
 
             var newDependencyGroups = new Queue<TaskItemPackageDependencyGroup>();
-            // For each inbox framework determine its best compatible dependency group
+            // For each inbox framework determine its best compatible dependency group and create an explictit group, trimming out any inbox dependencies
             foreach(var supportedInboxFramework in supportedInboxFrameworks)
             {
                 var nearestDependencyGroup = dependencyGroups.GetNearest(supportedInboxFramework);
@@ -94,13 +94,8 @@ namespace Microsoft.DotNet.Build.Tasks.Packaging
                 {
                     // remove all dependencies which are inbox on supportedInboxFramework
                     var filteredDependencies = nearestDependencyGroup.Packages.Where(d => !index.IsInbox(d.Id, supportedInboxFramework, d.AssemblyVersion)).ToArray();
-
-                    // only create the new group if we removed some inbox dependencies
-                    if (filteredDependencies.Length != nearestDependencyGroup.Packages.Count)
-                    {
-                        // copy remaining dependencies
-                        newDependencyGroups.Enqueue(new TaskItemPackageDependencyGroup(supportedInboxFramework, filteredDependencies));
-                    }
+                    
+                    newDependencyGroups.Enqueue(new TaskItemPackageDependencyGroup(supportedInboxFramework, filteredDependencies));
                 }
             }
 
