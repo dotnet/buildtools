@@ -2,12 +2,17 @@
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Perf Analysis NuGet package paths -->
   <PropertyGroup>
+    <PerformanceType Condition="'$(PerformanceType)'==''">Profile</PerformanceType>
     <TraceEventPackage>Microsoft.Diagnostics.Tracing.TraceEvent\$(TraceEventPackageVersion)</TraceEventPackage>
   </PropertyGroup>
 
   <ItemGroup>
     <TraceEventNativePath Include="$(PackagesDir)\$(TraceEventPackage)\lib\native\**\*.*" />
   </ItemGroup>
+
+  <Target Name="ValidatePerformanceRunType" Condition="'$(Performance)'=='true'" BeforeTargets="RunTestsForProject">
+    <Error Condition="'$(PerformanceType)'!='Diagnostic' AND '$(PerformanceType)'!='Profile'" Text="Invalid Performance Type value specified: $(PerformanceType)" />
+  </Target>
 
   <Target Name ="PublishPerfRunner" Condition="'$(Performance)'=='true'" BeforeTargets="RunTestsForProject">
     <Copy SourceFiles="@(TraceEventNativePath)" DestinationFiles="@(TraceEventNativePath->'$(StartWorkingDirectory)\%(RecursiveDir)%(Filename)%(Extension)')" />
@@ -27,15 +32,6 @@
     <PythonCommand>py.exe</PythonCommand>
     <CliExitErrorCommand>EXIT /B 1</CliExitErrorCommand>
   </PropertyGroup>
-
-  <!-- Set the PerformanceType if not defined. -->
-  <PropertyGroup>
-    <PerformanceType Condition="'$(PerformanceType)'==''">Profile</PerformanceType>
-  </PropertyGroup>
-
-  <Target Name="ValidatePerformanceRunType" BeforeTargets="RunTestsForProject">
-    <Error Condition="'$(PerformanceType)'!='Diagnostic' AND '$(PerformanceType)'!='Profile'" Text="Invalid Performance Type value specified: $(PerformanceType)" />
-  </Target>
 
   <!-- Sets the flags for the performance counters to be collected in this run. -->
   <PropertyGroup Condition="'$(PerformanceType)'=='Profile'">
