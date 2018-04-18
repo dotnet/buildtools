@@ -35,6 +35,12 @@ namespace Microsoft.Cci.Writers
             base.Visit(assembly);
         }
 
+        public override void Visit(INamespaceDefinition ns)
+        {
+            _writer.WriteLine(ns.DocId());
+            base.Visit(ns);
+        }
+
         public override void Visit(ITypeDefinition type)
         {
             _writer.WriteLine(type.DocId());

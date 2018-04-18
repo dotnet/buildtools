@@ -127,13 +127,13 @@
     <UseOpenKey>true</UseOpenKey>
   </PropertyGroup>
 
-  <!-- 
+  <!--
   Projects that have no OS-specific implementations just use Debug and Release for $(Configuration).
   Projects that do have OS-specific implementations use OS_Debug and OS_Release, for all OS's we support even
   if the code is the same between some OS's (so if you have some project that just calls POSIX APIs, we still have
   OSX_[Debug|Release] and Linux_[Debug|Release] configurations.  We do this so that we place all the output under
   a single binary folder and can have a similar experience between the command line and Visual Studio.
-  
+
   Since now have multiple *Debug and *Release configurations, ConfigurationGroup is set to Debug for any of the
   debug configurations, and to Release for any of the release configurations.
   -->
@@ -168,7 +168,7 @@
     <DebugType Condition="'$(DebugType)' == ''">pdbonly</DebugType>
     <DefineConstants>$(DefineConstants),TRACE</DefineConstants>
   </PropertyGroup>
-  
+
   <!-- Default Test platform to deploy the netstandard compiled tests to -->
   <PropertyGroup>
     <TestTFM Condition="'$(TestTFM)'==''">netcoreapp1.0</TestTFM>
@@ -184,6 +184,7 @@
 
   <!-- Set up handling of build warnings -->
   <PropertyGroup>
+    <LangVersion>6</LangVersion>
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
