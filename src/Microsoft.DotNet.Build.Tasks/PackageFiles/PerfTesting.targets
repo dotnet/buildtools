@@ -13,59 +13,62 @@
     <Copy SourceFiles="@(TraceEventNativePath)" DestinationFiles="@(TraceEventNativePath->'$(StartWorkingDirectory)\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
 
+  <!-- Set platform specific values. -->
   <PropertyGroup Condition="'$(TargetOS)'=='Linux'">
     <PerfTestCommandDotnetExecutable>$RUNTIME_PATH/dotnet</PerfTestCommandDotnetExecutable>
     <BenchviewDir>$(ToolsDir)Microsoft.BenchView.JSONFormat/tools</BenchviewDir>
+    <PythonCommand>python3.5</PythonCommand>
+    <CliExitErrorCommand>exit 1</CliExitErrorCommand>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetOS)'=='Windows_NT'">
     <PerfTestCommandDotnetExecutable>%RUNTIME_PATH%\dotnet.exe</PerfTestCommandDotnetExecutable>
     <BenchviewDir>$(ToolsDir)Microsoft.BenchView.JSONFormat\tools</BenchviewDir>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <PerformanceType Condition="'$(PerformanceType)'==''">Profile</PerformanceType>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(PerformanceType)'=='Profile'">
-    <RunId>Perf-Profile</RunId>
-    <CollectFlags>default+gcapi</CollectFlags>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(PerformanceType)'=='Diagnostic'">
-    <RunId>Perf-Diagnostic</RunId>
-    <CollectFlags>default+BranchMispredictions+CacheMisses+InstructionRetired+gcapi</CollectFlags>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetOS)'=='Windows_NT'">
     <PythonCommand>py.exe</PythonCommand>
     <CliExitErrorCommand>EXIT /B 1</CliExitErrorCommand>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetOS)'=='Linux'">
-    <PythonCommand>python3.5</PythonCommand>
-    <CliExitErrorCommand>exit 1</CliExitErrorCommand>
-  </PropertyGroup>
-
-  <!-- TODO: Attempt to fail if PerformanceType is unknnown. -->
+  <!-- Set the PerformanceType if not defined. -->
   <PropertyGroup>
-    <PerfTestCommand>$(PerfTestCommandDotnetExecutable) PerfRunner.exe --perf:runid $(RunId) --perf:collect $(CollectFlags) || $(CliExitErrorCommand)</PerfTestCommand>
-    <MeasurementPyCommand>$(PythonCommand) $([System.IO.Path]::Combine($(BenchviewDir), "measurement.py")) xunit "$(RunId)-$(AssemblyName).xml" --better desc --drop-first-value --append -o "$(ProjectDir)measurement.json"</MeasurementPyCommand>
+    <PerformanceType Condition="'$(PerformanceType)'==''">Profile</PerformanceType>
   </PropertyGroup>
 
+  <Target Name="ValidatePerformanceRunType" BeforeTargets="RunTestsForProject">
+    <Error Condition="'$(PerformanceType)'!='Diagnostic' AND '$(PerformanceType)'!='Profile'" Text="Invalid Performance Type value specified: $(PerformanceType)" />
+  </Target>
+
+  <!-- Sets the flags for the performance counters to be collected in this run. -->
+  <PropertyGroup Condition="'$(PerformanceType)'=='Profile'">
+    <!-- Collect allocated bytes in execution thread, stopwatch, and any user defined Clr events (through the xUnit Performance Api attributes) -->
+    <CollectFlags>default+gcapi</CollectFlags>
+    <RunId>Perf-Profile</RunId>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(PerformanceType)'=='Diagnostic'">
+    <!-- Collect the same data collected with the Profile run plus stack and Pmc counters through Etw. -->
+    <CollectFlags>default+BranchMispredictions+CacheMisses+InstructionRetired+gcapi</CollectFlags>
+    <RunId>Perf-Diagnostic</RunId>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PerfRunnerCommand>$(PerfTestCommandDotnetExecutable) PerfRunner.exe --perf:runid $(RunId) --perf:collect $(CollectFlags) || $(CliExitErrorCommand)</PerfRunnerCommand>
+    <MeasurementPyCommand>$(PythonCommand) "$(BenchviewDir)/measurement.py" xunit "$(RunId)-$(AssemblyName).xml" --better desc --drop-first-value --append -o "$(ProjectDir)measurement.json || $(CliExitErrorCommand)"</MeasurementPyCommand>
+  </PropertyGroup>
+
+  <!-- Build the commands to be appended to the generated RunTest.[cmd|sh] script. -->
   <ItemGroup>
-    <PerfTestCommandLines Include="$(PerfTestCommand)" />
+    <PerfTestCommandLines Include="$(PerfRunnerCommand)" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetOS)'=='Windows_NT' and '$(LogToBenchview)' == 'true'">
     <PerfTestCommandLines Include="if exist &quot;$(RunId)-$(AssemblyName).xml&quot; (" />
-    <PerfTestCommandLines Include="$(MeasurementPyCommand) || $(CliExitErrorCommand)" />
+    <PerfTestCommandLines Include="$(MeasurementPyCommand)" />
     <PerfTestCommandLines Include=")" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetOS)'=='Linux' and '$(LogToBenchview)' == 'true'">
     <PerfTestCommandLines Include="if [ -a &quot;$(RunId)-$(AssemblyName).xml&quot; ]; then" />
-    <PerfTestCommandLines Include="$(MeasurementPyCommand) || $(CliExitErrorCommand)" />
+    <PerfTestCommandLines Include="$(MeasurementPyCommand)" />
     <PerfTestCommandLines Include="fi" />
   </ItemGroup>
 
@@ -75,18 +78,18 @@
     <AssemblyInfoLines Include="[assembly:OptimizeForBenchmarks]" />
   </ItemGroup>
 
-  <PropertyGroup>
-    <SubmissionPyCommand>$(PythonCommand) $([System.IO.Path]::Combine($(BenchviewDir), "submission.py")) "$(ProjectDir)measurement.json" --build "$(ProjectDir)build.json" --machine-data "$(ProjectDir)machinedata.json" --metadata "$(ProjectDir)submission-metadata.json" --group "CoreFx" --type "$(BenchviewRuntype)" --config-name "$(ConfigurationGroup)" --config Configuration "$(ConfigurationGroup)" --config OS "$(TargetOS)" --config "RunType" "$(PerformanceType)" -arch "$(Platform)" --machinepool "PerfSnake" -o "$(ProjectDir)submission.json"</SubmissionPyCommand>
-    <UploadPyCommand>$(PythonCommand) $([System.IO.Path]::Combine($(BenchviewDir), "upload.py")) "$(ProjectDir)submission.json" --container corefx</UploadPyCommand>
-  </PropertyGroup>
-
   <Target Name="UploadToBenchview" Condition="'$(LogToBenchview)' == 'true'" AfterTargets="TestAllProjects">
+    <PropertyGroup>
+      <SubmissionPyCommand>$(PythonCommand) "$(BenchviewDir)/submission.py" "$(ProjectDir)measurement.json" --build "$(ProjectDir)build.json" --machine-data "$(ProjectDir)machinedata.json" --metadata "$(ProjectDir)submission-metadata.json" --group "CoreFx" --type "$(BenchviewRuntype)" --config-name "$(ConfigurationGroup)" --config Configuration "$(ConfigurationGroup)" --config OS "$(TargetOS)" --config "RunType" "$(PerformanceType)" -arch "$(Platform)" --machinepool "PerfSnake" -o "$(ProjectDir)submission.json" || $(CliExitErrorCommand)</SubmissionPyCommand>
+      <UploadPyCommand>$(PythonCommand) "$(BenchviewDir)/upload.py" "$(ProjectDir)submission.json" --container corefx || $(CliExitErrorCommand)</UploadPyCommand>
+    </PropertyGroup>
+
     <ItemGroup>
       <BenchviewCalls Include="echo $(SubmissionPyCommand)"/>
-      <BenchviewCalls Include="$(SubmissionPyCommand) || $(CliExitErrorCommand)"/>
+      <BenchviewCalls Include="$(SubmissionPyCommand)"/>
 
       <BenchviewCalls Include="echo $(UploadPyCommand)"/>
-      <BenchviewCalls Include="$(UploadPyCommand) || $(CliExitErrorCommand)"/>
+      <BenchviewCalls Include="$(UploadPyCommand)"/>
     </ItemGroup>
 
     <Exec Command="%(BenchviewCalls.Identity)"/>
