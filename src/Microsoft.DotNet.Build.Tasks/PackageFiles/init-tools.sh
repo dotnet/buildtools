@@ -119,12 +119,22 @@ if [ "$__PACKAGE_VERSION_PROPS_URL" ]; then
 
     # Copied from CoreFX init-tools.sh
     if command -v curl > /dev/null; then
+        echo "Using curl to download the the package version props"
         curl --retry 10 -sSL --create-dirs -o "$__PACKAGE_VERSION_PROPS_PATH" "$__PACKAGE_VERSION_PROPS_URL"
+        exit_Code=$?
+        download_Method="curl"
     else
+        echo "Using wget to download the the package version props"
         wget -q -O "$__PACKAGE_VERSION_PROPS_PATH" "$__PACKAGE_VERSION_PROPS_URL"
+        exit_Code=$?
+        download_Method="wget"
     fi
 
-    echo "Downloaded package version props:"
+    if [ $exit_Code -ne 0 ]; then
+        echo "$download_Method returned exit code $exit_Code"
+    fi
+
+    echo "Successfully downloaded package version props:"
     cat "$__PACKAGE_VERSION_PROPS_PATH"
 fi
 

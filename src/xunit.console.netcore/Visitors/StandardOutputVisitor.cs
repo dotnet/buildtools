@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Xml.Linq;
 using Xunit.Abstractions;
 
@@ -13,6 +16,12 @@ namespace Xunit.ConsoleClient
         readonly ConcurrentDictionary<string, ExecutionSummary> completionMessages;
         readonly string defaultDirectory;
         readonly bool showProgress;
+        readonly Stopwatch clock;
+        private ConcurrentDictionary<string, long> runningTests;
+        private Thread watcher;
+        readonly int longTestMaxMilliseconds = 1000 * 60 * 5;
+        readonly int longTestCheckMilliseconds = 1000 * 60;
+
 
         public StandardOutputVisitor(object consoleLock,
                                      string defaultDirectory,
@@ -26,6 +35,9 @@ namespace Xunit.ConsoleClient
             this.defaultDirectory = defaultDirectory;
             this.completionMessages = completionMessages;
             this.showProgress = showProgress;
+
+            this.clock =  new Stopwatch();
+            this.runningTests = new ConcurrentDictionary<string, long>();
         }
 
         protected override bool Visit(ITestAssemblyStarting assemblyStarting)
@@ -34,6 +46,11 @@ namespace Xunit.ConsoleClient
 
             lock (consoleLock)
                 Console.WriteLine("Starting:    {0}", Path.GetFileNameWithoutExtension(assemblyFileName));
+
+            clock.Start();
+            watcher = new Thread(new ThreadStart(TestWatcher));
+            watcher.IsBackground = true;
+            watcher.Start();
 
             return base.Visit(assemblyStarting);
         }
@@ -56,6 +73,8 @@ namespace Xunit.ConsoleClient
                     Errors = Errors
                 });
 
+            runningTests = null;
+            clock.Stop();
             return result;
         }
 
@@ -64,7 +83,7 @@ namespace Xunit.ConsoleClient
             lock (consoleLock)
             {
                 // TODO: Thread-safe way to figure out the default foreground color
-                
+
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.Error.WriteLine("   {0} [FAIL]", XmlEscape(testFailed.Test.DisplayName));
                 Console.ForegroundColor = ConsoleColor.Gray;
@@ -104,6 +123,15 @@ namespace Xunit.ConsoleClient
                     Console.WriteLine("   {0} [STARTING]", XmlEscape(testStarting.Test.DisplayName));
                 }
             }
+
+            if (!runningTests.TryAdd(testStarting.Test.DisplayName, clock.ElapsedMilliseconds))
+            {
+                lock (consoleLock)
+                {
+                    Console.WriteLine("ERROR: Failed to add {0} to running tests set.", testStarting.Test.DisplayName);
+                }
+            }
+
             return base.Visit(testStarting);
         }
 
@@ -116,6 +144,23 @@ namespace Xunit.ConsoleClient
                     Console.WriteLine("   {0} [FINISHED] Time: {1}s", XmlEscape(testFinished.Test.DisplayName), testFinished.ExecutionTime);
                 }
             }
+            long elapsed;
+            if (!runningTests.TryRemove(testFinished.Test.DisplayName, out elapsed))
+            {
+                lock (consoleLock)
+                {
+                    Console.WriteLine("ERROR: Failed to find {0} in running test set.", testFinished.Test.DisplayName);
+                }
+            }
+            if (elapsed > longTestMaxMilliseconds)
+            {
+                lock (consoleLock)
+                {
+                    Console.WriteLine("WARNING: Long running test {0} finished in {1}ms.", testFinished.Test.DisplayName, elapsed);
+                }
+
+            }
+
             return base.Visit(testFinished);
         }
 
@@ -194,6 +239,35 @@ namespace Xunit.ConsoleClient
             {
                 Console.Error.WriteLine("         {0}", StackFrameTransformer.TransformFrame(stackFrame, defaultDirectory));
             }
+        }
+
+        private void TestWatcher()
+        {
+            try
+            {
+                while (runningTests != null)
+                {
+                    Thread.Sleep(longTestCheckMilliseconds);
+
+                    if (runningTests == null)
+                    {
+                        break;
+                    }
+
+                    long  now = clock.ElapsedMilliseconds;
+                    foreach (KeyValuePair<string, long> pair in runningTests)
+                    {
+                        if (( now - pair.Value) > longTestMaxMilliseconds)
+                        {
+                            lock (consoleLock)
+                            {
+                                Console.WriteLine("WARNING: {0} is running for {1}s.", pair.Key, (now - pair.Value) / 1000);
+                            }
+                        }
+                    }
+                }
+            }
+            catch { };
         }
     }
 }
