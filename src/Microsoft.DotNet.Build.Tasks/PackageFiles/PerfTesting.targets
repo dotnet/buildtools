@@ -10,7 +10,7 @@
     <TraceEventNativePath Include="$(PackagesDir)\$(TraceEventPackage)\lib\native\**\*.*" />
   </ItemGroup>
 
-  <Target Name="ValidatePerformanceRunType" Condition="'$(Performance)'=='true'" BeforeTargets="RunTestsForProject">
+  <Target Name="ValidatePerformanceRunType" Condition="'$(Performance)'=='true'" BeforeTargets="GenerateTestExecutionScripts">
     <Error Condition="'$(PerformanceType)'!='Diagnostic' AND '$(PerformanceType)'!='Profile'" Text="Invalid Performance Type value specified: $(PerformanceType)" />
   </Target>
 
@@ -48,7 +48,7 @@
 
   <PropertyGroup>
     <PerfRunnerCommand>$(PerfTestCommandDotnetExecutable) PerfRunner.exe --perf:runid $(RunId) --perf:collect $(CollectFlags) || $(CliExitErrorCommand)</PerfRunnerCommand>
-    <MeasurementPyCommand>$(PythonCommand) "$(BenchviewDir)/measurement.py" xunit "$(RunId)-$(AssemblyName).xml" --better desc --drop-first-value --append -o "$(ProjectDir)measurement.json || $(CliExitErrorCommand)"</MeasurementPyCommand>
+    <MeasurementPyCommand>$(PythonCommand) "$(BenchviewDir)/measurement.py" xunit "$(RunId)-$(AssemblyName).xml" --better desc --drop-first-value --append -o "$(ProjectDir)measurement.json" || $(CliExitErrorCommand)</MeasurementPyCommand>
   </PropertyGroup>
 
   <!-- Build the commands to be appended to the generated RunTest.[cmd|sh] script. -->
