@@ -938,22 +938,31 @@
 
   <!-- BEGIN validation and output -->
   <ItemGroup>
-    <!-- Default validation frameworks : every framework that supports contracts -->
+    <NETCoreApp10RIDs Condition="'@(NETCoreApp10RIDs)' == ''" Include="win7-x86;win7-x64;osx.10.11-x64;centos.7-x64;debian.8-x64;linuxmint.17-x64;rhel.7.2-x64;ubuntu.14.04-x64;ubuntu.16.04-x64" />
+    <!-- Default validation frameworks : frameworks which we test for support / not support in all packages -->
     <DefaultValidateFramework Include="netcoreapp1.0">
-      <RuntimeIDs>win7-x86;win7-x64;osx.10.11-x64;centos.7-x64;debian.8-x64;linuxmint.17-x64;opensuse.13.2-x64;rhel.7.2-x64;ubuntu.14.04-x64;ubuntu.16.04-x64</RuntimeIDs>
+      <RuntimeIDs>@(NETCoreApp10RIDs)</RuntimeIDs>
     </DefaultValidateFramework>
+    <NETCoreApp11RIDs Condition="'@(NETCoreApp11RIDs)' == ''" Include="@(NETCoreApp10RIDs);osx.10.12-x64;fedora.24-x64;opensuse.42.1-x64;rhel.7-x64" />
     <DefaultValidateFramework Include="netcoreapp1.1">
-      <RuntimeIDs>win7-x86;win7-x64;osx.10.10-x64;osx.10.11-x64;centos.7-x64;debian.8-x64;fedora.23-x64;fedora.24-x64;linuxmint.17-x64;opensuse.13.2-x64;opensuse.42.1-x64;rhel.7-x64;rhel.7.2-x64;ubuntu.14.04-x64;ubuntu.16.04-x64;ubuntu.16.10-x64</RuntimeIDs>
+      <RuntimeIDs>@(NETCoreApp11RIDs)</RuntimeIDs>
     </DefaultValidateFramework>
+    <NETCoreApp20RIDs Condition="'@(NETCoreApp20RIDs)' == ''" Include="@(NETCoreApp11RIDs)" />
     <DefaultValidateFramework Include="netcoreapp2.0">
-      <RuntimeIDs>win7-x86;win7-x64;win10-arm64;osx.10.10-x64;osx.10.11-x64;centos.7-x64;debian.8-x64;fedora.23-x64;fedora.24-x64;linuxmint.17-x64;opensuse.13.2-x64;opensuse.42.1-x64;rhel.7-x64;rhel.7.2-x64;ubuntu.14.04-x64;ubuntu.16.04-x64;ubuntu.16.10-x64</RuntimeIDs>
+      <RuntimeIDs>@(NETCoreApp20RIDs)</RuntimeIDs>
     </DefaultValidateFramework>
+    <NETCoreApp21RIDs Condition="'@(NETCoreApp21RIDs)' == ''" Include="@(NETCoreApp20RIDs)" />
     <DefaultValidateFramework Include="netcoreapp2.1">
-      <RuntimeIDs>win7-x86;win7-x64;win10-arm64;osx.10.10-x64;osx.10.11-x64;centos.7-x64;debian.8-x64;fedora.23-x64;fedora.24-x64;linuxmint.17-x64;opensuse.13.2-x64;opensuse.42.1-x64;rhel.7-x64;rhel.7.2-x64;ubuntu.14.04-x64;ubuntu.16.04-x64;ubuntu.16.10-x64</RuntimeIDs>
+      <RuntimeIDs>@(NETCoreApp21RIDs)</RuntimeIDs>
+    </DefaultValidateFramework>
+    <NETCoreApp22RIDs Condition="'@(NETCoreApp22RIDs)' == ''" Include="@(NETCoreApp21RIDs)" />
+    <DefaultValidateFramework Include="netcoreapp2.2">
+      <RuntimeIDs>@(NETCoreApp22RIDs)</RuntimeIDs>
     </DefaultValidateFramework>
 
+    <NETCore50RIDs Condition="'@(NETCore50RIDs)' == ''" Include="win10-x86;win10-x86-aot;win10-x64;win10-x64-aot;win10-arm;win10-arm-aot" />
     <DefaultValidateFramework Include="netcore50">
-      <RuntimeIDs>win10-x86;win10-x86-aot;win10-x64;win10-x64-aot;win10-arm;win10-arm-aot</RuntimeIDs>
+      <RuntimeIDs>@(NETCore50RIDs)</RuntimeIDs>
     </DefaultValidateFramework>
     <DefaultValidateFramework Include="netcore45">
       <!-- Intentionally empty, no RIDs defined for Win8 as it must work with packages.config-->
@@ -964,27 +973,30 @@
       <RuntimeIDs></RuntimeIDs>
     </DefaultValidateFramework>
 
+    <NET45RIDs Condition="'@(NET45RIDs)' == ''" Include=";win-x86;win-x64" />
     <DefaultValidateFramework Include="net45" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
-      <RuntimeIDs>;win-x86;win-x64</RuntimeIDs>
+      <RuntimeIDs>;@(NET45RIDs)</RuntimeIDs>
     </DefaultValidateFramework>
+    <NET451RIDs Condition="'@(NET451RIDs)' == ''" Include="@(NET45RIDs)" />
     <DefaultValidateFramework Include="net451" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
-      <RuntimeIDs>;win-x86;win-x64</RuntimeIDs>
+      <RuntimeIDs>;@(NET451RIDs)</RuntimeIDs>
     </DefaultValidateFramework>
-    <DefaultValidateFramework Include="net46" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
       <!-- additional win7 RIDs to validate up-level authoring -->
-      <RuntimeIDs>;win-x86;win-x64;win7-x86;win7-x64</RuntimeIDs>
+    <NET46RIDs Condition="'@(NET46RIDs)' == ''" Include="@(NET451RIDs);win7-x86;win7-x64" />
+    <DefaultValidateFramework Include="net46" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
+      <RuntimeIDs>;@(NET46RIDs)</RuntimeIDs>
     </DefaultValidateFramework>
+    <NET461RIDs Condition="'@(NET461RIDs)' == ''" Include="@(NET46RIDs)" />
     <DefaultValidateFramework Include="net461" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
-      <!-- add additional win7 RIDs to validate up-level authoring -->
-      <RuntimeIDs>;win-x86;win-x64;win7-x86;win7-x64</RuntimeIDs>
+      <RuntimeIDs>;@(NET461RIDs)</RuntimeIDs>
     </DefaultValidateFramework>
+    <NET462RIDs Condition="'@(NET462RIDs)' == ''" Include="@(NET461RIDs)" />
     <DefaultValidateFramework Include="net462" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
-      <!-- add additional win7 RIDs to validate up-level authoring -->
-      <RuntimeIDs>;win-x86;win-x64;win7-x86;win7-x64</RuntimeIDs>
+      <RuntimeIDs>;@(NET462RIDs)</RuntimeIDs>
     </DefaultValidateFramework>
-    <DefaultValidateFramework Include="net463" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
-      <!-- add additional win7 RIDs to validate up-level authoring -->
-      <RuntimeIDs>;win-x86;win-x64;win7-x86;win7-x64</RuntimeIDs>
+    <NET47RIDs Condition="'@(NET47RIDs)' == ''" Include="@(NET462RIDs)" />
+    <DefaultValidateFramework Include="net47" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
+      <RuntimeIDs>;@(NET47RIDs)</RuntimeIDs>
     </DefaultValidateFramework>
 
     <DefaultValidateFramework Include="wpa81">
@@ -996,14 +1008,17 @@
       <RuntimeIDs></RuntimeIDs>
     </DefaultValidateFramework>
 
+    <UAP10RIDs Condition="'@(UAP10RIDs)' == ''" Include="@(NETCore50RIDs)" />
     <DefaultValidateFramework Include="uap10.0">
-      <RuntimeIDs>win10-x86;win10-x86-aot;win10-x64;win10-x64-aot;win10-arm;win10-arm-aot</RuntimeIDs>
+      <RuntimeIDs>@(UAP10RIDs)</RuntimeIDs>
     </DefaultValidateFramework>
+    <UAP10016299RIDs Condition="'@(UAP10016299RIDs)' == ''" Include="@(UAP10RIDs)" />
     <DefaultValidateFramework Include="uap10.0.16299">
-      <RuntimeIDs>win10-x86;win10-x86-aot;win10-x64;win10-x64-aot;win10-arm;win10-arm-aot</RuntimeIDs>
+      <RuntimeIDs>@(UAP10016299RIDs)</RuntimeIDs>
     </DefaultValidateFramework>
+    <UAPvNextRIDs Condition="'@(UAPvNextRIDs)' == ''" Include="@(UAP10016299RIDs)" />
     <DefaultValidateFramework Include="$(UAPvNextTFM)">
-      <RuntimeIDs>win10-x86;win10-x86-aot;win10-x64;win10-x64-aot;win10-arm;win10-arm-aot</RuntimeIDs>
+      <RuntimeIDs>@(UAPvNextRIDs)</RuntimeIDs>
     </DefaultValidateFramework>
   </ItemGroup>
 
