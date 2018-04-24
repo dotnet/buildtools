@@ -106,8 +106,7 @@ namespace Microsoft.Cci.Differs.Rules
                             break;
 
                         differences.AddIncompatibleDifference(this,
-                            "Attribute '{0}' exists in the contract but not the implementation.",
-                            attribName, target.FullName());
+                            $"Attribute '{attribName}' exists in the {Left} but not the {Right}.");
 
                         added = true;
 

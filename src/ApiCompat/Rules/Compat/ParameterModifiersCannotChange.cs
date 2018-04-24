@@ -56,8 +56,7 @@ namespace Microsoft.Cci.Differs.Rules
                 if (GetModifier(implParam) != GetModifier(contractParam))
                 {
                     differences.AddIncompatibleDifference(this,
-                        "Modifiers on parameter '{0}' on method '{1}' are '{2}' in the implementation but '{3}' in the contract.",
-                        implParam.Name.Value, implMethod.FullName(), GetModifier(implParam), GetModifier(contractParam));
+                        $"Modifiers on parameter '{implParam.Name.Value}' on method '{implMethod.FullName()}' are '{GetModifier(implParam)}' in the {Right} but '{GetModifier(contractParam)}' in the {Left}.");
                     match = false;
                 }
 
@@ -68,8 +67,7 @@ namespace Microsoft.Cci.Differs.Rules
                     if (implParam.CustomModifiers.Count() != union.Count())
                     {
                         differences.AddIncompatibleDifference(this,
-                            "Custom modifiers on parameter '{0}' on method '{1}' are '{2}' in the implementation but '{3}' in the contract.",
-                            implParam.Name.Value, implMethod.FullName(), PrintCustomModifiers(implParam.CustomModifiers), PrintCustomModifiers(contractParam.CustomModifiers));
+                            $"Custom modifiers on parameter '{implParam.Name.Value}' on method '{implMethod.FullName()}' are '{PrintCustomModifiers(implParam.CustomModifiers)}' in the {Right} but '{PrintCustomModifiers(contractParam.CustomModifiers)}' in the {Left}.");
                         match = false;
                     }
                 }
@@ -81,8 +79,7 @@ namespace Microsoft.Cci.Differs.Rules
             if (implReturnModifier != contractReturnModifier)
             {
                 differences.AddIncompatibleDifference(this,
-                    "Modifiers on return type of method '{0}' are '{1}' in the implementation but '{2}' in the contract.",
-                    implMethod.FullName(), implReturnModifier, contractReturnModifier);
+                    $"Modifiers on return type of method '{implMethod.FullName()}' are '{implReturnModifier}' in the {Right} but '{contractReturnModifier}' in the {Left}.");
                 match = false;
             }
 

@@ -48,8 +48,7 @@ namespace Microsoft.Cci.Differs.Rules
             if (!_typeComparer.Equals(implReturnType, contractReturnType))
             {
                 differences.AddTypeMismatchDifference("DelegateReturnTypesMustMatch", implReturnType, contractReturnType,
-                    "Return type on delegate '{0}' is '{1}' in the implementation but '{2}' in the contract.",
-                    implMethod.ContainingType.FullName(), implReturnType.FullName(), contractReturnType.FullName());
+                    $"Return type on delegate '{implMethod.ContainingType.FullName()}' is '{implReturnType.FullName()}' in the {Right} but '{contractReturnType.FullName()}' in the {Left}.");
                 return false;
             }
 
@@ -74,16 +73,14 @@ namespace Microsoft.Cci.Differs.Rules
                 if (!implParam.Name.Value.Equals(contractParam.Name.Value))
                 {
                     differences.AddIncompatibleDifference("DelegateParamNameMustMatch",
-                        "Parameter name on delegate '{0}' is '{1}' in the implementation but '{2}' in the contract.",
-                        implMethod.ContainingType.FullName(), implParam.Name.Value, contractParam.Name.Value);
+                        $"Parameter name on delegate '{implMethod.ContainingType.FullName()}' is '{implParam.Name.Value}' in the {Right} but '{contractParam.Name.Value}' in the {Left}.");
                     match = false;
                 }
 
                 if (!_typeComparer.Equals(implParam.Type, contractParam.Type))
                 {
                     differences.AddTypeMismatchDifference("DelegateParamTypeMustMatch", implParam.Type, contractParam.Type,
-                        "Type for parameter '{0}' on delegate '{1}' is '{2}' in the implementation but '{3}' in the contract.",
-                        implParam.Name.Value, implMethod.ContainingType.FullName(), implParam.Type.FullName(), contractParam.Type.FullName());
+                        $"Type for parameter '{implParam.Name.Value}' on delegate '{implMethod.ContainingType.FullName()}' is '{implParam.Type.FullName()}' in the {Right} but '{contractParam.Type.FullName()}' in the {Left}.");
                     match = false;
                 }
             }

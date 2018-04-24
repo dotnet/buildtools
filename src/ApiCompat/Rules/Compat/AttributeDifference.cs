@@ -141,8 +141,7 @@ namespace Microsoft.Cci.Differs.Rules
                             AttributeAdded(target, attribName);
 
                             differences.AddIncompatibleDifference("CannotAddAttribute",
-                                "Attribute '{0}' exists on '{1}' in the implementation but not the contract.",
-                                attribName, target.FullName());
+                                $"Attribute '{attribName}' exists on '{target.FullName()}' in the {Right} but not the {Left}.");
 
                             break;
                         }
@@ -160,8 +159,7 @@ namespace Microsoft.Cci.Differs.Rules
                                 break;
 
                             differences.AddIncompatibleDifference("CannotRemoveAttribute",
-                                "Attribute '{0}' exists on '{1}' in the contract but not the implementation.",
-                                attribName, target.FullName());
+                                $"Attribute '{attribName}' exists on '{target.FullName()}' in the {Left} but not the {Right}.");
 
                             break;
                         }

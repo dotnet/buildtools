@@ -35,9 +35,7 @@ namespace Microsoft.Cci.Differs.Rules
                 ITypeReference contractValType = contract.ContainingTypeDefinition.GetEnumType();
 
                 differences.AddIncompatibleDifference(this,
-                    "Enum value '{0}' is ({1}){2} in the implementation but ({3}){4} in the contract.",
-                    implField.FullName(), implValType.FullName(), implField.Constant.Value,
-                    contractValType.FullName(), contractField.Constant.Value);
+                    $"Enum value '{implField.FullName()}' is ({implValType.FullName()}){implField.Constant.Value} in the {Right} but ({contractValType.FullName()}){contractField.Constant.Value} in the {Left}.");
                 return DifferenceType.Changed;
             }
 

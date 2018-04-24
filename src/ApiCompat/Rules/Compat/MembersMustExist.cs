@@ -39,8 +39,8 @@ namespace Microsoft.Cci.Differs.Rules
             if (!(contractMember is IMethodDefinition || contractMember is IFieldDefinition))
                 return DifferenceType.Unknown;
 
-            string incompatibeDifferenceMessage = string.Format("Member '{0}' does not exist in the implementation but it does exist in the contract.", contractMember.FullName());
-            string returnTypeChangedMessageFormat = "Member '{0}' does not exist, but there does exist a member with return type '{1}' instead of '{2}'";
+            string incompatibeDifferenceMessage = $"Member '{contractMember.FullName()}' does not exist in the {Right} but it does exist in the {Left}.";
+
             ITypeDefinition contractType = mapping.ContainingType[0];
             if (contractType != null)
             {
@@ -58,7 +58,7 @@ namespace Microsoft.Cci.Differs.Rules
                     if (lookForMethodInBaseResult == FindMethodResult.Found)
                         return DifferenceType.Unknown;
                     if (lookForMethodInBaseResult == FindMethodResult.ReturnTypeChanged)
-                        incompatibeDifferenceMessage = string.Format(returnTypeChangedMessageFormat, foundMethod.FullName(), foundMethod.GetReturnType().FullName(), contractMethod.GetReturnType().FullName());
+                        incompatibeDifferenceMessage += $" There does exist a member with return type '{foundMethod.GetReturnType().FullName()}' instead of '{contractMethod.GetReturnType().FullName()}'";
                 }
             }
 

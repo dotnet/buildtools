@@ -18,8 +18,7 @@ namespace Microsoft.Cci.Differs.Rules
             if (ImplementsIDisposable(impl) && !ImplementsIDisposable(contract))
             {
                 differences.AddIncompatibleDifference(this,
-                    "Type '{0}' implements IDisposable in the implementation but not the contract.",
-                    impl.FullName());
+                    $"Type '{impl.FullName()}' implements IDisposable in the {Right} but not the {Left}.");
                 return DifferenceType.Changed;
             }
 

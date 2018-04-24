@@ -47,8 +47,7 @@ namespace Microsoft.Cci.Differs.Rules
                 if (!implParam.Name.Value.Equals(contractParam.Name.Value))
                 {
                     differences.AddIncompatibleDifference(this,
-                        "Parameter name on member '{0}' is '{1}' in the implementation but '{2}' in the contract.",
-                        implMethod.FullName(), implParam.Name.Value, contractParam.Name.Value);
+                        $"Parameter name on member '{implMethod.FullName()}' is '{implParam.Name.Value}' in the {Right} but '{contractParam.Name.Value}' in the {Left}.");
                     match = false;
                 }
             }
