@@ -60,6 +60,11 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         public string ManifestBuildData { get; set; }
 
         /// <summary>
+        /// If the ExpectedFeedUrl includes an authentication token, this property is ignored.
+        /// </summary>
+        public bool MakeContainerPublic { get; set; } = true;
+
+        /// <summary>
         /// When publishing build outputs to an orchestrated blob feed, do not change this property.
         /// 
         /// The virtual dir to place the manifest XML file in, under the assets/ virtual dir. The
@@ -92,7 +97,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
                     if (!SkipCreateContainer)
                     {
-                        await blobFeedAction.CreateContainerAsync(BuildEngine, PublishFlatContainer);
+                        await blobFeedAction.CreateContainerAsync(BuildEngine, PublishFlatContainer, MakeContainerPublic);
                     }
 
                     if (PublishFlatContainer)
