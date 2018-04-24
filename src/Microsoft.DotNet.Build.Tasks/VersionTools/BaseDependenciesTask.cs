@@ -53,6 +53,9 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
         /// </summary>
         protected GitHubClient GitHubClient { get; private set; }
 
+        protected Dictionary<IDependencyInfo, ITaskItem> DependencyInfoConfigItems { get; } =
+            new Dictionary<IDependencyInfo, ITaskItem>();
+
         public override bool Execute()
         {
             GitHubAuth auth = null;
@@ -149,16 +152,18 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
         {
             foreach (ITaskItem info in DependencyInfo ?? Enumerable.Empty<ITaskItem>())
             {
+                IDependencyInfo dependencyInfo;
+
                 string type = info.GetMetadata("DependencyType");
                 switch (type)
                 {
                     case "Build":
                         SetVersionsCommitOverride(info, versionsCommit);
-                        yield return CreateBuildInfoDependency(info, BuildInfoCacheDir);
+                        dependencyInfo = CreateBuildInfoDependency(info, BuildInfoCacheDir);
                         break;
 
                     case "Submodule":
-                        yield return SubmoduleDependencyInfo.Create(
+                        dependencyInfo = SubmoduleDependencyInfo.Create(
                             GetRequiredMetadata(info, "Repository"),
                             GetRequiredMetadata(info, "Ref"),
                             GetRequiredMetadata(info, "Path"),
@@ -167,7 +172,7 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 
                     case "Orchestrated build":
                         SetVersionsCommitOverride(info, versionsCommit);
-                        yield return OrchestratedBuildDependencyInfo.CreateAsync(
+                        dependencyInfo = OrchestratedBuildDependencyInfo.CreateAsync(
                             info.ItemSpec,
                             new GitHubProject(
                                 GetRequiredMetadata(info, "VersionsRepo"),
@@ -181,6 +186,9 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                         throw new NotSupportedException(
                             $"Unsupported DependencyInfo '{info.ItemSpec}': DependencyType '{type}'.");
                 }
+
+                DependencyInfoConfigItems[dependencyInfo] = info;
+                yield return dependencyInfo;
             }
         }
 
@@ -211,7 +219,7 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
             return updater;
         }
 
-        private static TaskItemBuildDependencyInfo CreateBuildInfoDependency(ITaskItem item, string cacheDir)
+        private static BuildDependencyInfo CreateBuildInfoDependency(ITaskItem item, string cacheDir)
         {
             BuildInfo info = CreateBuildInfo(item, cacheDir);
 
@@ -223,11 +231,10 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                 .GetMetadata("DisabledPackages")
                 .Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 
-            return new TaskItemBuildDependencyInfo(
+            return new BuildDependencyInfo(
                 info,
                 updateStaticDependencies,
-                disabledPackages,
-                item);
+                disabledPackages);
         }
 
         private static BuildInfo CreateBuildInfo(ITaskItem item, string cacheDir)

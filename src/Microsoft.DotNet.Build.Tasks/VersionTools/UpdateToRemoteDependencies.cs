@@ -73,10 +73,17 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
             if (!string.IsNullOrEmpty(CurrentRefXmlPath))
             {
                 foreach (ITaskItem item in updateResults.UsedInfos
-                    .OfType<TaskItemBuildDependencyInfo>()
                     .Distinct()
-                    .Select(info => info.SourceItem)
-                    .Where(item => !string.IsNullOrEmpty(item.GetMetadata(CurrentRefMetadataName))))
+                    .Select(info =>
+                    {
+                        ITaskItem item;
+                        if (DependencyInfoConfigItems.TryGetValue(info, out item))
+                        {
+                            return item;
+                        }
+                        return null;
+                    })
+                    .Where(item => !string.IsNullOrEmpty(item?.GetMetadata(CurrentRefMetadataName))))
                 {
                     UpdateProperty(
                         CurrentRefXmlPath,
