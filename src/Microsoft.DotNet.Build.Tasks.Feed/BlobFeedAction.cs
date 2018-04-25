@@ -190,7 +190,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             }
         }
 
-        public async Task CreateContainerAsync(IBuildEngine buildEngine, bool publishFlatContainer)
+        public async Task CreateContainerAsync(IBuildEngine buildEngine, bool publishFlatContainer, bool isContainerPublic)
         {
             Log.LogMessage($"Creating container {feed.ContainerName}...");
 
@@ -200,7 +200,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 AccountName = feed.AccountName,
                 ContainerName = feed.ContainerName,
                 FailIfExists = false,
-                IsPublic = !hasToken,
+                IsPublic = isContainerPublic && !hasToken,
                 BuildEngine = buildEngine
             };
 
