@@ -14,6 +14,12 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.Submodule
 {
     public class OrchestratedBuildSubmoduleUpdater : SubmoduleUpdater
     {
+        /// <summary>
+        /// A "fake" remote that branches are fetched to directly from the git url. This ensures the
+        /// correct commit is fetched regardless how the remotes are set up in the submodule.
+        /// </summary>
+        private const string SyntheticRemoteName = "auto-update-remote";
+
         public string BuildName { get; set; }
 
         public string GitUrl { get; set; }
@@ -50,8 +56,9 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.Submodule
 
         protected override void FetchRemoteBranch()
         {
-            Trace.TraceInformation($"In '{Path}', fetching from '{GitUrl}'");
-            GitCommand.Fetch(Path, GitUrl);
+            string refspec = $"+refs/heads/*:refs/remotes/{SyntheticRemoteName}/*";
+            Trace.TraceInformation($"In '{Path}', fetching '{refspec}' from '{GitUrl}'...");
+            GitCommand.Fetch(Path, GitUrl, refspec);
         }
 
         private class DependencyInfoMatch

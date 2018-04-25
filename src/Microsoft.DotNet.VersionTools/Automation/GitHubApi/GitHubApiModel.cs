@@ -16,6 +16,7 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
         public string Body { get; set; }
         public GitHubHead Head { get; set; }
         public GitHubUser User { get; set; }
+        public GitHubLabel[] Labels { get; set; }
     }
 
     public class GitHubHead
@@ -29,6 +30,11 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
     public class GitHubUser
     {
         public string Login { get; set; }
+    }
+
+    public class GitHubLabel
+    {
+        public string Name { get; set; }
     }
 
     public class GitHubIssueQueryResponse
