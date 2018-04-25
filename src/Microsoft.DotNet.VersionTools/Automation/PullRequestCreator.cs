@@ -15,6 +15,7 @@ namespace Microsoft.DotNet.VersionTools.Automation
     public class PullRequestCreator
     {
         private const string DiscardedCommitElementName = "auto-pr-discard-list";
+        private const string MaestroStopUpdatesLabel = "Maestro-Stop-Updating";
 
         private GitHubAuth _auth;
 
@@ -78,7 +79,7 @@ namespace Microsoft.DotNet.VersionTools.Automation
                             pullRequestToUpdate.Head.Sha);
 
                         string blockedReason = GetUpdateBlockedReason(
-                            pullRequestToUpdate.Head,
+                            pullRequestToUpdate,
                             headCommit,
                             upgradeBranchPrefix,
                             origin);
@@ -197,18 +198,18 @@ namespace Microsoft.DotNet.VersionTools.Automation
         }
 
         private string GetUpdateBlockedReason(
-            GitHubHead head,
+            GitHubPullRequest pr,
             GitCommit headCommit,
             string upgradeBranchPrefix,
             GitHubProject origin)
         {
-            if (head.User.Login != origin.Owner)
+            if (pr.Head.User.Login != origin.Owner)
             {
-                return $"Owner of head repo '{head.User.Login}' is not '{origin.Owner}'";
+                return $"Owner of head repo '{pr.Head.User.Login}' is not '{origin.Owner}'";
             }
-            if (!head.Ref.StartsWith(upgradeBranchPrefix))
+            if (!pr.Head.Ref.StartsWith(upgradeBranchPrefix))
             {
-                return $"Ref name '{head.Ref}' does not start with '{upgradeBranchPrefix}'";
+                return $"Ref name '{pr.Head.Ref}' does not start with '{upgradeBranchPrefix}'";
             }
             if (headCommit.Author.Name != GitAuthorName)
             {
@@ -217,6 +218,10 @@ namespace Microsoft.DotNet.VersionTools.Automation
             if (headCommit.Committer.Name != GitAuthorName)
             {
                 return $"Head commit committer '{headCommit.Committer.Name}' is not '{GitAuthorName}'";
+            }
+            if (pr.Labels?.Any(IsMaestroStopUpdatesLabel) ?? false)
+            {
+                return $"Label `{MaestroStopUpdatesLabel}` is attached";
             }
             return null;
         }
@@ -234,6 +239,11 @@ namespace Microsoft.DotNet.VersionTools.Automation
                 refSpec,
                 force: true);
         }
+
+        private static bool IsMaestroStopUpdatesLabel(GitHubLabel label) => string.Equals(
+            label?.Name,
+            MaestroStopUpdatesLabel,
+            StringComparison.OrdinalIgnoreCase);
 
         private class CiStatusLine
         {
