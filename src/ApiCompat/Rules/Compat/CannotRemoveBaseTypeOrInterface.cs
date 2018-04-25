@@ -9,7 +9,7 @@ using Microsoft.Cci.Extensions;
 namespace Microsoft.Cci.Differs.Rules
 {
     [ExportDifferenceRule]
-    internal class CannotRemoveBaseTypeOrInterface : DifferenceRule
+    internal class CannotRemoveBaseTypeOrInterface : CompatDifferenceRule
     {
         [Import]
         public IEqualityComparer<ITypeReference> _typeComparer { get; set; } = null;
@@ -43,8 +43,7 @@ namespace Microsoft.Cci.Differs.Rules
                 if (lastIndex < 0)
                 {
                     differences.AddIncompatibleDifference(this,
-                        "Type '{0}' does not inherit from base type '{1}' in the implementation but it does in the contract.",
-                        contract.FullName(), contractBaseType.FullName());
+                        $"Type '{contract.FullName()}' does not inherit from base type '{contractBaseType.FullName()}' in the {Implementation} but it does in the {Contract}.");
                     return true;
                 }
             }
@@ -66,8 +65,7 @@ namespace Microsoft.Cci.Differs.Rules
                 if (!implInterfaces.Contains(contractInterface))
                 {
                     differences.AddIncompatibleDifference(this,
-                        "Type '{0}' does not implement interface '{1}' in the implementation but it does in the contract.",
-                            contract.FullName(), contractInterface.FullName());
+                        $"Type '{contract.FullName()}' does not implement interface '{contractInterface.FullName()}' in the {Implementation} but it does in the {Contract}.");
                     return true;
                 }
             }

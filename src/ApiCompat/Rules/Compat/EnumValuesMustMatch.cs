@@ -5,12 +5,12 @@
 using Microsoft.Cci.Extensions;
 using Microsoft.Cci.Extensions.CSharp;
 using System;
-using System.Diagnostics.Contracts;
+using System.Diagnostics;
 
 namespace Microsoft.Cci.Differs.Rules
 {
     [ExportDifferenceRule]
-    internal class EnumValuesMustMatch : DifferenceRule
+    internal class EnumValuesMustMatch : CompatDifferenceRule
     {
         public override DifferenceType Diff(IDifferences differences, ITypeDefinitionMember impl, ITypeDefinitionMember contract)
         {
@@ -23,7 +23,7 @@ namespace Microsoft.Cci.Differs.Rules
             IFieldDefinition implField = impl as IFieldDefinition;
             IFieldDefinition contractField = contract as IFieldDefinition;
 
-            Contract.Assert(implField != null || contractField != null);
+            Debug.Assert(implField != null || contractField != null);
 
             string implValue = Convert.ToString(implField.Constant.Value);
             string contractValue = Convert.ToString(contractField.Constant.Value);
@@ -35,9 +35,7 @@ namespace Microsoft.Cci.Differs.Rules
                 ITypeReference contractValType = contract.ContainingTypeDefinition.GetEnumType();
 
                 differences.AddIncompatibleDifference(this,
-                    "Enum value '{0}' is ({1}){2} in the implementation but ({3}){4} in the contract.",
-                    implField.FullName(), implValType.FullName(), implField.Constant.Value,
-                    contractValType.FullName(), contractField.Constant.Value);
+                    $"Enum value '{implField.FullName()}' is ({implValType.FullName()}){implField.Constant.Value} in the {Implementation} but ({contractValType.FullName()}){contractField.Constant.Value} in the {Contract}.");
                 return DifferenceType.Changed;
             }
 

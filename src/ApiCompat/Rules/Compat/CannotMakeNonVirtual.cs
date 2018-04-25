@@ -8,7 +8,7 @@ using Microsoft.Cci.Extensions.CSharp;
 namespace Microsoft.Cci.Differs.Rules
 {
     [ExportDifferenceRule]
-    internal class CannotMakeNonVirtual : DifferenceRule
+    internal class CannotMakeNonVirtual : CompatDifferenceRule
     {
         public override DifferenceType Diff(IDifferences differences, ITypeDefinitionMember impl, ITypeDefinitionMember contract)
         {
@@ -34,8 +34,7 @@ namespace Microsoft.Cci.Differs.Rules
             if (isContractOverridable && !isImplOverridable)
             {
                 differences.AddIncompatibleDifference("CannotMakeMemberNonVirtual",
-                    "Member '{0}' is non-virtual in the implementation but is virtual in the contract.",
-                    impl.FullName());
+                    $"Member '{impl.FullName()}' is non-virtual in the {Implementation} but is virtual in the {Contract}.");
 
                 return DifferenceType.Changed;
             }

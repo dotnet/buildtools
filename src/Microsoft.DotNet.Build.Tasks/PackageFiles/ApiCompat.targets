@@ -93,7 +93,9 @@
     <PropertyGroup>
       <MatchingRefApiCompatArgs>$(MatchingRefApiCompatArgs) "$(ImplemetnationAssemblyAsContract)"</MatchingRefApiCompatArgs>
       <MatchingRefApiCompatArgs>$(MatchingRefApiCompatArgs) -contractDepends:"@(_ContractDependencyDirectories, ','),"</MatchingRefApiCompatArgs>
+      <MatchingRefApiCompatArgs>$(MatchingRefApiCompatArgs) -lhs:implementation</MatchingRefApiCompatArgs>
       <MatchingRefApiCompatArgs>$(MatchingRefApiCompatArgs) -implDirs:"@(_ImplementationDependencyDirectories, ','),"</MatchingRefApiCompatArgs>
+      <MatchingRefApiCompatArgs>$(MatchingRefApiCompatArgs) -rhs:reference</MatchingRefApiCompatArgs>
       <MatchingRefApiCompatArgs Condition="'$(BaselineAllMatchingRefApiCompatError)'!='true' and Exists('$(MatchingRefApiCompatBaseline)')">$(MatchingRefApiCompatArgs) -baseline:"$(MatchingRefApiCompatBaseline)"</MatchingRefApiCompatArgs>
       <MatchingRefApiCompatBaselineAll Condition="'$(BaselineAllMatchingRefApiCompatError)'=='true'">&gt; $(MatchingRefApiCompatBaseline)</MatchingRefApiCompatBaselineAll>
 

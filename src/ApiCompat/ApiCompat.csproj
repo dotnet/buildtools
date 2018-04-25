@@ -20,6 +20,7 @@
     <Compile Include="NamespaceRemappingComparer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="PublicEditorBrowsableOnlyCciFilter.cs" />
+    <Compile Include="Rules\Compat\CompatDifferenceRule.cs" />
     <Compile Include="Rules\Compat\AttributeDifference.cs" />
     <Compile Include="Rules\Compat\CannotAddAbstractMembers.cs" />
     <Compile Include="Rules\Compat\CannotMakeNonVirtual.cs" />
@@ -33,6 +34,7 @@
     <Compile Include="Rules\Compat\CannotRemoveGenerics.cs" />
     <Compile Include="Rules\Compat\TypeCannotChangeClassification.cs" />
     <Compile Include="Rules\Compat\TypesMustExist.cs" />
+    <Compile Include="Rules\Compat\IDifferenceOperands.cs" />
     <Compile Include="Rules\ParameterTypeCannotChange.cs" />
     <Compile Include="Rules\Compat\ParameterModifiersCannotChange.cs" />
     <Compile Include="Rules\InheritanceHierarchyChangeTracker.cs" />

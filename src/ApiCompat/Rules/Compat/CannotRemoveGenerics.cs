@@ -4,17 +4,14 @@
 
 using System;
 using Microsoft.Cci.Extensions;
-using Microsoft.Cci.Writers.CSharp;
 using System.Linq;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
-using Microsoft.Cci.Mappings;
 
 namespace Microsoft.Cci.Differs.Rules
 {
     // @todo: More thinking needed to see whether this is really breaking.
     //[ExportDifferenceRule]
-    internal class CannotRemoveGenerics : DifferenceRule
+    internal class CannotRemoveGenerics : CompatDifferenceRule
     {
         public override DifferenceType Diff(IDifferences differences, ITypeDefinition impl, ITypeDefinition contract)
         {
@@ -56,8 +53,7 @@ namespace Microsoft.Cci.Differs.Rules
                     contractParam.Variance != implParam.Variance)
                 {
                     differences.AddIncompatibleDifference("CannotChangeVariance",
-                        "Variance on generic parameter '{0}' for '{1}' is '{2}' in the implementation but '{3}' in the contract.",
-                        implParam.FullName(), target.FullName(), implParam.Variance, contractParam.Variance);
+                        $"Variance on generic parameter '{implParam.FullName()}' for '{target.FullName()}' is '{implParam.Variance}' in the {Implementation} but '{contractParam.Variance}' in the {Contract}.");
                 }
 
                 string implConstraints = string.Join(",", GetConstraints(implParam).OrderBy(s => s, StringComparer.OrdinalIgnoreCase));
@@ -66,8 +62,7 @@ namespace Microsoft.Cci.Differs.Rules
                 if (!string.Equals(implConstraints, contractConstraints))
                 {
                     differences.AddIncompatibleDifference("CannotChangeGenericConstraints",
-                        "Constraints for generic parameter '{0}' for '{1}' is '{2}' in the implementation but '{3}' in the contract.",
-                        implParam.FullName(), target.FullName(), implConstraints, contractConstraints);
+                        $"Constraints for generic parameter '{implParam.FullName()}' for '{target.FullName()}' is '{implConstraints}' in the {Implementation} but '{contractConstraints}' in the {Contract}.");
                 }
             }
 

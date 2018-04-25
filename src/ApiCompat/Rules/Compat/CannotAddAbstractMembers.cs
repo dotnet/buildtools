@@ -8,7 +8,7 @@ using Microsoft.Cci.Extensions.CSharp;
 namespace Microsoft.Cci.Differs.Rules
 {
     [ExportDifferenceRule]
-    internal class CannotAddAbstractMembers : DifferenceRule
+    internal class CannotAddAbstractMembers : CompatDifferenceRule
     {
         public override DifferenceType Diff(IDifferences differences, Mappings.MemberMapping mapping)
         {
@@ -27,8 +27,7 @@ namespace Microsoft.Cci.Differs.Rules
                     return DifferenceType.Unknown;
 
                 differences.AddIncompatibleDifference(this,
-                    "Member '{0}' is abstract in the implementation but is missing in the contract.",
-                    impl.FullName());
+                    $"Member '{impl.FullName()}' is abstract in the {Implementation} but is missing in the {Contract}.");
                 return DifferenceType.Changed;
             }
             return DifferenceType.Unknown;

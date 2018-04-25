@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics.Contracts;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.Cci;
 using Microsoft.Cci.Differs;
@@ -49,7 +49,7 @@ namespace ApiCompat.Rules
             if (item1 == null || item2 == null)
                 return DifferenceType.Unknown;
 
-            Contract.Assert(_typeComparer != null);
+            Debug.Assert(_typeComparer != null);
 
             IEnumerable<ITypeReference> item1BaseClassChain = GetBaseClassChain(item1);
             IEnumerable<ITypeReference> item2BaseClassChain = GetBaseClassChain(item2);
@@ -101,8 +101,7 @@ namespace ApiCompat.Rules
 
         private String PrintClassHierarchy(IEnumerable<ITypeReference> baseClasses)
         {
-            Contract.Requires(baseClasses != null);
-            Contract.Ensures(Contract.Result<String>() != null);
+            Debug.Assert(baseClasses != null);
 
             return String.Join(", ", baseClasses.Reverse().Select(t => t.FullName()));
         }

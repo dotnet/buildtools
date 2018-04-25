@@ -7,7 +7,7 @@ using Microsoft.Cci.Extensions;
 namespace Microsoft.Cci.Differs.Rules
 {
     [ExportDifferenceRule]
-    internal class TypesMustExist : DifferenceRule
+    internal class TypesMustExist : CompatDifferenceRule
     {
         public override DifferenceType Diff(IDifferences differences, ITypeDefinition impl, ITypeDefinition contract)
         {
@@ -16,7 +16,7 @@ namespace Microsoft.Cci.Differs.Rules
                 if (!ReportAsMembersMustExist(contract, differences))
                 {
                     differences.AddIncompatibleDifference(this,
-                        "Type '{0}' does not exist in the implementation but it does exist in the contract.", contract.FullName());
+                        $"Type '{contract.FullName()}' does not exist in the {Implementation} but it does exist in the {Contract}.");
                 }
 
                 return DifferenceType.Added;
@@ -40,7 +40,7 @@ namespace Microsoft.Cci.Differs.Rules
             //    {
             //        differences.AddIncompatibleDifference(
             //            "MembersMustExist",
-            //            "Member '{0}' does not exist in the implementation but it does exist in the contract.", member.FullName());
+            //            $"Member '{member.FullName()}' does not exist in the {Implementation} but it does exist in the {Contract}.");
             //        specialCasedViolation = true;
             //    }
             //}

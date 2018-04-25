@@ -6,14 +6,14 @@ using Microsoft.Cci.Extensions;
 using Microsoft.Cci.Writers.CSharp;
 using System.Linq;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
+using System.Diagnostics;
 using Microsoft.Cci.Mappings;
 
 namespace Microsoft.Cci.Differs.Rules
 {
     // @todo: This is still a work-in-progress - suppressing it as it's causing repetition wrt to the Mdil rule that checks for specific custom attributes.
     // [ExportDifferenceRule]
-    internal class CannotAddAttributes : DifferenceRule
+    internal class CannotAddAttributes : CompatDifferenceRule
     {
         private MappingSettings _settings = new MappingSettings();
 
@@ -71,7 +71,7 @@ namespace Microsoft.Cci.Differs.Rules
             added |= AnyAttributeAdded(differences, implMethod, implMethod.ReturnValueAttributes, contractMethod.ReturnValueAttributes);
             added |= AnySecurityAttributeAdded(differences, implMethod, implMethod.SecurityAttributes, contractMethod.SecurityAttributes);
 
-            Contract.Assert(implMethod.ParameterCount == contractMethod.ParameterCount);
+            Debug.Assert(implMethod.ParameterCount == contractMethod.ParameterCount);
 
             IParameterDefinition[] method1Params = implMethod.Parameters.ToArray();
             IParameterDefinition[] method2Params = contractMethod.Parameters.ToArray();
@@ -106,8 +106,7 @@ namespace Microsoft.Cci.Differs.Rules
                             break;
 
                         differences.AddIncompatibleDifference(this,
-                            "Attribute '{0}' exists in the contract but not the implementation.",
-                            attribName, target.FullName());
+                            $"Attribute '{attribName}' exists in the {Contract} but not the {Implementation}.");
 
                         added = true;
 
