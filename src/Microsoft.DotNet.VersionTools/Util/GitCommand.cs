@@ -75,15 +75,6 @@ namespace Microsoft.DotNet.VersionTools.Util
 
         internal static void Fetch(
             string path,
-            string repository)
-        {
-            Create("-C", path, "fetch", repository)
-                .Execute()
-                .EnsureSuccessful();
-        }
-
-        internal static void Fetch(
-            string path,
             string repository,
             string refspec)
         {
