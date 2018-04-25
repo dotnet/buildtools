@@ -8,7 +8,7 @@ using Microsoft.Cci.Extensions.CSharp;
 namespace Microsoft.Cci.Differs.Rules
 {
     [ExportDifferenceRule]
-    internal class TypeCannotChangeClassification : DifferenceRule
+    internal class TypeCannotChangeClassification : CompatDifferenceRule
     {
         public override DifferenceType Diff(IDifferences differences, ITypeDefinition impl, ITypeDefinition contract)
         {

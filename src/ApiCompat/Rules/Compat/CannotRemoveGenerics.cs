@@ -11,7 +11,7 @@ namespace Microsoft.Cci.Differs.Rules
 {
     // @todo: More thinking needed to see whether this is really breaking.
     //[ExportDifferenceRule]
-    internal class CannotRemoveGenerics : DifferenceRule
+    internal class CannotRemoveGenerics : CompatDifferenceRule
     {
         public override DifferenceType Diff(IDifferences differences, ITypeDefinition impl, ITypeDefinition contract)
         {

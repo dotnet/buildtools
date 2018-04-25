@@ -14,7 +14,7 @@ namespace Microsoft.Cci.Differs.Rules
     // Look for differences in a parameter's marshaling attributes like in, out, & ref, as well as 
     // potentially custom modifiers like const & volatile.
     [ExportDifferenceRule]
-    internal class ParameterModifiersCannotChange : DifferenceRule
+    internal class ParameterModifiersCannotChange : CompatDifferenceRule
     {
         public override DifferenceType Diff(IDifferences differences, ITypeDefinitionMember impl, ITypeDefinitionMember contract)
         {

@@ -10,7 +10,7 @@ namespace Microsoft.Cci.Differs.Rules
 {
     // @todo: Candidate for strict mode.
     //[ExportDifferenceRule]
-    internal class ParameterNamesCannotChange : DifferenceRule
+    internal class ParameterNamesCannotChange : CompatDifferenceRule
     {
         public override DifferenceType Diff(IDifferences differences, ITypeDefinitionMember impl, ITypeDefinitionMember contract)
         {

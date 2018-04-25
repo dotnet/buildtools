@@ -20,7 +20,7 @@
     <Compile Include="NamespaceRemappingComparer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="PublicEditorBrowsableOnlyCciFilter.cs" />
-    <Compile Include="Rules\Compat\DifferenceRule.cs" />
+    <Compile Include="Rules\Compat\CompatDifferenceRule.cs" />
     <Compile Include="Rules\Compat\AttributeDifference.cs" />
     <Compile Include="Rules\Compat\CannotAddAbstractMembers.cs" />
     <Compile Include="Rules\Compat\CannotMakeNonVirtual.cs" />

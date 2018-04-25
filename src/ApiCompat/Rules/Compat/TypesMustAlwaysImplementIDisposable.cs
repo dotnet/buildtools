@@ -8,7 +8,7 @@ namespace Microsoft.Cci.Differs.Rules
 {
     // Candidate for strict mode
     //[ExportDifferenceRule]
-    internal class TypesMustAlwaysImplementIDisposable : DifferenceRule
+    internal class TypesMustAlwaysImplementIDisposable : CompatDifferenceRule
     {
         public override DifferenceType Diff(IDifferences differences, ITypeDefinition impl, ITypeDefinition contract)
         {

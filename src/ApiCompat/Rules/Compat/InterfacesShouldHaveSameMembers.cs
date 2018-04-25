@@ -13,7 +13,7 @@ using System;
 namespace Microsoft.Cci.Differs.Rules
 {
     [ExportDifferenceRule]
-    internal class InterfacesShouldHaveSameMembers : DifferenceRule
+    internal class InterfacesShouldHaveSameMembers : CompatDifferenceRule
     {
         public override DifferenceType Diff(IDifferences differences, ITypeDefinitionMember impl, ITypeDefinitionMember contract)
         {

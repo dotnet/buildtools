@@ -13,7 +13,7 @@ namespace Microsoft.Cci.Differs.Rules
 {
     // @todo: This is still a work-in-progress - suppressing it as it's causing repetition wrt to the Mdil rule that checks for specific custom attributes.
     // [ExportDifferenceRule]
-    internal class CannotAddAttributes : DifferenceRule
+    internal class CannotAddAttributes : CompatDifferenceRule
     {
         private MappingSettings _settings = new MappingSettings();
 

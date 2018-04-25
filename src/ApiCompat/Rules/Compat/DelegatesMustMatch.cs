@@ -12,7 +12,7 @@ using Microsoft.Cci.Extensions.CSharp;
 namespace Microsoft.Cci.Differs.Rules
 {
     [ExportDifferenceRule]
-    internal class DelegatesMustMatch : DifferenceRule
+    internal class DelegatesMustMatch : CompatDifferenceRule
     {
         [Import]
         public IEqualityComparer<ITypeReference> _typeComparer { get; set; } = null;

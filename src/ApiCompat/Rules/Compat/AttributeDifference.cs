@@ -33,7 +33,7 @@ namespace Microsoft.Cci.Differs.Rules
         }
     }
 
-    internal class AttributeDifference : DifferenceRule
+    internal class AttributeDifference : CompatDifferenceRule
     {
         private MappingSettings _settings = new MappingSettings();
 

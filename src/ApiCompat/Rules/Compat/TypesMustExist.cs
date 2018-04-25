@@ -7,7 +7,7 @@ using Microsoft.Cci.Extensions;
 namespace Microsoft.Cci.Differs.Rules
 {
     [ExportDifferenceRule]
-    internal class TypesMustExist : DifferenceRule
+    internal class TypesMustExist : CompatDifferenceRule
     {
         public override DifferenceType Diff(IDifferences differences, ITypeDefinition impl, ITypeDefinition contract)
         {

@@ -10,7 +10,7 @@ using Microsoft.Cci.Extensions.CSharp;
 namespace Microsoft.Cci.Differs.Rules
 {
     [ExportDifferenceRule]
-    internal class EnumTypesMustMatch : DifferenceRule
+    internal class EnumTypesMustMatch : CompatDifferenceRule
     {
         [Import]
         public IEqualityComparer<ITypeReference> _typeComparer { get; set; } = null;

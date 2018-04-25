@@ -9,7 +9,7 @@ namespace Microsoft.Cci.Differs.Rules
 {
     // Removed because it appears the *MustExist rules already supercede these.
     [ExportDifferenceRule]
-    internal class CannotMakeMoreVisible : DifferenceRule
+    internal class CannotMakeMoreVisible : CompatDifferenceRule
     {
         public override DifferenceType Diff(IDifferences differences, ITypeDefinitionMember impl, ITypeDefinitionMember contract)
         {

@@ -9,7 +9,7 @@ using Microsoft.Cci.Extensions;
 namespace Microsoft.Cci.Differs.Rules
 {
     [ExportDifferenceRule]
-    internal class CannotRemoveBaseTypeOrInterface : DifferenceRule
+    internal class CannotRemoveBaseTypeOrInterface : CompatDifferenceRule
     {
         [Import]
         public IEqualityComparer<ITypeReference> _typeComparer { get; set; } = null;

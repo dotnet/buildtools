@@ -2,7 +2,7 @@
 
 namespace Microsoft.Cci.Differs.Rules
 {
-    internal abstract class DifferenceRule : Microsoft.Cci.Differs.DifferenceRule
+    internal abstract class CompatDifferenceRule : DifferenceRule
     {
         [Import]
         public IDifferenceOperands Operands { get; set; }

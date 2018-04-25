@@ -10,7 +10,7 @@ using System.Diagnostics;
 namespace Microsoft.Cci.Differs.Rules
 {
     [ExportDifferenceRule]
-    internal class EnumValuesMustMatch : DifferenceRule
+    internal class EnumValuesMustMatch : CompatDifferenceRule
     {
         public override DifferenceType Diff(IDifferences differences, ITypeDefinitionMember impl, ITypeDefinitionMember contract)
         {
