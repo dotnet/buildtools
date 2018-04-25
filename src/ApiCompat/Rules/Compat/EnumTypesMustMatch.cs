@@ -29,7 +29,7 @@ namespace Microsoft.Cci.Differs.Rules
             if (!_typeComparer.Equals(implType, contractType))
             {
                 differences.AddTypeMismatchDifference(this, implType, contractType,
-                    $"Enum type for '{impl.FullName()}' is '{implType.FullName()}' in {Right} but '{contractType.FullName()}' in the {Left}.");
+                    $"Enum type for '{impl.FullName()}' is '{implType.FullName()}' in {Implementation} but '{contractType.FullName()}' in the {Contract}.");
                 return DifferenceType.Changed;
             }
 

@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.Cci.Extensions;
 using Microsoft.Cci.Extensions.CSharp;
@@ -37,7 +37,7 @@ namespace Microsoft.Cci.Differs.Rules
         {
             int paramCount = implMethod.ParameterCount;
 
-            Contract.Assert(paramCount == contractMethod.ParameterCount);
+            Debug.Assert(paramCount == contractMethod.ParameterCount);
 
             if (paramCount == 0)
                 return true;
@@ -56,7 +56,7 @@ namespace Microsoft.Cci.Differs.Rules
                 if (GetModifier(implParam) != GetModifier(contractParam))
                 {
                     differences.AddIncompatibleDifference(this,
-                        $"Modifiers on parameter '{implParam.Name.Value}' on method '{implMethod.FullName()}' are '{GetModifier(implParam)}' in the {Right} but '{GetModifier(contractParam)}' in the {Left}.");
+                        $"Modifiers on parameter '{implParam.Name.Value}' on method '{implMethod.FullName()}' are '{GetModifier(implParam)}' in the {Implementation} but '{GetModifier(contractParam)}' in the {Contract}.");
                     match = false;
                 }
 
@@ -67,7 +67,7 @@ namespace Microsoft.Cci.Differs.Rules
                     if (implParam.CustomModifiers.Count() != union.Count())
                     {
                         differences.AddIncompatibleDifference(this,
-                            $"Custom modifiers on parameter '{implParam.Name.Value}' on method '{implMethod.FullName()}' are '{PrintCustomModifiers(implParam.CustomModifiers)}' in the {Right} but '{PrintCustomModifiers(contractParam.CustomModifiers)}' in the {Left}.");
+                            $"Custom modifiers on parameter '{implParam.Name.Value}' on method '{implMethod.FullName()}' are '{PrintCustomModifiers(implParam.CustomModifiers)}' in the {Implementation} but '{PrintCustomModifiers(contractParam.CustomModifiers)}' in the {Contract}.");
                         match = false;
                     }
                 }
@@ -79,7 +79,7 @@ namespace Microsoft.Cci.Differs.Rules
             if (implReturnModifier != contractReturnModifier)
             {
                 differences.AddIncompatibleDifference(this,
-                    $"Modifiers on return type of method '{implMethod.FullName()}' are '{implReturnModifier}' in the {Right} but '{contractReturnModifier}' in the {Left}.");
+                    $"Modifiers on return type of method '{implMethod.FullName()}' are '{implReturnModifier}' in the {Implementation} but '{contractReturnModifier}' in the {Contract}.");
                 match = false;
             }
 

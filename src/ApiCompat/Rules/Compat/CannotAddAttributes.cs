@@ -6,7 +6,7 @@ using Microsoft.Cci.Extensions;
 using Microsoft.Cci.Writers.CSharp;
 using System.Linq;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
+using System.Diagnostics;
 using Microsoft.Cci.Mappings;
 
 namespace Microsoft.Cci.Differs.Rules
@@ -71,7 +71,7 @@ namespace Microsoft.Cci.Differs.Rules
             added |= AnyAttributeAdded(differences, implMethod, implMethod.ReturnValueAttributes, contractMethod.ReturnValueAttributes);
             added |= AnySecurityAttributeAdded(differences, implMethod, implMethod.SecurityAttributes, contractMethod.SecurityAttributes);
 
-            Contract.Assert(implMethod.ParameterCount == contractMethod.ParameterCount);
+            Debug.Assert(implMethod.ParameterCount == contractMethod.ParameterCount);
 
             IParameterDefinition[] method1Params = implMethod.Parameters.ToArray();
             IParameterDefinition[] method2Params = contractMethod.Parameters.ToArray();
@@ -106,7 +106,7 @@ namespace Microsoft.Cci.Differs.Rules
                             break;
 
                         differences.AddIncompatibleDifference(this,
-                            $"Attribute '{attribName}' exists in the {Left} but not the {Right}.");
+                            $"Attribute '{attribName}' exists in the {Contract} but not the {Implementation}.");
 
                         added = true;
 

@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics.Contracts;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.Cci.Extensions;
 
@@ -33,7 +33,7 @@ namespace Microsoft.Cci.Differs.Rules
         {
             int paramCount = implMethod.ParameterCount;
 
-            Contract.Assert(paramCount == contractMethod.ParameterCount);
+            Debug.Assert(paramCount == contractMethod.ParameterCount);
 
             IParameterDefinition[] implParams = implMethod.Parameters.ToArray();
             IParameterDefinition[] contractParams = contractMethod.Parameters.ToArray();
@@ -47,7 +47,7 @@ namespace Microsoft.Cci.Differs.Rules
                 if (!implParam.Name.Value.Equals(contractParam.Name.Value))
                 {
                     differences.AddIncompatibleDifference(this,
-                        $"Parameter name on member '{implMethod.FullName()}' is '{implParam.Name.Value}' in the {Right} but '{contractParam.Name.Value}' in the {Left}.");
+                        $"Parameter name on member '{implMethod.FullName()}' is '{implParam.Name.Value}' in the {Implementation} but '{contractParam.Name.Value}' in the {Contract}.");
                     match = false;
                 }
             }

@@ -27,7 +27,7 @@ namespace Microsoft.Cci.Differs.Rules
                     return DifferenceType.Unknown;
 
                 differences.AddIncompatibleDifference(this,
-                    $"Member '{impl.FullName()}' is abstract in the {Right} but is missing in the {Left}.");
+                    $"Member '{impl.FullName()}' is abstract in the {Implementation} but is missing in the {Contract}.");
                 return DifferenceType.Changed;
             }
             return DifferenceType.Unknown;

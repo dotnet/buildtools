@@ -129,12 +129,12 @@ namespace ApiCompat
 
         private static void implHost_UnableToResolve(object sender, UnresolvedReference<IUnit, AssemblyIdentity> e)
         {
-            Trace.TraceError($"Unable to resolve assembly '{e.Unresolved}' referenced by the {s_rightOperand} assembly '{e.Referrer}'.");
+            Trace.TraceError($"Unable to resolve assembly '{e.Unresolved}' referenced by the {s_implementationOperand} assembly '{e.Referrer}'.");
         }
 
         private static void contractHost_UnableToResolve(object sender, UnresolvedReference<IUnit, AssemblyIdentity> e)
         {
-            Trace.TraceError($"Unable to resolve assembly '{e.Unresolved}' referenced by the {s_leftOperand} assembly '{e.Referrer}'.");
+            Trace.TraceError($"Unable to resolve assembly '{e.Unresolved}' referenced by the {s_contractOperand} assembly '{e.Referrer}'.");
         }
 
         private static TextWriter GetOutput()
@@ -195,8 +195,8 @@ namespace ApiCompat
             ExportCciSettings.StaticSettings = settings.TypeComparer;
             ExportCciSettings.StaticOperands = new DifferenceOperands()
             {
-                Left = s_leftOperand,
-                Right = s_rightOperand,
+                Contract = s_contractOperand,
+                Implementation = s_implementationOperand,
             };
 
             // Always compose the diff writer to allow it to import or provide exports
@@ -289,9 +289,9 @@ namespace ApiCompat
                 parser.DefineAliases("excludeNonBrowsable", "enb");
                 parser.DefineOptionalQualifier("excludeNonBrowsable", ref s_excludeNonBrowsable, "When MDIL servicing rules are not being enforced, exclude validation on types that are marked with EditorBrowsable(EditorBrowsableState.Never).");
                 parser.DefineAliases("leftOperand", "lhs");
-                parser.DefineOptionalQualifier("leftOperand", ref s_leftOperand, "Name for left operand in comparison, default is 'contract'.");
+                parser.DefineOptionalQualifier("leftOperand", ref s_contractOperand, "Name for left operand in comparison, default is 'contract'.");
                 parser.DefineAliases("rightOperand", "rhs");
-                parser.DefineOptionalQualifier("rightOperand", ref s_rightOperand, "Name for right operand in comparison, default is 'implementation'.");
+                parser.DefineOptionalQualifier("rightOperand", ref s_implementationOperand, "Name for right operand in comparison, default is 'implementation'.");
                 parser.DefineParameter<string>("contracts", ref s_contractSet, "Comma delimited list of assemblies or directories of assemblies for all the contract assemblies.");
             }, args);
         }
@@ -304,8 +304,8 @@ namespace ApiCompat
         private static string s_outFile;
         private static string s_baselineFileName;
         private static string s_remapFile;
-        private static string s_leftOperand = "contract";
-        private static string s_rightOperand = "implementation";
+        private static string s_contractOperand = "contract";
+        private static string s_implementationOperand = "implementation";
         private static bool s_groupByAssembly = true;
         private static bool s_mdil;
         private static bool s_resolveFx;

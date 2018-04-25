@@ -3,14 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
+using System.Diagnostics;
 using System.IO;
-using Microsoft.Cci;
 using Microsoft.Cci.Differs;
 using Microsoft.Cci.Filters;
 using Microsoft.Cci.Mappings;
 using Microsoft.Cci.Traversers;
-using System;
 using System.Composition;
 
 namespace Microsoft.Cci.Writers
@@ -40,7 +38,7 @@ namespace Microsoft.Cci.Writers
             {
                 if (_differences.Count > 0)
                 {
-                    string header = $"Compat issues between {Operands.Right} set {oldAssembliesName} and {Operands.Left} set {newAssembliesName}:";
+                    string header = $"Compat issues between {Operands.Implementation} set {oldAssembliesName} and {Operands.Contract} set {newAssembliesName}:";
                     OutputDifferences(header, _differences);
                     _totalDifferences += _differences.Count;
                     _differences.Clear();
@@ -53,7 +51,7 @@ namespace Microsoft.Cci.Writers
 
         public override void Visit(AssemblyMapping mapping)
         {
-            Contract.Assert(_differences.Count == 0);
+            Debug.Assert(_differences.Count == 0);
 
             base.Visit(mapping);
 

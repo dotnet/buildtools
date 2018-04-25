@@ -5,7 +5,7 @@
 using Microsoft.Cci.Extensions;
 using Microsoft.Cci.Extensions.CSharp;
 using System;
-using System.Diagnostics.Contracts;
+using System.Diagnostics;
 
 namespace Microsoft.Cci.Differs.Rules
 {
@@ -23,7 +23,7 @@ namespace Microsoft.Cci.Differs.Rules
             IFieldDefinition implField = impl as IFieldDefinition;
             IFieldDefinition contractField = contract as IFieldDefinition;
 
-            Contract.Assert(implField != null || contractField != null);
+            Debug.Assert(implField != null || contractField != null);
 
             string implValue = Convert.ToString(implField.Constant.Value);
             string contractValue = Convert.ToString(contractField.Constant.Value);
@@ -35,7 +35,7 @@ namespace Microsoft.Cci.Differs.Rules
                 ITypeReference contractValType = contract.ContainingTypeDefinition.GetEnumType();
 
                 differences.AddIncompatibleDifference(this,
-                    $"Enum value '{implField.FullName()}' is ({implValType.FullName()}){implField.Constant.Value} in the {Right} but ({contractValType.FullName()}){contractField.Constant.Value} in the {Left}.");
+                    $"Enum value '{implField.FullName()}' is ({implValType.FullName()}){implField.Constant.Value} in the {Implementation} but ({contractValType.FullName()}){contractField.Constant.Value} in the {Contract}.");
                 return DifferenceType.Changed;
             }
 

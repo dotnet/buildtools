@@ -18,7 +18,7 @@ namespace Microsoft.Cci.Differs.Rules
             if (impl.IsEffectivelySealed() && !contract.IsEffectivelySealed())
             {
                 differences.AddIncompatibleDifference(this,
-                    $"Type '{impl.FullName()}' is sealed in the {Right} but not sealed in the {Left}.");
+                    $"Type '{impl.FullName()}' is sealed in the {Implementation} but not sealed in the {Contract}.");
 
                 return DifferenceType.Changed;
             }

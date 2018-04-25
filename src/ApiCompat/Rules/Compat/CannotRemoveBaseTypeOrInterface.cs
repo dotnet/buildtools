@@ -43,7 +43,7 @@ namespace Microsoft.Cci.Differs.Rules
                 if (lastIndex < 0)
                 {
                     differences.AddIncompatibleDifference(this,
-                        $"Type '{contract.FullName()}' does not inherit from base type '{contractBaseType.FullName()}' in the {Right} but it does in the {Left}.");
+                        $"Type '{contract.FullName()}' does not inherit from base type '{contractBaseType.FullName()}' in the {Implementation} but it does in the {Contract}.");
                     return true;
                 }
             }
@@ -65,7 +65,7 @@ namespace Microsoft.Cci.Differs.Rules
                 if (!implInterfaces.Contains(contractInterface))
                 {
                     differences.AddIncompatibleDifference(this,
-                        $"Type '{contract.FullName()}' does not implement interface '{contractInterface.FullName()}' in the {Right} but it does in the {Left}.");
+                        $"Type '{contract.FullName()}' does not implement interface '{contractInterface.FullName()}' in the {Implementation} but it does in the {Contract}.");
                     return true;
                 }
             }

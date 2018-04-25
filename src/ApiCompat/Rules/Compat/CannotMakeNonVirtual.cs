@@ -34,7 +34,7 @@ namespace Microsoft.Cci.Differs.Rules
             if (isContractOverridable && !isImplOverridable)
             {
                 differences.AddIncompatibleDifference("CannotMakeMemberNonVirtual",
-                    $"Member '{impl.FullName()}' is non-virtual in the {Right} but is virtual in the {Left}.");
+                    $"Member '{impl.FullName()}' is non-virtual in the {Implementation} but is virtual in the {Contract}.");
 
                 return DifferenceType.Changed;
             }

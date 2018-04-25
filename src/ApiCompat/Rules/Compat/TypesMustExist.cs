@@ -16,7 +16,7 @@ namespace Microsoft.Cci.Differs.Rules
                 if (!ReportAsMembersMustExist(contract, differences))
                 {
                     differences.AddIncompatibleDifference(this,
-                        $"Type '{contract.FullName()}' does not exist in the {Right} but it does exist in the {Left}.");
+                        $"Type '{contract.FullName()}' does not exist in the {Implementation} but it does exist in the {Contract}.");
                 }
 
                 return DifferenceType.Added;
@@ -40,7 +40,7 @@ namespace Microsoft.Cci.Differs.Rules
             //    {
             //        differences.AddIncompatibleDifference(
             //            "MembersMustExist",
-            //            $"Member '{member.FullName()}' does not exist in the {Right} but it does exist in the {Left}.");
+            //            $"Member '{member.FullName()}' does not exist in the {Implementation} but it does exist in the {Contract}.");
             //        specialCasedViolation = true;
             //    }
             //}

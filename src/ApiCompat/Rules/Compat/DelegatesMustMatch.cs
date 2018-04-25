@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics.Contracts;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.Cci.Extensions;
 using Microsoft.Cci.Extensions.CSharp;
@@ -28,7 +28,7 @@ namespace Microsoft.Cci.Differs.Rules
             IMethodDefinition implMethod = impl.GetInvokeMethod();
             IMethodDefinition contractMethod = contract.GetInvokeMethod();
 
-            Contract.Assert(implMethod != null && contractMethod != null);
+            Debug.Assert(implMethod != null && contractMethod != null);
 
             if (!ReturnTypesMatch(differences, implMethod, contractMethod) ||
                 !ParamNamesAndTypesMatch(differences, implMethod, contractMethod))
@@ -48,7 +48,7 @@ namespace Microsoft.Cci.Differs.Rules
             if (!_typeComparer.Equals(implReturnType, contractReturnType))
             {
                 differences.AddTypeMismatchDifference("DelegateReturnTypesMustMatch", implReturnType, contractReturnType,
-                    $"Return type on delegate '{implMethod.ContainingType.FullName()}' is '{implReturnType.FullName()}' in the {Right} but '{contractReturnType.FullName()}' in the {Left}.");
+                    $"Return type on delegate '{implMethod.ContainingType.FullName()}' is '{implReturnType.FullName()}' in the {Implementation} but '{contractReturnType.FullName()}' in the {Contract}.");
                 return false;
             }
 
@@ -59,7 +59,7 @@ namespace Microsoft.Cci.Differs.Rules
         {
             int paramCount = implMethod.ParameterCount;
 
-            Contract.Assert(paramCount == contractMethod.ParameterCount);
+            Debug.Assert(paramCount == contractMethod.ParameterCount);
 
             IParameterDefinition[] implParams = implMethod.Parameters.ToArray();
             IParameterDefinition[] contractParams = contractMethod.Parameters.ToArray();
@@ -73,14 +73,14 @@ namespace Microsoft.Cci.Differs.Rules
                 if (!implParam.Name.Value.Equals(contractParam.Name.Value))
                 {
                     differences.AddIncompatibleDifference("DelegateParamNameMustMatch",
-                        $"Parameter name on delegate '{implMethod.ContainingType.FullName()}' is '{implParam.Name.Value}' in the {Right} but '{contractParam.Name.Value}' in the {Left}.");
+                        $"Parameter name on delegate '{implMethod.ContainingType.FullName()}' is '{implParam.Name.Value}' in the {Implementation} but '{contractParam.Name.Value}' in the {Contract}.");
                     match = false;
                 }
 
                 if (!_typeComparer.Equals(implParam.Type, contractParam.Type))
                 {
                     differences.AddTypeMismatchDifference("DelegateParamTypeMustMatch", implParam.Type, contractParam.Type,
-                        $"Type for parameter '{implParam.Name.Value}' on delegate '{implMethod.ContainingType.FullName()}' is '{implParam.Type.FullName()}' in the {Right} but '{contractParam.Type.FullName()}' in the {Left}.");
+                        $"Type for parameter '{implParam.Name.Value}' on delegate '{implMethod.ContainingType.FullName()}' is '{implParam.Type.FullName()}' in the {Implementation} but '{contractParam.Type.FullName()}' in the {Contract}.");
                     match = false;
                 }
             }

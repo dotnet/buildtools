@@ -18,7 +18,7 @@ namespace Microsoft.Cci.Differs.Rules
             if (impl.IsAbstract() && !contract.IsAbstract())
             {
                 differences.AddIncompatibleDifference("CannotMakeMemberAbstract",
-                    $"Member '{impl.FullName()}' is abstract in the {Right} but is not abstract in the {Left}.");
+                    $"Member '{impl.FullName()}' is abstract in the {Implementation} but is not abstract in the {Contract}.");
 
                 return DifferenceType.Changed;
             }
@@ -34,7 +34,7 @@ namespace Microsoft.Cci.Differs.Rules
             if (impl.IsAbstract && !contract.IsAbstract)
             {
                 differences.AddIncompatibleDifference("CannotMakeTypeAbstract",
-                    $"Type '{impl.FullName()}' is abstract in the {Right} but is not abstract in the {Left}.");
+                    $"Type '{impl.FullName()}' is abstract in the {Implementation} but is not abstract in the {Contract}.");
 
                 return DifferenceType.Changed;
             }

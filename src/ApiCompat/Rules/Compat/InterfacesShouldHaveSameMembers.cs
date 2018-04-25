@@ -21,7 +21,7 @@ namespace Microsoft.Cci.Differs.Rules
             {
                 if (contract.ContainingTypeDefinition.IsInterface)
                 {
-                    differences.AddIncompatibleDifference(this, $"Interface member '{contract.FullName()}' is present in the {Left} but not in the {Right}.");
+                    differences.AddIncompatibleDifference(this, $"Interface member '{contract.FullName()}' is present in the {Contract} but not in the {Implementation}.");
                     return DifferenceType.Changed;
                 }
             }
@@ -30,7 +30,7 @@ namespace Microsoft.Cci.Differs.Rules
             {
                 if (impl.ContainingTypeDefinition.IsInterface)
                 {
-                    differences.AddIncompatibleDifference(this, $"Interface member '{impl.FullName()}' is present in the {Right} but not in the {Left}.");
+                    differences.AddIncompatibleDifference(this, $"Interface member '{impl.FullName()}' is present in the {Implementation} but not in the {Contract}.");
                     return DifferenceType.Changed;
                 }
             }

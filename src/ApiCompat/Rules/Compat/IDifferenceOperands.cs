@@ -14,17 +14,17 @@ namespace Microsoft.Cci.Differs
         /// <summary>
         /// Name of left operand of a difference operation.  Typically called a contract or reference.
         /// </summary>
-        string Left { get; }
+        string Contract { get; }
         /// <summary>
         /// Name of right operand of a difference operation.  Typically called an implemenation.
         /// </summary>
-        string Right { get; }
+        string Implementation { get; }
     }
 
     public class DifferenceOperands : IDifferenceOperands
     {
-        public string Left { get; set; }
+        public string Contract { get; set; }
 
-        public string Right { get; set; }
+        public string Implementation { get; set; }
     }
 }

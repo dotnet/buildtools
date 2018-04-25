@@ -4,11 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
 using System.Diagnostics;
-using System.Diagnostics.Contracts;
 
 namespace Microsoft.Cci.Comparers
 {
@@ -20,7 +17,7 @@ namespace Microsoft.Cci.Comparers
         {
             if (!string.IsNullOrEmpty(mappingFile))
                 ParseConfig(mappingFile);
-            Contract.Assert(_mappings.Count > 0, "NamespaceRemappingComparers has no namespace remappings.");
+            Debug.Assert(_mappings.Count > 0, "NamespaceRemappingComparers has no namespace remappings.");
         }
 
         public override string GetKey(INamespaceDefinition ns)
@@ -40,10 +37,9 @@ namespace Microsoft.Cci.Comparers
 
         private string RemapName(string name)
         {
-            Contract.Requires(name != null);
-            Contract.Ensures(Contract.Result<String>() != null);
+            Debug.Assert(name != null);
 
-            Contract.Assert(_mappings.Count > 0, "NamespaceRemappingComparers has no namespace remappings.");
+            Debug.Assert(_mappings.Count > 0, "NamespaceRemappingComparers has no namespace remappings.");
 
             int maxNumTypesLeft = CountNumTypes(name);
             string mappedName = name;
@@ -90,11 +86,10 @@ namespace Microsoft.Cci.Comparers
         // Note name can be a type name or method signature or generic type or delegate.
         private int CountNumTypes(String name)
         {
-            Contract.Requires(name != null);
-            Contract.Ensures(Contract.Result<int>() >= 1);
+            Debug.Assert(name != null);
 
             // For nested types, I think we only need to map the outer type.  But in case it comes up, *you* can think about this.
-            Contract.Assert(name.IndexOf('+') < 0, "Encountered a nested type.  Not sure whether to treat that as two types or one, or to only remap the outer type.");
+            Debug.Assert(name.IndexOf('+') < 0, "Encountered a nested type.  Not sure whether to treat that as two types or one, or to only remap the outer type.");
 
             int numTypes = 1;
             foreach (char c in name)
@@ -105,9 +100,9 @@ namespace Microsoft.Cci.Comparers
 
         private void ParseConfig(string mappingFile)
         {
-            Contract.Requires(!String.IsNullOrEmpty(mappingFile));
+            Debug.Assert(!String.IsNullOrEmpty(mappingFile));
 
-            Contract.Assert(File.Exists(mappingFile), String.Format("Excepting namespace mapping file \"{0}\" to exist.", mappingFile));
+            Debug.Assert(File.Exists(mappingFile), String.Format("Excepting namespace mapping file \"{0}\" to exist.", mappingFile));
             foreach (string mapping in File.ReadAllLines(mappingFile))
             {
                 if (string.IsNullOrWhiteSpace(mapping) ||
@@ -126,7 +121,7 @@ namespace Microsoft.Cci.Comparers
                 _mappings.Add(Tuple.Create(split[0], split[1]));
             }
 
-            Contract.Assert(_mappings.Count > 0, "Expected to find namespace mappings in our namespace mapping text file.  Is this intentional?");
+            Debug.Assert(_mappings.Count > 0, "Expected to find namespace mappings in our namespace mapping text file.  Is this intentional?");
         }
     }
 }

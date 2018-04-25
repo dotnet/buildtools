@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics.Contracts;
 using System.Linq;
 using Microsoft.Cci.Extensions;
 using Microsoft.Cci.Extensions.CSharp;
@@ -39,7 +38,7 @@ namespace Microsoft.Cci.Differs.Rules
             if (!(contractMember is IMethodDefinition || contractMember is IFieldDefinition))
                 return DifferenceType.Unknown;
 
-            string incompatibeDifferenceMessage = $"Member '{contractMember.FullName()}' does not exist in the {Right} but it does exist in the {Left}.";
+            string incompatibeDifferenceMessage = $"Member '{contractMember.FullName()}' does not exist in the {Implementation} but it does exist in the {Contract}.";
 
             ITypeDefinition contractType = mapping.ContainingType[0];
             if (contractType != null)

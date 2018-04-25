@@ -7,7 +7,7 @@ namespace Microsoft.Cci.Differs.Rules
         [Import]
         public IDifferenceOperands Operands { get; set; }
 
-        public string Left => Operands?.Left ?? "contract";
-        public string Right => Operands?.Right ?? "implementation";
+        public string Contract => Operands?.Contract ?? "contract";
+        public string Implementation => Operands?.Implementation ?? "implementation";
     }
 }
