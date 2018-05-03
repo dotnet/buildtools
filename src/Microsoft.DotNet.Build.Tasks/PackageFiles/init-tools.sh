@@ -60,8 +60,8 @@ __TOOLRUNTIME_PROJECT=$__TOOLS_DIR/tool-runtime/project.csproj
 echo "Running: $__DOTNET_CMD restore \"${__TOOLRUNTIME_PROJECT}\" $__TOOLRUNTIME_RESTORE_ARGS"
 $__DOTNET_CMD restore "${__TOOLRUNTIME_PROJECT}" $__TOOLRUNTIME_RESTORE_ARGS
 
-echo "Running: $__DOTNET_CMD publish \"${__TOOLRUNTIME_PROJECT}\" -f ${__PUBLISH_TFM} -o $__TOOLRUNTIME_DIR"
-$__DOTNET_CMD publish "${__TOOLRUNTIME_PROJECT}" -f ${__PUBLISH_TFM} -o $__TOOLRUNTIME_DIR
+echo "Running: $__DOTNET_CMD publish --no-restore \"${__TOOLRUNTIME_PROJECT}\" -f ${__PUBLISH_TFM} -o $__TOOLRUNTIME_DIR"
+$__DOTNET_CMD publish --no-restore "${__TOOLRUNTIME_PROJECT}" -f ${__PUBLISH_TFM} -o $__TOOLRUNTIME_DIR
 
 # Copy Portable Targets Over to ToolRuntime
 if [ ! -d "${__PACKAGES_DIR}/generated" ]; then mkdir "${__PACKAGES_DIR}/generated"; fi
@@ -99,7 +99,7 @@ sed -i -e "s/1.1.0/$__HIGHEST_RUNTIME_VERSION/g" $__TOOLRUNTIME_DIR/*.runtimecon
 __ILASM_PACKAGE_VERSION="${ILASMCOMPILER_VERSION:-}"
 if [ "$__ILASM_PACKAGE_VERSION" ]; then
     echo "Restoring ILAsm version '$__ILASM_PACKAGE_VERSION'..."
-	
+
     __ILASM_PACKAGE_RID="${NATIVE_TOOLS_RID:-}"
     if [ "$__ILASM_PACKAGE_RID" == "" ]; then
         echo "ERROR: Please specify native package RID."
