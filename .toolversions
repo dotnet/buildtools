@@ -1,4 +1,4 @@
 Microsoft.DotNet.BuildTools=1.0.27-prerelease-01205-03
 Microsoft.DotNet.BuildTools.Run=1.0.1-prerelease-01205-03
-Microsoft.DotNet.Build.Tasks.Feed=1.0.0-prerelease-02131-03
+Microsoft.DotNet.Build.Tasks.Feed=2.2.0-preview1-02801-01
 NuGet.CommandLine=3.4.3
