@@ -22,11 +22,13 @@ def install_dumpling():
       if response.getcode() == 200:
         with open(downloadLocation, 'w') as f:
           f.write(response.read())
-        subprocess.call([sys.executable, downloadLocation, "install", "--update"])
+        subprocess.call([sys.executable, downloadLocation, "install", "--full"])
       else:
-        raise urllib2.URLError("HTTP Status Code" + str(result.getcode()))
+        raise urllib2.URLError("HTTP Status Code" + str(response.getcode()))
 
+    dbgPath = "~/.dumpling/dbg/bin/lldb"    
     subprocess.call([sys.executable, dumplingPath, "install"])
+    subprocess.call([sys.executable, dumplingPath, "config", "--dbgpath", dbgPath, "save"])
   except urllib2.HTTPError, e:
     print("Dumpling cannot be installed from " + url + " due to: " + str(e).replace(':', '')) # Remove : to avoid looking like error format
   except  urllib2.URLError, e:
@@ -43,7 +45,7 @@ def ensure_installed():
 
 def find_latest_dump(folder, startTimeStr):
   startTime = float(startTimeStr)
-  globPattern = "/*";
+  globPattern = "/*"
 
   # Outside of Windows, core files are generally dumped into the executable's directory,
   # so it may have many other files in it. Filter those out.
@@ -84,10 +86,10 @@ def collect_dump(exitcodeStr, folder, startTimeStr, projectName, incpaths):
       sys.executable, dumplingPath, "upload",
       "--dumppath", file,
       "--noprompt",
-      "--triage", "none",
+      "--triage", "full",
       "--displayname", projectName,
       "--properties", "STRESS_TESTID="+projectName
-      ], " ");
+      ], " ")
     if (not incpaths is None):
       procArgs = procArgs + " --incpaths " + incpaths
 
