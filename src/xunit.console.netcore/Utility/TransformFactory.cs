@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Xml;
 using System.Xml.Linq;
+using Xunit.ConsoleClient.Project;
 
 #if !NETCORE
 using System.Configuration;
@@ -50,7 +51,7 @@ namespace Xunit.ConsoleClient
             get { return instance.availableTransforms.Values.ToList(); }
         }
 
-        public static List<Action<XElement>> GetXmlTransformers(XunitProject project)
+        public static List<Action<XElement>> GetXmlTransformers(ExtendedXunitProject project)
         {
             return project.Output.Select(output => new Action<XElement>(xml => instance.availableTransforms[output.Key].OutputHandler(xml, output.Value))).ToList();
         }

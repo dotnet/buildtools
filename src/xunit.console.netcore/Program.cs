@@ -6,6 +6,8 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Xunit.ConsoleClient.Filters;
+using Xunit.ConsoleClient.Project;
 
 namespace Xunit.ConsoleClient
 {
@@ -175,7 +177,7 @@ namespace Xunit.ConsoleClient
             );
         }
 
-        static int RunProject(string defaultDirectory, XunitProject project, bool teamcity, bool appVeyor, bool showProgress, bool? parallelizeAssemblies, bool? parallelizeTestCollections, int? maxThreadCount)
+        static int RunProject(string defaultDirectory, ExtendedXunitProject project, bool teamcity, bool appVeyor, bool showProgress, bool? parallelizeAssemblies, bool? parallelizeTestCollections, int? maxThreadCount)
         {
             XElement assembliesElement = null;
             var xmlTransformers = TransformFactory.GetXmlTransformers(project);
@@ -280,7 +282,7 @@ namespace Xunit.ConsoleClient
             return new StandardOutputVisitor(consoleLock, defaultDirectory, assemblyElement, () => cancel, completionMessages, showProgress);
         }
 
-        static XElement ExecuteAssembly(object consoleLock, string defaultDirectory, XunitProjectAssembly assembly, bool needsXml, bool teamCity, bool appVeyor, bool showProgress, bool? parallelizeTestCollections, int? maxThreadCount, XunitFilters filters)
+        static XElement ExecuteAssembly(object consoleLock, string defaultDirectory, XunitProjectAssembly assembly, bool needsXml, bool teamCity, bool appVeyor, bool showProgress, bool? parallelizeTestCollections, int? maxThreadCount, ExtendedXunitFilters filters)
         {
             if (cancel)
                 return null;
