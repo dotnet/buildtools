@@ -41,7 +41,9 @@
       <Link>Common\TestDiscoveryVisitor.cs</Link>
     </Compile>
     <Compile Include="CommandLine.cs" />
+    <Compile Include="Filters\ExtendedXunitFilters.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="Project\ExtendedXunitProject.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RunnerCallbacks\RunnerCallback.cs" />
     <Compile Include="RunnerCallbacks\StandardRunnerCallback.cs" />
