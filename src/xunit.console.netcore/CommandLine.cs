@@ -15,11 +15,52 @@ namespace Xunit.ConsoleClient
                 fileExists = fileName => File.Exists(fileName);
 
             for (var i = args.Length - 1; i >= 0; i--)
+            {
+                if (args[i][0] == '@')
+                {
+                    // Parse response file
+                    IList<string> rspArguments = ParseResponseFile(args[i].Substring(1));
+                    for (int j = rspArguments.Count - 1; j >= 0; j--)
+                        arguments.Push(rspArguments[j]);
+                    continue;
+                }
                 arguments.Push(args[i]);
+            }
 
             TeamCity = Environment.GetEnvironmentVariable("TEAMCITY_PROJECT_NAME") != null;
             AppVeyor = Environment.GetEnvironmentVariable("APPVEYOR_API_URL") != null;
             Project = Parse(fileExists);
+        }
+
+        /// <summary>
+        /// Parse a response file passed as a command-line arguments.
+        /// No verification here to make this completely opaque
+        /// </summary>
+        /// <param name="responseFile">Path to the response file</param>
+        /// <param name="arguments">The data structure in</param>
+        private IList<string> ParseResponseFile(string responseFile, char[] delimiters = null)
+        {
+            // Accept formats of both -Qualifier Name and -Qualifier:Name
+            if (delimiters == null)
+                delimiters = new char[] { ' ', ':' };
+
+            var argumentsList = new List<string>();
+
+            if (!File.Exists(responseFile))
+                throw new ArgumentException(String.Format("Response file {0} not found", responseFile));
+
+            // Add contents from the text file to the command line
+            foreach (string line in File.ReadAllLines(responseFile))
+            {
+                string cleanLine = line.Trim();
+                if (string.IsNullOrEmpty(cleanLine))
+                    continue;
+                var rspArguments = cleanLine.Split(delimiters, StringSplitOptions.RemoveEmptyEntries);
+                foreach(string arg in rspArguments)
+                    argumentsList.Add(arg);
+            }
+
+            return argumentsList;
         }
 
         public bool AppVeyor { get; protected set; }
