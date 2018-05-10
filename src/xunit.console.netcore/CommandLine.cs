@@ -38,11 +38,8 @@ namespace Xunit.ConsoleClient
         /// </summary>
         /// <param name="responseFile">Path to the response file</param>
         /// <param name="arguments">The data structure in</param>
-        private IList<string> ParseResponseFile(string responseFile, char[] delimiters = null)
+        private IList<string> ParseResponseFile(string responseFile)
         {
-            // Accept formats of both -Qualifier Name and -Qualifier:Name
-            if (delimiters == null)
-                delimiters = new char[] { ' ', ':' };
 
             var argumentsList = new List<string>();
 
@@ -55,7 +52,7 @@ namespace Xunit.ConsoleClient
                 string cleanLine = line.Trim();
                 if (string.IsNullOrEmpty(cleanLine))
                     continue;
-                var rspArguments = cleanLine.Split(delimiters, StringSplitOptions.RemoveEmptyEntries);
+                var rspArguments = cleanLine.Split();
                 foreach(string arg in rspArguments)
                     argumentsList.Add(arg);
             }
