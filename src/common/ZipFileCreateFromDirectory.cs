@@ -58,8 +58,11 @@ namespace Microsoft.DotNet.Build.Tasks
                 }
 
                 Log.LogMessage(MessageImportance.High, "Compressing {0} into {1}...", SourceDirectory, DestinationArchive);
-                if (!Directory.Exists(Path.GetDirectoryName(DestinationArchive)))
-                    Directory.CreateDirectory(Path.GetDirectoryName(DestinationArchive));
+                string destinationDirectory = Path.GetDirectoryName(DestinationArchive);
+                if (!Directory.Exists(destinationDirectory) && !string.IsNullOrEmpty(destinationDirectory))
+                {
+                    Directory.CreateDirectory(destinationDirectory);
+                }
 
                 if (ExcludePatterns == null)
                 {
