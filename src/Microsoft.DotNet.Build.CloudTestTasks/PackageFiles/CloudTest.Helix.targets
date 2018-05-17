@@ -94,6 +94,7 @@
     <IsOfficial Condition="'$(IsOfficial)'!=''">false</IsOfficial>
     <HelixApiEndpoint Condition="'$(HelixApiEndpoint)'==''">https://helix.dot.net/api/2016-06-28/jobs</HelixApiEndpoint>
     <MaxRetryCount Condition="'$(MaxRetryCount)' == ''">0</MaxRetryCount>
+    <ToolsDir Condition="'$(ToolsDir)' == ''">$(MSBuildThisFileDirectory)</ToolsDir>
   </PropertyGroup>
 
   <!-- Set Helix environment vars based on target platform -->
