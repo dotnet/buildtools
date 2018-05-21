@@ -637,15 +637,12 @@ namespace GenFacades
 
             private static void TraceDuplicateSeedTypeError(string docId, IReadOnlyList<INamedTypeDefinition> seedTypes)
             {
-                var sb = new StringBuilder();
-                sb.AppendFormat("The type '{0}' is defined in multiple seed assemblies. If this is intentional, specify one of the following arguments to choose the preferred seed type:", docId);
+                Trace.TraceError("The type '{0}' is defined in multiple seed assemblies. If this is intentional, specify one of the following arguments to choose the preferred seed type:", docId);
 
                 foreach (INamedTypeDefinition type in seedTypes)
                 {
-                    sb.AppendFormat("  /preferSeedType:{0}={1}", docId.Substring("T:".Length), type.GetAssembly().Name.Value);
+                    Trace.TraceError("  /preferSeedType:{0}={1}", docId.Substring("T:".Length), type.GetAssembly().Name.Value);
                 }
-
-                Trace.TraceError(sb.ToString());
             }
 
             private void AddTypeForward(Assembly assembly, INamedTypeDefinition seedType)

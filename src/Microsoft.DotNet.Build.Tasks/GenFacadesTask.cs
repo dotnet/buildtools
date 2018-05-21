@@ -125,29 +125,6 @@ namespace Microsoft.DotNet.Build.Tasks
             _log = log;
         }
 
-        public override void TraceEvent(TraceEventCache eventCache, String source, TraceEventType eventType, int id, string message)
-        {
-            TraceEvent(eventCache, source, eventType, id, message, null);
-        }
-
-        public override void TraceEvent(TraceEventCache eventCache, String source, TraceEventType eventType, int id, string format, params object[] args)
-        {
-            string message = args == null ? format : string.Format(format, args);
-
-            if (eventType == TraceEventType.Error)
-            {
-                _log.LogError(message);
-            }
-            else if (eventType == TraceEventType.Warning)
-            {
-                _log.LogWarning(message);
-            }
-            else
-            {
-                _log.LogMessage(message);
-            }
-        }        
-
         public override void Write(string message)
         {
             _log.LogMessage(message);
