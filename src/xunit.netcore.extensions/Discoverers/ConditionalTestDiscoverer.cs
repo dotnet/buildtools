@@ -105,41 +105,6 @@ namespace Xunit.NetCore.Extensions
             return testCases;
         }
 
-        internal static bool EvaluateParameter(object[] conditionArguments)
-        {
-            Type calleeType = null;
-            string[] conditionMemberNames = null;
-
-            if (CheckInputToSkipExecution(conditionArguments, ref calleeType, ref conditionMemberNames)) return true;
-
-            foreach (string entry in conditionMemberNames)
-            {
-                // Null condition member names are silently tolerated
-                if (string.IsNullOrWhiteSpace(entry)) continue;
-
-                MethodInfo conditionMethodInfo = LookupConditionalMethod(calleeType, entry);
-                if (conditionMethodInfo == null)
-                {
-                    // Unable to get MethodInfo. It's caused by bad user input.
-                    // We need to report some error here. For now, just don't run the test.
-                    return false;
-                }
-
-                try
-                {
-                    bool conditionMet = (bool)conditionMethodInfo.Invoke(null, null);
-                    // If one of the conditions is false, then return the category failing trait.
-                    if (!conditionMet) return false;
-                }
-                catch (Exception exc)
-                {
-                    throw exc;
-                }
-            }
-
-            return true;
-        }
-
         internal static string GetFailedLookupString(string name, Type type)
         {
             return

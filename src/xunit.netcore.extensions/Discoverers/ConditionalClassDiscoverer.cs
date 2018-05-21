@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
@@ -23,16 +25,46 @@ namespace Xunit.NetCore.Extensions
         /// <returns>The trait values.</returns>
         public IEnumerable<KeyValuePair<string, string>> GetTraits(IAttributeInfo traitAttribute)
         {
+            // If evaluated to false, skip the test class entirely.
+            if (!EvaluateParameterHelper(traitAttribute))
+            {
+                yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.Failing);
+            }
+        }
+
+        internal static bool EvaluateParameterHelper(IAttributeInfo traitAttribute)
+        {
             // Parse the traitAttribute. We make sure it contains two parts:
             // 1. Type 2. nameof(conditionMemberName)
             object[] conditionArguments = traitAttribute.GetConstructorArguments().ToArray();
             Debug.Assert(conditionArguments.Count() == 2);
 
-            // If evaluated to false, entirely skip the test class.
-            if (!ConditionalTestDiscoverer.EvaluateParameter(conditionArguments))
+            Type calleeType = null;
+            string[] conditionMemberNames = null;
+
+            if (ConditionalTestDiscoverer.CheckInputToSkipExecution(conditionArguments, ref calleeType, ref conditionMemberNames))
             {
-                yield return new KeyValuePair<string, string>(XunitConstants.Category, XunitConstants.Failing);
+                return true;
             }
+
+            foreach (string entry in conditionMemberNames)
+            {
+                // Null condition member names are silently tolerated.
+                if (string.IsNullOrWhiteSpace(entry)) continue;
+
+                MethodInfo conditionMethodInfo = ConditionalTestDiscoverer.LookupConditionalMethod(calleeType, entry);
+                if (conditionMethodInfo == null)
+                {
+                    // Unable to get MethodInfo. It's caused by bad user input.
+                    // We need to report some error here. For now, just don't run the test.
+                    return false;
+                }
+
+                // If one of the conditions is false, then return the category failing trait.
+                if (!(bool)conditionMethodInfo.Invoke(null, null)) return false;
+            }
+
+            return true;
         }
     }
 }
