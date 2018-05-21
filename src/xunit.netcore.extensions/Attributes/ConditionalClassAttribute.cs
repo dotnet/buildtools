@@ -11,7 +11,7 @@ namespace Xunit
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public sealed class ConditionalClassAttribute : Attribute, ITraitAttribute
     {
-        public Type     CalleeType { get; private set; }
+        public Type CalleeType { get; private set; }
         public string[] ConditionMemberNames { get; private set; }
 
         public ConditionalClassAttribute(Type calleeType, params string[] conditionMemberNames)
