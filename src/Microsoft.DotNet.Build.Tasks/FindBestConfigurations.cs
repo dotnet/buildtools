@@ -54,8 +54,8 @@ namespace Microsoft.DotNet.Build.Tasks
                 {
                     if (supportedProjectConfiguration.IsPlaceHolderConfiguration)
                     {
-                        BestConfigurations = Array.Empty<ITaskItem>();
-                        return !Log.HasLoggedErrors;
+                        Log.LogMessage($"Skipped configuration: {supportedProjectConfiguration.ToString()} because was marked as a placeholder configuration");
+                        continue;
                     }
 
                     Log.LogMessage(MessageImportance.Low, $"Chose configuration {bestConfiguration}");
