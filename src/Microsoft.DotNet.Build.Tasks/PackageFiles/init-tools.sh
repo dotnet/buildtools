@@ -25,8 +25,6 @@ __PORTABLETARGETS_PROJECT_CONTENT="
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include=\"MicroBuild.Core\" Version=\"$__MICROBUILD_VERSION\" />
-    <PackageReference Include=\"Microsoft.Portable.Targets\" Version=\"$__PORTABLETARGETS_VERSION\" />
-    <PackageReference Include=\"Microsoft.NETCore.Compilers\" Version=\"$__ROSLYNCOMPILER_VERSION\" />
   </ItemGroup>
 </Project>"
 __PUBLISH_TFM=netcoreapp2.0
