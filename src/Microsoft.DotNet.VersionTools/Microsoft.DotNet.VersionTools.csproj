@@ -47,6 +47,12 @@
     <Compile Include="BuildManifest\JoinSemaphoreGroup.cs" />
     <Compile Include="BuildManifest\SupplementaryUploadRequest.cs" />
     <Compile Include="Dependencies\BuildOutput\BuildDependencyInfo.cs" />
+    <Compile Include="Dependencies\BuildOutput\OrchestratedBuild\FileRegexOrchestratedBuildCustomUpdater.cs" />
+    <Compile Include="Dependencies\BuildOutput\OrchestratedBuild\OrchestratedBuildUpdateHelpers.cs" />
+    <Compile Include="Dependencies\FileRegexUpdater2.cs" />
+    <Compile Include="Dependencies\FileUpdater.cs" />
+    <Compile Include="Dependencies\DependencyReplacement.cs" />
+    <Compile Include="Dependencies\BuildOutput\OrchestratedBuild\FileOrchestratedBuildCustomUpdater.cs" />
     <Compile Include="Dependencies\IDependencyInfo.cs" />
     <Compile Include="Dependencies\DependencyUpdateTask.cs" />
     <Compile Include="Automation\GitHubApi\GitHubClient.cs" />
@@ -56,6 +62,7 @@
     <Compile Include="Automation\PullRequestCreator.cs" />
     <Compile Include="Automation\GitHubApi\GitHubApiModel.cs" />
     <Compile Include="Dependencies\BuildManifest\OrchestratedBuildDependencyInfo.cs" />
+    <Compile Include="Dependencies\BuildManifest\OrchestratedBuildIdentityMatch.cs" />
     <Compile Include="Dependencies\Submodule\OrchestratedBuildSubmoduleUpdater.cs" />
     <Compile Include="Dependencies\Submodule\SubmoduleDependencyInfo.cs" />
     <Compile Include="Dependencies\BuildOutput\ToolVersionsUpdater.cs" />

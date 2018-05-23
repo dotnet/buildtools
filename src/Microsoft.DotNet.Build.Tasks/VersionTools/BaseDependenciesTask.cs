@@ -10,6 +10,7 @@ using Microsoft.DotNet.VersionTools.BuildManifest;
 using Microsoft.DotNet.VersionTools.Dependencies;
 using Microsoft.DotNet.VersionTools.Dependencies.BuildManifest;
 using Microsoft.DotNet.VersionTools.Dependencies.BuildOutput;
+using Microsoft.DotNet.VersionTools.Dependencies.BuildOutput.OrchestratedBuild;
 using Microsoft.DotNet.VersionTools.Dependencies.Submodule;
 using System;
 using System.Collections.Generic;
@@ -134,6 +135,28 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                         };
                         break;
 
+                    case "Build attribute from orchestrated build":
+                        yield return CreateOrchestratedBuildUpdater(
+                            step,
+                            OrchestratedBuildUpdateHelpers.BuildAttribute(
+                                GetRequiredMetadata(step, "BuildName"),
+                                GetRequiredMetadata(step, "AttributeName")));
+                        break;
+
+                    case "Orchestrated blob feed attribute":
+                        yield return CreateOrchestratedBuildUpdater(
+                            step,
+                            OrchestratedBuildUpdateHelpers.OrchestratedFeedAttribute(
+                                GetRequiredMetadata(step, "AttributeName")));
+                        break;
+
+                    case "Orchestrated blob feed package version":
+                        yield return CreateOrchestratedBuildUpdater(
+                            step,
+                            OrchestratedBuildUpdateHelpers.OrchestratedFeedPackageVersion(
+                                GetRequiredMetadata(step, "PackageId")));
+                        break;
+
                     default:
                         throw new NotSupportedException(
                             $"Unsupported updater '{step.ItemSpec}': UpdaterType '{type}'.");
@@ -213,10 +236,53 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                     PackageId = packageId
                 };
             }
-            updater.Path = step.GetMetadata("Path");
-            updater.Regex = CreateXmlUpdateRegex(step.GetMetadata("ElementName"), "version");
-            updater.VersionGroupName = "version";
+            CongifureFileRegexUpdater(updater, step);
             return updater;
+        }
+
+        private FileRegexUpdater CongifureFileRegexUpdater(FileRegexUpdater updater, ITaskItem step)
+        {
+            updater.Path = step.GetMetadata("Path");
+
+            string elementName = step.GetMetadata("ElementName");
+            string manualRegex = step.GetMetadata("Regex");
+            if (!string.IsNullOrEmpty(elementName))
+            {
+                updater.Regex = CreateXmlUpdateRegex(elementName, nameof(elementName));
+                updater.VersionGroupName = nameof(elementName);
+            }
+            else if (!string.IsNullOrEmpty(manualRegex))
+            {
+                updater.Regex = new Regex(manualRegex);
+                updater.VersionGroupName = GetRequiredMetadata(step, "VersionGroupName");
+            }
+            else
+            {
+                throw new ArgumentException(
+                    $"On '{step.ItemSpec}', did not find 'ElementName' or 'Regex' metadata.");
+            }
+
+            return updater;
+        }
+
+        private IDependencyUpdater CreateOrchestratedBuildUpdater(
+            ITaskItem step,
+            Func<OrchestratedBuildDependencyInfo[], DependencyReplacement> updater)
+        {
+            string path = step.GetMetadata("SingleLineFile");
+
+            if (!string.IsNullOrEmpty(path))
+            {
+                return new FileOrchestratedBuildCustomUpdater
+                {
+                    GetDesiredValue = updater,
+                    Path = path
+                };
+            }
+
+            return CongifureFileRegexUpdater(
+                new FileRegexOrchestratedBuildCustomUpdater { GetDesiredValue = updater },
+                step);
         }
 
         private static BuildDependencyInfo CreateBuildInfoDependency(ITaskItem item, string cacheDir)
