@@ -236,11 +236,11 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                     PackageId = packageId
                 };
             }
-            CongifureFileRegexUpdater(updater, step);
+            ConfigureFileRegexUpdater(updater, step);
             return updater;
         }
 
-        private FileRegexUpdater CongifureFileRegexUpdater(FileRegexUpdater updater, ITaskItem step)
+        private FileRegexUpdater ConfigureFileRegexUpdater(FileRegexUpdater updater, ITaskItem step)
         {
             updater.Path = step.GetMetadata("Path");
 
@@ -280,7 +280,7 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                 };
             }
 
-            return CongifureFileRegexUpdater(
+            return ConfigureFileRegexUpdater(
                 new FileRegexOrchestratedBuildCustomUpdater { GetDesiredValue = updater },
                 step);
         }
