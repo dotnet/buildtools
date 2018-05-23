@@ -49,7 +49,6 @@
     <Compile Include="Dependencies\BuildOutput\BuildDependencyInfo.cs" />
     <Compile Include="Dependencies\BuildOutput\OrchestratedBuild\FileRegexOrchestratedBuildCustomUpdater.cs" />
     <Compile Include="Dependencies\BuildOutput\OrchestratedBuild\OrchestratedBuildUpdateHelpers.cs" />
-    <Compile Include="Dependencies\FileRegexUpdater2.cs" />
     <Compile Include="Dependencies\FileUpdater.cs" />
     <Compile Include="Dependencies\DependencyReplacement.cs" />
     <Compile Include="Dependencies\BuildOutput\OrchestratedBuild\FileOrchestratedBuildCustomUpdater.cs" />

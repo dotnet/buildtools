@@ -3,23 +3,28 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.DotNet.VersionTools.Dependencies.BuildManifest;
+using Microsoft.DotNet.VersionTools.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Microsoft.DotNet.VersionTools.Dependencies.BuildOutput.OrchestratedBuild
 {
-    public class FileRegexOrchestratedBuildCustomUpdater : FileRegexUpdater2
+    public class FileRegexOrchestratedBuildCustomUpdater : FileRegexUpdater
     {
         public Func<OrchestratedBuildDependencyInfo[], DependencyReplacement> GetDesiredValue { get; set; }
 
-        public override DependencyReplacement GetDesiredReplacement(
-            IEnumerable<IDependencyInfo> dependencyInfos)
+        protected override string TryGetDesiredValue(
+            IEnumerable<IDependencyInfo> dependencyInfos,
+            out IEnumerable<IDependencyInfo> usedDependencyInfos)
         {
-            return GetDesiredValue(
+            DependencyReplacement replacement = GetDesiredValue(
                 dependencyInfos
                     .OfType<OrchestratedBuildDependencyInfo>()
                     .ToArray());
+
+            usedDependencyInfos = (replacement?.UsedDependencyInfos).NullAsEmpty();
+            return replacement?.Content;
         }
     }
 }
