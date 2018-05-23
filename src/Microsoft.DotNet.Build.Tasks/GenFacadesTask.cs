@@ -136,7 +136,9 @@ namespace Microsoft.DotNet.Build.Tasks
 
             if (eventType == TraceEventType.Error)
             {
-                _log.LogError(message);
+                // Disabled until we fix warnings -https://github.com/dotnet/corefx/issues/29861
+                //_log.LogError(message);
+                _log.LogWarning(message);
             }
             else if (eventType == TraceEventType.Warning)
             {
