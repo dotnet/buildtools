@@ -37,6 +37,9 @@
       <CrashDumpFolder Condition="'$(CrashDumpFolder)' == '' and Exists('/cores/')">/cores/</CrashDumpFolder>
       <CrashDumpFolder Condition="'$(CrashDumpFolder)' == '' and '$(OS)' == 'Unix'">`pwd`</CrashDumpFolder>
     </PropertyGroup>
+    <ItemGroup>
+      <TestCommandLines Include="python -m pip install psutil" />
+    </ItemGroup>
     <ItemGroup Condition="'$(TargetOS)'!='Windows_NT'">
       <TestCommandLines Include="python DumplingHelper.py install_dumpling" />
       <TestCommandLines Include="__TIMESTAMP=`python DumplingHelper.py get_timestamp`" />
