@@ -86,23 +86,25 @@ __mncaFolder=$__toolsDir/dotnetcli/shared/Microsoft.NETCore.App
 __sharedFxVersion=`ls $__mncaFolder | sed 'r/\([0-9]\+\).*/\1/g' | sort -n | tail -1`
 __sharedFxDir=$__toolsDir/dotnetcli/shared/Microsoft.NETCore.App/$__sharedFxVersion/
 
-# TODO: once all call-sites start passing <rid> argument to this script
-#       remove case block and replace with error and exit statements
 if [ -z "$__packageRid" ]; then
     case $(uname -s) in
         Darwin)
             __packageRid=osx-x64
-            __libraryExtension=dylib
             ;;
         Linux)
             __packageRid=linux-x64
-            __libraryExtension=so
             ;;
         *)
             echo "Unsupported OS $(uname -s) detected. Skipping crossgen of the toolset."
             exit 0
             ;;
     esac
+fi
+
+if [ "$__packageRid" == "osx-x64" ]; then
+    __libraryExtension=dylib
+else
+    __libraryExtension=so
 fi
 
 restore_crossgen
