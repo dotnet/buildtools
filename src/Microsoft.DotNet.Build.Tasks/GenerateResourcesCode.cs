@@ -97,7 +97,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 _targetStream.WriteLine("");
                 _targetStream.WriteLine($"    internal static partial class {_srClassName}");
                 _targetStream.WriteLine("    {");
-                _targetStream.WriteLine($"        internal static Type ResourceType {{ get; }} = typeof({_resourcesName}.SR); ");
+                _targetStream.WriteLine($"        internal static System.Type ResourceType {{ get; }} = typeof({_resourcesName}.SR); ");
                 _targetStream.WriteLine("    }");
                 _targetStream.WriteLine("}");
                 _targetStream.WriteLine("");
@@ -115,7 +115,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 _targetStream.WriteLine($"Namespace {_srNamespace}");
                 _targetStream.WriteLine("");
                 _targetStream.WriteLine($"    Friend Partial Class {_srClassName}");
-                _targetStream.WriteLine($"        Friend Shared ReadOnly Property ResourceType As Type = GetType({_resourcesName}.SR)");
+                _targetStream.WriteLine($"        Friend Shared ReadOnly Property ResourceType As System.Type = GetType({_resourcesName}.SR)");
                 _targetStream.WriteLine("    End Class");
                 _targetStream.WriteLine("End Namespace");
                 _targetStream.WriteLine("");
