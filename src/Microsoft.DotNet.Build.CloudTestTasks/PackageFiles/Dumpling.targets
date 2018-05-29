@@ -36,6 +36,7 @@
       <__DumplingIncPathsArg>@(DumplingIncPaths -> '%(Identity)', ',')</__DumplingIncPathsArg>
       <CrashDumpFolder Condition="'$(CrashDumpFolder)' == '' and Exists('/cores/')">/cores/</CrashDumpFolder>
       <CrashDumpFolder Condition="'$(CrashDumpFolder)' == '' and '$(OS)' == 'Unix'">`pwd`</CrashDumpFolder>
+      <CrashDumpFolder Condition="'$(CrashDumpFolder)' == ''">\cores\</CrashDumpFolder>
     </PropertyGroup>
     <ItemGroup>
       <TestCommandLines Include="python -m pip install psutil" />
@@ -45,9 +46,9 @@
       <TestCommandLines Include="__TIMESTAMP=`python DumplingHelper.py get_timestamp`" />
       <PostExecutionTestCommandLines Include="python DumplingHelper.py collect_dump $%3F $(CrashDumpFolder) $__TIMESTAMP $(MSBuildProjectName) $(__DumplingIncPathsArg)" />
     </ItemGroup>
-    <Error Condition="'$(TargetOS)' == 'Windows_NT' And '$(CrashDumpFolder)' == ''" Text="CrashDumpFolder must be set to use Dumpling on Windows." />
     <ItemGroup Condition="'$(TargetOS)'=='Windows_NT'">
       <TestCommandLines Include="python DumplingHelper.py install_dumpling" />
+      <TestCommandLines Include="if not exist $(CrashDumpFolder) mkdir $(CrashDumpFolder)" />
       <!-- This gets a "before execution" timestamp. It is used in DumplingHelper.py to determine which crash dump files to consider uploading. -->
       <TestCommandLines Include="for /f &quot;delims=&quot; %%a in ('python DumplingHelper.py get_timestamp') do @set __TIMESTAMP=%%a" />
       <PostExecutionTestCommandLines Include="python DumplingHelper.py collect_dump %ERRORLEVEL% $(CrashDumpFolder) %__TIMESTAMP% $(MSBuildProjectName) $(__DumplingIncPathsArg)" />
