@@ -4,7 +4,7 @@ set -euo pipefail
 # Restores crossgen and runs it on all tools components.
 usage()
 {
-    echo "crossgen.sh <directory>"
+    echo "crossgen.sh <directory> <rid>"
     echo "    Restores crossgen and runs it on all assemblies in <directory>."
     exit 0
 }
@@ -77,6 +77,7 @@ fi
 
 __MyGetFeed=${BUILDTOOLS_CROSSGEN_FEED:-https://dotnet.myget.org/F/dotnet-core/api/v3/index.json}
 __targetDir=$1
+__packageRid=$2
 __scriptpath=$(cd "$(dirname "$0")"; pwd -P)
 __toolsDir=$__scriptpath/../Tools
 __dotnet=$__toolsDir/dotnetcli/dotnet
@@ -85,20 +86,26 @@ __mncaFolder=$__toolsDir/dotnetcli/shared/Microsoft.NETCore.App
 __sharedFxVersion=`ls $__mncaFolder | sed 'r/\([0-9]\+\).*/\1/g' | sort -n | tail -1`
 __sharedFxDir=$__toolsDir/dotnetcli/shared/Microsoft.NETCore.App/$__sharedFxVersion/
 
-case $(uname -s) in
-    Darwin)
-        __packageRid=osx-x64
-        __libraryExtension=dylib
-        ;;
-    Linux)
-        __packageRid=linux-x64
-        __libraryExtension=so
-        ;;
-    *)
-        echo "Unsupported OS $(uname -s) detected. Skipping crossgen of the toolset."
-        exit 0
-        ;;
-esac
+if [ -z "$__packageRid" ]; then
+    case $(uname -s) in
+        Darwin)
+            __packageRid=osx-x64
+            ;;
+        Linux)
+            __packageRid=linux-x64
+            ;;
+        *)
+            echo "Unsupported OS $(uname -s) detected. Skipping crossgen of the toolset."
+            exit 0
+            ;;
+    esac
+fi
+
+if [ "$__packageRid" == "osx-x64" ]; then
+    __libraryExtension=dylib
+else
+    __libraryExtension=so
+fi
 
 restore_crossgen
 crossgen_everything
