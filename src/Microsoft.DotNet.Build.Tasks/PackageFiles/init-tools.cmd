@@ -26,6 +26,7 @@ set MSBUILD_PROJECT_CONTENT= ^
   ^^^</PropertyGroup^^^> ^
   ^^^<ItemGroup^^^> ^
     ^^^<PackageReference Include=^"MicroBuild.Core^" Version=^"%MICROBUILD_VERSION%^" /^^^> ^
+    ^^^<PackageReference Include=^"Microsoft.Net.Compilers^" Version=^"%ROSLYNCOMPILERS_VERSION%^" /^^^> ^
   ^^^</ItemGroup^^^> ^
  ^^^</Project^^^>
 
