@@ -18,6 +18,7 @@
   <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.0' ">
     <PackageReference Include="Microsoft.Net.Compilers.netcore" Version="2.6.0-beta3-62316-02" />
     <PackageReference Include="Microsoft.Cci" Version="4.0.0-rc3-24214-00" />
+    <PackageReference Include="System.Composition" Version="1.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
   </ItemGroup>
 
