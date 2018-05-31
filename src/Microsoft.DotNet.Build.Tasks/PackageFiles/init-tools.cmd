@@ -10,7 +10,6 @@ if [%PACKAGES_DIR%] == [] set PACKAGES_DIR=%TOOLRUNTIME_DIR%
 set PACKAGES_DIR=%PACKAGES_DIR:"=%
 set BUILDTOOLS_PACKAGE_DIR=%~dp0
 set MICROBUILD_VERSION=0.2.0
-set PORTABLETARGETS_VERSION=0.1.1-dev
 set ROSLYNCOMPILERS_VERSION=2.8.0-beta4
 
 :: Default to x64 native tools if nothing was specified.
@@ -92,7 +91,6 @@ if not [%RESTORE_PORTABLETARGETS_ERROR_LEVEL%]==[0] (
   echo ERROR: An error ocurred when running: '"%DOTNET_CMD%" restore "%PORTABLETARGETS_PROJECT%"'. Please check above for more details.
   exit /b %RESTORE_PORTABLETARGETS_ERROR_LEVEL%
 )
-Robocopy "%PACKAGES_DIR%\Microsoft.Portable.Targets\%PORTABLETARGETS_VERSION%\contentFiles\any\any\Extensions." "%TOOLRUNTIME_DIR%\." /E
 Robocopy "%PACKAGES_DIR%\MicroBuild.Core\%MICROBUILD_VERSION%\build\." "%TOOLRUNTIME_DIR%\." /E
 
 :: Copy Roslyn Compilers Over to ToolRuntime
