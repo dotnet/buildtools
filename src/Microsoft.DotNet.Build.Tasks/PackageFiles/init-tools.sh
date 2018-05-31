@@ -73,10 +73,6 @@ $__DOTNET_CMD restore "${__PORTABLETARGETS_PROJECT}" $__INIT_TOOLS_RESTORE_ARGS 
 # Copy MicroBuild targets from packages, allowing for lowercased package IDs.
 cp -R "${__PACKAGES_DIR}"/[Mm]icro[Bb]uild.[Cc]ore/"${__MICROBUILD_VERSION}/build/." "$__TOOLRUNTIME_DIR/."
 
-# Temporary Hacks to fix couple of issues in the msbuild and roslyn nuget packages
-# https://github.com/dotnet/buildtools/issues/1464
-[ -e "$__TOOLRUNTIME_DIR/Microsoft.CSharp.Targets" ] || mv "$__TOOLRUNTIME_DIR/Microsoft.CSharp.targets" "$__TOOLRUNTIME_DIR/Microsoft.CSharp.Targets"
-
 # Copy some roslyn files over
 cp $__TOOLRUNTIME_DIR/runtimes/any/native/* $__TOOLRUNTIME_DIR/
 
