@@ -24,15 +24,15 @@ function print_info_from_core_file_using_lldb {
   # check for existence of lldb on the path
   hash lldb 2>/dev/null || { echo >&2 "lldb was not found. Unable to print core file."; return; }
 
-  # pe and clrstack are defined in libsosplugin.so
+  # pe, clrstack, and dumpasync are defined in libsosplugin.so
   if [ ! -f $plugin_path_name ]; then
     echo $plugin_path_name cannot be found.
     return
   fi
 
   echo ----- start ===============  lldb Output =====================================================
-  echo Printing managed exceptions and managed call stack.
-  lldb -O "settings set target.exec-search-paths $RUNTIME_PATH" -o "plugin load $plugin_path_name" -o "clrthreads -managedexception" -o "pe -nested" -o "clrstack -all -a -f" -o "quit"  --core $core_file_name $executable_name
+  echo Printing managed exceptions, managed call stacks, and async state machines.
+  lldb -O "settings set target.exec-search-paths $RUNTIME_PATH" -o "plugin load $plugin_path_name" -o "clrthreads -managedexception" -o "pe -nested" -o "clrstack -all -a -f" -o "dumpasync -roots" -o "quit"  --core $core_file_name $executable_name
   echo ----- end ===============  lldb Output =======================================================
 }
 
