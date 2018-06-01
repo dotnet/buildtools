@@ -181,7 +181,7 @@ namespace GenAPI
 
             if (!string.IsNullOrWhiteSpace(s_excludeApiList))
             {
-                includeFilter = new IntersectionFilter(includeFilter, new DocIdExcludeListFilter(s_excludeApiList));
+                includeFilter = new IntersectionFilter(includeFilter, new DocIdExcludeListFilter(s_excludeApiList, s_excludeMembers));
             }
 
             if (!string.IsNullOrWhiteSpace(s_excludeAttributesList))
@@ -241,6 +241,7 @@ namespace GenAPI
         private static string s_exceptionMessage;
         private static bool s_global;
         private static bool s_alwaysIncludeBase;
+        private static bool s_excludeMembers;
 
         private static void ParseCommandLine(string[] args)
         {
@@ -274,6 +275,8 @@ namespace GenAPI
                 parser.DefineOptionalQualifier("global", ref s_global, "(-g) Include global prefix for compilation.");
                 parser.DefineAliases("alwaysIncludeBase", "aib");
                 parser.DefineOptionalQualifier("alwaysIncludeBase", ref s_alwaysIncludeBase, "(-aib) [CSDecl] Include base types, interfaces, and attributes, even when those types are filtered.");
+                parser.DefineAliases("excludeMembers", "em");
+                parser.DefineOptionalQualifier("excludeMembers", ref s_excludeMembers, "(-em) Exclude members when return value or parameter types are excluded.");
                 parser.DefineQualifier("assembly", ref s_assembly, "Path for an specific assembly or a directory to get all assemblies.");
             }, args);
         }
