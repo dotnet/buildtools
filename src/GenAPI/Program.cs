@@ -153,6 +153,7 @@ namespace GenAPI
                         writer.PutBraceOnNewLine = true;
                         writer.PlatformNotSupportedExceptionMessage = s_exceptionMessage;
                         writer.IncludeGlobalPrefixForCompilation = s_global;
+                        writer.AlwaysIncludeBase = s_alwaysIncludeBase;
                         return writer;
                     }
             }
@@ -239,6 +240,7 @@ namespace GenAPI
         private static bool s_all;
         private static string s_exceptionMessage;
         private static bool s_global;
+        private static bool s_alwaysIncludeBase;
 
         private static void ParseCommandLine(string[] args)
         {
@@ -270,6 +272,8 @@ namespace GenAPI
                 parser.DefineOptionalQualifier("throw", ref s_exceptionMessage, "(-t) Method bodies should throw PlatformNotSupportedException.");
                 parser.DefineAliases("global", "g");
                 parser.DefineOptionalQualifier("global", ref s_global, "(-g) Include global prefix for compilation.");
+                parser.DefineAliases("alwaysIncludeBase", "aib");
+                parser.DefineOptionalQualifier("alwaysIncludeBase", ref s_alwaysIncludeBase, "(-aib) [CSDecl] Include base types, interfaces, and attributes, even when those types are filtered.");
                 parser.DefineQualifier("assembly", ref s_assembly, "Path for an specific assembly or a directory to get all assemblies.");
             }, args);
         }

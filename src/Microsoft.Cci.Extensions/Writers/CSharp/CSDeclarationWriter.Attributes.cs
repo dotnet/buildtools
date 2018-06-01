@@ -423,7 +423,7 @@ namespace Microsoft.Cci.Writers.CSharp
             if (ExcludeSpecialAttribute(attribute))
                 return false;
 
-            return _filter.Include(attribute);
+            return _alwaysIncludeBase || _filter.Include(attribute);
         }
     }
 }
