@@ -62,6 +62,12 @@ namespace Microsoft.Cci.Writers
             set { _declarationWriter.PlatformNotSupportedExceptionMessage = value; }
         }
 
+        public bool AlwaysIncludeBase
+        {
+            get { return _declarationWriter.AlwaysIncludeBase; }
+            set { _declarationWriter.AlwaysIncludeBase = value; }
+        }
+
         public void WriteAssemblies(IEnumerable<IAssembly> assemblies)
         {
             foreach (var assembly in assemblies)

@@ -15,42 +15,100 @@ namespace Microsoft.Cci.Writers
     public class DocumentIdWriter : SimpleTypeMemberTraverser, ICciWriter
     {
         private readonly TextWriter _writer;
+        private readonly DocIdKinds _kinds;
 
-        public DocumentIdWriter(TextWriter writer, ICciFilter filter)
+        public DocumentIdWriter(TextWriter writer, ICciFilter filter, DocIdKinds kinds)
             : base(filter)
         {
             _writer = writer;
+            _kinds = kinds;
         }
 
         public void WriteAssemblies(IEnumerable<IAssembly> assemblies)
         {
-            assemblies = assemblies.OrderBy(a => a.Name.Value, StringComparer.OrdinalIgnoreCase);
-            foreach (var assembly in assemblies)
-                Visit(assembly);
+            if (_kinds != 0)
+            {
+                assemblies = assemblies.OrderBy(a => a.Name.Value, StringComparer.OrdinalIgnoreCase);
+                foreach (var assembly in assemblies)
+                    Visit(assembly);
+            }
         }
 
         public override void Visit(IAssembly assembly)
         {
-            _writer.WriteLine(assembly.DocId());
+            if ((_kinds & DocIdKinds.Assembly) != 0)
+                _writer.WriteLine(assembly.DocId());
+
             base.Visit(assembly);
         }
 
         public override void Visit(INamespaceDefinition ns)
         {
-            _writer.WriteLine(ns.DocId());
+            if ((_kinds & DocIdKinds.Namespace) != 0)
+                _writer.WriteLine(ns.DocId());
+
             base.Visit(ns);
         }
 
         public override void Visit(ITypeDefinition type)
         {
-            _writer.WriteLine(type.DocId());
+            if ((_kinds & DocIdKinds.Type) != 0)
+                _writer.WriteLine(type.DocId());
+
             base.Visit(type);
         }
 
         public override void Visit(ITypeDefinitionMember member)
         {
-            _writer.WriteLine(member.DocId());
+            if ((_kinds & GetMemberKind(member)) != 0)
+                _writer.WriteLine(member.DocId());
+
             base.Visit(member);
         }
+
+        private DocIdKinds GetMemberKind(ITypeDefinitionMember member)
+        {
+            if (member is IMethodDefinition)
+            {
+                return DocIdKinds.Method;
+            }
+
+            if (member is IPropertyDefinition)
+            {
+                return DocIdKinds.Property;
+            }
+
+            if (member is IEventDefinition)
+            {
+                return DocIdKinds.Event;
+            }
+
+            if (member is IFieldDefinition)
+            {
+                return DocIdKinds.Field;
+            }
+
+            throw new ArgumentException($"Unknown member type {member}", "member");
+        }
+    }
+
+    [Flags]
+    public enum DocIdKinds
+    {
+        All = A | N | T | F | P | M | E,
+        Assembly = 1 << 1,
+        A = Assembly,
+        Namespace = 1 << 2,
+        N = Namespace,
+        Type = 1 << 3,
+        T = Type,
+        Field = 1 << 4,
+        F = Field,
+        Property = 1 << 5,
+        P = Property,
+        Method = 1 << 6,
+        M = Method,
+        Event = 1 << 7,
+        E = Event,
     }
 }
