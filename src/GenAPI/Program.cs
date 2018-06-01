@@ -135,7 +135,7 @@ namespace GenAPI
             switch (s_writer)
             {
                 case WriterType.DocIds:
-                    return new DocumentIdWriter(output, filter);
+                    return new DocumentIdWriter(output, filter, s_docIdKind);
                 case WriterType.TypeForwards:
                     return new TypeForwardWriter(output, filter)
                     {
@@ -242,6 +242,7 @@ namespace GenAPI
         private static bool s_global;
         private static bool s_alwaysIncludeBase;
         private static bool s_excludeMembers;
+        private static DocIdKinds s_docIdKind = DocIdKinds.All;
 
         private static void ParseCommandLine(string[] args)
         {
@@ -277,6 +278,8 @@ namespace GenAPI
                 parser.DefineOptionalQualifier("alwaysIncludeBase", ref s_alwaysIncludeBase, "(-aib) [CSDecl] Include base types, interfaces, and attributes, even when those types are filtered.");
                 parser.DefineAliases("excludeMembers", "em");
                 parser.DefineOptionalQualifier("excludeMembers", ref s_excludeMembers, "(-em) Exclude members when return value or parameter types are excluded.");
+                parser.DefineAliases("docIdKinds", "dk");
+                parser.DefineOptionalQualifier<DocIdKinds>("docIdKinds", ref s_docIdKind, "(-dk) Only include API of the specified kinds.");
                 parser.DefineQualifier("assembly", ref s_assembly, "Path for an specific assembly or a directory to get all assemblies.");
             }, args);
         }
