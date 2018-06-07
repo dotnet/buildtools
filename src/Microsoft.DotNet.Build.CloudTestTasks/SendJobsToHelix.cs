@@ -161,8 +161,10 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                         {
                             if (possibleClientTimeout.CancellationToken != cancelTokenSource.Token)
                             {
-                                // This is a timeout.
-                                Log.LogWarning("HttpClient timeout while POSTing new job; will retry (if tries remaining).");
+                                // This is a timeout.  Since we have no idea if the Helix API got this, and no way to determine on the other side if duplication occurred,
+                                // we currently must treat this as error.
+                                Log.LogError($"HttpClient timeout while attempting to POST new job to '{queueId}'; the job may have started but this cannot be currently determined.");
+                                keepTrying = false;
                             }
                             else
                             {
@@ -185,6 +187,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 }
                 JobIds = jobIds.ToArray();
                 // Number of queued builds = number in that file == success.
+                // If any timeouts or other failures occur this will cause the task to fail.
                 return allBuilds.Count == jobIds.Count;
             }
         }
