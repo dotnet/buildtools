@@ -451,7 +451,7 @@
     $(WindowsPdbConversionTargetPath)
       * Location to place converted PDBs when using PortablePdbToConvertGlob. Recursive directory
         is preserved, if one is present in the glob.
-    @(SuppressSourceLinkConversion) [optional]
+    $(SuppressSourceLinkConversion) [optional]
       * Whether to include source link data as is for all conversions performed.
   -->
   <Target Name="CreateWindowsPdbsFromPortablePdbs"
