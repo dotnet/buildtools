@@ -25,24 +25,13 @@ namespace Microsoft.DotNet.Build.Tasks
         [Required]
         public ITaskItem[] Files { get; set; }
 
-        public string[] ConversionOptions { get; set; }
+        public bool SuppressSourceLinkConversion { get; set; }
 
         private bool _cancel;
 
         public override bool Execute()
         {
-            var parsedConversionOptions = PdbConversionOptions.Default;
-            foreach (string option in ConversionOptions ?? Enumerable.Empty<string>())
-            {
-                PdbConversionOptions parsedOption;
-                if (!Enum.TryParse(option, out parsedOption))
-                {
-                    throw new ArgumentException(
-                        $"Passed conversion option '{option}'" +
-                        $"is not a value of {nameof(PdbConversionOptions)}.");
-                }
-                parsedConversionOptions |= parsedOption;
-            }
+            var parsedConversionOptions = new PortablePdbConversionOptions(SuppressSourceLinkConversion);
 
             var converter = new PdbConverter(
                 d => Log.LogError(d.ToString(CultureInfo.InvariantCulture)));
@@ -75,7 +64,7 @@ namespace Microsoft.DotNet.Build.Tasks
         private void ConvertPortableToWindows(
             ITaskItem file,
             PdbConverter converter,
-            PdbConversionOptions parsedConversionOptions)
+            PortablePdbConversionOptions parsedConversionOptions)
         {
             string pdbPath = file.GetMetadata(PdbPathMetadata);
 

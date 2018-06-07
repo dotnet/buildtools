@@ -255,7 +255,7 @@ namespace GenFacades
                 using (Stream peStream = File.OpenRead(dllInputPath))
                 using (Stream pdbWriteStream = File.OpenWrite(pdbInputPath))
                 {
-                    converter.ConvertPortableToWindows(peStream, pdbReadStream, pdbWriteStream, PdbConversionOptions.SuppressSourceLinkConversion);
+                    converter.ConvertPortableToWindows(peStream, pdbReadStream, pdbWriteStream, new PortablePdbConversionOptions(suppressSourceLinkConversion: true));
                 }
             }
             return true;

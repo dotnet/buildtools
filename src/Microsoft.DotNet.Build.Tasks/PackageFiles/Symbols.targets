@@ -451,9 +451,8 @@
     $(WindowsPdbConversionTargetPath)
       * Location to place converted PDBs when using PortablePdbToConvertGlob. Recursive directory
         is preserved, if one is present in the glob.
-    @(ConversionOptions) [optional]
-      * ItemSpec: An entry in the Microsoft.DiaSymReader.Tools.PdbConversionOptions flags enum to
-        use for all conversions performed.
+    $(SuppressSourceLinkConversion) [optional]
+      * Whether to include source link data as is for all conversions performed.
   -->
   <Target Name="CreateWindowsPdbsFromPortablePdbs"
           Condition="'$(SkipCreateWindowsPdbsFromPortablePdbs)'!='true'">
@@ -487,7 +486,7 @@
     </ItemGroup>
 
     <ConvertPortablePdbsToWindowsPdbs Files="@(PortableFileToConvert)"
-                                      ConversionOptions="@(ConversionOptions)" />
+                                      SuppressSourceLinkConversion="$(SuppressSourceLinkConversion)" />
   </Target>
 
   <!--
