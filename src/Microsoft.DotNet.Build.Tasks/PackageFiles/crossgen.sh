@@ -77,7 +77,7 @@ fi
 
 __MyGetFeed=${BUILDTOOLS_CROSSGEN_FEED:-https://dotnet.myget.org/F/dotnet-core/api/v3/index.json}
 __targetDir=$1
-__packageRid=$2
+__packageRid=${2:-}
 __scriptpath=$(cd "$(dirname "$0")"; pwd -P)
 __toolsDir=$__scriptpath/../Tools
 __dotnet=$__toolsDir/dotnetcli/dotnet
