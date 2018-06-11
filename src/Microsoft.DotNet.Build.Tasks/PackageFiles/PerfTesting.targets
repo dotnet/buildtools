@@ -35,13 +35,18 @@
 
   <!-- Sets the flags for the performance counters to be collected in this run. -->
   <PropertyGroup Condition="'$(PerformanceType)'=='Profile'">
-    <!-- Collect allocated bytes in execution thread, stopwatch, and any user defined Clr events (through the xUnit Performance Api attributes) -->
-    <CollectFlags>default+gcapi</CollectFlags>
+    <!-- Collect, per benchmark, execution time (stopwatch). -->
+    <CollectFlags>stopwatch</CollectFlags>
     <RunId>Perf-Profile</RunId>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(PerformanceType)'=='Diagnostic'">
-    <!-- Collect the same data collected with the Profile run plus stack and Pmc counters through Etw. -->
+    <!-- Collect, per benchmarks, the following metrics:
+      1. Allocated bytes in execution thread,
+      2. Any user defined Clr events (through the xUnit Performance Api attributes),
+      3. CPU Usage (Utilization by Process, Stack),
+      4. CPU Performance Counters (Pmc Rollovers)
+    -->
     <CollectFlags>default+BranchMispredictions+CacheMisses+InstructionRetired+gcapi</CollectFlags>
     <RunId>Perf-Diagnostic</RunId>
   </PropertyGroup>
@@ -63,7 +68,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetOS)'=='Linux' and '$(LogToBenchview)' == 'true'">
-    <PerfTestCommandLines Include="if [ -a &quot;$(RunId)-$(AssemblyName).xml&quot; ]; then" />
+    <PerfTestCommandLines Include="if [ -f &quot;$(RunId)-$(AssemblyName).xml&quot; ]; then" />
     <PerfTestCommandLines Include="$(MeasurementPyCommand)" />
     <PerfTestCommandLines Include="fi" />
   </ItemGroup>
