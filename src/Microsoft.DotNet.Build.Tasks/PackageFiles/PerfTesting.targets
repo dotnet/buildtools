@@ -41,7 +41,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(PerformanceType)'=='Diagnostic'">
-    <!-- Collect, per benchmarks, the following metrics:
+    <!-- Collect, per benchmark, the following metrics:
       1. Allocated bytes in execution thread,
       2. Any user defined Clr events (through the xUnit Performance Api attributes),
       3. CPU Usage (Utilization by Process, Stack),
