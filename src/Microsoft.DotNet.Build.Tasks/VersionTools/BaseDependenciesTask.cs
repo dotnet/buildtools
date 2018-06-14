@@ -7,6 +7,7 @@ using Microsoft.DotNet.VersionTools;
 using Microsoft.DotNet.VersionTools.Automation;
 using Microsoft.DotNet.VersionTools.Automation.GitHubApi;
 using Microsoft.DotNet.VersionTools.BuildManifest;
+using Microsoft.DotNet.VersionTools.BuildManifest.Model;
 using Microsoft.DotNet.VersionTools.Dependencies;
 using Microsoft.DotNet.VersionTools.Dependencies.BuildManifest;
 using Microsoft.DotNet.VersionTools.Dependencies.BuildOutput;
@@ -15,8 +16,10 @@ using Microsoft.DotNet.VersionTools.Dependencies.Submodule;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks.VersionTools
 {
@@ -203,6 +206,15 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                             GetRequiredMetadata(info, CurrentRefMetadataName),
                             GetRequiredMetadata(info, "BasePath"),
                             new BuildManifestClient(GitHubClient)).Result;
+                        break;
+
+                    case "Orchestrated build file":
+                        dependencyInfo = new OrchestratedBuildDependencyInfo(
+                            info.ItemSpec,
+                            OrchestratedBuildModel.Parse(
+                                XElement.Parse(
+                                    File.ReadAllText(
+                                        GetRequiredMetadata(info, "Path")))));
                         break;
 
                     default:

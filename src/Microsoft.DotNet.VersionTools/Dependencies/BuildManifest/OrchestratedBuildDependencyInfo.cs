@@ -31,24 +31,20 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.BuildManifest
                     $"'{project.Segments}' '{basePath}' ref '{@ref}'");
             }
 
-            return new OrchestratedBuildDependencyInfo(simpleName, basePath, model);
+            return new OrchestratedBuildDependencyInfo(simpleName, model);
         }
 
         public string SimpleName { get; }
 
         public string SimpleVersion => OrchestratedBuildModel.Identity.BuildId;
 
-        public string BasePath { get; }
-
         public OrchestratedBuildModel OrchestratedBuildModel { get; }
 
         public OrchestratedBuildDependencyInfo(
             string simpleName,
-            string basePath,
             OrchestratedBuildModel model)
         {
             SimpleName = simpleName;
-            BasePath = basePath;
             OrchestratedBuildModel = model;
         }
     }
