@@ -25,12 +25,6 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(IsReferenceAssembly)'=='true'">
-    <!-- All reference assemblies are marked APTCA. An internal tool used to generate reference 
-         assembly source normalizes the security annotations from seed -> reference assembly 
-         under that assumption. -->
-    <!-- NOTE: Reference assemblies are not executable so this is for reference only and does 
-         not provide any security privileges at runtime. -->
-    <AssemblyInfoLines Include="[assembly:System.Security.AllowPartiallyTrustedCallers]" />
     <!-- All reference assemblies should have the 0x70 flag which prevents them from loading 
          and the ReferenceAssemblyAttribute. -->
     <AssemblyInfoLines Include="[assembly:System.Runtime.CompilerServices.ReferenceAssembly]" />
