@@ -97,11 +97,13 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                         break;
 
                     case "File":
-                        yield return new FilePackageUpdater
-                        {
-                            PackageId = GetRequiredMetadata(step, "PackageId"),
-                            Path = GetRequiredMetadata(step, "Path"),
-                        };
+                        yield return ConfigureFileUpdater(
+                            new FilePackageUpdater
+                            {
+                                PackageId = GetRequiredMetadata(step, "PackageId"),
+                                Path = GetRequiredMetadata(step, "Path"),
+                            },
+                            step);
                         break;
 
                     case "Tool versions":
@@ -252,6 +254,16 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
             return updater;
         }
 
+        private FileUpdater ConfigureFileUpdater(FileUpdater updater, ITaskItem step)
+        {
+            updater.SkipIfNoReplacementFound = string.Equals(
+                step.GetMetadata(nameof(updater.SkipIfNoReplacementFound)),
+                "true",
+                StringComparison.OrdinalIgnoreCase);
+
+            return updater;
+        }
+
         private FileRegexUpdater ConfigureFileRegexUpdater(FileRegexUpdater updater, ITaskItem step)
         {
             updater.Path = step.GetMetadata("Path");
@@ -274,6 +286,11 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                     $"On '{step.ItemSpec}', did not find 'ElementName' or 'Regex' metadata.");
             }
 
+            updater.SkipIfNoReplacementFound = string.Equals(
+                step.GetMetadata(nameof(updater.SkipIfNoReplacementFound)),
+                "true",
+                StringComparison.OrdinalIgnoreCase);
+
             return updater;
         }
 
@@ -285,11 +302,13 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 
             if (!string.IsNullOrEmpty(path))
             {
-                return new FileOrchestratedBuildCustomUpdater
-                {
-                    GetDesiredValue = updater,
-                    Path = path
-                };
+                return ConfigureFileUpdater(
+                    new FileOrchestratedBuildCustomUpdater
+                    {
+                        GetDesiredValue = updater,
+                        Path = path
+                    },
+                    step);
             }
 
             return ConfigureFileRegexUpdater(

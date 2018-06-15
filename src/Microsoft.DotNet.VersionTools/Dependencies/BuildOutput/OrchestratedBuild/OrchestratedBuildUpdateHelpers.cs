@@ -5,6 +5,7 @@
 using Microsoft.DotNet.VersionTools.BuildManifest.Model;
 using Microsoft.DotNet.VersionTools.Dependencies.BuildManifest;
 using System;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Microsoft.DotNet.VersionTools.Dependencies.BuildOutput.OrchestratedBuild
@@ -18,12 +19,20 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.BuildOutput.OrchestratedBui
             {
                 var match = OrchestratedBuildIdentityMatch.Find(buildName, infos);
 
+                if (match == null)
+                {
+                    Trace.TraceInformation($"No build identity match for '{buildName}'.");
+                    return null;
+                }
+
                 string value;
                 if (match.Match.Attributes.TryGetValue(attributeName, out value))
                 {
                     return new DependencyReplacement(value, new[] { match.Info });
                 }
 
+                Trace.TraceInformation(
+                    $"In build identity '{buildName}', no attribute '{attributeName}'.");
                 return null;
             };
         }
@@ -42,6 +51,8 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.BuildOutput.OrchestratedBui
                         return new DependencyReplacement(value, new[] { info });
                     }
 
+                    Trace.TraceInformation(
+                        $"No blob feed or '{attributeName}' attribute for '{info}'.");
                     return null;
                 })
                 .FirstOrDefault(r => r != null);
@@ -61,8 +72,8 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.BuildOutput.OrchestratedBui
                         return new DependencyReplacement(match.Version, new[] { info });
                     }
 
+                    Trace.TraceInformation($"No package '{packageId}' match in '{info}'.");
                     return null;
-
                 })
                 .FirstOrDefault(r => r != null);
         }

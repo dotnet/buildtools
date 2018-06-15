@@ -47,5 +47,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.BuildManifest
             SimpleName = simpleName;
             OrchestratedBuildModel = model;
         }
+
+        public override string ToString() => $"{SimpleName} {SimpleVersion}";
     }
 }
