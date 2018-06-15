@@ -104,14 +104,14 @@
           Condition="'$(MSBuildProjectExtension)' == '.depproj'" />
 
   <Import Project="IL.targets"
-           Condition="'$(MSBuildProjectExtension)' == '.ilproj' AND '$(SkipImportILTargets)'!='true'" />
+           Condition="'$(MSBuildProjectExtension)' == '.ilproj' AND '$(SkipImportILTargets)'!='true' and '$(UsingMicrosoftNETSdk)' != 'true'" />
 
-  <!--
-      workaround file casing issue where it has different casing in different places which fails on linux builds
-      https://github.com/dotnet/buildtools/issues/1464
-  -->
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(UsingMicrosoftNETSdk)' != 'true'">
     <CSharpTargetsFile>$(MSBuildToolsPath)\Microsoft.CSharp.targets</CSharpTargetsFile>
+    <!--
+        workaround file casing issue where it has different casing in different places which fails on linux builds
+        https://github.com/dotnet/buildtools/issues/1464
+    -->
     <CSharpTargetsFile Condition="!Exists('$(CSharpTargetsFile)')">$(MSBuildToolsPath)\Microsoft.CSharp.Targets</CSharpTargetsFile>
   </PropertyGroup>
 
@@ -123,7 +123,7 @@
  
 
   <Import Project="$(CSharpTargetsFile)"
-          Condition="'$(TargetFrameworkIdentifier)' != '.NETPortable' and '$(MSBuildProjectExtension)' == '.csproj'" />
+          Condition="'$(TargetFrameworkIdentifier)' != '.NETPortable' and '$(MSBuildProjectExtension)' == '.csproj' and '$(UsingMicrosoftNETSdk)' != 'true'" />
 
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft.VisualBasic.targets"
            Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' and '$(MSBuildProjectExtension)' == '.vbproj' and '$(RunningOnCore)' == 'true'" />
@@ -133,7 +133,7 @@
           Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' and '$(MSBuildProjectExtension)' == '.vbproj' and '$(RunningOnCore)' != 'true'" />
 
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets"
-          Condition="'$(TargetFrameworkIdentifier)' != '.NETPortable' and '$(MSBuildProjectExtension)' == '.vbproj'" />
+          Condition="'$(TargetFrameworkIdentifier)' != '.NETPortable' and '$(MSBuildProjectExtension)' == '.vbproj' and '$(UsingMicrosoftNETSdk)' != 'true'" />
 
   <PropertyGroup>
     <!--
