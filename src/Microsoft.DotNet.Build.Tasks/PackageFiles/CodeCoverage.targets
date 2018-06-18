@@ -16,7 +16,7 @@
     <CodeCoverageEnabled Condition="'$(SkipTests)' != 'true' and '$(RunningOnUnix)' != 'true' and '$(Coverage)' == 'true' and '$(Performance)' != 'true'">true</CodeCoverageEnabled>
     <CoverageReportDir Condition="'$(CoverageReportDir)' == ''">$(TestWorkingDir)coverage\</CoverageReportDir>
 
-    <RestoreCrossgenWithHardlinks Condition="'$(RestoreCrossgenWithHardlinks)' == ''">true</RestoreCrossgenWithHardlinks>
+    <RestoreIlPdbsWithHardlinks Condition="'$(RestoreIlPdbsWithHardlinks)' == ''">true</RestoreIlPdbsWithHardlinks>
 
     <!-- This targets file has two modes one for individual projects and one for all -->
     <GenerateCodeCoverageReportForAll Condition="'$(GenerateCodeCoverageReportForAll)'==''">false</GenerateCodeCoverageReportForAll>
@@ -52,46 +52,45 @@
     </PropertyGroup>
   </Target>
 
-  <!-- Crossgen assemblies need to be replaced by their respective ILs in order for proper coverage reporting -->
-  <Target Name="CopyIlAssembliesToTestHost"  BeforeTargets="GenerateTestExecutionScripts" Condition="'$(CodeCoverageEnabled)'=='true'">
-    <Message Importance="high" Text="Replacing cross gen assemblies targeted for code coverage with respective IL assemblies." />
+  <!-- Workaround OpenCover symbol matching behavior by moving pdb files for coverage runs -->
+  <Target Name="ReplaceIlPdbsOnTestHost"  BeforeTargets="GenerateTestExecutionScripts" Condition="'$(CodeCoverageEnabled)'=='true'">
+    <Message Importance="high" Text="Replacing IL pdbs with respective pdbs for crossgen images (workaround OpenCover issue)." />
     <ItemGroup>
-      <SelectedIlAssemblies Include="@(_CodeCoverageAssemblies -> '$(NETCoreAppTestSharedFrameworkPath)il/%(Identity).dll')"
-        Condition="Exists('$(NETCoreAppTestSharedFrameworkPath)/il/%(Identity).dll') AND Exists('$(NETCoreAppTestSharedFrameworkPath)/ni/%(Identity).dll')">
-          <NativeImagePath>$(NETCoreAppTestSharedFrameworkPath)%(Identity).dll</NativeImagePath>
-      </SelectedIlAssemblies>
+      <SelectedNiPdbFiles Include="@(_CodeCoverageAssemblies -> '$(NETCoreAppTestSharedFrameworkPath)ni/%(Identity).ni.pdb')"
+        Condition="Exists('$(NETCoreAppTestSharedFrameworkPath)/il/%(Identity).pdb') AND Exists('$(NETCoreAppTestSharedFrameworkPath)/ni/%(Identity).ni.pdb')" >
+          <IlPdbPath>$(NETCoreAppTestSharedFrameworkPath)%(Identity).pdb</IlPdbPath>
+      </SelectedNiPdbFiles>
     </ItemGroup>
 
     <!-- Delete the files under the test host to break any existing hardlinks -->
-    <Delete Files="@(SelectedIlAssemblies->'%(NativeImagePath)')" />
+    <Delete Files="@(SelectedNiPdbFiles -> '%(IlPdbPath)')" />
 
-    <!-- Put IL versions in place -->
-    <Copy SourceFiles="@(SelectedIlAssemblies)" 
-      DestinationFolder="$(NETCoreAppTestSharedFrameworkPath)"
+    <!-- Put renamed pdbs in place -->
+    <Copy SourceFiles="@(SelectedNiPdbFiles)" 
+      DestinationFiles="%(SelectedNiPdbFiles.IlPdbPath)"
       SkipUnchangedFiles="true" />
   </Target>
 
-  <!-- General task to restore crossgen assemblies -->
-  <Target Name="RestoreCrossgenAssemblies">
+  <!-- General task to restore pdbs that may have been replaced for OpenCover workaround -->
+  <Target Name="RestoreIlPdbs">
     <ItemGroup>
-       <!-- Assume that all ni images were replaced (ensures full restore when generating coverage for all tests -->
-      <CrossgenAssembliesToRestore Include="$(NETCoreAppTestSharedFrameworkPath)ni/*.*" />
+       <!-- Assume that all ni pdbs were replaced (ensures full restore) -->
+      <PdbsToRestore Include="$(NETCoreAppTestSharedFrameworkPath)il/*.pdb" />
     </ItemGroup>
 
-    <Copy SourceFiles="@(CrossgenAssembliesToRestore)" 
+    <Copy SourceFiles="@(PdbsToRestore)" 
       DestinationFolder="$(NETCoreAppTestSharedFrameworkPath)"
       SkipUnchangedFiles="true"
-      UseHardlinksIfPossible="$(RestoreCrossgenWithHardlinks)" />
+      UseHardlinksIfPossible="$(RestoreIlPdbsWithHardlinks)" />
   </Target>
 
-  <!-- Crossgen assemblies may need to be restored due to previous coverage runs that replaced them with IL versions -->
-  <Target Name="RestoreCrossgenAssembliesForTestRun"
+  <!-- Il pdbs may need to be restored due to previous coverage runs that replaced them with IL versions -->
+  <Target Name="RestoreIlPdbsForTestRun"
     BeforeTargets="GenerateTestExecutionScripts"
-    DependsOnTargets="RestoreCrossgenAssemblies"
+    DependsOnTargets="RestoreIlPdbs"
     Condition="'$(CodeCoverageEnabled)' != 'true' AND '$(SkipTests)' != 'true'">
-    <Message Importance="normal" Text="Restoring cross gen assemblies that were potentially replaced with respective IL assemblies." />
+    <Message Importance="normal" Text="Restoring IL pdbs that were potentially replaced with respective crossgen pdbs." />
   </Target>
-
 
   <!-- *********************************************************************************************** -->
   <!-- As of 10/2017 OpenCover does not support portable PDBs, but we want the builds to generate
@@ -212,12 +211,12 @@
     <ParseTestCoverageInfo CoverageReports="@(Reports)"
                            OutputReport="$(CoverageReportDir)\VisitedMethodsReport.xml"/>
   </Target>
-  
-  <!-- Restore Crossgen assemblies to testhost -->
-  <Target Name="RestoreCrossgenAssembliesToTestHostAfterCoverageReports"
+
+  <!-- Restore IL pdbs to testhost -->
+  <Target Name="RestoreIlPdbsToTestHostAfterCoverageReports"
     AfterTargets="GenerateIndividualCoverageReport;GenerateFullCoverageReport"
-    DependsOnTargets="RestoreCrossgenAssemblies">
-    <Message Importance="high" Text="Restoring cross gen assemblies that were potentially replaced with respective IL assemblies." />
+    DependsOnTargets="RestoreIlPdbs">
+    <Message Importance="normal" Text="Restoring IL pdbs that were potentially replaced with respective crossgen pdbs." />
   </Target>
 
 </Project>
