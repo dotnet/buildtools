@@ -88,7 +88,7 @@
   <Target Name="RestoreIlPdbsForTestRun"
     BeforeTargets="GenerateTestExecutionScripts"
     DependsOnTargets="RestoreIlPdbs"
-    Condition="'$(CodeCoverageEnabled)' != 'true' AND '$(SkipTests)' != 'true'">
+    Condition="'$(CodeCoverageEnabled)' != 'true' AND '$(SkipTests)' != 'true' AND '$(RunningOnUnix)' != 'true'">
     <Message Importance="normal" Text="Restoring IL pdbs that were potentially replaced with respective crossgen pdbs." />
   </Target>
 
