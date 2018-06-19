@@ -24,7 +24,7 @@
       </AssemblyAttribute>
 
       <AssemblyAttribute Include="System.Reflection.AssemblyMetadata"
-                         Condition="'$(SkipFrameworkAssemblyMetadata)' != 'true'">
+                         Condition="'$(SkipFrameworkAssemblyMetadata)' != 'true' and '@(AssemblyMetadata)' != ''">
         <_Parameter1>%(AssemblyMetadata.Identity)</_Parameter1>
         <_Parameter2>%(AssemblyMetadata.Value)</_Parameter2>
       </AssemblyAttribute>
