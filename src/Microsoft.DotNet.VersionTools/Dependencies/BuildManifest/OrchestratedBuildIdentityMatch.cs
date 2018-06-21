@@ -22,14 +22,14 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.BuildManifest
                     .Select(b => new OrchestratedBuildIdentityMatch { Info = info, Match = b }))
                 .ToArray();
 
-            if (matches.Length != 1)
+            if (matches.Length > 1)
             {
                 throw new ArgumentException(
-                    $"Expected 1 build matching '{buildName}', but found {matches.Length}: " +
+                    $"Expected only 1 build matching '{buildName}', but found {matches.Length}: " +
                     $"'{string.Join(", ", matches.AsEnumerable())}'");
             }
 
-            return matches[0];
+            return matches.FirstOrDefault();
         }
 
         public OrchestratedBuildDependencyInfo Info { get; set; }
