@@ -35,7 +35,6 @@
   </ItemGroup>
 
   <PropertyGroup Condition="'$(BuildingNETFxVertical)' != 'true'">
-    <XunitRuntimeConfig>$(ToolsDir)\xunit.console.netcore.runtimeconfig.json</XunitRuntimeConfig>
     <TestRuntimeEnvVar Condition="'$(RunningOnUnix)'!='true'">%RUNTIME_PATH%\</TestRuntimeEnvVar>
     <TestRuntimeEnvVar Condition="'$(RunningOnUnix)'=='true'">$RUNTIME_PATH/</TestRuntimeEnvVar>
     <TestHostExecutablePath Condition="'$(RunningOnUnix)'!='true' AND '$(TestHostExecutablePath)' == '' AND '$(BuildingUAPAOTVertical)' != 'true'">$(TestRuntimeEnvVar)dotnet.exe</TestHostExecutablePath>
@@ -96,6 +95,18 @@
 
   <!-- The Code Coverage targets will override TestHost and TestCommandLine if coverage is enabled -->
   <Import Project="$(MSBuildThisFileDirectory)CodeCoverage.targets" />
+  <Choose>
+    <When Condition="'$(CodeCoverageEnabled)'=='true' and '$(UseCoverageDedicatedRuntime)'=='true'">
+      <PropertyGroup>
+        <XunitRuntimeConfig>$(ToolsDir)coverage/xunit.console.netcore.runtimeconfig.json</XunitRuntimeConfig>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <XunitRuntimeConfig>$(ToolsDir)xunit.console.netcore.runtimeconfig.json</XunitRuntimeConfig>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
 
   <!-- In VS (2015 Preview or later currently required): Debug to run unit tests on CoreCLR. -->
   <PropertyGroup Condition="'$(IsTestProject)'=='true'">
