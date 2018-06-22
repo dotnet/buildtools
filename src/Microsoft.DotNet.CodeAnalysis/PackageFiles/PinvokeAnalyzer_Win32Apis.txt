@@ -7226,3 +7226,4 @@ api-ms-win-core-winrt-string-l1-1-0.dll!WindowsCreateString
 api-ms-win-core-winrt-string-l1-1-0.dll!WindowsCreateStringReference
 api-ms-win-core-winrt-string-l1-1-0.dll!WindowsDeleteString
 api-ms-win-core-winrt-string-l1-1-0.dll!WindowsGetStringRawBuffer
+api-ms-win-core-winrt-l1-1-0.dll!RoGetActivationFactory
