@@ -81,7 +81,7 @@
                                  PackagesDir="$(PackagesDir)" />
   
     <!-- restore the MSBuild project file, if it is being used -->
-    <Exec Condition="Exists('$(OptionalToolingProjectPath)')" 
+    <Exec Condition="'$(OptionalToolingProjectPath)' != ''" 
           Command="$(DotnetToolCommand) restore $(OptionalToolingProjectPath) --configfile $(OptionalRestoreConfigPath) /p:RestoreOutputPath=$(OptionalToolingDir)" />
   
   </Target>
