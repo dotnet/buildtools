@@ -57,8 +57,18 @@ namespace Microsoft.DotNet.Build.Tasks
         /// </summary>
         public bool AsConstants { get; set; }
 
+        /// <summary>
+        /// Emit enum of Resource IDs instead of a class with properties that retrieve values.
+        /// </summary>
+        public bool AsEnum { get; set; }
+
         public override bool Execute()
         {
+            if (AsConstants && AsEnum)
+            {
+                Log.LogError($"{nameof(AsConstants)} and {nameof(AsEnum)} cannot both be set to true.");
+            }
+
             try
             {
                 _resourcesName = "FxResources." + AssemblyName;
@@ -136,12 +146,14 @@ namespace Microsoft.DotNet.Build.Tasks
             var accessorNamespace = String.IsNullOrEmpty(ResourcesNamespace) ? _srNamespace : ResourcesNamespace;
             var accessorClassName = String.IsNullOrEmpty(ResourcesClassName) ? _srClassName : ResourcesClassName;
 
+
             if (_targetLanguage == TargetLanguage.CSharp)
             {
                 _targetStream.WriteLine($"namespace {accessorNamespace}");
                 _targetStream.WriteLine("{");
                 _targetStream.WriteLine("");
-                _targetStream.WriteLine($"    internal static partial class {accessorClassName}");
+                var accessor = AsEnum ? "enum" : "partial class";
+                _targetStream.WriteLine($"    internal static {accessor} {accessorClassName}");
                 _targetStream.WriteLine("    {");
                 _targetStream.WriteLine("");
 
@@ -150,7 +162,8 @@ namespace Microsoft.DotNet.Build.Tasks
             {
                 _targetStream.WriteLine($"Namespace {accessorNamespace}");
                 _targetStream.WriteLine("");
-                _targetStream.WriteLine($"    Friend Partial Class {accessorClassName}");
+                var accessor = AsEnum ? "Enum" : "Partial Class";
+                _targetStream.WriteLine($"    Friend {accessor} {accessorClassName}");
                 _targetStream.WriteLine("");
             }
 
@@ -160,6 +173,22 @@ namespace Microsoft.DotNet.Build.Tasks
                 {
                     WriteResourceConstant((string)resourcePair.Key);
                 }
+            }
+            else if (AsEnum)
+            {
+                foreach(var resourcePair in resources)
+                {
+                    _targetStream.Write($"        {resourcePair.Key}");
+                    if (_targetLanguage == TargetLanguage.CSharp)
+                    {
+                        _targetStream.WriteLine(",");
+                    }
+                    else
+                    {
+                        _targetStream.WriteLine();
+                    }
+                }
+
             }
             else
             {
@@ -196,7 +225,8 @@ namespace Microsoft.DotNet.Build.Tasks
             }
             else
             {
-                _targetStream.WriteLine("    End Class");
+                var accessor = AsEnum ? "Enum" : "Partial Class";
+                _targetStream.WriteLine($"    End {accessor}");
                 _targetStream.WriteLine("End Namespace");
             }
         }
@@ -258,22 +288,25 @@ namespace Microsoft.DotNet.Build.Tasks
             CSharp, VB
         }
 
-        internal Dictionary<string, string> GetResources(string fileName)
+        internal List<KeyValuePair<string, string>> GetResources(string fileName)
         {
-            Dictionary<string, string> resources = new Dictionary<string, string>();
+            // preserve the ordering of the resources
+            List<KeyValuePair<string, string>> resources = new List<KeyValuePair<string, string>>();
+            HashSet<string> resourceIds = new HashSet<string>();
 
             XDocument doc = XDocument.Load(fileName, LoadOptions.PreserveWhitespace);
             foreach (XElement dataElem in doc.Element("root").Elements("data"))
             {
                 string name = dataElem.Attribute("name").Value;
                 string value = dataElem.Element("value").Value;
-                if (resources.ContainsKey(name))
+                if (resourceIds.Contains(name))
                 {
                     Log.LogError($"Duplicate resource id \"{name}\"");
                 }
                 else
                 {
-                    resources[name] = value;
+                    resourceIds.Add(name);
+                    resources.Add(new KeyValuePair<string, string>(name, value));
                 }
             }
 

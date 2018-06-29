@@ -105,7 +105,8 @@
         SRClassName="$(GenerateResourcesSRClassName)"
         ResourcesNamespace="$(GenerateResourcesResourcesNamespace)"
         ResourcesClassName="$(GenerateResourcesResourcesClassName)"
-        AsConstants="$(GenerateResourcesCodeAsConstants)">
+        AsConstants="$(GenerateResourcesCodeAsConstants)"
+        AsEnum="$(GenerateResourcesCodeAsEnum)">
     </GenerateResourcesCode>
 
     <ItemGroup>
