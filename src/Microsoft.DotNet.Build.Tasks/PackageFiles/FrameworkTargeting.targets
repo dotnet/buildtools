@@ -64,7 +64,7 @@
 
   <Target Name="UpdateReferenceItems"
           DependsOnTargets="SetupDefaultReferences"
-          BeforeTargets="BeforeResolveReferences"
+          BeforeTargets="BeforeResolveReferences;ResolveAssemblyReferences"
   >
     <ItemGroup>
       <Reference Include="@(DefaultReference)" />
@@ -146,6 +146,10 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <PrepareProjectReferencesDependsOn>
+      AddProjectReferencesDynamically;
+      $(PrepareProjectReferencesDependsOn);
+    </PrepareProjectReferencesDependsOn>
     <ResolveReferencesDependsOn>
       AddProjectReferencesDynamically;
       $(ResolveReferencesDependsOn);
