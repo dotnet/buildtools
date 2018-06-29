@@ -128,20 +128,21 @@
       <RunTestsForProjectInputs Include="@(AllItemsFullPathWithTargetPath)" />
     </ItemGroup>
     <ItemGroup Condition="'$(BuildingNETFxVertical)' != 'true'">
-      <!-- SupplementalTestData has its own properties to control hard links, however, with the coverage dedicated runtime that will override the original -->
-      <Delete Condition="'@(UsingCoverageDedicatedRuntime)' == 'true' and Exists('$(TestPath)$(XunitRuntimeConfigFile)')"
-              Files="'$(TestPath)$(XunitRuntimeConfigFile)'" />
-      <Copy Condition="'@(UsingCoverageDedicatedRuntime)' == 'true'"
-            SourceFiles="$(XunitRuntimeConfig)"
-            DestinationFolder="$(TestPath)"
-            UseHardLinksIfPossible="false" />
-      <SupplementalTestData Condition="'$(SkipXunitRuntimeConfigCopying)' != 'true' and '@(UsingCoverageDedicatedRuntime)' != 'true'" Include="$(XunitRuntimeConfig)" />
+      <SupplementalTestData Condition="'$(SkipXunitRuntimeConfigCopying)' != 'true' and '$(UsingCoverageDedicatedRuntime)' != 'true'" Include="$(XunitRuntimeConfig)" />
       <SupplementalTestData Include="$(RuntimePath)xunit.console.netcore.exe" />
     </ItemGroup>
     <ItemGroup Condition="'$(BuildingNETFxVertical)' == 'true'">
       <SupplementalTestData Include="$(RuntimePath)xunit.console.exe" />
       <SupplementalTestData Include="$(RuntimePath)xunit.execution.desktop.dll" />
     </ItemGroup>
+
+    <!-- SupplementalTestData has its own properties to control hard links, however, with the coverage dedicated runtime that will override the original -->
+    <Delete Condition="'$(UsingCoverageDedicatedRuntime)' == 'true' and Exists($(TestPath)$(XunitRuntimeConfigFile))"
+            Files="$(TestPath)$(XunitRuntimeConfigFile)" />
+    <Copy Condition="'$(UsingCoverageDedicatedRuntime)' == 'true'"
+          SourceFiles="$(XunitRuntimeConfig)"
+          DestinationFolder="$(TestPath)"
+          UseHardLinksIfPossible="false" />
   </Target>
 
   <Target Name="AddDefaultTestReferences" BeforeTargets="SetupDefaultReferences">
