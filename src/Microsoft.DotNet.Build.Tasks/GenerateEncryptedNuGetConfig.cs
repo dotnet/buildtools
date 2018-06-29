@@ -24,6 +24,8 @@ namespace Microsoft.DotNet.Build.Tasks
         [Required]
         public ITaskItem[] Sources { get; set; }
 
+        public string PackagesDir { get; set; }
+
         public override bool Execute()
         {
             Directory.CreateDirectory(Path.GetDirectoryName(ConfigPath));
@@ -32,6 +34,11 @@ namespace Microsoft.DotNet.Build.Tasks
             var settings = new Settings(
                 Path.GetDirectoryName(ConfigPath),
                 Path.GetFileName(ConfigPath));
+
+            if (!string.IsNullOrEmpty(PackagesDir))
+            {
+                settings.SetValue("config", "globalPackagesFolder", Path.GetFullPath(PackagesDir));
+            }
 
             var sourceProvider = new PackageSourceProvider(settings);
 

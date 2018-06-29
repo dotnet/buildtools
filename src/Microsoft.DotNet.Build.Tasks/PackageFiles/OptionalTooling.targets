@@ -71,7 +71,8 @@
     </PropertyGroup>
 
     <GenerateEncryptedNuGetConfig ConfigPath="$(OptionalRestoreConfigPath)"
-                                  Sources="@(OptionalRestoreSource)" />
+                                  Sources="@(OptionalRestoreSource)"
+                                  PackagesDir="$(PackagesDir)" />
 
     <!-- restore the project.json file, if it is being used -->
     <EncryptedConfigNuGetRestore Condition="'$(OptionalToolingProjectJsonPath)' != ''"
@@ -81,7 +82,7 @@
   
     <!-- restore the MSBuild project file, if it is being used -->
     <Exec Condition="Exists('$(OptionalToolingProjectPath)')" 
-          Command="$(DotnetToolCommand) restore $(OptionalToolingProjectPath) --packages $(PackagesDir) --configfile $(OptionalRestoreConfigPath) /p:RestoreOutputPath=$(OptionalToolingDir)" />
+          Command="$(DotnetToolCommand) restore $(OptionalToolingProjectPath) --configfile $(OptionalRestoreConfigPath) /p:RestoreOutputPath=$(OptionalToolingDir)" />
   
   </Target>
 
