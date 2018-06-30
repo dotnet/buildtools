@@ -63,7 +63,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
             return !Log.HasLoggedErrors;
         }
-        
+
         /// <summary>
         /// Gets a sorted list of configuration strings from a Configurations.props file
         /// </summary>
