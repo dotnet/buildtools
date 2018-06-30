@@ -92,7 +92,7 @@ namespace Microsoft.DotNet.Build.Tasks
                 testRunCommands.Append($"{runCommand}\n");
                 // Remove parentheses and quotes from echo command before wrapping it in quotes to avoid errors on Linux.
                 // Also, escape backtick and question mark characters to avoid running commands instead of echo'ing them.
-                string sanitizedRunCommand = runCommand.Replace("\"", "").Replace("(", "").Replace(")", "").Replace("`", "\\`").Replace("?", "\\");
+                string sanitizedRunCommand = runCommand.Replace("\"", "").Replace("(", "").Replace(")", "").Replace("`", "\\`").Replace("?", "\\").Replace("\r","").Replace("\n"," ");
                 testRunEchoes.Append($"echo \"{sanitizedRunCommand}\"\n");
             }
             shExecutionTemplate = shExecutionTemplate.Replace("[[TestRunCommands]]", testRunCommands.ToString());
