@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.DotNet.VersionTools.Dependencies.BuildOutput;
 using Microsoft.DotNet.VersionTools.Util;
 using System;
 using System.Collections.Generic;
@@ -18,6 +17,11 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
         public Regex Regex { get; set; }
         public string VersionGroupName { get; set; }
 
+        /// <summary>
+        /// Instead of throwing an exception, skip this updater if no replacement value is found.
+        /// </summary>
+        public bool SkipIfNoReplacementFound { get; set; }
+
         public IEnumerable<DependencyUpdateTask> GetUpdateTasks(IEnumerable<IDependencyInfo> dependencyInfos)
         {
             IEnumerable<IDependencyInfo> usedInfos;
@@ -25,7 +29,10 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
 
             if (newValue == null)
             {
-                Trace.TraceError($"Could not find version information to change '{Path}' with '{Regex}'");
+                if (!SkipIfNoReplacementFound)
+                {
+                    Trace.TraceError($"For '{Path}', a replacement value for '{Regex}' was not found.");
+                }
             }
             else
             {

@@ -35,13 +35,13 @@
   </ItemGroup>
 
   <PropertyGroup Condition="'$(BuildingNETFxVertical)' != 'true'">
-    <XunitRuntimeConfig>$(ToolsDir)\xunit.console.netcore.runtimeconfig.json</XunitRuntimeConfig>
     <TestRuntimeEnvVar Condition="'$(RunningOnUnix)'!='true'">%RUNTIME_PATH%\</TestRuntimeEnvVar>
     <TestRuntimeEnvVar Condition="'$(RunningOnUnix)'=='true'">$RUNTIME_PATH/</TestRuntimeEnvVar>
     <TestHostExecutablePath Condition="'$(RunningOnUnix)'!='true' AND '$(TestHostExecutablePath)' == '' AND '$(BuildingUAPAOTVertical)' != 'true'">$(TestRuntimeEnvVar)dotnet.exe</TestHostExecutablePath>
     <TestHostExecutablePath Condition="'$(RunningOnUnix)'=='true' AND '$(TestHostExecutablePath)' == '' AND '$(BuildingUAPAOTVertical)' != 'true'">$(TestRuntimeEnvVar)dotnet</TestHostExecutablePath>
 
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.netcore.exe</XunitExecutable>
+    <XunitRuntimeConfigFile>xunit.console.netcore.runtimeconfig.json</XunitRuntimeConfigFile>
 
     <DebugEngines>{2E36F1D4-B23C-435D-AB41-18E608940038}</DebugEngines>
   </PropertyGroup>
@@ -96,6 +96,20 @@
 
   <!-- The Code Coverage targets will override TestHost and TestCommandLine if coverage is enabled -->
   <Import Project="$(MSBuildThisFileDirectory)CodeCoverage.targets" />
+  <Choose>
+    <When Condition="'$(CodeCoverageEnabled)'=='true' and '$(UseCoverageDedicatedRuntime)'=='true'">
+      <PropertyGroup>
+        <XunitRuntimeConfig>$(ToolsDir)coverage/$(XunitRuntimeConfigFile)</XunitRuntimeConfig>
+        <UsingCoverageDedicatedRuntime>true</UsingCoverageDedicatedRuntime>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <XunitRuntimeConfig>$(ToolsDir)$(XunitRuntimeConfigFile)</XunitRuntimeConfig>
+        <UsingCoverageDedicatedRuntime>false</UsingCoverageDedicatedRuntime>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
 
   <!-- In VS (2015 Preview or later currently required): Debug to run unit tests on CoreCLR. -->
   <PropertyGroup Condition="'$(IsTestProject)'=='true'">
@@ -114,13 +128,21 @@
       <RunTestsForProjectInputs Include="@(AllItemsFullPathWithTargetPath)" />
     </ItemGroup>
     <ItemGroup Condition="'$(BuildingNETFxVertical)' != 'true'">
-      <SupplementalTestData Condition="'$(SkipXunitRuntimeConfigCopying)' != 'true'" Include="$(XunitRuntimeConfig)" />
+      <SupplementalTestData Condition="'$(SkipXunitRuntimeConfigCopying)' != 'true' and '$(UsingCoverageDedicatedRuntime)' != 'true'" Include="$(XunitRuntimeConfig)" />
       <SupplementalTestData Include="$(RuntimePath)xunit.console.netcore.exe" />
     </ItemGroup>
     <ItemGroup Condition="'$(BuildingNETFxVertical)' == 'true'">
       <SupplementalTestData Include="$(RuntimePath)xunit.console.exe" />
       <SupplementalTestData Include="$(RuntimePath)xunit.execution.desktop.dll" />
     </ItemGroup>
+
+    <!-- SupplementalTestData has its own properties to control hard links, however, with the coverage dedicated runtime that will override the original -->
+    <Delete Condition="'$(UsingCoverageDedicatedRuntime)' == 'true' and Exists('$(TestPath)$(XunitRuntimeConfigFile)')"
+            Files="$(TestPath)$(XunitRuntimeConfigFile)" />
+    <Copy Condition="'$(UsingCoverageDedicatedRuntime)' == 'true'"
+          SourceFiles="$(XunitRuntimeConfig)"
+          DestinationFolder="$(TestPath)"
+          UseHardLinksIfPossible="false" />
   </Target>
 
   <Target Name="AddDefaultTestReferences" BeforeTargets="SetupDefaultReferences">
