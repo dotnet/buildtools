@@ -152,8 +152,8 @@ namespace Microsoft.DotNet.Build.Tasks
                 _targetStream.WriteLine($"namespace {accessorNamespace}");
                 _targetStream.WriteLine("{");
                 _targetStream.WriteLine("");
-                var accessor = AsEnum ? "enum" : "partial class";
-                _targetStream.WriteLine($"    internal static {accessor} {accessorClassName}");
+                var accessor = AsEnum ? "enum" : "static partial class";
+                _targetStream.WriteLine($"    internal {accessor} {accessorClassName}");
                 _targetStream.WriteLine("    {");
                 _targetStream.WriteLine("");
 
