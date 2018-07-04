@@ -8,7 +8,7 @@
           of the assembly compilation process.
   -->
   <PropertyGroup>
-    <TargetsTriggeredByCompilation Condition="'$(IsPartialFacadeAssembly)' == 'true'">
+    <TargetsTriggeredByCompilation Condition="'$(IsPartialFacadeAssembly)' == 'true' and '$(DesignTimeBuild)' != 'true'">
       $(TargetsTriggeredByCompilation);FillPartialFacadeUsingTask
     </TargetsTriggeredByCompilation>
   </PropertyGroup>

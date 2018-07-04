@@ -19,7 +19,7 @@ namespace Microsoft.DotNet.Build.Tasks
 
         private const string ConfigurationPropsFilename = "Configurations.props";
         private static Regex s_configurationConditionRegex = new Regex(@"'\$\(Configuration\)\|\$\(Platform\)' ?== ?'(?<config>.*)'");
-        private static string[] s_configurationSuffixes = new [] { "Debug|AnyCPU", "Release|AnyCPU" };
+        private static string[] s_configurationSuffixes = new [] { "Debug", "Release" };
 
         public override bool Execute()
         {
@@ -40,14 +40,14 @@ namespace Microsoft.DotNet.Build.Tasks
                 Log.LogMessage($"Updating {projectFile}");
 
                 var project = ProjectRootElement.Open(projectFile);
-                ICollection<ProjectPropertyGroupElement> propertyGroups;
-                var actualConfigurations = GetConfigurationFromPropertyGroups(project, out propertyGroups);
+                ICollection<ProjectPropertyGroupElement> propertyGroups = GetPropertyGroupsToRemove(project);
+                var actualConfigurations = GetConfigurationsFromProperty(project);
 
                 bool addedGuid = EnsureProjectGuid(project);
 
                 if (!actualConfigurations.SequenceEqual(expectedConfigurations))
                 {
-                    ReplaceConfigurationPropertyGroups(project, propertyGroups, expectedConfigurations);
+                    ReplaceConfigurationsProperty(project, propertyGroups, expectedConfigurations);
                 }
 
                 if (addedGuid || !actualConfigurations.SequenceEqual(expectedConfigurations))
@@ -92,15 +92,13 @@ namespace Microsoft.DotNet.Build.Tasks
         }
 
         /// <summary>
-        /// Gets a sorted list of configuration strings from a project file's PropertyGroups
+        /// Gets a collection of a project file's configuration PropertyGroups in the legacy format.
         /// </summary>
         /// <param name="project">Project</param>
-        /// <param name="propertyGroups">collection that accepts the list of property groups representing configuration strings</param>
-        /// <returns>Sorted list of configuration strings</returns>
-        private static string[] GetConfigurationFromPropertyGroups(ProjectRootElement project, out ICollection<ProjectPropertyGroupElement> propertyGroups)
+        /// <returns>Collection of PropertyGroups that should be removed from the project.</returns>
+        private static ICollection<ProjectPropertyGroupElement> GetPropertyGroupsToRemove(ProjectRootElement project)
         {
-            propertyGroups = new List<ProjectPropertyGroupElement>();
-            var configurations = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+            List<ProjectPropertyGroupElement> propertyGroups = new List<ProjectPropertyGroupElement>();
 
             foreach (var propertyGroup in project.PropertyGroups)
             {
@@ -108,78 +106,52 @@ namespace Microsoft.DotNet.Build.Tasks
 
                 if (match.Success)
                 {
-                    configurations.Add(match.Groups["config"].Value);
                     propertyGroups.Add(propertyGroup);
                 }
             }
 
-            return configurations.ToArray();
+            return propertyGroups;
+        }
+
+        private string[] GetConfigurationsFromProperty(ProjectRootElement project)
+        {
+            return project.PropertyGroups
+                .SelectMany(g => g.Properties)
+                .FirstOrDefault(p => p.Name == "Configurations")?.Value
+                .Split(';')
+                ?? Array.Empty<string>();
         }
 
         /// <summary>
-        /// Replaces all configuration propertygroups with empty property groups corresponding to the expected configurations.
+        /// Replaces the configurations property with the expected configurations.
         /// Doesn't attempt to preserve any content since it can all be regenerated.
         /// Does attempt to preserve the ordering in the project file.
         /// </summary>
         /// <param name="project">Project</param>
         /// <param name="oldPropertyGroups">PropertyGroups to remove</param>
         /// <param name="newConfigurations"></param>
-        private static void ReplaceConfigurationPropertyGroups(ProjectRootElement project, IEnumerable<ProjectPropertyGroupElement> oldPropertyGroups, IEnumerable<string> newConfigurations)
+        private static void ReplaceConfigurationsProperty(ProjectRootElement project, IEnumerable<ProjectPropertyGroupElement> oldPropertyGroups, IEnumerable<string> newConfigurations)
         {
-            ProjectElement insertAfter = null, insertBefore = null;
-
             foreach (var oldPropertyGroup in oldPropertyGroups)
             {
-                insertBefore = oldPropertyGroup.NextSibling;
                 project.RemoveChild(oldPropertyGroup);
             }
 
-            if (insertBefore == null)
+            string configurationsValue = string.Join(";", newConfigurations);
+            var configurationsProperty = project.Properties.FirstOrDefault(p => p.Name == "Configurations");
+            if (configurationsProperty == null)
             {
-                // find first itemgroup after imports
-                var insertAt = project.Imports.FirstOrDefault()?.NextSibling;
-
-                while (insertAt != null)
+                var firstPropertyGroup = project.PropertyGroups.FirstOrDefault();
+                if (firstPropertyGroup == null)
                 {
-                    if (insertAt is ProjectItemGroupElement)
-                    {
-                        insertBefore = insertAt;
-                        break;
-                    }
-
-                    insertAt = insertAt.NextSibling;
+                    firstPropertyGroup = project.CreatePropertyGroupElement();
                 }
+
+                configurationsProperty = firstPropertyGroup.AddProperty("Configurations", configurationsValue);
             }
-
-            if (insertBefore == null)
+            else
             {
-                // find last propertygroup after imports, defaulting to after imports
-                insertAfter = project.Imports.FirstOrDefault();
-
-                while (insertAfter?.NextSibling != null && insertAfter.NextSibling is ProjectPropertyGroupElement)
-                {
-                    insertAfter = insertAfter.NextSibling;
-                }
-            }
-
-            foreach (var newConfiguration in newConfigurations)
-            {
-                var newPropertyGroup = project.CreatePropertyGroupElement();
-                newPropertyGroup.Condition = $"'$(Configuration)|$(Platform)' == '{newConfiguration}'";
-                if (insertBefore != null)
-                {
-                    project.InsertBeforeChild(newPropertyGroup, insertBefore);
-                }
-                else if (insertAfter != null)
-                {
-                    project.InsertAfterChild(newPropertyGroup, insertAfter);
-                }
-                else
-                {
-                    project.AppendChild(newPropertyGroup);
-                }
-                insertBefore = null;
-                insertAfter = newPropertyGroup;
+                configurationsProperty.Value = configurationsValue;
             }
         }
 
@@ -280,10 +252,14 @@ namespace Microsoft.DotNet.Build.Tasks
 
             Log.LogMessage($"Generating solution for '{solutionRootPath}'...");
 
+            string solutionName = GetNameForSolution(solutionRootPath);
+            string slnFile = Path.Combine(solutionRootPath, solutionName + ".sln");
+            Solution solution = new Solution(slnFile);
+
             StringBuilder slnBuilder = new StringBuilder();
             slnBuilder.AppendLine("Microsoft Visual Studio Solution File, Format Version 12.00");
-            slnBuilder.AppendLine("# Visual Studio 14");
-            slnBuilder.AppendLine("VisualStudioVersion = 14.0.25420.1");
+            slnBuilder.AppendLine("# Visual Studio 15");
+            slnBuilder.AppendLine("VisualStudioVersion = 15.0.27213.1");
             slnBuilder.AppendLine("MinimumVisualStudioVersion = 10.0.40219.1");
 
 
@@ -376,10 +352,13 @@ namespace Microsoft.DotNet.Build.Tasks
             }
             slnBuilder.AppendLine("\tEndGlobalSection");
 
+            // Output the extensibility globals
+            slnBuilder.AppendLine("\tGlobalSection(ExtensibilityGlobals) = postSolution");
+            slnBuilder.AppendLine($"\t\tSolutionGuid = {solution.Guid}");
+            slnBuilder.AppendLine("\tEndGlobalSection");
+
             slnBuilder.AppendLine("EndGlobal");
 
-            string solutionName = GetNameForSolution(solutionRootPath);
-            string slnFile = Path.Combine(solutionRootPath, solutionName + ".sln");
             File.WriteAllText(slnFile, slnBuilder.ToString());
         }
 
@@ -437,6 +416,41 @@ namespace Microsoft.DotNet.Build.Tasks
                         }
                     }
                 }
+            }
+        }
+
+        internal class Solution
+        {
+            public string Path { get; }
+            public string Guid { get; }
+
+            public Solution(string path)
+            {
+                Path = path;
+                Guid = ReadSolutionGuid(path);
+            }
+
+            private static string ReadSolutionGuid(string path)
+            {
+                string solutionGuid = null;
+                if (File.Exists(path))
+                {
+                    foreach (string line in File.ReadLines(path))
+                    {
+                        if (line.StartsWith("\t\tSolutionGuid = "))
+                        {
+                            solutionGuid = line.Substring("\t\tSolutionGuid = ".Length);
+                            break;
+                        }
+                    }
+                }
+
+                if (solutionGuid == null)
+                {
+                    solutionGuid = System.Guid.NewGuid().ToString("B").ToUpper();
+                }
+
+                return solutionGuid;
             }
         }
 
@@ -507,10 +521,10 @@ namespace Microsoft.DotNet.Build.Tasks
                 {
                     //ProjectTypeGuids for different projects, pulled from the Visual Studio regkeys
                     //TODO: Clean up or map these to actual projects, this is fragile
-                    string slnGuid = "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"; // Windows (C#)
+                    string slnGuid = "{9A19103F-16F7-4668-BE54-9A1E7A4F7556}"; // Windows (C#) Managed/CPS
                     if (ProjectPath.Contains("VisualBasic.vbproj"))
                     {
-                        slnGuid = "{F184B08F-C81C-45F6-A57F-5ABD9991F28F}"; //Windows (VB.NET)
+                        slnGuid = "{778DAE3C-4631-46EA-AA77-85C1314464D9}"; //Windows (VB.NET) Managed/CPS
                     }
                     if (ProjectPath.Contains("TestNativeService")) //Windows (Visual C++)
                     {

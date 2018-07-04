@@ -49,6 +49,22 @@
     <NuGetTargetMoniker Condition="'$(NuGetTargetMoniker)' == ''">.NETCoreApp,Version=v1.0</NuGetTargetMoniker>
   </PropertyGroup>
 
+  <!--
+    Between the legacy C# project system and the new managed C# project system, some Targets run in different
+    orders. A normal "Build" and the legacy C# project system will execute 'Compile', which depends on
+    'ResolveReferences', which then depends on 'BeforeResolveReferences', so hooking before 
+    'BeforeResolveReferences' allows @(Reference) items to be added before 'ResolveAssemblyReferences'
+    gets executed.
+
+    However, in the new managed C# project system, 'ResolveProjectReferencesDesignTime' gets executed first,
+    which depends on 'ResolveAssemblyReferences'. This means 'ResolveReferences' doesn't get executed before
+    'ResolveAssemblyReferences' when doing a design-time build in the managed C# project system.
+    Work around this by BeforeTargets both 'BeforeResolveReferences' (to preserve any legacy ordering) and
+    'ResolveAssemblyReferences' (to work in the managed C# project system).
+  -->
+  <Target Name="AddReferencesDynamically"
+          BeforeTargets="BeforeResolveReferences;ResolveAssemblyReferences" />
+
   <PropertyGroup Condition="'$(IncludeDefaultReferences)' == ''">
     <IncludeDefaultReferences Condition="'$(MSBuildProjectExtension)' == '.csproj'">true</IncludeDefaultReferences>
     <IncludeDefaultReferences Condition="'$(MSBuildProjectExtension)' == '.vbproj'">true</IncludeDefaultReferences>
@@ -61,11 +77,10 @@
                         Include="netstandard" />
     </ItemGroup>
   </Target>
-
+  
   <Target Name="UpdateReferenceItems"
           DependsOnTargets="SetupDefaultReferences"
-          BeforeTargets="BeforeResolveReferences"
-  >
+          BeforeTargets="AddReferencesDynamically">
     <ItemGroup>
       <Reference Include="@(DefaultReference)" />
     </ItemGroup>
@@ -146,6 +161,10 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <PrepareProjectReferencesDependsOn>
+      AddProjectReferencesDynamically;
+      $(PrepareProjectReferencesDependsOn);
+    </PrepareProjectReferencesDependsOn>
     <ResolveReferencesDependsOn>
       AddProjectReferencesDynamically;
       $(ResolveReferencesDependsOn);
