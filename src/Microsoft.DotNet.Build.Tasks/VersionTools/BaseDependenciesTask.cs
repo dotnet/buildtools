@@ -261,6 +261,14 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                 "true",
                 StringComparison.OrdinalIgnoreCase);
 
+            string oldValue = step.GetMetadata("ReplacementSubstituteOld");
+            string newValue = step.GetMetadata("ReplacementSubstituteNew");
+
+            if (!string.IsNullOrEmpty(oldValue) && !string.IsNullOrEmpty(newValue))
+            {
+                updater.ReplacementTransform = v => v.Replace(oldValue, newValue);
+            }
+
             return updater;
         }
 
