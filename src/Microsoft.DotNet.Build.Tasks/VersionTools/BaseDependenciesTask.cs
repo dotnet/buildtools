@@ -33,6 +33,8 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
         internal const string PackageIdMetadataName = "PackageId";
         internal const string VersionMetadataName = "Version";
         internal const string DependencyTypeMetadataName = "DependencyType";
+        internal const string ReplacementSubstituteOldMetadataName = "ReplacementSubstituteOld";
+        internal const string ReplacementSubstituteNewMetadataName = "ReplacementSubstituteNew";
 
         [Required]
         public ITaskItem[] DependencyInfo { get; set; }
@@ -260,6 +262,22 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                 step.GetMetadata(nameof(updater.SkipIfNoReplacementFound)),
                 "true",
                 StringComparison.OrdinalIgnoreCase);
+
+            // GetMetadata doesn't return null: empty string whether or not metadata is assigned.
+            string oldValue = step.GetMetadata(ReplacementSubstituteOldMetadataName);
+            string newValue = step.GetMetadata(ReplacementSubstituteNewMetadataName);
+
+            if (!string.IsNullOrEmpty(oldValue))
+            {
+                updater.ReplacementTransform = v => v.Replace(oldValue, newValue);
+            }
+            else if (!string.IsNullOrEmpty(newValue))
+            {
+                Log.LogError(
+                    $"Metadata {ReplacementSubstituteNewMetadataName} supplied for updater " +
+                    $"{step.ItemSpec} without {ReplacementSubstituteOldMetadataName}. " +
+                    "It is impossbile to replace the empty string with something.");
+            }
 
             return updater;
         }
