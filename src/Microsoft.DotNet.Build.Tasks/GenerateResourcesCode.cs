@@ -225,7 +225,7 @@ namespace Microsoft.DotNet.Build.Tasks
             }
             else
             {
-                var accessor = AsEnum ? "Enum" : "Partial Class";
+                var accessor = AsEnum ? "Enum" : "Class";
                 _targetStream.WriteLine($"    End {accessor}");
                 _targetStream.WriteLine("End Namespace");
             }
