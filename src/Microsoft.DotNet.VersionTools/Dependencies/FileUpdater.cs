@@ -19,6 +19,12 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
         /// </summary>
         public bool SkipIfNoReplacementFound { get; set; }
 
+        /// <summary>
+        /// A transformation function used on the new, desired, replacement value before inserting
+        /// it into the target file.
+        /// </summary>
+        public Func<string, string> ReplacementTransform { get; set; }
+
         public IEnumerable<DependencyUpdateTask> GetUpdateTasks(
             IEnumerable<IDependencyInfo> dependencyInfos)
         {
@@ -31,6 +37,13 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
                     Trace.TraceError($"For '{Path}', a replacement value was not found.");
                 }
                 yield break;
+            }
+
+            string replacementContent = replacement.Content;
+
+            if (ReplacementTransform != null)
+            {
+                replacementContent = ReplacementTransform(replacementContent);
             }
 
             string originalContent = null;
@@ -53,7 +66,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
                     originalContent = content.Substring(0, firstLineLength);
                     return content
                         .Remove(0, firstLineLength)
-                        .Insert(0, replacement.Content);
+                        .Insert(0, replacementContent);
                 });
 
             if (updateTask != null)
@@ -61,7 +74,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
                 yield return new DependencyUpdateTask(
                     updateTask,
                     replacement.UsedDependencyInfos,
-                    new[] { $"In '{Path}', '{originalContent}' must be '{replacement.Content}'." });
+                    new[] { $"In '{Path}', '{originalContent}' must be '{replacementContent}'." });
             }
         }
 
