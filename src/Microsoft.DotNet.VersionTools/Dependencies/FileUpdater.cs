@@ -14,6 +14,11 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
     {
         public string Path { get; set; }
 
+        /// <summary>
+        /// Instead of throwing an exception, skip this updater if no replacement value is found.
+        /// </summary>
+        public bool SkipIfNoReplacementFound { get; set; }
+
         public IEnumerable<DependencyUpdateTask> GetUpdateTasks(
             IEnumerable<IDependencyInfo> dependencyInfos)
         {
@@ -21,7 +26,10 @@ namespace Microsoft.DotNet.VersionTools.Dependencies
 
             if (replacement == null)
             {
-                Trace.TraceError($"For '{Path}', no replacement was found.");
+                if (!SkipIfNoReplacementFound)
+                {
+                    Trace.TraceError($"For '{Path}', a replacement value was not found.");
+                }
                 yield break;
             }
 
