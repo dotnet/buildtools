@@ -7,6 +7,7 @@ using Microsoft.DotNet.VersionTools;
 using Microsoft.DotNet.VersionTools.Automation;
 using Microsoft.DotNet.VersionTools.Automation.GitHubApi;
 using Microsoft.DotNet.VersionTools.BuildManifest;
+using Microsoft.DotNet.VersionTools.BuildManifest.Model;
 using Microsoft.DotNet.VersionTools.Dependencies;
 using Microsoft.DotNet.VersionTools.Dependencies.BuildManifest;
 using Microsoft.DotNet.VersionTools.Dependencies.BuildOutput;
@@ -15,8 +16,10 @@ using Microsoft.DotNet.VersionTools.Dependencies.Submodule;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 
 namespace Microsoft.DotNet.Build.Tasks.VersionTools
 {
@@ -30,6 +33,8 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
         internal const string PackageIdMetadataName = "PackageId";
         internal const string VersionMetadataName = "Version";
         internal const string DependencyTypeMetadataName = "DependencyType";
+        internal const string ReplacementSubstituteOldMetadataName = "ReplacementSubstituteOld";
+        internal const string ReplacementSubstituteNewMetadataName = "ReplacementSubstituteNew";
 
         [Required]
         public ITaskItem[] DependencyInfo { get; set; }
@@ -94,11 +99,13 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                         break;
 
                     case "File":
-                        yield return new FilePackageUpdater
-                        {
-                            PackageId = GetRequiredMetadata(step, "PackageId"),
-                            Path = GetRequiredMetadata(step, "Path"),
-                        };
+                        yield return ConfigureFileUpdater(
+                            new FilePackageUpdater
+                            {
+                                PackageId = GetRequiredMetadata(step, "PackageId"),
+                                Path = GetRequiredMetadata(step, "Path"),
+                            },
+                            step);
                         break;
 
                     case "Tool versions":
@@ -205,6 +212,15 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                             new BuildManifestClient(GitHubClient)).Result;
                         break;
 
+                    case "Orchestrated build file":
+                        dependencyInfo = new OrchestratedBuildDependencyInfo(
+                            info.ItemSpec,
+                            OrchestratedBuildModel.Parse(
+                                XElement.Parse(
+                                    File.ReadAllText(
+                                        GetRequiredMetadata(info, "Path")))));
+                        break;
+
                     default:
                         throw new NotSupportedException(
                             $"Unsupported DependencyInfo '{info.ItemSpec}': DependencyType '{type}'.");
@@ -240,6 +256,32 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
             return updater;
         }
 
+        private FileUpdater ConfigureFileUpdater(FileUpdater updater, ITaskItem step)
+        {
+            updater.SkipIfNoReplacementFound = string.Equals(
+                step.GetMetadata(nameof(updater.SkipIfNoReplacementFound)),
+                "true",
+                StringComparison.OrdinalIgnoreCase);
+
+            // GetMetadata doesn't return null: empty string whether or not metadata is assigned.
+            string oldValue = step.GetMetadata(ReplacementSubstituteOldMetadataName);
+            string newValue = step.GetMetadata(ReplacementSubstituteNewMetadataName);
+
+            if (!string.IsNullOrEmpty(oldValue))
+            {
+                updater.ReplacementTransform = v => v.Replace(oldValue, newValue);
+            }
+            else if (!string.IsNullOrEmpty(newValue))
+            {
+                Log.LogError(
+                    $"Metadata {ReplacementSubstituteNewMetadataName} supplied for updater " +
+                    $"{step.ItemSpec} without {ReplacementSubstituteOldMetadataName}. " +
+                    "It is impossbile to replace the empty string with something.");
+            }
+
+            return updater;
+        }
+
         private FileRegexUpdater ConfigureFileRegexUpdater(FileRegexUpdater updater, ITaskItem step)
         {
             updater.Path = step.GetMetadata("Path");
@@ -262,6 +304,11 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                     $"On '{step.ItemSpec}', did not find 'ElementName' or 'Regex' metadata.");
             }
 
+            updater.SkipIfNoReplacementFound = string.Equals(
+                step.GetMetadata(nameof(updater.SkipIfNoReplacementFound)),
+                "true",
+                StringComparison.OrdinalIgnoreCase);
+
             return updater;
         }
 
@@ -273,11 +320,13 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 
             if (!string.IsNullOrEmpty(path))
             {
-                return new FileOrchestratedBuildCustomUpdater
-                {
-                    GetDesiredValue = updater,
-                    Path = path
-                };
+                return ConfigureFileUpdater(
+                    new FileOrchestratedBuildCustomUpdater
+                    {
+                        GetDesiredValue = updater,
+                        Path = path
+                    },
+                    step);
             }
 
             return ConfigureFileRegexUpdater(
