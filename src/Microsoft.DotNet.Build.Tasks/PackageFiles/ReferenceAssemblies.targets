@@ -24,6 +24,18 @@
     <NuGetDeploySourceItem>Reference</NuGetDeploySourceItem>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(IsReferenceAssembly)'=='true' AND '$(UsingMicrosoftNETSdk)'=='true'">
+    <!-- When not using Sdk-style projects, Microsoft.Common.CurrentVersion.targets,  
+         (which defaults the below properties) is imported after this file, so these properties
+         are getting set correctly.
+         When using Sdk-style projects, Microsoft.Common.CurrentVersion.targets gets imported before
+         this file, so we are overwriting OutputPath too late and we need to re-default these properties. -->
+
+    <OutDir>$(OutputPath)</OutDir>
+    <TargetDir>$([MSBuild]::Escape($([System.IO.Path]::GetFullPath(`$([System.IO.Path]::Combine(`$(MSBuildProjectDirectory)`, `$(OutDir)`))`))))</TargetDir>
+    <TargetPath>$(TargetDir)$(TargetFileName)</TargetPath>
+  </PropertyGroup>
+
   <ItemGroup Condition="'$(IsReferenceAssembly)'=='true'">
     <!-- All reference assemblies should have the 0x70 flag which prevents them from loading 
          and the ReferenceAssemblyAttribute. -->
