@@ -85,6 +85,7 @@
     <Compile Include="ConvertPortablePdbsToWindowsPdbs.cs" />
     <Compile Include="VisitProjectDependencies.cs" />
     <Compile Include="ValidateProjectDependencyVersions.cs" />
+    <Compile Include="WarnAsErrorLogger.cs" />
     <Compile Include="WriteSigningRequired.cs" />
     <Compile Include="WriteVisualBasicDefineResponseFile.cs" />
     <Compile Include="$(CommonPath)\ZipFileCreateFromDependencyLists.cs">
