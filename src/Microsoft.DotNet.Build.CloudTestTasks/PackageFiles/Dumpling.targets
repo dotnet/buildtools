@@ -25,9 +25,13 @@
     <DumplingIncPaths Condition="'$(TargetOS)'=='OSX'" Include="/usr/lib/libSystem.B.dylib" />
     <DumplingIncPaths Condition="'$(TargetOS)'=='OSX'" Include="/usr/lib/libc++.1.dylib" />
   </ItemGroup>
+  <PropertyGroup>
+    <PythonPath>$(HELIX_PYTHONPATH)</PythonPath>
+    <PythonPath Condition="'$(PythonPath)' == ''">python</PythonPath>
+  </PropertyGroup>
   <Target Name="PreinstallDumpling"
           BeforeTargets="TestAllProjects">
-    <Exec Command="python $(MSBuildThisFileDirectory)DumplingHelper.py install_dumpling" />
+    <Exec Command="$(PythonPath) $(MSBuildThisFileDirectory)DumplingHelper.py install_dumpling" />
   </Target>
   <!-- Setup Dumpling service to collect crash dumps -->
   <Target Name="SetupDumpling"
@@ -39,18 +43,18 @@
       <CrashDumpFolder Condition="'$(CrashDumpFolder)' == ''">\cores\</CrashDumpFolder>
     </PropertyGroup>
     <ItemGroup Condition="'$(TargetOS)'!='Windows_NT'">
-      <TestCommandLines Include="$HELIX_PYTHONPATH -m pip install psutil" />
-      <TestCommandLines Include="$HELIX_PYTHONPATH DumplingHelper.py install_dumpling" />
-      <TestCommandLines Include="__TIMESTAMP=`$HELIX_PYTHONPATH DumplingHelper.py get_timestamp`" />
-      <PostExecutionTestCommandLines Include="$HELIX_PYTHONPATH DumplingHelper.py collect_dump $%3F $(CrashDumpFolder) $__TIMESTAMP $(MSBuildProjectName) $(__DumplingIncPathsArg)" />
+      <TestCommandLines Include="$(PythonPath) -m pip install psutil" />
+      <TestCommandLines Include="$(PythonPath) DumplingHelper.py install_dumpling" />
+      <TestCommandLines Include="__TIMESTAMP=`$(PythonPath) DumplingHelper.py get_timestamp`" />
+      <PostExecutionTestCommandLines Include="$(PythonPath) DumplingHelper.py collect_dump $%3F $(CrashDumpFolder) $__TIMESTAMP $(MSBuildProjectName) $(__DumplingIncPathsArg)" />
     </ItemGroup>
     <ItemGroup Condition="'$(TargetOS)'=='Windows_NT'">
-      <TestCommandLines Include="%HELIX_PYTHONPATH% -m pip install psutil" />
-      <TestCommandLines Include="%HELIX_PYTHONPATH% DumplingHelper.py install_dumpling" />
+      <TestCommandLines Include="$(PythonPath) -m pip install psutil" />
+      <TestCommandLines Include="$(PythonPath) DumplingHelper.py install_dumpling" />
       <TestCommandLines Include="if not exist $(CrashDumpFolder) mkdir $(CrashDumpFolder)" />
       <!-- This gets a "before execution" timestamp. It is used in DumplingHelper.py to determine which crash dump files to consider uploading. -->
-      <TestCommandLines Include="for /f &quot;delims=&quot; %%a in ('%HELIX_PYTHONPATH% DumplingHelper.py get_timestamp') do @set __TIMESTAMP=%%a" />
-      <PostExecutionTestCommandLines Include="%HELIX_PYTHONPATH% DumplingHelper.py collect_dump %ERRORLEVEL% $(CrashDumpFolder) %__TIMESTAMP% $(MSBuildProjectName) $(__DumplingIncPathsArg)" />
+      <TestCommandLines Include="for /f &quot;delims=&quot; %%a in ('$(PythonPath) DumplingHelper.py get_timestamp') do @set __TIMESTAMP=%%a" />
+      <PostExecutionTestCommandLines Include="$(PythonPath) DumplingHelper.py collect_dump %ERRORLEVEL% $(CrashDumpFolder) %__TIMESTAMP% $(MSBuildProjectName) $(__DumplingIncPathsArg)" />
     </ItemGroup>
   </Target>
 </Project>
