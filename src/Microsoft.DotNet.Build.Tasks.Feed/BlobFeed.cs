@@ -48,9 +48,12 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             using (HttpClient client = new HttpClient())
             {
                 const int MaxAttempts = 15;
-                // add a bit of randomness to the retry delay
+                // add a bit of randomness to the retry delay.
                 var rng = new Random();
                 int retryCount = MaxAttempts;
+
+                // Used to make sure TaskCancelledException comes from timeouts.
+                CancellationTokenSource cancelTokenSource = new CancellationTokenSource();
 
                 while (true)
                 {
@@ -58,7 +61,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     {
                         client.DefaultRequestHeaders.Clear();
                         var request = AzureHelper.RequestMessage("GET", url, AccountName, AccountKey).Invoke();
-                        using (HttpResponseMessage response = await client.SendAsync(request))
+                        using (HttpResponseMessage response = await client.SendAsync(request, cancelTokenSource.Token))
                         {
                             if (response.IsSuccessStatusCode)
                             {
@@ -86,6 +89,27 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                         {
                             Log.LogWarning("Exception thrown while trying to detect if blob already exists in feed:");
                             Log.LogWarningFromException(toLog, true);
+                        }
+                    }
+                    catch (TaskCanceledException possibleTimeoutToLog)
+                    {
+                        // Detect timeout.
+                        if (possibleTimeoutToLog.CancellationToken != cancelTokenSource.Token)
+                        {
+                            if (retryCount <= 0)
+                            {
+                                Log.LogError($"Unable to check for existence of blob {blobPath} in {AccountName} after {MaxAttempts} retries.");
+                                throw;
+                            }
+                            else
+                            {
+                                Log.LogWarning("Exception thrown while trying to detect if blob already exists in feed:");
+                                Log.LogWarningFromException(possibleTimeoutToLog, true);
+                            }
+                        }
+                        else
+                        {
+                            throw;
                         }
                     }
                     --retryCount;
