@@ -25,12 +25,9 @@
     <DumplingIncPaths Condition="'$(TargetOS)'=='OSX'" Include="/usr/lib/libSystem.B.dylib" />
     <DumplingIncPaths Condition="'$(TargetOS)'=='OSX'" Include="/usr/lib/libc++.1.dylib" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(HELIX_PYTHONPATH)'==''">
-    <!-- env var not defined, assume that python is already on the path, e.g.: Jenkins -->
-    <PythonPath>python</PythonPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(HELIX_PYTHONPATH)'!=''">
+  <PropertyGroup>
     <PythonPath>$(HELIX_PYTHONPATH)</PythonPath>
+    <PythonPath Condition="'$(PythonPath)' == ''">python</PythonPath>
   </PropertyGroup>
   <Target Name="PreinstallDumpling"
           BeforeTargets="TestAllProjects">
