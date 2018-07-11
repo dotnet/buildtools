@@ -493,6 +493,7 @@
         <PackageVersion>$(PackageVersion)</PackageVersion>
       </PackageFile>
 
+      <PackageSymbolFiles Include="@(File)" Condition="'%(File.IsSymbolFile)'=='true'" />
       <!-- Add a placeholder source file if there are symbols but no sources, so that MyGet will treat symbol packages as valid -->
       <PackageSources Include="$(PlaceholderFile)" Condition="'@(PackageSymbolFiles)'!='' AND '@(PackageSources)'==''">
         <IsSourceCodeFile>true</IsSourceCodeFile>
