@@ -75,8 +75,10 @@
 
   <!-- Optimizations to configure Xunit for performance -->
   <ItemGroup Condition="'$(IncludePerformanceTests)' == 'true'">
-    <AssemblyInfoUsings Include="using Microsoft.Xunit.Performance%3B" />
-    <AssemblyInfoLines Include="[assembly:OptimizeForBenchmarks]" />
+    <!-- TODO: when we no longer need to support legacy .csprojs, this can be converted to 
+        <AssemblyAttribute Include="Microsoft.Xunit.Performance.OptimizeForBenchmarks" />
+    -->
+    <AssemblyInfoLines Include="[assembly:Microsoft.Xunit.Performance.OptimizeForBenchmarks]" />
   </ItemGroup>
 
   <Target Name="UploadToBenchview" Condition="'$(LogToBenchview)' == 'true'" AfterTargets="TestAllProjects">
