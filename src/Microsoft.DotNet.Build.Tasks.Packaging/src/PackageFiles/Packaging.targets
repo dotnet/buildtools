@@ -493,15 +493,6 @@
         <PackageVersion>$(PackageVersion)</PackageVersion>
       </PackageFile>
 
-      <PackageSymbolFiles Include="@(File)" Condition="'%(File.IsSymbolFile)'=='true'" />
-      <!-- Add a placeholder source file if there are symbols but no sources, so that MyGet will treat symbol packages as valid -->
-      <PackageSources Include="$(PlaceholderFile)" Condition="'@(PackageSymbolFiles)'!='' AND '@(PackageSources)'==''">
-        <IsSourceCodeFile>true</IsSourceCodeFile>
-        <TargetPath>src</TargetPath>
-      </PackageSources>
-      <PackageFile Include="@(PackageSources)" />
-
-
       <!-- Nuget will treat TargetPath as a directory if the extensions dont match,
            however we need to package files without an extension (Unix exectuables).
            As such nuget will always consider TargetPath to be a file path for these
