@@ -137,9 +137,9 @@
     </ItemGroup>
 
     <!-- SupplementalTestData has its own properties to control hard links, however, with the coverage dedicated runtime that will override the original -->
-    <Delete Condition="'$(UsingCoverageDedicatedRuntime)' == 'true' and Exists('$(TestPath)$(XunitRuntimeConfigFile)')"
+    <Delete Condition="'$(SkipXunitRuntimeConfigCopying)' != 'true' and '$(UsingCoverageDedicatedRuntime)' == 'true' and Exists('$(TestPath)$(XunitRuntimeConfigFile)')"
             Files="$(TestPath)$(XunitRuntimeConfigFile)" />
-    <Copy Condition="'$(UsingCoverageDedicatedRuntime)' == 'true'"
+    <Copy Condition="'$(SkipXunitRuntimeConfigCopying)' != 'true' and '$(UsingCoverageDedicatedRuntime)' == 'true'"
           SourceFiles="$(XunitRuntimeConfig)"
           DestinationFolder="$(TestPath)"
           UseHardLinksIfPossible="false" />
