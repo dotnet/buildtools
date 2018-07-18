@@ -14,7 +14,7 @@
   <!-- Coverage options -->
   <PropertyGroup>
     <CodeCoverageEnabled>false</CodeCoverageEnabled>
-    <CodeCoverageEnabled Condition="'$(SkipTests)' != 'true' and '$(RunningOnUnix)' != 'true' and '$(Coverage)' == 'true' and '$(Performance)' != 'true'">true</CodeCoverageEnabled>
+    <CodeCoverageEnabled Condition="'$(SkipTests)' != 'true' and '$(Coverage)' == 'true' and '$(Performance)' != 'true'">true</CodeCoverageEnabled>
     <UseCoverlet Condition="'$(Coverage)' == 'true' and ('$(RunningOnUnix)' == 'true' or '$(UseCoverlet)' == 'true')">true</UseCoverlet>
     <CoverageReportDir Condition="'$(CoverageReportDir)' == ''">$(TestWorkingDir)coverage\</CoverageReportDir>
 
@@ -169,7 +169,6 @@
       <_AllDlls Include="$(CoverageRuntimeDir)/*.dll"/>
       <_AllAssemblies Include="@(_AllDlls -> '%(Filename)')" />
       <_AllAssemblies Remove="@(_CodeCoverageAssemblies)" />
-      <_CoverletExcludedAssemblies Include="@(_AllAssemblies)" />
     </ItemGroup>
     <PropertyGroup>
       <CoverletExclusionFilter>@(_AllAssemblies->'[%(Identity)]*', ',')</CoverletExclusionFilter>
@@ -202,8 +201,10 @@
   <!-- Report Generator Properties -->
   <PropertyGroup>
     <CoverageReportAssemblyFilters Condition="'$(CodeCoverageAssemblies)' != 'all'">"-assemblyfilters:@(_CodeCoverageAssemblies->'+%(Identity)', ';')"</CoverageReportAssemblyFilters>
-    <CoverageReportGeneratorOptions>-targetdir:$(CoverageReportDir) -reporttypes:Html;Badges $(CoverageReportAssemblyFilters)</CoverageReportGeneratorOptions>
-    <CoverageReportGeneratorCommandLine>$(PackagesDir)ReportGenerator\$(ReportGeneratorVersion)\tools\ReportGenerator.exe $(CoverageReportGeneratorOptions)</CoverageReportGeneratorCommandLine>
+    <CoverageReportGeneratorOptions>-targetdir:$(CoverageReportDir) "-reporttypes:Html;Badges" $(CoverageReportAssemblyFilters)</CoverageReportGeneratorOptions>
+    <CoverageReportTool>$(PackagesDir)ReportGenerator\$(ReportGeneratorVersion)\tools\ReportGenerator.exe</CoverageReportTool>
+    <CoverageReportTool Condition="'$(RunningOnUnix)' == 'true'">reportgenerator</CoverageReportTool>
+    <CoverageReportGeneratorCommandLine>$(CoverageReportTool) $(CoverageReportGeneratorOptions)</CoverageReportGeneratorCommandLine>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(GenerateIndividualCoverageReport)'=='true'">
