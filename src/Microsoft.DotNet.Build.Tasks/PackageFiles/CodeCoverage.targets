@@ -45,7 +45,6 @@
     <GenerateFullCoverageReportAfterTargets Condition="'$(GenerateFullCoverageReportAfterTargets)'==''">TestAllProjects</GenerateFullCoverageReportAfterTargets>
   </PropertyGroup>
 
-  <!-- Start of Coverlet -->
   <PropertyGroup Condition="'$(UseCoverlet)'=='true'">
     <CoverletOutputFormat Condition="$(CoverletOutputFormat) == ''">opencover</CoverletOutputFormat>
     <CoverletOutputDirectory Condition="$(CoverletOutputDirectory) == ''">$(CoverageReportDir)</CoverletOutputDirectory>
@@ -70,7 +69,6 @@
       Threshold="$(Threshold)"
       ThresholdType="$(ThresholdType)" />
   </Target>
-  <!-- End of Coverlet -->
 
   <Target Name="CreateCoverageFilter" BeforeTargets="GenerateTestExecutionScripts">
     <!-- By default, code coverage data is only gathered for the assembly being tested. 
