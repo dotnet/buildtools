@@ -29,7 +29,7 @@
       <TargetOptimizationDataFile>$(OptimizationDataDir)$(AssemblyName).pgo</TargetOptimizationDataFile>
     </PropertyGroup>
     <ItemGroup>
-      <RawOptimizationDataFiles Include="$(OptimizationDataDir)$(AssemblyName)*.ibc" />
+      <RawOptimizationDataFiles Include="$(OptimizationDataDir)$(AssemblyName).ibc" />
     </ItemGroup>
 
     <!-- Merge the optimization data into the source DLL -->
@@ -100,8 +100,8 @@
     <!-- Copy the restored files into a more accessible location -->
     <ItemGroup>
       <_OptimizationDataFiles Include="$(PackagesDir)/$(OptimizationDataPackageName)/$(OptimizationDataVersion)/content/OptimizationData/*.pgo" />
-      <_OptimizationDataFiles Include="$(PackagesDir)/$(OptimizationDataPackageName)/$(OptimizationDataVersion)/content/OptimizationData/*.dll" />
-      <_OptimizationDataFiles Include="$(PackagesDir)/$(OptimizationDataPackageName)/$(OptimizationDataVersion)/content/OptimizationData/*.ibc" />
+      <_OptimizationDataFiles Include="$(PackagesDir)/$(CoreFxOptimizationDataPackageName)/$(CoreFxOptimizationDataVersion)/data/*.dll" />
+      <_OptimizationDataFiles Include="$(PackagesDir)/$(CoreFxOptimizationDataPackageName)/$(CoreFxOptimizationDataVersion)/data/*.ibc" />
     </ItemGroup>
 
     <Copy SourceFiles="@(_OptimizationDataFiles)"
