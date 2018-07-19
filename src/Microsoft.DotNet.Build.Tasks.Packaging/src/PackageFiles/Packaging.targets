@@ -1209,7 +1209,8 @@
                     References="@(Reference)"
                     FrameworkReferences="@(FrameworkReference)"
                     Files="@(_packageFile)"
-                    Serviceable="$(Serviceable)"/>
+                    Serviceable="$(Serviceable)"
+                    PackageTypes="$(PackageType)"/>
   </Target>
 
   <Target Name="CreatePackage"
