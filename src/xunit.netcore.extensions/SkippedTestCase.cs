@@ -18,6 +18,10 @@ namespace Xunit.NetCore.Extensions
         private readonly IXunitTestCase _testCase;
         private readonly string _skippedReason;
 
+        public SkippedTestCase()
+        {
+        }
+
         internal SkippedTestCase(IXunitTestCase testCase, string skippedReason)
         {
             _testCase = testCase;
@@ -39,6 +43,10 @@ namespace Xunit.NetCore.Extensions
         public Dictionary<string, List<string>> Traits { get { return _testCase.Traits; } }
 
         public string UniqueID { get { return _testCase.UniqueID; } }
+
+        public Exception InitializationException { get { return null; } }
+
+        public int Timeout { get { return 0; } }
 
         public void Deserialize(IXunitSerializationInfo info) { _testCase.Deserialize(info); }
 
