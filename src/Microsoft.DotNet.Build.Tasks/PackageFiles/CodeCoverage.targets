@@ -176,13 +176,6 @@
       Exclude="$(CoverletExclusionFilter)"
       ExcludeByFile="$(ExcludeByFile)"
       Path="$(CoverageRuntimeDir)/" />
-
-    <!-- Instrumented assemblies call coverlet.tracker.dll -->
-    <Copy
-      SourceFiles="$(PackagesDir)coverlet.msbuild/$(CoverletMsbuildVersion)/build/netstandard2.0/coverlet.tracker.dll"
-      DestinationFolder="$(TestPath)"
-      SkipUnchangedFiles="true"
-      UseHardlinksIfPossible="true" />
   </Target>
 
   <!-- xUnit command line with coverage enabled using OpenCover -->
