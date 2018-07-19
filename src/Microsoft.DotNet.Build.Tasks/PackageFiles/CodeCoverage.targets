@@ -6,6 +6,7 @@
   -->
   <PropertyGroup>
     <OpenCoverVersion>4.6.519</OpenCoverVersion>
+    <CoverletMsbuildVersion>2.1.1</CoverletMsbuildVersion>
     <ReportGeneratorVersion>3.0.1</ReportGeneratorVersion>
     <CoverallsUploaderVersion>1.4</CoverallsUploaderVersion>
   </PropertyGroup>
@@ -13,7 +14,8 @@
   <!-- Coverage options -->
   <PropertyGroup>
     <CodeCoverageEnabled>false</CodeCoverageEnabled>
-    <CodeCoverageEnabled Condition="'$(SkipTests)' != 'true' and '$(RunningOnUnix)' != 'true' and '$(Coverage)' == 'true' and '$(Performance)' != 'true'">true</CodeCoverageEnabled>
+    <CodeCoverageEnabled Condition="'$(SkipTests)' != 'true' and '$(Coverage)' == 'true' and '$(Performance)' != 'true'">true</CodeCoverageEnabled>
+    <UseCoverlet Condition="'$(Coverage)' == 'true' and ('$(RunningOnUnix)' == 'true' or '$(UseCoverlet)' == 'true')">true</UseCoverlet>
     <CoverageReportDir Condition="'$(CoverageReportDir)' == ''">$(TestWorkingDir)coverage\</CoverageReportDir>
 
     <UseCoverageDedicatedRuntime Condition="'$(UseCoverageDedicatedRuntime)' == ''">true</UseCoverageDedicatedRuntime>
@@ -38,6 +40,35 @@
     -->
     <SerializeProjects Condition="'$(CodeCoverageEnabled)'=='true'">true</SerializeProjects>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(GenerateFullCoverageReport)'=='true'">
+    <GenerateFullCoverageReportAfterTargets Condition="'$(GenerateFullCoverageReportAfterTargets)'==''">TestAllProjects</GenerateFullCoverageReportAfterTargets>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(UseCoverlet)'=='true'">
+    <CoverletOutputFormat Condition="$(CoverletOutputFormat) == ''">opencover</CoverletOutputFormat>
+    <CoverletOutputDirectory Condition="$(CoverletOutputDirectory) == ''">$(CoverageReportDir)</CoverletOutputDirectory>
+    <CoverletOutputName Condition=" '$(CoverletOutputName)' == '' ">$(MSBuildProjectName).coverlet</CoverletOutputName>
+    <CoverletOutput>$([MSBuild]::EnsureTrailingSlash('$(CoverletOutputDirectory)'))$(CoverletOutputName).xml</CoverletOutput>
+    <CoverageOutputFilePath>$(CoverletOutput)</CoverageOutputFilePath>
+    <CoverageInputFilter>*.coverlet.xml</CoverageInputFilter>
+    <ExcludeByFile Condition="$(ExcludeByFile) == ''"></ExcludeByFile>
+    <Threshold Condition="$(Threshold) == ''">0</Threshold>
+    <ThresholdType Condition="$(ThresholdType) == ''">line,branch,method</ThresholdType>
+    <CollectCoverage Condition="$(CollectCoverage) == ''">$(CodeCoverageEnabled)</CollectCoverage>
+  </PropertyGroup>
+
+  <UsingTask Condition="'$(UseCoverlet)'=='true'" TaskName="Coverlet.MSbuild.Tasks.InstrumentationTask" AssemblyFile="$(PackagesDir)coverlet.msbuild/$(CoverletMsbuildVersion)/build/netstandard2.0/coverlet.msbuild.tasks.dll" />
+  <UsingTask Condition="'$(UseCoverlet)'=='true'" TaskName="Coverlet.MSbuild.Tasks.CoverageResultTask" AssemblyFile="$(PackagesDir)coverlet.msbuild/$(CoverletMsbuildVersion)/build/netstandard2.0/coverlet.msbuild.tasks.dll" />
+ 
+  <Target Condition="'$(UseCoverlet)'=='true'" Name="GenerateCoverageResult" AfterTargets="$(GenerateIndividualCoverageReportAfterTargets)">
+    <Coverlet.MSbuild.Tasks.CoverageResultTask
+      Condition="'$(CollectCoverage)' == 'true'"
+      Output="$(CoverletOutput)"
+      OutputFormat="$(CoverletOutputFormat)"
+      Threshold="$(Threshold)"
+      ThresholdType="$(ThresholdType)" />
+  </Target>
 
   <Target Name="CreateCoverageFilter" BeforeTargets="GenerateTestExecutionScripts">
     <!-- By default, code coverage data is only gathered for the assembly being tested. 
@@ -99,7 +130,7 @@
 
   <Target Name="GenerateWindowsPdbsForAssemblyBeingTested" 
     BeforeTargets="GenerateTestExecutionScripts"
-    Condition="'$(CodeCoverageEnabled)' == 'true' and '$(TargetOS)'=='Windows_NT'">
+    Condition="'$(CodeCoverageEnabled)' == 'true' and '$(TargetOS)'=='Windows_NT' and '$(UseCoverlet)'!='true'">
 
     <!-- We look for the DLL being tested for coverage and its PDB create a WindowsPDB\*.pdb which has
          the windows PDB.  -->
@@ -131,12 +162,29 @@
   </Target>
   <!-- *********************************************************************************************** -->
 
-  <!-- xUnit command line with coverage enabled -->
-  <PropertyGroup Condition="'$(CoverageEnabledForProject)'=='true'">
+  <Target Name="InstrumentModulesAfterBuild" BeforeTargets="GenerateTestExecutionScripts" Condition="'$(UseCoverlet)'=='true'">
+    <ItemGroup>
+      <_AllDlls Include="$(CoverageRuntimeDir)/*.dll"/>
+      <_AllAssemblies Include="@(_AllDlls -> '%(Filename)')" />
+      <_AllAssemblies Remove="@(_CodeCoverageAssemblies)" />
+    </ItemGroup>
+    <PropertyGroup>
+      <CoverletExclusionFilter>@(_AllAssemblies->'[%(Identity)]*', ',')</CoverletExclusionFilter>
+    </PropertyGroup>
+    <Coverlet.MSbuild.Tasks.InstrumentationTask
+      Condition="'$(CollectCoverage)' == 'true'"
+      Exclude="$(CoverletExclusionFilter)"
+      ExcludeByFile="$(ExcludeByFile)"
+      Path="$(CoverageRuntimeDir)/" />
+  </Target>
+
+  <!-- xUnit command line with coverage enabled using OpenCover -->
+  <PropertyGroup Condition="'$(CoverageEnabledForProject)'=='true' and '$(UseCoverlet)'!='true'">
     <CoverageHost>$(PackagesDir)OpenCover\$(OpenCoverVersion)\tools\OpenCover.Console.exe</CoverageHost>
     <CoverageOutputFilePath>$(CoverageReportDir)$(MSBuildProjectName).coverage.xml</CoverageOutputFilePath>
     <CoverageOptions>-oldStyle -filter:"{CoverageFilter}" -excludebyfile:"*\Common\src\System\SR.*" -nodefaultfilters -excludebyattribute:*.ExcludeFromCodeCoverage* -skipautoprops -hideskipped:All -threshold:1</CoverageOptions>
     <CoverageCommandLine>$(CoverageOptions) -returntargetcode -register:user -target:$(TestProgram) -output:$(CoverageOutputFilePath)</CoverageCommandLine>
+    <CoverageInputFilter>*.coverage.xml</CoverageInputFilter>
     <TestHost>$(CoverageHost)</TestHost>
     <TestCommandLine>$(TestHost) $(CoverageCommandLine) -targetargs:"$(TestArguments) {XunitTraitOptions} -notrait Benchmark=true"</TestCommandLine>
   </PropertyGroup>
@@ -144,8 +192,10 @@
   <!-- Report Generator Properties -->
   <PropertyGroup>
     <CoverageReportAssemblyFilters Condition="'$(CodeCoverageAssemblies)' != 'all'">"-assemblyfilters:@(_CodeCoverageAssemblies->'+%(Identity)', ';')"</CoverageReportAssemblyFilters>
-    <CoverageReportGeneratorOptions>-targetdir:$(CoverageReportDir) -reporttypes:Html;Badges $(CoverageReportAssemblyFilters)</CoverageReportGeneratorOptions>
-    <CoverageReportGeneratorCommandLine>$(PackagesDir)ReportGenerator\$(ReportGeneratorVersion)\tools\ReportGenerator.exe $(CoverageReportGeneratorOptions)</CoverageReportGeneratorCommandLine>
+    <CoverageReportGeneratorOptions>-targetdir:$(CoverageReportDir) "-reporttypes:Html;Badges" $(CoverageReportAssemblyFilters)</CoverageReportGeneratorOptions>
+    <CoverageReportTool>$(PackagesDir)ReportGenerator\$(ReportGeneratorVersion)\tools\ReportGenerator.exe</CoverageReportTool>
+    <CoverageReportTool Condition="'$(RunningOnUnix)' == 'true'">reportgenerator</CoverageReportTool>
+    <CoverageReportGeneratorCommandLine>$(CoverageReportTool) $(CoverageReportGeneratorOptions)</CoverageReportGeneratorCommandLine>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(GenerateIndividualCoverageReport)'=='true'">
@@ -167,18 +217,14 @@
 
   </Target>
 
-  <PropertyGroup Condition="'$(GenerateFullCoverageReport)'=='true'">
-    <GenerateFullCoverageReportAfterTargets Condition="'$(GenerateFullCoverageReportAfterTargets)'==''">TestAllProjects</GenerateFullCoverageReportAfterTargets>
-  </PropertyGroup>
-
   <!-- Generate coverage report for all the projects. -->
   <Target Name="GenerateFullCoverageReport"
          AfterTargets="$(GenerateFullCoverageReportAfterTargets)"
-         Inputs="$(CoverageReportDir)\*.coverage.xml"
+         Inputs="$(CoverageReportDir)\$(CoverageInputFilter)"
          Outputs="$(CoverageReportDir)index.htm"
          Condition="'$(GenerateFullCoverageReport)'=='true'">
 
-    <Exec Command="$(CoverageReportGeneratorCommandLine) -reports:$(CoverageReportDir)\*.coverage.xml"
+    <Exec Command="$(CoverageReportGeneratorCommandLine) -reports:$(CoverageReportDir)\$(CoverageInputFilter)"
           ContinueOnError="ErrorAndContinue"
           WorkingDirectory="$(ProjectDir)" />
 
@@ -187,7 +233,7 @@
 
     <PropertyGroup>
       <CoverallsUploaderCommandLine>$(PackagesDir)coveralls.io.$(CoverallsUploaderVersion)\tools\coveralls.net.exe</CoverallsUploaderCommandLine>
-      <CoverallsUploaderOptions>--opencover $(CoverageReportDir)\*.coverage.xml --repo-token $(CoverallsToken)</CoverallsUploaderOptions>
+      <CoverallsUploaderOptions>--opencover $(CoverageReportDir)\$(CoverageInputFilter) --repo-token $(CoverallsToken)</CoverallsUploaderOptions>
     </PropertyGroup>
 
     <Exec Command="$(CoverallsUploaderCommandLine) $(CoverallsUploaderOptions)"
@@ -203,10 +249,10 @@
   <Target Name="GenerateVisitedReport"
           AfterTargets="Test"
           Condition="'$(GenerateVisitedMethodsReport)' == 'true'"
-          Inputs="$(CoverageReportDir)*.coverage.xml"
+          Inputs="$(CoverageReportDir)$(CoverageInputFilter)"
           Outputs="$(CoverageReportDir)\VisitedMethodsReport.xml">
     <ItemGroup>
-      <Reports Include="$(CoverageReportDir)*.coverage.xml"/>
+      <Reports Include="$(CoverageReportDir)$(CoverageInputFilter)"/>
     </ItemGroup>
     <ParseTestCoverageInfo CoverageReports="@(Reports)"
                            OutputReport="$(CoverageReportDir)\VisitedMethodsReport.xml"/>
