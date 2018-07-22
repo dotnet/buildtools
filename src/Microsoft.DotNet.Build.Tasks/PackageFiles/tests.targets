@@ -40,8 +40,8 @@
     <TestHostExecutablePath Condition="'$(RunningOnUnix)'!='true' AND '$(TestHostExecutablePath)' == '' AND '$(UseDotNetNativeToolchain)' != 'true'">$(TestRuntimeEnvVar)dotnet.exe</TestHostExecutablePath>
     <TestHostExecutablePath Condition="'$(RunningOnUnix)'=='true' AND '$(TestHostExecutablePath)' == '' AND '$(UseDotNetNativeToolchain)' != 'true'">$(TestRuntimeEnvVar)dotnet</TestHostExecutablePath>
 
-    <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.netcore.exe</XunitExecutable>
-    <XunitRuntimeConfigFile>xunit.console.netcore.runtimeconfig.json</XunitRuntimeConfigFile>
+    <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.dll</XunitExecutable>
+    <XunitRuntimeConfigFile>xunit.console.runtimeconfig.json</XunitRuntimeConfigFile>
 
     <DebugEngines>{2E36F1D4-B23C-435D-AB41-18E608940038}</DebugEngines>
   </PropertyGroup>
@@ -129,7 +129,8 @@
     </ItemGroup>
     <ItemGroup Condition="'$(BuildingNETFxVertical)' != 'true'">
       <SupplementalTestData Condition="'$(SkipXunitRuntimeConfigCopying)' != 'true' and '$(UsingCoverageDedicatedRuntime)' != 'true'" Include="$(XunitRuntimeConfig)" />
-      <SupplementalTestData Include="$(RuntimePath)xunit.console.netcore.exe" />
+      <SupplementalTestData Include="$(RuntimePath)xunit.console.dll" />
+      <SupplementalTestData Include="$(RuntimePath)xunit.runner.utility.netcoreapp10.dll" />
     </ItemGroup>
     <ItemGroup Condition="'$(BuildingNETFxVertical)' == 'true'">
       <SupplementalTestData Include="$(RuntimePath)xunit.console.exe" />
@@ -152,7 +153,8 @@
 
       <!-- Whitelisted runtime assemblies that are OK to reference. -->
       <ReferenceFromRuntime Include="xunit.core" />
-      <ReferenceFromRuntime Include="Xunit.NetCore.Extensions" />
+      <ReferenceFromRuntime Include="Microsoft.DotNet.XUnitExtensions" />
+      <ReferenceFromRuntime Include="xunit.runner.visualstudio.dotnetcore.testadapter" />
       <ReferenceFromRuntime Include="xunit.assert" />
       <ReferenceFromRuntime Include="xunit.abstractions" />
       <ReferenceFromRuntime Include="xunit.performance.core" />
@@ -392,7 +394,7 @@
     </PropertyGroup>
 
     <ItemGroup Condition="'$(UseDotNetNativeToolchain)' == 'true' AND '$(Performance)'!='true'" >
-      <TargetExecutableNames Include="xunit.console.netcore.exe"/>
+      <TargetExecutableNames Include="xunit.console.dll"/>
       <TargetExecutableNames Condition="'%(ProjectReference.Filename)' == 'RemoteExecutorConsoleApp'" Include="RemoteExecutorConsoleApp.exe"/>
       <IlcInputFolderContents Include="$(ILCFXInputFolder)/*" />
       <TestCommandLines Include="mklink /H %(IlcInputFolderContents.Filename)%(IlcInputFolderContents.Extension) $(_Runtime_Path)%(IlcInputFolderContents.Filename)%(IlcInputFolderContents.Extension)" />
