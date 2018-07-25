@@ -37,6 +37,7 @@
 
   <!-- Common BuildTools properties -->
   <PropertyGroup>
+    <RootIntermediateOutputPath Condition="$(RootIntermediateOutputPath) == ''">$(MSBuildThisFileDirectory)../bin/obj/</RootIntermediateOutputPath>
     <ToolsDir Condition="'$(ToolsDir)'==''">$(MSBuildThisFileDirectory)</ToolsDir>
     <ToolRuntimePath Condition="'$(ToolRuntimePath)'==''">$(ToolsDir)</ToolRuntimePath>
     <DotnetCliPath Condition="'$(DotnetCliPath)'==''">$(ToolRuntimePath)dotnetcli/</DotnetCliPath>

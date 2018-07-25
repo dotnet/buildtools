@@ -2,7 +2,7 @@
   
   <PropertyGroup>
     <TodayTimeStamp>$([System.DateTime]::Now.ToString(yyyyMMdd))</TodayTimeStamp>
-    <BuildVersionFilePath>$(BaseIntermediateOutputPath)</BuildVersionFilePath>
+    <BuildVersionFilePath>$(RootIntermediateOutputPath)</BuildVersionFilePath>
     <BuildVersionFile Condition="'$(BuildVersionFile)'==''">$(BuildVersionFilePath)BuildVersion-$(TodayTimeStamp).props</BuildVersionFile>
   </PropertyGroup>
 

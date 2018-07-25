@@ -19,11 +19,6 @@
                          and '$(TargetFrameworkProfile)'    == '' ">
     <TargetingDefaultPlatform>true</TargetingDefaultPlatform>
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == ''">
-     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
-  </PropertyGroup>
-
   <!--
     When targeting an explicit platform other than the default,
     also allow the target framework directory.
