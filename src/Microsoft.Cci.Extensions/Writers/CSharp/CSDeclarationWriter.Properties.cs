@@ -73,6 +73,9 @@ namespace Microsoft.Cci.Writers.CSharp
 
             WriteTypeName(property.Type, isDynamic: IsDynamic(property.Attributes));
 
+            if (property.IsExplicitInterfaceProperty() && _forCompilationIncludeGlobalprefix)
+                Write("global::");
+
             if (isIndexer)
             {
                 int index = property.Name.Value.LastIndexOf(".");
