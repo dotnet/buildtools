@@ -70,7 +70,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(GenerateNativeVersionInfo)'=='true'">
-    <NativeVersionFileDir>$(RootBaseIntermediateOutputPath)</NativeVersionFileDir>
+    <NativeVersionFileDir>$(ObjDir)</NativeVersionFileDir>
     <NativeVersionHeaderFile>$(NativeVersionFileDir)_version.h</NativeVersionHeaderFile>
     <GenerateVersionHeader>true</GenerateVersionHeader>
   </PropertyGroup>

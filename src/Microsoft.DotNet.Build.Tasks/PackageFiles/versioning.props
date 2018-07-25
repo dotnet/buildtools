@@ -11,7 +11,7 @@
     <Product Condition="'$(Product)' == ''">Microsoft%AE .NET Framework</Product>
     <AssemblyTitle Condition="'$(AssemblyTitle)' == ''">$(AssemblyName)</AssemblyTitle>
     <!-- File passed to C# compiler that defines the mapping from source to GIT URL.  Created in versioning.targets --> 
-    <SourceLinkFilePath>$(RootBaseIntermediateOutputPath)source_link.json</SourceLinkFilePath>
+    <SourceLinkFilePath>$(ObjDir)source_link.json</SourceLinkFilePath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(UseSourceLink)' == 'true' AND Exists('$(SourceLinkFilePath)')">
