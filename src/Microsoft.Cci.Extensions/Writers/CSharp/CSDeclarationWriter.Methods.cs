@@ -80,6 +80,9 @@ namespace Microsoft.Cci.Writers.CSharp
                 WriteTypeName(method.Type, method.ContainingType, isDynamic: IsDynamic(method.ReturnValueAttributes));
             }
 
+            if (method.IsExplicitInterfaceMethod() && _forCompilationIncludeGlobalprefix)
+                Write("global::");
+
             WriteIdentifier(name);
 
             if (isOperator)
