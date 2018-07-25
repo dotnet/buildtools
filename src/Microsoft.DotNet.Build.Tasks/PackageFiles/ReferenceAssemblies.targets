@@ -16,7 +16,7 @@
     <AssemblyName Condition="'$(AssemblyName)' == ''">$(MSBuildProjectName)</AssemblyName>
     <TargetOutputRelPath Condition="'$(IsCompatAssembly)'=='true'">$(TargetOutputRelPath)Compat/</TargetOutputRelPath>
     <OutputPath>$(ReferenceAssemblyOutputPath)$(AssemblyName)/$(AssemblyVersion)/$(TargetOutputRelPath)</OutputPath>
-    <IntermediateOutputPath>$(BaseIntermediateOutputPath)ref/$(AssemblyName)/$(AssemblyVersion)/$(TargetOutputRelPath)</IntermediateOutputPath>
+    <IntermediateOutputPath>$(RootBaseIntermediateOutputPath)ref/$(AssemblyName)/$(AssemblyVersion)/$(TargetOutputRelPath)</IntermediateOutputPath>
 
     <OmitTransitiveCompileReferences>true</OmitTransitiveCompileReferences>
     <!-- if this is a reference assembly deployment project use compile assets 
