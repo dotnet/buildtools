@@ -522,7 +522,7 @@ namespace Microsoft.DotNet.Build.Tasks
                     //ProjectTypeGuids for different projects, pulled from the Visual Studio regkeys
                     //TODO: Clean up or map these to actual projects, this is fragile
                     string slnGuid = "{9A19103F-16F7-4668-BE54-9A1E7A4F7556}"; // Windows (C#) Managed/CPS
-                    if (ProjectPath.Contains("VisualBasic.vbproj"))
+                    if (ProjectPath.EndsWith(".vbproj", StringComparison.OrdinalIgnoreCase))
                     {
                         slnGuid = "{778DAE3C-4631-46EA-AA77-85C1314464D9}"; //Windows (VB.NET) Managed/CPS
                     }
