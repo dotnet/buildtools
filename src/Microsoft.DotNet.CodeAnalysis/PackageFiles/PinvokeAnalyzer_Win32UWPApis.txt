@@ -150,6 +150,7 @@ api-ms-win-appmodel-runtime-l1-1-2.dll!VerifyPackageFullName
 api-ms-win-appmodel-runtime-l1-1-2.dll!VerifyPackageId
 api-ms-win-appmodel-runtime-l1-1-2.dll!VerifyPackageRelativeApplicationId
 api-ms-win-core-comm-l1-1-1.dll!OpenCommPort
+api-ms-win-core-comm-l1-1-2.dll!GetCommPorts
 api-ms-win-core-enclave-l1-1-0.dll!CreateEnclave
 api-ms-win-core-enclave-l1-1-0.dll!InitializeEnclave
 api-ms-win-core-enclave-l1-1-0.dll!IsEnclaveTypeSupported
