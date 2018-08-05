@@ -17,7 +17,6 @@
     <TargetOutputRelPath Condition="'$(IsCompatAssembly)'=='true'">$(TargetOutputRelPath)Compat/</TargetOutputRelPath>
     <OutputPath>$(ReferenceAssemblyOutputPath)$(AssemblyName)/$(AssemblyVersion)/$(TargetOutputRelPath)</OutputPath>
     <IntermediateOutputPath>$(RootIntermediateOutputPath)ref/$(AssemblyName)/$(AssemblyVersion)/$(TargetOutputRelPath)</IntermediateOutputPath>
-    <RestoreOutputPath>$(IntermediateOutputPath)</RestoreOutputPath>
 
     <OmitTransitiveCompileReferences>true</OmitTransitiveCompileReferences>
     <!-- if this is a reference assembly deployment project use compile assets 

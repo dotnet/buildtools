@@ -333,7 +333,6 @@
       <!-- always overwrite IntermediateOutputPath so we know we can sign the catalogs.
            some repos do weird things with BaseIntermediateOutputPath -->
       <IntermediateOutputPath>$(SymbolCatalogIntermediateDir)</IntermediateOutputPath>
-      <RestoreOutputPath>$(IntermediateOutputPath)</RestoreOutputPath>
     </PropertyGroup>
   </Target>
 
