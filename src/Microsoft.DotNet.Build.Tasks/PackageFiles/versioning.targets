@@ -70,7 +70,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(GenerateNativeVersionInfo)'=='true'">
-    <NativeVersionFileDir>$(BaseIntermediateOutputPath)</NativeVersionFileDir>
+    <NativeVersionFileDir>$(RootIntermediateOutputPath)</NativeVersionFileDir>
     <NativeVersionHeaderFile>$(NativeVersionFileDir)_version.h</NativeVersionHeaderFile>
     <GenerateVersionHeader>true</GenerateVersionHeader>
   </PropertyGroup>
@@ -115,7 +115,7 @@
       <NativeVersionLines Include="#endif" />
     </ItemGroup>
 
-    <MakeDir Condition="!Exists('$(NativeVersionFileDir)')" Directories="$(NativeVersionFileDir)" />
+    <MakeDir Directories="$(NativeVersionFileDir)" />
 
     <WriteLinesToFile
       File="$(NativeVersionHeaderFile)"
@@ -128,7 +128,7 @@
   </Target>
 
   <PropertyGroup Condition="'$(GenerateVersionSourceFile)'=='true'">
-    <NativeVersionSourceDir>$(BaseIntermediateOutputPath)</NativeVersionSourceDir>
+    <NativeVersionSourceDir>$(RootIntermediateOutputPath)</NativeVersionSourceDir>
     <NativeVersionSourceFile>$(NativeVersionSourceDir)version.c</NativeVersionSourceFile>
   </PropertyGroup>
 
@@ -146,7 +146,7 @@
       <SourceFileLines Include=" " />
     </ItemGroup>
 
-    <MakeDir Condition="!Exists('$(NativeVersionSourceDir)')" Directories="$(NativeVersionSourceDir)" />
+    <MakeDir Directories="$(NativeVersionSourceDir)" />
 
     <WriteLinesToFile
       File="$(NativeVersionSourceFile)"
@@ -163,7 +163,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <SyncInfoDirectory Condition="'$(SyncInfoDirectory)' == ''">$(ObjDir)</SyncInfoDirectory>
+    <SyncInfoDirectory Condition="'$(SyncInfoDirectory)' == ''">$(RootIntermediateOutputPath)</SyncInfoDirectory>
     <SyncInfoFile Condition="'$(SyncInfoFile)' == ''">$(SyncInfoDirectory)version.txt</SyncInfoFile>
   </PropertyGroup>
 
@@ -172,8 +172,7 @@
           BeforeTargets="BuildAllProjects"
           Inputs="$(LatestCommit)"
           Outputs="$(SyncInfoFile)">
-    <MakeDir Condition="!Exists('$(SyncInfoDirectory)')"
-             Directories="$(SyncInfoDirectory)" />
+    <MakeDir Directories="$(SyncInfoDirectory)" />
     <WriteLinesToFile
       Condition="'$(LatestCommit)' != ''"
       File="$(SyncInfoFile)"
@@ -242,7 +241,6 @@
     <!-- ******* SourceLink Support, activated by setting $(UseSourceLink) ********* -->
 
     <!-- Generate the SourceLink file that will be passed to the C# compiler (using ProjectDir and GitHubRepositoryUrl as data) -->
-    <MakeDir Directories="$(BaseIntermediateOutputPath)" />
     <WriteLinesToFile 
       Condition="'$(UseSourceLink)' == 'true' AND '$(GitHubRepositoryUrl)' != '' AND '$(LatestCommit)' != 'N/A' AND !Exists('$(SourceLinkFilePath)')"
       ContinueOnError="WarnAndContinue"
@@ -394,6 +392,6 @@
   <Target Name="NativeResourceCompile" DependsOnTargets="$(BeforeResourceCompileTargets)" Inputs="$(MsBuildThisFileDirectory)NativeVersion.rc" Outputs="$(Win32Resource)">
     <Error Condition="!Exists('$(RCPATH)')" Text="NativeResourceCompile failed because RCPath is set to an non-existing rc.exe path." />
 
-    <Exec Command='"$(RCPath)" /i $(BaseIntermediateOutputPath) /i $(IntermediateOutputPath) /i $(WindowsSDKPath)\inc /i $(VCSDKPath)\Include /D _UNICODE /D UNICODE /l"0x0409" /r /fo "$(Win32Resource)" "$(MsBuildThisFileDirectory)NativeVersion.rc"' />
+    <Exec Command='"$(RCPath)" /i $(RootIntermediateOutputPath) /i $(IntermediateOutputPath) /i $(WindowsSDKPath)\inc /i $(VCSDKPath)\Include /D _UNICODE /D UNICODE /l"0x0409" /r /fo "$(Win32Resource)" "$(MsBuildThisFileDirectory)NativeVersion.rc"' />
   </Target>
 </Project>
