@@ -18,7 +18,7 @@ namespace Microsoft.Cci.Differs.Rules
             if (impl.IsEffectivelySealed() && !contract.IsEffectivelySealed())
             {
                 differences.AddIncompatibleDifference(this,
-                    $"Type '{impl.FullName()}' is sealed in the {Implementation} but not sealed in the {Contract}.");
+                        $"Type '{impl.FullName()}' is {(impl.IsSealed ? "actually (has the sealed modifier)" : "effectively (has a private constructor)")} sealed in the {Implementation} but not sealed in the {Contract}.");
 
                 return DifferenceType.Changed;
             }
