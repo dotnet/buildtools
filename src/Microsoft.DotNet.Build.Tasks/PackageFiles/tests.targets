@@ -152,13 +152,27 @@
       <TargetingPackExclusions Include="@(ReferenceFromRuntime)"/>
 
       <!-- Whitelisted runtime assemblies that are OK to reference. -->
-      <ReferenceFromRuntime Include="xunit.core" />
+
+      <!-- xunit -->
       <ReferenceFromRuntime Include="Microsoft.DotNet.XUnitExtensions" />
-      <ReferenceFromRuntime Include="xunit.runner.visualstudio.dotnetcore.testadapter" />
-      <ReferenceFromRuntime Include="xunit.assert" />
       <ReferenceFromRuntime Include="xunit.abstractions" />
-      <ReferenceFromRuntime Include="xunit.performance.core" />
+      <ReferenceFromRuntime Include="xunit.assert" />
+      <ReferenceFromRuntime Include="xunit.core" />
       <ReferenceFromRuntime Include="xunit.performance.api" />
+      <ReferenceFromRuntime Include="xunit.performance.core" />
+      <ReferenceFromRuntime Include="xunit.runner.visualstudio.dotnetcore.testadapter" />
+
+      <!-- Test SDK -->
+      <ReferenceFromRuntime Include="Microsoft.DotNet.PlatformAbstractions" />
+      <ReferenceFromRuntime Include="Microsoft.Extensions.DependencyModel" />
+      <ReferenceFromRuntime Include="Microsoft.TestPlatform.CommunicationUtilities" />
+      <ReferenceFromRuntime Include="Microsoft.TestPlatform.CoreUtilities" />
+      <ReferenceFromRuntime Include="Microsoft.TestPlatform.CrossPlatEngine" />
+      <ReferenceFromRuntime Include="Microsoft.TestPlatform.PlatformAbstractions" />
+      <ReferenceFromRuntime Include="Microsoft.VisualStudio.CodeCoverage.Shim" />
+      <ReferenceFromRuntime Include="Microsoft.VisualStudio.TestPlatform.Common" />
+      <ReferenceFromRuntime Include="Microsoft.VisualStudio.TestPlatform.ObjectModel" />
+      <ReferenceFromRuntime Include="testhost" />
 
       <!-- Reference everything in the targeting pack directory -->
       <TargetingPackItems Include="%(TargetingPackDirs.Identity)/*.dll" />
