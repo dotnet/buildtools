@@ -61,6 +61,11 @@
       <GenFacadesBuildPartialReferenceFacade>true</GenFacadesBuildPartialReferenceFacade>
     </PropertyGroup>
 
+    <ItemGroup>
+      <FileWrites Include="$(GenFacadesInputAssembly)" />
+      <FileWrites Include="$(GenFacadesInputSymbols)" />
+    </ItemGroup>
+
     <GenFacadesTask
       PartialFacadeAssemblyPath="$(GenFacadesPartialFacadeAssemblyPath)"
       Contracts="$(GenFacadesContracts)"
@@ -78,11 +83,6 @@
       ForceZeroVersionSeeds="$(GenFacadesForceZeroVersionSeeds)"
       BuildPartialReferenceFacade="$(GenFacadesBuildPartialReferenceFacade)"
     />
-
-    <ItemGroup>
-      <FileWrites Include="$(GenFacadesInputAssembly)" />
-      <FileWrites Include="$(GenFacadesInputSymbols)" />
-    </ItemGroup>
   </Target>
 
 </Project>
