@@ -82,6 +82,9 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
         protected Regex CreateXmlUpdateRegex(string elementName, string contentGroupName) =>
             new Regex($@"<{elementName}>(?<{contentGroupName}>.*)</{elementName}>");
 
+        protected Regex CreateMSBuildSdkUpdateRegex(string msbuildSdkName, string contentGroupName) =>
+            new Regex($@"""{msbuildSdkName}""\s*:\s*""(?<{contentGroupName}>.*)""");
+
         protected IEnumerable<IDependencyUpdater> CreateUpdaters()
         {
             if (ProjectJsonFiles != null && ProjectJsonFiles.Any())
@@ -96,6 +99,10 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                 {
                     case "Xml":
                         yield return CreateXmlUpdater(step);
+                        break;
+
+                    case "MSBuildSdk":
+                        yield return CreateMSBuildSdkUpdater(step);
                         break;
 
                     case "File":
@@ -256,6 +263,19 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
             return updater;
         }
 
+        private FileRegexUpdater CreateMSBuildSdkUpdater(ITaskItem step)
+        {
+            string packageId = step.GetMetadata("PackageId");
+
+            var updater = new FileRegexPackageUpdater
+            {
+                PackageId = packageId
+            };
+
+            ConfigureFileRegexUpdater(updater, step);
+            return updater;
+        }
+
         private FileUpdater ConfigureFileUpdater(FileUpdater updater, ITaskItem step)
         {
             updater.SkipIfNoReplacementFound = string.Equals(
@@ -288,6 +308,7 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 
             string elementName = step.GetMetadata("ElementName");
             string manualRegex = step.GetMetadata("Regex");
+            string msbuildSdkName = step.GetMetadata("MSBuildSdkName");
             if (!string.IsNullOrEmpty(elementName))
             {
                 updater.Regex = CreateXmlUpdateRegex(elementName, nameof(elementName));
@@ -298,10 +319,15 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                 updater.Regex = new Regex(manualRegex);
                 updater.VersionGroupName = GetRequiredMetadata(step, "VersionGroupName");
             }
+            else if (!string.IsNullOrEmpty(msbuildSdkName))
+            {
+                updater.Regex = CreateMSBuildSdkUpdateRegex(Regex.Escape(msbuildSdkName), nameof(msbuildSdkName));
+                updater.VersionGroupName = nameof(msbuildSdkName);
+            }
             else
             {
                 throw new ArgumentException(
-                    $"On '{step.ItemSpec}', did not find 'ElementName' or 'Regex' metadata.");
+                    $"On '{step.ItemSpec}', did not find 'ElementName', 'Regex', or 'MSBuildSdkName' metadata.");
             }
 
             updater.SkipIfNoReplacementFound = string.Equals(
