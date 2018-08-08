@@ -131,10 +131,18 @@
       <SupplementalTestData Condition="'$(SkipXunitRuntimeConfigCopying)' != 'true' and '$(UsingCoverageDedicatedRuntime)' != 'true'" Include="$(XunitRuntimeConfig)" />
       <SupplementalTestData Include="$(RuntimePath)xunit.console.dll" />
       <SupplementalTestData Include="$(RuntimePath)xunit.runner.utility.netcoreapp10.dll" />
+      <SupplementalTestData Include="$(RuntimePath)xunit.runner.visualstudio.dotnetcore.testadapter.dll" />
+      <SupplementalTestData Include="$(RuntimePath)xunit.runner.reporters.netcoreapp10.dll" />
     </ItemGroup>
     <ItemGroup Condition="'$(BuildingNETFxVertical)' == 'true'">
       <SupplementalTestData Include="$(RuntimePath)xunit.console.exe" />
       <SupplementalTestData Include="$(RuntimePath)xunit.execution.desktop.dll" />
+      <SupplementalTestData Include="$(RuntimePath)xunit.runner.visualstudio.testadapter.dll" />
+      <SupplementalTestData Include="$(RuntimePath)xunit.runner.reporters.net452.dll" />
+      <SupplementalTestData Include="$(RuntimePath)xunit.runner.utility.net452.dll" />
+      <SupplementalTestData Include="$(RuntimePath)xunit.assert.dll" />
+      <SupplementalTestData Include="$(RuntimePath)xunit.core.dll" />
+      <SupplementalTestData Include="$(RuntimePath)xunit.abstractions.dll" />
     </ItemGroup>
 
     <!-- SupplementalTestData has its own properties to control hard links, however, with the coverage dedicated runtime that will override the original -->
@@ -160,9 +168,17 @@
       <ReferenceFromRuntime Include="xunit.core" />
       <ReferenceFromRuntime Include="xunit.performance.api" />
       <ReferenceFromRuntime Include="xunit.performance.core" />
-      <ReferenceFromRuntime Include="xunit.runner.visualstudio.dotnetcore.testadapter" />
+      <ReferenceFromRuntime Condition="'$(BuildingNETFxVertical)' != 'true'" Include="xunit.runner.visualstudio.dotnetcore.testadapter" />
+      <ReferenceFromRuntime Condition="'$(BuildingNETFxVertical)' == 'true'" Include="xunit.runner.visualstudio.testadapter" />
+
+      <!-- Reference everything in the targeting pack directory -->
+      <TargetingPackItems Include="%(TargetingPackDirs.Identity)/*.dll" />
+
+      <DefaultReference Include="%(TargetingPackItems.Filename)" Exclude="@(TargetingPackExclusions)" />
+    </ItemGroup>
 
       <!-- Test SDK -->
+    <ItemGroup Condition="'$(IsTestProject)' == 'true' and '$(IncludeDefaultReferences)' == 'true' and '$(BuildingNETFxVertical)' != 'true'">
       <ReferenceFromRuntime Include="Microsoft.DotNet.PlatformAbstractions" />
       <ReferenceFromRuntime Include="Microsoft.Extensions.DependencyModel" />
       <ReferenceFromRuntime Include="Microsoft.TestPlatform.CommunicationUtilities" />
@@ -173,11 +189,6 @@
       <ReferenceFromRuntime Include="Microsoft.VisualStudio.TestPlatform.Common" />
       <ReferenceFromRuntime Include="Microsoft.VisualStudio.TestPlatform.ObjectModel" />
       <ReferenceFromRuntime Include="testhost" />
-
-      <!-- Reference everything in the targeting pack directory -->
-      <TargetingPackItems Include="%(TargetingPackDirs.Identity)/*.dll" />
-
-      <DefaultReference Include="%(TargetingPackItems.Filename)" Exclude="@(TargetingPackExclusions)" />
     </ItemGroup>
   </Target>
 
