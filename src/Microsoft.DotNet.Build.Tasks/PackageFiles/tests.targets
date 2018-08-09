@@ -168,8 +168,6 @@
       <ReferenceFromRuntime Include="xunit.core" />
       <ReferenceFromRuntime Include="xunit.performance.api" />
       <ReferenceFromRuntime Include="xunit.performance.core" />
-      <ReferenceFromRuntime Condition="'$(BuildingNETFxVertical)' != 'true'" Include="xunit.runner.visualstudio.dotnetcore.testadapter" />
-      <ReferenceFromRuntime Condition="'$(BuildingNETFxVertical)' == 'true'" Include="xunit.runner.visualstudio.testadapter" />
 
       <!-- Reference everything in the targeting pack directory -->
       <TargetingPackItems Include="%(TargetingPackDirs.Identity)/*.dll" />
@@ -177,8 +175,8 @@
       <DefaultReference Include="%(TargetingPackItems.Filename)" Exclude="@(TargetingPackExclusions)" />
     </ItemGroup>
 
-      <!-- Test SDK -->
-    <ItemGroup Condition="'$(IsTestProject)' == 'true' and '$(IncludeDefaultReferences)' == 'true' and '$(BuildingNETFxVertical)' != 'true'">
+    <!-- netcoreapp -->
+    <ItemGroup Condition="'$(IsTestProject)' == 'true' and '$(IncludeDefaultReferences)' == 'true' and '$(BuildingNETCoreAppVertical)' == 'true'">
       <ReferenceFromRuntime Include="Microsoft.DotNet.PlatformAbstractions" />
       <ReferenceFromRuntime Include="Microsoft.Extensions.DependencyModel" />
       <ReferenceFromRuntime Include="Microsoft.TestPlatform.CommunicationUtilities" />
@@ -189,6 +187,17 @@
       <ReferenceFromRuntime Include="Microsoft.VisualStudio.TestPlatform.Common" />
       <ReferenceFromRuntime Include="Microsoft.VisualStudio.TestPlatform.ObjectModel" />
       <ReferenceFromRuntime Include="testhost" />
+      <ReferenceFromRuntime Include="xunit.runner.visualstudio.dotnetcore.testadapter" />
+    </ItemGroup>
+
+    <!-- uap -->
+    <ItemGroup Condition="'$(IsTestProject)' == 'true' and '$(IncludeDefaultReferences)' == 'true' and '$(BuildingUAPVertical)' == 'true'">
+      <ReferenceFromRuntime Include="xunit.runner.visualstudio.uwp.testadapter" />      
+    </ItemGroup>
+
+    <!-- netfx -->
+    <ItemGroup Condition="'$(IsTestProject)' == 'true' and '$(IncludeDefaultReferences)' == 'true' and '$(BuildingNETFxVertical)' == 'true'">
+      <ReferenceFromRuntime Include="xunit.runner.visualstudio.testadapter" />      
     </ItemGroup>
   </Target>
 
