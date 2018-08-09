@@ -985,6 +985,14 @@
     <DefaultValidateFramework Include="net47" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
       <RuntimeIDs>;@(NET47RIDs)</RuntimeIDs>
     </DefaultValidateFramework>
+    <NET471RIDs Condition="'@(NET471RIDs)' == ''" Include="@(NET47RIDs)" />
+    <DefaultValidateFramework Include="net471" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
+      <RuntimeIDs>;@(NET471RIDs)</RuntimeIDs>
+    </DefaultValidateFramework>
+    <NET472RIDs Condition="'@(NET472RIDs)' == ''" Include="@(NET471RIDs)" />
+    <DefaultValidateFramework Include="net472" Condition="'$(ExcludeFromDesktopSupportValidation)' != 'true'">
+      <RuntimeIDs>;@(NET472RIDs)</RuntimeIDs>
+    </DefaultValidateFramework>
 
     <DefaultValidateFramework Include="wpa81">
       <!-- Intentionally empty, no RIDs defined for phone-->
