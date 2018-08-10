@@ -127,7 +127,7 @@
       <RunTestsForProjectInputs Include="@(_DebugSymbolsIntermediatePath)" />
       <RunTestsForProjectInputs Include="@(AllItemsFullPathWithTargetPath)" />
     </ItemGroup>
-    <ItemGroup Condition="'$(BuildingNETFxVertical)' != 'true'">
+    <ItemGroup Condition="'$(BuildingNetCoreAppVertical)' == 'true'">
       <SupplementalTestData Condition="'$(SkipXunitRuntimeConfigCopying)' != 'true' and '$(UsingCoverageDedicatedRuntime)' != 'true'" Include="$(XunitRuntimeConfig)" />
       <SupplementalTestData Include="$(RuntimePath)xunit.console.dll" />
       <SupplementalTestData Include="$(RuntimePath)xunit.runner.utility.netcoreapp10.dll" />
