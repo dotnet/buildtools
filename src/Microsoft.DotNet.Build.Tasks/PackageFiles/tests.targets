@@ -463,7 +463,7 @@ robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
       <_Runtime_Path>$(_Runtime_Path.Replace('/', '\'))</_Runtime_Path>
 
       <!-- The test execution command is different for UAP. -->
-      <TestCommandLine>%RUNTIME_PATH%\Launcher\WindowsStoreAppLauncher.exe -test appxmanifest.xml $(XunitArguments) $(XunitTraitOptions)</TestCommandLine>
+      <TestCommandLine>XUnitRunnerUap $(XunitArguments) $(XunitTraitOptions)</TestCommandLine>
     </PropertyGroup>
 
     <ItemGroup Condition="'$(BuildingUAPVertical)' == 'true'" >
@@ -482,6 +482,14 @@ robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
 
       <!-- We need to have the ni as well as the non-ni version of the binary. The host (being a rather old build) looks for the ni name first (so we need that as well for now.) -->
       <TestCommandLines Include="copy /y $(_Runtime_Path)System.Private.CoreLib.dll System.Private.CoreLib.ni.dll" />
+
+      <!-- Install -->
+      <TestCommandLines Include="call %RUNTIME_PATH%\Launcher\WindowsStoreAppLauncher.exe -install appxmanifest.xml $(XunitArguments) $(XunitTraitOptions)" />
+      <TestCommandLines Include="echo." />
+      
+      <!-- Uninstall -->
+      <PostExecutionTestCommandLines Include="echo." />
+      <PostExecutionTestCommandLines Include="call %RUNTIME_PATH%\Launcher\WindowsStoreAppLauncher.exe -uninstall appxmanifest.xml $(XunitArguments) $(XunitTraitOptions)" />
 
       <!-- Copy the log files and the results files from the Documents folder to the test folder -->
       <PostExecutionTestCommandLines Include="move $(UAP_Results_Path)$(XunitTestAssembly).xml .\$(XunitResultsFileName)" />
