@@ -362,10 +362,14 @@
     <Error Condition="'$(TargetOSTrait)' == ''" Text="TargetOS [$(TargetOS)] is unknown so we don't know how to configure the test run for this project [$(MSBuildProjectName)]" />
 
     <PropertyGroup>
-      <RunnerScriptName Condition="'$(TargetOS)'=='Windows_NT'" >RunTests.cmd</RunnerScriptName>
-      <RunnerTemplateName Condition="'$(TargetOS)'=='Windows_NT'" >RunnerTemplate.Windows.txt</RunnerTemplateName>
-      <RunnerScriptName Condition="'$(TargetOS)'!='Windows_NT'" >RunTests.sh</RunnerScriptName>
-      <RunnerTemplateName Condition="'$(TargetOS)'!='Windows_NT'" >RunnerTemplate.Unix.txt</RunnerTemplateName>
+      <RunnerScriptName Condition="'$(TargetOS)' == 'Windows_NT'">RunTests.cmd</RunnerScriptName>
+      <RunnerScriptName Condition="'$(TargetOS)' != 'Windows_NT'">RunTests.sh</RunnerScriptName>
+
+      <!-- In UAP we don't want the repro steps printed -->
+      <RunnerTemplateName Condition="'$(TargetOS)' == 'Windows_NT' AND '$(BuildingUAPVertical)' != 'true'">RunnerTemplate.Windows.txt</RunnerTemplateName>
+      <RunnerTemplateName Condition="'$(TargetOS)' == 'Windows_NT' AND '$(BuildingUAPVertical)' == 'true'">RunnerTemplate.Quiet.Windows.txt</RunnerTemplateName>
+      <RunnerTemplateName Condition="'$(TargetOS)' != 'Windows_NT' AND '$(BuildingUAPVertical)' != 'true'">RunnerTemplate.Unix.txt</RunnerTemplateName>
+      <RunnerTemplateName Condition="'$(TargetOS)' != 'Windows_NT' AND '$(BuildingUAPVertical)' == 'true'">RunnerTemplate.Quiet.Unix.txt</RunnerTemplateName>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -458,7 +462,7 @@ robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
       <!-- The location where the logs will be written by the test runner -->
       <UAP_Results_Path Condition="'$(UAP_Results_Path)'==''">%USERPROFILE%\Documents\TestResults\</UAP_Results_Path>
 
-      <_Runtime_Path>%RUNTIME_PATH%\UAPLayout\</_Runtime_Path>
+      <_Runtime_Path>%RUNTIME_PATH%UAPLayout\</_Runtime_Path>
       <!-- Make sure the path only has one type of slashes -->
       <_Runtime_Path>$(_Runtime_Path.Replace('/', '\'))</_Runtime_Path>
 
@@ -470,15 +474,15 @@ robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
       <!-- Copy the runner files into the test directory -->
       <RunnerFolderContents Include="$(TestHostRootPath)\Runner\**\*" Exclude="$(TestHostRootPath)\Runner\**\*.pri"/>
 
-      <TestCommandLines Include="mkdir Assets" />
-      <TestCommandLines Include="mkdir entrypoint" />
-      <TestCommandLines Include="mkdir Properties" />
-      <TestCommandLines Include="mkdir WinMetadata" />
-      <TestCommandLines Include="mklink /H %(RunnerFolderContents.RecursiveDir)%(RunnerFolderContents.Filename)%(RunnerFolderContents.Extension) %RUNTIME_PATH%\Runner\%(RunnerFolderContents.RecursiveDir)%(RunnerFolderContents.Filename)%(RunnerFolderContents.Extension)" />
+      <TestCommandLines Include="if not exist Assets mkdir Assets" />
+      <TestCommandLines Include="if not exist entrypoint mkdir entrypoint" />
+      <TestCommandLines Include="if not exist Properties mkdir Properties" />
+      <TestCommandLines Include="if not exist WinMetadata mkdir WinMetadata" />
+      <TestCommandLines Include="if not exist %(RunnerFolderContents.RecursiveDir)%(RunnerFolderContents.Filename)%(RunnerFolderContents.Extension) mklink /H %(RunnerFolderContents.RecursiveDir)%(RunnerFolderContents.Filename)%(RunnerFolderContents.Extension) %RUNTIME_PATH%\Runner\%(RunnerFolderContents.RecursiveDir)%(RunnerFolderContents.Filename)%(RunnerFolderContents.Extension) 1> NUL" />
 
       <!-- Copy the runtime binaries over -->
       <RuntimePathContents Include="$(TestHostRootPath)\UAPLayout\*"/>
-      <TestCommandLines Include="mklink /H %(RuntimePathContents.RecursiveDir)%(RuntimePathContents.Filename)%(RuntimePathContents.Extension) $(_Runtime_Path)%(RuntimePathContents.Filename)%(RuntimePathContents.Extension)" />
+      <TestCommandLines Include="if not exist %(RuntimePathContents.RecursiveDir)%(RuntimePathContents.Filename)%(RuntimePathContents.Extension) mklink /H %(RuntimePathContents.RecursiveDir)%(RuntimePathContents.Filename)%(RuntimePathContents.Extension) $(_Runtime_Path)%(RuntimePathContents.Filename)%(RuntimePathContents.Extension) 1> NUL" />
 
       <!-- We need to have the ni as well as the non-ni version of the binary. The host (being a rather old build) looks for the ni name first (so we need that as well for now.) -->
       <TestCommandLines Include="copy /y $(_Runtime_Path)System.Private.CoreLib.dll System.Private.CoreLib.ni.dll" />
@@ -492,7 +496,7 @@ robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
       <PostExecutionTestCommandLines Include="call %RUNTIME_PATH%\Launcher\WindowsStoreAppLauncher.exe -uninstall appxmanifest.xml $(XunitArguments) $(XunitTraitOptions)" />
 
       <!-- Copy the log files and the results files from the Documents folder to the test folder -->
-      <PostExecutionTestCommandLines Include="move $(UAP_Results_Path)$(XunitTestAssembly).xml .\$(XunitResultsFileName)" />
+      <PostExecutionTestCommandLines Include="move /Y $(UAP_Results_Path)$(XunitTestAssembly).xml .\$(XunitResultsFileName)" />
     </ItemGroup>
 
     <!-- If the PreExecutionTestScript property is set, then it should be set to the full path to a script that will be directly incorporated
