@@ -40,7 +40,8 @@
     <TestHostExecutablePath Condition="'$(RunningOnUnix)'!='true' AND '$(TestHostExecutablePath)' == '' AND '$(UseDotNetNativeToolchain)' != 'true'">$(TestRuntimeEnvVar)dotnet.exe</TestHostExecutablePath>
     <TestHostExecutablePath Condition="'$(RunningOnUnix)'=='true' AND '$(TestHostExecutablePath)' == '' AND '$(UseDotNetNativeToolchain)' != 'true'">$(TestRuntimeEnvVar)dotnet</TestHostExecutablePath>
 
-    <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.dll</XunitExecutable>
+    <XunitExecutable Condition="'$(XunitExecutable)' == '' AND '$(UseDotNetNativeToolchain)' != 'true'">xunit.console.dll</XunitExecutable>
+    <XunitExecutable Condition="'$(XunitExecutable)' == '' AND '$(UseDotNetNativeToolchain)' == 'true'">xunit.console.exe</XunitExecutable>
     <XunitRuntimeConfigFile>xunit.console.runtimeconfig.json</XunitRuntimeConfigFile>
 
     <DebugEngines>{2E36F1D4-B23C-435D-AB41-18E608940038}</DebugEngines>
@@ -48,6 +49,10 @@
 
   <PropertyGroup Condition="'$(BuildingNETFxVertical)' == 'true'">
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.exe</XunitExecutable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RemoteExecutorExecutable>RemoteExecutorConsoleApp.exe</RemoteExecutorExecutable>
   </PropertyGroup>
 
   <!-- General xunit options -->
@@ -61,7 +66,6 @@
     <_XunitOptions Condition="'$(Performance)'!='true' and '$(Outerloop)' != 'true'">$(_XunitOptions) -notrait Benchmark=true</_XunitOptions>
     <!-- Don't run performance tests in parallel, even in "functional" outerloop runs. -->
     <_XunitOptions Condition="'$(Performance)'!='true' and '$(Outerloop)' == 'true' and '$(IncludePerformanceTests)' == 'true'">$(_XunitOptions) -parallel none</_XunitOptions>
-    <_XunitOptions Condition="'$(UseDotNetNativeToolchain)'=='true'">$(_XunitOptions) -redirectoutput</_XunitOptions>
     <_XunitOptions>$(_XunitOptions) -notrait category=non$(_bc_TargetGroup)tests</_XunitOptions>
 
     <TargetOS Condition="'$(TargetOS)' == ''">$(DefaultOSGroup)</TargetOS>
@@ -129,13 +133,13 @@
     </ItemGroup>
     <ItemGroup Condition="'$(BuildingNetCoreAppVertical)' == 'true'">
       <SupplementalTestData Condition="'$(SkipXunitRuntimeConfigCopying)' != 'true' and '$(UsingCoverageDedicatedRuntime)' != 'true'" Include="$(XunitRuntimeConfig)" />
-      <SupplementalTestData Include="$(RuntimePath)xunit.console.dll" />
+      <SupplementalTestData Include="$(RuntimePath)$(XunitExecutable)" />
       <SupplementalTestData Include="$(RuntimePath)xunit.runner.utility.netcoreapp10.dll" />
       <SupplementalTestData Include="$(RuntimePath)xunit.runner.visualstudio.dotnetcore.testadapter.dll" />
       <SupplementalTestData Include="$(RuntimePath)xunit.runner.reporters.netcoreapp10.dll" />
     </ItemGroup>
     <ItemGroup Condition="'$(BuildingNETFxVertical)' == 'true'">
-      <SupplementalTestData Include="$(RuntimePath)xunit.console.exe" />
+      <SupplementalTestData Include="$(RuntimePath)$(XunitExecutable)" />
       <SupplementalTestData Include="$(RuntimePath)xunit.execution.desktop.dll" />
       <SupplementalTestData Include="$(RuntimePath)xunit.runner.visualstudio.testadapter.dll" />
       <SupplementalTestData Include="$(RuntimePath)xunit.runner.reporters.net452.dll" />
@@ -209,7 +213,7 @@
     <PropertyGroup>
       <NETFxTestRunnerAppConfig Condition="'$(NETFxTestRunnerAppConfig)' == ''">$(ToolsDir)\DesktopRunnerConfigFile.config</NETFxTestRunnerAppConfig>
       <XunitRunnerNETFxConfigFile>$(TestPath)\$(XunitExecutable).config</XunitRunnerNETFxConfigFile>
-      <RemoteExecutorConfigFile>$(TestPath)\RemoteExecutorConsoleApp.exe.config</RemoteExecutorConfigFile>
+      <RemoteExecutorConfigFile>$(TestPath)\$(RemoteExecutorExecutable).config</RemoteExecutorConfigFile>
     </PropertyGroup>
 
     <Copy SourceFiles="$(NETFxTestRunnerAppConfig)"
@@ -217,7 +221,7 @@
           SkipUnchangedFiles="true"
           />
 
-    <Copy Condition="Exists('$(TestPath)\RemoteExecutorConsoleApp.exe')"
+    <Copy Condition="Exists('$(TestPath)\$(RemoteExecutorExecutable)')"
           SourceFiles="$(NETFxTestRunnerAppConfig)"
           DestinationFiles="$(RemoteExecutorConfigFile)"
           SkipUnchangedFiles="true"
@@ -367,9 +371,9 @@
 
       <!-- In UAP we don't want the repro steps printed -->
       <RunnerTemplateName Condition="'$(TargetOS)' == 'Windows_NT' AND '$(BuildingUAPVertical)' != 'true'">RunnerTemplate.Windows.txt</RunnerTemplateName>
-      <RunnerTemplateName Condition="'$(TargetOS)' == 'Windows_NT' AND '$(BuildingUAPVertical)' == 'true'">RunnerTemplate.Quiet.Windows.txt</RunnerTemplateName>
+      <RunnerTemplateName Condition="'$(TargetOS)' == 'Windows_NT' AND ('$(BuildingUAPVertical)' == 'true' OR '$(UseDotNetNativeToolchain)' == 'true')">RunnerTemplate.Quiet.Windows.txt</RunnerTemplateName>
       <RunnerTemplateName Condition="'$(TargetOS)' != 'Windows_NT' AND '$(BuildingUAPVertical)' != 'true'">RunnerTemplate.Unix.txt</RunnerTemplateName>
-      <RunnerTemplateName Condition="'$(TargetOS)' != 'Windows_NT' AND '$(BuildingUAPVertical)' == 'true'">RunnerTemplate.Quiet.Unix.txt</RunnerTemplateName>
+      <RunnerTemplateName Condition="'$(TargetOS)' != 'Windows_NT' AND ('$(BuildingUAPVertical)' == 'true' OR '$(UseDotNetNativeToolchain)' == 'true')">RunnerTemplate.Quiet.Unix.txt</RunnerTemplateName>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -432,13 +436,16 @@
     </PropertyGroup>
 
     <ItemGroup Condition="'$(UseDotNetNativeToolchain)' == 'true' AND '$(Performance)'!='true'" >
-      <TargetExecutableNames Include="xunit.console.dll"/>
-      <TargetExecutableNames Condition="'%(ProjectReference.Filename)' == 'RemoteExecutorConsoleApp'" Include="RemoteExecutorConsoleApp.exe"/>
-      <IlcInputFolderContents Include="$(ILCFXInputFolder)/*" />
-      <TestCommandLines Include="mklink /H %(IlcInputFolderContents.Filename)%(IlcInputFolderContents.Extension) $(_Runtime_Path)%(IlcInputFolderContents.Filename)%(IlcInputFolderContents.Extension)" />
-      <TestCommandLines Include="copy /y $(_TestILCFolder)\default.rd.xml  %EXECUTION_DIR%" />
-      <TestCommandLines Include="rmdir /S /Q %EXECUTION_DIR%int" />
-      <TestCommandLines Include="rmdir /S /Q %EXECUTION_DIR%native" />
+      <TargetExecutableNames Include="xunit.console.exe"/>
+      <TargetExecutableNames Condition="'%(ProjectReference.Filename)' == 'RemoteExecutorConsoleApp'" Include="$(RemoteExecutorExecutable)"/>
+      <IlcInputFolderContents Include="$(ILCFXInputFolder)/*" Exclude="$(ILCFXInputFolder)/**/xunit.console.dll" />
+
+      <TestCommandLines Include="if not exist %(IlcInputFolderContents.Filename)%(IlcInputFolderContents.Extension) mklink /H %(IlcInputFolderContents.Filename)%(IlcInputFolderContents.Extension) $(_Runtime_Path)%(IlcInputFolderContents.Filename)%(IlcInputFolderContents.Extension) 1> NUL" />
+      <TestCommandLines Include="copy /y $(_TestILCFolder)\default.rd.xml %EXECUTION_DIR%" />
+      <!-- Need to rename dll with entrypoint to exe for ilc to be satisfied -->
+      <TestCommandLines Include="copy /y $(_Runtime_Path)xunit.console.dll $(XunitExecutable)" />
+      <TestCommandLines Include="if exist %EXECUTION_DIR%int rmdir /S /Q %EXECUTION_DIR%int" />
+      <TestCommandLines Include="if exist %EXECUTION_DIR%native rmdir /S /Q %EXECUTION_DIR%native" />
       <TestCommandLines Include="@(TargetExecutableNames -> '
 call %RUNTIME_PATH%\TestILC\ilc.exe -ExeName %(Identity) -in %EXECUTION_DIR% -out %EXECUTION_DIR%int\%(Identity)\ -usedefaultpinvoke -buildtype $(ILCBuildType) -v diag $(_UseSharedAssemblies) $(_ILCWin32)
 set ILCERRORLEVEL=%ERRORLEVEL%
@@ -448,11 +455,9 @@ robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
       <TestCommandLines Include="copy /y $(_TestILCFolder)\CRT\vcruntime140_app.dll %EXECUTION_DIR%native" />
       <TestCommandLines Include="echo > %EXECUTION_DIR%\native\$(XunitTestAssembly)"/>
       <TestCommandLines Include="cd native"/>
+
       <!-- These will cause failures if execution is skipped, such as on ARM -->
-      <PostExecutionTestCommandLines Condition="'$(ArchGroup)'!='arm'" Include="type Xunit.Console.Output.txt" />
-      <!-- The result XML part is basically unnecessary but the console output is useful. -->
-      <PostExecutionTestCommandLines Condition="'$(ArchGroup)'=='arm'" Include="echo type Xunit.Console.Output.txt >> .\RunCompiledTest.cmd" />
-      <PostExecutionTestCommandLines Condition="'$(ArchGroup)'!='arm'" Include="copy /y testResults.xml %EXECUTION_DIR%\" />
+      <PostExecutionTestCommandLines Condition="'$(ArchGroup)' != 'arm'" Include="copy /y testResults.xml %EXECUTION_DIR%\" />
     </ItemGroup>
 
     <!--======================================================
