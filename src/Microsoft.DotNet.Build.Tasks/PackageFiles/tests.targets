@@ -175,24 +175,27 @@
       <TargetingPackExclusions Include="System.Runtime.WindowsRuntime.UI.Xaml" /> <!-- Harmless, but causes PRI targets to run -->
       <TargetingPackExclusions Include="@(ReferenceFromRuntime)"/>
 
-      <!-- Whitelisted runtime assemblies that are OK to reference. -->
-
-      <!-- xunit -->
-      <ReferenceFromRuntime Include="Microsoft.DotNet.XUnitExtensions" />
-      <ReferenceFromRuntime Include="xunit.abstractions" />
-      <ReferenceFromRuntime Include="xunit.assert" />
-      <ReferenceFromRuntime Include="xunit.core" />
-      <ReferenceFromRuntime Include="xunit.performance.api" />
-      <ReferenceFromRuntime Include="xunit.performance.core" />
-
       <!-- Reference everything in the targeting pack directory -->
       <TargetingPackItems Include="%(TargetingPackDirs.Identity)/*.dll" />
 
       <DefaultReference Include="%(TargetingPackItems.Filename)" Exclude="@(TargetingPackExclusions)" />
     </ItemGroup>
 
+    <!-- Default test references that are ok to reference. -->
+
+    <!-- xunit -->
+    <ItemGroup Condition="'$(IsTestProject)' == 'true'">
+      <ReferenceFromRuntime Include="Microsoft.DotNet.XUnitExtensions" />
+      <ReferenceFromRuntime Include="xunit.abstractions" />
+      <ReferenceFromRuntime Include="xunit.assert" />
+      <ReferenceFromRuntime Include="xunit.core" />
+    </ItemGroup>
+
     <!-- netcoreapp -->
-    <ItemGroup Condition="'$(IsTestProject)' == 'true' and '$(IncludeDefaultReferences)' == 'true' and '$(BuildingNETCoreAppVertical)' == 'true'">
+    <ItemGroup Condition="'$(IsTestProject)' == 'true' AND '$(BuildingNETCoreAppVertical)' == 'true'">
+      <ReferenceFromRuntime Include="xunit.performance.api" />
+      <ReferenceFromRuntime Include="xunit.performance.core" />
+
       <ReferenceFromRuntime Include="Microsoft.DotNet.PlatformAbstractions" />
       <ReferenceFromRuntime Include="Microsoft.Extensions.DependencyModel" />
       <ReferenceFromRuntime Include="Microsoft.TestPlatform.CommunicationUtilities" />
@@ -207,14 +210,18 @@
     </ItemGroup>
 
     <!-- uap -->
-    <ItemGroup Condition="'$(IsTestProject)' == 'true' and '$(IncludeDefaultReferences)' == 'true' and ('$(BuildingUAPVertical)' == 'true' OR '$(BuildingUAPAOTVertical)' == 'true')">
+    <ItemGroup Condition="'$(IsTestProject)' == 'true' AND ('$(BuildingUAPVertical)' == 'true' OR '$(BuildingUAPAOTVertical)' == 'true')">
       <ReferenceFromRuntime Include="testhost" />
       <ReferenceFromRuntime Include="xunit.runner.visualstudio.uwp.testadapter" />
     </ItemGroup>
 
     <!-- netfx -->
-    <ItemGroup Condition="'$(IsTestProject)' == 'true' and '$(IncludeDefaultReferences)' == 'true' and '$(BuildingNETFxVertical)' == 'true'">
-      <ReferenceFromRuntime Include="Microsoft.VisualStudio.CodeCoverage.Shim" />      
+    <ItemGroup Condition="'$(IsTestProject)' == 'true' AND '$(BuildingNETFxVertical)' == 'true'">
+      <!-- We currently don't run performance tests on netfx but we could enable that. -->
+      <ReferenceFromRuntime Include="xunit.performance.api" />
+      <ReferenceFromRuntime Include="xunit.performance.core" />
+
+      <ReferenceFromRuntime Include="Microsoft.VisualStudio.CodeCoverage.Shim" />
       <ReferenceFromRuntime Include="xunit.runner.visualstudio.testadapter" />
     </ItemGroup>
   </Target>
