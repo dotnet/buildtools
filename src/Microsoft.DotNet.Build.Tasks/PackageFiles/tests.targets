@@ -123,6 +123,18 @@
     <StartArguments Condition="'$(StartArguments)'==''">$(TestArguments) -wait -parallel none</StartArguments>
   </PropertyGroup>
 
+  <!--
+    Copied from Microsoft.Net.Test.Sdk.targets which currently skips netstandard projects as 
+    they are not intended to be executable. We override this as we launch the test assemblies
+    directly with the runner. This is needed for VS debugging support.
+  -->
+  <PropertyGroup Condition="'$(IsTestProject)'=='true' AND '$(BuildingNETCoreAppVertical)' == 'true'">
+    <OutputType>Exe</OutputType>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <GeneratedProgramFile Condition="'$(GeneratedProgramFile)' ==''">$(IntermediateOutputPath)$(MSBuildProjectName).Program$(DefaultLanguageSourceExtension)</GeneratedProgramFile>
+    <GenerateProgramFile Condition="'$(GenerateProgramFile)' == ''">true</GenerateProgramFile>
+  </PropertyGroup>
+
   <Target Name="DiscoverTestInputs" DependsOnTargets="ResolveReferences;GetCopyToOutputDirectoryItems">
     <ItemGroup>
       <RunTestsForProjectInputs Include="@(ReferenceCopyLocalPaths)" />
