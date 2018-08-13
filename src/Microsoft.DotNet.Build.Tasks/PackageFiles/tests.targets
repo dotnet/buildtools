@@ -116,16 +116,11 @@
   </Choose>
 
   <!-- In VS (2015 Preview or later currently required): Debug to run unit tests on CoreCLR. -->
-  <PropertyGroup Condition="'$(IsTestProject)'=='true'">
+  <PropertyGroup Condition="'$(IsRealTestProject)' == 'true'">
     <StartWorkingDirectory Condition="'$(StartWorkingDirectory)'==''">$(TestPath)</StartWorkingDirectory>
     <StartAction Condition="'$(StartAction)'==''">Program</StartAction>
     <StartProgram Condition="'$(StartProgram)'==''">$(TestHostRootPath)dotnet.exe</StartProgram>
     <StartArguments Condition="'$(StartArguments)'==''">$(TestArguments) -wait -parallel none</StartArguments>
-  </PropertyGroup>
-
-  <!-- Disable Microsoft.NET.Test.SDK entry point generation for executable assemblies under tests. -->  
-  <PropertyGroup Condition="'$(IsTestProject)' == 'true' AND '$(OutputType.ToLower())' == 'exe'">
-    <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
 
   <!--
@@ -134,7 +129,7 @@
     directly with the runner. This is needed for VS debugging support.
     TODO: Fix VB test project reference to Test SDK.
   -->
-  <PropertyGroup Condition="'$(IsTestProject)'=='true' AND '$(BuildingNETCoreAppVertical)' == 'true' AND '$(Language)' != 'VB'">
+  <PropertyGroup Condition="'$(IsRealTestProject)' == 'true' AND '$(BuildingNETCoreAppVertical)' == 'true' AND '$(Language)' != 'VB'">
     <OutputType>Exe</OutputType>
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
     <GeneratedProgramFile Condition="'$(GeneratedProgramFile)' ==''">$(IntermediateOutputPath)$(MSBuildProjectName).Program$(DefaultLanguageSourceExtension)</GeneratedProgramFile>

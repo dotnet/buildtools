@@ -21,6 +21,12 @@
     <CLSCompliant Condition="'$(CLSCompliant)'==''">true</CLSCompliant>
 
     <!--
+      Find projects in the tests folder which are not executable to distinguish
+      from accompanying support libraries.
+    -->
+    <IsRealTestProject Condition="'$(IsTestProject)' == 'true' AND '$(OutputType.ToLower())' != 'exe'">true</IsRealTestProject>
+
+    <!--
       Check if the project has been localized by looking for the existence of the .de.xlf file.  By convention, we assume that if
       a project is localized in German, then it is localized in all languages.
     -->
