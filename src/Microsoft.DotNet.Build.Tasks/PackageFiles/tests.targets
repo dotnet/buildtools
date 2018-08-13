@@ -207,13 +207,15 @@
     </ItemGroup>
 
     <!-- uap -->
-    <ItemGroup Condition="'$(IsTestProject)' == 'true' and '$(IncludeDefaultReferences)' == 'true' and '$(BuildingUAPVertical)' == 'true'">
-      <ReferenceFromRuntime Include="xunit.runner.visualstudio.uwp.testadapter" />      
+    <ItemGroup Condition="'$(IsTestProject)' == 'true' and '$(IncludeDefaultReferences)' == 'true' and ('$(BuildingUAPVertical)' == 'true' OR '$(BuildingUAPAOTVertical)' == 'true')">
+      <ReferenceFromRuntime Include="testhost" />
+      <ReferenceFromRuntime Include="xunit.runner.visualstudio.uwp.testadapter" />
     </ItemGroup>
 
     <!-- netfx -->
     <ItemGroup Condition="'$(IsTestProject)' == 'true' and '$(IncludeDefaultReferences)' == 'true' and '$(BuildingNETFxVertical)' == 'true'">
-      <ReferenceFromRuntime Include="xunit.runner.visualstudio.testadapter" />      
+      <ReferenceFromRuntime Include="Microsoft.VisualStudio.CodeCoverage.Shim" />      
+      <ReferenceFromRuntime Include="xunit.runner.visualstudio.testadapter" />
     </ItemGroup>
   </Target>
 
