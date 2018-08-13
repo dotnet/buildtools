@@ -170,8 +170,8 @@
           UseHardLinksIfPossible="false" />
   </Target>
 
-  <Target Name="AddDefaultTestReferences" BeforeTargets="SetupDefaultReferences">
-    <ItemGroup Condition="'$(IsTestProject)'=='true' and '$(IncludeDefaultReferences)' == 'true'">
+  <Target Name="AddDefaultTestReferences" BeforeTargets="SetupDefaultReferences" Condition="'$(IsTestProject)' == 'true'">
+    <ItemGroup Condition="'$(IncludeDefaultReferences)' == 'true'">
       <TargetingPackExclusions Include="System.Runtime.WindowsRuntime.UI.Xaml" /> <!-- Harmless, but causes PRI targets to run -->
       <TargetingPackExclusions Include="@(ReferenceFromRuntime)"/>
 
@@ -184,7 +184,7 @@
     <!-- Default test references that are ok to reference. -->
 
     <!-- xunit -->
-    <ItemGroup Condition="'$(IsTestProject)' == 'true'">
+    <ItemGroup>
       <ReferenceFromRuntime Include="Microsoft.DotNet.XUnitExtensions" />
       <ReferenceFromRuntime Include="xunit.abstractions" />
       <ReferenceFromRuntime Include="xunit.assert" />
@@ -192,7 +192,7 @@
     </ItemGroup>
 
     <!-- netcoreapp -->
-    <ItemGroup Condition="'$(IsTestProject)' == 'true' AND '$(BuildingNETCoreAppVertical)' == 'true'">
+    <ItemGroup Condition="'$(BuildingNETCoreAppVertical)' == 'true'">
       <ReferenceFromRuntime Include="xunit.performance.api" />
       <ReferenceFromRuntime Include="xunit.performance.core" />
 
@@ -210,13 +210,13 @@
     </ItemGroup>
 
     <!-- uap -->
-    <ItemGroup Condition="'$(IsTestProject)' == 'true' AND ('$(BuildingUAPVertical)' == 'true' OR '$(BuildingUAPAOTVertical)' == 'true')">
+    <ItemGroup Condition="'$(BuildingUAPVertical)' == 'true' OR '$(BuildingUAPAOTVertical)' == 'true'">
       <ReferenceFromRuntime Include="testhost" />
       <ReferenceFromRuntime Include="xunit.runner.visualstudio.uwp.testadapter" />
     </ItemGroup>
 
     <!-- netfx -->
-    <ItemGroup Condition="'$(IsTestProject)' == 'true' AND '$(BuildingNETFxVertical)' == 'true'">
+    <ItemGroup Condition="'$(BuildingNETFxVertical)' == 'true'">
       <!-- We currently don't run performance tests on netfx but we could enable that. -->
       <ReferenceFromRuntime Include="xunit.performance.api" />
       <ReferenceFromRuntime Include="xunit.performance.core" />
