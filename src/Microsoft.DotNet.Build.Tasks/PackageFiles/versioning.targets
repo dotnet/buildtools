@@ -241,6 +241,7 @@
     <!-- ******* SourceLink Support, activated by setting $(UseSourceLink) ********* -->
 
     <!-- Generate the SourceLink file that will be passed to the C# compiler (using ProjectDir and GitHubRepositoryUrl as data) -->
+    <MakeDir Directories="$(RootIntermediateOutputPath)" />
     <WriteLinesToFile 
       Condition="'$(UseSourceLink)' == 'true' AND '$(GitHubRepositoryUrl)' != '' AND '$(LatestCommit)' != 'N/A' AND !Exists('$(SourceLinkFilePath)')"
       ContinueOnError="WarnAndContinue"

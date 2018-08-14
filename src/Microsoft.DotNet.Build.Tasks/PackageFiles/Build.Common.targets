@@ -24,7 +24,7 @@
       Find projects in the tests folder which are not executable to distinguish
       from accompanying support libraries.
     -->
-    <IsRealTestProject Condition="'$(IsTestProject)' == 'true' AND '$(OutputType.ToLower())' != 'exe'">true</IsRealTestProject>
+    <IsInvokableTestProject Condition="'$(IsTestProject)' == 'true' AND '$(OutputType.ToLower())' != 'exe'">true</IsInvokableTestProject>
 
     <!--
       Check if the project has been localized by looking for the existence of the .de.xlf file.  By convention, we assume that if
