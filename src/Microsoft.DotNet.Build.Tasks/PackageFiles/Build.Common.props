@@ -58,6 +58,7 @@
   <!-- Setting IsTestProject prior to Build.Common.targets -->
   <PropertyGroup>
     <IsTestProject Condition="'$(IsTestProject)'=='' And ($(MSBuildProjectFullPath.Contains('\tests\')) OR $(MSBuildProjectFullPath.Contains('/tests/')))">true</IsTestProject>
+    <IsPerformanceTestProject Condition="'$(IsPerformanceTestProject)' == '' AND '$(IsTestProject)' == 'true' AND $(MSBuildProjectName.EndsWith('Performance.Tests'))">true</IsPerformanceTestProject>
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)BuildVersion.targets" />

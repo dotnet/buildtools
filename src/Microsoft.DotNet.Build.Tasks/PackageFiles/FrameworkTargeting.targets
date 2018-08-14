@@ -66,8 +66,6 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
-    <IncludeTestReferences Condition="'$(IncludeTestReferences)' == ''">true</IncludeTestReferences>
-    <IncludePerformanceTestReferences Condition="'$(IncludePerformanceTestReferences)' == ''">true</IncludePerformanceTestReferences>
     <IncludeVSTestReferences Condition="'$(IncludeVSTestReferences)' == ''">true</IncludeVSTestReferences>
   </PropertyGroup>
 

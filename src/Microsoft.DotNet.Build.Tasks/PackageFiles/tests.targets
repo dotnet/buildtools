@@ -185,19 +185,20 @@
     <!-- Default test references that are ok to reference. -->
 
     <!-- xunit -->
-    <ItemGroup Condition="'$(IncludeTestReferences)' == 'true'">
+    <ItemGroup>
       <ReferenceFromRuntime Include="Microsoft.DotNet.XUnitExtensions" />
       <ReferenceFromRuntime Include="xunit.abstractions" />
       <ReferenceFromRuntime Include="xunit.assert" />
       <ReferenceFromRuntime Include="xunit.core" />
     </ItemGroup>
 
-    <!-- netcoreapp -->
-    <ItemGroup Condition="'$(IncludePerformanceTestReferences)' == 'true' AND '$(BuildingNETCoreAppVertical)' == 'true'">
+    <!-- perf -->
+    <ItemGroup Condition="'$(IsPerformanceTestProject)' == 'true' AND ('$(BuildingNETCoreAppVertical)' == 'true' OR '$(BuildingNETFxVertical)' == 'true')">
       <ReferenceFromRuntime Include="xunit.performance.api" />
       <ReferenceFromRuntime Include="xunit.performance.core" />
     </ItemGroup>
 
+    <!-- vs debugging / test explorer -->
     <ItemGroup Condition="'$(IncludeVSTestReferences)' == 'true' AND '$(BuildingNETCoreAppVertical)' == 'true'">
       <ReferenceFromRuntime Include="Microsoft.DotNet.PlatformAbstractions" />
       <ReferenceFromRuntime Include="Microsoft.Extensions.DependencyModel" />
@@ -212,17 +213,9 @@
       <ReferenceFromRuntime Include="xunit.runner.visualstudio.dotnetcore.testadapter" />
     </ItemGroup>
 
-    <!-- uap -->
     <ItemGroup Condition="'$(IncludeVSTestReferences)' == 'true' AND ('$(BuildingUAPVertical)' == 'true' OR '$(BuildingUAPAOTVertical)' == 'true')">
       <ReferenceFromRuntime Include="testhost" />
       <ReferenceFromRuntime Include="xunit.runner.visualstudio.uwp.testadapter" />
-    </ItemGroup>
-
-    <!-- netfx -->
-    <ItemGroup Condition="'$(IncludePerformanceTestReferences)' == 'true' AND '$(BuildingNETFxVertical)' == 'true'">
-      <!-- We currently don't run performance tests on netfx but we could enable that. -->
-      <ReferenceFromRuntime Include="xunit.performance.api" />
-      <ReferenceFromRuntime Include="xunit.performance.core" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(IncludeVSTestReferences)' == 'true' AND '$(BuildingNETFxVertical)' == 'true'">
