@@ -493,7 +493,8 @@ robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
       <!-- The location where the logs will be written by the test runner -->
       <UAP_Results_Path Condition="'$(UAP_Results_Path)'==''">%USERPROFILE%\Documents\TestResults\</UAP_Results_Path>
 
-      <_Runtime_Path>%RUNTIME_PATH%UAPLayout\</_Runtime_Path>
+      <!-- Don't remove that trailing slash as helix might pass a path without one at the end. -->
+      <_Runtime_Path>%RUNTIME_PATH%\UAPLayout\</_Runtime_Path>
       <!-- Make sure the path only has one type of slashes -->
       <_Runtime_Path>$(_Runtime_Path.Replace('/', '\'))</_Runtime_Path>
 
