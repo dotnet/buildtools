@@ -56,10 +56,10 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             Log.LogMessage(MessageImportance.Normal, "Downloading contents of container {0} from storage account '{1}' to directory {2}.",
                 ContainerName, AccountName, DownloadDirectory);
 
-            string blobprefix = string.IsNullOrEmpty(BlobNamePrefix) ? "" : "&prefix=" + BlobNamePrefix;
+            string optionalBlobPrefixForQuery = string.IsNullOrEmpty(BlobNamePrefix) ? "" : "&prefix=" + BlobNamePrefix;
             
             List<string> blobsNames = new List<string>();
-            string urlListBlobs = string.Format("https://{0}.blob.core.windows.net/{1}?restype=container&comp=list{2}", AccountName, ContainerName, blobprefix);
+            string urlListBlobs = $"https://{AccountName}.blob.core.windows.net/{ContainerName}?restype=container&comp=list{optionalBlobPrefixForQuery}";
 
             Log.LogMessage(MessageImportance.Low, "Sending request to list blobsNames for container '{0}'.", ContainerName);
 
