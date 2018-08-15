@@ -25,6 +25,7 @@
     <DownloadFromAzure AccountName="$(CloudDropAccountName)"
                        AccountKey="$(CloudDropAccessToken)"
                        ContainerName="$(ContainerName)"
+                       BlobNamePrefix="$(BlobNamePrefix)"
                        DownloadDirectory="$(DownloadDirectory)" />
   </Target>
   
