@@ -4,7 +4,7 @@
 
   <PropertyGroup>
     <OptimizationDataVersion Condition="'$(OptimizationDataVersion)'==''">2.0.0-rc-61101-16</OptimizationDataVersion>
-    <CoreFxOptimizationDataVersion Condition="'$(CoreFxOptimizationDataVersion)'==''">99.99.99-master-20180730-0151</CoreFxOptimizationDataVersion>
+    <CoreFxOptimizationDataVersion Condition="'$(CoreFxOptimizationDataVersion)'==''">99.99.99-master-20180815-0120</CoreFxOptimizationDataVersion>
     <OptimizationDataPackageName Condition="'$(OptimizationDataPackageName)'==''">RoslynDependencies.OptimizationData</OptimizationDataPackageName>
     <CoreFxOptimizationDataPackageName Condition="'$(CoreFxOptimizationDataPackageName)'==''">optimization.windows_nt-x64.IBC.CoreFx</CoreFxOptimizationDataPackageName>
     <OptimizationDataDir Condition="'$(OptimizationDataDir)'==''">$(ToolsDir)OptimizationData/</OptimizationDataDir>
