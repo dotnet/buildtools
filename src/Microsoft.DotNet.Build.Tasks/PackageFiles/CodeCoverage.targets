@@ -52,7 +52,7 @@
     <CoverletOutput>$([MSBuild]::EnsureTrailingSlash('$(CoverletOutputDirectory)'))$(CoverletOutputName).xml</CoverletOutput>
     <CoverageOutputFilePath>$(CoverletOutput)</CoverageOutputFilePath>
     <CoverageInputFilter>*.coverlet.xml</CoverageInputFilter>
-    <ExcludeByFile Condition="$(ExcludeByFile) == ''"></ExcludeByFile>
+    <ExcludeByFile Condition="$(ExcludeByFile) == ''">$(SourceDir)Common/src/System/SR.*</ExcludeByFile>
     <Threshold Condition="$(Threshold) == ''">0</Threshold>
     <ThresholdType Condition="$(ThresholdType) == ''">line,branch,method</ThresholdType>
     <CollectCoverage Condition="$(CollectCoverage) == ''">$(CodeCoverageEnabled)</CollectCoverage>
@@ -79,7 +79,8 @@
       <_CodeCoverageAssemblies Include="$(CodeCoverageAssemblies)" Condition="'$(CodeCoverageAssemblies)' != ''" />
     </ItemGroup>
     <PropertyGroup>
-      <CoverageFilter>@(_CodeCoverageAssemblies->'+[%(Identity)]*', ' ')</CoverageFilter>
+      <CoverageFilter Condition="'$(UseCoverlet)'!='true'">@(_CodeCoverageAssemblies->'+[%(Identity)]*', ' ')</CoverageFilter>
+      <CoverageFilter Condition="'$(UseCoverlet)'=='true'">@(_CodeCoverageAssemblies->'[%(Identity)]*', ',')</CoverageFilter>
       <CoverageFilter Condition="'$(CodeCoverageAssemblies)' == 'all'">[*]*</CoverageFilter>
     </PropertyGroup>
   </Target>
@@ -163,17 +164,9 @@
   <!-- *********************************************************************************************** -->
 
   <Target Name="InstrumentModulesAfterBuild" BeforeTargets="GenerateTestExecutionScripts" Condition="'$(UseCoverlet)'=='true'">
-    <ItemGroup>
-      <_AllDlls Include="$(CoverageRuntimeDir)/*.dll"/>
-      <_AllAssemblies Include="@(_AllDlls -> '%(Filename)')" />
-      <_AllAssemblies Remove="@(_CodeCoverageAssemblies)" />
-    </ItemGroup>
-    <PropertyGroup>
-      <CoverletExclusionFilter>@(_AllAssemblies->'[%(Identity)]*', ',')</CoverletExclusionFilter>
-    </PropertyGroup>
     <Coverlet.MSbuild.Tasks.InstrumentationTask
       Condition="'$(CollectCoverage)' == 'true'"
-      Exclude="$(CoverletExclusionFilter)"
+      Include="$(CoverageFilter)"
       ExcludeByFile="$(ExcludeByFile)"
       Path="$(CoverageRuntimeDir)/" />
   </Target>
