@@ -14,11 +14,17 @@
     <_FindDependencies>false</_FindDependencies>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFrameworkIdentifier)' == ''
+  <PropertyGroup Condition=" '$(TargetFramework)' == ''
+                         and '$(TargetFrameworkIdentifier)' == ''
                          and '$(TargetFrameworkVersion)'    == ''
                          and '$(TargetFrameworkProfile)'    == '' ">
     <TargetingDefaultPlatform>true</TargetingDefaultPlatform>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == '' AND '$(TargetFramework)' == ''">
+     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+  </PropertyGroup>
+
   <!--
     When targeting an explicit platform other than the default,
     also allow the target framework directory.
