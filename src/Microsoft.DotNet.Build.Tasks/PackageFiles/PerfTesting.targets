@@ -4,6 +4,7 @@
   <PropertyGroup>
     <PerformanceType Condition="'$(PerformanceType)'==''">Profile</PerformanceType>
     <TraceEventPackage>Microsoft.Diagnostics.Tracing.TraceEvent\$(TraceEventPackageVersion)</TraceEventPackage>
+    <TargetOS Condition="'$(TargetOS)' == ''">$(DefaultOSGroup)</TargetOS>
   </PropertyGroup>
 
   <ItemGroup>
