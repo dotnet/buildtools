@@ -20,10 +20,12 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AzureConnectionStringBuildTask.cs" />
     <Compile Include="AzureHelper.cs" />
     <Compile Include="CreateAzureContainer.cs" />
     <Compile Include="DownloadFromAzure.cs" />
     <Compile Include="GetPerfTestAssemblies.cs" />
+    <Compile Include="ListAzureBlobs.cs" />
     <Compile Include="ListAzureContainers.cs" />
     <Compile Include="SendToEventHub.cs" />
     <Compile Include="SendToHelix.cs" />

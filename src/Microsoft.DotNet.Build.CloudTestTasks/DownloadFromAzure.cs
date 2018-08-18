@@ -12,24 +12,10 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml;
 
-using Task = Microsoft.Build.Utilities.Task;
-
 namespace Microsoft.DotNet.Build.CloudTestTasks
 {
-    public sealed class DownloadFromAzure : Task
+    public sealed class DownloadFromAzure : AzureConnectionStringBuildTask
     {
-        /// <summary>
-        /// The Azure account name used when creating the connection string.
-        /// </summary>
-        [Required]
-        public string AccountName { get; set; }
-
-        /// <summary>
-        /// The Azure account key used when creating the connection string.
-        /// </summary>
-        [Required]
-        public string AccountKey { get; set; }
-
         /// <summary>
         /// The name of the container to access.  The specified name must be in the correct format, see the
         /// following page for more info.  https://msdn.microsoft.com/en-us/library/azure/dd135715.aspx
@@ -45,7 +31,8 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
         public string BlobNamePrefix { get; set; }
 
-
+        public ITaskItem[] BlobNames { get; set; }
+        
         public override bool Execute()
         {
             return ExecuteAsync().GetAwaiter().GetResult();
@@ -53,89 +40,99 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
         public async Task<bool> ExecuteAsync()
         {
+            ParseConnectionString();
+            // If the connection string AND AccountKey & AccountName are provided, error out.
+            if (Log.HasLoggedErrors)
+            {
+                return false;
+            }
+
             Log.LogMessage(MessageImportance.Normal, "Downloading contents of container {0} from storage account '{1}' to directory {2}.",
                 ContainerName, AccountName, DownloadDirectory);
 
-            string optionalBlobPrefixForQuery = string.IsNullOrEmpty(BlobNamePrefix) ? "" : "&prefix=" + BlobNamePrefix;
-            
-            List<string> blobsNames = new List<string>();
-            string urlListBlobs = $"https://{AccountName}.blob.core.windows.net/{ContainerName}?restype=container&comp=list{optionalBlobPrefixForQuery}";
-
-            Log.LogMessage(MessageImportance.Low, "Sending request to list blobsNames for container '{0}'.", ContainerName);
-
-            using (HttpClient client = new HttpClient())
+            try
             {
-                try
+                List<string> blobNames = new List<string>();
+                if (BlobNames == null)
                 {
-                    Func<HttpRequestMessage> createRequest = () =>
+                    ListAzureBlobs listAzureBlobs = new ListAzureBlobs()
                     {
-                        DateTime dateTime = DateTime.UtcNow;
-                        var request = new HttpRequestMessage(HttpMethod.Get, urlListBlobs);
-                        request.Headers.Add(AzureHelper.DateHeaderString, dateTime.ToString("R", CultureInfo.InvariantCulture));
-                        request.Headers.Add(AzureHelper.VersionHeaderString, AzureHelper.StorageApiVersion);
-                        request.Headers.Add(AzureHelper.AuthorizationHeaderString, AzureHelper.AuthorizationHeader(
-                                AccountName,
-                                AccountKey,
-                                "GET",
-                                dateTime,
-                                request));
-                        return request;
-                    };
-
-                    XmlDocument responseFile;
-                    using (HttpResponseMessage response = await AzureHelper.RequestWithRetry(Log, client, createRequest))
+                        AccountName = AccountName,
+                        AccountKey = AccountKey,
+                        ContainerName = ContainerName,
+                        FilterBlobNames = BlobNamePrefix,
+                        BuildEngine = this.BuildEngine,
+                        HostObject = this.HostObject
+                    };                    
+                    listAzureBlobs.Execute();
+                    blobNames = listAzureBlobs.BlobNames.ToList();
+                }
+                else
+                {
+                    blobNames = BlobNames.Select(b => b.ItemSpec).ToList<string>();
+                    if (BlobNamePrefix != null)
                     {
-                        responseFile = new XmlDocument();
-                        responseFile.LoadXml(await response.Content.ReadAsStringAsync());
-                        XmlNodeList elemList = responseFile.GetElementsByTagName("Name");
-
-                        blobsNames = elemList.Cast<XmlNode>()
-                                                    .Select(x => x.InnerText)
-                                                    .ToList();
-
-                        if (blobsNames.Count == 0)
-                            Log.LogWarning("No blobs were found.");
+                        blobNames = blobNames.Where(b => b.StartsWith(BlobNamePrefix)).ToList<string>();
                     }
-
-                    // track the number of blobs that fail to download
-                    int failureCount = 0;
-
-                    foreach (string blob in blobsNames)
+                }
+                // track the number of blobs that fail to download
+                int failureCount = 0;
+                using (HttpClient client = new HttpClient())
+                {
+                    foreach (string blob in blobNames)
                     {
                         Log.LogMessage(MessageImportance.Low, "Downloading BLOB - {0}", blob);
-                        string urlGetBlob = string.Format("https://{0}.blob.core.windows.net/{1}/{2}", AccountName, ContainerName, blob);
+                        string urlGetBlob = AzureHelper.GetBlobRestUrl(AccountName, ContainerName, blob);
 
-                        string filename = Path.Combine(DownloadDirectory, blob);
-                        string blobDirectory = blob.Substring(0, blob.LastIndexOf("/"));
+                        int dirIndex = blob.LastIndexOf("/");
+                        string blobDirectory = string.Empty;
+                        string blobFilename = string.Empty;
+
+                        if (dirIndex == -1)
+                        {
+                            blobFilename = blob;
+                        }
+                        else
+                        {
+                            blobDirectory = blob.Substring(0, dirIndex);
+                            blobFilename = blob.Substring(dirIndex + 1);
+
+                            // Trim blob name prefix (directory part) from download to blob directory
+                            if(BlobNamePrefix != null)
+                            {
+                                if(BlobNamePrefix.Length > dirIndex)
+                                {
+                                    BlobNamePrefix = BlobNamePrefix.Substring(0, dirIndex);
+                                }
+                                blobDirectory = blobDirectory.Substring(BlobNamePrefix.Length);
+                            }
+                        }
                         string downloadBlobDirectory = Path.Combine(DownloadDirectory, blobDirectory);
                         if (!Directory.Exists(downloadBlobDirectory))
                         {
                             Directory.CreateDirectory(downloadBlobDirectory);
                         }
+                        string filename = Path.Combine(downloadBlobDirectory, blobFilename);
 
-                        createRequest = () =>
-                        {
-                            DateTime dateTime = DateTime.UtcNow;
-                            var request = new HttpRequestMessage(HttpMethod.Get, urlGetBlob);
-                            request.Headers.Add(AzureHelper.DateHeaderString, dateTime.ToString("R", CultureInfo.InvariantCulture));
-                            request.Headers.Add(AzureHelper.VersionHeaderString, AzureHelper.StorageApiVersion);
-                            request.Headers.Add(AzureHelper.AuthorizationHeaderString, AzureHelper.AuthorizationHeader(
-                                    AccountName,
-                                    AccountKey,
-                                    "GET",
-                                    dateTime,
-                                    request));
-                            return request;
-                        };
+                        var createRequest = AzureHelper.RequestMessage("GET", urlGetBlob, AccountName, AccountKey);
 
                         using (HttpResponseMessage response = await AzureHelper.RequestWithRetry(Log, client, createRequest))
                         {
                             if (response.IsSuccessStatusCode)
                             {
-                                Stream responseStream = await response.Content.ReadAsStreamAsync();
-                                using (FileStream sourceStream = File.Open(filename, FileMode.Create))
+                                // Blobs can be files but have the name of a directory.  We'll skip those and log something weird happened.
+                                if (!string.IsNullOrEmpty(Path.GetFileName(filename)))
                                 {
-                                    responseStream.CopyTo(sourceStream);
+                                    Stream responseStream = await response.Content.ReadAsStreamAsync();
+
+                                    using (FileStream sourceStream = File.Open(filename, FileMode.Create))
+                                    {
+                                        responseStream.CopyTo(sourceStream);
+                                    }
+                                }
+                                else
+                                {
+                                    Log.LogWarning($"Unable to download blob '{blob}' as it has a directory-like name.  This may cause problems if it was needed.");
                                 }
                             }
                             else
@@ -145,16 +142,14 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                             }
                         }
                     }
-
-                    // if no blobs failed to download the task succeeded
-                    return (failureCount == 0);
                 }
-                catch (Exception e)
-                {
-                    Log.LogErrorFromException(e, true);
-                    return false;
-                }
+                Log.LogMessage($"{failureCount} errors seen downloading blobs.");
             }
+            catch (Exception e)
+            {
+                Log.LogErrorFromException(e, true);
+            }
+            return !Log.HasLoggedErrors;
         }
     }
 }
