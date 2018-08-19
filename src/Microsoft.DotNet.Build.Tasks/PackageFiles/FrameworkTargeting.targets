@@ -71,8 +71,8 @@
     <IncludeDefaultReferences Condition="'$(MSBuildProjectExtension)' == '.vbproj'">true</IncludeDefaultReferences>
   </PropertyGroup>
 
-  <!-- By default add VS references only to invokable test projects. -->
-  <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
+  <!-- By default add VS references to invokable non perf test projects. -->
+  <PropertyGroup Condition="'$(IsTestProject)' == 'true' AND '$(IsPerformanceTestProject)' != 'true'">
     <IncludeVSTestReferences Condition="'$(IncludeVSTestReferences)' == ''">$(IsInvokableTestProject)</IncludeVSTestReferences>
   </PropertyGroup>
 
