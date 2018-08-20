@@ -122,7 +122,7 @@
     directly with the runner. This is needed for VS debugging support.
     TODO: Fix VB test project reference to Test SDK.
   -->
-  <PropertyGroup Condition="'$(IsInvokableTestProject)' == 'true' AND '$(BuildingNETCoreAppVertical)' == 'true' AND '$(Language)' != 'VB'">
+  <PropertyGroup Condition="'$(IncludeVSTestReferences)' == 'true' AND '$(BuildingNETCoreAppVertical)' == 'true' AND '$(Language)' != 'VB'">
     <OutputType>Exe</OutputType>
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
     <GeneratedProgramFile Condition="'$(GeneratedProgramFile)' ==''">$(IntermediateOutputPath)$(MSBuildProjectName).Program$(DefaultLanguageSourceExtension)</GeneratedProgramFile>

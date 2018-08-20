@@ -72,8 +72,8 @@
   </PropertyGroup>
 
   <!-- By default add VS references to invokable non perf test projects. -->
-  <PropertyGroup Condition="'$(IsTestProject)' == 'true' AND '$(IsPerformanceTestProject)' != 'true'">
-    <IncludeVSTestReferences Condition="'$(IncludeVSTestReferences)' == ''">$(IsInvokableTestProject)</IncludeVSTestReferences>
+  <PropertyGroup>
+    <IncludeVSTestReferences Condition="'$(IncludeVSTestReferences)' == '' AND '$(IsInvokableTestProject)' == 'true'">true</IncludeVSTestReferences>
   </PropertyGroup>
 
   <Target Name="SetupDefaultReferences">
