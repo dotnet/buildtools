@@ -37,6 +37,7 @@
 
   <!-- Common BuildTools properties -->
   <PropertyGroup>
+    <RootIntermediateOutputPath Condition="$(RootIntermediateOutputPath) == ''">$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), init-tools.msbuild))/bin/obj/</RootIntermediateOutputPath>
     <ToolsDir Condition="'$(ToolsDir)'==''">$(MSBuildThisFileDirectory)</ToolsDir>
     <ToolRuntimePath Condition="'$(ToolRuntimePath)'==''">$(ToolsDir)</ToolRuntimePath>
     <DotnetCliPath Condition="'$(DotnetCliPath)'==''">$(ToolRuntimePath)dotnetcli/</DotnetCliPath>
@@ -57,6 +58,7 @@
   <!-- Setting IsTestProject prior to Build.Common.targets -->
   <PropertyGroup>
     <IsTestProject Condition="'$(IsTestProject)'=='' And ($(MSBuildProjectFullPath.Contains('\tests\')) OR $(MSBuildProjectFullPath.Contains('/tests/')))">true</IsTestProject>
+    <IsPerformanceTestProject Condition="'$(IsPerformanceTestProject)' == '' AND '$(IsTestProject)' == 'true' AND $(MSBuildProjectName.EndsWith('Performance.Tests'))">true</IsPerformanceTestProject>
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)BuildVersion.targets" />

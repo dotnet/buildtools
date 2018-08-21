@@ -14,13 +14,14 @@
     <_FindDependencies>false</_FindDependencies>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFrameworkIdentifier)' == ''
+  <PropertyGroup Condition=" '$(TargetFramework)' == ''
+                         and '$(TargetFrameworkIdentifier)' == ''
                          and '$(TargetFrameworkVersion)'    == ''
                          and '$(TargetFrameworkProfile)'    == '' ">
     <TargetingDefaultPlatform>true</TargetingDefaultPlatform>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == ''">
+  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == '' AND '$(TargetFramework)' == ''">
      <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
   </PropertyGroup>
 
@@ -68,6 +69,11 @@
   <PropertyGroup Condition="'$(IncludeDefaultReferences)' == ''">
     <IncludeDefaultReferences Condition="'$(MSBuildProjectExtension)' == '.csproj'">true</IncludeDefaultReferences>
     <IncludeDefaultReferences Condition="'$(MSBuildProjectExtension)' == '.vbproj'">true</IncludeDefaultReferences>
+  </PropertyGroup>
+
+  <!-- By default add VS references to invokable non perf test projects. -->
+  <PropertyGroup>
+    <IncludeVSTestReferences Condition="'$(IncludeVSTestReferences)' == '' AND '$(IsInvokableTestProject)' == 'true'">true</IncludeVSTestReferences>
   </PropertyGroup>
 
   <Target Name="SetupDefaultReferences">
