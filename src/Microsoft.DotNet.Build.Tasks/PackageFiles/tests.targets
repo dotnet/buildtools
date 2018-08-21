@@ -384,7 +384,7 @@
       <_UseSharedAssemblies Condition="'$(EnableMultiFileILCTests)' == 'true'">-useSharedAssemblies</_UseSharedAssemblies>
       <_TestILCFolder>%RUNTIME_PATH%\TestILC</_TestILCFolder>
       <_Runtime_Path>%RUNTIME_PATH%\ILCInputFolder\</_Runtime_Path>
-      <_ILCWin32 Condition="'$(_bc_TargetGroup)'!='uapaot'">-win32</_ILCWin32>
+      <_ILCWin32 Condition="'$(BuildingUAPAOTVertical)'!='true'">-win32</_ILCWin32>
       <!-- Currently (and probably forever) we can't build AOT on ARM,
            So if we're running on ARM, what we really want to do is encapsulate
            the test command into a script that can be run on another machine -->
