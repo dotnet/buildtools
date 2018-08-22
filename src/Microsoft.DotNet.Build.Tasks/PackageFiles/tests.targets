@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <TestDisabled Condition="'$(IsTestProject)'!='true' Or '$(SkipTests)'=='true' Or ('$(IsPerformanceTestProject)' == 'true' AND '$(Performance)' == 'false')">true</TestDisabled>
-  </PropertyGroup>
 
   <!-- This is the target that copies the test assets to the test output -->
-  <Import Condition="'$(TestDisabled)' != 'true'" Project="$(MSBuildThisFileDirectory)publishtest.targets" />
-  <Import Condition="'$(TestDisabled)' != 'true' AND '$(IsPerformanceTestProject)' == 'true'" Project="$(MSBuildThisFileDirectory)PerfTesting.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)publishtest.targets" />
+  <Import Condition="'$(IsPerformanceTestProject)' == 'true' AND '$(Performance)' != 'false'" Project="$(MSBuildThisFileDirectory)PerfTesting.targets" />
   <UsingTask TaskName="GenerateTestExecutionScripts" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="GetTargetMachineInfo" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask Condition="'$(BuildingUAPVertical)' == 'true'" TaskName="ExtractResWResourcesFromAssemblies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
   <PropertyGroup>
+    <SkipTestRun Condition="'$(IsTestProject)' != 'true' OR ('$(IsPerformanceTestProject)' AND '$(Performance)' == 'false')">true</SkipTestRun>
+    <TestDisabled Condition="'$(SkipTests)'=='true'">true</TestDisabled>
     <TestsSuccessfulSemaphore>tests.passed</TestsSuccessfulSemaphore>
     <!-- In case that TestPath is not yet set, default it here -->
     <TestPath Condition="'$(TestPath)'==''">$(OutDir)</TestPath>
@@ -647,10 +646,10 @@ robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
     </TestDependsOn>
   </PropertyGroup>
 
-  <Target Name="Test" DependsOnTargets="$(TestDependsOn)" Condition="'$(TestDisabled)' != 'true'" />
+  <Target Name="Test" DependsOnTargets="$(TestDependsOn)" Condition="'$(SkipTestRun)' != 'true'" />
   <Target Name="BuildAndTest" DependsOnTargets="Build;Test" />
   <Target Name="RebuildAndTest" DependsOnTargets="Rebuild;Test" />
 
   <!-- This helps collect crash dumps and requires python installed -->
-  <Import Project="$(MSBuildThisFileDirectory)Dumpling.targets" Condition="'$(TestDisabled)' != 'true' AND ('$(EnableDumpling)' == 'true' OR '$(EnableCloudTest)' == 'true')" />
+  <Import Project="$(MSBuildThisFileDirectory)Dumpling.targets" Condition="'$(EnableDumpling)' == 'true' OR '$(EnableCloudTest)' == 'true'" />
 </Project>
