@@ -261,8 +261,8 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(BuildingUAPVertical)' == 'true'">
-    <_AllRuntimeDllFiles Include="$(RuntimePath)\*.dll" Exclude="$(RuntimePath)\Microsoft.VisualStudio.TestPlatform.*dll" />
-    <_ExternalReswFiles Include="$(_ExternalReswOutputPath)*.resw" />
+    <_AllRuntimeDllFiles Include="$(RuntimePath)\*.dll" Exclude="$(RuntimePath)\Microsoft.VisualStudio.TestPlatform.*dll;$(RuntimePath)\Microsoft.TestPlatform.*dll" />
+    <_ExternalReswFiles Include="$(_ExternalReswOutputPath)*.resw" Exclude="$(RuntimePath)\Microsoft.VisualStudio.TestPlatform.*resw;$(RuntimePath)\Microsoft.TestPlatform.*resw" />
 
     <!-- The first time the CreateReswFilesForExternalDependencies target is executed the itemgroup _ExternalReswFiles will be empty
     and that will avoid the target from executing, so we add a dummy file if they are empty so that the target is executed the first time. -->
@@ -304,8 +304,8 @@
           DependsOnTargets="CreateReswFilesForExternalDependencies">
 
     <ItemGroup>
-      <_TestResWFiles Include="$(TestResourcesFolderPath)\*.resw" />
-      <_CommonResWFiles Include="$(ResourcesFolderPath)\**\*.resw" />
+      <_TestResWFiles Include="$(TestResourcesFolderPath)\*.resw" Exclude="$(TestResourcesFolderPath)\Microsoft.VisualStudio.TestPlatform.*resw;$(TestResourcesFolderPath)\Microsoft.TestPlatform.*resw" />
+      <_CommonResWFiles Include="$(ResourcesFolderPath)\**\*.resw" Exclude="$(ResourcesFolderPath)\**\Microsoft.VisualStudio.TestPlatform.*resw;$(ResourcesFolderPath)\**\Microsoft.TestPlatform.*resw" />
     </ItemGroup>
   </Target>
 
