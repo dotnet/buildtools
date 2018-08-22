@@ -148,7 +148,10 @@ namespace Microsoft.DotNet.Build.Tasks
             foreach (string runCommand in TestCommands)
             {
                 testRunCommands.AppendLine($"{runCommand}");
-                testRunEchoes.AppendLine($"echo {runCommand}");
+                // Remove parentheses and quotes from echo command before wrapping it in quotes to avoid errors on Windows.
+                // Also, escape backtick and question mark characters to avoid running commands instead of echo'ing them.
+                string sanitizedRunCommand = runCommand.Replace("\"", "").Replace("(", "").Replace(")", "").Replace("`", "\\`").Replace("?", "\\").Replace("\r", "").Replace("\n", " ");
+                testRunEchoes.AppendLine($"echo {sanitizedRunCommand}");
             }
 
             cmdExecutionTemplate = cmdExecutionTemplate.Replace("[[TestRunCommands]]", testRunCommands.ToString());
