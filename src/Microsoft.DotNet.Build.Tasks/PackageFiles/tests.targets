@@ -9,7 +9,7 @@
   <UsingTask Condition="'$(BuildingUAPVertical)' == 'true'" TaskName="ExtractResWResourcesFromAssemblies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
   <PropertyGroup>
-    <SkipTestRun Condition="'$(IsTestProject)' != 'true' OR ('$(IsPerformanceTestProject)' AND '$(Performance)' == 'false')">true</SkipTestRun>
+    <SkipTestRun Condition="'$(IsTestProject)' != 'true' OR ('$(IsPerformanceTestProject)' == 'true' AND '$(Performance)' == 'false')">true</SkipTestRun>
     <TestDisabled Condition="'$(SkipTests)'=='true'">true</TestDisabled>
     <TestsSuccessfulSemaphore>tests.passed</TestsSuccessfulSemaphore>
     <!-- In case that TestPath is not yet set, default it here -->
