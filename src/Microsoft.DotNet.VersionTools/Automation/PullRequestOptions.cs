@@ -27,5 +27,18 @@ namespace Microsoft.DotNet.VersionTools.Automation
         /// A custom branching strategy to use instead of the PullRequestCreator default.
         /// </summary>
         public IUpdateBranchNamingStrategy BranchNamingStrategy { get; set; }
+
+        /// <summary>
+        /// Disables the safety check that makes sure the fork being force pushed to is owned by
+        /// the user running PR submission.
+        ///
+        /// This check makes sense on GitHub, where it's always reasonable to have a fork and the
+        /// convention is well-known. On VSTS, forks are less common, and "owner" isn't a clear
+        /// concept. The "owner" field is used by the VSTS client to represent the project the repo
+        /// is in, since it is the closest match and the value needs to be moved through the
+        /// machinery. The project name never meaningfully matches a user (let alone a PR
+        /// submitter's name), so this check needs to be disabled.
+        /// </summary>
+        public bool AllowBranchOnAnyRepoOwner { get; set; }
     }
 }

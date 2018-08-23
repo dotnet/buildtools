@@ -5,6 +5,8 @@
 using Microsoft.Build.Framework;
 using Microsoft.DotNet.VersionTools.Automation;
 using Microsoft.DotNet.VersionTools.Automation.GitHubApi;
+using Microsoft.DotNet.VersionTools.Automation.VstsApi;
+using System;
 using System.Diagnostics;
 using System.Linq;
 
@@ -12,13 +14,27 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 {
     public class SubmitPullRequest : BuildTask
     {
-        [Required]
         public string GitHubAuthToken { get; set; }
-        [Required]
         public string GitHubUser { get; set; }
-        [Required]
         public string GitHubEmail { get; set; }
 
+        /// <summary>
+        /// A VSTS PAT. Setting this makes VstsInstanceName and GitHubAuthor required. Setting this
+        /// property indicates that the PR will be sent to VSTS (regardless whether GitHubAuthToken
+        /// is set).
+        ///
+        /// VstsPat and GitHubAuthToken may both be set: this is useful to get a larger rate limit
+        /// for GitHub requests during the earlier tasks in the update process and submit the final
+        /// PR to VSTS.
+        /// </summary>
+        public string VstsPat { get; set; }
+        public string VstsInstanceName { get; set; }
+        public string VstsCommitterEmail { get; set; }
+        public string VstsApiVersionOverride { get; set; }
+
+        /// <summary>
+        /// GitHub repository owner (such as 'dotnet') or VSTS project containing the repo.
+        /// </summary>
         public string ProjectRepoOwner { get; set; }
 
         [Required]
@@ -61,12 +77,11 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 
         private void TraceListenedExecute()
         {
-            var auth = new GitHubAuth(GitHubAuthToken, GitHubUser, GitHubEmail);
+            // GitHub and VSTS have different dev flow conventions.
+            GitHubProject origin;
 
-            using (GitHubClient client = new GitHubClient(auth))
+            using (IGitHubClient client = CreateClient(out origin))
             {
-                var origin = new GitHubProject(ProjectRepoName, GitHubUser);
-
                 var upstreamBranch = new GitHubBranch(
                     ProjectRepoBranch,
                     new GitHubProject(ProjectRepoName, ProjectRepoOwner));
@@ -78,6 +93,13 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                     body += PullRequestCreator.NotificationString(NotifyGitHubUsers.Select(item => item.ItemSpec));
                 }
 
+                var options = new PullRequestOptions
+                {
+                    ForceCreate = AlwaysCreateNewPullRequest,
+                    MaintainersCanModify = MaintainersCanModifyPullRequest,
+                    TrackDiscardedCommits = TrackDiscardedCommits
+                };
+
                 var prCreator = new PullRequestCreator(client.Auth, GitHubAuthor);
                 prCreator.CreateOrUpdateAsync(
                     CommitMessage,
@@ -85,13 +107,53 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                     body,
                     upstreamBranch,
                     origin,
-                    new PullRequestOptions
-                    {
-                        ForceCreate = AlwaysCreateNewPullRequest,
-                        MaintainersCanModify = MaintainersCanModifyPullRequest,
-                        TrackDiscardedCommits = TrackDiscardedCommits
-                    }).Wait();
+                    options,
+                    client).Wait();
             }
+        }
+
+        private IGitHubClient CreateClient(out GitHubProject origin)
+        {
+            if (!string.IsNullOrEmpty(VstsPat))
+            {
+                if (string.IsNullOrEmpty(VstsInstanceName))
+                {
+                    throw new ArgumentException($"{nameof(VstsInstanceName)} is required but not set.");
+                }
+                if (string.IsNullOrEmpty(GitHubAuthor))
+                {
+                    throw new ArgumentException($"{nameof(GitHubAuthor)} is required but not set.");
+                }
+
+                var idAuth = new GitHubAuth(VstsPat);
+
+                // Get profile information from VSTS to use to create the real client.
+                using (var idClient = new VstsAdapterClient(idAuth, VstsInstanceName, VstsApiVersionOverride))
+                {
+                    VstsProfile profile = idClient.GetMyProfileAsync().Result;
+                    var fullAuth = new GitHubAuth(VstsPat, profile.Id, VstsCommitterEmail);
+
+                    origin = new GitHubProject(ProjectRepoName, ProjectRepoOwner);
+                    return new VstsAdapterClient(fullAuth, VstsInstanceName, VstsApiVersionOverride);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(GitHubAuthToken))
+            {
+                if (string.IsNullOrEmpty(GitHubUser))
+                {
+                    throw new ArgumentException($"{nameof(GitHubUser)} is required but not set.");
+                }
+                if (string.IsNullOrEmpty(GitHubEmail))
+                {
+                    throw new ArgumentException($"{nameof(GitHubEmail)} is required but not set.");
+                }
+
+                origin = new GitHubProject(ProjectRepoName, GitHubUser);
+                return new GitHubClient(new GitHubAuth(GitHubAuthToken, GitHubUser, GitHubEmail));
+            }
+
+            throw new ArgumentException($"{nameof(GitHubAuthToken)} and/or {nameof(VstsPat)} is required.");
         }
     }
 }

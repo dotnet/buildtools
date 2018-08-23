@@ -11,7 +11,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
@@ -79,7 +78,7 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             try
             {
                 GitHubContents file = await GetGitHubFileAsync(path, branch.Project, $"heads/{branch.Name}");
-                return FromBase64(file.Content);
+                return ClientHelpers.FromBase64(file.Content);
             }
             catch (HttpFailureResponseException ex) when (ex.HttpStatusCode == HttpStatusCode.NotFound)
             {
@@ -95,7 +94,7 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             try
             {
                 GitHubContents file = await GetGitHubFileAsync(path, project, @ref);
-                return FromBase64(file.Content);
+                return ClientHelpers.FromBase64(file.Content);
             }
             catch (HttpFailureResponseException ex) when (ex.HttpStatusCode == HttpStatusCode.NotFound)
             {
@@ -128,7 +127,7 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
                     name = Auth.User,
                     email = Auth.Email
                 },
-                content = ToBase64(newFileContents),
+                content = ClientHelpers.ToBase64(newFileContents),
                 sha = currentSha
             }, Formatting.Indented);
 
@@ -386,6 +385,11 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             }
         }
 
+        public string CreateGitRemoteUrl(GitHubProject project) => $"github.com/{project.Segments}.git";
+
+        public void AdjustOptionsToCapability(PullRequestOptions options)
+        { }
+
         private void EnsureAuthenticated()
         {
             if (Auth == null)
@@ -436,8 +440,5 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             JObject responseContent = JObject.Parse(await response.Content.ReadAsStringAsync());
             return responseContent["html_url"].ToString();
         }
-
-        private static string ToBase64(string value) => Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
-        private static string FromBase64(string value) => Encoding.UTF8.GetString(Convert.FromBase64String(value));
     }
 }

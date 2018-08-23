@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
 
 namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
 {
-    public interface IGitHubClient
+    public interface IGitHubClient : IDisposable
     {
         GitHubAuth Auth { get; }
 
@@ -83,5 +84,11 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             string @ref,
             string sha,
             bool force);
+
+        string CreateGitRemoteUrl(
+            GitHubProject project);
+
+        void AdjustOptionsToCapability(
+            PullRequestOptions options);
     }
 }

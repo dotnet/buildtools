@@ -28,9 +28,12 @@
     <Compile Include="Automation\GitHubApi\HttpFailureResponseException.cs" />
     <Compile Include="Automation\GitHubApi\IGitHubClient.cs" />
     <Compile Include="Automation\GitHubApi\NotFastForwardUpdateException.cs" />
+    <Compile Include="Automation\ClientHelpers.cs" />
     <Compile Include="Automation\LocalVersionsRepoUpdater.cs" />
     <Compile Include="Automation\GitHubVersionsRepoUpdater.cs" />
     <Compile Include="Automation\PullRequestOptions.cs" />
+    <Compile Include="Automation\VstsApi\VstsAdapterClient.cs" />
+    <Compile Include="Automation\VstsApi\VstsApiModel.cs" />
     <Compile Include="BuildManifest\BuildManifestChange.cs" />
     <Compile Include="BuildManifest\BuildManifestClient.cs" />
     <Compile Include="BuildManifest\BuildManifestLocation.cs" />
