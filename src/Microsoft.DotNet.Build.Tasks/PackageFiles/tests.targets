@@ -466,7 +466,7 @@
       <TestCommandLines Include="if exist %EXECUTION_DIR%int rmdir /S /Q %EXECUTION_DIR%int" />
       <TestCommandLines Include="if exist %EXECUTION_DIR%native rmdir /S /Q %EXECUTION_DIR%native" />
       <TestCommandLines Include="@(TargetExecutableNames -> '
-call %RUNTIME_PATH%\TestILC\ilc.exe -ExeName %(Identity) -in %EXECUTION_DIR% -out %EXECUTION_DIR%int\%(Identity)\ -usedefaultpinvoke -buildtype $(ILCBuildType) -v diag $(_UseSharedAssemblies) $(_ILCWin32)
+call %RUNTIME_PATH%\TestILC\ilc.exe -ExeName %(Identity) -in %EXECUTION_DIR% -out %EXECUTION_DIR%int\%(Identity)\ -usedefaultpinvoke:false -buildtype $(ILCBuildType) -v diag $(_UseSharedAssemblies) $(_ILCWin32)
 set ILCERRORLEVEL=%ERRORLEVEL%
 if NOT [%ILCERRORLEVEL%] == [0] exit /b %ILCERRORLEVEL%
 robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
