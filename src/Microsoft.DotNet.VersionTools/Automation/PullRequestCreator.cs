@@ -43,71 +43,96 @@ namespace Microsoft.DotNet.VersionTools.Automation
             GitHubProject origin,
             PullRequestOptions options)
         {
+            using (var client = new GitHubClient(_auth))
+            {
+                await CreateOrUpdateAsync(
+                    commitMessage,
+                    title,
+                    description,
+                    baseBranch,
+                    origin,
+                    options,
+                    client);
+            }
+        }
+
+        public async Task CreateOrUpdateAsync(
+            string commitMessage,
+            string title,
+            string description,
+            GitHubBranch baseBranch,
+            GitHubProject origin,
+            PullRequestOptions options,
+            IGitHubClient client)
+        {
             options = options ?? new PullRequestOptions();
+            client.AdjustOptionsToCapability(options);
 
             var upstream = baseBranch.Project;
 
-            using (var client = new GitHubClient(_auth))
+            GitHubBranch originBranch = null;
+            GitHubPullRequest pullRequestToUpdate = null;
+
+            IUpdateBranchNamingStrategy namingStrategy = options.BranchNamingStrategy
+                ?? new SingleBranchNamingStrategy("UpdateDependencies");
+
+            string upgradeBranchPrefix = namingStrategy.Prefix(baseBranch.Name);
+
+            if (!options.ForceCreate)
             {
-                GitHubBranch originBranch = null;
-                GitHubPullRequest pullRequestToUpdate = null;
+                string myAuthorId = await client.GetMyAuthorIdAsync();
 
-                IUpdateBranchNamingStrategy namingStrategy = options.BranchNamingStrategy
-                    ?? new SingleBranchNamingStrategy("UpdateDependencies");
+                pullRequestToUpdate = await client.SearchPullRequestsAsync(
+                    upstream,
+                    upgradeBranchPrefix,
+                    myAuthorId);
 
-                string upgradeBranchPrefix = namingStrategy.Prefix(baseBranch.Name);
-
-                if (!options.ForceCreate)
+                if (pullRequestToUpdate == null)
                 {
-                    pullRequestToUpdate = await client.SearchPullRequestsAsync(
-                        upstream,
-                        upgradeBranchPrefix,
-                        _auth.User);
+                    Trace.TraceInformation($"No existing pull request found.");
+                }
+                else
+                {
+                    Trace.TraceInformation(
+                        $"Pull request already exists for {upgradeBranchPrefix} in {upstream.Segments}. " +
+                        $"#{pullRequestToUpdate.Number}, '{pullRequestToUpdate.Title}'");
 
-                    if (pullRequestToUpdate == null)
+                    GitCommit headCommit = await client.GetCommitAsync(
+                        origin,
+                        pullRequestToUpdate.Head.Sha);
+
+                    string blockedReason = GetUpdateBlockedReason(
+                        pullRequestToUpdate,
+                        headCommit,
+                        upgradeBranchPrefix,
+                        origin,
+                        options);
+
+                    if (blockedReason == null)
                     {
-                        Trace.TraceInformation($"No existing pull request found.");
+                        if (options.TrackDiscardedCommits)
+                        {
+                            await PostDiscardedCommitCommentAsync(
+                                baseBranch.Project,
+                                pullRequestToUpdate,
+                                headCommit,
+                                client);
+                        }
+
+                        originBranch = new GitHubBranch(
+                            pullRequestToUpdate.Head.Ref,
+                            origin);
                     }
                     else
                     {
-                        Trace.TraceInformation(
-                            $"Pull request already exists for {upgradeBranchPrefix} in {upstream.Segments}. " +
-                            $"#{pullRequestToUpdate.Number}, '{pullRequestToUpdate.Title}'");
+                        string comment =
+                            $"Couldn't update this pull request: {blockedReason}\n" +
+                            $"Would have applied '{commitMessage}'";
 
-                        GitCommit headCommit = await client.GetCommitAsync(
-                            origin,
-                            pullRequestToUpdate.Head.Sha);
+                        Trace.TraceInformation($"Sending comment to PR: {comment}");
 
-                        string blockedReason = GetUpdateBlockedReason(
-                            pullRequestToUpdate,
-                            headCommit,
-                            upgradeBranchPrefix,
-                            origin);
-
-                        if (blockedReason == null)
-                        {
-                            if (options.TrackDiscardedCommits)
-                            {
-                                await PostDiscardedCommitCommentAsync(
-                                    baseBranch.Project,
-                                    pullRequestToUpdate,
-                                    headCommit,
-                                    client);
-                            }
-
-                            originBranch = new GitHubBranch(
-                                pullRequestToUpdate.Head.Ref,
-                                origin);
-                        }
-                        else
-                        {
-                            string comment =
-                                $"Couldn't update this pull request: {blockedReason}\n" +
-                                $"Would have applied '{commitMessage}'";
-
-                            await client.PostCommentAsync(upstream, pullRequestToUpdate.Number, comment);
-                            return;
-                        }
+                        await client.PostCommentAsync(upstream, pullRequestToUpdate.Number, comment);
+                        return;
                     }
                 }
 
@@ -121,7 +146,7 @@ namespace Microsoft.DotNet.VersionTools.Automation
                     originBranch = new GitHubBranch(newBranchName, origin);
                 }
 
-                PushNewCommit(originBranch, commitMessage);
+                PushNewCommit(originBranch, commitMessage, client);
 
                 if (pullRequestToUpdate != null)
                 {
@@ -148,7 +173,7 @@ namespace Microsoft.DotNet.VersionTools.Automation
             GitHubProject baseProject,
             GitHubPullRequest pullRequestToUpdate,
             GitCommit oldCommit,
-            GitHubClient client)
+            IGitHubClient client)
         {
             GitHubCombinedStatus combinedStatus = await client.GetStatusAsync(
                 baseProject,
@@ -201,9 +226,10 @@ namespace Microsoft.DotNet.VersionTools.Automation
             GitHubPullRequest pr,
             GitCommit headCommit,
             string upgradeBranchPrefix,
-            GitHubProject origin)
+            GitHubProject origin,
+            PullRequestOptions options)
         {
-            if (pr.Head.User.Login != origin.Owner)
+            if (pr.Head.User.Login != origin.Owner && !options.AllowBranchOnAnyRepoOwner)
             {
                 return $"Owner of head repo '{pr.Head.User.Login}' is not '{origin.Owner}'";
             }
@@ -226,11 +252,11 @@ namespace Microsoft.DotNet.VersionTools.Automation
             return null;
         }
 
-        private void PushNewCommit(GitHubBranch branch, string commitMessage)
+        private void PushNewCommit(GitHubBranch branch, string commitMessage, IGitHubClient client)
         {
             GitCommand.Commit(commitMessage, GitAuthorName, _auth.Email, all: true);
 
-            string remoteUrl = $"github.com/{branch.Project.Segments}.git";
+            string remoteUrl = client.CreateGitRemoteUrl(branch.Project);
             string refSpec = $"HEAD:refs/heads/{branch.Name}";
 
             GitCommand.Push(
