@@ -14,26 +14,46 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 {
     public class SubmitPullRequest : BuildTask
     {
-        public string GitHubAuthToken { get; set; }
-        public string GitHubUser { get; set; }
-        public string GitHubEmail { get; set; }
+        [Required]
+        public string PullRequestServiceType { get; set; }
+
+        [Required]
+        public string PullRequestAuthToken { get; set; }
 
         /// <summary>
-        /// A VSTS PAT. Setting this makes VstsInstanceName and GitHubAuthor required. Setting this
-        /// property indicates that the PR will be sent to VSTS (regardless whether GitHubAuthToken
-        /// is set).
+        /// The name of the user creating this PR. Used as the default for PullRequestAuthor.
         ///
-        /// VstsPat and GitHubAuthToken may both be set: this is useful to get a larger rate limit
-        /// for GitHub requests during the earlier tasks in the update process and submit the final
-        /// PR to VSTS.
+        /// For GitHub, this locates the dev (origin) fork.
+        ///
+        /// For VSTS, this is only used as a default for PullRequestAuthor. (PullRequestAuthToken is
+        /// used to fetch the calling user's GUID from VSTS, which is used similarly similar to the
+        /// GitHub username. However, VSTS user GUID isn't a good commit author.)
         /// </summary>
-        public string VstsPat { get; set; }
+        [Required]
+        public string PullRequestUser { get; set; }
+
+        /// <summary>
+        /// Sets the Git author for the update commit. Defaults to PullRequestUser's value.
+        /// </summary>
+        public string PullRequestAuthor { get; set; }
+
+        /// <summary>
+        /// Sets the Git author's email for the update commit.
+        /// </summary>
+        [Required]
+        public string PullRequestEmail { get; set; }
+
+        /// <summary>
+        /// Required for VSTS PullRequestServiceType. Used to find the VSTS repository.
+        /// </summary>
         public string VstsInstanceName { get; set; }
-        public string VstsCommitterEmail { get; set; }
+
         public string VstsApiVersionOverride { get; set; }
 
         /// <summary>
-        /// GitHub repository owner (such as 'dotnet') or VSTS project containing the repo.
+        /// For GitHub, the upstream repository owner. Defaults to 'dotnet'.
+        ///
+        /// For VSTS, the project containing the repo.
         /// </summary>
         public string ProjectRepoOwner { get; set; }
 
@@ -50,16 +70,11 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
         public string Title { get; set; }
 
         /// <summary>
-        /// Body of the pull request. Optional.
+        /// Body/description of the pull request. Optional.
         /// 
-        /// Only used when submitting a new pull request or if TrackDiscardedCommits is false.
+        /// This will overwrite the current PR body if updating a PR.
         /// </summary>
         public string Body { get; set; }
-
-        /// <summary>
-        /// The git author of the update commit. Defaults to the same as GitHubUser.
-        /// </summary>
-        public string GitHubAuthor { get; set; }
 
         public ITaskItem[] NotifyGitHubUsers { get; set; }
 
@@ -100,7 +115,7 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                     TrackDiscardedCommits = TrackDiscardedCommits
                 };
 
-                var prCreator = new PullRequestCreator(client.Auth, GitHubAuthor);
+                var prCreator = new PullRequestCreator(client.Auth, PullRequestAuthor);
                 prCreator.CreateOrUpdateAsync(
                     CommitMessage,
                     CommitMessage + $" ({ProjectRepoBranch})",
@@ -114,46 +129,59 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 
         private IGitHubClient CreateClient(out GitHubProject origin)
         {
-            if (!string.IsNullOrEmpty(VstsPat))
+            PullRequestServiceType type;
+            if (!Enum.TryParse(PullRequestServiceType, true, out type))
             {
-                if (string.IsNullOrEmpty(VstsInstanceName))
-                {
-                    throw new ArgumentException($"{nameof(VstsInstanceName)} is required but not set.");
-                }
-                if (string.IsNullOrEmpty(GitHubAuthor))
-                {
-                    throw new ArgumentException($"{nameof(GitHubAuthor)} is required but not set.");
-                }
-
-                var idAuth = new GitHubAuth(VstsPat);
-
-                // Get profile information from VSTS to use to create the real client.
-                using (var idClient = new VstsAdapterClient(idAuth, VstsInstanceName, VstsApiVersionOverride))
-                {
-                    VstsProfile profile = idClient.GetMyProfileAsync().Result;
-                    var fullAuth = new GitHubAuth(VstsPat, profile.Id, VstsCommitterEmail);
-
-                    origin = new GitHubProject(ProjectRepoName, ProjectRepoOwner);
-                    return new VstsAdapterClient(fullAuth, VstsInstanceName, VstsApiVersionOverride);
-                }
+                string options = string.Join(", ", Enum.GetNames(typeof(PullRequestServiceType)));
+                throw new ArgumentException(
+                    $"{nameof(PullRequestServiceType)} '{PullRequestServiceType}' is not valid. " +
+                    $"Options are {options}");
             }
 
-            if (!string.IsNullOrEmpty(GitHubAuthToken))
+            switch (type)
             {
-                if (string.IsNullOrEmpty(GitHubUser))
-                {
-                    throw new ArgumentException($"{nameof(GitHubUser)} is required but not set.");
-                }
-                if (string.IsNullOrEmpty(GitHubEmail))
-                {
-                    throw new ArgumentException($"{nameof(GitHubEmail)} is required but not set.");
-                }
+                case VersionTools.PullRequestServiceType.GitHub:
+                    origin = new GitHubProject(ProjectRepoName, PullRequestUser);
+                    return new GitHubClient(
+                        new GitHubAuth(
+                            PullRequestAuthToken,
+                            PullRequestUser,
+                            PullRequestEmail));
 
-                origin = new GitHubProject(ProjectRepoName, GitHubUser);
-                return new GitHubClient(new GitHubAuth(GitHubAuthToken, GitHubUser, GitHubEmail));
+                case VersionTools.PullRequestServiceType.Vsts:
+                    if (string.IsNullOrEmpty(VstsInstanceName))
+                    {
+                        throw new ArgumentException($"{nameof(VstsInstanceName)} is required but not set.");
+                    }
+
+                    // Get profile information from VSTS to use to create the real client.
+                    using (var idClient = new VstsAdapterClient(
+                        new GitHubAuth(PullRequestAuthToken),
+                        VstsInstanceName,
+                        VstsApiVersionOverride))
+                    {
+                        VstsProfile profile = idClient.GetMyProfileAsync().Result;
+
+                        PullRequestAuthor = PullRequestUser;
+
+                        var fullAuth = new GitHubAuth(
+                            PullRequestAuthToken,
+                            profile.Id,
+                            PullRequestEmail);
+
+                        origin = new GitHubProject(ProjectRepoName, ProjectRepoOwner);
+                        return new VstsAdapterClient(
+                            fullAuth,
+                            VstsInstanceName,
+                            VstsApiVersionOverride);
+                    }
+
+                default:
+                    throw new ArgumentOutOfRangeException(
+                        nameof(PullRequestServiceType),
+                        type,
+                        "Enum value invalid.");
             }
-
-            throw new ArgumentException($"{nameof(GitHubAuthToken)} and/or {nameof(VstsPat)} is required.");
         }
     }
 }

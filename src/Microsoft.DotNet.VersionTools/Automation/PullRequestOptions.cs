@@ -18,8 +18,8 @@ namespace Microsoft.DotNet.VersionTools.Automation
         public bool MaintainersCanModify { get; set; } = true;
 
         /// <summary>
-        /// When force pushing to a branch, update the description with a pointer to the commit that
-        /// was discarded so it is still accessible, along with CI.
+        /// When force pushing to a branch, add a comment with a pointer to the commit that was
+        /// discarded so it is still accessible, along with CI.
         /// </summary>
         public bool TrackDiscardedCommits { get; set; } = true;
 
