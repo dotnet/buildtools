@@ -107,7 +107,7 @@
       <NativeVersionLines Include="#undef VER_FILEVERSION_STR" />
       <NativeVersionLines Include="#define VER_FILEVERSION_STR         &quot;$(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)$(BuiltByString)&quot;" />
       <NativeVersionLines Include="#ifndef VER_LEGALCOPYRIGHT_STR" />
-      <NativeVersionLines Include="#define VER_LEGALCOPYRIGHT_STR      &quot;\xa9 Microsoft Corporation.  All rights reserved.&quot;" />
+      <NativeVersionLines Include="#define VER_LEGALCOPYRIGHT_STR      &quot;\xa9 Microsoft Corporation. All rights reserved.&quot;" />
       <NativeVersionLines Include="#endif" />
       <NativeVersionLines Include="#ifndef VER_DEBUG" />
       <NativeVersionLines Condition="'$(Configuration)'=='Debug'" Include="#define VER_DEBUG                   VS_FF_DEBUG" />
