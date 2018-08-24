@@ -26,8 +26,9 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
         /// For GitHub, this locates the dev (origin) fork.
         ///
         /// For VSTS, this is only used as a default for PullRequestAuthor. (PullRequestAuthToken is
-        /// used to fetch the calling user's GUID from VSTS, which is used similarly similar to the
-        /// GitHub username. However, VSTS user GUID isn't a good commit author.)
+        /// used to fetch the calling user's GUID from VSTS. The GUID is used to search for existing
+        /// PRs, like GitHub username is used to find GitHub PRs. However, VSTS user GUID isn't a
+        /// good commit author, so the caller must provide a friendly name.)
         /// </summary>
         [Required]
         public string PullRequestUser { get; set; }
@@ -138,15 +139,16 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                     $"Options are {options}");
             }
 
+            var auth = new GitHubAuth(
+                PullRequestAuthToken,
+                PullRequestUser,
+                PullRequestEmail);
+
             switch (type)
             {
                 case VersionTools.PullRequestServiceType.GitHub:
                     origin = new GitHubProject(ProjectRepoName, PullRequestUser);
-                    return new GitHubClient(
-                        new GitHubAuth(
-                            PullRequestAuthToken,
-                            PullRequestUser,
-                            PullRequestEmail));
+                    return new GitHubClient(auth);
 
                 case VersionTools.PullRequestServiceType.Vsts:
                     if (string.IsNullOrEmpty(VstsInstanceName))
@@ -154,27 +156,8 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                         throw new ArgumentException($"{nameof(VstsInstanceName)} is required but not set.");
                     }
 
-                    // Get profile information from VSTS to use to create the real client.
-                    using (var idClient = new VstsAdapterClient(
-                        new GitHubAuth(PullRequestAuthToken),
-                        VstsInstanceName,
-                        VstsApiVersionOverride))
-                    {
-                        VstsProfile profile = idClient.GetMyProfileAsync().Result;
-
-                        PullRequestAuthor = PullRequestUser;
-
-                        var fullAuth = new GitHubAuth(
-                            PullRequestAuthToken,
-                            profile.Id,
-                            PullRequestEmail);
-
-                        origin = new GitHubProject(ProjectRepoName, ProjectRepoOwner);
-                        return new VstsAdapterClient(
-                            fullAuth,
-                            VstsInstanceName,
-                            VstsApiVersionOverride);
-                    }
+                    origin = new GitHubProject(ProjectRepoName, ProjectRepoOwner);
+                    return new VstsAdapterClient(auth, VstsInstanceName, VstsApiVersionOverride);
 
                 default:
                     throw new ArgumentOutOfRangeException(

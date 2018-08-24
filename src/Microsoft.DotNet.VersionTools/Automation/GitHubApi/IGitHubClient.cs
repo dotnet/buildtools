@@ -85,6 +85,12 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             string sha,
             bool force);
 
+        /// <summary>
+        /// Get author ID in a form that can be used to search for pull requests. For GitHub, this
+        /// is simply the auth username. For VSTS, this is a GUID fetched from an API.
+        /// </summary>
+        Task<string> GetMyAuthorIdAsync();
+
         string CreateGitRemoteUrl(
             GitHubProject project);
 

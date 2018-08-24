@@ -385,6 +385,8 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             }
         }
 
+        public Task<string> GetMyAuthorIdAsync() => Task.FromResult(Auth.User);
+
         public string CreateGitRemoteUrl(GitHubProject project) => $"github.com/{project.Segments}.git";
 
         public void AdjustOptionsToCapability(PullRequestOptions options)

@@ -359,6 +359,12 @@ namespace Microsoft.DotNet.VersionTools.Automation.VstsApi
             throw new NotImplementedException();
         }
 
+        public async Task<string> GetMyAuthorIdAsync()
+        {
+            VstsProfile profile = await GetMyProfileAsync();
+            return profile.Id;
+        }
+
         public string CreateGitRemoteUrl(GitHubProject project) =>
             $"{VstsInstanceName}.visualstudio.com/{project.Owner}/_git/{project.Name}";
 

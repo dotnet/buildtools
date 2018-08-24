@@ -80,10 +80,12 @@ namespace Microsoft.DotNet.VersionTools.Automation
 
             if (!options.ForceCreate)
             {
+                string myAuthorId = await client.GetMyAuthorIdAsync();
+
                 pullRequestToUpdate = await client.SearchPullRequestsAsync(
                     upstream,
                     upgradeBranchPrefix,
-                    _auth.User);
+                    myAuthorId);
 
                 if (pullRequestToUpdate == null)
                 {
