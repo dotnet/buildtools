@@ -155,16 +155,29 @@
   <Target Name="SubmitPullRequestIfChanged"
           Condition="'$(MadeChanges)' == 'true'">
     <PropertyGroup>
+      <PullRequestServiceType Condition="'$(PullRequestServiceType)' == ''">GitHub</PullRequestServiceType>
       <MaintainersCanModifyPullRequest Condition="'$(MaintainersCanModifyPullRequest)' == ''">true</MaintainersCanModifyPullRequest>
       <TrackDiscardedCommits Condition="'$(TrackDiscardedCommits)' == ''">true</TrackDiscardedCommits>
     </PropertyGroup>
-    <SubmitPullRequest ProjectRepoName="$(ProjectRepoName)"
+
+    <!-- If GitHub service, set up backward-compatible properties. -->
+    <PropertyGroup Condition="'$(PullRequestServiceType)' == 'GitHub'">
+      <PullRequestAuthToken Condition="'$(PullRequestAuthToken)' == ''">$(GitHubAuthToken)</PullRequestAuthToken>
+      <PullRequestUser Condition="'$(PullRequestUser)' == ''">$(GitHubUser)</PullRequestUser>
+      <PullRequestAuthor Condition="'$(PullRequestAuthor)' == ''">$(GitHubAuthor)</PullRequestAuthor>
+      <PullRequestEmail Condition="'$(PullRequestEmail)' == ''">$(GitHubEmail)</PullRequestEmail>
+    </PropertyGroup>
+
+    <SubmitPullRequest PullRequestServiceType="$(PullRequestServiceType)"
+                       PullRequestAuthToken="$(PullRequestAuthToken)"
+                       PullRequestUser="$(PullRequestUser)"
+                       PullRequestAuthor="$(PullRequestAuthor)"
+                       PullRequestEmail="$(PullRequestEmail)"
+                       VstsInstanceName="$(VstsInstanceName)"
+                       VstsApiVersionOverride="$(VstsApiVersionOverride)"
                        ProjectRepoOwner="$(ProjectRepoOwner)"
+                       ProjectRepoName="$(ProjectRepoName)"
                        ProjectRepoBranch="$(ProjectRepoBranch)"
-                       GitHubAuthToken="$(GitHubAuthToken)"
-                       GitHubUser="$(GitHubUser)"
-                       GitHubEmail="$(GitHubEmail)"
-                       GitHubAuthor="$(GitHubAuthor)"
                        CommitMessage="$(CommitMessage)"
                        Title="$(PullRequestTitle)"
                        Body="$(PullRequestBody)"

@@ -74,6 +74,7 @@
     <Compile Include="VersionTools\BaseDependenciesTask.cs" />
     <Compile Include="VersionTools\MsBuildTraceListener.cs" />
     <Compile Include="ReadGitConfigFile.cs" />
+    <Compile Include="VersionTools\PullRequestServiceType.cs" />
     <Compile Include="VersionTools\SubmitPullRequest.cs" />
     <Compile Include="VersionTools\UpdateToRemoteDependencies.cs" />
     <Compile Include="VersionTools\TraceListenerCollectionExtensions.cs" />

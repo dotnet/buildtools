@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
 
 namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
 {
-    public interface IGitHubClient
+    public interface IGitHubClient : IDisposable
     {
         GitHubAuth Auth { get; }
 
@@ -83,5 +84,17 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             string @ref,
             string sha,
             bool force);
+
+        /// <summary>
+        /// Get author ID in a form that can be used to search for pull requests. For GitHub, this
+        /// is simply the auth username. For VSTS, this is a GUID fetched from an API.
+        /// </summary>
+        Task<string> GetMyAuthorIdAsync();
+
+        string CreateGitRemoteUrl(
+            GitHubProject project);
+
+        void AdjustOptionsToCapability(
+            PullRequestOptions options);
     }
 }

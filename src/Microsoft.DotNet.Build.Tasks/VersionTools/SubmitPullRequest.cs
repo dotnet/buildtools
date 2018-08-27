@@ -5,6 +5,8 @@
 using Microsoft.Build.Framework;
 using Microsoft.DotNet.VersionTools.Automation;
 using Microsoft.DotNet.VersionTools.Automation.GitHubApi;
+using Microsoft.DotNet.VersionTools.Automation.VstsApi;
+using System;
 using System.Diagnostics;
 using System.Linq;
 
@@ -13,12 +15,47 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
     public class SubmitPullRequest : BuildTask
     {
         [Required]
-        public string GitHubAuthToken { get; set; }
-        [Required]
-        public string GitHubUser { get; set; }
-        [Required]
-        public string GitHubEmail { get; set; }
+        public string PullRequestServiceType { get; set; }
 
+        [Required]
+        public string PullRequestAuthToken { get; set; }
+
+        /// <summary>
+        /// The name of the user creating this PR. Used as the default for PullRequestAuthor.
+        ///
+        /// For GitHub, this locates the dev (origin) fork.
+        ///
+        /// For VSTS, this is only used as a default for PullRequestAuthor. (PullRequestAuthToken is
+        /// used to fetch the calling user's GUID from VSTS. The GUID is used to search for existing
+        /// PRs, like GitHub username is used to find GitHub PRs. However, VSTS user GUID isn't a
+        /// good commit author, so the caller must provide a friendly name.)
+        /// </summary>
+        [Required]
+        public string PullRequestUser { get; set; }
+
+        /// <summary>
+        /// Sets the Git author for the update commit. Defaults to PullRequestUser's value.
+        /// </summary>
+        public string PullRequestAuthor { get; set; }
+
+        /// <summary>
+        /// Sets the Git author's email for the update commit.
+        /// </summary>
+        [Required]
+        public string PullRequestEmail { get; set; }
+
+        /// <summary>
+        /// Required for VSTS PullRequestServiceType. Used to find the VSTS repository.
+        /// </summary>
+        public string VstsInstanceName { get; set; }
+
+        public string VstsApiVersionOverride { get; set; }
+
+        /// <summary>
+        /// For GitHub, the upstream repository owner. Defaults to 'dotnet'.
+        ///
+        /// For VSTS, the project containing the repo.
+        /// </summary>
         public string ProjectRepoOwner { get; set; }
 
         [Required]
@@ -34,16 +71,11 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
         public string Title { get; set; }
 
         /// <summary>
-        /// Body of the pull request. Optional.
+        /// Body/description of the pull request. Optional.
         /// 
-        /// Only used when submitting a new pull request or if TrackDiscardedCommits is false.
+        /// This will overwrite the current PR body if updating a PR.
         /// </summary>
         public string Body { get; set; }
-
-        /// <summary>
-        /// The git author of the update commit. Defaults to the same as GitHubUser.
-        /// </summary>
-        public string GitHubAuthor { get; set; }
 
         public ITaskItem[] NotifyGitHubUsers { get; set; }
 
@@ -61,12 +93,11 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 
         private void TraceListenedExecute()
         {
-            var auth = new GitHubAuth(GitHubAuthToken, GitHubUser, GitHubEmail);
+            // GitHub and VSTS have different dev flow conventions.
+            GitHubProject origin;
 
-            using (GitHubClient client = new GitHubClient(auth))
+            using (IGitHubClient client = CreateClient(out origin))
             {
-                var origin = new GitHubProject(ProjectRepoName, GitHubUser);
-
                 var upstreamBranch = new GitHubBranch(
                     ProjectRepoBranch,
                     new GitHubProject(ProjectRepoName, ProjectRepoOwner));
@@ -78,19 +109,61 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
                     body += PullRequestCreator.NotificationString(NotifyGitHubUsers.Select(item => item.ItemSpec));
                 }
 
-                var prCreator = new PullRequestCreator(client.Auth, GitHubAuthor);
+                var options = new PullRequestOptions
+                {
+                    ForceCreate = AlwaysCreateNewPullRequest,
+                    MaintainersCanModify = MaintainersCanModifyPullRequest,
+                    TrackDiscardedCommits = TrackDiscardedCommits
+                };
+
+                var prCreator = new PullRequestCreator(client.Auth, PullRequestAuthor);
                 prCreator.CreateOrUpdateAsync(
                     CommitMessage,
                     CommitMessage + $" ({ProjectRepoBranch})",
                     body,
                     upstreamBranch,
                     origin,
-                    new PullRequestOptions
+                    options,
+                    client).Wait();
+            }
+        }
+
+        private IGitHubClient CreateClient(out GitHubProject origin)
+        {
+            PullRequestServiceType type;
+            if (!Enum.TryParse(PullRequestServiceType, true, out type))
+            {
+                string options = string.Join(", ", Enum.GetNames(typeof(PullRequestServiceType)));
+                throw new ArgumentException(
+                    $"{nameof(PullRequestServiceType)} '{PullRequestServiceType}' is not valid. " +
+                    $"Options are {options}");
+            }
+
+            var auth = new GitHubAuth(
+                PullRequestAuthToken,
+                PullRequestUser,
+                PullRequestEmail);
+
+            switch (type)
+            {
+                case VersionTools.PullRequestServiceType.GitHub:
+                    origin = new GitHubProject(ProjectRepoName, PullRequestUser);
+                    return new GitHubClient(auth);
+
+                case VersionTools.PullRequestServiceType.Vsts:
+                    if (string.IsNullOrEmpty(VstsInstanceName))
                     {
-                        ForceCreate = AlwaysCreateNewPullRequest,
-                        MaintainersCanModify = MaintainersCanModifyPullRequest,
-                        TrackDiscardedCommits = TrackDiscardedCommits
-                    }).Wait();
+                        throw new ArgumentException($"{nameof(VstsInstanceName)} is required but not set.");
+                    }
+
+                    origin = new GitHubProject(ProjectRepoName, ProjectRepoOwner);
+                    return new VstsAdapterClient(auth, VstsInstanceName, VstsApiVersionOverride);
+
+                default:
+                    throw new ArgumentOutOfRangeException(
+                        nameof(PullRequestServiceType),
+                        type,
+                        "Enum value invalid.");
             }
         }
     }
