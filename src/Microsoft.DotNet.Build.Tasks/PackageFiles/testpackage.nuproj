@@ -16,7 +16,7 @@
     <Owners>microsoft,dotnetframework</Owners>
     <LicenseUrl>http://go.microsoft.com/fwlink/?LinkID=279007</LicenseUrl>
     <IconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</IconUrl>
-    <Copyright>© Microsoft Corporation.  All rights reserved.</Copyright>
+    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
     <RequireLicenseAcceptance>True</RequireLicenseAcceptance>
     
     <!-- Disable package analysis because we are adding lots of assemblies 
