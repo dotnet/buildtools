@@ -7,6 +7,8 @@
 
   <PropertyGroup>
     <ProjectJson Condition="'$(ProjectJson)' == '' and '$(ContainsPackageReferences)' == 'true'">$(MSBuildProjectFullPath)</ProjectJson>
+    <RestoreOutputPath Condition="'$(RestoreOutputPath)' == '' And '$(ContainsPackageReferences)' != 'true' And '$(ProjectJson)' != ''">$([System.IO.Path]::GetDirectoryName('$(ProjectJson)'))/obj</RestoreOutputPath>
+    <RestoreOutputPath Condition="'$(RestoreOutputPath)' == ''">$(MSBuildProjectDirectory)</RestoreOutputPath>	
     <!-- SDK targets need this to be set in addition to RestoreOutputPath. See https://github.com/dotnet/sdk/issues/1057 -->
     <ProjectAssetsFile>$(RestoreOutputPath)/project.assets.json</ProjectAssetsFile>
     <ResolveNugetProjectFile Condition="'$(ResolveNugetProjectFile)' == ''">$(MSBuildProjectFullPath)</ResolveNugetProjectFile>
