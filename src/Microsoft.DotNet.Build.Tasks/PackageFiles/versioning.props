@@ -4,7 +4,7 @@
     <BuildToolsVersioningPropsHasBeenImported>true</BuildToolsVersioningPropsHasBeenImported>
 
     <Company Condition="'$(Company)' == ''">Microsoft Corporation</Company>
-    <Copyright Condition="'$(Copyright)' == ''">%A9 Microsoft Corporation.  All rights reserved.</Copyright>
+    <Copyright Condition="'$(Copyright)' == ''">%A9 Microsoft Corporation. All rights reserved.</Copyright>
     <Description Condition="'$(Description)' == ''">$(AssemblyName)</Description>
     <FileVersion Condition="'$(FileVersion)' == '' and '$(AssemblyFileVersion)' != ''">$(AssemblyFileVersion)</FileVersion>
     <InformationalVersion Condition="'$(InformationalVersion)' == ''">$(AssemblyFileVersion)$(BuiltByString)</InformationalVersion>
