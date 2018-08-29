@@ -81,32 +81,38 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
             using (HttpClient client = new HttpClient()
             {
-                Timeout = TimeSpan.FromSeconds(30) // Default is 100 seconds
+                Timeout = TimeSpan.FromSeconds(30) // Default is 100 seconds.  15 timeouts @ 30 seconds = ~7:30
             })
             {
                 const int MaxAttempts = 15;
                 // add a bit of randomness to the retry delay
                 var rng = new Random();
-                int retryCount = MaxAttempts;
 
                 // We'll use this to be sure TaskCancelledException comes from timeouts
                 CancellationTokenSource cancelTokenSource = new CancellationTokenSource();
 
                 foreach (JObject jobStartMessage in allBuilds)
                 {
+                    int retryCount = MaxAttempts;
+                    bool keepTrying = true;
                     string queueId = (string)jobStartMessage["QueueId"];
-                    // This should never happen.
                     if (string.IsNullOrEmpty(queueId))
                     {
                         Log.LogError("Helix Job Start messages must have a value for 'QueueId' ");
+                        keepTrying = false; // this will fail in the API, so we won't even try.
                     }
-                    bool keepTrying = true;
+                    // Provides a way for the API to realize that a given job has been recently queued
+                    // which allows us to retry in the case of ambiguous results such as HttpClient timeout.
+                    string jobStartIdentifier = Guid.NewGuid().ToString("N");
+                    jobStartMessage["JobStartIdentifier"] = jobStartIdentifier;
+                    Log.LogMessage(MessageImportance.Low, $"Sending job start with identifier '{jobStartIdentifier}'");
+
                     while (keepTrying)
                     {
                         HttpResponseMessage response = new HttpResponseMessage();
                         try
                         {
-                            // This tortured way to get the HTTPContent is to work around that StringContent doesn't allow application/json
+                            // This workaround to get the HTTPContent is to work around that StringContent doesn't allow application/json
                             HttpContent contentStream = new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes(jobStartMessage.ToString())));
                             contentStream.Headers.Add("Content-Type", "application/json");
                             response = await client.PostAsync(apiUrl, contentStream, cancelTokenSource.Token);
@@ -161,10 +167,8 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                         {
                             if (possibleClientTimeout.CancellationToken != cancelTokenSource.Token)
                             {
-                                // This is a timeout.  Since we have no idea if the Helix API got this, and no way to determine on the other side if duplication occurred,
-                                // we currently must treat this as error.
-                                Log.LogError($"HttpClient timeout while attempting to POST new job to '{queueId}'; the job may have started but this cannot be currently determined.");
-                                keepTrying = false;
+                                // This is a timeout.  Since we provided a JobIdentifier value, we can retry.
+                                Log.LogWarning($"HttpClient timeout while attempting to POST new job to '{queueId}', will retry. Job Start Identifier: {jobStartIdentifier}");
                             }
                             else
                             {
