@@ -54,7 +54,7 @@
       <AssemblyInfoLines Include="[assembly:AssemblyDefaultAlias(&quot;$(AssemblyName)&quot;)]" />
       <AssemblyInfoLines Include="[assembly:AssemblyCompany(&quot;Microsoft Corporation&quot;)]" />
       <AssemblyInfoLines Include="[assembly:AssemblyProduct(&quot;Microsoft\x00ae .NET Framework&quot;)]" />
-      <AssemblyInfoLines Include="[assembly:AssemblyCopyright(&quot;\x00a9 Microsoft Corporation.  All rights reserved.&quot;)]" />
+      <AssemblyInfoLines Include="[assembly:AssemblyCopyright(&quot;\x00a9 Microsoft Corporation. All rights reserved.&quot;)]" />
       <AssemblyInfoLines Include="[assembly:AssemblyVersion(&quot;$(AssemblyVersion)&quot;)]" />
       <AssemblyInfoLines Include="[assembly:AssemblyFileVersion(&quot;$(AssemblyFileVersion)&quot;)]" />
       <AssemblyInfoLines Include="[assembly:AssemblyInformationalVersion(@&quot;$(AssemblyFileVersion)$(BuiltByString). Commit Hash%3A $(LatestCommit)&quot;)]" />
@@ -72,7 +72,7 @@
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyDefaultAlias(&quot;$(AssemblyName)&quot;)&gt;" />
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyCompany(&quot;Microsoft Corporation&quot;)&gt;" />
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyProduct(&quot;Microsoft\x00ae .NET Framework&quot;)&gt;" />
-      <AssemblyInfoLines Include="&lt;Assembly:AssemblyCopyright(&quot;\x00a9 Microsoft Corporation.  All rights reserved.&quot;)&gt;" />
+      <AssemblyInfoLines Include="&lt;Assembly:AssemblyCopyright(&quot;\x00a9 Microsoft Corporation. All rights reserved.&quot;)&gt;" />
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyVersion(&quot;$(AssemblyVersion)&quot;)&gt;" />
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyFileVersion(&quot;$(AssemblyFileVersion)&quot;)&gt;" />
       <AssemblyInfoLines Include="&lt;Assembly:AssemblyInformationalVersion(&quot;$(AssemblyFileVersion)$(BuiltByString). Commit Hash%3A $(LatestCommit)&quot;)&gt;" />
@@ -86,7 +86,7 @@
       <AssemblyInfoLines Include="internal static class ThisAssembly" />
       <AssemblyInfoLines Include="{" />
       <AssemblyInfoLines Include="%20%20%20%20internal const string Title = &quot;$(AssemblyName)&quot;%3B" />
-      <AssemblyInfoLines Include="%20%20%20%20internal const string Copyright = &quot;\u00A9 Microsoft Corporation.  All rights reserved.&quot;%3B" />
+      <AssemblyInfoLines Include="%20%20%20%20internal const string Copyright = &quot;\u00A9 Microsoft Corporation. All rights reserved.&quot;%3B" />
       <AssemblyInfoLines Include="%20%20%20%20internal const string Version = &quot;$(AssemblyVersion)&quot;%3B" />
       <AssemblyInfoLines Include="%20%20%20%20internal const string InformationalVersion = &quot;$(AssemblyFileVersion)&quot;%3B" />
       <AssemblyInfoLines Include="}" />
@@ -153,7 +153,7 @@
       <NativeVersionLines Include="#undef VER_FILEVERSION_STR" />
       <NativeVersionLines Include="#define VER_FILEVERSION_STR         &quot;$(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)$(BuiltByString). Commit Hash%3A $(LatestCommit)&quot;" />
       <NativeVersionLines Include="#ifndef VER_LEGALCOPYRIGHT_STR" />
-      <NativeVersionLines Include="#define VER_LEGALCOPYRIGHT_STR      &quot;\xa9 Microsoft Corporation.  All rights reserved.&quot;" />
+      <NativeVersionLines Include="#define VER_LEGALCOPYRIGHT_STR      &quot;\xa9 Microsoft Corporation. All rights reserved.&quot;" />
       <NativeVersionLines Include="#endif" />
       <NativeVersionLines Include="#ifndef VER_DEBUG" />
       <NativeVersionLines Condition="'$(Configuration)'=='Debug'" Include="#define VER_DEBUG                   VS_FF_DEBUG" />

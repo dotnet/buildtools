@@ -53,7 +53,7 @@
     <Description>TODO</Description>
     <LicenseUrl>http://go.microsoft.com/fwlink/?LinkId=329770</LicenseUrl>
     <IconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</IconUrl>
-    <Copyright>&#169; Microsoft Corporation.  All rights reserved.</Copyright>
+    <Copyright>&#169; Microsoft Corporation. All rights reserved.</Copyright>
     <Tags></Tags>
     <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
     <Serviceable Condition="'$(Serviceable)' == ''">true</Serviceable>
