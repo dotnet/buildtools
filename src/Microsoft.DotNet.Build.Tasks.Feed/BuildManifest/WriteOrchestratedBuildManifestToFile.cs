@@ -28,6 +28,8 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
 
         public string ManifestBranch { get; set; }
         public string ManifestCommit { get; set; }
+        public string IsStable { get; set; }
+        public string VersionStamp { get; set; }
 
         public override bool Execute()
         {
@@ -46,7 +48,9 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
                 Name = ManifestName,
                 BuildId = ManifestBuildId,
                 Branch = ManifestBranch,
-                Commit = ManifestCommit
+                Commit = ManifestCommit,
+                IsStable = IsStable,
+                VersionStamp = VersionStamp
             };
 
             var orchestratedBuild = new OrchestratedBuildModel(identity)

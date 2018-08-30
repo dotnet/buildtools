@@ -129,6 +129,7 @@
     <Error Text="The AccountKey property must be set." Condition="'$(AccountKey)' == ''" />
     <Error Text="The ManifestName property must be set." Condition="'$(ManifestName)' == ''" />
     <Error Text="The ManifestBuildId property must be set." Condition="'$(ManifestBuildId)' == ''" />
+    <Error Text="The IsStable property must be set" Condition="'$(IsStable)' == ''" />
 
     <PropertyGroup>
       <ManifestTempDir Condition="'$(ManifestTempDir)' == ''">$(BaseIntermediateOutputPath)manifest-temp/</ManifestTempDir>
@@ -157,7 +158,9 @@
                                           BlobFeedUrl="$(ExpectedFeedUrl)"
                                           BuildManifestFiles="@(BuildManifests)"
                                           ManifestName="$(ManifestName)"
-                                          ManifestBuildId="$(ManifestBuildId)" />
+                                          ManifestBuildId="$(ManifestBuildId)"
+                                          VersionStamp="$(VersionStamp)"
+                                          IsStable="$(IsStable)" />
 
     <WriteOrchestratedBuildManifestSummaryToFile File="$(ManifestSummaryFile)"
                                                  ManifestFile="$(ManifestFile)"
@@ -168,6 +171,39 @@
     <ItemGroup>
       <SupplementaryFiles Include="$(ManifestSummaryFile)" />
     </ItemGroup>
+  </Target>
+
+
+  <!-- Upload the orchestrated feed manifest to blob storage -->
+  <Target Name="UploadOrchestratedBuildManifestToFeed"
+          DependsOnTargets="CreateFeedOrchestratedBuildManifest">
+
+    <Error Text="The ExpectedFeedUrl property must be set." Condition="'$(ExpectedFeedUrl)' == ''" />
+    <Error Text="The AccountKey property must be set." Condition="'$(AccountKey)' == ''" />
+
+    <PropertyGroup>
+      <ManifestTempDir Condition="'$(ManifestTempDir)' == ''">$(BaseIntermediateOutputPath)manifest-temp/</ManifestTempDir>
+      <ManifestFile Condition="'$(ManifestFile)' == ''">$(ManifestTempDir)build.xml</ManifestFile>
+      <ManifestSummaryFile Condition="'$(ManifestSummaryFile)' == ''">$(ManifestTempDir)README.md</ManifestSummaryFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ManifestSummaryItemToUpload Include="$(ManifestSummaryFile)" />
+      <ManifestSummaryItemToUpload>
+        <RelativeBlobPath>assets/orchestration-metadata/$([System.String]::Copy('%(RecursiveDir)%(Filename)%(Extension)').Replace('\' ,'/'))</RelativeBlobPath>
+      </ManifestSummaryItemToUpload>
+      <ManifestFileItemToUpload Include="$(ManifestFile)" />
+      <ManifestFileItemToUpload>
+        <RelativeBlobPath>assets/orchestration-metadata/manifests/$([System.String]::Copy('%(RecursiveDir)%(Filename)%(Extension)').Replace('\' ,'/'))</RelativeBlobPath>
+      </ManifestFileItemToUpload>
+    </ItemGroup>
+
+    <PushToBlobFeed ExpectedFeedUrl="$(ExpectedFeedUrl)"
+                    AccountKey="$(AccountKey)"
+                    ItemsToPush="@(ManifestFileItemToUpload);@(ManifestSummaryItemToUpload)"
+                    Overwrite="true"
+                    PublishFlatContainer="true"
+                    SkipCreateManifest="true" />
   </Target>
 
   <!--
