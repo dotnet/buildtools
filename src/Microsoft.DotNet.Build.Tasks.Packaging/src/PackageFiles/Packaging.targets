@@ -1131,9 +1131,7 @@
         which has placeholders for older frameworks like net45. We should just exclude those from validation
         since we cannot easily determine what they are without looking at each specific platform itself.
       -->
-      <ItemGroup>
-        <SupportedFramework Remove="@(SupportedFramework)" Condition="'%(SupportedFramework.Version)' == 'unknown'" />
-      </ItemGroup>
+      <SupportedFramework Remove="@(SupportedFramework)" Condition="'%(SupportedFramework.Version)' == 'unknown'" />
     </ItemGroup>
 
     <ValidatePackage ContractName="$(BaseId)"
