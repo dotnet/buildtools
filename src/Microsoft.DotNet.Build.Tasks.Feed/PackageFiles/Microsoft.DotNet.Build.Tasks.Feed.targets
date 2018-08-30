@@ -136,7 +136,6 @@
       <ManifestDownloadDir Condition="'$(ManifestDownloadDir)' == ''">$(ManifestTempDir)downloads/</ManifestDownloadDir>
       <ManifestFile Condition="'$(ManifestFile)' == ''">$(ManifestTempDir)build.xml</ManifestFile>
       <ManifestSummaryFile Condition="'$(ManifestSummaryFile)' == ''">$(ManifestTempDir)README.md</ManifestSummaryFile>
-      <VersionStamp Condition="'$(VersionStamp)' == ''">N/A</VersionStamp>
     </PropertyGroup>
 
     <ParseBlobUrl BlobUrl="$(ExpectedFeedUrl.Replace('/index.json', ''))">
@@ -184,7 +183,6 @@
 
     <PropertyGroup>
       <ManifestTempDir Condition="'$(ManifestTempDir)' == ''">$(BaseIntermediateOutputPath)manifest-temp/</ManifestTempDir>
-      <ManifestDownloadDir Condition="'$(ManifestDownloadDir)' == ''">$(ManifestTempDir)downloads/</ManifestDownloadDir>
       <ManifestFile Condition="'$(ManifestFile)' == ''">$(ManifestTempDir)build.xml</ManifestFile>
       <ManifestSummaryFile Condition="'$(ManifestSummaryFile)' == ''">$(ManifestTempDir)README.md</ManifestSummaryFile>
     </PropertyGroup>
