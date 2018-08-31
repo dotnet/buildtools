@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
+    <PackageReference Include="Microsoft.NETCore.ILDAsm" Version="$(ILAsmPackageVersion)" />
 
     <!-- ILAsm has a very unfortunate runtime dependency on CoreCLR, so we need to grab that too -->
     <!-- https://github.com/dotnet/coreclr/issues/15059 -->
