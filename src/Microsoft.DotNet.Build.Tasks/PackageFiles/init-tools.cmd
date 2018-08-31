@@ -5,13 +5,9 @@ set PROJECT_DIR=%~1
 set DOTNET_CMD=%~2
 set TOOLRUNTIME_DIR=%~3
 set PACKAGES_DIR=%4
-if [%PACKAGES_DIR%] == [] set PACKAGES_DIR=%TOOLRUNTIME_DIR%
-:: Remove quotes to the packages directory
-set PACKAGES_DIR=%PACKAGES_DIR:"=%
 set BUILDTOOLS_PACKAGE_DIR=%~dp0
 set MICROBUILD_VERSION=0.2.0
-set PORTABLETARGETS_VERSION=0.1.1-dev
-set ROSLYNCOMPILERS_VERSION=2.8.0-beta2-62719-08
+set ROSLYNCOMPILERS_VERSION=2.8.0-beta4
 
 :: Default to x64 native tools if nothing was specified.
 if [%NATIVE_TOOLS_RID%]==[] (
@@ -26,14 +22,14 @@ set MSBUILD_PROJECT_CONTENT= ^
   ^^^</PropertyGroup^^^> ^
   ^^^<ItemGroup^^^> ^
     ^^^<PackageReference Include=^"MicroBuild.Core^" Version=^"%MICROBUILD_VERSION%^" /^^^> ^
-    ^^^<PackageReference Include=^"Microsoft.Portable.Targets^" Version=^"%PORTABLETARGETS_VERSION%^" /^^^> ^
     ^^^<PackageReference Include=^"Microsoft.Net.Compilers^" Version=^"%ROSLYNCOMPILERS_VERSION%^" /^^^> ^
   ^^^</ItemGroup^^^> ^
  ^^^</Project^^^>
 
 set PUBLISH_TFM=netcoreapp2.0
 
-set INIT_TOOLS_RESTORE_ARGS=--source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json %INIT_TOOLS_RESTORE_ARGS%
+set DEFAULT_RESTORE_ARGS=--no-cache --packages "%PACKAGES_DIR%"
+set INIT_TOOLS_RESTORE_ARGS=%DEFAULT_RESTORE_ARGS% --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json %INIT_TOOLS_RESTORE_ARGS%
 set TOOLRUNTIME_RESTORE_ARGS=--source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json %INIT_TOOLS_RESTORE_ARGS%
 
 if not exist "%PROJECT_DIR%" (
@@ -43,6 +39,16 @@ if not exist "%PROJECT_DIR%" (
 
 if not exist "%DOTNET_CMD%" (
   echo ERROR: Cannot find dotnet cli at [%DOTNET_CMD%]. Please pass in the path to dotnet.exe as the 2nd parameter.
+  exit /b 1
+)
+
+if [%TOOLRUNTIME_DIR%] == [] (
+  echo ERROR: Please pass in the tools directory as the 3rd parameter.
+  exit /b 1
+)
+
+if [%PACKAGES_DIR%] == [] (
+  echo ERROR: Please pass in the packages directory as the 4th parameter.
   exit /b 1
 )
 
@@ -82,18 +88,17 @@ Robocopy "%TOOLRUNTIME_DIR%\runtimes\any\native" "%TOOLRUNTIME_DIR%\."
 Robocopy "%BUILDTOOLS_PACKAGE_DIR%\." "%TOOLRUNTIME_DIR%\." "MSBuild.runtimeconfig.json"
 
 :: Copy Portable Targets Over to ToolRuntime
-if not exist "%PACKAGES_DIR%\generated" mkdir "%PACKAGES_DIR%\generated"
-set PORTABLETARGETS_PROJECT=%PACKAGES_DIR%\generated\project.csproj
+if not exist "%TOOLRUNTIME_DIR%\generated" mkdir "%TOOLRUNTIME_DIR%\generated"
+set PORTABLETARGETS_PROJECT=%TOOLRUNTIME_DIR%\generated\project.csproj
 echo %MSBUILD_PROJECT_CONTENT% > "%PORTABLETARGETS_PROJECT%"
 @echo on
-call "%DOTNET_CMD%" restore "%PORTABLETARGETS_PROJECT%" %INIT_TOOLS_RESTORE_ARGS% --packages "%PACKAGES_DIR%\."
+call "%DOTNET_CMD%" restore "%PORTABLETARGETS_PROJECT%" %INIT_TOOLS_RESTORE_ARGS%
 set RESTORE_PORTABLETARGETS_ERROR_LEVEL=%ERRORLEVEL%
 @echo off
 if not [%RESTORE_PORTABLETARGETS_ERROR_LEVEL%]==[0] (
   echo ERROR: An error ocurred when running: '"%DOTNET_CMD%" restore "%PORTABLETARGETS_PROJECT%"'. Please check above for more details.
   exit /b %RESTORE_PORTABLETARGETS_ERROR_LEVEL%
 )
-Robocopy "%PACKAGES_DIR%\Microsoft.Portable.Targets\%PORTABLETARGETS_VERSION%\contentFiles\any\any\Extensions." "%TOOLRUNTIME_DIR%\." /E
 Robocopy "%PACKAGES_DIR%\MicroBuild.Core\%MICROBUILD_VERSION%\build\." "%TOOLRUNTIME_DIR%\." /E
 
 :: Copy Roslyn Compilers Over to ToolRuntime
@@ -103,7 +108,7 @@ Robocopy "%PACKAGES_DIR%\Microsoft.Net.Compilers\%ROSLYNCOMPILERS_VERSION%\." "%
 if [%ILASMCOMPILER_VERSION%]==[] goto :afterILAsmRestore
 
 @echo on
-call "%DOTNET_CMD%" build "%TOOLRUNTIME_DIR%\ilasm\ilasm.depproj" -r %NATIVE_TOOLS_RID% --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --packages "%PACKAGES_DIR%\." /p:ILAsmPackageVersion=%ILASMCOMPILER_VERSION%
+call "%DOTNET_CMD%" build "%TOOLRUNTIME_DIR%\ilasm\ilasm.depproj" %DEFAULT_RESTORE_ARGS% -r %NATIVE_TOOLS_RID% --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json /p:ILAsmPackageVersion=%ILASMCOMPILER_VERSION%
 set RESTORE_ILASM_ERROR_LEVEL=%ERRORLEVEL%
 @echo off
 if not [%RESTORE_ILASM_ERROR_LEVEL%]==[0] (

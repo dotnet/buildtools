@@ -11,8 +11,12 @@
   <PropertyGroup>
     <ResourcesSourceOutputDirectory Condition="'$(ResourcesSourceOutputDirectory)' == ''">$(MSBuildProjectDirectory)/Resources/</ResourcesSourceOutputDirectory>
     <StringResourcesPath Condition="'$(StringResourcesPath)'=='' And Exists('$(ResourcesSourceOutputDirectory)Strings.resx')">$(ResourcesSourceOutputDirectory)Strings.resx</StringResourcesPath>
-    <IntermediateResOutputFileFullPath Condition="'$(MSBuildProjectExtension)' == '.csproj'">$(IntermediateOutputPath)SR.cs</IntermediateResOutputFileFullPath>
-    <IntermediateResOutputFileFullPath Condition="'$(MSBuildProjectExtension)' == '.vbproj'">$(IntermediateOutputPath)SR.vb</IntermediateResOutputFileFullPath>
+    <ResourcesSourceFileExtension Condition="'$(MSBuildProjectExtension)' == '.csproj'">.cs</ResourcesSourceFileExtension>
+    <ResourcesSourceFileExtension Condition="'$(MSBuildProjectExtension)' == '.vbproj'">.vb</ResourcesSourceFileExtension>
+    <IntermediateResOutputFileFullPath>$(IntermediateOutputPath)SR$(ResourcesSourceFileExtension)</IntermediateResOutputFileFullPath>
+    <CommonSRSourceFile Condition="'$(CommonSRSourceFile)' == ''">$(CommonPath)/System/SR$(ResourcesSourceFileExtension)</CommonSRSourceFile>
+    <IntermediateCommonSRFileFullPath>$(IntermediateOutputPath)SR.common$(ResourcesSourceFileExtension)</IntermediateCommonSRFileFullPath>
+    <ShouldGenerateCommonSRFile Condition="'$(ShouldGenerateCommonSRFile)' == '' AND ('$(GenerateResourcesSRNamespace)' != '' OR '$(GenerateResourcesSRClassName)' != '')">true</ShouldGenerateCommonSRFile>
     <DefineConstants Condition="'$(ConfigurationGroup)' == 'Debug'">$(DefineConstants);DEBUGRESOURCES</DefineConstants>
   </PropertyGroup>
 
@@ -65,6 +69,7 @@
       <CompileDependsOn>
           NormalizeAssemblyName;
           GenerateResourcesSource;
+          GenerateCommonSRSource;
           $(CompileDependsOn);
       </CompileDependsOn>
   </PropertyGroup>
@@ -100,7 +105,8 @@
         SRClassName="$(GenerateResourcesSRClassName)"
         ResourcesNamespace="$(GenerateResourcesResourcesNamespace)"
         ResourcesClassName="$(GenerateResourcesResourcesClassName)"
-        AsConstants="$(GenerateResourcesCodeAsConstants)">
+        AsConstants="$(GenerateResourcesCodeAsConstants)"
+        AsEnum="$(GenerateResourcesCodeAsEnum)">
     </GenerateResourcesCode>
 
     <ItemGroup>
@@ -110,6 +116,32 @@
 
     <ItemGroup>
       <FileWrites Include="$(IntermediateResOutputFileFullPath)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="GenerateCommonSRSource"
+          Condition="'$(StringResourcesPath)'!='' AND '$(OmitResources)'!='true' AND '$(SkipCommonResourcesIncludes)'=='' AND '$(ShouldGenerateCommonSRFile)'=='true'"
+          Inputs="$(CommonSRSourceFile)"
+          Outputs="$(IntermediateCommonSRFileFullPath)">
+
+    <WriteLinesToFile File="$(IntermediateCommonSRFileFullPath)" Overwrite="true"
+                      Lines="$([System.IO.File]::ReadAllText('$(CommonSRSourceFile)').Replace('#CUSTOM_SR_NAMESPACE#', '$(GenerateResourcesSRNamespace)').Replace('#CUSTOM_SR_CLASSNAME#', '$(GenerateResourcesSRClassName)'))" />
+
+    <PropertyGroup>
+      <DefineConstants Condition="'$(GenerateResourcesSRNamespace)' != ''">$(DefineConstants);CUSTOM_SR_NAMESPACE</DefineConstants>
+      <DefineConstants Condition="'$(GenerateResourcesSRClassName)' != ''">$(DefineConstants);CUSTOM_SR_CLASSNAME</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Compile Include="$(IntermediateCommonSRFileFullPath)">
+        <Visible>true</Visible>
+        <Link>Resources/Common/SR$(ResourcesSourceFileExtension)</Link>
+      </Compile>
+    </ItemGroup>
+
+
+    <ItemGroup>
+      <FileWrites Include="$(IntermediateCommonSRFileFullPath)" />
     </ItemGroup>
   </Target>
 
@@ -124,25 +156,13 @@
   </ItemGroup>
 
   <Choose>
-    <When Condition="Exists('$(StringResourcesPath)') And '$(SkipCommonResourcesIncludes)'=='' AND '$(OmitResources)'!='true'">
-      <Choose>
-        <When Condition="'$(MSBuildProjectExtension)' == '.csproj'">
-          <ItemGroup>
-            <Compile Include="$(CommonPath)/System/SR.cs">
-              <Visible>true</Visible>
-              <Link>Resources/Common/SR.cs</Link>
-            </Compile>
-          </ItemGroup>
-        </When>
-        <When Condition="'$(MSBuildProjectExtension)' == '.vbproj'">
-          <ItemGroup>
-            <Compile Include="$(CommonPath)/System/SR.vb">
-              <Visible>true</Visible>
-              <Link>Resources/Common/SR.vb</Link>
-            </Compile>
-          </ItemGroup>
-        </When>
-      </Choose>
+    <When Condition="Exists('$(StringResourcesPath)') AND '$(OmitResources)'!='true' AND '$(SkipCommonResourcesIncludes)'=='' AND '$(ShouldGenerateCommonSRFile)'==''">
+      <ItemGroup>
+        <Compile Include="$(CommonSRSourceFile)">
+          <Visible>true</Visible>
+          <Link>Resources/Common/SR$(ResourcesSourceFileExtension)</Link>
+        </Compile>
+      </ItemGroup>
     </When>
   </Choose>
 </Project>

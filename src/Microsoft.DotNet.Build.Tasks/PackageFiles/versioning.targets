@@ -41,8 +41,7 @@
   </PropertyGroup>
 
   <Target Name="DecideIfWeNeedToIncludeDllSafeSearchPathAttribute" 
-    Condition="'$(IsDotNetFrameworkProductAssembly)' == 'true' AND '$(IsTestProject)' != 'true'"
-    BeforeTargets="GenerateAssemblyInfo">
+    Condition="'$(IsDotNetFrameworkProductAssembly)' == 'true' AND '$(IsTestProject)' != 'true'">
     
     <!-- We want to apply the IncludeDllSafeSearchPathAttribute on all DotNet assemblies (non test) that have a reference to System.Runtime.InteropServices -->
     <PropertyGroup Condition="'$(IncludeDllSafeSearchPathAttribute)'==''">
@@ -52,77 +51,12 @@
     </PropertyGroup>
   </Target>
 
-  <Target Name="GenerateAssemblyInfo"
-      Inputs="$(MSBuildProjectFile)"
-      Outputs="$(AssemblyInfoFile)"
-      Condition="'$(GenerateAssemblyInfo)'=='true'"
-      DependsOnTargets="CreateVersionFileDuringBuild">
+  <PropertyGroup>
+    <_GenerateAssemblyInfoTargetsFilePath Condition="'$(UsingMicrosoftNETSdk)' == 'true'">GenerateAssemblyInfo.Sdk.targets</_GenerateAssemblyInfoTargetsFilePath>
+    <_GenerateAssemblyInfoTargetsFilePath Condition="'$(UsingMicrosoftNETSdk)' != 'true'">GenerateAssemblyInfo.NonSdk.targets</_GenerateAssemblyInfoTargetsFilePath>
+  </PropertyGroup>
 
-    <Error Condition="!Exists('$(IntermediateOutputPath)')" Text="GenerateAssemblyInfo failed because IntermediateOutputPath isn't set to a valid directory" />
-
-    <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
-      <AssemblyInfoUsings Include="using System%3B" />
-      <AssemblyInfoUsings Include="using System.Reflection%3B" />
-      <AssemblyInfoLines Include="[assembly:AssemblyTitle(&quot;$(AssemblyTitle)&quot;)]" />
-      <AssemblyInfoLines Include="[assembly:AssemblyDescription(&quot;$(Description)&quot;)]" />
-      <AssemblyInfoLines Include="[assembly:AssemblyDefaultAlias(&quot;$(AssemblyName)&quot;)]" />
-      <AssemblyInfoLines Include="[assembly:AssemblyCompany(&quot;$(Company)&quot;)]" />
-      <AssemblyInfoLines Include="[assembly:AssemblyProduct(&quot;$(Product)&quot;)]" />
-      <AssemblyInfoLines Include="[assembly:AssemblyCopyright(&quot;$(Copyright)&quot;)]" />
-      <AssemblyInfoLines Include="[assembly:AssemblyVersion(&quot;$(AssemblyVersion)&quot;)]" />
-      <AssemblyInfoLines Include="[assembly:AssemblyFileVersion(&quot;$(FileVersion)&quot;)]" />
-      <AssemblyInfoLines Include="[assembly:AssemblyInformationalVersion(@&quot;$(InformationalVersion)&quot;)]" />
-      <AssemblyInfoLines Condition="'$(CLSCompliant)'=='true'" Include="[assembly:CLSCompliant(true)]" />
-      <AssemblyInfoLines Condition="'$(AssemblyComVisible)'!=''" Include="[assembly:System.Runtime.InteropServices.ComVisible($(AssemblyComVisible))]" />
-      <AssemblyInfoLines Condition="'$(SkipFrameworkAssemblyMetadata)' != 'true'"
-        Include="[assembly:System.Reflection.AssemblyMetadata(&quot;%(AssemblyMetadata.Identity)&quot;, &quot;%(AssemblyMetadata.Value)&quot;)]" />
-
-      <AssemblyInfoLines Condition="'$(IncludeDllSafeSearchPathAttribute)'=='true'" 
-        Include="[assembly: System.Runtime.InteropServices.DefaultDllImportSearchPathsAttribute(System.Runtime.InteropServices.DllImportSearchPath.AssemblyDirectory | System.Runtime.InteropServices.DllImportSearchPath.System32)]" />
-    </ItemGroup>
-
-    <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.vbproj'">
-      <AssemblyInfoUsings Include="Imports System" />
-      <AssemblyInfoUsings Include="Imports System.Reflection" />
-      <AssemblyInfoLines Include="&lt;Assembly:AssemblyTitle(&quot;$(AssemblyTitle)&quot;)&gt;" />
-      <AssemblyInfoLines Include="&lt;Assembly:AssemblyDescription(&quot;$(Description)&quot;)&gt;" />
-      <AssemblyInfoLines Include="&lt;Assembly:AssemblyDefaultAlias(&quot;$(AssemblyName)&quot;)&gt;" />
-      <AssemblyInfoLines Include="&lt;Assembly:AssemblyCompany(&quot;$(Company)&quot;)&gt;" />
-      <AssemblyInfoLines Include="&lt;Assembly:AssemblyProduct(&quot;$(Product)k&quot;)&gt;" />
-      <AssemblyInfoLines Include="&lt;Assembly:AssemblyCopyright(&quot;$(Copyright)&quot;)&gt;" />
-      <AssemblyInfoLines Include="&lt;Assembly:AssemblyVersion(&quot;$(AssemblyVersion)&quot;)&gt;" />
-      <AssemblyInfoLines Include="&lt;Assembly:AssemblyFileVersion(&quot;$(FileVersion)&quot;)&gt;" />
-      <AssemblyInfoLines Include="&lt;Assembly:AssemblyInformationalVersion(&quot;$(InformationalVersion)&quot;)&gt;" />
-      <AssemblyInfoLines Condition="'$(CLSCompliant)'=='true'" Include="&lt;Assembly:CLSCompliant(True)&gt;" />
-      <AssemblyInfoLines Condition="'$(AssemblyComVisible)'!=''" Include="&lt;Assembly:System.Runtime.InteropServices.ComVisible($(AssemblyComVisible))&gt;" />
-      <AssemblyInfoLines Condition="'$(SkipFrameworkAssemblyMetadata)' != 'true'"
-          Include="&lt;assembly:System.Reflection.AssemblyMetadata(&quot;%(AssemblyMetadata.Identity)&quot;, &quot;%(AssemblyMetadata.Value)&quot;)&gt;" />
-
-      <AssemblyInfoLines Condition="'$(IncludeDllSafeSearchPathAttribute)'=='true'" 
-        Include="&lt;Assembly:System.Runtime.InteropServices.DefaultDllImportSearchPathsAttribute(System.Runtime.InteropServices.DllImportSearchPath.AssemblyDirectory | System.Runtime.InteropServices.DllImportSearchPath.System32)&gt;" />
-    </ItemGroup>
-
-    <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj' And '$(GenerateThisAssemblyClass)' == 'true'">
-      <AssemblyInfoLines Include="internal static class ThisAssembly" />
-      <AssemblyInfoLines Include="{" />
-      <AssemblyInfoLines Include="%20%20%20%20internal const string Title = &quot;$(AssemblyName)&quot;%3B" />
-      <AssemblyInfoLines Include="%20%20%20%20internal const string Copyright = &quot;\u00A9 Microsoft Corporation. All rights reserved.&quot;%3B" />
-      <AssemblyInfoLines Include="%20%20%20%20internal const string Version = &quot;$(AssemblyVersion)&quot;%3B" />
-      <AssemblyInfoLines Include="%20%20%20%20internal const string InformationalVersion = &quot;$(AssemblyFileVersion)&quot;%3B" />
-      <AssemblyInfoLines Include="}" />
-    </ItemGroup>
-
-    <WriteLinesToFile
-      File="$(AssemblyInfoFile)"
-      Lines="@(AssemblyInfoUsings);@(AssemblyInfoLines);@(AssemblyInfoSource)"
-      Overwrite="true" />
-
-    <ItemGroup>
-      <Compile Include="$(AssemblyInfoFile)" />
-      <FileWrites Include="$(AssemblyInfoFile)" />
-    </ItemGroup>
-
-  </Target>
+  <Import Project="$(_GenerateAssemblyInfoTargetsFilePath)" />
 
   <ItemGroup Condition="'$(GenerateAssemblyInfo)'=='true' AND '$(StringResourcesPath)' != '' AND '$(ExcludeAssemblyInfoPartialFile)' != 'true'">
     <Compile Include="$(AssemblyInfoPartialFile)">
@@ -136,7 +70,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(GenerateNativeVersionInfo)'=='true'">
-    <NativeVersionFileDir>$(BaseIntermediateOutputPath)</NativeVersionFileDir>
+    <NativeVersionFileDir>$(RootIntermediateOutputPath)</NativeVersionFileDir>
     <NativeVersionHeaderFile>$(NativeVersionFileDir)_version.h</NativeVersionHeaderFile>
     <GenerateVersionHeader>true</GenerateVersionHeader>
   </PropertyGroup>
@@ -181,7 +115,7 @@
       <NativeVersionLines Include="#endif" />
     </ItemGroup>
 
-    <MakeDir Condition="!Exists('$(NativeVersionFileDir)')" Directories="$(NativeVersionFileDir)" />
+    <MakeDir Directories="$(NativeVersionFileDir)" />
 
     <WriteLinesToFile
       File="$(NativeVersionHeaderFile)"
@@ -194,7 +128,7 @@
   </Target>
 
   <PropertyGroup Condition="'$(GenerateVersionSourceFile)'=='true'">
-    <NativeVersionSourceDir>$(BaseIntermediateOutputPath)</NativeVersionSourceDir>
+    <NativeVersionSourceDir>$(RootIntermediateOutputPath)</NativeVersionSourceDir>
     <NativeVersionSourceFile>$(NativeVersionSourceDir)version.c</NativeVersionSourceFile>
   </PropertyGroup>
 
@@ -212,7 +146,7 @@
       <SourceFileLines Include=" " />
     </ItemGroup>
 
-    <MakeDir Condition="!Exists('$(NativeVersionSourceDir)')" Directories="$(NativeVersionSourceDir)" />
+    <MakeDir Directories="$(NativeVersionSourceDir)" />
 
     <WriteLinesToFile
       File="$(NativeVersionSourceFile)"
@@ -229,7 +163,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <SyncInfoDirectory Condition="'$(SyncInfoDirectory)' == ''">$(ObjDir)</SyncInfoDirectory>
+    <SyncInfoDirectory Condition="'$(SyncInfoDirectory)' == ''">$(RootIntermediateOutputPath)</SyncInfoDirectory>
     <SyncInfoFile Condition="'$(SyncInfoFile)' == ''">$(SyncInfoDirectory)version.txt</SyncInfoFile>
   </PropertyGroup>
 
@@ -238,8 +172,7 @@
           BeforeTargets="BuildAllProjects"
           Inputs="$(LatestCommit)"
           Outputs="$(SyncInfoFile)">
-    <MakeDir Condition="!Exists('$(SyncInfoDirectory)')"
-             Directories="$(SyncInfoDirectory)" />
+    <MakeDir Directories="$(SyncInfoDirectory)" />
     <WriteLinesToFile
       Condition="'$(LatestCommit)' != ''"
       File="$(SyncInfoFile)"
@@ -308,7 +241,7 @@
     <!-- ******* SourceLink Support, activated by setting $(UseSourceLink) ********* -->
 
     <!-- Generate the SourceLink file that will be passed to the C# compiler (using ProjectDir and GitHubRepositoryUrl as data) -->
-    <MakeDir Directories="$(BaseIntermediateOutputPath)" />
+    <MakeDir Directories="$(RootIntermediateOutputPath)" />
     <WriteLinesToFile 
       Condition="'$(UseSourceLink)' == 'true' AND '$(GitHubRepositoryUrl)' != '' AND '$(LatestCommit)' != 'N/A' AND !Exists('$(SourceLinkFilePath)')"
       ContinueOnError="WarnAndContinue"
@@ -460,6 +393,6 @@
   <Target Name="NativeResourceCompile" DependsOnTargets="$(BeforeResourceCompileTargets)" Inputs="$(MsBuildThisFileDirectory)NativeVersion.rc" Outputs="$(Win32Resource)">
     <Error Condition="!Exists('$(RCPATH)')" Text="NativeResourceCompile failed because RCPath is set to an non-existing rc.exe path." />
 
-    <Exec Command='"$(RCPath)" /i $(BaseIntermediateOutputPath) /i $(IntermediateOutputPath) /i $(WindowsSDKPath)\inc /i $(VCSDKPath)\Include /D _UNICODE /D UNICODE /l"0x0409" /r /fo "$(Win32Resource)" "$(MsBuildThisFileDirectory)NativeVersion.rc"' />
+    <Exec Command='"$(RCPath)" /i $(RootIntermediateOutputPath) /i $(IntermediateOutputPath) /i $(WindowsSDKPath)\inc /i $(VCSDKPath)\Include /D _UNICODE /D UNICODE /l"0x0409" /r /fo "$(Win32Resource)" "$(MsBuildThisFileDirectory)NativeVersion.rc"' />
   </Target>
 </Project>

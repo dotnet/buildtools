@@ -56,6 +56,18 @@ namespace Microsoft.DotNet.VersionTools.BuildManifest.Model
             set { Attributes[nameof(Commit)] = value; }
         }
 
+        public string IsStable
+        {
+            get { return Attributes.GetOrDefault(nameof(IsStable)); }
+            set { Attributes[nameof(IsStable)] = value; }
+        }
+
+        public string VersionStamp
+        {
+            get { return Attributes.GetOrDefault(nameof(VersionStamp)); }
+            set { Attributes[nameof(VersionStamp)] = value; }
+        }
+
         public override string ToString()
         {
             string s = Name;

@@ -25,6 +25,8 @@
     <file src="Microsoft.DotNet.Build.CloudTestTasks\PackageFiles\**\*.*" target="lib" />
     <file src="Microsoft.DotNet.Build.CloudTestTasks\RunnerScripts\**\*.*" target="lib\RunnerScripts" />
     <file src="Microsoft.DotNet.Build.Tasks\PackageFiles\**\*.*" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks\Microsoft.DiaSymReader.Converter.dll" target="lib" />
+    <file src="Microsoft.DotNet.Build.Tasks\Microsoft.DiaSymReader.dll" target="lib" />
     <file src="Microsoft.DotNet.Build.Tasks\Microsoft.DotNet.Build.Tasks.dll" target="lib" />
     <file src="Run\run.exe" target="lib" />
     <file src="Run\run.runtimeconfig.json" target="lib" />

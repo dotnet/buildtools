@@ -1,0 +1,66 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <!-- BuildTools never generated this attribute before, so don't let the SDK generate it. -->
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+
+    <!--
+    When using the Microsoft.NET.Sdk, Company and Product are defaulted to $(AssemblyName)
+    in Microsoft.NET.Sdk.BeforeCommon.targets, which means we would have to default them in
+    a props file. However, the versioning.props file has to be imported during versioning.targets
+    in order to get all the version properties set correctly.
+    So overwrite these two properties here, so they are set correctly.
+    -->
+    <Company>Microsoft Corporation</Company>
+    <Product>Microsoft%AE .NET Framework</Product>
+  </PropertyGroup>
+
+  <Target Name="_ComputeBuildToolsAssemblyInfoAttributes"
+          DependsOnTargets="CreateVersionFileDuringBuild;DecideIfWeNeedToIncludeDllSafeSearchPathAttribute"
+          BeforeTargets="GetAssemblyAttributes">
+    <ItemGroup>
+      <AssemblyAttribute Include="System.Reflection.AssemblyDefaultAliasAttribute">
+        <_Parameter1>$(AssemblyName)</_Parameter1>
+      </AssemblyAttribute>
+
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadata"
+                         Condition="'$(SkipFrameworkAssemblyMetadata)' != 'true' and '@(AssemblyMetadata)' != ''">
+        <_Parameter1>%(AssemblyMetadata.Identity)</_Parameter1>
+        <_Parameter2>%(AssemblyMetadata.Value)</_Parameter2>
+      </AssemblyAttribute>
+    </ItemGroup>
+  </Target>
+
+  <!-- Work around https://github.com/Microsoft/msbuild/issues/3412 by writing the non-string assembly attributes manually -->
+  <!-- Note: ReferenceAssemblies.targets still uses @(AssemblyInfoLines) as well. So if you remove this, those need to migrate too. -->
+  <Target Name="_WriteNonStringAssemblyInfoAttributes"
+          AfterTargets="CoreGenerateAssemblyInfo"
+          Inputs="$(MSBuildProjectFile)"
+          Outputs="$(AssemblyInfoFile)">
+
+    <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
+      <AssemblyInfoLines Condition="'$(CLSCompliant)'=='true'" Include="[assembly:System.CLSCompliant(true)]" />
+
+      <AssemblyInfoLines Condition="'$(IncludeDllSafeSearchPathAttribute)'=='true'"
+        Include="[assembly: System.Runtime.InteropServices.DefaultDllImportSearchPathsAttribute(System.Runtime.InteropServices.DllImportSearchPath.AssemblyDirectory | System.Runtime.InteropServices.DllImportSearchPath.System32)]" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.vbproj'">
+      <AssemblyInfoLines Condition="'$(CLSCompliant)'=='true'" Include="&lt;Assembly:System.CLSCompliant(True)&gt;" />
+
+      <AssemblyInfoLines Condition="'$(IncludeDllSafeSearchPathAttribute)'=='true'"
+        Include="&lt;Assembly:System.Runtime.InteropServices.DefaultDllImportSearchPathsAttribute(System.Runtime.InteropServices.DllImportSearchPath.AssemblyDirectory | System.Runtime.InteropServices.DllImportSearchPath.System32)&gt;" />
+    </ItemGroup>
+
+    <WriteLinesToFile File="$(AssemblyInfoFile)"
+                      Lines="@(AssemblyInfoLines)"
+                      Condition="'@(AssemblyInfoLines)' != ''"
+                      Overwrite="true" />
+
+    <ItemGroup Condition="'@(AssemblyInfoLines)' != ''">
+      <Compile Include="$(AssemblyInfoFile)" />
+      <FileWrites Include="$(AssemblyInfoFile)" />
+    </ItemGroup>
+  </Target>
+
+</Project>

@@ -20,6 +20,7 @@ namespace Microsoft.Cci.Writers.CSharp
         private bool _forCompilationIncludeGlobalprefix;
         private string _platformNotSupportedExceptionMessage;
         private bool _includeFakeAttributes;
+        private bool _alwaysIncludeBase;
 
         public CSDeclarationWriter(ISyntaxWriter writer)
             : this(writer, new PublicOnlyCciFilter())
@@ -40,6 +41,7 @@ namespace Microsoft.Cci.Writers.CSharp
             _forCompilationIncludeGlobalprefix = false;
             _platformNotSupportedExceptionMessage = null;
             _includeFakeAttributes = false;
+            _alwaysIncludeBase = false;
         }
 
         public CSDeclarationWriter(ISyntaxWriter writer, ICciFilter filter, bool forCompilation, bool includePseudoCustomAttributes = false)
@@ -64,6 +66,12 @@ namespace Microsoft.Cci.Writers.CSharp
         {
             get { return _platformNotSupportedExceptionMessage; }
             set { _platformNotSupportedExceptionMessage = value; }
+        }
+
+        public bool AlwaysIncludeBase
+        {
+            get { return _alwaysIncludeBase; }
+            set { _alwaysIncludeBase = value; }
         }
 
         public ISyntaxWriter SyntaxtWriter { get { return _writer; } }

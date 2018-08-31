@@ -4,17 +4,18 @@
   <PropertyGroup>
     <PerformanceType Condition="'$(PerformanceType)'==''">Profile</PerformanceType>
     <TraceEventPackage>Microsoft.Diagnostics.Tracing.TraceEvent\$(TraceEventPackageVersion)</TraceEventPackage>
+    <TargetOS Condition="'$(TargetOS)' == ''">$(DefaultOSGroup)</TargetOS>
   </PropertyGroup>
 
   <ItemGroup>
     <TraceEventNativePath Include="$(PackagesDir)\$(TraceEventPackage)\lib\native\**\*.*" />
   </ItemGroup>
 
-  <Target Name="ValidatePerformanceRunType" Condition="'$(Performance)'=='true'" BeforeTargets="GenerateTestExecutionScripts">
+  <Target Name="ValidatePerformanceRunType" BeforeTargets="GenerateTestExecutionScripts">
     <Error Condition="'$(PerformanceType)'!='Diagnostic' AND '$(PerformanceType)'!='Profile'" Text="Invalid Performance Type value specified: $(PerformanceType)" />
   </Target>
 
-  <Target Name ="PublishPerfRunner" Condition="'$(Performance)'=='true'" BeforeTargets="RunTestsForProject">
+  <Target Name ="PublishPerfRunner" BeforeTargets="RunTestsForProject">
     <Copy SourceFiles="@(TraceEventNativePath)" DestinationFiles="@(TraceEventNativePath->'$(StartWorkingDirectory)\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
 
@@ -32,6 +33,19 @@
     <PythonCommand>py.exe</PythonCommand>
     <CliExitErrorCommand>EXIT /B 1</CliExitErrorCommand>
   </PropertyGroup>
+
+  <ItemGroup Condition="'$(BuildingNETFxVertical)' == 'true'">
+    <SupplementalTestData Include="$(RuntimePath)Microsoft.DotNet.XUnitExtensions.dll" />
+    <SupplementalTestData Include="$(RuntimePath)CommandLine.dll" />
+    <SupplementalTestData Include="$(RuntimePath)MarkdownLog.dll" />
+    <SupplementalTestData Include="$(RuntimePath)Microsoft.Diagnostics.Tracing.TraceEvent.dll" />
+    <SupplementalTestData Include="$(RuntimePath)xunit.performance.api.dll" />
+    <SupplementalTestData Include="$(RuntimePath)xunit.performance.core.dll" />
+    <SupplementalTestData Include="$(RuntimePath)xunit.performance.execution.dll" />
+    <SupplementalTestData Include="$(RuntimePath)xunit.performance.metrics.dll" />
+    <!-- Copy additional runtime references into the test execution folder. -->
+    <SupplementalTestData Include="@(ReferenceFromRuntime -> '$(RuntimePath)%(Identity).dll')" />
+  </ItemGroup>
 
   <!-- Sets the flags for the performance counters to be collected in this run. -->
   <PropertyGroup Condition="'$(PerformanceType)'=='Profile'">
@@ -52,7 +66,10 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PerfRunnerCommand>$(PerfTestCommandDotnetExecutable) PerfRunner.exe --perf:runid $(RunId) --perf:collect $(CollectFlags) || $(CliExitErrorCommand)</PerfRunnerCommand>
+    <PerfRunnerExecutable>PerfRunner.exe</PerfRunnerExecutable>
+    <PerfRunnerArgs>$(PerfRunnerExecutable) --perf:runid $(RunId) --perf:collect $(CollectFlags) || $(CliExitErrorCommand)</PerfRunnerArgs>
+    <PerfRunnerCommand Condition="'$(BuildingNETFxVertical)' != 'true'">$(PerfTestCommandDotnetExecutable) $(PerfRunnerArgs)</PerfRunnerCommand>
+    <PerfRunnerCommand Condition="'$(BuildingNETFxVertical)' == 'true'">$(PerfRunnerArgs)</PerfRunnerCommand>
     <MeasurementPyCommand>$(PythonCommand) "$(BenchviewDir)/measurement.py" xunit "$(RunId)-$(AssemblyName).xml" --better desc --drop-first-value --append -o "$(ProjectDir)measurement.json" || $(CliExitErrorCommand)</MeasurementPyCommand>
   </PropertyGroup>
 
@@ -74,9 +91,11 @@
   </ItemGroup>
 
   <!-- Optimizations to configure Xunit for performance -->
-  <ItemGroup Condition="'$(IncludePerformanceTests)' == 'true'">
-    <AssemblyInfoUsings Include="using Microsoft.Xunit.Performance%3B" />
-    <AssemblyInfoLines Include="[assembly:OptimizeForBenchmarks]" />
+  <ItemGroup>
+    <!-- TODO: when we no longer need to support legacy .csprojs, this can be converted to 
+        <AssemblyAttribute Include="Microsoft.Xunit.Performance.OptimizeForBenchmarks" />
+    -->
+    <AssemblyInfoLines Include="[assembly:Microsoft.Xunit.Performance.OptimizeForBenchmarks]" />
   </ItemGroup>
 
   <Target Name="UploadToBenchview" Condition="'$(LogToBenchview)' == 'true'" AfterTargets="TestAllProjects">
@@ -98,7 +117,7 @@
 
   <Target Name="WarnForDebugPerfConfiguration"
           BeforeTargets="RunTestsForProject"
-          Condition="'$(Performance)' == 'true' and !$(ConfigurationGroup.ToLower().Contains('release'))">
+          Condition="!$(ConfigurationGroup.ToLower().Contains('release'))">
     <Warning Text="You are running performance tests in a configuration other than Release. Your results may be unreliable." />
   </Target>
 </Project>

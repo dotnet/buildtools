@@ -10,7 +10,7 @@ using Microsoft.Cci.Extensions.CSharp;
 namespace Microsoft.Cci.Differs.Rules
 {
     [ExportDifferenceRule]
-    internal class EnumTypesMustMatch : DifferenceRule
+    internal class EnumTypesMustMatch : CompatDifferenceRule
     {
         [Import]
         public IEqualityComparer<ITypeReference> _typeComparer { get; set; } = null;
@@ -29,8 +29,7 @@ namespace Microsoft.Cci.Differs.Rules
             if (!_typeComparer.Equals(implType, contractType))
             {
                 differences.AddTypeMismatchDifference(this, implType, contractType,
-                    "Enum type for '{0}' is '{1}' in implementation but '{2}' in the contract.",
-                    impl.FullName(), implType.FullName(), contractType.FullName());
+                    $"Enum type for '{impl.FullName()}' is '{implType.FullName()}' in {Implementation} but '{contractType.FullName()}' in the {Contract}.");
                 return DifferenceType.Changed;
             }
 

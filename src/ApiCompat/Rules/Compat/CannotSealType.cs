@@ -8,7 +8,7 @@ using Microsoft.Cci.Extensions.CSharp;
 namespace Microsoft.Cci.Differs.Rules
 {
     [ExportDifferenceRule]
-    internal class CannotSealType : DifferenceRule
+    internal class CannotSealType : CompatDifferenceRule
     {
         public override DifferenceType Diff(IDifferences differences, ITypeDefinition impl, ITypeDefinition contract)
         {
@@ -18,7 +18,7 @@ namespace Microsoft.Cci.Differs.Rules
             if (impl.IsEffectivelySealed() && !contract.IsEffectivelySealed())
             {
                 differences.AddIncompatibleDifference(this,
-                    "Type '{0}' is sealed in the implementation but not sealed in the contract.", impl.FullName());
+                        $"Type '{impl.FullName()}' is {(impl.IsSealed ? "actually (has the sealed modifier)" : "effectively (has a private constructor)")} sealed in the {Implementation} but not sealed in the {Contract}.");
 
                 return DifferenceType.Changed;
             }

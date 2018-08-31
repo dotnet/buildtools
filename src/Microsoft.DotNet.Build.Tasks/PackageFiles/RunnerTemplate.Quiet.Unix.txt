@@ -112,11 +112,6 @@ fi
 # ========================= END Core File Setup ==============================
 
 # ========================= BEGIN Test Execution =============================
-echo ----- start $(date +"%T") ===============  To repro directly: ===================================================== 
-echo pushd $EXECUTION_DIR
-[[TestRunCommandsEcho]]
-echo popd
-echo ===========================================================================================================
 pushd $EXECUTION_DIR
 [[TestRunCommands]]
 test_exitcode=$?

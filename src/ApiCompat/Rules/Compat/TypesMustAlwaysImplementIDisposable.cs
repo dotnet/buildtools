@@ -8,7 +8,7 @@ namespace Microsoft.Cci.Differs.Rules
 {
     // Candidate for strict mode
     //[ExportDifferenceRule]
-    internal class TypesMustAlwaysImplementIDisposable : DifferenceRule
+    internal class TypesMustAlwaysImplementIDisposable : CompatDifferenceRule
     {
         public override DifferenceType Diff(IDifferences differences, ITypeDefinition impl, ITypeDefinition contract)
         {
@@ -18,8 +18,7 @@ namespace Microsoft.Cci.Differs.Rules
             if (ImplementsIDisposable(impl) && !ImplementsIDisposable(contract))
             {
                 differences.AddIncompatibleDifference(this,
-                    "Type '{0}' implements IDisposable in the implementation but not the contract.",
-                    impl.FullName());
+                    $"Type '{impl.FullName()}' implements IDisposable in the {Implementation} but not the {Contract}.");
                 return DifferenceType.Changed;
             }
 

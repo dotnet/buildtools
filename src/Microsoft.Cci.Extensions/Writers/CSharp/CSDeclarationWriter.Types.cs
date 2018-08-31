@@ -211,7 +211,7 @@ namespace Microsoft.Cci.Writers.CSharp
             if (ifaceType == Dummy.Type)
                 return true;
 
-            return _filter.Include(ifaceType);
+            return _alwaysIncludeBase || _filter.Include(ifaceType);
         }
     }
 }

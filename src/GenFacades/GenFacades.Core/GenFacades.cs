@@ -255,7 +255,7 @@ namespace GenFacades
                 using (Stream peStream = File.OpenRead(dllInputPath))
                 using (Stream pdbWriteStream = File.OpenWrite(pdbInputPath))
                 {
-                    converter.ConvertPortableToWindows(peStream, pdbReadStream, pdbWriteStream, PdbConversionOptions.SuppressSourceLinkConversion);
+                    converter.ConvertPortableToWindows(peStream, pdbReadStream, pdbWriteStream, new PortablePdbConversionOptions(suppressSourceLinkConversion: true));
                 }
             }
             return true;
@@ -637,12 +637,15 @@ namespace GenFacades
 
             private static void TraceDuplicateSeedTypeError(string docId, IReadOnlyList<INamedTypeDefinition> seedTypes)
             {
-                Trace.TraceError("The type '{0}' is defined in multiple seed assemblies. If this is intentional, specify one of the following arguments to choose the preferred seed type:", docId);
+                var sb = new StringBuilder();
+                sb.AppendFormat("The type '{0}' is defined in multiple seed assemblies. If this is intentional, specify one of the following arguments to choose the preferred seed type:", docId);
 
                 foreach (INamedTypeDefinition type in seedTypes)
                 {
-                    Trace.TraceError("  /preferSeedType:{0}={1}", docId.Substring("T:".Length), type.GetAssembly().Name.Value);
+                    sb.AppendFormat("  /preferSeedType:{0}={1}", docId.Substring("T:".Length), type.GetAssembly().Name.Value);
                 }
+
+                Trace.TraceError(sb.ToString());
             }
 
             private void AddTypeForward(Assembly assembly, INamedTypeDefinition seedType)

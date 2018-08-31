@@ -1,0 +1,65 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <Target Name="GenerateAssemblyInfo"
+      Inputs="$(MSBuildProjectFile)"
+      Outputs="$(AssemblyInfoFile)"
+      Condition="'$(GenerateAssemblyInfo)'=='true'"
+      DependsOnTargets="CreateVersionFileDuringBuild;DecideIfWeNeedToIncludeDllSafeSearchPathAttribute">
+
+    <Error Condition="!Exists('$(IntermediateOutputPath)')" Text="GenerateAssemblyInfo failed because IntermediateOutputPath isn't set to a valid directory" />
+
+    <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
+      <AssemblyInfoUsings Include="using System%3B" />
+      <AssemblyInfoUsings Include="using System.Reflection%3B" />
+      <AssemblyInfoLines Include="[assembly:AssemblyTitle(&quot;$(AssemblyTitle)&quot;)]" />
+      <AssemblyInfoLines Include="[assembly:AssemblyDescription(&quot;$(Description)&quot;)]" />
+      <AssemblyInfoLines Include="[assembly:AssemblyDefaultAlias(&quot;$(AssemblyName)&quot;)]" />
+      <AssemblyInfoLines Include="[assembly:AssemblyCompany(&quot;$(Company)&quot;)]" />
+      <AssemblyInfoLines Include="[assembly:AssemblyProduct(&quot;$(Product)&quot;)]" />
+      <AssemblyInfoLines Include="[assembly:AssemblyCopyright(&quot;$(Copyright)&quot;)]" />
+      <AssemblyInfoLines Include="[assembly:AssemblyVersion(&quot;$(AssemblyVersion)&quot;)]" />
+      <AssemblyInfoLines Include="[assembly:AssemblyFileVersion(&quot;$(FileVersion)&quot;)]" />
+      <AssemblyInfoLines Include="[assembly:AssemblyInformationalVersion(@&quot;$(InformationalVersion)&quot;)]" />
+      <AssemblyInfoLines Condition="'$(CLSCompliant)'=='true'" Include="[assembly:CLSCompliant(true)]" />
+      <AssemblyInfoLines Condition="'$(AssemblyComVisible)'!=''" Include="[assembly:System.Runtime.InteropServices.ComVisible($(AssemblyComVisible))]" />
+      <AssemblyInfoLines Condition="'$(SkipFrameworkAssemblyMetadata)' != 'true'"
+        Include="[assembly:System.Reflection.AssemblyMetadata(&quot;%(AssemblyMetadata.Identity)&quot;, &quot;%(AssemblyMetadata.Value)&quot;)]" />
+
+      <AssemblyInfoLines Condition="'$(IncludeDllSafeSearchPathAttribute)'=='true'" 
+        Include="[assembly: System.Runtime.InteropServices.DefaultDllImportSearchPathsAttribute(System.Runtime.InteropServices.DllImportSearchPath.AssemblyDirectory | System.Runtime.InteropServices.DllImportSearchPath.System32)]" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.vbproj'">
+      <AssemblyInfoUsings Include="Imports System" />
+      <AssemblyInfoUsings Include="Imports System.Reflection" />
+      <AssemblyInfoLines Include="&lt;Assembly:AssemblyTitle(&quot;$(AssemblyTitle)&quot;)&gt;" />
+      <AssemblyInfoLines Include="&lt;Assembly:AssemblyDescription(&quot;$(Description)&quot;)&gt;" />
+      <AssemblyInfoLines Include="&lt;Assembly:AssemblyDefaultAlias(&quot;$(AssemblyName)&quot;)&gt;" />
+      <AssemblyInfoLines Include="&lt;Assembly:AssemblyCompany(&quot;$(Company)&quot;)&gt;" />
+      <AssemblyInfoLines Include="&lt;Assembly:AssemblyProduct(&quot;$(Product)k&quot;)&gt;" />
+      <AssemblyInfoLines Include="&lt;Assembly:AssemblyCopyright(&quot;$(Copyright)&quot;)&gt;" />
+      <AssemblyInfoLines Include="&lt;Assembly:AssemblyVersion(&quot;$(AssemblyVersion)&quot;)&gt;" />
+      <AssemblyInfoLines Include="&lt;Assembly:AssemblyFileVersion(&quot;$(FileVersion)&quot;)&gt;" />
+      <AssemblyInfoLines Include="&lt;Assembly:AssemblyInformationalVersion(&quot;$(InformationalVersion)&quot;)&gt;" />
+      <AssemblyInfoLines Condition="'$(CLSCompliant)'=='true'" Include="&lt;Assembly:CLSCompliant(True)&gt;" />
+      <AssemblyInfoLines Condition="'$(AssemblyComVisible)'!=''" Include="&lt;Assembly:System.Runtime.InteropServices.ComVisible($(AssemblyComVisible))&gt;" />
+      <AssemblyInfoLines Condition="'$(SkipFrameworkAssemblyMetadata)' != 'true'"
+          Include="&lt;assembly:System.Reflection.AssemblyMetadata(&quot;%(AssemblyMetadata.Identity)&quot;, &quot;%(AssemblyMetadata.Value)&quot;)&gt;" />
+
+      <AssemblyInfoLines Condition="'$(IncludeDllSafeSearchPathAttribute)'=='true'" 
+        Include="&lt;Assembly:System.Runtime.InteropServices.DefaultDllImportSearchPathsAttribute(System.Runtime.InteropServices.DllImportSearchPath.AssemblyDirectory | System.Runtime.InteropServices.DllImportSearchPath.System32)&gt;" />
+    </ItemGroup>
+
+    <WriteLinesToFile
+      File="$(AssemblyInfoFile)"
+      Lines="@(AssemblyInfoUsings);@(AssemblyInfoLines)"
+      Overwrite="true" />
+
+    <ItemGroup>
+      <Compile Include="$(AssemblyInfoFile)" />
+      <FileWrites Include="$(AssemblyInfoFile)" />
+    </ItemGroup>
+
+  </Target>
+
+</Project>

@@ -11,6 +11,7 @@
     <AssemblyName>Microsoft.DotNet.Build.Tasks</AssemblyName>
     <CLSCompliant>false</CLSCompliant>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <CopyNugetImplementations>true</CopyNugetImplementations>
     <NuGetTargetMoniker>.NETStandard,Version=v1.5</NuGetTargetMoniker>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

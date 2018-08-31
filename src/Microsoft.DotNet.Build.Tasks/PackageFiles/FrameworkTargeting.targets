@@ -14,13 +14,14 @@
     <_FindDependencies>false</_FindDependencies>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFrameworkIdentifier)' == ''
+  <PropertyGroup Condition=" '$(TargetFramework)' == ''
+                         and '$(TargetFrameworkIdentifier)' == ''
                          and '$(TargetFrameworkVersion)'    == ''
                          and '$(TargetFrameworkProfile)'    == '' ">
     <TargetingDefaultPlatform>true</TargetingDefaultPlatform>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == ''">
+  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == '' AND '$(TargetFramework)' == ''">
      <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
   </PropertyGroup>
 
@@ -49,9 +50,30 @@
     <NuGetTargetMoniker Condition="'$(NuGetTargetMoniker)' == ''">.NETCoreApp,Version=v1.0</NuGetTargetMoniker>
   </PropertyGroup>
 
+  <!--
+    Between the legacy C# project system and the new managed C# project system, some Targets run in different
+    orders. A normal "Build" and the legacy C# project system will execute 'Compile', which depends on
+    'ResolveReferences', which then depends on 'BeforeResolveReferences', so hooking before 
+    'BeforeResolveReferences' allows @(Reference) items to be added before 'ResolveAssemblyReferences'
+    gets executed.
+
+    However, in the new managed C# project system, 'ResolveProjectReferencesDesignTime' gets executed first,
+    which depends on 'ResolveAssemblyReferences'. This means 'ResolveReferences' doesn't get executed before
+    'ResolveAssemblyReferences' when doing a design-time build in the managed C# project system.
+    Work around this by BeforeTargets both 'BeforeResolveReferences' (to preserve any legacy ordering) and
+    'ResolveAssemblyReferences' (to work in the managed C# project system).
+  -->
+  <Target Name="AddReferencesDynamically"
+          BeforeTargets="BeforeResolveReferences;ResolveAssemblyReferences" />
+
   <PropertyGroup Condition="'$(IncludeDefaultReferences)' == ''">
     <IncludeDefaultReferences Condition="'$(MSBuildProjectExtension)' == '.csproj'">true</IncludeDefaultReferences>
     <IncludeDefaultReferences Condition="'$(MSBuildProjectExtension)' == '.vbproj'">true</IncludeDefaultReferences>
+  </PropertyGroup>
+
+  <!-- By default add VS references to invokable non perf test projects. -->
+  <PropertyGroup>
+    <IncludeVSTestReferences Condition="'$(IncludeVSTestReferences)' == '' AND '$(IsInvokableTestProject)' == 'true'">true</IncludeVSTestReferences>
   </PropertyGroup>
 
   <Target Name="SetupDefaultReferences">
@@ -61,11 +83,10 @@
                         Include="netstandard" />
     </ItemGroup>
   </Target>
-
+  
   <Target Name="UpdateReferenceItems"
           DependsOnTargets="SetupDefaultReferences"
-          BeforeTargets="BeforeResolveReferences"
-  >
+          BeforeTargets="AddReferencesDynamically">
     <ItemGroup>
       <Reference Include="@(DefaultReference)" />
     </ItemGroup>
@@ -104,14 +125,14 @@
           Condition="'$(MSBuildProjectExtension)' == '.depproj'" />
 
   <Import Project="IL.targets"
-           Condition="'$(MSBuildProjectExtension)' == '.ilproj' AND '$(SkipImportILTargets)'!='true'" />
+           Condition="'$(MSBuildProjectExtension)' == '.ilproj' AND '$(SkipImportILTargets)'!='true' and '$(UsingMicrosoftNETSdk)' != 'true'" />
 
-  <!--
-      workaround file casing issue where it has different casing in different places which fails on linux builds
-      https://github.com/dotnet/buildtools/issues/1464
-  -->
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(UsingMicrosoftNETSdk)' != 'true'">
     <CSharpTargetsFile>$(MSBuildToolsPath)\Microsoft.CSharp.targets</CSharpTargetsFile>
+    <!--
+        workaround file casing issue where it has different casing in different places which fails on linux builds
+        https://github.com/dotnet/buildtools/issues/1464
+    -->
     <CSharpTargetsFile Condition="!Exists('$(CSharpTargetsFile)')">$(MSBuildToolsPath)\Microsoft.CSharp.Targets</CSharpTargetsFile>
   </PropertyGroup>
 
@@ -123,7 +144,7 @@
  
 
   <Import Project="$(CSharpTargetsFile)"
-          Condition="'$(TargetFrameworkIdentifier)' != '.NETPortable' and '$(MSBuildProjectExtension)' == '.csproj'" />
+          Condition="'$(TargetFrameworkIdentifier)' != '.NETPortable' and '$(MSBuildProjectExtension)' == '.csproj' and '$(UsingMicrosoftNETSdk)' != 'true'" />
 
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft.VisualBasic.targets"
            Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' and '$(MSBuildProjectExtension)' == '.vbproj' and '$(RunningOnCore)' == 'true'" />
@@ -133,7 +154,7 @@
           Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' and '$(MSBuildProjectExtension)' == '.vbproj' and '$(RunningOnCore)' != 'true'" />
 
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets"
-          Condition="'$(TargetFrameworkIdentifier)' != '.NETPortable' and '$(MSBuildProjectExtension)' == '.vbproj'" />
+          Condition="'$(TargetFrameworkIdentifier)' != '.NETPortable' and '$(MSBuildProjectExtension)' == '.vbproj' and '$(UsingMicrosoftNETSdk)' != 'true'" />
 
   <PropertyGroup>
     <!--
@@ -146,6 +167,10 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <PrepareProjectReferencesDependsOn>
+      AddProjectReferencesDynamically;
+      $(PrepareProjectReferencesDependsOn);
+    </PrepareProjectReferencesDependsOn>
     <ResolveReferencesDependsOn>
       AddProjectReferencesDynamically;
       $(ResolveReferencesDependsOn);
@@ -312,13 +337,6 @@
       </_docFiles>
       <_itemsToSave Include="@(_docFiles)"/>
 
-      <!-- Include source files. -->
-      <!-- Here we use "sources" rather than "src" because MyGet treats packages with "src" as symbol packages  -->
-      <_itemsToSave Condition="'@(Compile)' != ''" Include="@(Compile->'%(FullPath)')">
-        <TargetPath>sources</TargetPath>
-        <TargetPath Condition="$([System.String]::Copy('%(FullPath)').StartsWith('$(ProjectDir)'))">sources/$([System.String]::Copy('%(FullPath)').Substring($(_projectDirLength)).Replace('\', '/'))</TargetPath>
-        <IsSourceCodeFile>true</IsSourceCodeFile>
-      </_itemsToSave>
     </ItemGroup>
 
     <Message Importance="low" Text="PackageFileDir: @(PackageFileDir)" />

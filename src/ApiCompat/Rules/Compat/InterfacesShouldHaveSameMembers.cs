@@ -13,7 +13,7 @@ using System;
 namespace Microsoft.Cci.Differs.Rules
 {
     [ExportDifferenceRule]
-    internal class InterfacesShouldHaveSameMembers : DifferenceRule
+    internal class InterfacesShouldHaveSameMembers : CompatDifferenceRule
     {
         public override DifferenceType Diff(IDifferences differences, ITypeDefinitionMember impl, ITypeDefinitionMember contract)
         {
@@ -21,7 +21,7 @@ namespace Microsoft.Cci.Differs.Rules
             {
                 if (contract.ContainingTypeDefinition.IsInterface)
                 {
-                    differences.AddIncompatibleDifference(this, "Contract interface member '{0}' is not in the implementation.", contract.FullName());
+                    differences.AddIncompatibleDifference(this, $"Interface member '{contract.FullName()}' is present in the {Contract} but not in the {Implementation}.");
                     return DifferenceType.Changed;
                 }
             }
@@ -30,7 +30,7 @@ namespace Microsoft.Cci.Differs.Rules
             {
                 if (impl.ContainingTypeDefinition.IsInterface)
                 {
-                    differences.AddIncompatibleDifference(this, "Implementation interface member '{0}' is not in the contract.", impl.FullName());
+                    differences.AddIncompatibleDifference(this, $"Interface member '{impl.FullName()}' is present in the {Implementation} but not in the {Contract}.");
                     return DifferenceType.Changed;
                 }
             }

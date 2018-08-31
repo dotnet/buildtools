@@ -80,6 +80,9 @@ namespace Microsoft.Cci.Writers.CSharp
                 WriteTypeName(method.Type, method.ContainingType, isDynamic: IsDynamic(method.ReturnValueAttributes));
             }
 
+            if (method.IsExplicitInterfaceMethod() && _forCompilationIncludeGlobalprefix)
+                Write("global::");
+
             WriteIdentifier(name);
 
             if (isOperator)
@@ -221,12 +224,19 @@ namespace Microsoft.Cci.Writers.CSharp
                 Write("throw new ");
                 if (_forCompilationIncludeGlobalprefix)
                     Write("global::");
-                if(_platformNotSupportedExceptionMessage.Length == 0)
-                    Write("System.PlatformNotSupportedException();");
-                else if(_platformNotSupportedExceptionMessage.StartsWith("SR."))
-                    Write($"System.PlatformNotSupportedException(System.{_platformNotSupportedExceptionMessage}); ");
-                else
-                    Write($"System.PlatformNotSupportedException(\"{_platformNotSupportedExceptionMessage}\"); ");
+
+                Write("System.PlatformNotSupportedException(");
+
+                if (_platformNotSupportedExceptionMessage.StartsWith("SR."))
+                {
+                    if (_forCompilationIncludeGlobalprefix)
+                        Write("global::");
+                    Write($"System.{ _platformNotSupportedExceptionMessage}");
+                }
+                else if (_platformNotSupportedExceptionMessage.Length > 0)
+                    Write($"\"{_platformNotSupportedExceptionMessage}\"");
+
+                 Write(");");
             }
             else if (NeedsMethodBodyForCompilation(method))
             {

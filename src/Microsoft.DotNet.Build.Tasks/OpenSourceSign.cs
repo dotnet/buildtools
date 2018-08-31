@@ -30,6 +30,17 @@ namespace Microsoft.DotNet.Build.Tasks
         }
 
         /// <summary>
+        /// Whether the task should fail in the case the file is already signed. If not, it will re-sign.
+        /// By default it does not fail, because this condition can occur simply because the build was 
+        /// interrupted at an inopportune moment.
+        /// </summary>
+        public bool FailIfAlreadySigned
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// The number of bytes from the start of the <see cref="CorHeader"/> to its <see cref="CorFlags"/>.
         /// </summary>
         private const int OffsetFromStartOfCorHeaderToFlags =
@@ -94,7 +105,7 @@ namespace Microsoft.DotNet.Build.Tasks
             }
 
             CorHeader header = peReader.PEHeaders.CorHeader;
-            if ((header.Flags & CorFlags.StrongNameSigned) == CorFlags.StrongNameSigned)
+            if (FailIfAlreadySigned && ((header.Flags & CorFlags.StrongNameSigned) == CorFlags.StrongNameSigned))
             {
                 LogError("PE file is already strong-name signed.");
                 return false;

@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.Cci.Extensions;
-using Microsoft.Cci.Writers.CSharp;
 using System.Linq;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using Microsoft.Cci.Mappings;
 
 namespace Microsoft.Cci.Differs.Rules
@@ -35,7 +33,7 @@ namespace Microsoft.Cci.Differs.Rules
         }
     }
 
-    internal class AttributeDifference : DifferenceRule
+    internal class AttributeDifference : CompatDifferenceRule
     {
         private MappingSettings _settings = new MappingSettings();
 
@@ -105,7 +103,7 @@ namespace Microsoft.Cci.Differs.Rules
             //added |= AnyAttributeAdded(differences, implMethod, implMethod.ReturnValueAttributes, contractMethod.ReturnValueAttributes);
             //added |= AnySecurityAttributeAdded(differences, implMethod, implMethod.SecurityAttributes, contractMethod.SecurityAttributes);
 
-            //Contract.Assert(implMethod.ParameterCount == contractMethod.ParameterCount);
+            //Debug.Assert(implMethod.ParameterCount == contractMethod.ParameterCount);
 
             //IParameterDefinition[] method1Params = implMethod.Parameters.ToArray();
             //IParameterDefinition[] method2Params = contractMethod.Parameters.ToArray();
@@ -141,8 +139,7 @@ namespace Microsoft.Cci.Differs.Rules
                             AttributeAdded(target, attribName);
 
                             differences.AddIncompatibleDifference("CannotAddAttribute",
-                                "Attribute '{0}' exists on '{1}' in the implementation but not the contract.",
-                                attribName, target.FullName());
+                                $"Attribute '{attribName}' exists on '{target.FullName()}' in the {Implementation} but not the {Contract}.");
 
                             break;
                         }
@@ -160,8 +157,7 @@ namespace Microsoft.Cci.Differs.Rules
                                 break;
 
                             differences.AddIncompatibleDifference("CannotRemoveAttribute",
-                                "Attribute '{0}' exists on '{1}' in the contract but not the implementation.",
-                                attribName, target.FullName());
+                                $"Attribute '{attribName}' exists on '{target.FullName()}' in the {Contract} but not the {Implementation}.");
 
                             break;
                         }

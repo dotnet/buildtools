@@ -3,15 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
+using System.Diagnostics;
 using System.IO;
-using Microsoft.Cci;
 using Microsoft.Cci.Differs;
 using Microsoft.Cci.Filters;
 using Microsoft.Cci.Mappings;
 using Microsoft.Cci.Traversers;
-using System;
-
+using System.Composition;
 
 namespace Microsoft.Cci.Writers
 {
@@ -21,6 +19,9 @@ namespace Microsoft.Cci.Writers
         private readonly TextWriter _writer;
         private int _totalDifferences = 0;
         public static int ExitCode { get; set; }
+
+        [Import]
+        public IDifferenceOperands Operands { get; set; }
 
         public DifferenceWriter(TextWriter writer, MappingSettings settings, IDifferenceFilter filter)
             : base(settings, filter)
@@ -37,7 +38,7 @@ namespace Microsoft.Cci.Writers
             {
                 if (_differences.Count > 0)
                 {
-                    string header = string.Format("Compat issues between implementation set {0} and contract set {1}:", oldAssembliesName, newAssembliesName);
+                    string header = $"Compat issues between {Operands.Implementation} set {oldAssembliesName} and {Operands.Contract} set {newAssembliesName}:";
                     OutputDifferences(header, _differences);
                     _totalDifferences += _differences.Count;
                     _differences.Clear();
@@ -50,7 +51,7 @@ namespace Microsoft.Cci.Writers
 
         public override void Visit(AssemblyMapping mapping)
         {
-            Contract.Assert(_differences.Count == 0);
+            Debug.Assert(_differences.Count == 0);
 
             base.Visit(mapping);
 

@@ -12,6 +12,7 @@ using System.Linq;
 using Microsoft.Cci;
 using Microsoft.Cci.Comparers;
 using Microsoft.Cci.Differs;
+using Microsoft.Cci.Differs.Rules;
 using Microsoft.Cci.Extensions;
 using Microsoft.Cci.Filters;
 using Microsoft.Cci.Mappings;
@@ -25,13 +26,19 @@ namespace ApiCompat
     public class ExportCciSettings
     {
         public static IEqualityComparer<ITypeReference> StaticSettings { get; set; }
+        public static IDifferenceOperands  StaticOperands { get; set; }
+
         public ExportCciSettings()
         {
             Settings = StaticSettings;
+            Operands = StaticOperands;
         }
 
         [Export(typeof(IEqualityComparer<ITypeReference>))]
-        public IEqualityComparer<ITypeReference> Settings { get; set; }
+        public IEqualityComparer<ITypeReference> Settings { get; }
+
+        [Export(typeof(IDifferenceOperands))]
+        public IDifferenceOperands Operands { get; }
     }
 
     public class Program
@@ -122,12 +129,12 @@ namespace ApiCompat
 
         private static void implHost_UnableToResolve(object sender, UnresolvedReference<IUnit, AssemblyIdentity> e)
         {
-            Trace.TraceError("Unable to resolve assembly '{0}' referenced by the implementation assembly '{1}'.", e.Unresolved, e.Referrer);
+            Trace.TraceError($"Unable to resolve assembly '{e.Unresolved}' referenced by the {s_implementationOperand} assembly '{e.Referrer}'.");
         }
 
         private static void contractHost_UnableToResolve(object sender, UnresolvedReference<IUnit, AssemblyIdentity> e)
         {
-            Trace.TraceError("Unable to resolve assembly '{0}' referenced by the contract assembly '{1}'.", e.Unresolved, e.Referrer);
+            Trace.TraceError($"Unable to resolve assembly '{e.Unresolved}' referenced by the {s_contractOperand} assembly '{e.Referrer}'.");
         }
 
         private static TextWriter GetOutput()
@@ -186,6 +193,11 @@ namespace ApiCompat
 
             ICciDifferenceWriter diffWriter = new DifferenceWriter(writer, settings, filter);
             ExportCciSettings.StaticSettings = settings.TypeComparer;
+            ExportCciSettings.StaticOperands = new DifferenceOperands()
+            {
+                Contract = s_contractOperand,
+                Implementation = s_implementationOperand,
+            };
 
             // Always compose the diff writer to allow it to import or provide exports
             container.SatisfyImports(diffWriter);
@@ -276,6 +288,10 @@ namespace ApiCompat
                 parser.DefineOptionalQualifier("mdil", ref s_mdil, "Enforce MDIL servicing rules in addition to IL rules.");
                 parser.DefineAliases("excludeNonBrowsable", "enb");
                 parser.DefineOptionalQualifier("excludeNonBrowsable", ref s_excludeNonBrowsable, "When MDIL servicing rules are not being enforced, exclude validation on types that are marked with EditorBrowsable(EditorBrowsableState.Never).");
+                parser.DefineAliases("leftOperand", "lhs");
+                parser.DefineOptionalQualifier("leftOperand", ref s_contractOperand, "Name for left operand in comparison, default is 'contract'.");
+                parser.DefineAliases("rightOperand", "rhs");
+                parser.DefineOptionalQualifier("rightOperand", ref s_implementationOperand, "Name for right operand in comparison, default is 'implementation'.");
                 parser.DefineParameter<string>("contracts", ref s_contractSet, "Comma delimited list of assemblies or directories of assemblies for all the contract assemblies.");
             }, args);
         }
@@ -288,6 +304,8 @@ namespace ApiCompat
         private static string s_outFile;
         private static string s_baselineFileName;
         private static string s_remapFile;
+        private static string s_contractOperand = "contract";
+        private static string s_implementationOperand = "implementation";
         private static bool s_groupByAssembly = true;
         private static bool s_mdil;
         private static bool s_resolveFx;

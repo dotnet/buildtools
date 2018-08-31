@@ -77,6 +77,10 @@ namespace Microsoft.DotNet.Build.Tasks.Feed.BuildManifest
             }
 
             builder.AppendLine();
+            builder.AppendLine("### Isolated NuGet Blob Feed");
+            builder.AppendLine(blobFeed.Url);
+
+            builder.AppendLine();
             builder.AppendLine("### Built Repositories");
 
             foreach (BuildIdentity build in model.Builds

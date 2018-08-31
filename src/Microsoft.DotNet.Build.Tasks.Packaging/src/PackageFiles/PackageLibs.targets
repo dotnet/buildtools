@@ -182,12 +182,6 @@
         <TargetPath>%(TargetPath)%(FilesToPackage.SubFolder)</TargetPath>
       </FilesToPackage>
 
-      <!-- Include source files for symbol packages. -->
-      <FilesToPackage Include="@(Compile->'%(FullPath)')">
-        <TargetPath>src</TargetPath>
-        <TargetPath Condition="$([System.String]::new('%(FullPath)').StartsWith('$(ProjectRoot)'))">$(SourceFileTargetPathPrefix)$([System.String]::new('%(FullPath)').Substring('$(ProjectRootLength)'))</TargetPath>
-        <IsSourceCodeFile>true</IsSourceCodeFile>
-      </FilesToPackage>
     </ItemGroup>
   </Target>
 </Project>

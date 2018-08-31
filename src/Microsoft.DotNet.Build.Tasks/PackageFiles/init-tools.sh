@@ -11,11 +11,10 @@ set -o pipefail
 __PROJECT_DIR=${1:-}
 __DOTNET_CMD=${2:-}
 __TOOLRUNTIME_DIR=${3:-}
-__PACKAGES_DIR=${4:-$__TOOLRUNTIME_DIR}
+__PACKAGES_DIR=${4:-}
 __TOOLS_DIR=$(cd "$(dirname "$0")"; pwd -P)
 __MICROBUILD_VERSION=0.2.0
-__PORTABLETARGETS_VERSION=0.1.1-dev
-__ROSLYNCOMPILER_VERSION=2.8.0-beta2-62719-08
+__ROSLYNCOMPILER_VERSION=2.8.0-beta4
 
 __PORTABLETARGETS_PROJECT_CONTENT="
 <Project Sdk=\"Microsoft.NET.Sdk\">
@@ -25,13 +24,14 @@ __PORTABLETARGETS_PROJECT_CONTENT="
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include=\"MicroBuild.Core\" Version=\"$__MICROBUILD_VERSION\" />
-    <PackageReference Include=\"Microsoft.Portable.Targets\" Version=\"$__PORTABLETARGETS_VERSION\" />
     <PackageReference Include=\"Microsoft.NETCore.Compilers\" Version=\"$__ROSLYNCOMPILER_VERSION\" />
   </ItemGroup>
 </Project>"
+
 __PUBLISH_TFM=netcoreapp2.0
 
-__INIT_TOOLS_RESTORE_ARGS="--source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json ${__INIT_TOOLS_RESTORE_ARGS:-}"
+__DEFAULT_RESTORE_ARGS="--no-cache --packages \"${__PACKAGES_DIR}\""
+__INIT_TOOLS_RESTORE_ARGS="${__DEFAULT_RESTORE_ARGS} --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json ${__INIT_TOOLS_RESTORE_ARGS:-}"
 __TOOLRUNTIME_RESTORE_ARGS="--source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json ${__INIT_TOOLS_RESTORE_ARGS}"
 
 if [ ! -d "$__PROJECT_DIR" ]; then
@@ -46,6 +46,11 @@ fi
 
 if [ -z "$__TOOLRUNTIME_DIR" ]; then
     echo "ERROR: Please pass in the tools directory as the 3rd parameter."
+    exit 1
+fi
+
+if [ -z "$__PACKAGES_DIR" ]; then
+    echo "ERROR: Please pass in the packages directory as the 4th parameter."
     exit 1
 fi
 
@@ -64,21 +69,16 @@ echo "Running: $__DOTNET_CMD publish --no-restore \"${__TOOLRUNTIME_PROJECT}\" -
 $__DOTNET_CMD publish --no-restore "${__TOOLRUNTIME_PROJECT}" -f ${__PUBLISH_TFM} -o $__TOOLRUNTIME_DIR
 
 # Copy Portable Targets Over to ToolRuntime
-if [ ! -d "${__PACKAGES_DIR}/generated" ]; then mkdir "${__PACKAGES_DIR}/generated"; fi
-__PORTABLETARGETS_PROJECT=${__PACKAGES_DIR}/generated/project.csproj
+if [ ! -d "${__TOOLRUNTIME_DIR}/generated" ]; then mkdir "${__TOOLRUNTIME_DIR}/generated"; fi
+__PORTABLETARGETS_PROJECT=${__TOOLRUNTIME_DIR}/generated/project.csproj
 
 echo $__PORTABLETARGETS_PROJECT_CONTENT > "${__PORTABLETARGETS_PROJECT}"
 
-echo "Running: \"$__DOTNET_CMD\" restore \"${__PORTABLETARGETS_PROJECT}\" $__INIT_TOOLS_RESTORE_ARGS --packages \"${__PACKAGES_DIR}/.\""
-$__DOTNET_CMD restore "${__PORTABLETARGETS_PROJECT}" $__INIT_TOOLS_RESTORE_ARGS --packages "${__PACKAGES_DIR}/."
+echo "Running: \"$__DOTNET_CMD\" restore \"${__PORTABLETARGETS_PROJECT}\" $__INIT_TOOLS_RESTORE_ARGS"
+$__DOTNET_CMD restore "${__PORTABLETARGETS_PROJECT}" $__INIT_TOOLS_RESTORE_ARGS
 
-# Copy portable and MicroBuild targets from packages, allowing for lowercased package IDs.
-cp -R "${__PACKAGES_DIR}"/[Mm]icrosoft.[Pp]ortable.[Tt]argets/"${__PORTABLETARGETS_VERSION}/contentFiles/any/any/Extensions/." "$__TOOLRUNTIME_DIR/."
+# Copy MicroBuild targets from packages, allowing for lowercased package IDs.
 cp -R "${__PACKAGES_DIR}"/[Mm]icro[Bb]uild.[Cc]ore/"${__MICROBUILD_VERSION}/build/." "$__TOOLRUNTIME_DIR/."
-
-# Temporary Hacks to fix couple of issues in the msbuild and roslyn nuget packages
-# https://github.com/dotnet/buildtools/issues/1464
-[ -e "$__TOOLRUNTIME_DIR/Microsoft.CSharp.Targets" ] || mv "$__TOOLRUNTIME_DIR/Microsoft.CSharp.targets" "$__TOOLRUNTIME_DIR/Microsoft.CSharp.Targets"
 
 # Copy some roslyn files over
 cp $__TOOLRUNTIME_DIR/runtimes/any/native/* $__TOOLRUNTIME_DIR/
@@ -107,7 +107,7 @@ if [ "$__ILASM_PACKAGE_VERSION" ]; then
     fi
 
     echo "Running: \"$__DOTNET_CMD\" build \"${__TOOLRUNTIME_DIR}/ilasm/ilasm.depproj\""
-    $__DOTNET_CMD build "${__TOOLRUNTIME_DIR}/ilasm/ilasm.depproj" --packages "${__PACKAGES_DIR}/." --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json -r $__ILASM_PACKAGE_RID -p:ILAsmPackageVersion=$__ILASM_PACKAGE_VERSION
+    $__DOTNET_CMD build "${__TOOLRUNTIME_DIR}/ilasm/ilasm.depproj" $__DEFAULT_RESTORE_ARGS --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json -r $__ILASM_PACKAGE_RID -p:ILAsmPackageVersion=$__ILASM_PACKAGE_VERSION
 fi
 
 # Download the package version props file, if passed in the environment.

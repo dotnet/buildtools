@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.Cci.Extensions;
 using Microsoft.Cci.Extensions.CSharp;
@@ -14,7 +14,7 @@ namespace Microsoft.Cci.Differs.Rules
     // Look for differences in a parameter's marshaling attributes like in, out, & ref, as well as 
     // potentially custom modifiers like const & volatile.
     [ExportDifferenceRule]
-    internal class ParameterModifiersCannotChange : DifferenceRule
+    internal class ParameterModifiersCannotChange : CompatDifferenceRule
     {
         public override DifferenceType Diff(IDifferences differences, ITypeDefinitionMember impl, ITypeDefinitionMember contract)
         {
@@ -37,7 +37,7 @@ namespace Microsoft.Cci.Differs.Rules
         {
             int paramCount = implMethod.ParameterCount;
 
-            Contract.Assert(paramCount == contractMethod.ParameterCount);
+            Debug.Assert(paramCount == contractMethod.ParameterCount);
 
             if (paramCount == 0)
                 return true;
@@ -56,8 +56,7 @@ namespace Microsoft.Cci.Differs.Rules
                 if (GetModifier(implParam) != GetModifier(contractParam))
                 {
                     differences.AddIncompatibleDifference(this,
-                        "Modifiers on parameter '{0}' on method '{1}' are '{2}' in the implementation but '{3}' in the contract.",
-                        implParam.Name.Value, implMethod.FullName(), GetModifier(implParam), GetModifier(contractParam));
+                        $"Modifiers on parameter '{implParam.Name.Value}' on method '{implMethod.FullName()}' are '{GetModifier(implParam)}' in the {Implementation} but '{GetModifier(contractParam)}' in the {Contract}.");
                     match = false;
                 }
 
@@ -68,8 +67,7 @@ namespace Microsoft.Cci.Differs.Rules
                     if (implParam.CustomModifiers.Count() != union.Count())
                     {
                         differences.AddIncompatibleDifference(this,
-                            "Custom modifiers on parameter '{0}' on method '{1}' are '{2}' in the implementation but '{3}' in the contract.",
-                            implParam.Name.Value, implMethod.FullName(), PrintCustomModifiers(implParam.CustomModifiers), PrintCustomModifiers(contractParam.CustomModifiers));
+                            $"Custom modifiers on parameter '{implParam.Name.Value}' on method '{implMethod.FullName()}' are '{PrintCustomModifiers(implParam.CustomModifiers)}' in the {Implementation} but '{PrintCustomModifiers(contractParam.CustomModifiers)}' in the {Contract}.");
                         match = false;
                     }
                 }
@@ -81,8 +79,7 @@ namespace Microsoft.Cci.Differs.Rules
             if (implReturnModifier != contractReturnModifier)
             {
                 differences.AddIncompatibleDifference(this,
-                    "Modifiers on return type of method '{0}' are '{1}' in the implementation but '{2}' in the contract.",
-                    implMethod.FullName(), implReturnModifier, contractReturnModifier);
+                    $"Modifiers on return type of method '{implMethod.FullName()}' are '{implReturnModifier}' in the {Implementation} but '{contractReturnModifier}' in the {Contract}.");
                 match = false;
             }
 

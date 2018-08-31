@@ -8,7 +8,7 @@ using Microsoft.Cci.Extensions.CSharp;
 namespace Microsoft.Cci.Differs.Rules
 {
     [ExportDifferenceRule]
-    internal class TypeCannotChangeClassification : DifferenceRule
+    internal class TypeCannotChangeClassification : CompatDifferenceRule
     {
         public override DifferenceType Diff(IDifferences differences, ITypeDefinition impl, ITypeDefinition contract)
         {
@@ -21,8 +21,7 @@ namespace Microsoft.Cci.Differs.Rules
             if (implObjType != contractObjType)
             {
                 differences.AddIncompatibleDifference(this,
-                    "Type '{0}' is a '{1}' in the implementation but is a '{2}' in the contract.",
-                    impl.FullName(), implObjType, contractObjType);
+                    $"Type '{impl.FullName()}' is a '{implObjType}' in the {Implementation} but is a '{contractObjType}' in the {Contract}.");
 
                 return DifferenceType.Changed;
             }
@@ -30,8 +29,7 @@ namespace Microsoft.Cci.Differs.Rules
             if (contract.Attributes.HasIsReadOnlyAttribute() && !impl.Attributes.HasIsReadOnlyAttribute())
             {
                 differences.AddIncompatibleDifference(this,
-                    "Type '{0}' is marked as readonly in the contract so it must also be marked readonly in the implementation.",
-                    impl.FullName());
+                    $"Type '{impl.FullName()}' is marked as readonly in the {Contract} so it must also be marked readonly in the {Implementation}.");
 
                 return DifferenceType.Changed;
             }
