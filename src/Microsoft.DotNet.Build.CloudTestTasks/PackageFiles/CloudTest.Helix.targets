@@ -46,7 +46,8 @@
        TestListFilename  - File name to use for test list sent to Helix.                      Default: TestList.json
        OverwriteOnUpload - Whether to overwrite blobs if they already exist on upload.        Default: False
        ContainerName     - Container name for uploaded files.                                 Default: build-<Random GUID>. 
-       IsOfficial        - Boolean flag for display on Mission Control.                       Default: False:
+       IsOfficial        - Boolean flag for display on Mission Control.                       Default: False
+       IsDropPublic      - Boolean flag allowing anonymous access to build drop container.    Default: False
        HelixApiEndpoint  - Endpoint to send jobs to.                                          Default: https://helix.dot.net/api/2016-06-28/jobs
        CloudResultsReadTokenValidDays  - Days that result URLs produced will be readble       Default: 30
        CloudResultsWriteTokenValidDays - Days that result URLs produced will be writeable     Default: 4
@@ -95,6 +96,7 @@
     <HelixApiEndpoint Condition="'$(HelixApiEndpoint)'==''">https://helix.dot.net/api/2016-06-28/jobs</HelixApiEndpoint>
     <MaxRetryCount Condition="'$(MaxRetryCount)' == ''">0</MaxRetryCount>
     <ToolsDir Condition="'$(ToolsDir)' == ''">$(MSBuildThisFileDirectory)</ToolsDir>
+    <IsDropPublic Condition="'$(IsDropPublic)' == ''">false</IsDropPublic>
   </PropertyGroup>
 
   <!-- Set Helix environment vars based on target platform -->
@@ -182,7 +184,8 @@
     <CreateAzureContainer
       ConnectionString="$(CloudDropConnectionString)"
       ContainerName="$(ContainerName)"
-      ReadOnlyTokenDaysValid="30">
+      ReadOnlyTokenDaysValid="30"
+      IsPublic="$(IsDropPublic)">
       <Output TaskParameter="StorageUri" PropertyName="DropUri" />
       <Output TaskParameter="ReadOnlyToken" PropertyName="DropUriReadOnlyToken" />
     </CreateAzureContainer>
