@@ -34,6 +34,11 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         public bool Overwrite { get; set; }
 
         /// <summary>
+        /// Specify max number of minutes that the lock of the feed container will be hold.
+        /// </summary>
+        public int FeedLockTimeoutMinutes { get; set; } = int.MaxValue;
+
+        /// <summary>
         /// Enables idempotency when Overwrite is false.
         /// 
         /// false: (default) Attempting to upload an item that already exists fails.
@@ -90,7 +95,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 }
                 else
                 {
-                    BlobFeedAction blobFeedAction = new BlobFeedAction(ExpectedFeedUrl, AccountKey, Log);
+                    BlobFeedAction blobFeedAction = new BlobFeedAction(ExpectedFeedUrl, AccountKey, FeedLockTimeoutMinutes, Log);
 
                     IEnumerable<BlobArtifactModel> blobArtifacts = Enumerable.Empty<BlobArtifactModel>();
                     IEnumerable<PackageArtifactModel> packageArtifacts = Enumerable.Empty<PackageArtifactModel>();

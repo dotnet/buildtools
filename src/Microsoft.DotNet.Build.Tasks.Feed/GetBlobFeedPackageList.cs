@@ -26,6 +26,11 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         [Output]
         public ITaskItem[] PackageInfos { get; set; }
 
+        /// <summary>
+        /// Specify the maximum wait time that the task will wait to acquire the lock, after which it will error out.
+        /// </summary>
+        public int FeedLockTimeoutMinutes { get; set; } = int.MaxValue;
+
         public override bool Execute()
         {
             return ExecuteAsync().GetAwaiter().GetResult();
@@ -37,7 +42,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             {
                 Log.LogMessage(MessageImportance.High, "Listing blob feed packages...");
 
-                BlobFeedAction action = new BlobFeedAction(ExpectedFeedUrl, AccountKey, Log);
+                BlobFeedAction action = new BlobFeedAction(ExpectedFeedUrl, AccountKey, FeedLockTimeoutMinutes, Log);
 
                 ISet<PackageIdentity> packages = await action.GetPackageIdentitiesAsync();
 
