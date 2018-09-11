@@ -28,11 +28,12 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         private const string feedRegex = @"(?<feedurl>https:\/\/(?<accountname>[^\.-]+)(?<domain>[^\/]*)\/((?<token>[a-zA-Z0-9+\/]*?\/\d{4}-\d{2}-\d{2})\/)?(?<containername>[^\/]+)\/(?<relativepath>.*\/)?)index\.json";
         private string feedUrl;
         private SleetSource source;
+        private int feedLockTimeoutMinutes;
         private bool hasToken = false;
 
         public BlobFeed feed;
 
-        public BlobFeedAction(string expectedFeedUrl, string accountKey, MSBuild.TaskLoggingHelper Log)
+        public BlobFeedAction(string expectedFeedUrl, string accountKey, int feedLockTimeout, MSBuild.TaskLoggingHelper Log)
         {
             // This blob feed action regex is custom because of the way that nuget handles query strings (it doesn't)
             // Instead of encoding the query string containing the SAS at the end of the URL we encode it at the beginning.
@@ -49,6 +50,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                 feedUrl = m.Groups["feedurl"].Value;
                 hasToken = !string.IsNullOrEmpty(m.Groups["token"].Value);
 
+                feedLockTimeoutMinutes = feedLockTimeout;
                 source = new SleetSource
                 {
                     Name = feed.ContainerName,
@@ -313,7 +315,8 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
             LocalSettings settings = new LocalSettings
             {
-                Json = JObject.FromObject(sleetSettings)
+                Json = JObject.FromObject(sleetSettings),
+                FeedLockTimeout = TimeSpan.FromMinutes(feedLockTimeoutMinutes)
             };
 
             return settings;
