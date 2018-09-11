@@ -27,7 +27,7 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         public ITaskItem[] PackageInfos { get; set; }
 
         /// <summary>
-        /// Specify max number of minutes that the lock of the feed container will be hold.
+        /// Specify the maximum wait time that the task will wait to acquire the lock, after which it will error out.
         /// </summary>
         public int FeedLockTimeoutMinutes { get; set; } = int.MaxValue;
 
