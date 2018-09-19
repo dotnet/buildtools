@@ -11,11 +11,11 @@
     <TraceEventNativePath Include="$(PackagesDir)\$(TraceEventPackage)\lib\native\**\*.*" />
   </ItemGroup>
 
-  <Target Name="ValidatePerformanceRunType" BeforeTargets="GenerateTestExecutionScripts">
+  <Target Name="ValidatePerformanceRunType" Condition="'$(IsPerformanceTestProject)' == 'true'" BeforeTargets="GenerateTestExecutionScripts">
     <Error Condition="'$(PerformanceType)'!='Diagnostic' AND '$(PerformanceType)'!='Profile'" Text="Invalid Performance Type value specified: $(PerformanceType)" />
   </Target>
 
-  <Target Name ="PublishPerfRunner" BeforeTargets="RunTestsForProject">
+  <Target Name ="PublishPerfRunner" Condition="'$(IsPerformanceTestProject)' == 'true'" BeforeTargets="RunTestsForProject">
     <Copy SourceFiles="@(TraceEventNativePath)" DestinationFiles="@(TraceEventNativePath->'$(StartWorkingDirectory)\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
 
@@ -34,7 +34,7 @@
     <CliExitErrorCommand>EXIT /B 1</CliExitErrorCommand>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(BuildingNETFxVertical)' == 'true'">
+  <ItemGroup Condition="'$(IsPerformanceTestProject)' == 'true' AND '$(BuildingNETFxVertical)' == 'true'">
     <SupplementalTestData Include="$(RuntimePath)Microsoft.DotNet.XUnitExtensions.dll" />
     <SupplementalTestData Include="$(RuntimePath)CommandLine.dll" />
     <SupplementalTestData Include="$(RuntimePath)MarkdownLog.dll" />
@@ -91,7 +91,7 @@
   </ItemGroup>
 
   <!-- Optimizations to configure Xunit for performance -->
-  <ItemGroup>
+  <ItemGroup Condition="'$(IsPerformanceTestProject)' == 'true'">
     <!-- TODO: when we no longer need to support legacy .csprojs, this can be converted to 
         <AssemblyAttribute Include="Microsoft.Xunit.Performance.OptimizeForBenchmarks" />
     -->
@@ -117,7 +117,7 @@
 
   <Target Name="WarnForDebugPerfConfiguration"
           BeforeTargets="RunTestsForProject"
-          Condition="!$(ConfigurationGroup.ToLower().Contains('release'))">
+          Condition="'$(IsPerformanceTestProject)' == 'true' AND !$(ConfigurationGroup.ToLower().Contains('release'))">
     <Warning Text="You are running performance tests in a configuration other than Release. Your results may be unreliable." />
   </Target>
 </Project>
