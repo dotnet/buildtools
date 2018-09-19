@@ -135,6 +135,7 @@
       <RunTestsForProjectInputs Include="@(IntermediateAssembly)" />
       <RunTestsForProjectInputs Include="@(_DebugSymbolsIntermediatePath)" />
       <RunTestsForProjectInputs Include="@(AllItemsFullPathWithTargetPath)" />
+      <SupplementalTestData Condition="'$(SkipXunitConfigCopying)' != 'true'" Include="$(ToolsDir)xunit.runner.json" />
     </ItemGroup>
     <ItemGroup Condition="'$(BuildingNetCoreAppVertical)' == 'true'">
       <SupplementalTestData Condition="'$(IsPerformanceTestProject)' != 'true' and '$(SkipXunitRuntimeConfigCopying)' != 'true' and '$(UsingCoverageDedicatedRuntime)' != 'true'" Include="$(XunitRuntimeConfig)" />
