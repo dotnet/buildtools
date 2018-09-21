@@ -2,17 +2,17 @@
     "profiles": {
         ".NET Core xUnit Console": {
             "commandName": "Executable",
-            "executablePath": "$(TestHostRootPath)dotnet.exe",
+            "executablePath": "$(BinDir)testhost/netcoreapp-$(_bc_OSGroup)-$(ConfigurationGroup)-$(ArchGroup)/dotnet.exe",
             "commandLineArgs": "xunit.console.dll $(XunitArguments) -wait -parallel none",
-            "workingDirectory": "$(TestPath)"
+            "workingDirectory": "$(TestWorkingDir)$(MSBuildProjectName)/netcoreapp-$(_bc_OSGroup)-$(ConfigurationGroup)-$(ArchGroup)/"
         },
         ".NET Framework xUnit Console": {
             "commandName": "Executable",
-            "executablePath": "$(TestPath)xunit.console.exe",
+            "executablePath": "$(TestWorkingDir)$(MSBuildProjectName)/netfx-Windows_NT-$(ConfigurationGroup)-$(ArchGroup)/xunit.console.exe",
             "commandLineArgs": "$(XunitArguments) -wait -parallel none",
-            "workingDirectory": "$(TestPath)",
+            "workingDirectory": "$(TestWorkingDir)$(MSBuildProjectName)/netfx-Windows_NT-$(ConfigurationGroup)-$(ArchGroup)/",
             "environmentVariables": {
-                "DEVPATH": "$(RuntimePath)"
+                "DEVPATH": "$(BinDir)runtime/netfx-Windows_NT-$(ConfigurationGroup)-$(ArchGroup)/"
             }
         }
     }

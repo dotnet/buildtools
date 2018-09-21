@@ -620,7 +620,7 @@ robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
           Outputs="$(LaunchSettingsOutputFileFullPath)">
 
     <Copy SourceFiles="$(LaunchSettingsInputFileFullPath)"
-          DestinationFolder="$(AppDesignerfolder)" />
+          DestinationFiles="$(LaunchSettingsOutputFileFullPath)" />
 
   </Target>
 
