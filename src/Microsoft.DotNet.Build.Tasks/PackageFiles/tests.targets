@@ -16,6 +16,19 @@
     <TestPath Condition="'$(TestPath)'==''">$(OutDir)</TestPath>
   </PropertyGroup>
 
+  <!--
+    Copied from Microsoft.Net.Test.Sdk.targets which currently skips netstandard projects as 
+    they are not intended to be executable. We override this as we launch the test assemblies
+    directly with the runner. This is needed for VS debugging support.
+    TODO: Fix VB test project reference to Test SDK.
+  -->
+  <PropertyGroup Condition="'$(IncludeVSTestReferences)' == 'true' AND '$(BuildingNETCoreAppVertical)' == 'true' AND '$(Language)' != 'VB'">
+    <OutputType>Exe</OutputType>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <GeneratedProgramFile Condition="'$(GeneratedProgramFile)' ==''">$(IntermediateOutputPath)$(MSBuildProjectName).Program$(DefaultLanguageSourceExtension)</GeneratedProgramFile>
+    <GenerateProgramFile Condition="'$(GenerateProgramFile)' == ''">true</GenerateProgramFile>
+  </PropertyGroup>
+
   <!-- In case that XunitPerfMaxIteration is not yet set, default it here -->
   <PropertyGroup>
     <XunitPerfMaxIteration Condition="'$(XunitPerfMaxIteration)'==''">1</XunitPerfMaxIteration>
@@ -29,26 +42,6 @@
     <DefaultNoCategories Include="$(DefaultNoCategories)" />
     <UnsupportedPlatformsItems Include="$(UnsupportedPlatforms)"/>
   </ItemGroup>
-
-  <PropertyGroup Condition="'$(BuildingNETFxVertical)' != 'true'">
-    <TestRuntimeEnvVar Condition="'$(RunningOnUnix)'!='true'">%RUNTIME_PATH%\</TestRuntimeEnvVar>
-    <TestRuntimeEnvVar Condition="'$(RunningOnUnix)'=='true'">$RUNTIME_PATH/</TestRuntimeEnvVar>
-    <TestHostExecutablePath Condition="'$(RunningOnUnix)'!='true' AND '$(TestHostExecutablePath)' == '' AND '$(UseDotNetNativeToolchain)' != 'true'">$(TestRuntimeEnvVar)dotnet.exe</TestHostExecutablePath>
-    <TestHostExecutablePath Condition="'$(RunningOnUnix)'=='true' AND '$(TestHostExecutablePath)' == '' AND '$(UseDotNetNativeToolchain)' != 'true'">$(TestRuntimeEnvVar)dotnet</TestHostExecutablePath>
-
-    <XunitExecutable Condition="'$(XunitExecutable)' == '' AND '$(UseDotNetNativeToolchain)' != 'true'">xunit.console.dll</XunitExecutable>
-    <XunitExecutable Condition="'$(XunitExecutable)' == '' AND '$(UseDotNetNativeToolchain)' == 'true'">xunit.console.exe</XunitExecutable>
-    <XunitRuntimeConfigFile>xunit.console.runtimeconfig.json</XunitRuntimeConfigFile>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(BuildingNETFxVertical)' == 'true'">
-    <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.exe</XunitExecutable>
-    <XunitRuntimeConfigFile>DesktopRunnerConfigFile.config</XunitRuntimeConfigFile>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <RemoteExecutorExecutable>RemoteExecutorConsoleApp.exe</RemoteExecutorExecutable>
-  </PropertyGroup>
 
   <!-- General xunit options -->
   <PropertyGroup>
@@ -70,51 +63,51 @@
     <_XunitOptions Condition="'$(XunitOptions)' != ''">$(_XunitOptions) $(XunitOptions)</_XunitOptions>
     <_XunitOptions Condition="'$(XunitMethodName)' != ''">$(_XunitOptions) -method $(XunitMethodName)</_XunitOptions>
     <_XunitOptions Condition="'$(XunitClassName)' != ''">$(_XunitOptions) -class $(XunitClassName)</_XunitOptions>
+
     <XunitTestAssembly Condition="'$(XunitTestAssembly)' == ''">$(TargetFileName)</XunitTestAssembly>
     <XunitArguments>$(XunitTestAssembly) $(_XunitOptions)</XunitArguments>
-
-    <TestProgram Condition="'$(TestHostExecutablePath)'!=''">$(TestHostExecutablePath)</TestProgram>
-    <TestArguments Condition="'$(TestHostExecutablePath)'!=''">$(XunitExecutable) $(XunitArguments)</TestArguments>
-
-    <TestProgram Condition="'$(TestHostExecutablePath)'==''">$(XunitExecutable)</TestProgram>
-    <TestArguments Condition="'$(TestHostExecutablePath)'==''">$(XunitArguments)</TestArguments>
-
-    <TestCommandLine Condition="'$(IsPerformanceTestProject)'!='true'">$(TestProgram) $(TestArguments) {XunitTraitOptions}</TestCommandLine>
-
-    <!-- set $(TestDebugger) to eg c:\debuggers\windbg.exe to run tests under a debugger -->
-    <TestCommandLine Condition="'$(TestDebugger)' != '' and !$(TestDebugger.Contains('devenv'))">$(TestDebugger) $(TestCommandLine)</TestCommandLine>
-    <TestCommandLine Condition="'$(TestDebugger)' != '' and  $(TestDebugger.Contains('devenv'))">$(TestDebugger) /debugexe $(TestCommandLine)</TestCommandLine>
-
   </PropertyGroup>
 
-  <!-- The Code Coverage targets will override TestHost and TestCommandLine if coverage is enabled -->
-  <Import Project="$(MSBuildThisFileDirectory)CodeCoverage.targets" />
+  <!-- Executable names -->
+  <PropertyGroup>
+    <XunitExecutableName>xunit.console</XunitExecutableName>
+    <RemoteExecutorExecutableName>RemoteExecutorConsoleApp</RemoteExecutorExecutableName>
+
+    <XunitExecutable Condition="'$(XunitExecutable)' == '' AND ('$(BuildingNETFxVertical)' == 'true' OR '$(UseDotNetNativeToolchain)' == 'true')">$(XunitExecutableName).exe</XunitExecutable>
+    <XunitExecutable Condition="'$(XunitExecutable)' == ''">$(XunitExecutableName).dll</XunitExecutable>
+    <RemoteExecutorExecutable>$(RemoteExecutorExecutableName).exe</RemoteExecutorExecutable>
+  </PropertyGroup>
+
+  <!-- Test invocation options. Used by CodeCoverage and GenerateTestExecutionScripts. -->
   <Choose>
-    <When Condition="'$(CodeCoverageEnabled)'=='true' and '$(UseCoverageDedicatedRuntime)'=='true'">
+    <When Condition="'$(BuildingNETCoreAppVertical)' == 'true' AND '$(UseDotNetNativeToolchain)' != 'true'">
       <PropertyGroup>
-        <XunitRuntimeConfig>$(ToolsDir)coverage/$(XunitRuntimeConfigFile)</XunitRuntimeConfig>
-        <UsingCoverageDedicatedRuntime>true</UsingCoverageDedicatedRuntime>
+        <TestHostExecutablePath Condition="'$(TestHostExecutablePath)' == '' AND '$(RunningOnUnix)' != 'true'">%RUNTIME_PATH%\dotnet.exe</TestHostExecutablePath>
+        <TestHostExecutablePath Condition="'$(TestHostExecutablePath)' == '' AND '$(RunningOnUnix)' == 'true'">$RUNTIME_PATH/dotnet</TestHostExecutablePath>
+        <TestProgram Condition="'$(BuildingNETCoreAppVertical)' == 'true'">$(TestHostExecutablePath)</TestProgram>
+        <TestArguments Condition="'$(BuildingNETCoreAppVertical)' == 'true'">$(XunitExecutable) $(XunitArguments)</TestArguments>
       </PropertyGroup>
     </When>
     <Otherwise>
       <PropertyGroup>
-        <XunitRuntimeConfig>$(ToolsDir)$(XunitRuntimeConfigFile)</XunitRuntimeConfig>
-        <UsingCoverageDedicatedRuntime>false</UsingCoverageDedicatedRuntime>
+        <TestProgram>$(XunitExecutable)</TestProgram>
+        <TestArguments>$(XunitArguments)</TestArguments>
       </PropertyGroup>
     </Otherwise>
   </Choose>
 
   <!--
-    Copied from Microsoft.Net.Test.Sdk.targets which currently skips netstandard projects as 
-    they are not intended to be executable. We override this as we launch the test assemblies
-    directly with the runner. This is needed for VS debugging support.
-    TODO: Fix VB test project reference to Test SDK.
+    Inputs: TestProgram, TestArguments
+    Outputs: TestCommandLine
   -->
-  <PropertyGroup Condition="'$(IncludeVSTestReferences)' == 'true' AND '$(BuildingNETCoreAppVertical)' == 'true' AND '$(Language)' != 'VB'">
-    <OutputType>Exe</OutputType>
-    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
-    <GeneratedProgramFile Condition="'$(GeneratedProgramFile)' ==''">$(IntermediateOutputPath)$(MSBuildProjectName).Program$(DefaultLanguageSourceExtension)</GeneratedProgramFile>
-    <GenerateProgramFile Condition="'$(GenerateProgramFile)' == ''">true</GenerateProgramFile>
+  <Import Project="$(MSBuildThisFileDirectory)CodeCoverage.targets" />
+
+  <!-- Runtime config files -->
+  <PropertyGroup>
+    <RuntimeConfigName Condition="'$(BuildingNETCoreAppVertical)' == 'true'">netcoreapp.runtimeconfig.json</RuntimeConfigName>
+    <RuntimeConfigName Condition="'$(BuildingNETFxVertical)' == 'true'">DesktopRunnerConfigFile.config</RuntimeConfigName>
+    <RuntimeConfigPath Condition="'$(CodeCoverageEnabled)' == 'true' AND '$(UseCoverageDedicatedRuntime)' == 'true'">$(ToolsDir)coverage/$(RuntimeConfigName)</RuntimeConfigPath>
+    <RuntimeConfigPath Condition="'$(RuntimeConfigPath)' == ''">$(ToolsDir)$(RuntimeConfigName)</RuntimeConfigPath>    
   </PropertyGroup>
 
   <Target Name="DiscoverTestInputs" DependsOnTargets="ResolveReferences;GetCopyToOutputDirectoryItems">
@@ -126,21 +119,26 @@
       <RunTestsForProjectInputs Include="@(AllItemsFullPathWithTargetPath)" />
       <SupplementalTestData Condition="'$(SkipXunitConfigCopying)' != 'true'" Include="$(ToolsDir)xunit.runner.json" />
     </ItemGroup>
-    <ItemGroup Condition="'$(BuildingNetCoreAppVertical)' == 'true'">
-      <SupplementalTestData Condition="'$(IsPerformanceTestProject)' != 'true' and '$(SkipXunitRuntimeConfigCopying)' != 'true' and '$(UsingCoverageDedicatedRuntime)' != 'true'" Include="$(XunitRuntimeConfig)" />
+
+    <ItemGroup Condition="'$(BuildingNETCoreAppVertical)' == 'true'">
+      <SupplementalTestData Condition="'$(IsPerformanceTestProject)' != 'true' and '$(SkipXunitRuntimeConfigCopying)' != 'true'" Include="$(RuntimeConfigPath)" DestinationName="$(XunitExecutableName).runtimeconfig.json" />
+      <SupplementalTestData Include="$(RuntimeConfigPath)" DestinationName="$(RemoteExecutorExecutableName).runtimeconfig.json" />
+      <SupplementalTestData Condition="'$(IsPerformanceTestProject)' == 'true'" Include="$(RuntimeConfigPath)" DestinationName="$(PerfRunnerExecutableName).runtimeconfig.json" />
+
       <SupplementalTestData Condition="'$(IsPerformanceTestProject)' != 'true'" Include="$(RuntimePath)$(XunitExecutable)" />
       <SupplementalTestData Include="$(RuntimePath)xunit.runner.utility.netcoreapp10.dll" />
       <SupplementalTestData Include="$(RuntimePath)xunit.runner.reporters.netcoreapp10.dll" />
       <SupplementalTestData Condition="'$(IncludeVSTestReferences)' == 'true'" Include="$(RuntimePath)xunit.runner.visualstudio.dotnetcore.testadapter.dll" />
     </ItemGroup>
+
     <ItemGroup Condition="'$(BuildingNETFxVertical)' == 'true'">
       <!--
         We need to generate a simple config file for desktop test executors to tell them to use DEVPATH environment variable to use their dependencies from there.
         DEVPATH is being set for desktop runs in RunTests.cmd to the TestHostPath. We need this approach to have desktop Helix runs.
       -->
-      <SupplementalTestData Condition="'$(IsPerformanceTestProject)' != 'true'" Include="$(XunitRuntimeConfig)" DestinationName="$(XunitExecutable).config" />
-      <SupplementalTestData Condition="Exists('$(TestPath)\$(RemoteExecutorExecutable)')" Include="$(XunitRuntimeConfig)" DestinationName="$(RemoteExecutorExecutable).config" />
-      <SupplementalTestData Condition="Exists('$(TestPath)\$(PerfRunnerExecutable)')" Include="$(XunitRuntimeConfig)" DestinationName="$(PerfRunnerExecutable).config" />
+      <SupplementalTestData Condition="'$(IsPerformanceTestProject)' != 'true' AND '$(SkipXunitRuntimeConfigCopying)' != 'true'" Include="$(RuntimeConfigPath)" DestinationName="$(XunitExecutable).config" />
+      <SupplementalTestData Include="$(RuntimeConfigPath)" DestinationName="$(RemoteExecutorExecutable).config" />
+      <SupplementalTestData Condition="'$(IsPerformanceTestProject)' == 'true'" Include="$(RuntimeConfigPath)" DestinationName="$(PerfRunnerExecutable).config" />
 
       <SupplementalTestData Condition="'$(IsPerformanceTestProject)' != 'true'" Include="$(RuntimePath)$(XunitExecutable)" />
       <SupplementalTestData Include="$(RuntimePath)xunit.execution.desktop.dll" />
@@ -151,14 +149,6 @@
       <SupplementalTestData Include="$(RuntimePath)xunit.abstractions.dll" />
       <SupplementalTestData Condition="'$(IncludeVSTestReferences)' == 'true'" Include="$(RuntimePath)xunit.runner.visualstudio.testadapter.dll" />
     </ItemGroup>
-
-    <!-- SupplementalTestData has its own properties to control hard links, however, with the coverage dedicated runtime that will override the original -->
-    <Delete Condition="'$(SkipXunitRuntimeConfigCopying)' != 'true' and '$(UsingCoverageDedicatedRuntime)' == 'true' and Exists('$(TestPath)$(XunitRuntimeConfigFile)')"
-            Files="$(TestPath)$(XunitRuntimeConfigFile)" />
-    <Copy Condition="'$(SkipXunitRuntimeConfigCopying)' != 'true' and '$(UsingCoverageDedicatedRuntime)' == 'true'"
-          SourceFiles="$(XunitRuntimeConfig)"
-          DestinationFolder="$(TestPath)"
-          UseHardLinksIfPossible="false" />
   </Target>
 
   <Target Name="AddDefaultTestReferences" BeforeTargets="SetupDefaultReferences" Condition="'$(IsTestProject)' == 'true'">
@@ -367,6 +357,15 @@
       <XunitTraitOptions Condition="'@(RunWithoutTraits)'!=''">$(XunitTraitOptions) -notrait category=@(RunWithoutTraits, ' -notrait category=') </XunitTraitOptions>
     </PropertyGroup>
 
+      <!-- TestCommandLine isn't used for performance runs. Not overriding when already set by CodeCoverage and UAP. -->
+      <PropertyGroup Condition="'$(TestCommandLine)' == '' AND '$(BuildingUAPVertical)' != 'true' AND '$(IsPerformanceTestProject)' != 'true">
+        <TestCommandLine>$(TestProgram) $(TestArguments) {XunitTraitOptions}</TestCommandLine>
+
+        <!-- Set $(TestDebugger) to eg c:\debuggers\windbg.exe to run tests under a debugger. -->
+        <TestCommandLine Condition="'$(TestDebugger)' != '' and !$(TestDebugger.Contains('devenv'))">$(TestDebugger) $(TestCommandLine)</TestCommandLine>
+        <TestCommandLine Condition="'$(TestDebugger)' != '' and  $(TestDebugger.Contains('devenv'))">$(TestDebugger) /debugexe $(TestCommandLine)</TestCommandLine>
+      </PropertyGroup>
+
     <!-- Replace the {XunitTraitOptions} place holder with the actual traits.  We use the place holder
          because code coverage needs to have a bit of the test command line after the traits (it adds ending quotes
          to one of its options).  Simply appending the traits would break code coverage.
@@ -422,14 +421,14 @@
     </PropertyGroup>
 
     <ItemGroup Condition="'$(UseDotNetNativeToolchain)' == 'true' AND '$(IsPerformanceTestProject)'!='true'" >
-      <TargetExecutableNames Include="xunit.console.exe"/>
+      <TargetExecutableNames Include="$(XunitExecutable)"/>
       <TargetExecutableNames Condition="'%(ProjectReference.Filename)' == 'RemoteExecutorConsoleApp'" Include="$(RemoteExecutorExecutable)"/>
-      <IlcInputFolderContents Include="$(ILCFXInputFolder)/*" Exclude="$(ILCFXInputFolder)/**/xunit.console.dll" />
+      <IlcInputFolderContents Include="$(ILCFXInputFolder)/*" Exclude="$(ILCFXInputFolder)/**/$(XunitExecutableName).dll" />
 
       <TestCommandLines Include="if not exist %(IlcInputFolderContents.Filename)%(IlcInputFolderContents.Extension) mklink /H %(IlcInputFolderContents.Filename)%(IlcInputFolderContents.Extension) $(_Runtime_Path)%(IlcInputFolderContents.Filename)%(IlcInputFolderContents.Extension) 1> NUL" />
       <TestCommandLines Include="copy /y $(_TestILCFolder)\default.rd.xml %EXECUTION_DIR%" />
       <!-- Need to rename dll with entrypoint to exe for ilc to be satisfied -->
-      <TestCommandLines Include="copy /y $(_Runtime_Path)xunit.console.dll $(XunitExecutable)" />
+      <TestCommandLines Include="copy /y $(_Runtime_Path)$(XunitExecutableName).dll $(XunitExecutable)" />
       <TestCommandLines Include="if exist %EXECUTION_DIR%int rmdir /S /Q %EXECUTION_DIR%int" />
       <TestCommandLines Include="if exist %EXECUTION_DIR%native rmdir /S /Q %EXECUTION_DIR%native" />
       <TestCommandLines Include="@(TargetExecutableNames -> '
