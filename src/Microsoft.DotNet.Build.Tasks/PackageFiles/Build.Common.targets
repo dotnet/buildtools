@@ -37,6 +37,7 @@
   <ItemDefinitionGroup Condition="'$(IsTestProject)'=='true'">
     <SupplementalTestData>
       <DestinationDir />
+      <DestinationName />
     </SupplementalTestData>
   </ItemDefinitionGroup>
 
