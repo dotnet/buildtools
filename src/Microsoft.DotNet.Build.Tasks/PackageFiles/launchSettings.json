@@ -12,7 +12,7 @@
             "commandLineArgs": "$(XunitArguments) -wait -parallel none",
             "workingDirectory": "$(TestWorkingDir)$(MSBuildProjectName)/netfx-Windows_NT-$(ConfigurationGroup)-$(ArchGroup)/",
             "environmentVariables": {
-                "DEVPATH": "$(BinDir)runtime/netfx-Windows_NT-$(ConfigurationGroup)-$(ArchGroup)/"
+                "DEVPATH": "$(BinDir)testhost/netfx-Windows_NT-$(ConfigurationGroup)-$(ArchGroup)/"
             }
         }
     }
