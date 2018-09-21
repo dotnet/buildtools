@@ -48,6 +48,7 @@
        ContainerName     - Container name for uploaded files.                                 Default: build-<Random GUID>. 
        IsOfficial        - Boolean flag for display on Mission Control.                       Default: False
        IsDropPublic      - Boolean flag allowing anonymous access to build drop container.    Default: False
+       HelixBlobPrefix   - Prefix for all blobs uploaded to Azure during Helix prep           Default: <Blank>
        HelixApiEndpoint  - Endpoint to send jobs to.                                          Default: https://helix.dot.net/api/2016-06-28/jobs
        CloudResultsReadTokenValidDays  - Days that result URLs produced will be readble       Default: 30
        CloudResultsWriteTokenValidDays - Days that result URLs produced will be writeable     Default: 4
@@ -167,7 +168,7 @@
     <RemoveDir Directories="$(SupplementalPayloadDir)"/>
     <ItemGroup>
       <SupplementalPayload Condition="'@(RunnerScripts->Count())'!='0'" Include="$(SupplementalPayloadFile)">
-        <RelativeBlobPath>$(SupplementalPayloadFilename)</RelativeBlobPath>
+        <RelativeBlobPath>$(HelixBlobPrefix)$(SupplementalPayloadFilename)</RelativeBlobPath>
       </SupplementalPayload>
     </ItemGroup>
   </Target>
@@ -210,12 +211,13 @@
   <!-- Upload content to Azure (Everything except test list) -->
   <Target Name="UploadContent" DependsOnTargets="CreateAzureStorage">
     <ItemGroup>
+      <!-- TODO: Should we to apply the prefix here? -->
       <LocalFileForUpload Include="@(HelixProcessedWorkItem->Metadata('PayloadFile'))">
         <RelativeBlobPath>%(RelativeBlobPath)</RelativeBlobPath>
       </LocalFileForUpload>
-      <!-- For now assume these all go in the root of the container -->
+
       <LocalPayloadFileForUpload Include="@(HelixCorrelationPayloadFile)">
-        <RelativeBlobPath>%(FileName)%(Extension)</RelativeBlobPath>
+        <RelativeBlobPath>$(HelixBlobPrefix)%(FileName)%(Extension)</RelativeBlobPath>
       </LocalPayloadFileForUpload>
     </ItemGroup>
 
@@ -291,7 +293,7 @@
     <WriteItemsToJson JsonFileName="$(HelixLogFolder)$(TestListFilename)" Items="@(HelixProcessedWorkItemForList)" ForceJsonArray="true" />
     <ItemGroup>
       <HelixWorkItemList Include="$(HelixLogFolder)$(TestListFilename)">
-        <RelativeBlobPath>$(TestListFilename)</RelativeBlobPath>
+        <RelativeBlobPath>$(HelixBlobPrefix)$(TestListFilename)</RelativeBlobPath>
         <BuildCompleteJson>$(HelixLogFolder)BuildComplete.json</BuildCompleteJson>
         <OfficialBuildJson>$(HelixLogFolder)OfficialBuild.json</OfficialBuildJson>
         <HelixJobUploadCompletePath>$(HelixLogFolder)helixjobuploadcomplete.sem</HelixJobUploadCompletePath>
@@ -363,6 +365,12 @@
     <CreateItem Include="%(HelixWorkItemList.BuildCompleteJson)" AdditionalMetadata="RelativeBlobPath=JobStartJsonMessages.json">
       <Output TaskParameter="Include" ItemName="JobStartJsons" />
     </CreateItem>
+
+    <ItemGroup>
+      <JobStartJsons>
+        <RelativeBlobPath>$(HelixBlobPrefix)%(RelativeBlobPath)</RelativeBlobPath>
+      </JobStartJsons>
+    </ItemGroup>
     
     <UploadToAzure
      ConnectionString="$(CloudDropConnectionString)"
@@ -395,7 +403,7 @@
     <WriteItemsToJson JsonFileName="$(HelixLogFolder)$(HelixCorrelationInfoFileName)" Items="@(GeneratedCorrelationId)" ForceJsonArray="true" />
     <ItemGroup>
       <CorrelationFile Include="$(HelixLogFolder)$(HelixCorrelationInfoFileName)">
-        <RelativeBlobPath>Tracking/$(HelixCorrelationInfoFileName)</RelativeBlobPath>
+        <RelativeBlobPath>$(HelixBlobPrefix)Tracking/$(HelixCorrelationInfoFileName)</RelativeBlobPath>
       </CorrelationFile>
     </ItemGroup>
 
