@@ -599,26 +599,37 @@ robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
 
   <Target Name="SetupTestProperties" DependsOnTargets="CheckTestPlatforms;CheckTestCategories" />
 
-  <PropertyGroup Condition="$(IsTestProject) == 'true' AND '$(GenerateLaunchSettings)' == 'true'">
-    <LaunchSettingsOutputFileFullPath>$(AppDesignerFolder)/launchSettings.json</LaunchSettingsOutputFileFullPath>
+  <PropertyGroup>
+    <LaunchSettingsOutputFileFullPath>$(MSBuildProjectDirectory)/$(AppDesignerFolder)/launchSettings.json</LaunchSettingsOutputFileFullPath>
     <LaunchSettingsInputFileFullPath>$(MSBuildThisFileDirectory)launchSettings.json</LaunchSettingsInputFileFullPath>
-
-    <PrepareForRunDependsOn>
-      GenerateLaunchSettingsFile;
-      CopySupplementalTestData;
-      $(PrepareForRunDependsOn);
-    </PrepareForRunDependsOn>
   </PropertyGroup>
 
-  <Target Name="GenerateLaunchSettingsFile"
-          Condition="'$(GenerateLaunchSettings)' == 'true'"
-          Inputs="$(LaunchSettingsInputFileFullPath)"
-          Outputs="$(LaunchSettingsOutputFileFullPath)">
+  <!--
+    Invoked either manually by the build.proj to generate or update the launch settings file
+    or by the build if it doesn't exist yet.
+  -->
+  <Target Name="GenerateLaunchSettingsFile" Condition="$(IsInvokableTestProject) == 'true' AND '$(GenerateLaunchSettings)' == 'true'">
 
     <Copy SourceFiles="$(LaunchSettingsInputFileFullPath)"
           DestinationFiles="$(LaunchSettingsOutputFileFullPath)" />
 
   </Target>
+
+  <!-- Only generate the launch settings file after the build if it doesn't exist yet. -->
+  <PropertyGroup Condition="!Exists($(LaunchSettingsOutputFileFullPath))">
+    <PrepareForRunDependsOn>
+      GenerateLaunchSettingsFile;
+      $(PrepareForRunDependsOn);
+    </PrepareForRunDependsOn>
+  </PropertyGroup>
+  
+  <!-- Copy supplementals after the build. -->
+  <PropertyGroup Condition="$(IsInvokableTestProject) == 'true'">
+    <PrepareForRunDependsOn>
+      CopySupplementalTestData;
+      $(PrepareForRunDependsOn);
+    </PrepareForRunDependsOn>
+  </PropertyGroup>
 
   <PropertyGroup>
     <TestDependsOn>
