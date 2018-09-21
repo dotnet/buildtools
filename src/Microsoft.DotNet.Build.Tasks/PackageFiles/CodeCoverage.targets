@@ -178,8 +178,7 @@
     <CoverageOptions>-oldStyle -filter:"{CoverageFilter}" -excludebyfile:"*\Common\src\System\SR.*" -nodefaultfilters -excludebyattribute:*.ExcludeFromCodeCoverage* -skipautoprops -hideskipped:All -threshold:1</CoverageOptions>
     <CoverageCommandLine>$(CoverageOptions) -returntargetcode -register:user -target:$(TestProgram) -output:$(CoverageOutputFilePath)</CoverageCommandLine>
     <CoverageInputFilter>*.coverage.xml</CoverageInputFilter>
-    <TestHost>$(CoverageHost)</TestHost>
-    <TestCommandLine>$(TestHost) $(CoverageCommandLine) -targetargs:"$(TestArguments) {XunitTraitOptions} -notrait Benchmark=true"</TestCommandLine>
+    <TestCommandLine>$(CoverageHost) $(CoverageCommandLine) -targetargs:"$(TestArguments) {XunitTraitOptions} -notrait Benchmark=true"</TestCommandLine>
   </PropertyGroup>
 
   <!-- Report Generator Properties -->
