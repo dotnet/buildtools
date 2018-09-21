@@ -220,7 +220,7 @@
   <Import Project="$(MSBuildThisFileDirectory)partialfacades.targets" Condition="'$(ExcludePartialFacadesImport)' != 'true'"/>
 
    <!-- Import the ApiCompat targets. -->
-  <Import Project="$(MSBuildThisFileDirectory)ApiCompat.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)ApiCompat.targets" Condition="'$(ExcludeApiCompatImport)' != 'true'"/>
 
   <!--
     Import the contract resolution targets
