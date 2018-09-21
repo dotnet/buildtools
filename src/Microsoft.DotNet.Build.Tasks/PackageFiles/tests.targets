@@ -3,7 +3,7 @@
 
   <!-- This is the target that copies the test assets to the test output -->
   <Import Project="$(MSBuildThisFileDirectory)publishtest.targets" />
-  <Import Condition="'$(IsPerformanceTestProject)' == 'true' AND '$(Performance)' != 'false'" Project="$(MSBuildThisFileDirectory)PerfTesting.targets" />
+  <Import Condition="'$(Performance)' != 'false'" Project="$(MSBuildThisFileDirectory)PerfTesting.targets" />
   <UsingTask TaskName="GenerateTestExecutionScripts" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="GetTargetMachineInfo" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask Condition="'$(BuildingUAPVertical)' == 'true'" TaskName="ExtractResWResourcesFromAssemblies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
