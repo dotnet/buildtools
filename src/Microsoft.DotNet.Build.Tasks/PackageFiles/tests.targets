@@ -599,7 +599,7 @@ robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
 
   <Target Name="SetupTestProperties" DependsOnTargets="CheckTestPlatforms;CheckTestCategories" />
 
-  <PropertyGroup Condition="$(IsTestProject) == 'true' AND '$(OmitLaunchSettings)' != 'true'">
+  <PropertyGroup Condition="$(IsTestProject) == 'true' AND '$(GenerateLaunchSettings)' == 'true'">
     <LaunchSettingsOutputFileFullPath>$(AppDesignerFolder)/launchSettings.json</LaunchSettingsOutputFileFullPath>
     <LaunchSettingsInputFileFullPath>$(MSBuildThisFileDirectory)launchSettings.json</LaunchSettingsInputFileFullPath>
 
@@ -611,7 +611,7 @@ robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
   </PropertyGroup>
 
   <Target Name="GenerateLaunchSettingsFile"
-          Condition="'$(OmitLaunchSettings)' != 'true'"
+          Condition="'$(GenerateLaunchSettings)' == 'true'"
           Inputs="$(LaunchSettingsInputFileFullPath)"
           Outputs="$(LaunchSettingsOutputFileFullPath)">
 
