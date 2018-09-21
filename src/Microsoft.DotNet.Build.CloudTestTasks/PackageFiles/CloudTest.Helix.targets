@@ -213,7 +213,6 @@
   <!-- Upload content to Azure (Everything except test list) -->
   <Target Name="UploadContent" DependsOnTargets="CreateAzureStorage">
     <ItemGroup>
-      <!-- TODO: Should we to apply the prefix here? -->
       <LocalFileForUpload Include="@(HelixProcessedWorkItem->Metadata('PayloadFile'))">
         <RelativeBlobPath>$(HelixBlobPrefix)%(RelativeBlobPath)</RelativeBlobPath>
       </LocalFileForUpload>
