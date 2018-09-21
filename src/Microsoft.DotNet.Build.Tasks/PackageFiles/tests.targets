@@ -605,17 +605,20 @@ robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
   </PropertyGroup>
 
   <!--
-    Invoked either manually by the build.proj to generate or update the launch settings file
-    or by the build if it doesn't exist yet.
+    Target to generate the launch settings file.
+    Conditioned as an opt-in which only runs for invokable test projects.
+    Either called by PrepareForRunDependsOn if the file doesn't already exist when building
+    the test assembly or invoked manually from the build.proj when doing a full build.
   -->
   <Target Name="GenerateLaunchSettingsFile" Condition="$(IsInvokableTestProject) == 'true' AND '$(GenerateLaunchSettings)' == 'true'">
-
     <Copy SourceFiles="$(LaunchSettingsInputFileFullPath)"
           DestinationFiles="$(LaunchSettingsOutputFileFullPath)" />
-
   </Target>
 
-  <!-- Only generate the launch settings file after the build if it doesn't exist yet. -->
+  <!--
+    Generates the launch settings file at the end of the build in case it doesn't exist yet.
+    This supports scenarios when new projects are added or the file was deleted.
+  -->
   <PropertyGroup Condition="!Exists($(LaunchSettingsOutputFileFullPath))">
     <PrepareForRunDependsOn>
       GenerateLaunchSettingsFile;
@@ -623,7 +626,7 @@ robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
     </PrepareForRunDependsOn>
   </PropertyGroup>
   
-  <!-- Copy supplementals after the build. -->
+  <!-- Copies supplemental test data after the build if the project is an invokable test project. -->
   <PropertyGroup Condition="$(IsInvokableTestProject) == 'true'">
     <PrepareForRunDependsOn>
       CopySupplementalTestData;
