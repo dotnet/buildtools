@@ -68,33 +68,30 @@
     <XunitArguments>$(XunitTestAssembly) $(_XunitOptions)</XunitArguments>
   </PropertyGroup>
 
-  <!-- Executable names -->
-  <PropertyGroup>
+  <!--
+    Executable names and test invocation options.
+    Used by CodeCoverage and GenerateTestExecutionScripts.
+    Not used by UAP as we have our own launcher.
+  -->
+  <PropertyGroup Condition="'$(BuildingUAPVertical)' != 'true'">
     <XunitExecutableName>xunit.console</XunitExecutableName>
     <RemoteExecutorExecutableName>RemoteExecutorConsoleApp</RemoteExecutorExecutableName>
 
     <XunitExecutable Condition="'$(XunitExecutable)' == '' AND ('$(BuildingNETFxVertical)' == 'true' OR '$(UseDotNetNativeToolchain)' == 'true')">$(XunitExecutableName).exe</XunitExecutable>
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">$(XunitExecutableName).dll</XunitExecutable>
     <RemoteExecutorExecutable>$(RemoteExecutorExecutableName).exe</RemoteExecutorExecutable>
+
+    <TestProgram>$(XunitExecutable)</TestProgram>
+    <TestArguments>$(XunitArguments)</TestArguments>
   </PropertyGroup>
 
-  <!-- Test invocation options. Used by CodeCoverage and GenerateTestExecutionScripts. -->
-  <Choose>
-    <When Condition="'$(BuildingNETCoreAppVertical)' == 'true' AND '$(UseDotNetNativeToolchain)' != 'true'">
-      <PropertyGroup>
-        <TestHostExecutablePath Condition="'$(TestHostExecutablePath)' == '' AND '$(RunningOnUnix)' != 'true'">%RUNTIME_PATH%\dotnet.exe</TestHostExecutablePath>
-        <TestHostExecutablePath Condition="'$(TestHostExecutablePath)' == '' AND '$(RunningOnUnix)' == 'true'">$RUNTIME_PATH/dotnet</TestHostExecutablePath>
-        <TestProgram Condition="'$(BuildingNETCoreAppVertical)' == 'true'">$(TestHostExecutablePath)</TestProgram>
-        <TestArguments Condition="'$(BuildingNETCoreAppVertical)' == 'true'">$(XunitExecutable) $(XunitArguments)</TestArguments>
-      </PropertyGroup>
-    </When>
-    <Otherwise>
-      <PropertyGroup>
-        <TestProgram>$(XunitExecutable)</TestProgram>
-        <TestArguments>$(XunitArguments)</TestArguments>
-      </PropertyGroup>
-    </Otherwise>
-  </Choose>
+  <!-- netcoreapp (not aot) uses the dotnet host. -->
+  <PropertyGroup Condition="'$(BuildingNETCoreAppVertical)' == 'true' AND '$(UseDotNetNativeToolchain)' != 'true'">
+    <TestHostExecutablePath Condition="'$(TestHostExecutablePath)' == '' AND '$(RunningOnUnix)' != 'true'">%RUNTIME_PATH%\dotnet.exe</TestHostExecutablePath>
+    <TestHostExecutablePath Condition="'$(TestHostExecutablePath)' == '' AND '$(RunningOnUnix)' == 'true'">$RUNTIME_PATH/dotnet</TestHostExecutablePath>
+    <TestProgram Condition="'$(BuildingNETCoreAppVertical)' == 'true'">$(TestHostExecutablePath)</TestProgram>
+    <TestArguments Condition="'$(BuildingNETCoreAppVertical)' == 'true'">$(XunitExecutable) $(XunitArguments)</TestArguments>
+  </PropertyGroup>
 
   <!--
     Inputs: TestProgram, TestArguments
@@ -358,7 +355,7 @@
     </PropertyGroup>
 
       <!-- TestCommandLine isn't used for performance runs. Not overriding when already set by CodeCoverage and UAP. -->
-      <PropertyGroup Condition="'$(TestCommandLine)' == '' AND '$(BuildingUAPVertical)' != 'true' AND '$(IsPerformanceTestProject)' != 'true">
+      <PropertyGroup Condition="'$(TestCommandLine)' == '' AND '$(BuildingUAPVertical)' != 'true' AND '$(IsPerformanceTestProject)' != 'true'">
         <TestCommandLine>$(TestProgram) $(TestArguments) {XunitTraitOptions}</TestCommandLine>
 
         <!-- Set $(TestDebugger) to eg c:\debuggers\windbg.exe to run tests under a debugger. -->
