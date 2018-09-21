@@ -18,16 +18,16 @@
   <Target Name="CopySupplementalTestData" DependsOnTargets="DiscoverTestInputs">
     <!-- coalesce supplemental test data items with and without DestinationDir metadata -->
     <ItemGroup>
-      <_SupplementalTestData Include="@(SupplementalTestData)" Condition="'%(DestinationDir)' != ''">
-        <DestinationDir>%(DestinationDir)</DestinationDir>
-      </_SupplementalTestData>
-      <_SupplementalTestData Include="@(SupplementalTestData)" Condition="'%(DestinationDir)' == ''">
-        <DestinationDir>%(RecursiveDir)</DestinationDir>
+      <_SupplementalTestData Include="@(SupplementalTestData)">
+        <DestinationDir Condition="'%(DestinationDir)' != ''">%(DestinationDir)</DestinationDir>
+        <DestinationDir Condition="'%(DestinationDir)' == ''">%(RecursiveDir)</DestinationDir>
+        <DestinationName Condition="'%(DestinationName)' != ''">%(DestinationName)</DestinationName>
+        <DestinationName Condition="'%(DestinationName)' == ''">%(Filename)%(Extension)</DestinationName>
       </_SupplementalTestData>
     </ItemGroup>
     <ItemGroup>
-      <SupplementalTestDataTestDir Include="@(_SupplementalTestData->'$(TestPath)/%(DestinationDir)%(Filename)%(Extension)')" />
-      <SupplementalTestDataOutDir Include="@(_SupplementalTestData->'$(OutDir)%(DestinationDir)%(Filename)%(Extension)')" />
+      <SupplementalTestDataTestDir Include="@(_SupplementalTestData->'$(TestPath)/%(DestinationDir)%(DestinationName)')" />
+      <SupplementalTestDataOutDir Include="@(_SupplementalTestData->'$(OutDir)%(DestinationDir)%(DestinationName)')" />
     </ItemGroup>
     <Copy
       SourceFiles="@(_SupplementalTestData)"

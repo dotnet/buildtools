@@ -1,0 +1,19 @@
+{
+    "profiles": {
+        ".NET Core xUnit Console": {
+            "commandName": "Executable",
+            "executablePath": "$(TestHostRootPath)dotnet.exe",
+            "commandLineArgs": "xunit.console.dll $(XunitArguments) -wait -parallel none",
+            "workingDirectory": "$(TestPath)"
+        },
+        ".NET Framework xUnit Console": {
+            "commandName": "Executable",
+            "executablePath": "$(TestPath)xunit.console.exe",
+            "commandLineArgs": "$(XunitArguments) -wait -parallel none",
+            "workingDirectory": "$(TestPath)",
+            "environmentVariables": {
+                "DEVPATH": "$(RuntimePath)"
+            }
+        }
+    }
+}

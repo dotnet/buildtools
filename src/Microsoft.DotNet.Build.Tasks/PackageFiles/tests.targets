@@ -39,12 +39,11 @@
     <XunitExecutable Condition="'$(XunitExecutable)' == '' AND '$(UseDotNetNativeToolchain)' != 'true'">xunit.console.dll</XunitExecutable>
     <XunitExecutable Condition="'$(XunitExecutable)' == '' AND '$(UseDotNetNativeToolchain)' == 'true'">xunit.console.exe</XunitExecutable>
     <XunitRuntimeConfigFile>xunit.console.runtimeconfig.json</XunitRuntimeConfigFile>
-
-    <DebugEngines>{2E36F1D4-B23C-435D-AB41-18E608940038}</DebugEngines>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(BuildingNETFxVertical)' == 'true'">
     <XunitExecutable Condition="'$(XunitExecutable)' == ''">xunit.console.exe</XunitExecutable>
+    <XunitRuntimeConfigFile>DesktopRunnerConfigFile.config</XunitRuntimeConfigFile>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -55,7 +54,6 @@
   <PropertyGroup>
     <XunitResultsFileName>testResults.xml</XunitResultsFileName>
 
-    <_XunitOptions Condition="'$(BuildingNETFxVertical)' == 'true'">$(_XunitOptions) -noshadow</_XunitOptions>
     <_XunitOptions Condition="'$(BuildingNETFxVertical)' == 'true' and '$(XUnitNoAppdomain)' == 'true'">$(_XunitOptions) -noappdomain </_XunitOptions>
     <_XunitOptions>$(_XunitOptions) -xml $(XunitResultsFileName)</_XunitOptions>
     <_XunitOptions>$(_XunitOptions) -notrait category=non$(_bc_TargetGroup)tests</_XunitOptions>
@@ -72,7 +70,6 @@
     <_XunitOptions Condition="'$(XunitOptions)' != ''">$(_XunitOptions) $(XunitOptions)</_XunitOptions>
     <_XunitOptions Condition="'$(XunitMethodName)' != ''">$(_XunitOptions) -method $(XunitMethodName)</_XunitOptions>
     <_XunitOptions Condition="'$(XunitClassName)' != ''">$(_XunitOptions) -class $(XunitClassName)</_XunitOptions>
-    <_XunitOptions Condition="'$(XunitShowProgress)' == 'true'">$(_XunitOptions) -showprogress</_XunitOptions>
     <XunitTestAssembly Condition="'$(XunitTestAssembly)' == ''">$(TargetFileName)</XunitTestAssembly>
     <XunitArguments>$(XunitTestAssembly) $(_XunitOptions)</XunitArguments>
 
@@ -107,14 +104,6 @@
     </Otherwise>
   </Choose>
 
-  <!-- In VS (2015 Preview or later currently required): Debug to run unit tests on CoreCLR. -->
-  <PropertyGroup Condition="'$(IsInvokableTestProject)' == 'true'">
-    <StartWorkingDirectory Condition="'$(StartWorkingDirectory)'==''">$(TestPath)</StartWorkingDirectory>
-    <StartAction Condition="'$(StartAction)'==''">Program</StartAction>
-    <StartProgram Condition="'$(StartProgram)'==''">$(TestHostRootPath)dotnet.exe</StartProgram>
-    <StartArguments Condition="'$(StartArguments)'==''">$(TestArguments) -wait -parallel none</StartArguments>
-  </PropertyGroup>
-
   <!--
     Copied from Microsoft.Net.Test.Sdk.targets which currently skips netstandard projects as 
     they are not intended to be executable. We override this as we launch the test assemblies
@@ -145,6 +134,14 @@
       <SupplementalTestData Condition="'$(IncludeVSTestReferences)' == 'true'" Include="$(RuntimePath)xunit.runner.visualstudio.dotnetcore.testadapter.dll" />
     </ItemGroup>
     <ItemGroup Condition="'$(BuildingNETFxVertical)' == 'true'">
+      <!--
+        We need to generate a simple config file for desktop test executors to tell them to use DEVPATH environment variable to use their dependencies from there.
+        DEVPATH is being set for desktop runs in RunTests.cmd to the TestHostPath. We need this approach to have desktop Helix runs.
+      -->
+      <SupplementalTestData Condition="'$(IsPerformanceTestProject)' != 'true'" Include="$(XunitRuntimeConfig)" DestinationName="$(XunitExecutable).config" />
+      <SupplementalTestData Condition="Exists('$(TestPath)\$(RemoteExecutorExecutable)')" Include="$(XunitRuntimeConfig)" DestinationName="$(RemoteExecutorExecutable).config" />
+      <SupplementalTestData Condition="Exists('$(TestPath)\$(PerfRunnerExecutable)')" Include="$(XunitRuntimeConfig)" DestinationName="$(PerfRunnerExecutable).config" />
+
       <SupplementalTestData Condition="'$(IsPerformanceTestProject)' != 'true'" Include="$(RuntimePath)$(XunitExecutable)" />
       <SupplementalTestData Include="$(RuntimePath)xunit.execution.desktop.dll" />
       <SupplementalTestData Include="$(RuntimePath)xunit.runner.reporters.net452.dll" />
@@ -215,37 +212,6 @@
       <ReferenceFromRuntime Include="Microsoft.VisualStudio.CodeCoverage.Shim" />
       <ReferenceFromRuntime Include="xunit.runner.visualstudio.testadapter" />
     </ItemGroup>
-  </Target>
-
-  <!-- We need to generate a simple config file for desktop test executors to tell them to use DEVPATH environment variable to use their dependencies from there.
-  DEVPATH is being set for desktop runs in RunTests.cmd to the TestHostPath. We need this approach to have desktop Helix runs. -->
-  <Target Name="CopyDesktopExecutorsConfigFiles"
-          BeforeTargets="GenerateTestExecutionScripts"
-          Condition="'$(BuildingNETFxVertical)' == 'true'">
-    <PropertyGroup>
-      <NETFxTestRunnerAppConfig Condition="'$(NETFxTestRunnerAppConfig)' == ''">$(ToolsDir)\DesktopRunnerConfigFile.config</NETFxTestRunnerAppConfig>
-      <XunitRunnerNETFxConfigFile>$(TestPath)\$(XunitExecutable).config</XunitRunnerNETFxConfigFile>
-      <RemoteExecutorConfigFile>$(TestPath)\$(RemoteExecutorExecutable).config</RemoteExecutorConfigFile>
-      <PerfRunnerConfigFile>$(TestPath)\$(PerfRunnerExecutable).config</PerfRunnerConfigFile>
-    </PropertyGroup>
-
-    <Copy Condition="'$(IsPerformanceTestProject)' != 'true'"
-          SourceFiles="$(NETFxTestRunnerAppConfig)"
-          DestinationFiles="$(XunitRunnerNETFxConfigFile)"
-          SkipUnchangedFiles="true"
-          />
-
-    <Copy Condition="Exists('$(TestPath)\$(RemoteExecutorExecutable)')"
-          SourceFiles="$(NETFxTestRunnerAppConfig)"
-          DestinationFiles="$(RemoteExecutorConfigFile)"
-          SkipUnchangedFiles="true"
-          />
-
-    <Copy Condition="Exists('$(TestPath)\$(PerfRunnerExecutable)')"
-          SourceFiles="$(NETFxTestRunnerAppConfig)"
-          DestinationFiles="$(PerfRunnerConfigFile)"
-          SkipUnchangedFiles="true"
-          />
   </Target>
 
   <!-- Properties needed to create resources.pri for UAP runner -->
@@ -637,10 +603,30 @@ robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
 
   <Target Name="SetupTestProperties" DependsOnTargets="CheckTestPlatforms;CheckTestCategories" />
 
+  <PropertyGroup Condition="$(IsTestProject) == 'true' AND '$(OmitLaunchSettings)' != 'true'">
+    <LaunchSettingsOutputFileFullPath>$(AppDesignerFolder)/launchSettings.json</LaunchSettingsOutputFileFullPath>
+    <LaunchSettingsInputFileFullPath>$(MSBuildThisFileDirectory)launchSettings.json</LaunchSettingsInputFileFullPath>
+
+    <PrepareForRunDependsOn>
+      GenerateLaunchSettingsFile;
+      CopySupplementalTestData;
+      $(PrepareForRunDependsOn);
+    </PrepareForRunDependsOn>
+  </PropertyGroup>
+
+  <Target Name="GenerateLaunchSettingsFile"
+          Condition="'$(OmitLaunchSettings)' != 'true'"
+          Inputs="$(LaunchSettingsInputFileFullPath)"
+          Outputs="$(LaunchSettingsOutputFileFullPath)">
+
+    <Copy SourceFiles="$(LaunchSettingsInputFileFullPath)"
+          DestinationFolder="$(AppDesignerfolder)" />
+
+  </Target>
+
   <PropertyGroup>
     <TestDependsOn>
       $(TestDependsOn);
-      CopySupplementalTestData;
       GenerateTestExecutionScripts;
       RunTestsForProject;
       ArchiveTestBuild
