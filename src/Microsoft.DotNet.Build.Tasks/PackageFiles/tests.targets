@@ -100,12 +100,15 @@
   -->
   <Import Project="$(MSBuildThisFileDirectory)CodeCoverage.targets" />
 
-  <!-- Runtime config files -->
+  <!-- 
+    Runtime config files.
+    Can be overridden to supply customized configuration files (i.e. runtime switches).
+  -->
   <PropertyGroup>
     <RuntimeConfigName Condition="'$(BuildingNETCoreAppVertical)' == 'true'">netcoreapp.runtimeconfig.json</RuntimeConfigName>
     <RuntimeConfigName Condition="'$(BuildingNETFxVertical)' == 'true'">DesktopRunnerConfigFile.config</RuntimeConfigName>
-    <RuntimeConfigPath Condition="'$(CodeCoverageEnabled)' == 'true' AND '$(UseCoverageDedicatedRuntime)' == 'true'">$(ToolsDir)coverage/$(RuntimeConfigName)</RuntimeConfigPath>
-    <RuntimeConfigPath Condition="'$(RuntimeConfigPath)' == ''">$(ToolsDir)$(RuntimeConfigName)</RuntimeConfigPath>    
+    <RuntimeConfigPath Condition="'$(BuildingNETCoreAppVertical)' == 'true' AND '$(RuntimeConfigPath)' == '' AND '$(CodeCoverageEnabled)' == 'true' AND '$(UseCoverageDedicatedRuntime)' == 'true'">$(ToolsDir)coverage/$(RuntimeConfigName)</RuntimeConfigPath>
+    <RuntimeConfigPath Condition="'$(RuntimeConfigPath)' == ''">$(ToolsDir)$(RuntimeConfigName)</RuntimeConfigPath>
   </PropertyGroup>
 
   <Target Name="DiscoverTestInputs" DependsOnTargets="ResolveReferences;GetCopyToOutputDirectoryItems">
@@ -119,8 +122,8 @@
     </ItemGroup>
 
     <ItemGroup Condition="'$(BuildingNETCoreAppVertical)' == 'true'">
-      <SupplementalTestData Condition="'$(IsPerformanceTestProject)' != 'true' and '$(SkipXunitRuntimeConfigCopying)' != 'true'" Include="$(RuntimeConfigPath)" DestinationName="$(XunitExecutableName).runtimeconfig.json" />
-      <SupplementalTestData Include="$(RuntimeConfigPath)" DestinationName="$(RemoteExecutorExecutableName).runtimeconfig.json" />
+      <SupplementalTestData Condition="'$(IsPerformanceTestProject)' != 'true'" Include="$(RuntimeConfigPath)" DestinationName="$(XunitExecutableName).runtimeconfig.json" />
+      <SupplementalTestData Condition="'$(IsPerformanceTestProject)' != 'true'" Include="$(RuntimeConfigPath)" DestinationName="$(RemoteExecutorExecutableName).runtimeconfig.json" />
       <SupplementalTestData Condition="'$(IsPerformanceTestProject)' == 'true'" Include="$(RuntimeConfigPath)" DestinationName="$(PerfRunnerExecutableName).runtimeconfig.json" />
 
       <SupplementalTestData Condition="'$(IsPerformanceTestProject)' != 'true'" Include="$(RuntimePath)$(XunitExecutable)" />
@@ -134,8 +137,8 @@
         We need to generate a simple config file for desktop test executors to tell them to use DEVPATH environment variable to use their dependencies from there.
         DEVPATH is being set for desktop runs in RunTests.cmd to the TestHostPath. We need this approach to have desktop Helix runs.
       -->
-      <SupplementalTestData Condition="'$(IsPerformanceTestProject)' != 'true' AND '$(SkipXunitRuntimeConfigCopying)' != 'true'" Include="$(RuntimeConfigPath)" DestinationName="$(XunitExecutable).config" />
-      <SupplementalTestData Include="$(RuntimeConfigPath)" DestinationName="$(RemoteExecutorExecutable).config" />
+      <SupplementalTestData Condition="'$(IsPerformanceTestProject)' != 'true'" Include="$(RuntimeConfigPath)" DestinationName="$(XunitExecutable).config" />
+      <SupplementalTestData Condition="'$(IsPerformanceTestProject)' != 'true'" Include="$(RuntimeConfigPath)" DestinationName="$(RemoteExecutorExecutable).config" />
       <SupplementalTestData Condition="'$(IsPerformanceTestProject)' == 'true'" Include="$(RuntimeConfigPath)" DestinationName="$(PerfRunnerExecutable).config" />
 
       <SupplementalTestData Condition="'$(IsPerformanceTestProject)' != 'true'" Include="$(RuntimePath)$(XunitExecutable)" />
