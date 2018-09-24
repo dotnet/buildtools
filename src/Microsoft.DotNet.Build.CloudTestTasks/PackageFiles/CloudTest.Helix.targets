@@ -99,6 +99,7 @@
     <ToolsDir Condition="'$(ToolsDir)' == ''">$(MSBuildThisFileDirectory)</ToolsDir>
     <IsDropPublic Condition="'$(IsDropPublic)' == ''">false</IsDropPublic>
     <!-- Make sure HelixBlobPrefix ends with '/' -->
+    <!-- Note: EnsureTrailingSlash works in >=Dev15 MSBuild -->
     <HelixBlobPrefix Condition="'$(HelixBlobPrefix)' != ''">$([System.Text.RegularExpressions.Regex]::Replace('$([MSBuild]::EnsureTrailingSlash('$(HelixBlobPrefix)'))', "\\", "/"))</HelixBlobPrefix>
   </PropertyGroup>
 
