@@ -181,6 +181,11 @@
     <ValidateWorkItems WorkItems="@(HelixWorkItem)" WorkItemArchiveRoot="$(ArchivesRoot)">
       <Output TaskParameter="ProcessedWorkItems" ItemName="HelixProcessedWorkItem"/>
     </ValidateWorkItems>
+    <ItemGroup>
+      <HelixProcessedWorkItem>
+        <RelativeBlobPath>$(HelixBlobPrefix)%(RelativeBlobPath)</RelativeBlobPath>
+      </HelixProcessedWorkItem>
+    </ItemGroup>
   </Target>
 
   <!-- Create Azure containers and file shares -->
@@ -215,7 +220,7 @@
   <Target Name="UploadContent" DependsOnTargets="CreateAzureStorage">
     <ItemGroup>
       <LocalFileForUpload Include="@(HelixProcessedWorkItem->Metadata('PayloadFile'))">
-        <RelativeBlobPath>$(HelixBlobPrefix)%(RelativeBlobPath)</RelativeBlobPath>
+        <RelativeBlobPath>%(RelativeBlobPath)</RelativeBlobPath>
       </LocalFileForUpload>
 
       <LocalPayloadFileForUpload Include="@(HelixCorrelationPayloadFile)">
