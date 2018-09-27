@@ -485,6 +485,8 @@ robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
       
       <!-- Uninstall -->
       <PostExecutionTestCommandLines Include="echo." />
+      <!-- Save error level as the uninstall command overwrites the global one. -->
+      <PostExecutionTestCommandLines Include="set ERRORLEVEL=%ERRORLEVEL%" />
       <PostExecutionTestCommandLines Include="call %RUNTIME_PATH%\Launcher\WindowsStoreAppLauncher.exe -uninstall appxmanifest.xml $(XunitArguments) $(XunitTraitOptions)" />
 
       <!-- Copy the log files and the results files from the Documents folder to the test folder -->
