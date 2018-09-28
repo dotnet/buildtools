@@ -320,7 +320,7 @@
           Inputs="%(HelixWorkItemList.Identity)"
           Outputs="%(HelixWorkItemList.BuildCompleteJson)">
 
-    <CreateItem Include="@(TargetQueue)" AdditionalMetadata="ResultsUri=$(ResultsUri)%(TargetQueue.Identity)/;QueueId=%(TargetQueue.Identity)">
+    <CreateItem Include="@(TargetQueue)" AdditionalMetadata="ResultsUri=$(ResultsUri)$(HelixBlobPrefix)%(TargetQueue.Identity)/;QueueId=%(TargetQueue.Identity)">
       <Output TaskParameter="Include" ItemName="BuildCompleteTemplateV2" />
     </CreateItem>
 
@@ -353,7 +353,7 @@
            Keeping the name for clarity.                       -->
       <BuildCompleteTemplateV2>
         <DropContainerSAS>$(DropUriReadOnlyToken)</DropContainerSAS>
-        <ListUri>$(DropUri)%(HelixWorkItemList.Filename)%(HelixWorkItemList.Extension)$(DropUriReadOnlyToken)</ListUri>
+        <ListUri>$(DropUri)$(HelixBlobPrefix)%(HelixWorkItemList.Filename)%(HelixWorkItemList.Extension)$(DropUriReadOnlyToken)</ListUri>
         <ResultsUriRSAS>$(ResultsReadOnlyToken)</ResultsUriRSAS>
         <ResultsUriWSAS>$(ResultsWriteOnlyToken)</ResultsUriWSAS>
         <Build>$(BuildMoniker)</Build>
