@@ -181,6 +181,11 @@
     <ValidateWorkItems WorkItems="@(HelixWorkItem)" WorkItemArchiveRoot="$(ArchivesRoot)">
       <Output TaskParameter="ProcessedWorkItems" ItemName="HelixProcessedWorkItem"/>
     </ValidateWorkItems>
+    <ItemGroup>
+      <HelixProcessedWorkItem>
+        <RelativeBlobPath>$(HelixBlobPrefix)%(RelativeBlobPath)</RelativeBlobPath>
+      </HelixProcessedWorkItem>
+    </ItemGroup>
   </Target>
 
   <!-- Create Azure containers and file shares -->
@@ -215,7 +220,7 @@
   <Target Name="UploadContent" DependsOnTargets="CreateAzureStorage">
     <ItemGroup>
       <LocalFileForUpload Include="@(HelixProcessedWorkItem->Metadata('PayloadFile'))">
-        <RelativeBlobPath>$(HelixBlobPrefix)%(RelativeBlobPath)</RelativeBlobPath>
+        <RelativeBlobPath>%(RelativeBlobPath)</RelativeBlobPath>
       </LocalFileForUpload>
 
       <LocalPayloadFileForUpload Include="@(HelixCorrelationPayloadFile)">
@@ -315,7 +320,7 @@
           Inputs="%(HelixWorkItemList.Identity)"
           Outputs="%(HelixWorkItemList.BuildCompleteJson)">
 
-    <CreateItem Include="@(TargetQueue)" AdditionalMetadata="ResultsUri=$(ResultsUri)%(TargetQueue.Identity)/;QueueId=%(TargetQueue.Identity)">
+    <CreateItem Include="@(TargetQueue)" AdditionalMetadata="ResultsUri=$(ResultsUri)$(HelixBlobPrefix)%(TargetQueue.Identity)/;QueueId=%(TargetQueue.Identity)">
       <Output TaskParameter="Include" ItemName="BuildCompleteTemplateV2" />
     </CreateItem>
 
@@ -348,7 +353,7 @@
            Keeping the name for clarity.                       -->
       <BuildCompleteTemplateV2>
         <DropContainerSAS>$(DropUriReadOnlyToken)</DropContainerSAS>
-        <ListUri>$(DropUri)%(HelixWorkItemList.Filename)%(HelixWorkItemList.Extension)$(DropUriReadOnlyToken)</ListUri>
+        <ListUri>$(DropUri)$(HelixBlobPrefix)%(HelixWorkItemList.Filename)%(HelixWorkItemList.Extension)$(DropUriReadOnlyToken)</ListUri>
         <ResultsUriRSAS>$(ResultsReadOnlyToken)</ResultsUriRSAS>
         <ResultsUriWSAS>$(ResultsWriteOnlyToken)</ResultsUriWSAS>
         <Build>$(BuildMoniker)</Build>
