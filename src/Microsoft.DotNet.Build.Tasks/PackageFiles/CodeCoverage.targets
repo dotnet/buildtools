@@ -13,8 +13,8 @@
   
   <!-- Coverage options -->
   <PropertyGroup>
-    <CodeCoverageEnabled>false</CodeCoverageEnabled>
-    <CodeCoverageEnabled Condition="'$(SkipTests)' != 'true' and '$(Coverage)' == 'true' and '$(IsPerformanceTestProject)' != 'true' and '$(DisableCodeCoverage)' != 'true'">true</CodeCoverageEnabled>
+    <CodeCoverageEnabled Condition="'$(CodeCoverageEnabled)' == '' and '$(SkipTests)' != 'true' and '$(Coverage)' == 'true' and '$(IsPerformanceTestProject)' != 'true'">true</CodeCoverageEnabled>
+    <CodeCoverageEnabled Condition="'$(CodeCoverageEnabled)' == ''">false</CodeCoverageEnabled>
     <UseCoverlet Condition="'$(Coverage)' == 'true' and ('$(RunningOnUnix)' == 'true' or '$(UseCoverlet)' == 'true')">true</UseCoverlet>
     <CoverageReportDir Condition="'$(CoverageReportDir)' == ''">$(TestWorkingDir)coverage\</CoverageReportDir>
 
