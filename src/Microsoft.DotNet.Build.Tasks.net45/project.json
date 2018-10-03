@@ -8,10 +8,7 @@
     "NuGet.Packaging": "4.4.0",
     "NuGet.ProjectModel": "4.4.0",
     "NuGet.Versioning": "4.4.0",
-    "System.Collections.Immutable": {
-      "version": "1.5.0",
-      "exclude": "runtime"
-     },
+    "System.Collections.Immutable": "1.5.0",
     "System.Reflection.Metadata": "1.6.0",
     "System.Runtime.InteropServices.RuntimeInformation": "4.4.0-beta-24813-03"
   },
