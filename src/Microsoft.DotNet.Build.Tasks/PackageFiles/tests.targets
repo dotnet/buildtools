@@ -118,7 +118,14 @@
       <RunTestsForProjectInputs Include="@(IntermediateAssembly)" />
       <RunTestsForProjectInputs Include="@(_DebugSymbolsIntermediatePath)" />
       <RunTestsForProjectInputs Include="@(AllItemsFullPathWithTargetPath)" />
-      <SupplementalTestData Condition="'$(SkipXunitConfigCopying)' != 'true'" Include="$(ToolsDir)xunit.runner.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <SupplementalTestData Include="$(ToolsDir)xunit.runner.json" />
+      <SupplementalTestData Include="$(RuntimePath)Microsoft.DotNet.XUnitExtensions.dll" />
+      <SupplementalTestData Include="$(RuntimePath)xunit.assert.dll" />
+      <SupplementalTestData Include="$(RuntimePath)xunit.core.dll" />
+      <SupplementalTestData Include="$(RuntimePath)xunit.abstractions.dll" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(BuildingNETCoreAppVertical)' == 'true'">
@@ -127,8 +134,9 @@
       <SupplementalTestData Condition="'$(IsPerformanceTestProject)' == 'true'" Include="$(RuntimeConfigPath)" DestinationName="$(PerfRunnerExecutableName).runtimeconfig.json" />
 
       <SupplementalTestData Condition="'$(IsPerformanceTestProject)' != 'true'" Include="$(RuntimePath)$(XunitExecutable)" />
-      <SupplementalTestData Include="$(RuntimePath)xunit.runner.utility.netcoreapp10.dll" />
+      <SupplementalTestData Include="$(RuntimePath)xunit.execution.dotnet.dll" />
       <SupplementalTestData Include="$(RuntimePath)xunit.runner.reporters.netcoreapp10.dll" />
+      <SupplementalTestData Include="$(RuntimePath)xunit.runner.utility.netcoreapp10.dll" />
       <SupplementalTestData Condition="'$(IncludeVSTestReferences)' == 'true'" Include="$(RuntimePath)xunit.runner.visualstudio.dotnetcore.testadapter.dll" />
     </ItemGroup>
 
@@ -145,9 +153,6 @@
       <SupplementalTestData Include="$(RuntimePath)xunit.execution.desktop.dll" />
       <SupplementalTestData Include="$(RuntimePath)xunit.runner.reporters.net452.dll" />
       <SupplementalTestData Include="$(RuntimePath)xunit.runner.utility.net452.dll" />
-      <SupplementalTestData Include="$(RuntimePath)xunit.assert.dll" />
-      <SupplementalTestData Include="$(RuntimePath)xunit.core.dll" />
-      <SupplementalTestData Include="$(RuntimePath)xunit.abstractions.dll" />
       <SupplementalTestData Condition="'$(IncludeVSTestReferences)' == 'true'" Include="$(RuntimePath)xunit.runner.visualstudio.testadapter.dll" />
     </ItemGroup>
   </Target>
