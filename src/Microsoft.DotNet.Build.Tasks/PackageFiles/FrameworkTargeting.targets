@@ -14,14 +14,16 @@
     <_FindDependencies>false</_FindDependencies>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == ''
-                         and '$(TargetFrameworkIdentifier)' == ''
-                         and '$(TargetFrameworkVersion)'    == ''
-                         and '$(TargetFrameworkProfile)'    == '' ">
+  <!-- For .NET Sdk projects the TFI and TFV is inferred from the TargetFramework. -->
+  <PropertyGroup Condition="'$(TargetFrameworkVersion)' == ''
+                        AND '$(TargetFrameworkProfile)' == ''
+                        AND ('$(UsingMicrosoftNETSdk)' != 'true' OR '$(TargetFramework)' == '')">
     <TargetingDefaultPlatform>true</TargetingDefaultPlatform>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == '' AND '$(TargetFramework)' == ''">
+  <!-- For .NET Sdk projects the TFI is inferred from the TargetFramework. -->
+  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == ''
+                        AND ('$(UsingMicrosoftNETSdk)' != 'true' OR '$(TargetFramework)' == '')">
      <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
   </PropertyGroup>
 
