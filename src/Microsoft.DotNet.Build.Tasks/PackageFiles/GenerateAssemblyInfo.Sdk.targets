@@ -38,6 +38,10 @@
           Inputs="$(MSBuildProjectFile)"
           Outputs="$(AssemblyInfoFile)">
 
+    <ItemGroup Condition="'$(TargetFramework)' != ''">
+      <AssemblyInfoLines Include="[assembly:System.Runtime.Versioning.TargetFrameworkAttribute(&quot;$(TargetFramework)&quot;)]" />
+    </ItemGroup>
+
     <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
       <AssemblyInfoLines Condition="'$(CLSCompliant)'=='true'" Include="[assembly:System.CLSCompliant(true)]" />
 
