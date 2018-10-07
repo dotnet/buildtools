@@ -107,9 +107,23 @@
   <PropertyGroup>
     <RuntimeConfigName Condition="'$(BuildingNETCoreAppVertical)' == 'true'">netcoreapp.runtimeconfig.json</RuntimeConfigName>
     <RuntimeConfigName Condition="'$(BuildingNETFxVertical)' == 'true'">DesktopRunnerConfigFile.config</RuntimeConfigName>
+    <RuntimeConfigExtension Condition="'$(BuildingNETCoreAppVertical)' == 'true'">.runtimeconfig.json</RuntimeConfigExtension>
+    <RuntimeConfigExtension Condition="'$(BuildingNETFxVertical)' == 'true'">.exe.config</RuntimeConfigExtension>
     <RuntimeConfigPath Condition="'$(BuildingNETCoreAppVertical)' == 'true' AND '$(RuntimeConfigPath)' == '' AND '$(CodeCoverageEnabled)' == 'true' AND '$(UseCoverageDedicatedRuntime)' == 'true'">$(ToolsDir)coverage/$(RuntimeConfigName)</RuntimeConfigPath>
     <RuntimeConfigPath Condition="'$(RuntimeConfigPath)' == ''">$(ToolsDir)$(RuntimeConfigName)</RuntimeConfigPath>
+    
+    <!-- Copy the app.config / runtimeSettings.json file into the OutDir if the project is an executable test project. -->
+    <CopyConfigurationFiles Condition="'$(CopyConfigurationFiles)' == ''
+                                  AND ('$(BuildingNETCoreAppVertical)' == 'true' OR '$(BuildingNETFxVertical)' == 'true')
+                                  AND '$(IsTestProject)' == 'true'
+                                  AND '$(IsInvokableTestProject)' != 'true'">true</CopyConfigurationFiles>
   </PropertyGroup>
+
+  <Target Name="CopyConfigurationFilesTarget" Condition="'$(CopyConfigurationFiles)' == 'true'">
+    <Copy SourceFiles="$(RuntimeConfigPath)"
+          DestinationFiles="$(OutDir)$(AssemblyName)$(RuntimeConfigExtension)"
+          SkipUnchangedFiles="true" />
+  </Target>
 
   <Target Name="DiscoverTestInputs" DependsOnTargets="ResolveReferences;GetCopyToOutputDirectoryItems">
     <ItemGroup>
@@ -130,9 +144,6 @@
 
     <ItemGroup Condition="'$(BuildingNETCoreAppVertical)' == 'true'">
       <SupplementalTestData Condition="'$(IsPerformanceTestProject)' != 'true'" Include="$(RuntimeConfigPath)" DestinationName="$(XunitExecutableName).runtimeconfig.json" />
-      <SupplementalTestData Condition="'$(IsPerformanceTestProject)' != 'true'" Include="$(RuntimeConfigPath)" DestinationName="$(RemoteExecutorExecutableName).runtimeconfig.json" />
-      <SupplementalTestData Condition="'$(IsPerformanceTestProject)' == 'true'" Include="$(RuntimeConfigPath)" DestinationName="$(PerfRunnerExecutableName).runtimeconfig.json" />
-
       <SupplementalTestData Condition="'$(IsPerformanceTestProject)' != 'true'" Include="$(RuntimePath)$(XunitExecutable)" />
       <SupplementalTestData Include="$(RuntimePath)xunit.execution.dotnet.dll" />
       <SupplementalTestData Include="$(RuntimePath)xunit.runner.reporters.netcoreapp10.dll" />
@@ -146,9 +157,6 @@
         DEVPATH is being set for desktop runs in RunTests.cmd to the TestHostPath. We need this approach to have desktop Helix runs.
       -->
       <SupplementalTestData Condition="'$(IsPerformanceTestProject)' != 'true'" Include="$(RuntimeConfigPath)" DestinationName="$(XunitExecutable).config" />
-      <SupplementalTestData Condition="'$(IsPerformanceTestProject)' != 'true'" Include="$(RuntimeConfigPath)" DestinationName="$(RemoteExecutorExecutable).config" />
-      <SupplementalTestData Condition="'$(IsPerformanceTestProject)' == 'true'" Include="$(RuntimeConfigPath)" DestinationName="$(PerfRunnerExecutable).config" />
-
       <SupplementalTestData Condition="'$(IsPerformanceTestProject)' != 'true'" Include="$(RuntimePath)$(XunitExecutable)" />
       <SupplementalTestData Include="$(RuntimePath)xunit.execution.desktop.dll" />
       <SupplementalTestData Include="$(RuntimePath)xunit.runner.reporters.net452.dll" />
@@ -626,21 +634,24 @@ robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
           DestinationFiles="$(LaunchSettingsOutputFileFullPath)" />
   </Target>
 
-  <!--
-    Generates the launch settings file at the end of the build in case it doesn't exist yet.
-    This supports scenarios when new projects are added or the file was deleted.
-  -->
-  <PropertyGroup Condition="!Exists($(LaunchSettingsOutputFileFullPath))">
-    <PrepareForRunDependsOn>
+  <PropertyGroup>
+    <!--
+      Generates the launch settings file at the end of the build in case it doesn't exist yet.
+      This supports scenarios when new projects are added or the file was deleted.
+    -->
+    <PrepareForRunDependsOn Condition="!Exists($(LaunchSettingsOutputFileFullPath))">
       GenerateLaunchSettingsFile;
       $(PrepareForRunDependsOn);
     </PrepareForRunDependsOn>
-  </PropertyGroup>
-  
-  <!-- Copies supplemental test data after the build if the project is an invokable test project. -->
-  <PropertyGroup Condition="$(IsInvokableTestProject) == 'true'">
-    <PrepareForRunDependsOn>
+
+    <!-- Copies supplemental test data after the build if the project is an invokable test project. -->
+    <PrepareForRunDependsOn Condition="'$(IsInvokableTestProject)' == 'true'">
       CopySupplementalTestData;
+      $(PrepareForRunDependsOn);
+    </PrepareForRunDependsOn>
+
+    <PrepareForRunDependsOn>
+      CopyConfigurationFilesTarget;
       $(PrepareForRunDependsOn);
     </PrepareForRunDependsOn>
   </PropertyGroup>
