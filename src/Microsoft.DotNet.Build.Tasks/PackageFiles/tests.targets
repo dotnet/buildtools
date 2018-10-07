@@ -120,7 +120,7 @@
       <RunTestsForProjectInputs Include="@(AllItemsFullPathWithTargetPath)" />
     </ItemGroup>
 
-    <ItemGroup>
+    <ItemGroup Condition="'$(SkipXunitDependencyCopying)' != 'true'">
       <SupplementalTestData Include="$(ToolsDir)xunit.runner.json" />
       <SupplementalTestData Include="$(RuntimePath)Microsoft.DotNet.XUnitExtensions.dll" />
       <SupplementalTestData Include="$(RuntimePath)xunit.assert.dll" />
