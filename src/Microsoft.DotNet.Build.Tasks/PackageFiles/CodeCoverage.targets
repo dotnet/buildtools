@@ -6,7 +6,6 @@
   -->
   <PropertyGroup>
     <OpenCoverVersion>4.6.519</OpenCoverVersion>
-    <CoverletMsbuildVersion>2.3.0</CoverletMsbuildVersion>
     <ReportGeneratorVersion>3.0.1</ReportGeneratorVersion>
     <CoverallsUploaderVersion>1.4</CoverallsUploaderVersion>
   </PropertyGroup>
@@ -15,7 +14,7 @@
   <PropertyGroup>
     <CodeCoverageEnabled Condition="'$(CodeCoverageEnabled)' == '' and '$(SkipTests)' != 'true' and '$(Coverage)' == 'true' and '$(IsPerformanceTestProject)' != 'true'">true</CodeCoverageEnabled>
     <CodeCoverageEnabled Condition="'$(CodeCoverageEnabled)' == ''">false</CodeCoverageEnabled>
-    <UseCoverlet Condition="'$(Coverage)' == 'true' and ('$(RunningOnUnix)' == 'true' or '$(UseCoverlet)' == 'true')">true</UseCoverlet>
+    <UseCoverlet Condition="'$(UseCoverlet)' != 'false'">true</UseCoverlet>
     <CoverageReportDir Condition="'$(CoverageReportDir)' == ''">$(TestWorkingDir)coverage\</CoverageReportDir>
 
     <UseCoverageDedicatedRuntime Condition="'$(UseCoverageDedicatedRuntime)' == ''">true</UseCoverageDedicatedRuntime>
@@ -68,20 +67,7 @@
     <ExcludeByFile Condition="$(ExcludeByFile) == ''">$(SourceDir)Common/src/System/SR.*</ExcludeByFile>
     <Threshold Condition="$(Threshold) == ''">0</Threshold>
     <ThresholdType Condition="$(ThresholdType) == ''">line,branch,method</ThresholdType>
-    <CollectCoverage Condition="$(CollectCoverage) == ''">$(CodeCoverageEnabled)</CollectCoverage>
   </PropertyGroup>
-
-  <UsingTask Condition="'$(UseCoverlet)'=='true'" TaskName="Coverlet.MSbuild.Tasks.InstrumentationTask" AssemblyFile="$(PackagesDir)coverlet.msbuild/$(CoverletMsbuildVersion)/build/netstandard2.0/coverlet.msbuild.tasks.dll" />
-  <UsingTask Condition="'$(UseCoverlet)'=='true'" TaskName="Coverlet.MSbuild.Tasks.CoverageResultTask" AssemblyFile="$(PackagesDir)coverlet.msbuild/$(CoverletMsbuildVersion)/build/netstandard2.0/coverlet.msbuild.tasks.dll" />
- 
-  <Target Condition="'$(UseCoverlet)'=='true'" Name="GenerateCoverageResult" AfterTargets="$(GenerateIndividualCoverageReportAfterTargets)">
-    <Coverlet.MSbuild.Tasks.CoverageResultTask
-      Condition="'$(CollectCoverage)' == 'true'"
-      Output="$(CoverletOutput)"
-      OutputFormat="$(CoverletOutputFormat)"
-      Threshold="$(Threshold)"
-      ThresholdType="$(ThresholdType)" />
-  </Target>
 
   <Target Name="CreateCoverageFilter" BeforeTargets="GenerateTestExecutionScripts">
     <!-- By default, code coverage data is only gathered for the assembly being tested. 
@@ -176,14 +162,6 @@
   </Target>
   <!-- *********************************************************************************************** -->
 
-  <Target Name="InstrumentModulesAfterBuild" BeforeTargets="GenerateTestExecutionScripts" Condition="'$(UseCoverlet)'=='true'">
-    <Coverlet.MSbuild.Tasks.InstrumentationTask
-      Condition="'$(CollectCoverage)' == 'true'"
-      Include="$(CoverageFilter)"
-      ExcludeByFile="$(ExcludeByFile)"
-      Path="$(CoverageRuntimeDir)/" />
-  </Target>
-
   <!-- xUnit command line with coverage enabled using OpenCover -->
   <PropertyGroup Condition="'$(CoverageEnabledForProject)'=='true' and '$(UseCoverlet)'!='true'">
     <CoverageHost>$(PackagesDir)OpenCover\$(OpenCoverVersion)\tools\OpenCover.Console.exe</CoverageHost>
@@ -191,6 +169,14 @@
     <CoverageOptions>-oldStyle -filter:"{CoverageFilter}" -excludebyfile:"*\Common\src\System\SR.*" -nodefaultfilters -excludebyattribute:*.ExcludeFromCodeCoverage* -skipautoprops -hideskipped:All -threshold:1</CoverageOptions>
     <CoverageCommandLine>$(CoverageOptions) -returntargetcode -register:user -target:$(TestProgram) -output:$(CoverageOutputFilePath)</CoverageCommandLine>
     <TestCommandLine>$(CoverageHost) $(CoverageCommandLine) -targetargs:"$(TestArguments) {XunitTraitOptions} -notrait Benchmark=true"</TestCommandLine>
+  </PropertyGroup>
+
+  <!-- xUnit command line with coverage enabled using Coverlet -->
+  <PropertyGroup Condition="'$(CoverageEnabledForProject)'=='true' and '$(UseCoverlet)'=='true'">
+    <CoverageHost>coverlet</CoverageHost>
+    <CoverageOptions>--format $(CoverletOutputFormat) --threshold $(Threshold) --threshold-type $(ThresholdType)</CoverageOptions>
+    <CoverageCommandLine>$(CoverageDedicatedRuntimeDir)/xunit.core.dll --include "{CoverageFilter}" --exclude-by-file "$(ExcludeByFile)" --output "$(CoverageOutputFilePath)" $(CoverageOptions)</CoverageCommandLine>
+    <TestCommandLine>$(CoverageHost) $(CoverageCommandLine) --target "$(TestProgram)" --targetargs "$(TestArguments) {XunitTraitOptions} -notrait Benchmark=true"</TestCommandLine>
   </PropertyGroup>
 
   <!-- Report Generator Properties -->
