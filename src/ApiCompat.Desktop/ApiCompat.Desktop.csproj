@@ -41,6 +41,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Cci.Extensions\Microsoft.Cci.Extensions.csproj" />
     <TargetingPackReference Include="System" />
+    <TargetingPackReference Include="System.Collections" />
     <TargetingPackReference Include="System.Core" />
     <TargetingPackReference Include="System.Reflection" />
     <TargetingPackReference Include="System.Runtime" />
