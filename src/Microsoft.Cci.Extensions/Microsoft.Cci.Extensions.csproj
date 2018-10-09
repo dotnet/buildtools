@@ -100,6 +100,7 @@
     <Compile Include="Writers\CSharp\CSDeclarationHelper.cs" />
     <Compile Include="Writers\CSharp\CSDeclarationWriter.Attributes.cs" />
     <Compile Include="Writers\CSharp\CSDeclarationWriter.cs" />
+    <Compile Include="Writers\CSharp\CSDeclarationWriter.Enums.cs" />
     <Compile Include="Writers\CSharp\CSDeclarationWriter.Events.cs" />
     <Compile Include="Writers\CSharp\CSDeclarationWriter.Fields.cs" />
     <Compile Include="Writers\CSharp\CSDeclarationWriter.Generics.cs" />
