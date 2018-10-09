@@ -41,19 +41,10 @@
     We need to filter the data to only the assembly being tested. Otherwise we will gather tons of data about other assemblies.
     If the code being tested is part of the runtime itself, it requires special treatment.
   -->
-  <Choose>
-    <When Condition="'$(TestRuntime)'=='true'">
-      <PropertyGroup>
-        <AssemblyBeingTestedName Condition="'$(TargetGroup)' == 'netcoreapp' or '$(TargetGroup)' == 'netstandard'">System.Private.CoreLib</AssemblyBeingTestedName>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(AssemblyBeingTestedName)'==''"> <!-- This way special cases are supported, i.e.: test project can define custom assembly being tested. -->
-      <PropertyGroup>
-        <_ProjectDirectoryUnderSourceDir Condition="'$(IsTestProject)' == 'true'">$(MSBuildProjectDirectory.SubString($(SourceDir.Length)))</_ProjectDirectoryUnderSourceDir>
-        <AssemblyBeingTestedName Condition="'$(IsTestProject)' == 'true'">$(_ProjectDirectoryUnderSourceDir.SubString(0, $(_ProjectDirectoryUnderSourceDir.IndexOfAny("\\/"))))</AssemblyBeingTestedName>
-      </PropertyGroup>
-    </When>
-  </Choose>
+  <PropertyGroup Condition="'$(AssemblyBeingTestedName)'==''">
+    <_ProjectDirectoryUnderSourceDir Condition="'$(IsTestProject)' == 'true'">$(MSBuildProjectDirectory.SubString($(SourceDir.Length)))</_ProjectDirectoryUnderSourceDir>
+    <AssemblyBeingTestedName Condition="'$(IsTestProject)' == 'true'">$(_ProjectDirectoryUnderSourceDir.SubString(0, $(_ProjectDirectoryUnderSourceDir.IndexOfAny("\\/"))))</AssemblyBeingTestedName>
+  </PropertyGroup>
 
   <PropertyGroup Condition="'$(GenerateFullCoverageReport)'=='true'">
     <GenerateFullCoverageReportAfterTargets Condition="'$(GenerateFullCoverageReportAfterTargets)'==''">TestAllProjects</GenerateFullCoverageReportAfterTargets>
@@ -88,6 +79,7 @@
          CodeCoverageAssemblies can be passed in to the build to gather coverage on additional assemblies. -->
     <ItemGroup>
       <_CodeCoverageAssemblies Include="$(AssemblyBeingTestedName)" />
+      <_CodeCoverageAssemblies Include="System.Private.CoreLib" Condition="'$(TestRuntime)' == 'true' and ('$(TargetGroup)' == 'netcoreapp' or '$(TargetGroup)' == 'netstandard')" />
       <_CodeCoverageAssemblies Include="@(AdditionalCodeCoverageAssemblies)" />
       <_CodeCoverageAssemblies Include="$(CodeCoverageAssemblies)" Condition="'$(CodeCoverageAssemblies)' != ''" />
     </ItemGroup>
