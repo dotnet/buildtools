@@ -75,7 +75,7 @@
     This should happen before we import the frameworkTargeting.targets because that import leads to computing a default
     for the CodeAnalysisRuleset unless one is already specified
   -->
-  <Import Project="$(MSBuildThisFileDirectory)codeAnalysis.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)codeAnalysis.targets" Condition="'$(ExcludeCodeAnalysisImport)' != 'true'" />
 
   <!--
     Import the codeOptimization.targets file to enable profile guided code optimization for managed assemblies.
