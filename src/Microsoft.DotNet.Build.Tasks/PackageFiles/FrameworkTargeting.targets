@@ -288,16 +288,17 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <_BinPlaceItems Include="@(BinPlaceDir)">
-        <TargetPath Condition="'%(BinPlaceItem.TargetPath)' == ''">%(BinPlaceItem.Filename)%(BinPlaceItem.Extension)</TargetPath>
-        <TargetPath Condition="'%(BinPlaceItem.TargetPath)' != ''">%(BinPlaceItem.TargetPath)</TargetPath>
-      </_BinPlaceItems>
+      <_BinPlaceItems Include="@($(_BinPlaceItemName))" />      
+      <_BinPlaceDirs Include="@(BinPlaceDir)">
+        <TargetPath Condition="'%(_BinPlaceItems.TargetPath)' == ''">%(_BinPlaceItems.Filename)%(_BinPlaceItems.Extension)</TargetPath>
+        <TargetPath Condition="'%(_BinPlaceItems.TargetPath)' != ''">%(_BinPlaceItems.TargetPath)</TargetPath>
+      </_BinPlaceDirs>
     </ItemGroup>
 
     <Message Importance="low" Text="BinPlaceDir: @(BinPlaceDir)" />
 
-    <Copy SourceFiles="@($(_BinPlaceItemName))"
-          DestinationFiles="@(_BinPlaceItems -> '%(Identity)%(TargetPath)')"
+    <Copy SourceFiles="@(_BinPlaceItems)"
+          DestinationFiles="@(_BinPlaceDirs -> '%(Identity)%(TargetPath)')"
           SkipUnchangedFiles="true"
           OverwriteReadOnlyFiles="true"
           Retries="$(CopyRetryCount)"
