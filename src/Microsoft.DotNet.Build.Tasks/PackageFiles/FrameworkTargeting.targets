@@ -287,10 +287,18 @@
       <_BinPlaceItemName Condition="'$(_BinPlaceItemName)' == ''">BinPlaceItem</_BinPlaceItemName>
     </PropertyGroup>
 
+    <ItemGroup>
+      <_BinPlaceItems Include="@($(_BinPlaceItemName))" />      
+      <_BinPlaceDirs Include="@(BinPlaceDir)">
+        <TargetPath Condition="'%(_BinPlaceItems.TargetPath)' == ''">%(_BinPlaceItems.Filename)%(_BinPlaceItems.Extension)</TargetPath>
+        <TargetPath Condition="'%(_BinPlaceItems.TargetPath)' != ''">%(_BinPlaceItems.TargetPath)</TargetPath>
+      </_BinPlaceDirs>
+    </ItemGroup>
+
     <Message Importance="low" Text="BinPlaceDir: @(BinPlaceDir)" />
 
-    <Copy SourceFiles="@($(_BinPlaceItemName))"
-          DestinationFolder="%(BinPlaceDir.Identity)"
+    <Copy SourceFiles="@(_BinPlaceItems)"
+          DestinationFiles="@(_BinPlaceDirs -> '%(Identity)%(TargetPath)')"
           SkipUnchangedFiles="true"
           OverwriteReadOnlyFiles="true"
           Retries="$(CopyRetryCount)"
