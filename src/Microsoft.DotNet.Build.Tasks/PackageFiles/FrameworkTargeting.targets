@@ -279,27 +279,28 @@
   <Target Name="BinPlaceFiles"
           Condition="'@(BinPlaceDir)' != ''"
           DependsOnTargets="GetBinPlaceItems"
-          Inputs="@(BinPlaceDir);%(BinPlaceDir.ItemName)"
+          Inputs="@(BinPlaceDir);%(BinPlaceDir.ItemName);%(BinPlaceDir.Identity)"
           Outputs="unused" >
 
     <PropertyGroup>
       <_BinPlaceItemName>%(BinPlaceDir.ItemName)</_BinPlaceItemName>
       <_BinPlaceItemName Condition="'$(_BinPlaceItemName)' == ''">BinPlaceItem</_BinPlaceItemName>
+      <_BinPlaceDir>%(BinPlaceDir.Identity)</_BinPlaceDir>
     </PropertyGroup>
 
     <ItemGroup>
       <!-- Temporary collection to allow dynamic include name. -->
       <_BinPlaceItems Include="@($(_BinPlaceItemName))" />
       <BinPlaceItemsWithFullTargetPath Include="@(_BinPlaceItems)">
-        <TargetPath>%(_BinPlaceItems.TargetPath)</TargetPath>
-        <TargetDir>%(BinPlaceDir.Identity)</TargetDir>
+        <TargetPath Condition="'%(_BinPlaceItems.TargetPath)' != ''">%(RecursiveDir)%(_BinPlaceItems.TargetPath)</TargetPath>
+        <TargetPath Condition="'%(_BinPlaceItems.TargetPath)' == ''">%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
       </BinPlaceItemsWithFullTargetPath>
     </ItemGroup>
 
-    <Message Importance="low" Text="BinPlaceDir: @(BinPlaceDir)" />
+    <Message Importance="low" Text="BinPlaceDir: $(_BinPlaceDir)" />
 
     <Copy SourceFiles="@(BinPlaceItemsWithFullTargetPath)"
-          DestinationFiles="@(BinPlaceItemsWithFullTargetPath -> '%(TargetDir)%(TargetPath)')"
+          DestinationFiles="@(BinPlaceItemsWithFullTargetPath -> '$(_BinPlaceDir)%(TargetPath)')"
           SkipUnchangedFiles="true"
           OverwriteReadOnlyFiles="true"
           Retries="$(CopyRetryCount)"
