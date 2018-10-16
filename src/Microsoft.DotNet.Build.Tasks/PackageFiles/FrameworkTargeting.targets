@@ -292,8 +292,8 @@
       <!-- Temporary collection to allow dynamic include name. -->
       <_BinPlaceItems Include="@($(_BinPlaceItemName))" />
       <BinPlaceItemsWithFullTargetPath Include="@(_BinPlaceItems)">
-        <TargetPath Condition="'%(_BinPlaceItems.TargetPath)' != ''">%(RecursiveDir)%(_BinPlaceItems.TargetPath)</TargetPath>
-        <TargetPath Condition="'%(_BinPlaceItems.TargetPath)' == ''">%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
+        <TargetPath Condition="'%(_BinPlaceItems.TargetPath)' != ''">%(_BinPlaceItems.TargetPath)</TargetPath>
+        <TargetPath Condition="'%(_BinPlaceItems.TargetPath)' == ''">%(Filename)%(Extension)</TargetPath>
       </BinPlaceItemsWithFullTargetPath>
     </ItemGroup>
 
