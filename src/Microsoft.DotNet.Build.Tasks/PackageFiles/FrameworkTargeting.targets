@@ -300,7 +300,7 @@
     <Message Importance="low" Text="BinPlaceDir: $(_BinPlaceDir)" />
 
     <Copy SourceFiles="@(BinPlaceItemsWithFullTargetPath)"
-          DestinationFiles="@(BinPlaceItemsWithFullTargetPath -> '$(_BinPlaceDir)%(TargetPath)')"
+          DestinationFiles="@(BinPlaceItemsWithFullTargetPath -> '$([MSBuild]::EnsureTrailingSlash('$(_BinPlaceDir)'))%(TargetPath)')"
           SkipUnchangedFiles="true"
           OverwriteReadOnlyFiles="true"
           Retries="$(CopyRetryCount)"
