@@ -91,7 +91,6 @@
     <PerfRunnerAllArgs>--filter $(PerfRunnerFilter) $(PerfRunnerArgs) || $(CliExitErrorCommand)</PerfRunnerAllArgs>
     <PerfRunnerCommand Condition="'$(BuildingNETFxVertical)' != 'true'">$(PerfTestCommandDotnetExecutable) $(PerfRunnerExecutable) $(PerfRunnerAllArgs)</PerfRunnerCommand>
     <PerfRunnerCommand Condition="'$(BuildingNETFxVertical)' == 'true'">$(PerfRunnerExecutable) $(PerfRunnerAllArgs)</PerfRunnerCommand>
-    <MeasurementPyCommand>$(PythonCommand) "$(BenchviewDir)/measurement.py" xunit "$(RunId)-$(AssemblyName).xml" --better desc --append -o "$(ProjectDir)measurement.json" || $(CliExitErrorCommand)</MeasurementPyCommand>
   </PropertyGroup>
 
   <!-- Build the commands to be appended to the generated RunTest.[cmd|sh] script. -->
