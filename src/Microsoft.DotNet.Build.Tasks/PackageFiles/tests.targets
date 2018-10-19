@@ -8,14 +8,6 @@
   <UsingTask TaskName="GetTargetMachineInfo" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask Condition="'$(BuildingUAPVertical)' == 'true'" TaskName="ExtractResWResourcesFromAssemblies" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
 
-  <!-- used by test projects that need to copy supplemental content to the output directory -->
-  <ItemDefinitionGroup Condition="'$(IsTestProject)' == 'true'">
-    <SupplementalTestData>
-      <DestinationDir />
-      <DestinationName />
-    </SupplementalTestData>
-  </ItemDefinitionGroup>
-
   <PropertyGroup>
     <SkipTestRun Condition="'$(IsTestProject)' != 'true' OR ('$(IsPerformanceTestProject)' == 'true' AND '$(Performance)' == 'false')">true</SkipTestRun>
     <TestDisabled Condition="'$(SkipTests)'=='true'">true</TestDisabled>
