@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <UsingTask TaskName="PrereleaseResolveNuGetPackageAssets" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <UsingTask TaskName="RemoveDuplicatesWithLastOneWinsPolicy" AssemblyFile="$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll"/>
@@ -11,46 +11,39 @@
     <SerializeProjects Condition="'$(TestWithLocalLibraries)'=='true'">true</SerializeProjects>
   </PropertyGroup>
 
-  <!--
-    Temporary until we have proper nuget support to deploy content files.
-    Copies supplemental test data to the build output and test directories.
-  -->
-  <Target Name="CopySupplementalTestData" DependsOnTargets="DiscoverTestInputs">
-    <!-- coalesce supplemental test data items with and without DestinationDir metadata -->
+  <!-- Binplace dirs for the supplemental test data. -->
+  <ItemGroup>
+    <SupplementalTestDataDir Include="$(TestPath)" />
+    <SupplementalTestDataDir Include="$(OutDir)" />
+  </ItemGroup>
+
+  <!-- Copy supplemental test files into specified test directories. -->
+  <Target Name="CopySupplementalTestData"
+          DependsOnTargets="DiscoverTestInputs"
+          Inputs="@(SupplementalTestDataDir);%(SupplementalTestDataDir.Identity)"
+          Outputs="unused">
+
+    <PropertyGroup>
+      <_SupplementalTestDataDir>%(SupplementalTestDataDir.Identity)</_SupplementalTestDataDir>
+    </PropertyGroup>
+
     <ItemGroup>
       <_SupplementalTestData Include="@(SupplementalTestData)">
-        <DestinationDir Condition="'%(DestinationDir)' != ''">%(DestinationDir)</DestinationDir>
-        <DestinationDir Condition="'%(DestinationDir)' == ''">%(RecursiveDir)</DestinationDir>
-        <DestinationName Condition="'%(DestinationName)' != ''">%(DestinationName)</DestinationName>
-        <DestinationName Condition="'%(DestinationName)' == ''">%(Filename)%(Extension)</DestinationName>
+        <DestinationDir Condition="'%(SupplementalTestData.DestinationDir)' == ''">%(RecursiveDir)</DestinationDir>
+        <DestinationName Condition="'%(SupplementalTestData.DestinationName)' == ''">%(Filename)%(Extension)</DestinationName>
       </_SupplementalTestData>
     </ItemGroup>
-    <ItemGroup>
-      <SupplementalTestDataTestDir Include="@(_SupplementalTestData->'$(TestPath)/%(DestinationDir)%(DestinationName)')" />
-      <SupplementalTestDataOutDir Include="@(_SupplementalTestData->'$(OutDir)%(DestinationDir)%(DestinationName)')" />
-    </ItemGroup>
-    <Copy
-      SourceFiles="@(_SupplementalTestData)"
-      DestinationFiles="@(SupplementalTestDataTestDir)"
-      SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
-      OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
-      Retries="$(CopyRetryCount)"
-      RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
-      UseHardlinksIfPossible="$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)">
 
+    <Copy SourceFiles="@(_SupplementalTestData)"
+          DestinationFiles="@(_SupplementalTestData -> '$([MSBuild]::NormalizePath('$(_SupplementalTestDataDir)', '%(DestinationDir)', '%(DestinationName)'))')"
+          SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
+          OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
+          Retries="$(CopyRetryCount)"
+          RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
+          UseHardlinksIfPossible="$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)">
       <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
     </Copy>
-    <Copy
-      SourceFiles="@(_SupplementalTestData)"
-      DestinationFiles="@(SupplementalTestDataOutDir)"
-      SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
-      OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
-      Retries="$(CopyRetryCount)"
-      RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
-      UseHardlinksIfPossible="$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)">
 
-      <Output TaskParameter="DestinationFiles" ItemName="FileWrites" />
-    </Copy>
   </Target>
 
     <!-- archive the test binaries along with some supporting files -->
