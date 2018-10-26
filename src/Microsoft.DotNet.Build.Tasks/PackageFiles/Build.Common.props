@@ -81,5 +81,5 @@
   <!--
     import the MicroBuild boot-strapper props (only relevant for shipping binaries)
   -->
-  <Import Project="$(MSBuildThisFileDirectory)MicroBuild.Core.props" Condition="'$(IsTestProject)'!='true' AND Exists('$(MSBuildThisFileDirectory)MicroBuild.Core.props')" />
+  <Import Project="$(MSBuildThisFileDirectory)MicroBuild.Core.props" Condition="Exists('$(MSBuildThisFileDirectory)MicroBuild.Core.props') and '$(IsTestProject)' != 'true' and '$(ExcludeSigningImport)' != 'true'" />
 </Project>
