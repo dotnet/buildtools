@@ -6,6 +6,7 @@
     <OptimizationDataVersion Condition="'$(OptimizationDataVersion)'==''">2.0.0-rc-61101-16</OptimizationDataVersion>
     <CoreFxOptimizationDataVersion Condition="'$(CoreFxOptimizationDataVersion)'==''">99.99.99-master-20180815-0120</CoreFxOptimizationDataVersion>
     <OptimizationDataPackageName Condition="'$(OptimizationDataPackageName)'==''">RoslynDependencies.OptimizationData</OptimizationDataPackageName>
+    <CoreFxOptimizationDataPackageName Condition="'$(CoreFxOptimizationDataPackageName)'=='' and '$(IBCTarget)'=='Linux'">optimization.linux-x64.IBC.CoreFx</CoreFxOptimizationDataPackageName>
     <CoreFxOptimizationDataPackageName Condition="'$(CoreFxOptimizationDataPackageName)'==''">optimization.windows_nt-x64.IBC.CoreFx</CoreFxOptimizationDataPackageName>
     <OptimizationDataDir Condition="'$(OptimizationDataDir)'==''">$(ToolsDir)OptimizationData/</OptimizationDataDir>
     <RestoreDefaultOptimizationDataPackage Condition="'$(RestoreDefaultOptimizationDataPackage)'==''">true</RestoreDefaultOptimizationDataPackage>
@@ -84,7 +85,6 @@
 
   <!-- We need the OptimizationData package in order to be able to optimize the assembly -->
   <Target Name="RestoreOptimizationDataPackage"
-          BeforeTargets="Sync"
           Condition="'$(EnableProfileGuidedOptimization)'=='true' and '$(RestoreDefaultOptimizationDataPackage)'=='true' and !Exists('$(OptimizationDataDir)project.csproj')">
     <!-- Dynamically create a project.json file used to restore the optimization data-->
     <PropertyGroup>
