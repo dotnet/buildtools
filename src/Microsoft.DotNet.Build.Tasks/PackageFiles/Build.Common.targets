@@ -8,7 +8,7 @@
 
   <PropertyGroup>
     <!-- Due to a bug in the Roslyn Microsoft.NETCore.Compilers.props file, VisualBasicCoreTargetsPath is not set, and instead they set BasicCoreTargetsPath so the wrong targets get imported -->
-    <VisualBasicCoreTargetsPath Condition="'$(VisualBasicCoreTargetsPath)' == '' And '$(BasicCoreTargetsPath)' != ''">$(BasicCoreTargetsPath)</VisualBasicCoreTargetsPath>    
+    <VisualBasicCoreTargetsPath Condition="'$(VisualBasicCoreTargetsPath)' == '' And '$(BasicCoreTargetsPath)' != ''">$(BasicCoreTargetsPath)</VisualBasicCoreTargetsPath>
 
     <BuildToolsTaskDir Condition="'$(BuildToolsTaskDir)' == ''">$(ToolsDir)</BuildToolsTaskDir>
 
@@ -297,7 +297,7 @@
     import the MicroBuild boot-strapper project (only relevant for shipping binaries)
     NOTE: we import this at the end as it will override some dummy targets (e.g. SignFiles)
   -->
-  <Import Project="$(MSBuildThisFileDirectory)MicroBuild.Core.targets" Condition="Exists('$(MSBuildThisFileDirectory)MicroBuild.Core.targets') and '$(IsTestProject)' != 'true'" />
+  <Import Project="$(MSBuildThisFileDirectory)MicroBuild.Core.targets" Condition="Exists('$(MSBuildThisFileDirectory)MicroBuild.Core.targets') and '$(IsTestProject)' != 'true' and '$(ExcludeSigningImport)' != 'true'" />
 
   <!--
     Providing a definition for __BlockReflectionAttribute in an assembly is a signal to the .NET Native toolchain
