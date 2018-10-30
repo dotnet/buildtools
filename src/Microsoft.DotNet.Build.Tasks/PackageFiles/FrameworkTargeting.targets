@@ -125,7 +125,7 @@
   </PropertyGroup>
 
   <Import Project="depProj.targets"
-          Condition="'$(MSBuildProjectExtension)' == '.depproj'" />
+          Condition="'$(MSBuildProjectExtension)' == '.depproj' AND '$(ExcludeDepProjImport)' != 'true' " />
 
   <Import Project="IL.targets"
            Condition="'$(MSBuildProjectExtension)' == '.ilproj' AND '$(SkipImportILTargets)'!='true' and '$(UsingMicrosoftNETSdk)' != 'true'" />
