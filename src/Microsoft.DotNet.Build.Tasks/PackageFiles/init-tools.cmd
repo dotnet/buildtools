@@ -15,15 +15,19 @@ if [%NATIVE_TOOLS_RID%]==[] (
 )
 
 set MSBUILD_PROJECT_CONTENT= ^
- ^^^<Project Sdk=^"Microsoft.NET.Sdk^"^^^> ^
+ ^^^<Project^^^> ^
   ^^^<PropertyGroup^^^> ^
+    ^^^<ImportDirectoryBuildProps^^^>false^^^</ImportDirectoryBuildProps^^^> ^
+    ^^^<ImportDirectoryBuildTargets^^^>false^^^</ImportDirectoryBuildTargets^^^> ^
     ^^^<TargetFrameworks^^^>netcoreapp1.0;net46^^^</TargetFrameworks^^^> ^
     ^^^<DisableImplicitFrameworkReferences^^^>true^^^</DisableImplicitFrameworkReferences^^^> ^
   ^^^</PropertyGroup^^^> ^
+  ^^^<Import Project=^"Sdk.props^" Sdk=^"Microsoft.NET.Sdk^" /^^^> ^
   ^^^<ItemGroup^^^> ^
     ^^^<PackageReference Include=^"MicroBuild.Core^" Version=^"%MICROBUILD_VERSION%^" /^^^> ^
     ^^^<PackageReference Include=^"Microsoft.Net.Compilers^" Version=^"%ROSLYNCOMPILERS_VERSION%^" /^^^> ^
   ^^^</ItemGroup^^^> ^
+  ^^^<Import Project=^"Sdk.targets^" Sdk=^"Microsoft.NET.Sdk^" /^^^> ^
  ^^^</Project^^^>
 
 set PUBLISH_TFM=netcoreapp2.0

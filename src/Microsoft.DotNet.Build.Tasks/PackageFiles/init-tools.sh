@@ -17,15 +17,19 @@ __MICROBUILD_VERSION=0.2.0
 __ROSLYNCOMPILER_VERSION=2.9.0
 
 __PORTABLETARGETS_PROJECT_CONTENT="
-<Project Sdk=\"Microsoft.NET.Sdk\">
+<Project>
   <PropertyGroup>
+    <ImportDirectoryBuildProps>false</ImportDirectoryBuildProps>
+    <ImportDirectoryBuildTargets>false</ImportDirectoryBuildTargets>
     <TargetFrameworks>netcoreapp1.0;net46</TargetFrameworks>
     <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
   </PropertyGroup>
+  <Import Project=\"Sdk.props\" Sdk=\"Microsoft.NET.Sdk\" />
   <ItemGroup>
     <PackageReference Include=\"MicroBuild.Core\" Version=\"$__MICROBUILD_VERSION\" />
     <PackageReference Include=\"Microsoft.NETCore.Compilers\" Version=\"$__ROSLYNCOMPILER_VERSION\" />
   </ItemGroup>
+  <Import Project=\"Sdk.targets\" Sdk=\"Microsoft.NET.Sdk\" />
 </Project>"
 
 __PUBLISH_TFM=netcoreapp2.0
