@@ -73,6 +73,25 @@
     <PerfRunnerCommand Condition="'$(BuildingNETFxVertical)' == 'true'">$(PerfRunnerArgs)</PerfRunnerCommand>
     <MeasurementPyCommand>$(PythonCommand) "$(BenchviewDir)/measurement.py" xunit "$(RunId)-$(AssemblyName).xml" --better desc --drop-first-value --append -o "$(ProjectDir)measurement.json" || $(CliExitErrorCommand)</MeasurementPyCommand>
   </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(IsBenchmarkDotNetProject)' == 'true'">
+    <PerfRunnerExecutableName>BenchmarksRunner</PerfRunnerExecutableName>
+    <PerfRunnerExecutable>$(PerfRunnerExecutableName).exe</PerfRunnerExecutable>
+    <!-- by default we run all benchmarks from given folder -->
+    <PerfRunnerFilter>*</PerfRunnerFilter>
+    <!-- Unix OSes are replacing an asterisk with file name of every file in the directory, so we need to wrap it with '*' to make it work -->
+    <PerfRunnerFilter Condition="'$(TargetOS)'=='Linux'">'*'</PerfRunnerFilter>
+    <CollectFlags>BranchMispredictions+CacheMisses+InstructionRetired</CollectFlags>
+    <!-- currently BenchmarkDotNet uses ETW for Profiling on Windows, when we add new profiler for Unix we are going to add it here -->
+    <ProfilerName Condition="'$(TargetOS)'=='Windows_NT'">ETW</ProfilerName>
+    <!-- by default there are no args, this can be used by the users to pass BenchmarkDotNet arguments here -->
+    <PerfRunnerArgs></PerfRunnerArgs>
+    <!-- when we run a Diagnostic benchmark run we specify the profiler and the hardware counters we want to get -->
+    <PerfRunnerArgs Condition="'$(PerformanceType)'=='Diagnostic'">--profiler $(ProfilerName) --counters $(CollectFlags)</PerfRunnerArgs>
+    <PerfRunnerAllArgs>--filter $(PerfRunnerFilter) $(PerfRunnerArgs) || $(CliExitErrorCommand)</PerfRunnerAllArgs>
+    <PerfRunnerCommand Condition="'$(BuildingNETFxVertical)' != 'true'">$(PerfTestCommandDotnetExecutable) $(PerfRunnerExecutable) $(PerfRunnerAllArgs)</PerfRunnerCommand>
+    <PerfRunnerCommand Condition="'$(BuildingNETFxVertical)' == 'true'">$(PerfRunnerExecutable) $(PerfRunnerAllArgs)</PerfRunnerCommand>
+  </PropertyGroup>
 
   <!-- Build the commands to be appended to the generated RunTest.[cmd|sh] script. -->
   <ItemGroup>
