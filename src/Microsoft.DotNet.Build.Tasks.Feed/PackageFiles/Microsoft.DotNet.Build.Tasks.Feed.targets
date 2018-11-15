@@ -55,6 +55,7 @@
   <UsingTask TaskName="WriteOrchestratedBuildManifestSummaryToFile" AssemblyFile="$(_MicrosoftDotNetBuildTasksFeedTaskDir)Microsoft.DotNet.Build.Tasks.Feed.dll"/>
   
   <PropertyGroup>
+    <PushToBlobFeed_AllowEmptyItems Condition="'$(PushToBlobFeed_AllowEmptyItems)' == ''">false</PushToBlobFeed_AllowEmptyItems>
     <PushToBlobFeed_Overwrite Condition="'$(PushToBlobFeed_Overwrite)' == ''">false</PushToBlobFeed_Overwrite>
     <PushToBlobFeed_MaxClients Condition="'$(PushToBlobFeed_MaxClients)' == ''">8</PushToBlobFeed_MaxClients>
     <FileRelativePathBase Condition="'$(FileRelativePathBase)' == ''">assets</FileRelativePathBase>
@@ -74,7 +75,7 @@
       <_ItemsToPush Include="@(PackagesToPublish)" />
     </ItemGroup>
 
-    <Error Condition="'@(_ItemsToPush)' == ''" Text="No packages to push." />
+    <Error Condition="'@(_ItemsToPush)' == '' and '$(PushToBlobFeed_AllowEmptyItems)' != 'true'" Text="No packages to push." />
 
     <PushToBlobFeed ExpectedFeedUrl="$(ExpectedFeedUrl)"
                     AccountKey="$(AccountKey)"
@@ -104,7 +105,7 @@
       </_ItemsToPush>
     </ItemGroup>
 
-    <Error Condition="'@(_ItemsToPush)' == ''" Text="No files to push." />
+    <Error Condition="'@(_ItemsToPush)' == '' and '$(PushToBlobFeed_AllowEmptyItems)' != 'true'" Text="No files to push." />
 
     <PushToBlobFeed ExpectedFeedUrl="$(ExpectedFeedUrl)"
                     AccountKey="$(AccountKey)"
