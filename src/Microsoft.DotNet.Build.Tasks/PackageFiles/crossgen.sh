@@ -34,7 +34,7 @@ crossgen_everything()
     echo "Running crossgen on all assemblies in $__targetDir."
     for file in $__targetDir/*.{dll,exe}
     do
-        if [ $(basename $file) != "Microsoft.Build.Framework.dll" ]; then
+        if [[ ($(basename $file) != "Microsoft.Build.Framework.dll") && ($(basename $file) != "Microsoft.DotNet.Build.Tasks.dll") ]]; then
             crossgen_single $file & pid=$!
             __pids+=" $pid"
         fi
