@@ -6,7 +6,7 @@
          the third part is for bugfixes, the fourth is for hotfixes/securtity-updates -->
     <APIVersion>$([System.Version]::Parse('$(AssemblyVersion)').ToString(2))</APIVersion>
 
-    <_usingRoslyn Condition="'$(MSBuildToolsVersion)' == 'dogfood' OR '$(MSBuildToolsVersion)' &gt;= '14.0'">true</_usingRoslyn>
+    <_usingRoslyn Condition="'$(MSBuildToolsVersion)' == 'dogfood' OR '$(MSBuildToolsVersion)' == 'Current' OR '$(MSBuildToolsVersion)' &gt;= '14.0'">true</_usingRoslyn>
 
     <!-- Create a common root output directory for all reference assemblies -->
     <ReferenceAssemblyOutputPath Condition="'$(ReferenceAssemblyOutputPath)' == ''">$(BaseOutputPath)ref/</ReferenceAssemblyOutputPath>
