@@ -87,11 +87,11 @@
   </PropertyGroup>
 
   <!-- netcoreapp (not aot) uses the dotnet host. -->
-  <PropertyGroup Condition="'$(BuildingNETCoreAppVertical)' == 'true' AND '$(UseDotNetNativeToolchain)' != 'true'">
+  <PropertyGroup Condition="'$(UseDotNetNativeToolchain)' != 'true'">
     <TestHostExecutablePath Condition="'$(TestHostExecutablePath)' == '' AND '$(RunningOnUnix)' != 'true'">%RUNTIME_PATH%\dotnet.exe</TestHostExecutablePath>
     <TestHostExecutablePath Condition="'$(TestHostExecutablePath)' == '' AND '$(RunningOnUnix)' == 'true'">$RUNTIME_PATH/dotnet</TestHostExecutablePath>
-    <TestProgram Condition="'$(BuildingNETCoreAppVertical)' == 'true'">$(TestHostExecutablePath)</TestProgram>
-    <TestArguments Condition="'$(BuildingNETCoreAppVertical)' == 'true'">$(XunitExecutable) $(XunitArguments)</TestArguments>
+    <TestProgram>$(TestHostExecutablePath)</TestProgram>
+    <TestArguments>$(XunitExecutable) $(XunitArguments)</TestArguments>
   </PropertyGroup>
 
   <!--
