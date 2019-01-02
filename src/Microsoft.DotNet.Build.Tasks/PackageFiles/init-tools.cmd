@@ -4,7 +4,7 @@ setlocal
 set PROJECT_DIR=%~1
 set DOTNET_CMD=%~2
 set TOOLRUNTIME_DIR=%~3
-set PACKAGES_DIR=%4
+set PACKAGES_DIR=%~4
 set BUILDTOOLS_PACKAGE_DIR=%~dp0
 set MICROBUILD_VERSION=0.2.0
 set ROSLYNCOMPILERS_VERSION=2.9.0
@@ -46,12 +46,12 @@ if not exist "%DOTNET_CMD%" (
   exit /b 1
 )
 
-if [%TOOLRUNTIME_DIR%] == [] (
+if "%TOOLRUNTIME_DIR%" == "" (
   echo ERROR: Please pass in the tools directory as the 3rd parameter.
   exit /b 1
 )
 
-if [%PACKAGES_DIR%] == [] (
+if "%PACKAGES_DIR%" == "" (
   echo ERROR: Please pass in the packages directory as the 4th parameter.
   exit /b 1
 )
@@ -65,7 +65,7 @@ call "%DOTNET_CMD%" restore "%TOOLRUNTIME_PROJECT%" %TOOLRUNTIME_RESTORE_ARGS%
 set RESTORE_ERROR_LEVEL=%ERRORLEVEL%
 @echo off
 if not [%RESTORE_ERROR_LEVEL%]==[0] (
-  echo ERROR: An error occured when running: '"%DOTNET_CMD%" restore "%TOOLRUNTIME_PROJECT%"'. Please check above for more details.
+  echo ERROR: An error occured when running: '"%DOTNET_CMD%" restore "%TOOLRUNTIME_PROJECT%" %TOOLRUNTIME_RESTORE_ARGS%'. Please check above for more details.
   exit /b %RESTORE_ERROR_LEVEL%
 )
 @echo on
@@ -126,11 +126,11 @@ if not exist "%TOOLRUNTIME_DIR%\ilasm\ilasm.exe" (
 :afterILAsmRestore
 
 @echo on
-powershell -NoProfile -ExecutionPolicy unrestricted %BUILDTOOLS_PACKAGE_DIR%\init-tools.ps1 -ToolRuntimePath %TOOLRUNTIME_DIR% -DotnetCmd %DOTNET_CMD% -BuildToolsPackageDir %BUILDTOOLS_PACKAGE_DIR%
+powershell -NoProfile -ExecutionPolicy unrestricted -File "%BUILDTOOLS_PACKAGE_DIR%\init-tools.ps1" -ToolRuntimePath "%TOOLRUNTIME_DIR%" -DotnetCmd "%DOTNET_CMD%" -BuildToolsPackageDir "%BUILDTOOLS_PACKAGE_DIR%"
 set POWERSHELL_INIT_TOOLS_ERROR_LEVEL=%ERRORLEVEL%
 @echo off
 if not [%POWERSHELL_INIT_TOOLS_ERROR_LEVEL%]==[0] (
-  echo ERROR: An error occurred when running: 'powershell -NoProfile -ExecutionPolicy unrestricted %BUILDTOOLS_PACKAGE_DIR%\init-tools.ps1 -ToolRuntimePath %TOOLRUNTIME_DIR% -DotnetCmd %DOTNET_CMD% -BuildToolsPackageDir %BUILDTOOLS_PACKAGE_DIR%'. Please check above for more details.
+  echo ERROR: An error occurred when running: 'powershell -NoProfile -ExecutionPolicy unrestricted -File "%BUILDTOOLS_PACKAGE_DIR%\init-tools.ps1" -ToolRuntimePath "%TOOLRUNTIME_DIR%" -DotnetCmd "%DOTNET_CMD%" -BuildToolsPackageDir "%BUILDTOOLS_PACKAGE_DIR%"'. Please check above for more details.
   exit /b %POWERSHELL_INIT_TOOLS_ERROR_LEVEL%
 )
 

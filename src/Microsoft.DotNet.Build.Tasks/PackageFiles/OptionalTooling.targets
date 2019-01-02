@@ -33,15 +33,15 @@
   -->
   <Target Name="GetOptionalToolingPaths">
     <PropertyGroup>
-      <OptionalToolingDir>$(ToolsDir)optional-tool-runtime\</OptionalToolingDir>
+      <OptionalToolingDir>$(ToolsDir)optional-tool-runtime</OptionalToolingDir>
     </PropertyGroup>
     <PropertyGroup Condition="'$(OptionalToolingProjectPath)' == ''">
-      <OptionalToolingJsonPath Condition="'$(OptionalToolingJsonPath)' == ''">$(OptionalToolingDir)optional.json</OptionalToolingJsonPath>
-      <OptionalToolingProjectJsonPath>$(OptionalToolingDir)project.json</OptionalToolingProjectJsonPath>
-      <OptionalToolingProjectLockJsonPath>$(OptionalToolingDir)project.lock.json</OptionalToolingProjectLockJsonPath>
+      <OptionalToolingJsonPath Condition="'$(OptionalToolingJsonPath)' == ''">$(OptionalToolingDir)\optional.json</OptionalToolingJsonPath>
+      <OptionalToolingProjectJsonPath>$(OptionalToolingDir)\project.json</OptionalToolingProjectJsonPath>
+      <OptionalToolingProjectLockJsonPath>$(OptionalToolingDir)\project.lock.json</OptionalToolingProjectLockJsonPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(OptionalToolingProjectPath)' != ''">
-      <OptionalToolingProjectAssetsJsonPath>$(OptionalToolingDir)project.assets.json</OptionalToolingProjectAssetsJsonPath>
+      <OptionalToolingProjectAssetsJsonPath>$(OptionalToolingDir)\project.assets.json</OptionalToolingProjectAssetsJsonPath>
     </PropertyGroup>
   </Target>
 
@@ -82,7 +82,7 @@
   
     <!-- restore the MSBuild project file, if it is being used -->
     <Exec Condition="'$(OptionalToolingProjectPath)' != ''" 
-          Command="$(DotnetToolCommand) restore $(OptionalToolingProjectPath) --configfile $(OptionalRestoreConfigPath) /p:RestoreOutputPath=$(OptionalToolingDir)" />
+          Command="&quot;$(DotnetToolCommand)&quot; restore &quot;$(OptionalToolingProjectPath)&quot; --configfile &quot;$(OptionalRestoreConfigPath)&quot; /p:RestoreOutputPath=&quot;$(OptionalToolingDir)&quot;" />
   
   </Target>
 
