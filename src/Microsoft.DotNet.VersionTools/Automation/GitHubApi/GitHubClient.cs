@@ -29,7 +29,13 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
 
         private static JsonSerializerSettings s_jsonSettings = new JsonSerializerSettings
         {
-            ContractResolver = new CamelCasePropertyNamesContractResolver()
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+
+            // GitHub seems to have changed to no longer handle null in create tree calls. The API
+            // returns a 422 Unprocessable Entity error "Must supply tree.sha or tree.content" when
+            // we specify tree.sha as null *and* tree.content as the text content we want. Omit the
+            // tree.sha property completely to fix this.
+            NullValueHandling = NullValueHandling.Ignore
         };
 
         private static readonly string[] s_rateLimitHeaderNames =
