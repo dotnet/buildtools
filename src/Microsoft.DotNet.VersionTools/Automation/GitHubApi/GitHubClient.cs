@@ -326,7 +326,7 @@ namespace Microsoft.DotNet.VersionTools.Automation.GitHubApi
             var bodyContent = new StringContent(body);
             using (HttpResponseMessage response = await _httpClient.PostAsync(url, bodyContent))
             {
-                Trace.TraceInformation($"Posting new tree to {project.Segments}");
+                Trace.TraceInformation($"Posting new tree to {project.Segments}:\n{body}");
                 return await DeserializeSuccessfulAsync<GitTree>(response);
             }
         }
