@@ -26,6 +26,7 @@ set MSBUILD_PROJECT_CONTENT= ^
   ^^^<ItemGroup^^^> ^
     ^^^<PackageReference Include=^"MicroBuild.Core^" Version=^"%MICROBUILD_VERSION%^" /^^^> ^
     ^^^<PackageReference Include=^"Microsoft.Net.Compilers^" Version=^"%ROSLYNCOMPILERS_VERSION%^" /^^^> ^
+    ^^^<PackageReference Include=^"Microsoft.NETCore.Compilers^" Version=^"%ROSLYNCOMPILERS_VERSION%^" /^^^> ^
   ^^^</ItemGroup^^^> ^
   ^^^<Import Project=^"Sdk.targets^" Sdk=^"Microsoft.NET.Sdk^" /^^^> ^
  ^^^</Project^^^>
