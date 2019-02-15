@@ -7,7 +7,7 @@ set TOOLRUNTIME_DIR=%~3
 set PACKAGES_DIR=%~4
 set BUILDTOOLS_PACKAGE_DIR=%~dp0
 set MICROBUILD_VERSION=0.2.0
-set ROSLYNCOMPILERS_VERSION=3.0.0-beta2-final
+set ROSLYNCOMPILERS_VERSION=3.0.0-beta3-final
 
 :: Default to x64 native tools if nothing was specified.
 if [%NATIVE_TOOLS_RID%]==[] (
