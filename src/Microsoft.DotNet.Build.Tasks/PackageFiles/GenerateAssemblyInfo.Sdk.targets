@@ -12,7 +12,7 @@
     So overwrite these two properties here, so they are set correctly.
     -->
     <Company>Microsoft Corporation</Company>
-    <Product>Microsoft%AE .NET Framework</Product>
+    <Product>Microsoft%AE .NET Core</Product>
   </PropertyGroup>
 
   <Target Name="_ComputeBuildToolsAssemblyInfoAttributes"
