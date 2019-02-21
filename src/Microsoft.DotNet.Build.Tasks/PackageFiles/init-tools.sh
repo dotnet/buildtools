@@ -36,7 +36,7 @@ __PUBLISH_TFM=netcoreapp2.0
 
 __DEFAULT_RESTORE_ARGS="--no-cache"
 __INIT_TOOLS_SOURCES="--source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json ${__INIT_TOOLS_RESTORE_ARGS:-}"
-__TOOLRUNTIME_SOURCES="--source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json"
+__TOOLRUNTIME_SOURCES="--source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnetfeed.blob.core.windows.net/dotnet-coreclr/index.json"
 
 if [ ! -d "$__PROJECT_DIR" ]; then
     echo "ERROR: Cannot find project root path at '$__PROJECT_DIR'. Please pass in the source directory as the 1st parameter."
@@ -66,8 +66,8 @@ cp -R $__TOOLS_DIR/* $__TOOLRUNTIME_DIR
 
 __TOOLRUNTIME_PROJECT=$__TOOLS_DIR/tool-runtime/project.csproj
 
-echo "Running: eval \"$__DOTNET_CMD restore \"${__TOOLRUNTIME_PROJECT}\" $__TOOLRUNTIME_SOURCES ${__DEFAULT_RESTORE_ARGS} --packages \"${__PACKAGES_DIR}\" ${__INIT_TOOLS_SOURCES}\""
-eval "$__DOTNET_CMD restore \"${__TOOLRUNTIME_PROJECT}\" $__TOOLRUNTIME_SOURCES ${__DEFAULT_RESTORE_ARGS} --packages \"${__PACKAGES_DIR}\" ${__INIT_TOOLS_SOURCES}"
+echo "Running: eval \"$__DOTNET_CMD restore \"${__TOOLRUNTIME_PROJECT}\" ${__TOOLRUNTIME_SOURCES} ${__DEFAULT_RESTORE_ARGS} --packages \"${__PACKAGES_DIR}\" ${__INIT_TOOLS_SOURCES}\""
+eval "$__DOTNET_CMD restore \"${__TOOLRUNTIME_PROJECT}\" ${__TOOLRUNTIME_SOURCES} ${__DEFAULT_RESTORE_ARGS} --packages \"${__PACKAGES_DIR}\" ${__INIT_TOOLS_SOURCES}"
 
 echo "Running: $__DOTNET_CMD publish --no-restore \"${__TOOLRUNTIME_PROJECT}\" -f ${__PUBLISH_TFM} -o $__TOOLRUNTIME_DIR"
 $__DOTNET_CMD publish --no-restore "${__TOOLRUNTIME_PROJECT}" -f ${__PUBLISH_TFM} -o $__TOOLRUNTIME_DIR
@@ -111,7 +111,7 @@ if [ "$__ILASM_PACKAGE_VERSION" ]; then
     fi
 
     echo "Running: eval \"$__DOTNET_CMD build \"${__TOOLRUNTIME_DIR}/ilasm/ilasm.depproj\"\""
-    eval "$__DOTNET_CMD build "${__TOOLRUNTIME_DIR}/ilasm/ilasm.depproj" $__DEFAULT_RESTORE_ARGS --packages \"$__PACKAGES_DIR\" --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json -r $__ILASM_PACKAGE_RID -p:ILAsmPackageVersion=$__ILASM_PACKAGE_VERSION"
+    eval "$__DOTNET_CMD build "${__TOOLRUNTIME_DIR}/ilasm/ilasm.depproj" $__DEFAULT_RESTORE_ARGS --packages \"$__PACKAGES_DIR\" ${__TOOLRUNTIME_SOURCES} -r $__ILASM_PACKAGE_RID -p:ILAsmPackageVersion=$__ILASM_PACKAGE_VERSION"
 fi
 
 # Download the package version props file, if passed in the environment.
