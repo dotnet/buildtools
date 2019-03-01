@@ -1,16 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-__TargetFramework=${3:-}
-
-if [ -z "$__TargetFramework" ]; then
-    __TargetFramework="netcoreapp2.0"
-fi
-
 # Restores crossgen and runs it on all tools components.
 usage()
 {
-    echo "crossgen.sh <directory> <rid>"
+    echo "crossgen.sh <directory> <rid> <targetframework>"
     echo "    Restores crossgen and runs it on all assemblies in <directory>."
     exit 0
 }
@@ -84,6 +78,7 @@ fi
 __MyGetFeed=${BUILDTOOLS_CROSSGEN_FEED:-https://dotnet.myget.org/F/dotnet-core/api/v3/index.json}
 __targetDir=$1
 __packageRid=${2:-}
+__TargetFramework=${3:-}
 __scriptpath=$(cd "$(dirname "$0")"; pwd -P)
 __toolsDir=$__scriptpath/../Tools
 __dotnet=$__toolsDir/dotnetcli/dotnet
@@ -111,6 +106,10 @@ if [ "$__packageRid" == "osx-x64" ]; then
     __libraryExtension=dylib
 else
     __libraryExtension=so
+fi
+
+if [ -z "$__TargetFramework" ]; then
+    __TargetFramework="netcoreapp2.0"
 fi
 
 restore_crossgen
