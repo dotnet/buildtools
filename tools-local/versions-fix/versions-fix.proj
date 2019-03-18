@@ -14,7 +14,7 @@
     <PropertyGroup>
         <RestoreNoCache>true</RestoreNoCache>
         <RestorePackagesPath>./packages</RestorePackagesPath>
-        <RestoreSources>https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json</RestoreSources>
+        <RestoreSources>https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json</RestoreSources>
     </PropertyGroup>
 
     <UsingTask TaskName="UpdatePublishedVersions" AssemblyFile="packages\microsoft.dotnet.buildtools\$(BuildToolsVersion)\lib\Microsoft.DotNet.Build.Tasks.dll" />
