@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="12.0" 
+    xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <BuildToolsVersion>2.1.0-rc1-03620-01</BuildToolsVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.DotNet.BuildTools" Version="$(BuildToolsVersion)" />
+    </ItemGroup>
+
+    <PropertyGroup>
+        <RestoreNoCache>true</RestoreNoCache>
+        <RestorePackagesPath>./packages</RestorePackagesPath>
+        <RestoreSources>https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json</RestoreSources>
+    </PropertyGroup>
+
+    <UsingTask TaskName="UpdatePublishedVersions" AssemblyFile="packages\microsoft.dotnet.buildtools\$(BuildToolsVersion)\lib\Microsoft.DotNet.Build.Tasks.dll" />
+    <Target Name="UpdatePublishedVersions">
+        <UpdatePublishedVersions 
+            ShippedNuGetPackage="@(ShippedNuGetPackage)" 
+            VersionsRepoPath="$(VersionsRepoPath)" 
+            GitHubAuthToken="$(GitHubAuthToken)" 
+            GitHubUser="$(GitHubUser)" 
+            GitHubEmail="$(GitHubEmail)" 
+            VersionsRepo="$(VersionsRepo)" 
+            VersionsRepoOwner="$(VersionsRepoOwner)" 
+            />
+    </Target>
+</Project>
