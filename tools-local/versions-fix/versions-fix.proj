@@ -17,6 +17,10 @@
         <RestoreSources>https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json</RestoreSources>
     </PropertyGroup>
 
+    <ItemGroup Condition="'$(ShippedNuGetPackageGlobPath)'!=''">
+        <ShippedNuGetPackage Include="$(ShippedNuGetPackageGlobPath)" />
+    </ItemGroup>
+
     <UsingTask TaskName="UpdatePublishedVersions" AssemblyFile="packages\microsoft.dotnet.buildtools\$(BuildToolsVersion)\lib\Microsoft.DotNet.Build.Tasks.dll" />
     <Target Name="UpdatePublishedVersions">
         <UpdatePublishedVersions 
