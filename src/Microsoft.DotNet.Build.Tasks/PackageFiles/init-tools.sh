@@ -14,7 +14,7 @@ __TOOLRUNTIME_DIR=${3:-}
 __PACKAGES_DIR=${4:-}
 __TOOLS_DIR=$(cd "$(dirname "$0")"; pwd -P)
 __MICROBUILD_VERSION=0.2.0
-__ROSLYNCOMPILER_VERSION=3.0.0-beta4-final
+__ROSLYNCOMPILER_VERSION=3.1.0-beta1-19172-05
 
 __PORTABLETARGETS_PROJECT_CONTENT="
 <Project>
@@ -27,7 +27,7 @@ __PORTABLETARGETS_PROJECT_CONTENT="
   <Import Project=\"Sdk.props\" Sdk=\"Microsoft.NET.Sdk\" />
   <ItemGroup>
     <PackageReference Include=\"MicroBuild.Core\" Version=\"$__MICROBUILD_VERSION\" />
-    <PackageReference Include=\"Microsoft.NETCore.Compilers\" Version=\"$__ROSLYNCOMPILER_VERSION\" />
+    <PackageReference Include=\"Microsoft.Net.Compilers.Toolset\" Version=\"$__ROSLYNCOMPILER_VERSION\" />
   </ItemGroup>
   <Import Project=\"Sdk.targets\" Sdk=\"Microsoft.NET.Sdk\" />
 </Project>"
@@ -35,7 +35,7 @@ __PORTABLETARGETS_PROJECT_CONTENT="
 __PUBLISH_TFM=netcoreapp2.0
 
 __DEFAULT_RESTORE_ARGS="--no-cache"
-__INIT_TOOLS_SOURCES="--source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json ${__INIT_TOOLS_RESTORE_ARGS:-}"
+__INIT_TOOLS_SOURCES="--source https://dotnet.myget.org/F/roslyn/api/v3/index.json --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json ${__INIT_TOOLS_RESTORE_ARGS:-}"
 __TOOLRUNTIME_SOURCES="--source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnetfeed.blob.core.windows.net/dotnet-coreclr/index.json"
 
 if [ ! -d "$__PROJECT_DIR" ]; then
