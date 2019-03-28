@@ -7,7 +7,7 @@ set TOOLRUNTIME_DIR=%~3
 set PACKAGES_DIR=%~4
 set BUILDTOOLS_PACKAGE_DIR=%~dp0
 set MICROBUILD_VERSION=0.2.0
-set ROSLYNCOMPILERS_VERSION=3.0.0-beta4-final
+set ROSLYNCOMPILERS_VERSION=3.1.0-beta1-19172-05
 
 :: Default to x64 native tools if nothing was specified.
 if [%NATIVE_TOOLS_RID%]==[] (
@@ -25,8 +25,7 @@ set MSBUILD_PROJECT_CONTENT= ^
   ^^^<Import Project=^"Sdk.props^" Sdk=^"Microsoft.NET.Sdk^" /^^^> ^
   ^^^<ItemGroup^^^> ^
     ^^^<PackageReference Include=^"MicroBuild.Core^" Version=^"%MICROBUILD_VERSION%^" /^^^> ^
-    ^^^<PackageReference Include=^"Microsoft.Net.Compilers^" Version=^"%ROSLYNCOMPILERS_VERSION%^" /^^^> ^
-    ^^^<PackageReference Include=^"Microsoft.NETCore.Compilers^" Version=^"%ROSLYNCOMPILERS_VERSION%^" /^^^> ^
+    ^^^<PackageReference Include=^"Microsoft.Net.Compilers.Toolset^" Version=^"%ROSLYNCOMPILERS_VERSION%^" /^^^> ^
   ^^^</ItemGroup^^^> ^
   ^^^<Import Project=^"Sdk.targets^" Sdk=^"Microsoft.NET.Sdk^" /^^^> ^
  ^^^</Project^^^>
@@ -34,7 +33,7 @@ set MSBUILD_PROJECT_CONTENT= ^
 set PUBLISH_TFM=netcoreapp2.0
 
 set DEFAULT_RESTORE_ARGS=--no-cache --packages "%PACKAGES_DIR%"
-set INIT_TOOLS_RESTORE_ARGS=%DEFAULT_RESTORE_ARGS% --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json %INIT_TOOLS_RESTORE_ARGS%
+set INIT_TOOLS_RESTORE_ARGS=%DEFAULT_RESTORE_ARGS% --source https://dotnet.myget.org/F/roslyn/api/v3/index.json --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json %INIT_TOOLS_RESTORE_ARGS%
 set TOOLRUNTIME_RESTORE_ARGS=%INIT_TOOLS_RESTORE_ARGS% --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnetfeed.blob.core.windows.net/dotnet-coreclr/index.json
 
 if not exist "%PROJECT_DIR%" (
@@ -105,9 +104,6 @@ if not [%RESTORE_PORTABLETARGETS_ERROR_LEVEL%]==[0] (
   exit /b %RESTORE_PORTABLETARGETS_ERROR_LEVEL%
 )
 Robocopy "%PACKAGES_DIR%\MicroBuild.Core\%MICROBUILD_VERSION%\build\." "%TOOLRUNTIME_DIR%\." /E
-
-:: Copy Roslyn Compilers Over to ToolRuntime
-Robocopy "%PACKAGES_DIR%\Microsoft.Net.Compilers\%ROSLYNCOMPILERS_VERSION%\." "%TOOLRUNTIME_DIR%\net46\roslyn\." /E
 
 :: Restore ILAsm if the caller asked for it by setting the environment variable
 if [%ILASMCOMPILER_VERSION%]==[] goto :afterILAsmRestore
