@@ -15,13 +15,4 @@
     <DebugType Condition="'$(RunningOnCore)' == 'true'">Portable</DebugType>
   </PropertyGroup>
 
-  <!-- If we're not using the compiler server, set ToolPath/Exe to direct to
-       the exes in this package -->
-  <PropertyGroup Condition="'$(UseRoslynCompilers)' != 'false' and '$(RoslynIncompatibleMsbuildVersion)' == 'true'">
-    <CscToolPath>$(_RoslynTasksDirectory)</CscToolPath>
-    <CscToolExe>csc.exe</CscToolExe>
-    <VbcToolPath>$(_RoslynTasksDirectory)</VbcToolPath>
-    <VbcToolExe>vbc.exe</VbcToolExe>
-  </PropertyGroup>
-
 </Project>
