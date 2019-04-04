@@ -18,8 +18,7 @@ jobs:
       release_configuration:
         _BuildConfig: Release
   pool:
-    name: NetCorePublic-Int-Pool
-    queue: BuildPool.Windows.10.Amd64.VS2017.Open
+    vmImage: 'vs2017-win2016'
   steps:
   - script: build.cmd -$(_BuildConfig)
 - job: Linux
