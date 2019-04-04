@@ -5,9 +5,11 @@ variables:
 # CI and PR triggers
 trigger:
 - master
+- release/*
 
 pr:
 - master
+- release/*
 
 jobs:
 - job: Windows
