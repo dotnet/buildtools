@@ -1,0 +1,35 @@
+variables:
+  - name: Build.Repository.Clean
+    value: true
+
+# CI and PR triggers
+trigger:
+- master
+
+pr:
+- master
+
+jobs:
+- job: Windows
+  strategy:
+    matrix:
+      debug_configuration:
+        _BuildConfig: Debug
+      release_configuration:
+        _BuildConfig: Release
+  pool:
+    name: NetCorePublic-Int-Pool
+    queue: BuildPool.Windows.10.Amd64.VS2017.Open
+  steps:
+  - script: build.cmd -$(_BuildConfig)
+- job: Linux
+  strategy:
+    matrix:
+      debug_configuration:
+        _BuildConfig: Debug
+      release_configuration:
+        _BuildConfig: Release
+  pool:
+    vmImage: 'Ubuntu 16.04'
+  steps:
+  - script: ./build.sh -$(_BuildConfig)
