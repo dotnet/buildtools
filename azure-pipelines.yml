@@ -1,0 +1,36 @@
+variables:
+  - name: Build.Repository.Clean
+    value: true
+
+# CI and PR triggers
+trigger:
+- master
+- release/*
+
+pr:
+- master
+- release/*
+
+jobs:
+- job: Windows
+  strategy:
+    matrix:
+      debug_configuration:
+        _BuildConfig: Debug
+      release_configuration:
+        _BuildConfig: Release
+  pool:
+    vmImage: 'vs2017-win2016'
+  steps:
+  - script: build.cmd -$(_BuildConfig)
+- job: Linux
+  strategy:
+    matrix:
+      debug_configuration:
+        _BuildConfig: Debug
+      release_configuration:
+        _BuildConfig: Release
+  pool:
+    vmImage: 'Ubuntu 16.04'
+  steps:
+  - script: ./build.sh -$(_BuildConfig)
