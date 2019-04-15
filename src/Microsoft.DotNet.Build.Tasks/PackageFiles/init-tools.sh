@@ -107,7 +107,7 @@ if [ "$__ILASM_PACKAGE_VERSION" ]; then
     fi
 
     echo "Running: \"$__DOTNET_CMD\" build \"${__TOOLRUNTIME_DIR}/ilasm/ilasm.depproj\""
-    $__DOTNET_CMD build "${__TOOLRUNTIME_DIR}/ilasm/ilasm.depproj" --packages "${__PACKAGES_DIR}/." --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json -r $__ILASM_PACKAGE_RID -p:ILAsmPackageVersion=$__ILASM_PACKAGE_VERSION
+    $__DOTNET_CMD build "${__TOOLRUNTIME_DIR}/ilasm/ilasm.depproj" --packages "${__PACKAGES_DIR}/." --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json -r $__ILASM_PACKAGE_RID -p:ILAsmPackageVersion=$__ILASM_PACKAGE_VERSION
 fi
 
 # Download the package version props file, if passed in the environment.
