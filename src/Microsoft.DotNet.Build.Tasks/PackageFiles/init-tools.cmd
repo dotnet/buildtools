@@ -103,7 +103,7 @@ Robocopy "%PACKAGES_DIR%\Microsoft.Net.Compilers\%ROSLYNCOMPILERS_VERSION%\." "%
 if [%ILASMCOMPILER_VERSION%]==[] goto :afterILAsmRestore
 
 @echo on
-call "%DOTNET_CMD%" build "%TOOLRUNTIME_DIR%\ilasm\ilasm.depproj" -r %NATIVE_TOOLS_RID% --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --packages "%PACKAGES_DIR%\." /p:ILAsmPackageVersion=%ILASMCOMPILER_VERSION%
+call "%DOTNET_CMD%" build "%TOOLRUNTIME_DIR%\ilasm\ilasm.depproj" -r %NATIVE_TOOLS_RID% --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json --packages "%PACKAGES_DIR%\." /p:ILAsmPackageVersion=%ILASMCOMPILER_VERSION%
 set RESTORE_ILASM_ERROR_LEVEL=%ERRORLEVEL%
 @echo off
 if not [%RESTORE_ILASM_ERROR_LEVEL%]==[0] (
