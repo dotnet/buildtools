@@ -10,7 +10,7 @@ import re
 import helix.depcheck
 import helix.logs
 import helix.proc
-import helix.saferequests
+import helix.saferequests 
 
 from helix.cmdline import command_main
 from helix.io import fix_path
@@ -59,7 +59,7 @@ def main(args=None):
         if os.path.exists(results_location):
             log.info("Uploading results from {}".format(results_location))
 
-            with file(results_location) as result_file:
+            with open(results_location, 'r') as result_file:
                 test_count = 0
                 for line in result_file:
                     if '<assembly ' in line:
@@ -72,10 +72,10 @@ def main(args=None):
             if settings.output_uri is not None:
                 result_url = test_executor.upload_file_to_storage(results_location, settings)
             else:
-                result_url = None;
+                result_url = None
 
             if (settings.event_uri is not None):
-                event_client = helix.event.create_from_uri(settings.event_uri);
+                event_client = helix.event.create_from_uri(settings.event_uri)
                 log.info("Sending completion event")
                 event_client.send(
                     {
