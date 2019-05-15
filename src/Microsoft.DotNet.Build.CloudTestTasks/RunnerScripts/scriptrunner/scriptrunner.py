@@ -10,7 +10,7 @@ import re
 import helix.depcheck
 import helix.logs
 import helix.proc
-import helix.saferequests 
+import helix.saferequests
 
 from helix.cmdline import command_main
 from helix.io import fix_path
