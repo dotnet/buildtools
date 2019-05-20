@@ -7,7 +7,6 @@
 import os.path
 import re
 
-import helix.depcheck
 import helix.logs
 import helix.proc
 import helix.saferequests
@@ -15,6 +14,7 @@ import helix.saferequests
 from helix.cmdline import command_main
 from helix.io import fix_path
 from helix_test_execution import HelixTestExecution
+from io import open
 
 log = helix.logs.get_logger()
 
@@ -59,7 +59,7 @@ def main(args=None):
         if os.path.exists(results_location):
             log.info("Uploading results from {}".format(results_location))
 
-            with open(results_location, encoding="UTF-8") as result_file:
+            with open(results_location, encoding="utf-8") as result_file:
                 test_count = 0
                 for line in result_file:
                     if '<assembly ' in line:
@@ -100,4 +100,5 @@ if __name__ == '__main__':
     import sys
     sys.exit(main())
 
+import helix.depcheck
 helix.depcheck.check_dependencies(__name__)
