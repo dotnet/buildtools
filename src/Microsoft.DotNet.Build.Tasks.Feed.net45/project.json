@@ -5,7 +5,7 @@
     "NuGet.Packaging": "4.4.0",
     "System.Reflection.Metadata": "1.4.1",
     "System.Runtime.InteropServices.RuntimeInformation": "4.4.0-beta-24813-03",
-    "sleetlib": "2.2.24"
+    "DotNet.SleetLib": "2.2.139"
   },
   "frameworks": {
     "net45": {
