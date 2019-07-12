@@ -20,8 +20,11 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
         [Required]
         public string TargetBlobDirectory { get; set; }
 
-        [Required]
         public string AccountKey { get; set; }
+
+        public string SourceAccountKey { get; set; }
+
+        public string TargetAccountKey { get; set; }
 
         public bool Overwrite { get; set; }
 
@@ -29,10 +32,11 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
 
         public bool SkipIfMissing { get; set; } = false;
 
+        public int CopyWaitTimeoutInMinutes { get; set; } = 120;
+
         public override bool Execute()
         {
             return ExecuteAsync().GetAwaiter().GetResult();
-            
         }
 
         private static string GetCanonicalStorageUri(string uri, string subPath = null)
@@ -51,9 +55,14 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
             {
                 Log.LogMessage("Performing blob merge...");
 
-                if (string.IsNullOrEmpty(SourceBlobDirectory) || string.IsNullOrEmpty(TargetBlobDirectory))
+                string sourceKey = SourceAccountKey ?? AccountKey;
+                string targetKey = TargetAccountKey ?? AccountKey;
+
+                if (string.IsNullOrEmpty(SourceBlobDirectory) ||
+                    string.IsNullOrEmpty(TargetBlobDirectory) ||
+                    string.IsNullOrEmpty(sourceKey) || string.IsNullOrEmpty(targetKey))
                 {
-                    Log.LogError($"Please specify a source blob directory and a target blob directory");
+                    Log.LogError($"Please specify a source blob directory, a target blob directory and account keys");
                 }
                 else
                 {
@@ -61,9 +70,9 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     string targetUri = GetCanonicalStorageUri(TargetBlobDirectory);
                     // Invoke the blob URI parser on the target URI and deal with any container creation that needs to happen
                     BlobUrlInfo targetUrlInfo = new BlobUrlInfo(targetUri);
-                    CloudStorageAccount storageAccount = new CloudStorageAccount(new WindowsAzure.Storage.Auth.StorageCredentials(targetUrlInfo.AccountName, AccountKey), true);
-                    CloudBlobClient client = storageAccount.CreateCloudBlobClient();
-                    CloudBlobContainer targetContainer = client.GetContainerReference(targetUrlInfo.ContainerName);
+                    CloudStorageAccount targetStorageAccount = new CloudStorageAccount(new WindowsAzure.Storage.Auth.StorageCredentials(targetUrlInfo.AccountName, targetKey), true);
+                    CloudBlobClient targetClient = targetStorageAccount.CreateCloudBlobClient();
+                    CloudBlobContainer targetContainer = targetClient.GetContainerReference(targetUrlInfo.ContainerName);
 
                     if (!SkipCreateContainer)
                     {
@@ -74,55 +83,77 @@ namespace Microsoft.DotNet.Build.Tasks.Feed
                     string sourceUri = GetCanonicalStorageUri(SourceBlobDirectory);
                     // Grab the source blob path from the source info and combine with the target blob path.
                     BlobUrlInfo sourceBlobInfo = new BlobUrlInfo(sourceUri);
+                    CloudStorageAccount sourceStorageAccount = new CloudStorageAccount(new WindowsAzure.Storage.Auth.StorageCredentials(sourceBlobInfo.AccountName, sourceKey), true);
+                    CloudBlobClient sourceClient = sourceStorageAccount.CreateCloudBlobClient();
 
-                    // For now the source and target storage accounts should be the same, so the same account key is used for each.
-                    if (sourceBlobInfo.AccountName != targetUrlInfo.AccountName)
+                    CloudBlobContainer sourceContainer = sourceClient.GetContainerReference(sourceBlobInfo.ContainerName);
+
+                    Log.LogMessage($"Listing blobs in {sourceUri}");
+
+                    // Get all source URI's with the blob prefix
+                    BlobContinuationToken token = null;
+                    List<IListBlobItem> sourceBlobs = new List<IListBlobItem>();
+                    do
                     {
-                        Log.LogError($"Source and target storage accounts should be identical");
+                        BlobResultSegment segment = await sourceContainer.ListBlobsSegmentedAsync(sourceBlobInfo.BlobPath, true,
+                            BlobListingDetails.None, null, token, new BlobRequestOptions(), null);
+                        token = segment.ContinuationToken;
+                        sourceBlobs.AddRange(segment.Results);
                     }
-                    else
+                    while (token != null);
+
+                    // Ensure the source exists
+                    if (!SkipIfMissing && sourceBlobs.Count == 0)
                     {
-                        CloudBlobContainer sourceContainer = client.GetContainerReference(sourceBlobInfo.ContainerName);
+                        Log.LogError($"No blobs found in {sourceUri}");
+                    }
 
-                        Log.LogMessage($"Listing blobs in {sourceUri}");
+                    await Task.WhenAll(sourceBlobs.Select(async blob =>
+                    {
+                        // Determine the relative URI for the target.  This works properly when the
+                        // trailing slash is left off of the source and target URIs.
+                        string relativeBlobPath = blob.Uri.ToString().Substring(sourceUri.Length);
+                        string specificTargetUri = GetCanonicalStorageUri(targetUri, relativeBlobPath);
+                        BlobUrlInfo specificTargetBlobUrlInfo = new BlobUrlInfo(specificTargetUri);
+                        CloudBlob targetBlob = targetContainer.GetBlobReference(specificTargetBlobUrlInfo.BlobPath);
 
-                        // Get all source URI's with the blob prefix
-                        BlobContinuationToken token = null;
-                        List<IListBlobItem> sourceBlobs = new List<IListBlobItem>();
+                        Log.LogMessage($"Merging {blob.Uri.ToString()} into {targetBlob.Uri.ToString()}");
+
+                        if (!Overwrite && await targetBlob.ExistsAsync())
+                        {
+                            Log.LogError($"Target blob {targetBlob.Uri.ToString()} already exists.");
+                        }
+
+                        BlobUrlInfo specificSourceBlobUrlInfo = new BlobUrlInfo(blob.Uri);
+                        CloudBlob sourceBlob = sourceContainer.GetBlobReference(specificSourceBlobUrlInfo.BlobPath);
+                        SharedAccessBlobPolicy policy = new SharedAccessBlobPolicy
+                        {
+                            Permissions = SharedAccessBlobPermissions.Read,
+                            SharedAccessStartTime = null,
+                            SharedAccessExpiryTime = DateTimeOffset.Now.AddMinutes(30)
+                        };
+                        string sas = sourceBlob.GetSharedAccessSignature(policy);
+                        await targetBlob.StartCopyAsync(new Uri(blob.Uri + sas));
+
+                        DateTime endWaitTime = DateTime.Now.AddMinutes(CopyWaitTimeoutInMinutes);
+                        TimeSpan waitInterval = TimeSpan.FromSeconds(30);
+                        ICloudBlob copyInProgessBlob;
                         do
                         {
-                            BlobResultSegment segment = await sourceContainer.ListBlobsSegmentedAsync(sourceBlobInfo.BlobPath, true,
-                                BlobListingDetails.None, null, token, new BlobRequestOptions(), null);
-                            token = segment.ContinuationToken;
-                            sourceBlobs.AddRange(segment.Results);
+                            await Task.Delay(waitInterval);
+                            copyInProgessBlob = await targetContainer.GetBlobReferenceFromServerAsync(specificTargetBlobUrlInfo.BlobPath);
                         }
-                        while (token != null);
+                        while (DateTime.Now.CompareTo(endWaitTime) < 0 && copyInProgessBlob.CopyState.Status == CopyStatus.Pending);
 
-                        // Ensure the source exists
-                        if (!SkipIfMissing && sourceBlobs.Count == 0)
+                        if (copyInProgessBlob?.CopyState?.Status != CopyStatus.Success)
                         {
-                            Log.LogError($"No blobs found in {sourceUri}");
+                            Log.LogError($"{copyInProgessBlob.Uri.ToString()} timed out or failed.");
                         }
-
-                        await Task.WhenAll(sourceBlobs.Select(async blob =>
+                        else
                         {
-                            // Determine the relative URI for the target.  This works properly when the
-                            // trailing slash is left off of the source and target URIs.
-                            string relativeBlobPath = blob.Uri.ToString().Substring(sourceUri.Length);
-                            string specificTargetUri = GetCanonicalStorageUri(targetUri, relativeBlobPath);
-                            BlobUrlInfo specificTargetBlobUrlInfo = new BlobUrlInfo(specificTargetUri);
-                            CloudBlob targetBlob = targetContainer.GetBlobReference(specificTargetBlobUrlInfo.BlobPath);
-
-                            Log.LogMessage($"Merging {blob.Uri.ToString()} into {targetBlob.Uri.ToString()}");
-
-                            if (!Overwrite && await targetBlob.ExistsAsync())
-                            {
-                                Log.LogError($"Target blob {targetBlob.Uri.ToString()} already exists.");
-                            }
-                            
-                            await targetBlob.StartCopyAsync(blob.Uri);
-                        }));
-                    }
+                            Log.LogMessage($"{copyInProgessBlob.Uri.ToString()} completed.");
+                        }
+                    }));
                 }
             }
             catch (Exception e)
