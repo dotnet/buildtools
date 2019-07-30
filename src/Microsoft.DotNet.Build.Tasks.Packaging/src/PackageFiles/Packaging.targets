@@ -42,7 +42,7 @@
     <ShouldWritePkgSigningRequired Condition="'$(SkipSigning)' == 'true'">false</ShouldWritePkgSigningRequired>
     <ShouldWritePkgSigningRequired Condition="'$(SignType)' == 'public' or '$(SignType)' == 'oss'">false</ShouldWritePkgSigningRequired>
     <ShouldWritePkgSigningRequired Condition="'$(ShouldWritePkgSigningRequired)'==''">true</ShouldWritePkgSigningRequired>
-    <NuPkgAuthenticodeSig          Condition="'$(ShouldWritePkgSigningRequired)'=='true'">Microsoft</NuPkgAuthenticodeSig>    
+    <NuPkgAuthenticodeSig          Condition="'$(ShouldWritePkgSigningRequired)'=='true'">Microsoft400</NuPkgAuthenticodeSig>    
   </PropertyGroup>
 
   <!--
