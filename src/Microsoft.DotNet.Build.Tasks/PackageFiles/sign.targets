@@ -2,7 +2,7 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <AuthenticodeSig Condition="'$(AuthenticodeSig)' == ''">Microsoft</AuthenticodeSig>
+    <AuthenticodeSig Condition="'$(AuthenticodeSig)' == ''">Microsoft400</AuthenticodeSig>
     <StrongNameSig Condition="'$(StrongNameSig)' == '' and '$(SignType)' == 'real' and '$(UseOpenKey)' != 'true'">StrongName</StrongNameSig>
   </PropertyGroup>
 
