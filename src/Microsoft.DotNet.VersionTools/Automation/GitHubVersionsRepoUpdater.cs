@@ -148,20 +148,38 @@ namespace Microsoft.DotNet.VersionTools.Automation
                     }
                     catch (HttpRequestException ex)
                     {
-                        int nextTry = i + 1;
-                        if (nextTry < MaxTries)
+                        bool retrySucceeded = await TryRetry(i, ex.Message);
+                        if (!retrySucceeded)
                         {
-                            Trace.TraceInformation($"Encountered exception committing build-info update: {ex.Message}");
-                            Trace.TraceInformation($"Trying again in {RetryMillisecondsDelay}ms. {MaxTries - nextTry} tries left.");
-                            await Task.Delay(RetryMillisecondsDelay);
+                            throw;
                         }
-                        else
+                    }
+                    catch (NotFastForwardUpdateException ex)
+                    {
+                        bool retrySucceeded = await TryRetry(i, ex.Message);
+                        if (!retrySucceeded)
                         {
-                            Trace.TraceInformation("Encountered exception committing build-info update.");
                             throw;
                         }
                     }
                 }
+            }
+        }
+
+        private async Task<bool> TryRetry(int currentTry, string exceptionMessage)
+        {
+            int nextTry = currentTry + 1;
+            if (nextTry < MaxTries)
+            {
+                Trace.TraceInformation($"Encountered exception committing build-info update: {exceptionMessage}");
+                Trace.TraceInformation($"Trying again in {RetryMillisecondsDelay}ms. {MaxTries - nextTry} tries left.");
+                await Task.Delay(RetryMillisecondsDelay);
+                return true;
+            }
+            else
+            {
+                Trace.TraceInformation("Encountered exception committing build-info update.");
+                return false;
             }
         }
     }
