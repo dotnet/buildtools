@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.IO;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Microsoft.Build.Framework;
+using Microsoft.Build.Utilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Net.Http;
 using System.Text;
-using Microsoft.Build.Utilities;
+using System.Threading.Tasks;
 
 namespace Microsoft.DotNet.Build.CloudTestTasks
 {
@@ -41,10 +41,10 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
         public string EventDataPath { get; set; }
 
         /// <summary>
-        /// Once a helix job is started, this is the identifier of that job
+        /// Once one or more helix jobs are started, these GUIDs are the identifiers of those jobs.
         /// </summary>
         [Output]
-        public ITaskItem [] JobIds { get; set; }
+        public ITaskItem[] JobIds { get; set; }
 
         public override bool Execute()
         {
@@ -62,7 +62,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
             }
 
             Log.LogMessage(MessageImportance.Normal, "Posting job to {0}", ApiEndpoint);
-            Log.LogMessage(MessageImportance.Low,    "Using Job Event json from ", EventDataPath);
+            Log.LogMessage(MessageImportance.Low, "Using Job Event json from ", EventDataPath);
 
             string buildJsonText = File.ReadAllText(EventDataPath);
 
@@ -87,8 +87,7 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
                 foreach (JObject jobStartMessage in allBuilds)
                 {
-                    string queueId = (string) jobStartMessage["QueueId"];
-                    // This should never happen.
+                    string queueId = (string)jobStartMessage["QueueId"];
                     if (string.IsNullOrEmpty(queueId))
                     {
                         Log.LogError("Helix Job Start messages must have a value for 'QueueId' ");
@@ -96,53 +95,52 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                     bool keepTrying = true;
                     while (keepTrying)
                     {
-                        HttpResponseMessage response = new HttpResponseMessage();
-
                         try
                         {
-                            // This tortured way to get the HTTPContent is to work around that StringContent doesn't allow application/json
+                            // Work around the fact that StringContent doesn't allow application/json
                             HttpContent contentStream = new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes(jobStartMessage.ToString())));
                             contentStream.Headers.Add("Content-Type", "application/json");
-                            response = await client.PostAsync(apiUrl, contentStream);
-
-                            if (response.IsSuccessStatusCode)
+                            using (HttpResponseMessage response = await client.PostAsync(apiUrl, contentStream))
                             {
-                                JObject responseObject = new JObject();
-                                using (Stream stream = await response.Content.ReadAsStreamAsync())
-                                using (StreamReader streamReader = new StreamReader(stream))
+                                if (response.IsSuccessStatusCode)
                                 {
-                                    string jsonResponse = streamReader.ReadToEnd();
-                                    try
+                                    JObject responseObject = new JObject();
+                                    using (Stream stream = await response.Content.ReadAsStreamAsync())
+                                    using (StreamReader streamReader = new StreamReader(stream))
                                     {
-                                        using (JsonReader jsonReader = new JsonTextReader(new StringReader(jsonResponse)))
+                                        string jsonResponse = streamReader.ReadToEnd();
+                                        try
                                         {
-                                            responseObject = JObject.Load(jsonReader);
+                                            using (JsonReader jsonReader = new JsonTextReader(new StringReader(jsonResponse)))
+                                            {
+                                                responseObject = JObject.Load(jsonReader);
+                                            }
+                                        }
+                                        catch
+                                        {
+                                            Log.LogWarning($"Hit exception attempting to parse JSON response.  Raw response string: {Environment.NewLine} {jsonResponse}");
                                         }
                                     }
-                                    catch 
+
+                                    string jobId = (string)responseObject["Name"];
+                                    if (String.IsNullOrEmpty(jobId))
                                     {
-                                        Log.LogWarning($"Hit exception attempting to parse JSON response.  Raw response string: {Environment.NewLine} {jsonResponse}");
+                                        Log.LogError("Publish to '{0}' did not return a job ID", ApiEndpoint);
                                     }
-                                }
+                                    TaskItem helixJobStartedInfo = new TaskItem(jobId);
+                                    helixJobStartedInfo.SetMetadata("CorrelationId", jobId);
+                                    helixJobStartedInfo.SetMetadata("QueueId", queueId);
+                                    helixJobStartedInfo.SetMetadata("QueueTimeUtc", DateTime.UtcNow.ToString());
+                                    jobIds.Add(helixJobStartedInfo);
 
-                                string jobId = (string)responseObject["Name"];
-                                if (String.IsNullOrEmpty(jobId))
+                                    Log.LogMessage(MessageImportance.High, "Started Helix job: CorrelationId = {0}", jobId);
+                                    keepTrying = false;
+                                }
+                                else
                                 {
-                                    Log.LogError("Publish to '{0}' did not return a job ID", ApiEndpoint);
+                                    string responseContent = await response.Content.ReadAsStringAsync();
+                                    Log.LogWarning($"Helix Api Response: StatusCode {response.StatusCode} {responseContent}");
                                 }
-                                TaskItem helixJobStartedInfo = new TaskItem(jobId);
-                                helixJobStartedInfo.SetMetadata("CorrelationId", jobId);
-                                helixJobStartedInfo.SetMetadata("QueueId", queueId);
-                                helixJobStartedInfo.SetMetadata("QueueTimeUtc", DateTime.UtcNow.ToString());
-                                jobIds.Add(helixJobStartedInfo);
-
-                                Log.LogMessage(MessageImportance.High, "Started Helix job: CorrelationId = {0}", jobId);
-                                keepTrying = false;
-                            }
-                            else
-                            {
-                                string responseContent = await response.Content.ReadAsStringAsync();
-                                Log.LogWarning($"Helix Api Response: StatusCode {response.StatusCode} {responseContent}");
                             }
                         }
                         // still allow other types of exceptions to tear down the task for now
@@ -151,17 +149,21 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                             Log.LogWarning("Exception thrown attempting to submit job to Helix:");
                             Log.LogWarningFromException(toLog, true);
                         }
+                        // If this method supported task cancellation, we'd need to make sure the CancellationToken came from the Http Client... but it doesn't.
+                        catch (TaskCanceledException)
+                        {
+                            Log.LogWarning($"Http Client timeout posting to Helix, will retry up to {MaxAttempts} times");
+                        }
 
                         if (retryCount-- <= 0)
                         {
-                            Log.LogError($"Unable to publish to '{ApiEndpoint}' after {MaxAttempts} retries. Received status code: {response.StatusCode} {response.ReasonPhrase}");
+                            Log.LogError($"Failed to publish to '{ApiEndpoint}' after {MaxAttempts} retries.");
                             keepTrying = false;
                         }
                         if (keepTrying)
                         {
                             Log.LogWarning("Failed to publish to '{0}', {1} retries remaining", ApiEndpoint, retryCount);
-                            int delay = (MaxAttempts - retryCount) * rng.Next(1, 7);
-                            await System.Threading.Tasks.Task.Delay(delay * 1000);
+                            await System.Threading.Tasks.Task.Delay((MaxAttempts - retryCount) * rng.Next(1, 12) * 1000);
                         }
                     }
                 }

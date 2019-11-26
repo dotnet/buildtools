@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.IO;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Build.Framework;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
+using System.IO;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace Microsoft.DotNet.Build.CloudTestTasks
 {
@@ -68,69 +67,73 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
                 while (true)
                 {
-                    HttpResponseMessage response = new HttpResponseMessage();
-
-                    try
+                    using (Stream postStream = File.OpenRead(EventDataPath))
                     {
-                        using (Stream stream = File.OpenRead(EventDataPath))
+                        try
                         {
-                            HttpContent contentStream = new StreamContent(stream);
+                            HttpContent contentStream = new StreamContent(postStream);
                             contentStream.Headers.Add("Content-Type", "application/json");
-                            response = await client.PostAsync(apiUrl, contentStream);
-                        }
-
-                        if (response.IsSuccessStatusCode)
-                        {
-                            JObject responseObject = new JObject();
-                            using (Stream stream = await response.Content.ReadAsStreamAsync())
-                            using (StreamReader streamReader = new StreamReader(stream))
+                            using (HttpResponseMessage response = await client.PostAsync(apiUrl, contentStream))
                             {
-                                string jsonResponse = streamReader.ReadToEnd();
-                                try
+                                if (response.IsSuccessStatusCode)
                                 {
-                                    using (JsonReader jsonReader = new JsonTextReader(new StringReader(jsonResponse)))
+                                    JObject responseObject = new JObject();
+                                    using (Stream responseStream = await response.Content.ReadAsStreamAsync())
+                                    using (StreamReader streamReader = new StreamReader(responseStream))
                                     {
-                                        responseObject = JObject.Load(jsonReader);
+                                        string jsonResponse = streamReader.ReadToEnd();
+                                        try
+                                        {
+                                            using (JsonReader jsonReader = new JsonTextReader(new StringReader(jsonResponse)))
+                                            {
+                                                responseObject = JObject.Load(jsonReader);
+                                            }
+                                        }
+                                        catch
+                                        {
+                                            Log.LogWarning($"Hit exception attempting to parse JSON response.  Raw response string: {Environment.NewLine} {jsonResponse}");
+                                        }
                                     }
+
+                                    JobId = (string)responseObject["Name"];
+                                    if (String.IsNullOrEmpty(JobId))
+                                    {
+                                        Log.LogError("Publish to '{0}' did not return a job ID", ApiEndpoint);
+                                        return false;
+                                    }
+
+                                    Log.LogMessage(MessageImportance.High, "Started Helix job: CorrelationId = {0}", JobId);
+                                    return true;
                                 }
-                                catch
+                                else
                                 {
-                                    Log.LogWarning($"Hit exception attempting to parse JSON response.  Raw response string: {Environment.NewLine} {jsonResponse}");
+                                    string responseContent = await response.Content.ReadAsStringAsync();
+                                    Log.LogWarning($"Helix Api Response: StatusCode {response.StatusCode} {responseContent}");
                                 }
                             }
-
-                            JobId = (string)responseObject["Name"];
-                            if (String.IsNullOrEmpty(JobId))
-                            {
-                                Log.LogError("Publish to '{0}' did not return a job ID", ApiEndpoint);
-                                return false;
-                            }
-
-                            Log.LogMessage(MessageImportance.High, "Started Helix job: CorrelationId = {0}", JobId);
-                            return true;
                         }
-                        else
+                        // still allow other types of exceptions to tear down the task for now
+                        catch (HttpRequestException toLog)
                         {
-                            string responseContent = await response.Content.ReadAsStringAsync();
-                            Log.LogWarning($"Helix Api Response: StatusCode {response.StatusCode} {responseContent}");
+                            Log.LogWarning("Exception thrown attempting to submit job to Helix:");
+                            Log.LogWarningFromException(toLog, true);
                         }
-                    }
-                    // still allow other types of exceptions to tear down the task for now
-                    catch (HttpRequestException toLog)
-                    {
-                        Log.LogWarning("Exception thrown attempting to submit job to Helix:");
-                        Log.LogWarningFromException(toLog, true);
-                    }
+                        // If this method supported task cancellation, we'd need to make sure the CancellationToken came from the Http Client... but it doesn't.
+                        catch (TaskCanceledException)
+                        {
+                            Log.LogWarning($"Http Client timeout posting to Helix, will retry up to {MaxAttempts} times");
+                        }
 
-                    if (retryCount-- <= 0)
-                    {
-                        Log.LogError($"Unable to publish to '{ApiEndpoint}' after {MaxAttempts} retries. Received status code: {response.StatusCode} {response.ReasonPhrase}");
-                        return false;
-                    }
+                        if (retryCount-- <= 0)
+                        {
+                            Log.LogError($"Failed to to publish to '{ApiEndpoint}' after {MaxAttempts} retries.");
+                            return false;
+                        }
 
-                    Log.LogWarning("Failed to publish to '{0}', {1} retries remaining", ApiEndpoint, retryCount);
-                    int delay = (MaxAttempts - retryCount) * rng.Next(1, 7);
-                    await System.Threading.Tasks.Task.Delay(delay * 1000);
+                        Log.LogWarning("Failed to publish to '{0}', {1} retries remaining", ApiEndpoint, retryCount);
+                        int delay = (MaxAttempts - retryCount) * rng.Next(1, 12);
+                        await Task.Delay(delay * 1000);
+                    }
                 }
             }
         }
