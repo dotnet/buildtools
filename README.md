@@ -1,5 +1,7 @@
 # .NET Core Build Tools
 
+This repo has been replaced by [Arcade](https://github.com/dotnet/arcade). It's still used for servicing older releases of .NET Core but new code shouldn't use it. As a result, we dont accept new PRs in this code base.
+
 ### Windows
 [![Build Status](https://ci.dot.net/job/dotnet_buildtools/job/master/job/Windows_NT/badge/icon)](https://ci.dot.net/job/dotnet_buildtools/job/master/job/Windows_NT/)
 
