@@ -241,11 +241,14 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
                 }
                 catch (Exception e)
                 {
-                    loggingHelper.LogWarningFromException(e, true);
-
                     // if this is the final iteration let the exception bubble up
                     if (retries + 1 == retryCount)
+                    {
+                        loggingHelper.LogErrorFromException(e, true);
                         throw;
+                    }
+
+                    loggingHelper.LogMessage(MessageImportance.Low, "Caught exception while sending, retrying: {0}", e.Message);
                 }
 
                 // response can be null if we fail to send the request
