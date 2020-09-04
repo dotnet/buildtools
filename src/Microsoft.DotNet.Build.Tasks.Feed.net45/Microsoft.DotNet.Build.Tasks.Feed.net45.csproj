@@ -5,6 +5,7 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <NuGetRuntimeIdentifier>win7-x64</NuGetRuntimeIdentifier>
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
+    <DefineConstants>net45</DefineConstants>
     <ImportedProjectRelativePath>..\Microsoft.DotNet.Build.Tasks.Feed\</ImportedProjectRelativePath>
     <ProjectGuid>{17C66BCE-EB35-44CA-893C-8AAFB67708E9}</ProjectGuid>
     <TargetFrameworkProjectSuffix>.net45</TargetFrameworkProjectSuffix>
@@ -16,12 +17,16 @@
   <ItemGroup>
     <Compile Include="$(CommonPath)\BuildTask.Desktop.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\common\AssemblyResolver.cs" />
+    <Compile Include="..\Microsoft.DotNet.Build.CloudTestTasks.net45\TLSHandler.cs">
+      <Link>TLSHandler.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <TargetingPackReference Include="Microsoft.Build.Tasks.v4.0" />
     <TargetingPackReference Include="Microsoft.Build.Framework" />
     <TargetingPackReference Include="Microsoft.Build.Utilities.v4.0" />
     <TargetingPackReference Include="System" />
+    <TargetingPackReference Include="System.Net" />
     <TargetingPackReference Include="System.Net.Http" />
     <TargetingPackReference Include="System.Collections" />
     <TargetingPackReference Include="System.Core" />
