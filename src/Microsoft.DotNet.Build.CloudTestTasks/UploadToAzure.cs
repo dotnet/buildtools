@@ -97,6 +97,11 @@ namespace Microsoft.DotNet.Build.CloudTestTasks
 
             try
             {
+                // Enable TLS12 for net45 framework.
+                #if net45
+                    TLSHandler.EnableTLS12();
+                #endif //net45
+                
                 using (HttpClient client = new HttpClient())
                 {
                     var createRequest = AzureHelper.RequestMessage("GET", checkListUrl, AccountName, AccountKey);
