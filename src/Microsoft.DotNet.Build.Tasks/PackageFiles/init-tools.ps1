@@ -4,6 +4,9 @@
     [Parameter(Mandatory=$true)][string]$BuildToolsPackageDir
  )
 
+#Add tls 1.2
+[Net.ServicePointManager]::SecurityProtocol += [Net.SecurityProtocolType]::Tls12
+
 # Override versions in runtimeconfig.json files with highest available runtime version.
 $mncaFolder = (Get-Item $DotnetCmd).Directory.FullName + "\shared\Microsoft.NETCore.App"
 $highestVersion = Get-ChildItem $mncaFolder -Name | Sort-Object BaseName | Select-Object -First 1
