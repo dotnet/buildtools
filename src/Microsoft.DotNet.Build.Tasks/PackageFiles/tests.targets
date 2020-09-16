@@ -661,7 +661,4 @@ robocopy /S /NP %EXECUTION_DIR%int\%(Identity)\ %EXECUTION_DIR%native\
   <Target Name="Test" DependsOnTargets="$(TestDependsOn)" Condition="'$(SkipTestRun)' != 'true'" />
   <Target Name="BuildAndTest" DependsOnTargets="Build;Test" />
   <Target Name="RebuildAndTest" DependsOnTargets="Rebuild;Test" />
-
-  <!-- This helps collect crash dumps and requires python installed -->
-  <Import Project="$(MSBuildThisFileDirectory)Dumpling.targets" Condition="'$(EnableDumpling)' == 'true' OR '$(EnableCloudTest)' == 'true'" />
 </Project>
