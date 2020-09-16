@@ -1,7 +1,5 @@
 import os
 import platform
-import urllib
-import urllib2
 import glob
 import time
 import sys
@@ -12,33 +10,9 @@ import traceback
 def get_timestamp():
   print(time.time())
 
-def install_dumpling():
-  try:
-    if (not os.path.isfile(dumplingPath)):
-      url = "https://dumpling.int-dot.net/api/client/dumpling.py"
-      scriptPath = os.path.dirname(os.path.realpath(__file__))
-      downloadLocation = scriptPath + "/dumpling.py"
-      response = urllib2.urlopen(url)
-      if response.getcode() == 200:
-        with open(downloadLocation, 'w') as f:
-          f.write(response.read())
-        subprocess.call([sys.executable, downloadLocation, "install", "--full"])
-      else:
-        raise urllib2.URLError("HTTP Status Code" + str(response.getcode()))
-
-    dbgPath = "~/.dumpling/dbg/bin/lldb"    
-    subprocess.call([sys.executable, dumplingPath, "install"])
-    subprocess.call([sys.executable, dumplingPath, "config", "--dbgpath", dbgPath, "save"])
-  except urllib2.HTTPError, e:
-    print("Dumpling cannot be installed from " + url + " due to: " + str(e).replace(':', '')) # Remove : to avoid looking like error format
-  except  urllib2.URLError, e:
-    print("Dumpling cannot be installed from " + url + " due to: " + str(e.reason))
-  except:
-    print("An unexpected error was encountered while installing dumpling.py: " + traceback.format_exc())
-
 def ensure_installed():
   if (not os.path.isfile(dumplingPath)):
-    print("Dumpling has not been installed yet. Please run \"DumplingHelper.py install_dumpling\" before collect_dumps.")
+    print("Dumpling has not been installed yet. Please install dumpling before collect_dumps.")
     return False
   else:
     return True
@@ -100,8 +74,6 @@ def collect_dump(exitcodeStr, folder, startTimeStr, projectName, incpaths):
 def print_usage():
   print("DumplingHelper.py <command>")
   print("Commands:")
-  print("  install_dumpling:")
-  print("      - Installs dumpling globally on the machine.")
   print("  get_timestamp:")
   print("      - Prints out the current timestamp of the machine.")
   print("  collect_dump <exitcode> <folder> <starttime> <projectname> <incpaths>:")
@@ -112,9 +84,7 @@ def main(argv):
   if (len(argv) <= 1):
     print_usage()
     sys.exit(1)
-  if (argv[1] == "install_dumpling"):
-    install_dumpling()
-  elif (argv[1] == "get_timestamp"):
+  if (argv[1] == "get_timestamp"):
     get_timestamp()
   elif (argv[1] == "collect_dump"):
     if (len(argv) == 6):
