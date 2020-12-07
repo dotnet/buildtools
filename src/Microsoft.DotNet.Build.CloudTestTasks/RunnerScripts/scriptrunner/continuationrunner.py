@@ -16,7 +16,7 @@ import helix.proc
 import helix.saferequests
 
 from helix.cmdline import command_main
-from helix.io import fix_path, zip_directory, add_file_to_zip
+from helix.helixio import fix_path, zip_directory, add_file_to_zip
 from helix.platformutil import is_windows
 from helix_test_execution import HelixTestExecution
 from helix.settings import settings_from_env
