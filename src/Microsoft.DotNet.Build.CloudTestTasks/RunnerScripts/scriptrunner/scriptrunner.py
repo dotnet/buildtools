@@ -13,7 +13,7 @@ import helix.proc
 import helix.saferequests
 
 from helix.cmdline import command_main
-from helix.io import fix_path
+from helix.helixio import fix_path
 from helix_test_execution import HelixTestExecution
 from io import open
 
