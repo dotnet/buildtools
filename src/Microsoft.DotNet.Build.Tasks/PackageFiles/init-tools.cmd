@@ -33,8 +33,8 @@ set MSBUILD_PROJECT_CONTENT= ^
 
 set PUBLISH_TFM=netcoreapp2.0
 
-set INIT_TOOLS_RESTORE_ARGS=--source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json %INIT_TOOLS_RESTORE_ARGS%
-set TOOLRUNTIME_RESTORE_ARGS=--source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json %INIT_TOOLS_RESTORE_ARGS%
+set INIT_TOOLS_RESTORE_ARGS=--source https://pkgs.dev.azure.com/dnceng/public/_packaging/myget-legacy/nuget/v3/index.json --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public/nuget/v3/index.json %INIT_TOOLS_RESTORE_ARGS%
+set TOOLRUNTIME_RESTORE_ARGS=--source https://dotnetmygetlegacy.blob.core.windows.net/dotnet-core/index.json %INIT_TOOLS_RESTORE_ARGS%
 
 if not exist "%PROJECT_DIR%" (
   echo ERROR: Cannot find project root path at [%PROJECT_DIR%]. Please pass in the source directory as the 1st parameter.
@@ -103,7 +103,7 @@ Robocopy "%PACKAGES_DIR%\Microsoft.Net.Compilers\%ROSLYNCOMPILERS_VERSION%\." "%
 if [%ILASMCOMPILER_VERSION%]==[] goto :afterILAsmRestore
 
 @echo on
-call "%DOTNET_CMD%" build "%TOOLRUNTIME_DIR%\ilasm\ilasm.depproj" -r %NATIVE_TOOLS_RID% --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json --packages "%PACKAGES_DIR%\." /p:ILAsmPackageVersion=%ILASMCOMPILER_VERSION%
+call "%DOTNET_CMD%" build "%TOOLRUNTIME_DIR%\ilasm\ilasm.depproj" -r %NATIVE_TOOLS_RID% --source https://dotnetmygetlegacy.blob.core.windows.net/dotnet-core/index.json --source https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json --packages "%PACKAGES_DIR%\." /p:ILAsmPackageVersion=%ILASMCOMPILER_VERSION%
 set RESTORE_ILASM_ERROR_LEVEL=%ERRORLEVEL%
 @echo off
 if not [%RESTORE_ILASM_ERROR_LEVEL%]==[0] (
