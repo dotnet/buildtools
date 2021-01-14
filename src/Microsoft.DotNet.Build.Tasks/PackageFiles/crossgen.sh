@@ -75,7 +75,7 @@ if [[ -z "${1:-}" || "$1" == "-?" || "$1" == "--help" || "$1" == "-h" ]]; then
     usage
 fi
 
-__MyGetFeed=${BUILDTOOLS_CROSSGEN_FEED:-https://dotnet.myget.org/F/dotnet-core/api/v3/index.json}
+__MyGetFeed=${BUILDTOOLS_CROSSGEN_FEED:-https://dotnetmygetlegacy.blob.core.windows.net/dotnet-core/index.json}
 __targetDir=$1
 __scriptpath=$(cd "$(dirname "$0")"; pwd -P)
 __toolsDir=$__scriptpath/../Tools

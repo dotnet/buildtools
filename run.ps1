@@ -10,8 +10,7 @@ if ((Test-Path $bootStrapperPath) -eq 0)
         mkdir $toolsLocalPath | Out-Null
     }
 
-    # download boot-strapper script
-    Invoke-WebRequest "https://raw.githubusercontent.com/dotnet/buildtools/master/bootstrap/bootstrap.ps1" -OutFile $bootStrapperPath
+    Copy-Item (Join-Path (Get-Location) ".\bootstrap\bootstrap.ps1") -Destination $bootStrapperPath
 }
 
 # now execute it
