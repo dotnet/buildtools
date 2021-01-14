@@ -227,8 +227,8 @@ pjContent="$pjContent }, \"frameworks\": { \"netcoreapp1.0\": { } } }"
 echo $pjContent > $projectJson
 
 # now restore the packages
-buildToolsSource="${BUILDTOOLS_SOURCE:-https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json}"
-nugetOrgSource="https://api.nuget.org/v3/index.json"
+buildToolsSource="${BUILDTOOLS_SOURCE:-https://pkgs.dev.azure.com/dnceng/public/_packaging/myget-legacy/nuget/v3/index.json}"
+nugetOrgSource="https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public/nuget/v3/index.json"
 
 packagesPath="$repoRoot/packages"
 dotNetExe="$cliLocalPath/dotnet"

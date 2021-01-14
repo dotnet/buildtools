@@ -34,8 +34,8 @@ set MSBUILD_PROJECT_CONTENT= ^
 set PUBLISH_TFM=netcoreapp2.0
 
 set DEFAULT_RESTORE_ARGS=--no-cache --packages "%PACKAGES_DIR%"
-set INIT_TOOLS_RESTORE_ARGS=%DEFAULT_RESTORE_ARGS% --source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json %INIT_TOOLS_RESTORE_ARGS%
-set TOOLRUNTIME_RESTORE_ARGS=%INIT_TOOLS_RESTORE_ARGS% --source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json --source https://dotnetfeed.blob.core.windows.net/dotnet-coreclr/index.json
+set INIT_TOOLS_RESTORE_ARGS=%DEFAULT_RESTORE_ARGS% --source https://pkgs.dev.azure.com/dnceng/public/_packaging/myget-legacy/nuget/v3/index.json --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public/nuget/v3/index.json %INIT_TOOLS_RESTORE_ARGS%
+set TOOLRUNTIME_RESTORE_ARGS=%INIT_TOOLS_RESTORE_ARGS% --source https://dotnetmygetlegacy.blob.core.windows.net/dotnet-core/index.json --source https://dotnetfeed.blob.core.windows.net/dotnet-coreclr/index.json
 
 if not exist "%PROJECT_DIR%" (
   echo ERROR: Cannot find project root path at [%PROJECT_DIR%]. Please pass in the source directory as the 1st parameter.

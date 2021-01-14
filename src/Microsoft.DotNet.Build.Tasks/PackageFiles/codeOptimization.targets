@@ -89,8 +89,8 @@
     <!-- Dynamically create a project.json file used to restore the optimization data-->
     <PropertyGroup>
       <OptimizationDataProject>$(MSBuildThisFileDirectory)OptimizationData.msbuild</OptimizationDataProject>
-      <OptimizationDataNuGetFeed Condition="'$(OptimizationDataNuGetFeed)'==''">https:%2F%2Fdotnet.myget.org/F/roslyn/api/v3/index.json</OptimizationDataNuGetFeed>
-      <CoreFxOptimizationDataNuGetFeed Condition="'$(CoreFxOptimizationDataNuGetFeed)'==''">https:%2F%2Fdotnet.myget.org/F/dotnet-core-optimization-data/api/v3/index.json</CoreFxOptimizationDataNuGetFeed>
+      <OptimizationDataNuGetFeed Condition="'$(OptimizationDataNuGetFeed)'==''">https:%2F%2Fpkgs.dev.azure.com/dnceng/public/_packaging/myget-legacy/nuget/v3/index.json</OptimizationDataNuGetFeed>
+      <CoreFxOptimizationDataNuGetFeed Condition="'$(CoreFxOptimizationDataNuGetFeed)'==''">https:%2F%2Fpkgs.dev.azure.com/dnceng/public/_packaging/myget-legacy/nuget/v3/index.json</CoreFxOptimizationDataNuGetFeed>
     </PropertyGroup>
 
     <!-- Restore the OptimizationData package -->
