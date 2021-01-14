@@ -94,13 +94,14 @@ $pjContent | Out-File $projectJson
 # now restore the packages
 $buildToolsSource = "https://pkgs.dev.azure.com/dnceng/public/_packaging/myget-legacy/nuget/v3/index.json"
 $dotnetPublicSource = "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public/nuget/v3/index.json"
+$tempBuildToolsSource = "https://pkgs.dev.azure.com/dnceng/public/_packaging/general-testing/nuget/v3/index.json"
 if ($env:buildtools_source -ne $null)
 {
     $buildToolsSource = $env:buildtools_source
 }
 $packagesPath = Join-Path $RepositoryRoot "packages"
 $dotNetExe = Join-Path $cliLocalPath "dotnet.exe"
-$restoreArgs = "restore $projectJson --packages $packagesPath --source $buildToolsSource --source $dotnetPublicSource"
+$restoreArgs = "restore $projectJson --packages $packagesPath --source $buildToolsSource --source $dotnetPublicSource --source $tempBuildToolsSource"
 $process = Start-Process -Wait -NoNewWindow -FilePath $dotNetExe -ArgumentList $restoreArgs -PassThru
 if ($process.ExitCode -ne 0)
 {
