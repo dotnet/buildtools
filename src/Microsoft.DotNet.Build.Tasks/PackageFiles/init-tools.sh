@@ -53,8 +53,8 @@ else
     __PUBLISH_TFM=netcoreapp2.0
 fi
 
-__INIT_TOOLS_RESTORE_ARGS="--source https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json --source https://api.nuget.org/v3/index.json ${__INIT_TOOLS_RESTORE_ARGS:-}"
-__TOOLRUNTIME_RESTORE_ARGS="--source https://dotnet.myget.org/F/dotnet-core/api/v3/index.json ${__INIT_TOOLS_RESTORE_ARGS}"
+__INIT_TOOLS_RESTORE_ARGS="--source https://pkgs.dev.azure.com/dnceng/public/_packaging/myget-legacy/nuget/v3/index.json --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public/nuget/v3/index.json ${__INIT_TOOLS_RESTORE_ARGS:-}"
+__TOOLRUNTIME_RESTORE_ARGS="--source https://pkgs.dev.azure.com/dnceng/public/_packaging/myget-legacy/nuget/v3/index.json ${__INIT_TOOLS_RESTORE_ARGS}"
 
 if [ ! -d "$__PROJECT_DIR" ]; then
     echo "ERROR: Cannot find project root path at '$__PROJECT_DIR'. Please pass in the source directory as the 1st parameter."
