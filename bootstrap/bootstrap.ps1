@@ -92,8 +92,8 @@ $pjContent = $pjContent + "}, `"frameworks`": { `"netcoreapp1.0`": { } } }"
 $pjContent | Out-File $projectJson
 
 # now restore the packages
-$buildToolsSource = "https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json"
-$nugetOrgSource = "https://api.nuget.org/v3/index.json"
+$buildToolsSource = "https://pkgs.dev.azure.com/dnceng/public/_packaging/myget-legacy/nuget/v3/index.json"
+$nugetOrgSource = "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public/nuget/v3/index.json"
 if ($env:buildtools_source -ne $null)
 {
     $buildToolsSource = $env:buildtools_source
