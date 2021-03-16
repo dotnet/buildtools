@@ -47,7 +47,7 @@ namespace Microsoft.DotNet.VersionTools.Tests.BuildManifest
         public void TestExampleCustomBuildIdentityRoundtrip()
         {
             XElement xml = XElement.Parse(
-                @"<Build Name=""Example"" BuildId=""123"" ProductVersion=""1.0.0-preview"" Branch=""master"" Commit=""abcdef"" BlankExtra="""" Extra=""extra-foo"" />");
+                @"<Build Name=""Example"" BuildId=""123"" ProductVersion=""1.0.0-preview"" Branch=""main"" Commit=""abcdef"" BlankExtra="""" Extra=""extra-foo"" />");
             var model = BuildModel.Parse(xml);
             XElement modelXml = model.ToXml();
 
@@ -92,7 +92,7 @@ namespace Microsoft.DotNet.VersionTools.Tests.BuildManifest
     <Blob Id=""symbols/System.ValueTuple.4.5.0-preview1-25929-04.symbols.nupkg"" NonShipping=""true"" />
   </Endpoint>
   <Build Name=""SimpleBuildManifest"" BuildId=""123"" />
-  <Build Name=""corefx"" BuildId=""20171129-04"" Branch=""master"" Commit=""defb6d52047cc3d6b5f5d0853b0afdb1512dfbf4"" />
+  <Build Name=""corefx"" BuildId=""20171129-04"" Branch=""main"" Commit=""defb6d52047cc3d6b5f5d0853b0afdb1512dfbf4"" />
 </OrchestratedBuild>");
 
             Assert.True(XNode.DeepEquals(xml, modelXml));
@@ -120,7 +120,7 @@ namespace Microsoft.DotNet.VersionTools.Tests.BuildManifest
 <Build
   Name=""corefx""
   BuildId=""20171129-04""
-  Branch=""master""
+  Branch=""main""
   Commit=""defb6d52047cc3d6b5f5d0853b0afdb1512dfbf4"">
 
   <Package Id=""runtime.rhel.6-x64.Microsoft.Private.CoreFx.NETCoreApp"" Version=""4.5.0-preview1-25929-04"" Category=""noship"" />
@@ -136,7 +136,7 @@ namespace Microsoft.DotNet.VersionTools.Tests.BuildManifest
 <OrchestratedBuild
   Name=""core-setup""
   BuildId=""20171129-02""
-  Branch=""master"">
+  Branch=""main"">
 
   <Endpoint
     Id=""Orchestrated""
@@ -162,13 +162,13 @@ namespace Microsoft.DotNet.VersionTools.Tests.BuildManifest
   <Build
     Name=""corefx""
     BuildId=""20171129-04""
-    Branch=""master""
+    Branch=""main""
     Commit=""defb6d52047cc3d6b5f5d0853b0afdb1512dfbf4"" />
 
   <Build
     Name=""core-setup""
     BuildId=""20171129-04""
-    Branch=""master""
+    Branch=""main""
     Commit=""152dbe8a4b4e30eee26208ff6a850e9aa73c07f8"" />
 
 </OrchestratedBuild>

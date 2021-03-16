@@ -5,13 +5,13 @@
 This is a tool used to manage the inputs and outputs of our repo.  In particular, it is used to manage our use of NuGet packages.  It helps to automate the otherwise tedious process of updating NuGet references by:
 
 - Fixing up project.json files
-- Generating helper files with specified package versions. Example [Dependencies.props](https://github.com/dotnet/roslyn/blob/master/build/Targets/Dependencies.props)
+- Generating helper files with specified package versions. Example [Dependencies.props](https://github.com/dotnet/roslyn/blob/main/build/Targets/Dependencies.props)
 
 The tool works by using all of our project.json files as the primary source of truth for the repo.  All files with the name pattern `*project.json` are considered to be NuGet assets and will be scanned for NuGet references.  
 
 This will impose a minimum of requirements on our NuGet packages.  In particular the tool assumes that all references to a given NuGet package should occur at the same version.  If the tool sees a package being used with different versions it will issue an error.  
 
-There are valid cases where a package is used at more than one version in the repo.  Typically because it's being deployed as an asset, used as a tool, etc ...  In those cases an entry can be added to [RepoData.json](https://github.com/dotnet/roslyn/blob/master/src/Tools/RepoUtil/RepoData.json)) in the fixed table to call out that usage:
+There are valid cases where a package is used at more than one version in the repo.  Typically because it's being deployed as an asset, used as a tool, etc ...  In those cases an entry can be added to [RepoData.json](https://github.com/dotnet/roslyn/blob/main/src/Tools/RepoUtil/RepoData.json)) in the fixed table to call out that usage:
 
 ``` json
 "fixed" {

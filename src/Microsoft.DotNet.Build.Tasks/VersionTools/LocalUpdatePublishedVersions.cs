@@ -31,7 +31,7 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
         /// </summary>
         public string VersionsRepo { get; set; }
         public string VersionsRepoOwner { get; set; }
-        public string VersionsRepoBranch { get; set; } = "master";
+        public string VersionsRepoBranch { get; set; } = "main";
 
         public override bool Execute()
         {

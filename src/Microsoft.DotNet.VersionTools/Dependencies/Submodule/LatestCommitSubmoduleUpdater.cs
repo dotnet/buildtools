@@ -33,7 +33,7 @@ namespace Microsoft.DotNet.VersionTools.Dependencies.Submodule
             if (string.IsNullOrEmpty(@ref))
             {
                 throw new ArgumentException(
-                    "A ref must be specified. For example, 'master'. Got null or empty string.",
+                    "A ref must be specified. For example, 'main'. Got null or empty string.",
                     nameof(@ref));
             }
             Ref = @ref;

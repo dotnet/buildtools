@@ -42,8 +42,8 @@ namespace Microsoft.DotNet.VersionTools.Tests.BuildManifest
             var client = new BuildManifestClient(mockGitHub.Object);
             var build = new OrchestratedBuildModel(new BuildIdentity { Name = "orch", BuildId = "123"});
             var proj = new GitHubProject("versions", "dotnet");
-            string @ref = "heads/master";
-            string basePath = "build-info/dotnet/product/cli/master";
+            string @ref = "heads/main";
+            string basePath = "build-info/dotnet/product/cli/main";
             string message = "Test build upload commit";
 
             string fakeCommitHash = "fakeCommitHash";
@@ -98,8 +98,8 @@ namespace Microsoft.DotNet.VersionTools.Tests.BuildManifest
 
             var client = new BuildManifestClient(mockGitHub.Object);
             var proj = new GitHubProject("versions", "dotnet");
-            string @ref = "heads/master";
-            string basePath = "build-info/dotnet/product/cli/master";
+            string @ref = "heads/main";
+            string basePath = "build-info/dotnet/product/cli/main";
             string message = "Test change manifest commit";
             string addSemaphorePath = "add-identity.semaphore";
 
@@ -164,8 +164,8 @@ namespace Microsoft.DotNet.VersionTools.Tests.BuildManifest
 
             var client = new BuildManifestClient(mockGitHub.Object);
             var proj = new GitHubProject("versions", "dotnet");
-            string @ref = "heads/master";
-            string basePath = "build-info/dotnet/product/cli/master";
+            string @ref = "heads/main";
+            string basePath = "build-info/dotnet/product/cli/main";
             string message = "Test change manifest commit";
             string addSemaphorePath = "add-identity.semaphore";
 
@@ -205,8 +205,8 @@ namespace Microsoft.DotNet.VersionTools.Tests.BuildManifest
             var client = new BuildManifestClient(mockGitHub.Object);
             var build = new OrchestratedBuildModel(new BuildIdentity { Name = "orch", BuildId = "123" });
             var proj = new GitHubProject("versions", "dotnet");
-            string @ref = "heads/master";
-            string basePath = "build-info/dotnet/product/cli/master";
+            string @ref = "heads/main";
+            string basePath = "build-info/dotnet/product/cli/main";
             string message = "Test build upload commit";
 
             string fakeCommitHash = "fakeCommitHash";
