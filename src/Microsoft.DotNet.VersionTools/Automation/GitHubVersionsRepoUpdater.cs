@@ -137,8 +137,8 @@ namespace Microsoft.DotNet.VersionTools.Automation
                             message += $" for {prereleaseVersion}";
                         }
 
-                        GitTree tree = await client.PostTreeAsync(_project, mainRef, objects.ToArray());
-                        GitCommit commit = await client.PostCommitAsync(_project, message, tree.Sha, new[] { mainRef });
+                        GitTree tree = await client.PostTreeAsync(_project, mainSha, objects.ToArray());
+                        GitCommit commit = await client.PostCommitAsync(_project, message, tree.Sha, new[] { mainSha });
 
                         // Only fast-forward. Don't overwrite other changes: throw exception instead.
                         await client.PatchReferenceAsync(_project, mainRef, commit.Sha, force: false);
