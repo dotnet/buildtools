@@ -76,10 +76,10 @@ namespace Microsoft.DotNet.VersionTools.Automation
                 {
                     try
                     {
-                        // Master commit to use as new commit's parent.
-                        string masterRef = "heads/master";
-                        GitReference currentMaster = await client.GetReferenceAsync(_project, masterRef);
-                        string masterSha = currentMaster.Object.Sha;
+                        // Main commit to use as new commit's parent.
+                        string mainRef = "heads/main";
+                        GitReference currentMain = await client.GetReferenceAsync(_project, mainRef);
+                        string mainSha = currentMain.Object.Sha;
 
                         List<GitObject> objects = new List<GitObject>();
 
@@ -102,7 +102,7 @@ namespace Microsoft.DotNet.VersionTools.Automation
                             {
                                 await AddExistingPackages(
                                     client,
-                                    new GitHubBranch("master", _project),
+                                    new GitHubBranch("main", _project),
                                     versionsRepoPath,
                                     allPackages);
                             }
@@ -137,11 +137,11 @@ namespace Microsoft.DotNet.VersionTools.Automation
                             message += $" for {prereleaseVersion}";
                         }
 
-                        GitTree tree = await client.PostTreeAsync(_project, masterSha, objects.ToArray());
-                        GitCommit commit = await client.PostCommitAsync(_project, message, tree.Sha, new[] { masterSha });
+                        GitTree tree = await client.PostTreeAsync(_project, mainSha, objects.ToArray());
+                        GitCommit commit = await client.PostCommitAsync(_project, message, tree.Sha, new[] { mainSha });
 
                         // Only fast-forward. Don't overwrite other changes: throw exception instead.
-                        await client.PatchReferenceAsync(_project, masterRef, commit.Sha, force: false);
+                        await client.PatchReferenceAsync(_project, mainRef, commit.Sha, force: false);
 
                         Trace.TraceInformation($"Committed build-info update on attempt {i + 1}.");
                         break;

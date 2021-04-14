@@ -60,9 +60,9 @@ namespace Microsoft.DotNet.Build.Tasks.VersionTools
 
         protected DependencyUpdateResults UpdateToRemote(GitHubClient client)
         {
-            // Use the commit hash of the remote dotnet/versions repo master branch.
+            // Use the commit hash of the remote dotnet/versions repo main branch.
             string versionsCommitHash = client
-                .GetReferenceAsync(new GitHubProject("versions", "dotnet"), "heads/master")
+                .GetReferenceAsync(new GitHubProject("versions", "dotnet"), "heads/main")
                 .Result.Object.Sha;
 
             DependencyUpdateResults updateResults = DependencyUpdateUtils.Update(

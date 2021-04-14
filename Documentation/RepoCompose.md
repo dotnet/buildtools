@@ -8,11 +8,11 @@ Going forward repos will be given contracts, or APIs, that provide structured da
 - Official Windows signed build
 - Builds to quickly test and deploy new packages across repos
 
-These contracts will be included in the `run` command [specification](https://github.com/dotnet/buildtools/blob/master/Documentation/RunCommand.md).  This document in particular will be discussing the commands which allow us to compose the outputs of our repos.
+These contracts will be included in the `run` command [specification](RunCommand.md).  This document in particular will be discussing the commands which allow us to compose the outputs of our repos.
 
 ## Commands
 
-This document describes the commands used to compose different repos together.  There is a larger set of commands including `build`, `sync` and `clean` which is [described separately](https://github.com/dotnet/buildtools/blob/master/Documentation/Dev-workflow.md). 
+This document describes the commands used to compose different repos together.  There is a larger set of commands including `build`, `sync` and `clean` which is [described separately](Dev-workflow.md). 
 
 ### consumes
 

@@ -198,7 +198,7 @@
     <PropertyGroup>
       <VersionsRepo Condition="'$(VersionsRepo)' == ''">versions</VersionsRepo>
       <VersionsRepoOwner Condition="'$(VersionsRepoOwner)' == ''">dotnet</VersionsRepoOwner>
-      <VersionsRepoBranch Condition="'$(VersionsRepoBranch)' == ''">master</VersionsRepoBranch>
+      <VersionsRepoBranch Condition="'$(VersionsRepoBranch)' == ''">main</VersionsRepoBranch>
     </PropertyGroup>
   </Target>
 
@@ -217,7 +217,7 @@
       $(VersionsRepo): The GitHub repo name. Default: 'versions'
       $(VersionsRepoOwner): The GitHub repo owner. Default: 'dotnet'
       $(VersionsRepoRef): The git ref to fetch from. If not specified, uses VersionsRepoBranch.
-      $(VersionsRepoBranch): The branch to fetch from. Default: 'master'
+      $(VersionsRepoBranch): The branch to fetch from. Default: 'main'
     
     [Out]
     $(OrchestratedBuildId): The orchestrated build manifest's build id attribute value.
@@ -355,7 +355,7 @@
         'UpdateOrchestratedBuildManifest.cs' in dotnet/buildtools.
       $(VersionsRepo): The GitHub repo name. Default: 'versions'
       $(VersionsRepoOwner): The GitHub repo owner. Default: 'dotnet'
-      $(VersionsRepoBranch): The branch to fetch from. Default: 'master'
+      $(VersionsRepoBranch): The branch to fetch from. Default: 'main'
       $(OrchestratedIdentitySummary): Human-readable identity of the orchestrated build, used to
         generate a concise commit message. This is expected to come from
         FetchOrchestratedBuildManifestInfo.

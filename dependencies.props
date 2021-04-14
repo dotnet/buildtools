@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!-- Source of truth for dependency tooling: the commit hash of the dotnet/versions master branch as of the last auto-upgrade. -->
+  <!-- Source of truth for dependency tooling: the commit hash of the dotnet/versions main branch as of the last auto-upgrade. -->
   <PropertyGroup>
     <CoreFxCurrentRef>12abd697857d39b1a07dfae9e01d31f875500ebf</CoreFxCurrentRef>
     <CoreClrCurrentRef>a0ed75550803dad6df36961c168c21f33cd86f6d</CoreClrCurrentRef>

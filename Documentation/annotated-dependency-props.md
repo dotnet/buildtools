@@ -1,6 +1,6 @@
 # Annotated dependencies.props
 
-This file is used in CoreFX, CoreCLR, WCF, and BuildTools, located in the repository root. Below is a breakdown of [corefx's master dependencies.props](https://github.com/dotnet/corefx/blob/b57a43bb40fc2099e91d641a8b4f8c76a46afe6a/dependencies.props). It is used for dependency auto-upgrade and dependency verification.
+This file is used in CoreFX, CoreCLR, WCF, and BuildTools, located in the repository root. Below is a breakdown of [corefx's dependencies.props](https://github.com/dotnet/corefx/blob/b57a43bb40fc2099e91d641a8b4f8c76a46afe6a/dependencies.props). It is used for dependency auto-upgrade and dependency verification.
 
 ``` xml
 <PropertyGroup>
@@ -11,7 +11,7 @@ This file is used in CoreFX, CoreCLR, WCF, and BuildTools, located in the reposi
 </PropertyGroup>
 ```
 
-Source of truth for dependency tooling: the commit hash of the dotnet/versions master branch as of the last auto-upgrade. These are used with the GitHub raw api to download build-infos.
+Source of truth for dependency tooling: the commit hash of the dotnet/versions main branch as of the last auto-upgrade. These are used with the GitHub raw api to download build-infos.
 
 In `/t:UpdateDependenciesAndSubmitPullRequest`, the task first finds the latest CurrentRef of the dotnet/versions repository, which when used with the raw API will return the latest version of *every* build info. The update proceeds, using that latest build-info data. After updating, the task determines which build-infos were used and updates only the used build-info `*CurrentRef`s in the above part of dependencies.props.
 
@@ -47,7 +47,7 @@ Similar to the `*ExpectedPrerelease` properties, but these are for specific name
 <!-- Package dependency verification/auto-upgrade configuration. -->
 <PropertyGroup>
 	<BaseDotNetBuildInfo>build-info/dotnet/</BaseDotNetBuildInfo>
-	<DependencyBranch>master</DependencyBranch>
+	<DependencyBranch>main</DependencyBranch>
 	<CurrentRefXmlPath>$(MSBuildThisFileFullPath)</CurrentRefXmlPath>
 </PropertyGroup>
 ```

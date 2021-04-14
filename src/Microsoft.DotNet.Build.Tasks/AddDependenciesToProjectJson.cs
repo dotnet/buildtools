@@ -225,7 +225,7 @@ namespace Microsoft.DotNet.Build.Tasks
             }
         }
 
-        // A versions file is of the form https://raw.githubusercontent.com/dotnet/versions/master/build-info/dotnet/corefx/release/1.0.0/LKG_Packages.txt
+        // A versions file is of the form https://raw.githubusercontent.com/dotnet/versions/main/build-info/dotnet/corefx/release/1.0.0/LKG_Packages.txt
         private Dictionary<string, PackageItem> GatherPackageInformationFromVersionsFile(Uri uri, VersionComparer comparer = null)
         {
             Dictionary<string, PackageItem> packageItems = new Dictionary<string, PackageItem>();

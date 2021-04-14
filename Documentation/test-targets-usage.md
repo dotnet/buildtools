@@ -42,7 +42,7 @@ msbuild /t:Test /p:TestTFM=net46 /p:TargetGroup=netstandard1.3 /p:OSGroup=Window
 msbuild /t:Test /p:TestTFM=netcore50 /p:TargetGroup=netstandard1.3 /p:OSGroup=Windows_NT /p:TestNugetRuntimeId=win10-x64 System.Collections.Concurrent.Tests.csproj
 ```
 
-As the above commands suggest, it is often necessary to specify the `TargetGroup` and/or `OSGroup` together with the `TestTFM`.  For this purpose, CoreFX provides a .builds file for each test project which specifies supported configurations for the project.  These can be used to build a specified TFM by using just `FilterToTestTFM` property.  See [CoreFX's developer guide](https://github.com/dotnet/corefx/blob/master/Documentation/project-docs/developer-guide.md#running-tests-in-a-different-tfm) for more information on this approach.
+As the above commands suggest, it is often necessary to specify the `TargetGroup` and/or `OSGroup` together with the `TestTFM`.  For this purpose, CoreFX provides a .builds file for each test project which specifies supported configurations for the project.  These can be used to build a specified TFM by using just `FilterToTestTFM` property.  See [CoreFX's developer guide](https://github.com/dotnet/corefx/blob/release/3.1/Documentation/project-docs/developer-guide.md#running-tests-in-a-different-tfm) for more information on this approach.
 
 #### Build and run tests with .NET Native (Windows only)
 
