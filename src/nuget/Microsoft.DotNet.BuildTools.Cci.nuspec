@@ -35,7 +35,7 @@
         <dependency id="System.Runtime.Extensions" version="4.3.0" />
         <dependency id="System.Runtime.InteropServices" version="4.3.0" />
         <dependency id="System.Text.Encoding" version="4.3.0" />
-        <dependency id="System.Text.RegularExpressions" version="4.3.0" />
+        <dependency id="System.Text.RegularExpressions" version="4.3.1" />
         <dependency id="System.Threading" version="4.3.0" />
         <dependency id="System.Xml.XDocument" version="4.3.0" />
     </dependencies>
